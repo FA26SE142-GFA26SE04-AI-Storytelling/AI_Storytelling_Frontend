@@ -1,5 +1,9 @@
 # AI Storytelling Frontend
 
+[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live%20Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-storytelling-frontend.vercel.app/)
+
+🌐 **Live Demo Website**: [https://ai-storytelling-frontend.vercel.app/](https://ai-storytelling-frontend.vercel.app/)
+
 Frontend application for the AI Storytelling platform, built with **Next.js 16**, **React 19**, **TypeScript**, and **TailwindCSS 4**.
 
 ## Tech Stack
