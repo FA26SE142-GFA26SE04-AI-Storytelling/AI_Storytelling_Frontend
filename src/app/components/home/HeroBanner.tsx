@@ -52,12 +52,12 @@ export const HeroBanner: React.FC = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-14 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-14 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
         {/* Left Column: Headline & Controls */}
-        <div className="lg:col-span-7 flex flex-col gap-5">
+        <div className="lg:col-span-7 flex flex-col gap-4 sm:gap-5">
           {/* Top Announcement Pill */}
-          <div className="self-start inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-tertiary-container/20 text-on-tertiary-container dark:text-emerald-300 text-xs font-bold border border-tertiary-container/30 shadow-2xs">
+          <div className="self-start inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-tertiary-container/20 text-on-tertiary-container dark:text-emerald-300 text-xs font-bold border border-tertiary-container/30 shadow-2xs">
             <span className="w-2 h-2 rounded-full bg-tertiary-container animate-pulse" />
             <span>{t('hero.announcement')}</span>
           </div>
@@ -104,13 +104,13 @@ export const HeroBanner: React.FC = () => {
             </div>
           </div>
 
-          {/* CTA Buttons */}
-          <div className="flex flex-wrap items-center gap-3 pt-2">
+          {/* CTA Buttons - Full width on mobile for easy tap */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
             <Button
               variant="primary"
               size="lg"
               icon={<Sparkles className="w-5 h-5 text-secondary-container fill-current" />}
-              className="animate-float-subtle-1 hover:scale-102"
+              className="animate-float-subtle-1 hover:scale-102 w-full sm:w-auto justify-center"
             >
               {t('hero.btnCreate')}
             </Button>
@@ -118,28 +118,28 @@ export const HeroBanner: React.FC = () => {
               variant="outline"
               size="lg"
               icon={<Play className="w-4 h-4 fill-current" />}
-              className="animate-float-subtle-2 hover:scale-102"
+              className="animate-float-subtle-2 hover:scale-102 w-full sm:w-auto justify-center"
             >
               {t('hero.btnListenSample')}
             </Button>
           </div>
 
-          {/* Trust Badges (Tự động đổi 3 màu theo Light/Dark Theme từ CSS Global) */}
+          {/* Trust Badges (Responsive Pill for Mobile & Desktop) */}
           <div
-            className="badge-gradient-pill mt-2 py-2 px-2.5 sm:py-2.5 sm:px-4 rounded-full text-white shadow-md shadow-rose-500/20 dark:shadow-black/40 flex items-center justify-between gap-1 sm:gap-2 text-[10px] min-[400px]:text-[11px] sm:text-xs font-bold whitespace-nowrap overflow-hidden"
+            className="badge-gradient-pill mt-2 py-2 px-3 sm:py-2.5 sm:px-4 rounded-2xl sm:rounded-full text-white shadow-md shadow-rose-500/20 dark:shadow-black/40 flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-between gap-2 sm:gap-2 text-[11px] sm:text-xs font-bold"
           >
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-              <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0 drop-shadow-xs" />
+            <div className="flex items-center gap-1.5 shrink-0">
+              <ShieldCheck className="w-4 h-4 text-white shrink-0 drop-shadow-xs" />
               <span className="drop-shadow-xs">{t('hero.badges.safe')}</span>
             </div>
-            <span className="opacity-60 text-white shrink-0">•</span>
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-              <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0 drop-shadow-xs" />
+            <span className="hidden sm:inline opacity-60 text-white shrink-0">•</span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Mic className="w-4 h-4 text-white shrink-0 drop-shadow-xs" />
               <span className="drop-shadow-xs">{t('hero.badges.voice')}</span>
             </div>
-            <span className="opacity-60 text-white shrink-0">•</span>
-            <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-              <ThumbsUp className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white shrink-0 drop-shadow-xs" />
+            <span className="hidden sm:inline opacity-60 text-white shrink-0">•</span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <ThumbsUp className="w-4 h-4 text-white shrink-0 drop-shadow-xs" />
               <span className="drop-shadow-xs">{t('hero.badges.trusted')}</span>
             </div>
           </div>

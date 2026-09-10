@@ -101,14 +101,14 @@ export const AudioPlayerSection: React.FC = () => {
           </div>
 
           {/* Sub Controls */}
-          <div className="flex items-center justify-between gap-2 pt-2 border-t border-outline-variant/30">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2 pt-2 border-t border-outline-variant/30">
             <button
               onClick={handleSpeedToggle}
-              className="px-3 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs flex items-center gap-1 hover:scale-105 active:scale-95 cursor-pointer transition-all"
+              className="px-3 py-1.5 rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface font-bold text-xs flex items-center justify-center gap-1 hover:scale-105 active:scale-95 cursor-pointer transition-all"
             >
               🚀 Tốc độ: {speeds[speedIndex]}
             </button>
-            <button className="px-3 py-1.5 rounded-full border border-outline-variant/40 hover:bg-surface-container text-on-surface font-bold text-xs flex items-center gap-1 hover:scale-105 active:scale-95 cursor-pointer transition-all">
+            <button className="px-3 py-1.5 rounded-full border border-outline-variant/40 hover:bg-surface-container text-on-surface font-bold text-xs flex items-center justify-center gap-1 hover:scale-105 active:scale-95 cursor-pointer transition-all">
               <BookOpen className="w-3.5 h-3.5 text-primary-container" />
               <span>Mở tranh đọc</span>
             </button>
@@ -124,7 +124,7 @@ export const AudioPlayerSection: React.FC = () => {
 
         <div>
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-indigo-800/60 pb-3 mb-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-indigo-800/60 pb-3 mb-4">
             <div className="flex items-center gap-2">
               <span className="p-1.5 rounded-xl bg-indigo-900/80 text-amber-300">
                 <Moon className="w-4 h-4 fill-amber-300" />
@@ -138,7 +138,7 @@ export const AudioPlayerSection: React.FC = () => {
                 </p>
               </div>
             </div>
-            <span className="px-2.5 py-1 rounded-full bg-indigo-900/90 border border-indigo-700 text-amber-300 text-[11px] font-bold flex items-center gap-1 hover:scale-105 transition-transform cursor-pointer">
+            <span className="px-2.5 py-1 rounded-full bg-indigo-900/90 border border-indigo-700 text-amber-300 text-[11px] font-bold flex items-center gap-1 hover:scale-105 transition-transform cursor-pointer self-start sm:self-auto">
               <Clock className="w-3 h-3" />
               Hẹn giờ: 20 phút
             </span>

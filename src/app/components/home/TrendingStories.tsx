@@ -39,7 +39,7 @@ export const TrendingStories: React.FC = () => {
       </div>
 
       {/* Grid of Story Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 min-[480px]:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {TRENDING_STORIES.map((story) => (
           <StoryCard key={story.id} story={story} />
         ))}

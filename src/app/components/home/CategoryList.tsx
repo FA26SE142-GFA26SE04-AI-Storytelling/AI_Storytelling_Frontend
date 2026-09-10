@@ -7,7 +7,7 @@ export const CategoryList: React.FC = () => {
   return (
     <section className="mb-12">
       {/* Section Header */}
-      <div className="flex items-end justify-between mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 mb-6">
         <div>
           <h2 className="heading-section flex items-center gap-2">
             Khám Phá Thế Giới Kỳ Thú 🌈
@@ -18,7 +18,7 @@ export const CategoryList: React.FC = () => {
         </div>
         <Link
           href="/categories"
-          className="group text-xs sm:text-sm font-bold text-primary-container hover:underline flex items-center gap-1 transition-colors"
+          className="group text-xs sm:text-sm font-bold text-primary-container hover:underline flex items-center gap-1 transition-colors self-end sm:self-auto"
         >
           <span>Xem tất cả</span>
           <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
