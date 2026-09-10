@@ -90,17 +90,20 @@ export const Header: React.FC = () => {
             <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-primary-container ring-2 ring-surface-container-lowest"></span>
           </button>
 
-          {/* User Profile Avatar */}
-          <div className="flex items-center gap-1.5 pl-1 sm:pl-2 border-l border-outline-variant/30">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-300 to-rose-400 dark:from-amber-400 dark:to-teal-400 p-0.5 shadow-2xs">
-              <div className="w-full h-full rounded-full bg-surface-container flex items-center justify-center text-xs font-bold text-on-surface">
-                🐻
-              </div>
-            </div>
-            <div className="hidden lg:flex flex-col text-left">
-              <span className="text-xs font-bold text-on-surface leading-tight">{t('header.userAccount')}</span>
-              <span className="text-[10px] text-on-surface-variant font-medium opacity-80">{t('header.accountType')}</span>
-            </div>
+          {/* Auth Action Buttons: Sign In & Sign Up (Hidden on mobile, available in Mobile Menu) */}
+          <div className="hidden sm:flex items-center gap-1.5 sm:gap-2 pl-1 sm:pl-2 border-l border-outline-variant/30">
+            <Link
+              href="/signin"
+              className="px-3 py-1.5 rounded-full text-xs font-bold text-on-surface hover:text-primary-container border border-outline-variant/40 hover:border-primary-container/60 transition-all cursor-pointer whitespace-nowrap"
+            >
+              Đăng nhập
+            </Link>
+            <Link
+              href="/signup"
+              className="px-3.5 py-1.5 rounded-full text-xs font-bold bg-primary-container hover:brightness-105 text-on-primary-container shadow-2xs hover:scale-102 active:scale-95 transition-all cursor-pointer whitespace-nowrap"
+            >
+              Đăng ký
+            </Link>
           </div>
 
           {/* Mobile Menu Toggle Button */}
@@ -158,8 +161,26 @@ export const Header: React.FC = () => {
             <span>{t('header.parentCorner')}</span>
           </Link>
 
+          {/* Mobile Auth Buttons */}
+          <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-outline-variant/30">
+            <Link
+              href="/signin"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="py-2 px-3 rounded-xl border border-outline-variant/40 text-center font-bold text-xs text-on-surface hover:bg-surface-container transition-colors"
+            >
+              Đăng nhập
+            </Link>
+            <Link
+              href="/signup"
+              onClick={() => setIsMobileMenuOpen(false)}
+              className="py-2 px-3 rounded-xl bg-primary-container text-on-primary-container text-center font-bold text-xs shadow-xs hover:brightness-105 transition-all"
+            >
+              Đăng ký
+            </Link>
+          </div>
+
           {/* Mobile Coins Badge inside Drawer */}
-          <div className="mt-2 pt-2 border-t border-outline-variant/20 flex items-center justify-between px-2">
+          <div className="pt-2 flex items-center justify-between px-2">
             <div className="flex items-center gap-2">
               <Coins className="w-4 h-4 text-amber-500 fill-amber-400" />
               <span className="text-xs font-bold text-on-surface">{t('header.coins')}</span>
