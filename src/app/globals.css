@@ -1,26 +1,568 @@
 @import "tailwindcss";
 
+/* Cấu hình variant 'dark' cho Tailwind CSS v4 chỉ kích hoạt khi có class .dark hoặc data-theme="dark" */
+@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
+
+/* ==========================================================================
+   WonderSpun (CHẾ ĐỘ SÁNG TƯƠI SÁNG - VIBRANT LIGHT THEME) - MẶC ĐỊNH :root
+   ========================================================================== */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* --- MÀU NỀN & BỀ MẶT (Surfaces & Canvas - Fresh & Bright) --- */
+  --surface: #fff7e6;
+  /* Nền bề mặt tươi sáng */
+  --surface-dim: #f2e3c9;
+  /* Nền tối nhẹ khi disabled */
+  --surface-bright: #ffffff;
+  /* Nền sáng rực rỡ */
+  --surface-container-lowest: #FFEFD3;
+  /* Nền trắng sạch thuần khiết, làm các Card & Header vô cùng nổi bật */
+  --surface-container-low: #FFDF9B;
+  /* Nền khung container cấp thấp kem nắng tươi nhạt */
+  --surface-container: #EDC157;
+  /* Nền khung container chuẩn tươi tắn (Dùng cho thanh Menu Nav, ô Input) */
+  --surface-container-high: #CFA53F;
+  /* Nền khung container cấp cao */
+  --surface-container-highest: #B28B26;
+  /* Nền khung container cấp cao nhất */
+  --surface-variant: #967207;
+  /* Biến thể nền bề mặt */
+
+  /* --- MÀU CHỮ & VĂN BẢN (Typography & Text) --- */
+  --on-surface: #1e1b18;
+  /* MÀU CHỮ CHÍNH: Tiêu đề H1-H6, tên câu chuyện (Đen đậm rõ nét) */
+  --on-surface-variant: #4e4438;
+  /* MÀU CHỮ PHỤ: Đoạn văn mô tả, thông tin phụ */
+  --inverse-surface: #322d26;
+  /* Bề mặt tương phản đảo ngược màu */
+  --inverse-on-surface: #fff8f0;
+  /* Màu chữ hiển thị trên bề mặt đảo ngược */
+  --background: #fff6e5;
+  /* MÀU NỀN TOÀN TRANG (App Canvas) - Kem nắng ấm áp, tươi tắn, dịu mắt */
+  --on-background: #1e1b18;
+  /* MÀU CHỮ TRÊN NỀN TOÀN TRANG */
+
+  /* --- VIỀN & ĐIỂM NHẤN (Outlines & Tints) --- */
+  --outline: #9e866b;
+  /* Viền viền nét chuẩn */
+  --outline-variant: #f3dfc6;
+  /* Viền mỏng nhạt tươi sáng (Viền Card, viền Header, viền ô nhập) */
+  --surface-tint: #ff5a5a;
+  /* Tông màu phủ điểm nhấn */
+
+  /* --- MÀU CHỦ ĐẠO (Primary Colors - Vibrant Coral) --- */
+  --primary: #e63946;
+  /* Màu chủ đạo đỏ tươi rực rỡ */
+  --on-primary: #ffffff;
+  /* Màu chữ nằm trên nút Primary */
+  --primary-container: #ff5a5a;
+  /* MÀU NÚT CHÍNH (Vibrant Playful Coral): Nút 'Tạo truyện AI', 'Đọc & Nghe' tươi rực */
+  --on-primary-container: #ffffff;
+  /* Màu chữ hiển thị trên nút Primary Container */
+  --inverse-primary: #ffb3b0;
+  /* Màu primary đảo ngược */
+
+  /* --- MÀU PHỤ (Secondary Colors - Sunny Honey) --- */
+  --secondary: #d97706;
+  /* Màu phụ vàng mật tươi */
+  --on-secondary: #ffffff;
+  /* Màu chữ trên nền secondary */
+  --secondary-container: #ffc736;
+  /* MÀU NỔI BẬT (Sunny Honey): Huy hiệu xu 💰, điểm đánh giá ⭐ rực rỡ */
+  --on-secondary-container: #5c3000;
+  /* Màu chữ trên huy hiệu màu phụ */
+
+  /* --- MÀU BỔ TRỢ (Tertiary Colors - Magic Mint) --- */
+  --tertiary: #059669;
+  /* Màu bổ trợ xanh tươi */
+  --on-tertiary: #ffffff;
+  /* Màu chữ trên nền tertiary */
+  --tertiary-container: #00d696;
+  /* MÀU XANH MINT TƯƠI (Vibrant Magic Mint): Nút 'Nghe ngay', huy hiệu KID-SAFE */
+  --on-tertiary-container: #ffffff;
+  /* Màu chữ trên container bổ trợ */
+
+  /* --- MÀU LỖI & CẢNH BÁO (Errors) --- */
+  --error: #dc2626;
+  /* Màu thông báo lỗi tươi */
+  --on-error: #ffffff;
+  /* Màu chữ trên nền lỗi */
+  --error-container: #fee2e2;
+  /* Khung chứa thông báo lỗi */
+  --on-error-container: #991b1b;
+  /* Màu chữ trong khung lỗi */
+
+  /* --- BẢNG MÀU CỐ ĐỊNH (Fixed Variations) --- */
+  --primary-fixed: #ffdad8;
+  --primary-fixed-dim: #ffb3b0;
+  --on-primary-fixed: #410006;
+  --on-primary-fixed-variant: #8c1520;
+
+  --secondary-fixed: #ffdf9b;
+  --secondary-fixed-dim: #edc157;
+  --on-secondary-fixed: #251a00;
+  --on-secondary-fixed-variant: #5b4300;
+
+  --tertiary-fixed: #54fdc4;
+  --tertiary-fixed-dim: #27e0a9;
+  --on-tertiary-fixed: #002116;
+  --on-tertiary-fixed-variant: #00513b;
+
+  /* --- BẢNG MÀU THƯƠNG HIỆU TƯƠI SÁNG (Custom Vibrant Brand Accents) --- */
+  --playful-coral: #ff5a5a;
+  /* Hồng san hô tươi rực */
+  --sunlit-honey: #ffc736;
+  /* Vàng nắng tươi rực */
+  --magic-mint: #00d696;
+  /* Xanh mint tươi mát */
+  --dream-sky: #38bdf8;
+  /* Xanh da trời tươi rực */
+  --fairy-dusk: #c084fc;
+  /* Tím mộng mơ tươi */
+  --warm-cream: #fff7e6;
+  /* Kem nắng tươi dịu mắt */
+  --deep-sea-ink: #1e293b;
+  /* Xanh đậm mực biển */
+
+  /* --- MÀU GRADIENT KHUNG TRUST BADGES (WonderSpun Light Theme) --- */
+  --badge-gradient-1: #06D6A0;
+  /* Màu xanh mint tươi sáng */
+  --badge-gradient-2: #FFD166;
+  /* Màu hồng san hô tươi sáng */
+  --badge-gradient-3: #FF6B6B;
+  /* Màu vàng nắng tươi sáng */
 }
 
+/* ==========================================================================
+   Enchanted Midnight (CHẾ ĐỘ BAN ĐÊM - DARK THEME)
+   ========================================================================== */
+[data-theme="dark"],
+.dark {
+  /* --- MÀU NỀN & BỀ MẶT ĐÊM (Night Surfaces & Canvas) --- */
+  --surface: #0f131c;
+  /* Nền bề mặt đêm chính */
+  --surface-dim: #0f131c;
+  /* Nền đêm tối sâu */
+  --surface-bright: #353943;
+  /* Nền đêm nổi bật */
+  --surface-container-lowest: #181B25;
+  /* Nền Obsidian sẫm cho Card, Header, Footer khi ở Ban đêm */
+  --surface-container-low: #2C303A;
+  /* Nền khung container đêm nhạt */
+  --surface-container: #434751;
+  /* Nền khung container đêm chuẩn (Menu Nav, Input đêm) */
+  --surface-container-high: #5A5E69;
+  /* Nền khung container đêm nổi bật */
+  --surface-container-highest: #737782;
+  /* Nền khung container đêm cấp cao nhất */
+  --surface-variant: #8D909C;
+  /* Biến thể nền đêm */
+
+  /* --- MÀU CHỮ ĐÊM (Night Typography & Text) --- */
+  --on-surface: #dfe2ef;
+  /* MÀU CHỮ CHÍNH BAN ĐÊM: Sáng ánh bạc moonlit, rõ nét không chói */
+  --on-surface-variant: #d6c4b0;
+  /* MÀU CHỮ PHỤ BAN ĐÊM: Màu cát dịu êm cho đêm */
+  --inverse-surface: #dfe2ef;
+  /* Bề mặt tương phản ban đêm */
+  --inverse-on-surface: #A8ABB7;
+  /* Màu chữ trên bề mặt tương phản ban đêm */
+  --background: #0f131c;
+  /* MÀU NỀN TOÀN TRANG BAN ĐÊM (Midnight Canvas) */
+  --on-background: #dfe2ef;
+  /* MÀU CHỮ NỀN BAN ĐÊM */
+
+  /* --- VIỀN & ĐIỂM NHẤN ĐÊM (Night Outlines) --- */
+  --outline: #9e8e7c;
+  /* Viền ban đêm */
+  --outline-variant: #283556;
+  /* Viền xanh vũ trụ (Cosmic Border) mỏng dịu */
+  --surface-tint: #ffb951;
+  /* Điểm nhấn ánh sao phủ bề mặt */
+
+  /* --- MÀU CHỦ ĐẠO BAN ĐÊM (Night Primary) --- */
+  --primary: #ffdcb0;
+  /* Màu chủ đạo ban đêm (Hổ phách ấm) */
+  --on-primary: #452b00;
+  /* Màu chữ trên nút primary đêm */
+  --primary-container: #ffb84d;
+  /* MÀU NÚT CHÍNH ĐÊM (Starlight Amber): Nút nổi bật ánh sao */
+  --on-primary-container: #714a00;
+  /* Màu chữ trên nút primary container đêm */
+  --inverse-primary: #825500;
+  /* Màu primary đảo ngược đêm */
+
+  /* --- MÀU PHỤ BAN ĐÊM (Night Secondary) --- */
+  --secondary: #44f3d6;
+  /* Màu phụ ban đêm (Xanh huỳnh quang) */
+  --on-secondary: #00382f;
+  /* Màu chữ trên nền secondary đêm */
+  --secondary-container: #00A38E;
+  /* MÀU NỔI BẬT ĐÊM (Bioluminescent Teal): Phát sáng dạ quang dịu */
+  --on-secondary-container: #50fbdf;
+  /* Màu chữ sáng trên huy hiệu secondary ban đêm (Xanh ngọc phát sáng) */
+
+  /* --- MÀU BỔ TRỢ BAN ĐÊM (Night Tertiary) --- */
+  --tertiary: #ebdbff;
+  /* Màu bổ trợ ban đêm (Tím thạch anh) */
+  --on-tertiary: #410a84;
+  /* Màu chữ trên nền tertiary đêm */
+  --tertiary-container: #d4b9ff;
+  /* MÀU TÍM ÁNH SAO (Astral Amethyst): Chế độ ru ngủ, hẹn giờ ban đêm */
+  --on-tertiary-container: #6339a7;
+  /* Màu chữ trên container bổ trợ đêm */
+
+  /* --- MÀU LỖI BAN ĐÊM (Night Errors) --- */
+  --error: #ffb4ab;
+  --on-error: #690005;
+  --error-container: #93000a;
+  --on-error-container: #ffdad6;
+
+  /* --- BẢNG MÀU ĐÊM CỐ ĐỊNH --- */
+  --primary-fixed: #ffddb3;
+  --primary-fixed-dim: #ffb951;
+  --on-primary-fixed: #291800;
+  --on-primary-fixed-variant: #633f00;
+
+  --secondary-fixed: #50fbdf;
+  --secondary-fixed-dim: #1cdec3;
+  --on-secondary-fixed: #00201b;
+  --on-secondary-fixed-variant: #005045;
+
+  --tertiary-fixed: #ecdcff;
+  --tertiary-fixed-dim: #d5baff;
+  --on-tertiary-fixed: #270057;
+  --on-tertiary-fixed-variant: #582c9b;
+
+  /* --- MÀU ĐẶC THÙ VŨ TRỤ BAN ĐÊM (Midnight Custom Accents) --- */
+  --midnight-canvas: #090d16;
+  /* Nền canvas vũ trụ đêm huyền bí */
+  --obsidian-surface: #0f1626;
+  /* Bề mặt đá Obsidian sẫm */
+  --indigo-elevated: #172038;
+  /* Khung nổi màu Indigo đêm */
+  --cosmic-border: #283556;
+  /* Viền xanh vũ trụ */
+  --starlight-amber: #ffb84d;
+  /* Hổ phách ánh sao */
+  --amber-glow: #ffa114;
+  /* Ánh hào quang vàng */
+  --bioluminescent-teal: #2ee6ca;
+  /* Xanh phát quang dạ học */
+  --astral-amethyst: #b78cff;
+  /* Tím chòm sao */
+  --celestial-sky: #5ce1e6;
+  /* Xanh da trời đêm */
+  --nebula-rose: #ff7597;
+  /* Hồng tinh vân */
+  --stardust-white: #f0f4fc;
+  /* Trắng bụi sao */
+  --moonlit-silver: #b2bdd4;
+  /* Bạc ánh trăng */
+  --night-whisper: #6e7e9e;
+  /* Xám thì xầm ban đêm */
+
+  /* --- MÀU GRADIENT KHUNG TRUST BADGES BAN ĐÊM (Enchanted Midnight Dark Theme - 3 màu tối trầm dịu mắt) --- */
+  --badge-gradient-1: #B78CFF;
+  /* Màu xanh mint/emerald sẫm dịu mắt đêm */
+  --badge-gradient-2: #2EE6CA;
+  /* Màu đỏ san hô/rose sẫm dịu mắt đêm */
+  --badge-gradient-3: #FFB84D;
+  /* Màu vàng hổ phách/amber sẫm dịu mắt đêm */
+}
+
+/* ==========================================================================
+   ÁNH XẠ MÀU TAILWIND CSS (Tailwind CSS Theme Utility Tokens)
+   ========================================================================== */
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-on-background: var(--on-background);
+  --color-surface: var(--surface);
+  --color-surface-dim: var(--surface-dim);
+  --color-surface-bright: var(--surface-bright);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-surface-variant: var(--surface-variant);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-primary-container: var(--primary-container);
+  --color-on-primary-container: var(--on-primary-container);
+
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+
+  --color-tertiary: var(--tertiary);
+  --color-on-tertiary: var(--on-tertiary);
+  --color-tertiary-container: var(--tertiary-container);
+  --color-on-tertiary-container: var(--on-tertiary-container);
+
+  --font-sans: var(--font-nunito-sans), system-ui, sans-serif;
+  --font-heading: var(--font-comfortaa), cursive, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ==========================================================================
+   QUY TẮC PHÔNG CHỮ & NỀN MẶC ĐỊNH
+   ========================================================================== */
+body {
+  background-color: var(--background);
+  color: var(--on-background);
+  font-family: var(--font-nunito-sans), system-ui, sans-serif;
+}
+
+/* ==========================================================================
+   HỆ THỐNG PHÔNG CHỮ & TIÊU ĐỀ TRUNG TÂM (CENTRAL TYPOGRAPHY & HEADING SYSTEM)
+   ========================================================================== */
+
+/* 1. Thiết lập mặc định cho tất cả các thẻ Tiêu đề HTML */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-comfortaa), cursive, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--on-surface);
+}
+
+/* 2. Tiêu đề Trang chính / Hero (Headline 1) */
+.heading-hero,
+.heading-1 {
+  font-family: var(--font-comfortaa), cursive, sans-serif;
+  font-size: clamp(2rem, 4.5vw, 3.25rem);
+  font-weight: 900;
+  line-height: 1.25;
+  letter-spacing: -0.025em;
+  color: var(--on-surface);
+}
+
+/* 3. Tiêu đề Mục lớn / Section (Headline 2) */
+.heading-section,
+.heading-2 {
+  font-family: var(--font-comfortaa), cursive, sans-serif;
+  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
+  font-weight: 800;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--on-surface);
+}
+
+/* 4. Tiêu đề Thẻ / Card / Modal (Headline 3) */
+.heading-card,
+.heading-3 {
+  font-family: var(--font-comfortaa), cursive, sans-serif;
+  font-size: clamp(1rem, 1.8vw, 1.25rem);
+  font-weight: 800;
+  line-height: 1.35;
+  color: var(--on-surface);
+}
+
+/* 5. Tiêu đề Nhỏ / Sub-heading (Headline 4) */
+.heading-sm,
+.heading-4 {
+  font-family: var(--font-comfortaa), cursive, sans-serif;
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--on-surface);
+}
+
+/* 6. Đoạn văn mô tả phụ tiêu đề (Subtitle / Lead Description) */
+.text-subtitle {
+  font-family: var(--font-nunito-sans), system-ui, sans-serif;
+  font-size: clamp(0.875rem, 1.2vw, 1rem);
+  font-weight: 500;
+  line-height: 1.6;
+  color: var(--on-surface-variant);
+  opacity: 0.9;
+}
+
+/* 7. Nhãn dán / Thẻ phân loại trên tiêu đề (Eyebrow Label) */
+.badge-eyebrow-label {
+  font-family: var(--font-nunito-sans), system-ui, sans-serif;
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* 8. Chữ dải màu nổi bật (Gradient Highlight Text) */
+.text-gradient-primary {
+  background: linear-gradient(135deg, var(--badge-gradient-1), var(--badge-gradient-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+/* ==========================================================================
+   HỆ THỐNG HIỆU ỨNG TRUNG TÂM (CENTRAL ANIMATION & EFFECT REGISTRY)
+   ========================================================================== */
+
+/* 1. Hiệu ứng Hào quang Tỏa sáng Xung quanh (Radiant Glow Aura) */
+.radiant-glow-aura {
+  position: absolute;
+  inset: -0.5rem;
+  border-radius: 2.2rem;
+  background: linear-gradient(135deg, var(--badge-gradient-1), var(--badge-gradient-2), var(--badge-gradient-3));
+  filter: blur(16px);
+  opacity: 0.45;
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: none;
+  transition: all 0.5s ease;
+}
+
+[data-theme="dark"] .radiant-glow-aura,
+.dark .radiant-glow-aura {
+  opacity: 0.40;
+}
+
+.group:hover .radiant-glow-aura {
+  opacity: 0.75;
+  filter: blur(24px);
+}
+
+/* 2. Hiệu ứng Khung dải màu 3 sắc (3-Color Badge Gradient Pill) */
+.badge-gradient-pill {
+  background: linear-gradient(
+    90deg,
+    var(--badge-gradient-1) 0%,
+    var(--badge-gradient-1) 30%,
+    var(--badge-gradient-2) 38%,
+    var(--badge-gradient-2) 62%,
+    var(--badge-gradient-3) 70%,
+    var(--badge-gradient-3) 100%
+  );
+}
+
+/* 3. Hiệu ứng Nền Container Dòng chảy (Animated Container Gradient Flow) */
+.hero-animated-bg {
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--badge-gradient-1) 20%, var(--background)) 0%,
+    color-mix(in srgb, var(--badge-gradient-2) 20%, var(--background)) 50%,
+    color-mix(in srgb, var(--badge-gradient-3) 20%, var(--background)) 100%
+  );
+  background-size: 200% 200%;
+  animation: gradient-flow 5.5s ease infinite;
+}
+
+/* 4. Hiệu ứng Ánh sáng vụt qua nút bấm (Button Shimmer Animation) */
+@keyframes button-shimmer {
+  0% {
+    transform: translateX(-160%) skewX(-25deg);
+  }
+  45%, 100% {
+    transform: translateX(360%) skewX(-25deg);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.animate-btn-shimmer {
+  animation: button-shimmer 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* 5. Hiệu ứng Dải màu nền dòng chảy (Gradient Flow) */
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animate-gradient-flow {
+  background-size: 200% 200%;
+  animation: gradient-flow 5.5s ease infinite;
+}
+
+/* 6. Hiệu ứng Quả cầu dải màu bồng bềnh (Floating Blobs) */
+@keyframes float-blob-1 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(35px, -45px) scale(1.12);
+  }
+  66% {
+    transform: translate(-25px, 25px) scale(0.92);
+  }
+}
+
+@keyframes float-blob-2 {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(-45px, 35px) scale(1.08);
+  }
+  66% {
+    transform: translate(30px, -35px) scale(0.94);
+  }
+}
+
+.animate-float-blob-1 {
+  animation: float-blob-1 5s ease-in-out infinite;
+}
+
+.animate-float-blob-2 {
+  animation: float-blob-2 6s ease-in-out infinite;
+}
+
+/* 7. Hiệu ứng Ngôi sao phép thuật lấp lánh (Twinkling Stardust) */
+@keyframes twinkle {
+  0%, 100% {
+    opacity: 0.25;
+    transform: scale(0.85) rotate(0deg);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.3) rotate(20deg);
+  }
+}
+
+.animate-twinkle-1 {
+  animation: twinkle 2.6s ease-in-out infinite;
+}
+
+.animate-twinkle-2 {
+  animation: twinkle 3.4s ease-in-out 0.7s infinite;
+}
+
+.animate-twinkle-3 {
+  animation: twinkle 4.1s ease-in-out 1.4s infinite;
+}
+
+/* 8. Hiệu ứng Nút bấm nhấp nhô bồng bềnh nhẹ (Subtle Floating Buttons) */
+@keyframes float-subtle {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-float-subtle-1 {
+  animation: float-subtle 4s ease-in-out infinite;
+}
+
+.animate-float-subtle-2 {
+  animation: float-subtle 4s ease-in-out 1.3s infinite;
+}
+
+.animate-float-subtle-3 {
+  animation: float-subtle 4s ease-in-out 2.6s infinite;
 }

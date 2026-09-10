@@ -11,6 +11,35 @@ Frontend application for the AI Storytelling platform, built with **Next.js 16**
 | TypeScript    | 5.x     |
 | TailwindCSS   | 4.x     |
 
+## Color Palette & Design System (Light Mode)
+
+Hệ thống bảng màu và quy chuẩn thiết kế dành cho **Chế độ sáng (Light Mode)** của nền tảng kể chuyện AI cho bé:
+
+### 1. Bảng màu (Color Palette)
+
+| Loại màu | Mã Hex | Tên & Mô tả công dụng |
+| :--- | :--- | :--- |
+| **Primary** | `#FF6B6B` | **Coral Pink / Warm Red** - Màu chủ đạo cho nút CTA chính (`Tạo truyện AI`, `Đọc & Nghe`), điểm nhấn thương hiệu |
+| **Secondary** | `#FFD166` | **Warm Gold / Soft Yellow** - Màu phụ cho huy hiệu xu thưởng, điểm đánh giá ⭐, phần nổi bật |
+| **Tertiary** | `#06D6A0` | **Vibrant Mint / Emerald Green** - Màu bổ trợ cho tính năng phát âm thanh, chứng nhận an toàn `KID-SAFE` |
+| **Neutral Canvas** | `#F0ECE5` | **Soft Warm Gray / Beige** - Màu nền tổng thể toàn trang (App Canvas), tạo độ tương phản dịu với các card |
+| **Neutral Card** | `#FFFDF7` | **Warm Cream / Off-White** - Màu nền cho các khung container/card giúp nội dung nổi bật và ấm áp |
+| **Neutral Text** | `#2B2B2B` | **Dark Charcoal** - Màu chữ văn bản chính giúp đạt độ tương phản cao, dễ đọc |
+
+### 2. Phông chữ (Typography)
+
+- **Headline (Tiêu đề chính):** `Comfortaa` *(Phông bo tròn mềm mại, tạo cảm giác thân thiện, diệu kỳ)*
+- **Body & Label (Văn bản & Thẻ):** `Nunito Sans` *(Phông chữ rõ ràng, hiện đại, tối ưu trải nghiệm đọc cho bé và phụ huynh)*
+
+### 3. Quy chuẩn Component (UI Guidelines)
+
+- **Primary Button:** Nền `#FF6B6B`, chữ trắng, bo tròn pill (`rounded-full`), hiệu ứng shadow dịu.
+- **Secondary / Option Pills:** Nền vàng ấm `#FFD166` hoặc mảng màu mềm mại, viền nhẹ.
+- **Inverted / Dark Buttons:** Nền `#2B2B2B`, chữ trắng dành cho các chế độ ban đêm hoặc ru ngủ.
+- **Search Bar / Inputs:** Thanh tìm kiếm dạng pill bo góc mềm với nền `#F0ECE1`.
+
+---
+
 ## Project Structure
 
 ```
@@ -20,8 +49,9 @@ src/
 │   │   ├── icons/              # SVG, PNG icon files
 │   │   └── images/             # Static image assets
 │   ├── components/
+│   │   ├── home/               # Home page specific components (Hero, Categories, Audio...)
 │   │   ├── layout/             # Layout components (Header, Footer, Sidebar, Navbar)
-│   │   └── ui/                 # Reusable UI components (Button, Input, Card, Modal...)
+│   │   └── ui/                 # Reusable UI components (Button, Input, Card, Badge...)
 │   ├── constants/              # Constants, enums, configuration values
 │   ├── context/                # React Context providers (Auth, Theme, etc.)
 │   ├── hooks/                  # Custom React hooks (useAuth, useFetch, etc.)
@@ -47,6 +77,7 @@ src/
 | -------------------- | ------------------------------------------------------------- |
 | `components/ui/`     | Atomic, reusable UI components (Button, Input, Card, Badge…)  |
 | `components/layout/` | Page-level layout components (Header, Footer, Sidebar)        |
+| `components/home/`   | Home page section components (Hero, Categories, Audio...)     |
 | `hooks/`             | Custom React hooks for shared logic                           |
 | `lib/`               | Utility functions, helpers, formatters                        |
 | `services/`          | API service layer — functions that call the backend           |
