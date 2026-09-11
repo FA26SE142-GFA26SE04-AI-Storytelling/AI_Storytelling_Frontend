@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
 import { Home, Compass, Wand2, BookOpen, Users, Coins, Bell, ChevronDown, Menu, X } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
 import { LanguageToggle } from '../ui/LanguageToggle';
@@ -9,7 +11,23 @@ import { useTranslation } from '../../context/LanguageContext';
 
 export const Header: React.FC = () => {
   const { t } = useTranslation();
+  const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
+
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return pathname === '/';
+    }
+    return pathname?.startsWith(path);
+  };
+
+  const navItems = [
+    { href: '/', label: t('footer.home'), icon: Home },
+    { href: '/explore', label: t('categories.all'), icon: Compass },
+    { href: '/create', label: t('header.createStory'), icon: Wand2, iconColor: 'text-amber-500' },
+    { href: '/library', label: t('header.library'), icon: BookOpen },
+    { href: '/parents', label: t('header.parentCorner'), icon: Users, iconColor: 'text-sky-500' },
+  ];
 
   return (
     <header className="sticky top-0 z-50 bg-surface-container-lowest/90 backdrop-blur-md border-b border-outline-variant/30 px-3 sm:px-6 lg:px-8 py-3 shadow-xs transition-colors duration-300">
@@ -33,41 +51,31 @@ export const Header: React.FC = () => {
 
         {/* Desktop Navigation Pills */}
         <nav className="hidden md:flex items-center gap-1 bg-surface-container p-1.5 rounded-full border border-outline-variant/30">
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-primary-container text-on-primary-container font-bold text-xs shadow-xs transition-all"
-          >
-            <Home className="w-3.5 h-3.5" />
-            <span>{t('footer.home')}</span>
-          </Link>
-          <Link
-            href="/explore"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-on-surface-variant hover:text-on-surface font-semibold text-xs transition-all hover:bg-surface-container-lowest"
-          >
-            <Compass className="w-3.5 h-3.5" />
-            <span>{t('categories.all')}</span>
-          </Link>
-          <Link
-            href="/create"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-on-surface-variant hover:text-on-surface font-semibold text-xs transition-all hover:bg-surface-container-lowest"
-          >
-            <Wand2 className="w-3.5 h-3.5 text-amber-500" />
-            <span>{t('header.createStory')}</span>
-          </Link>
-          <Link
-            href="/library"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-on-surface-variant hover:text-on-surface font-semibold text-xs transition-all hover:bg-surface-container-lowest"
-          >
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>{t('header.library')}</span>
-          </Link>
-          <Link
-            href="/parents"
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-on-surface-variant hover:text-on-surface font-semibold text-xs transition-all hover:bg-surface-container-lowest"
-          >
-            <Users className="w-3.5 h-3.5 text-sky-500" />
-            <span>{t('header.parentCorner')}</span>
-          </Link>
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`relative flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 rounded-full font-bold text-xs transition-colors duration-200 ${
+                  active
+                    ? 'text-on-primary-container'
+                    : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container-lowest/50'
+                }`}
+              >
+                {active && (
+                  <motion.div
+                    layoutId="active-nav-pill"
+                    className="absolute inset-0 bg-primary-container rounded-full shadow-xs -z-0"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <Icon className={`relative z-10 w-3.5 h-3.5 ${!active && item.iconColor ? item.iconColor : ''}`} />
+                <span className="relative z-10">{item.label}</span>
+              </Link>
+            );
+          })}
         </nav>
 
         {/* Right Actions: Coins, LanguageToggle, ThemeToggle, Notifications, User Profile */}
@@ -120,46 +128,25 @@ export const Header: React.FC = () => {
       {/* Mobile Drawer Menu */}
       {isMobileMenuOpen && (
         <div className="md:hidden mt-3 pt-3 border-t border-outline-variant/30 flex flex-col gap-2 bg-surface-container-lowest/95 dark:bg-[#0F1626]/95 rounded-2xl p-4 shadow-xl transition-all duration-300">
-          <Link
-            href="/"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-primary-container/20 text-on-primary-container font-bold text-sm"
-          >
-            <Home className="w-4 h-4" />
-            <span>{t('footer.home')}</span>
-          </Link>
-          <Link
-            href="/explore"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-on-surface hover:bg-surface-container font-semibold text-sm"
-          >
-            <Compass className="w-4 h-4 text-secondary-container" />
-            <span>{t('categories.all')}</span>
-          </Link>
-          <Link
-            href="/create"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-on-surface hover:bg-surface-container font-semibold text-sm"
-          >
-            <Wand2 className="w-4 h-4 text-amber-500" />
-            <span>{t('header.createStory')}</span>
-          </Link>
-          <Link
-            href="/library"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-on-surface hover:bg-surface-container font-semibold text-sm"
-          >
-            <BookOpen className="w-4 h-4 text-tertiary-container" />
-            <span>{t('header.library')}</span>
-          </Link>
-          <Link
-            href="/parents"
-            onClick={() => setIsMobileMenuOpen(false)}
-            className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-on-surface hover:bg-surface-container font-semibold text-sm"
-          >
-            <Users className="w-4 h-4 text-sky-500" />
-            <span>{t('header.parentCorner')}</span>
-          </Link>
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={`relative flex items-center gap-3 px-4 py-2.5 rounded-xl font-bold text-sm transition-all ${
+                  active
+                    ? 'bg-primary-container text-on-primary-container shadow-xs'
+                    : 'text-on-surface hover:bg-surface-container font-semibold'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${!active && item.iconColor ? item.iconColor : ''}`} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
 
           {/* Mobile Auth Buttons */}
           <div className="grid grid-cols-2 gap-2 mt-2 pt-3 border-t border-outline-variant/30">
@@ -192,3 +179,6 @@ export const Header: React.FC = () => {
     </header>
   );
 };
+
+
+
