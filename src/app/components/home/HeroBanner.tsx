@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Sparkles, Play, ShieldCheck, Mic, ThumbsUp, ChevronRight, Wand2 } from 'lucide-react';
+import Link from 'next/link';
+import { Sparkles, Play, ShieldCheck, Mic, ThumbsUp, ChevronRight, Wand2, Star, Headphones } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useTranslation } from '../../context/LanguageContext';
 
@@ -19,21 +20,22 @@ export const HeroBanner: React.FC = () => {
 
   return (
     <section className="relative w-full hero-animated-bg border-b border-outline-variant/30 dark:border-[#283556] shadow-sm overflow-hidden mb-8 md:mb-12 transition-colors duration-300">
-      {/* Decorative Animated Floating Orbs mapped to --badge-gradient-1, 2, 3 */}
+      
+      {/* Decorative Animated Floating Orbs */}
       <div
-        className="absolute -top-20 -left-20 w-80 h-80 rounded-full blur-3xl pointer-events-none animate-float-blob-1 opacity-35 dark:opacity-30"
+        className="absolute -top-20 -left-20 w-80 h-80 rounded-full blur-3xl pointer-events-none animate-float-blob-1 opacity-40 dark:opacity-30"
         style={{ background: 'var(--badge-gradient-1)' }}
       />
       <div
-        className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full blur-3xl pointer-events-none animate-float-blob-2 opacity-35 dark:opacity-30"
+        className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full blur-3xl pointer-events-none animate-float-blob-2 opacity-40 dark:opacity-30"
         style={{ background: 'var(--badge-gradient-2)' }}
       />
       <div
-        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-72 h-72 rounded-full blur-3xl pointer-events-none animate-pulse opacity-30 dark:opacity-25"
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-80 h-80 rounded-full blur-3xl pointer-events-none animate-pulse opacity-35 dark:opacity-25"
         style={{ background: 'var(--badge-gradient-3)' }}
       />
 
-      {/* Magical Twinkling Stardust Particles mapped to --badge-gradient-1, 2, 3 */}
+      {/* Magical Twinkling Stardust Particles */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <div className="absolute top-8 left-[12%] animate-twinkle-1 drop-shadow-xs" style={{ color: 'var(--badge-gradient-1)' }}>
           <Sparkles className="w-5 h-5 fill-current" />
@@ -54,185 +56,179 @@ export const HeroBanner: React.FC = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10 md:py-14 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-center">
-        {/* Left Column: Headline & Controls */}
-        <div className="lg:col-span-7 flex flex-col gap-4 sm:gap-5">
-          {/* Top Announcement Pill */}
-          <div className="self-start inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-tertiary-container/20 text-on-tertiary-container dark:text-emerald-300 text-xs font-bold border border-tertiary-container/30 shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-tertiary-container animate-pulse" />
-            <span>{t('hero.announcement')}</span>
-          </div>
-
-          {/* Main Title */}
-          <h1 className="heading-hero">
-            {t('hero.titleMain')}{' '}
-            <span className="text-primary-container inline-block relative font-black">
-              {t('hero.titleHighlight')}
-              <svg className="absolute left-0 -bottom-1 w-full h-3 text-secondary-container" viewBox="0 0 100 20" preserveAspectRatio="none">
-                <path d="M0 10 Q 50 20 100 10" stroke="currentColor" strokeWidth="4" fill="transparent" strokeLinecap="round" />
-              </svg>
-            </span>{' '}
-            {t('hero.titleEnd')}
-          </h1>
-
-          {/* Subtitle */}
-          <p className="text-subtitle max-w-xl">
-            {t('hero.subtitle')}
-          </p>
-
-          {/* Quick Prompts Selection */}
-          <div className="flex flex-col gap-2 pt-1">
-            <span className="badge-eyebrow-label text-on-surface-variant flex items-center gap-1 opacity-80">
-              {t('hero.promptPromptLabel')}
-            </span>
-            <div className="flex flex-wrap gap-2">
-              {quickPrompts.map((prompt, idx) => {
-                const animClass = idx % 3 === 0 ? 'animate-float-subtle-1' : idx % 3 === 1 ? 'animate-float-subtle-2' : 'animate-float-subtle-3';
-                return (
-                  <button
-                    key={idx}
-                    onClick={() => setSelectedPrompt(prompt.text)}
-                    className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${animClass} ${
-                      selectedPrompt === prompt.text
-                        ? 'bg-secondary-container text-on-secondary-container border-secondary-container shadow-xs font-bold'
-                        : 'bg-surface-container-lowest/80 dark:bg-[#172038] hover:bg-surface-container-lowest text-on-surface border-outline-variant/40'
-                    }`}
-                  >
-                    {prompt.label}
-                  </button>
-                );
-              })}
+          
+          {/* Left Column: Headline & Controls */}
+          <div className="lg:col-span-7 flex flex-col gap-4 sm:gap-5">
+            {/* Top Announcement Pill */}
+            <div className="self-start inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-100/90 dark:bg-emerald-950/80 backdrop-blur-md text-emerald-800 dark:text-emerald-300 border border-emerald-400/50 dark:border-emerald-700/60 text-xs font-extrabold shadow-2xs">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span>{t('hero.announcement')}</span>
             </div>
-          </div>
 
-          {/* CTA Buttons - Full width on mobile for easy tap */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2">
-            <Button
-              variant="primary"
-              size="lg"
-              icon={<Sparkles className="w-5 h-5 text-secondary-container fill-current" />}
-              className="animate-float-subtle-1 hover:scale-102 w-full sm:w-auto justify-center"
-            >
-              {t('hero.btnCreate')}
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              icon={<Play className="w-4 h-4 fill-current" />}
-              className="animate-float-subtle-2 hover:scale-102 w-full sm:w-auto justify-center"
-            >
-              {t('hero.btnListenSample')}
-            </Button>
-          </div>
+            {/* Main Title */}
+            <h1 className="heading-hero">
+              {t('hero.titleMain')}{' '}
+              <span className="text-primary-container inline-block relative font-black">
+                {t('hero.titleHighlight')}
+                <svg className="absolute left-0 -bottom-1 w-full h-3 text-secondary-container" viewBox="0 0 100 20" preserveAspectRatio="none">
+                  <path d="M0 10 Q 50 20 100 10" stroke="currentColor" strokeWidth="4" fill="transparent" strokeLinecap="round" />
+                </svg>
+              </span>{' '}
+              {t('hero.titleEnd')}
+            </h1>
 
-          {/* Trust Badges (Responsive Pill for Mobile & Desktop) */}
-          <div
-            className="badge-gradient-pill mt-2 py-2 px-3 sm:py-2.5 sm:px-4 rounded-2xl sm:rounded-full text-white shadow-md shadow-rose-500/20 dark:shadow-black/40 flex flex-wrap sm:flex-nowrap items-center justify-center sm:justify-between gap-2 sm:gap-2 text-[11px] sm:text-xs font-bold"
-          >
-            <div className="flex items-center gap-1.5 shrink-0">
-              <ShieldCheck className="w-4 h-4 text-white shrink-0 drop-shadow-xs" />
-              <span className="drop-shadow-xs">{t('hero.badges.safe')}</span>
-            </div>
-            <span className="hidden sm:inline opacity-60 text-white shrink-0">•</span>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Mic className="w-4 h-4 text-white shrink-0 drop-shadow-xs" />
-              <span className="drop-shadow-xs">{t('hero.badges.voice')}</span>
-            </div>
-            <span className="hidden sm:inline opacity-60 text-white shrink-0">•</span>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <ThumbsUp className="w-4 h-4 text-white shrink-0 drop-shadow-xs" />
-              <span className="drop-shadow-xs">{t('hero.badges.trusted')}</span>
-            </div>
-          </div>
-        </div>
+            {/* Subtitle */}
+            <p className="text-subtitle max-w-xl">
+              {t('hero.subtitle')}
+            </p>
 
-        {/* Right Column: Interactive Story Card Preview with Ambient Radiant Glow */}
-        <div className="lg:col-span-5 flex justify-center">
-          <div className="relative w-full max-w-md group">
-            {/* Outer Radiant Glow Aura (Tỏa sáng xung quanh) */}
-            <div className="radiant-glow-aura" />
-
-            {/* Inner Content Card */}
-            <div className="relative w-full bg-surface-container-lowest dark:bg-[#0F1626] rounded-3xl p-4 shadow-2xl border border-outline-variant/50 dark:border-[#283556] flex flex-col gap-3">
-            {/* Top Studio Bar */}
-            <div className="flex items-center justify-between border-b border-outline-variant/30 pb-2.5">
-              <div className="flex items-center gap-1.5">
-                <span className="p-1 rounded-lg bg-secondary-container/30 text-on-secondary-container">
-                  <Wand2 className="w-3.5 h-3.5" />
-                </span>
-                <span className="text-xs font-extrabold tracking-tight text-on-surface">
-                  XƯỞNG SÁNG TẠO AI
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] font-semibold text-on-surface-variant opacity-70">Tập 01 - Đang tạo</span>
-                <span className="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container text-[10px] font-bold">
-                  Cổ tích sống động
-                </span>
+            {/* Quick Prompts Selection */}
+            <div className="flex flex-col gap-2 pt-1">
+              <span className="badge-eyebrow-label text-on-surface-variant flex items-center gap-1 opacity-80">
+                {t('hero.promptPromptLabel')}
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {quickPrompts.map((prompt, idx) => {
+                  const animClass = idx % 3 === 0 ? 'animate-float-subtle-1' : idx % 3 === 1 ? 'animate-float-subtle-2' : 'animate-float-subtle-3';
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedPrompt(prompt.text)}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer ${animClass} ${
+                        selectedPrompt === prompt.text
+                          ? 'bg-secondary-container text-on-secondary-container border-secondary-container shadow-xs font-bold scale-105'
+                          : 'bg-surface-container-lowest/90 dark:bg-[#172038]/90 backdrop-blur-md hover:bg-surface-container-lowest text-on-surface border-outline-variant/40'
+                      }`}
+                    >
+                      {prompt.label}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Story Book Cover Preview */}
-            <div className="relative w-full h-52 rounded-2xl overflow-hidden shadow-inner group">
-              <Image
-                src="https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=800&auto=format&fit=crop"
-                alt="Lâu Đài Kẹo Ngọt Trên Mây"
-                fill
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            {/* Primary Action CTA Buttons */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-3">
+              <Link href="/create" className="relative group">
+                <div className="radiant-glow-aura" />
+                <Button
+                  variant="primary"
+                  size="lg"
+                  icon={<Wand2 className="w-5 h-5 animate-pulse" />}
+                  className="w-full sm:w-auto font-black text-sm sm:text-base py-3.5 px-7 shadow-lg shadow-rose-500/25 relative z-10"
+                >
+                  {t('hero.btnCreate')}
+                </Button>
+              </Link>
 
-              {/* Floating Play Button */}
-              <button className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center shadow-lg hover:scale-110 transition-transform cursor-pointer">
-                <Play className="w-5 h-5 fill-current translate-x-0.5" />
-              </button>
-
-              <div className="absolute bottom-3 left-3 right-3 text-white">
-                <h4 className="font-black text-base sm:text-lg leading-tight drop-shadow-sm">
-                  Lâu Đài Kẹo Ngọt Trên Mây
-                </h4>
-                <p className="text-[11px] text-amber-200/90 font-medium">
-                  Ý tưởng bởi Bé An (6 tuổi) & Chị Thu Thông Thái
-                </p>
-              </div>
+              <Button
+                variant="outline"
+                size="lg"
+                icon={<Play className="w-4 h-4 fill-current text-amber-500" />}
+                className="w-full sm:w-auto font-bold text-xs sm:text-sm py-3 px-5 bg-surface-container-lowest/90 dark:bg-[#172038]/90 backdrop-blur-md"
+              >
+                {t('hero.btnListenSample')}
+              </Button>
             </div>
 
-            {/* Interactive Decision Box */}
-            <div className="bg-secondary-container/20 border border-secondary-container/40 rounded-2xl p-3.5 flex flex-col gap-2">
-              <div className="flex items-center justify-between text-xs font-bold text-on-surface">
-                <span>LỰA CHỌN TIẾP THEO:</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-extrabold">
-                  Bước 2 / 4
+            {/* Trust Badges Bar */}
+            <div className="pt-4 flex flex-wrap items-center gap-3 border-t border-outline-variant/30 text-xs font-semibold text-on-surface-variant opacity-90">
+              <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-extrabold">
+                <ShieldCheck className="w-4 h-4" />
+                {t('hero.badges.safe')}
+              </span>
+              <span className="opacity-40">•</span>
+              <span className="flex items-center gap-1.5">
+                <Mic className="w-4 h-4 text-amber-500" />
+                {t('hero.badges.voice')}
+              </span>
+              <span className="opacity-40">•</span>
+              <span className="flex items-center gap-1.5">
+                <ThumbsUp className="w-4 h-4 text-sky-500" />
+                {t('hero.badges.trusted')}
+              </span>
+            </div>
+          </div>
+
+          {/* Right Column: Interactive Story Preview Card with Blur Backdrop */}
+          <div className="lg:col-span-5 relative group">
+            {/* Glowing Blur Backdrop Layer */}
+            <div className="absolute -inset-2 rounded-3xl bg-gradient-to-tr from-rose-500/30 via-amber-400/25 to-teal-400/25 blur-2xl opacity-80 group-hover:opacity-100 transition-opacity pointer-events-none animate-pulse" />
+
+            <div className="relative bg-surface-container-lowest/90 dark:bg-[#0F1626]/90 backdrop-blur-md rounded-3xl p-4 sm:p-5 border border-outline-variant/40 shadow-xl space-y-4 overflow-hidden">
+              
+              {/* Card Header */}
+              <div className="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="w-2.5 h-2.5 rounded-full bg-rose-500 animate-ping" />
+                  <span className="text-xs font-extrabold uppercase tracking-wider text-rose-500">
+                    {t('hero.cardPreview.studioBadge')}
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-secondary-container/40 text-on-secondary-container dark:text-amber-300">
+                  {t('hero.cardPreview.livePreview')}
                 </span>
               </div>
 
-              <div className="flex flex-col gap-2">
+              {/* Story Title */}
+              <h3 className="font-extrabold text-base sm:text-lg text-on-surface line-clamp-1">
+                {t('hero.cardPreview.storyTitle')}
+              </h3>
+
+              {/* Preview Artwork */}
+              <div className="relative w-full h-48 sm:h-56 rounded-2xl overflow-hidden shadow-md">
+                <Image
+                  src="https://images.unsplash.com/photo-1579783902614-a3fb3927b675?q=80&w=600&auto=format&fit=crop"
+                  alt="Story art"
+                  fill
+                  className="object-cover group-hover:scale-105 transition-transform duration-700"
+                  sizes="450px"
+                />
+                <div className="absolute top-2.5 left-2.5 bg-black/60 backdrop-blur-md text-white text-[10px] font-extrabold px-2.5 py-1 rounded-full flex items-center gap-1">
+                  <Headphones className="w-3 h-3 text-amber-300" />
+                  <span>{t('hero.cardPreview.audioBadge')}</span>
+                </div>
+                <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-3 pt-6">
+                  <p className="text-white text-xs leading-relaxed italic line-clamp-2">
+                    {t('hero.cardPreview.storyExcerpt')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Branching choices */}
+              <div className="space-y-2 pt-1">
+                <span className="text-[11px] font-extrabold text-on-surface-variant opacity-80 block">
+                  Lựa chọn của bé ở trang tiếp theo:
+                </span>
                 <button
                   onClick={() => setSelectedChoice(1)}
-                  className={`p-2.5 rounded-xl text-xs text-left font-semibold border transition-all flex items-center justify-between cursor-pointer ${selectedChoice === 1
-                      ? 'bg-secondary-container text-on-secondary-container border-secondary-container font-bold shadow-xs'
-                      : 'bg-surface-container-lowest dark:bg-[#172038] border-outline-variant/30 text-on-surface hover:border-secondary-container'
-                    }`}
+                  className={`w-full p-2 rounded-xl border text-left text-xs font-bold transition-all cursor-pointer flex items-center justify-between ${
+                    selectedChoice === 1
+                      ? 'bg-rose-500/10 border-rose-500 text-rose-600 dark:text-rose-300'
+                      : 'bg-surface-container/50 border-outline-variant/30 text-on-surface opacity-80'
+                  }`}
                 >
-                  <span>1. Bay trên cầu vồng - Tìm quả cầu thần</span>
-                  <ChevronRight className="w-4 h-4 shrink-0 text-current" />
+                  <span className="line-clamp-1">Nhánh 1: Dino gặp bạn rồng biết bay...</span>
+                  <ChevronRight className="w-4 h-4 shrink-0" />
                 </button>
                 <button
                   onClick={() => setSelectedChoice(2)}
-                  className={`p-2.5 rounded-xl text-xs text-left font-semibold border transition-all flex items-center justify-between cursor-pointer ${selectedChoice === 2
-                      ? 'bg-secondary-container text-on-secondary-container border-secondary-container font-bold shadow-xs'
-                      : 'bg-surface-container-lowest dark:bg-[#172038] border-outline-variant/30 text-on-surface hover:border-secondary-container'
-                    }`}
+                  className={`w-full p-2 rounded-xl border text-left text-xs font-bold transition-all cursor-pointer flex items-center justify-between ${
+                    selectedChoice === 2
+                      ? 'bg-tertiary-container/15 border-tertiary-container text-emerald-600 dark:text-teal-300'
+                      : 'bg-surface-container/50 border-outline-variant/30 text-on-surface opacity-80'
+                  }`}
                 >
-                  <span>2. Gặp Vua Sóc bông - Xin phép qua rừng</span>
-                  <ChevronRight className="w-4 h-4 shrink-0 text-current" />
+                  <span className="line-clamp-1">Nhánh 2: Dino chui vào hang núi lửa cầu vồng...</span>
+                  <ChevronRight className="w-4 h-4 shrink-0" />
                 </button>
               </div>
+
             </div>
           </div>
+
         </div>
       </div>
-    </div>
-  </div>
-</section>
+    </section>
   );
 };
