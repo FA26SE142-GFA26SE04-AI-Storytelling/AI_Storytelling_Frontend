@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { NobitaRoomCanvas, STAGES, TimeOfDay } from '../../components/three/NobitaRoomCanvas';
-import { Sparkles, ArrowRight, ArrowLeft, Home, Compass, BookOpen, Clock, ShieldCheck, Wand2, DoorOpen, Layers } from 'lucide-react';
-import Link from 'next/link';
+import { RoomCanvas, STAGES, TimeOfDay } from '../../components/three/RoomCanvas';
+import { getVietnamTimeOfDay } from '../../components/three/room/stages';
+import { TestHeader } from './TestHeader';
+import { X, LogIn, UserPlus, Lock, Mail, User, Sparkles, ArrowRight } from 'lucide-react';
 
 export default function Test3DUIPage() {
   const [currentStage, setCurrentStage] = useState<number>(0);
-  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('afternoon');
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getVietnamTimeOfDay);
+  const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin');
 
   // Wheel scroll handler to change camera stages smoothly
   useEffect(() => {
@@ -31,94 +33,133 @@ export default function Test3DUIPage() {
     };
   }, []);
 
-  const handleNextStage = () => {
-    setCurrentStage((prev) => (prev < STAGES.length - 1 ? prev + 1 : 0));
-  };
-
-  const handlePrevStage = () => {
-    setCurrentStage((prev) => (prev > 0 ? prev - 1 : STAGES.length - 1));
-  };
-
-  // Content for each UI station overlay
-  const stageDetails = [
-    {
-      badge: 'STATION 01 / PERSPECTIVE WIRE MODEL',
-      icon: Layers,
-      title: 'Toàn Cảnh Bố Cục Kiến Trúc Phòng 3D',
-      description:
-        'Bối cảnh 3D được tái tạo theo chuẩn bản vẽ kỹ thuật (Blueprint Sheet M-001): Tường sau gồm Clean Shelves & Closet Frame A, Tường trái gồm Window Sill Detail A (1200x1600mm), Chiếu Tatami 6 ô chuẩn.',
-      actionText: 'Bắt Đầu Trải Nghiệm (Cuộn Chuột Down 👇)',
-      actionLink: '#',
-    },
-    {
-      badge: 'STATION 02 / RIGHT WALL DESK',
-      icon: Clock,
-      title: 'Góc Bàn Học Gỗ & Ghế Xoay Chân Vịt',
-      description:
-        'Khu vực bàn làm việc đặt sát tường bên phải với bàn gỗ ngăn kéo và ghế xoay chân 5 nhánh. Nơi bắt đầu quá trình sáng tạo câu chuyện AI!',
-      actionText: 'Tạo Truyện AI Ngay',
-      actionLink: '/create',
-    },
-    {
-      badge: 'STATION 03 / FRONT ELEVATION - CLEAN SHELVES',
-      icon: BookOpen,
-      title: 'Kệ Sách 3 Tầng Âm Tường (Clean Shelves)',
-      description:
-        'Kệ sách 3 tầng thiết kế tỉ lệ chuẩn theo bản vẽ mặt đứng Front Elevation, phía trên đặt quả địa cầu biển xanh và đồng hồ báo thức.',
-      actionText: 'Khám Phá Thư Viện Truyện',
-      actionLink: '/library',
-    },
-    {
-      badge: 'STATION 04 / CLOSET DOOR FRAME A & PANEL B',
-      icon: DoorOpen,
-      title: 'Tủ Trượt Âm Tường Oshiire (Closet Track System)',
-      description:
-        'Tủ trượt 2 cánh Fusuma trắng kẻ sọc ngang xanh dương (Panel B) với hệ thống ray trượt âm tường (Closet Door Track System).',
-      actionText: 'Khám Phá Nhân Vật AI',
-      actionLink: '/explore',
-    },
-    {
-      badge: 'STATION 05 / SIDE ELEVATION - WINDOW DETAIL A',
-      icon: ShieldCheck,
-      title: 'Cửa Sổ Trượt Kính (Window Opening 1200x1600mm)',
-      description:
-        'Hệ cửa sổ gỗ trượt lớn ở tường bên trái theo chi tiết kĩ thuật Detail A: Window Sill Section với góc nhìn toàn cảnh bên ngoài.',
-      actionText: 'Vào Bảng Phụ Huynh',
-      actionLink: '/parents',
-    },
-  ];
-
-  const currentContent = stageDetails[currentStage] || stageDetails[0];
-  const IconComponent = currentContent.icon;
-
   return (
     <div className="relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans">
 
-      {/* 1. Fullscreen 3D Room Canvas */}
-      <NobitaRoomCanvas
-        currentStageIndex={currentStage}
+      {/* Dedicated Full-Width Test Page Header */}
+      <TestHeader
+        currentStage={currentStage}
+        onStageChange={setCurrentStage}
         timeOfDay={timeOfDay}
         onTimeOfDayChange={setTimeOfDay}
       />
 
-      {/* 3. Floating Left Station Navigation Dots */}
-      <div className="absolute left-6 top-1/2 -translate-y-1/2 z-20 hidden sm:flex flex-col gap-3 p-3 rounded-2xl bg-white/40 dark:bg-zinc-900/40 backdrop-blur-xl border border-white/30 dark:border-zinc-800/40 shadow-xl">
-        {STAGES.map((stg, idx) => (
-          <button
-            key={stg.id}
-            onClick={() => setCurrentStage(idx)}
-            className={`group relative flex items-center gap-3 p-2 rounded-xl transition-all ${currentStage === idx
-              ? 'bg-amber-500 text-white shadow-lg shadow-amber-500/30 scale-105'
-              : 'text-zinc-600 dark:text-zinc-400 hover:bg-white/50 dark:hover:bg-zinc-800/50'
+      {/* Fullscreen 3D Room Canvas */}
+      <RoomCanvas
+        currentStageIndex={currentStage}
+        onStageChange={setCurrentStage}
+        timeOfDay={timeOfDay}
+        onTimeOfDayChange={setTimeOfDay}
+      />
+
+      {/* Interactive Sign In / Sign Up Floating Card when zoomed into Backpack (Stage 5) */}
+      {currentStage === 5 && (
+        <div className="fixed left-4 sm:left-12 top-1/2 -translate-y-1/2 z-30 w-[92%] sm:w-[420px] p-6 sm:p-7 rounded-3xl bg-zinc-900/90 dark:bg-zinc-950/90 backdrop-blur-2xl border border-white/20 dark:border-zinc-800/80 shadow-[0_0_50px_rgba(0,0,0,0.6)] text-white animate-in fade-in zoom-in duration-300">
+          
+          {/* Header Bar */}
+          <div className="flex items-center justify-between gap-2 mb-5">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-white shadow-md">
+                {authTab === 'signin' ? <LogIn className="w-4 h-4" /> : <UserPlus className="w-4 h-4" />}
+              </div>
+              <div>
+                <h2 className="font-black text-base tracking-tight text-white">
+                  {authTab === 'signin' ? 'Đăng Nhập MagicTales' : 'Tạo Tài Khoản Mới'}
+                </h2>
+                <p className="text-[10px] text-zinc-400 font-medium">Cặp Sách Nobita 3D Authentication</p>
+              </div>
+            </div>
+            <button
+              onClick={() => setCurrentStage(0)}
+              className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              title="Đóng & Quay lại góc nhìn toàn cảnh"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Tab Selector */}
+          <div className="flex items-center p-1 mb-5 bg-zinc-950/80 rounded-2xl border border-zinc-800/80 text-xs font-bold">
+            <button
+              onClick={() => setAuthTab('signin')}
+              className={`flex-1 py-2 rounded-xl text-center transition-all cursor-pointer ${
+                authTab === 'signin'
+                  ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-md'
+                  : 'text-zinc-400 hover:text-white'
               }`}
-          >
-            <span className={`w-2.5 h-2.5 rounded-full ${currentStage === idx ? 'bg-white' : 'bg-zinc-400 dark:bg-zinc-600'}`} />
-            <span className="text-xs font-bold whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity absolute left-10 px-2 py-1 bg-zinc-900 text-white rounded-lg pointer-events-none">
-              {stg.name}
-            </span>
-          </button>
-        ))}
-      </div>
+            >
+              Đăng Nhập
+            </button>
+            <button
+              onClick={() => setAuthTab('signup')}
+              className={`flex-1 py-2 rounded-xl text-center transition-all cursor-pointer ${
+                authTab === 'signup'
+                  ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-md'
+                  : 'text-zinc-400 hover:text-white'
+              }`}
+            >
+              Đăng Ký
+            </button>
+          </div>
+
+          {/* Form Fields */}
+          <form onSubmit={(e) => e.preventDefault()} className="flex flex-col gap-3.5">
+            {authTab === 'signup' && (
+              <div className="flex flex-col gap-1">
+                <label className="text-[11px] font-bold text-zinc-300">Họ và Tên</label>
+                <div className="relative flex items-center">
+                  <User className="absolute left-3 w-4 h-4 text-zinc-400" />
+                  <input
+                    type="text"
+                    placeholder="Nhập họ và tên của bạn"
+                    className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 transition-colors"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-col gap-1">
+              <label className="text-[11px] font-bold text-zinc-300">Email / Tên tài khoản</label>
+              <div className="relative flex items-center">
+                <Mail className="absolute left-3 w-4 h-4 text-zinc-400" />
+                <input
+                  type="email"
+                  placeholder="name@example.com"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 transition-colors"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-bold text-zinc-300">Mật khẩu</label>
+                {authTab === 'signin' && (
+                  <a href="#" className="text-[10px] text-sky-400 hover:underline">Quên mật khẩu?</a>
+                )}
+              </div>
+              <div className="relative flex items-center">
+                <Lock className="absolute left-3 w-4 h-4 text-zinc-400" />
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 transition-colors"
+                />
+              </div>
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              className="w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+            >
+              <span>{authTab === 'signin' ? 'Đăng Nhập Ngay' : 'Tạo Tài Khoản Mới'}</span>
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </form>
+
+        </div>
+      )}
+
     </div>
   );
 }
