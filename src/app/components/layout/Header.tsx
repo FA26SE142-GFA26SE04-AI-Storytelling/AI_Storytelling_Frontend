@@ -14,6 +14,10 @@ export const Header: React.FC = () => {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
+  if (pathname === '/test') {
+    return null;
+  }
+
   const isActive = (path: string) => {
     if (path === '/') {
       return pathname === '/';

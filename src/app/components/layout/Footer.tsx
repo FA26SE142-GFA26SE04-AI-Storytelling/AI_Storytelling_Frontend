@@ -5,8 +5,15 @@ import Link from 'next/link';
 import { ShieldCheck } from 'lucide-react';
 import { useTranslation } from '../../context/LanguageContext';
 
+import { usePathname } from 'next/navigation';
+
 export const Footer: React.FC = () => {
   const { t } = useTranslation();
+  const pathname = usePathname();
+
+  if (pathname === '/test') {
+    return null;
+  }
 
   return (
     <footer className="bg-surface-container-lowest dark:bg-[#0F1626] border-t border-outline-variant/30 dark:border-[#283556] py-6 px-4 lg:px-8 mt-12 transition-colors duration-300">
