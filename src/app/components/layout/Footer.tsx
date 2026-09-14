@@ -11,7 +11,7 @@ export const Footer: React.FC = () => {
   const { t } = useTranslation();
   const pathname = usePathname();
 
-  if (pathname === '/test') {
+  if (pathname === '/' || pathname === '/test') {
     return null;
   }
 

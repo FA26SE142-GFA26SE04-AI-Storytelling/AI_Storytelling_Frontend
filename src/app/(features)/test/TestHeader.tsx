@@ -3,8 +3,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { TimeOfDay, STAGES } from '../../components/three/RoomCanvas';
+import { useAuth } from '../../context/AuthContext';
 import {
-  Sparkles,
   BookOpen,
   Layers,
   Clock,
@@ -13,12 +13,9 @@ import {
   Sunrise,
   Sun,
   Moon,
-  Wand2,
-  Compass,
-  Users,
-  LogIn,
-  Home,
   Briefcase,
+  Server,
+  RefreshCw,
 } from 'lucide-react';
 
 export interface TestHeaderProps {
@@ -34,6 +31,7 @@ export const TestHeader: React.FC<TestHeaderProps> = ({
   timeOfDay,
   onTimeOfDayChange,
 }) => {
+  const { user, isLoggedIn, backendOnline, backendStatusMessage, pingBackend } = useAuth();
   const stationIcons = [Layers, Clock, BookOpen, DoorOpen, ShieldCheck, Briefcase];
 
   return (
@@ -83,10 +81,27 @@ export const TestHeader: React.FC<TestHeaderProps> = ({
           })}
         </nav>
 
-        {/* 3. Right Atmosphere & Feature Action Bar */}
+        {/* 3. Right Atmosphere & User Account Action Bar */}
         <div className="flex items-center gap-2 shrink-0">
+          {/* Compact Live Connection Status Dot */}
+          <div
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-zinc-950/90 border border-zinc-800/90 text-xs"
+            title={backendStatusMessage}
+          >
+            <span className={`w-2.5 h-2.5 rounded-full ${backendOnline ? 'bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400' : backendOnline === false ? 'bg-rose-500' : 'bg-amber-400'}`} />
+            <span className="font-extrabold text-[11px] text-zinc-200">
+              {backendOnline ? 'Online' : backendOnline === false ? 'Offline' : '...'}
+            </span>
+            <button
+              onClick={pingBackend}
+              className="p-0.5 text-zinc-400 hover:text-white transition-colors cursor-pointer ml-0.5"
+              title="Làm mới kiểm tra kết nối Backend"
+            >
+              <RefreshCw className="w-3 h-3" />
+            </button>
+          </div>
           {/* Time of Day Switcher Pills */}
-          <div className="flex items-center p-1 bg-zinc-950/80 rounded-xl border border-zinc-800/80 text-[11px] font-extrabold">
+          <div className="hidden sm:flex items-center p-1 bg-zinc-950/80 rounded-xl border border-zinc-800/80 text-[11px] font-extrabold">
             <button
               onClick={() => onTimeOfDayChange('morning')}
               className={`p-1.5 sm:px-2.5 sm:py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
@@ -127,27 +142,37 @@ export const TestHeader: React.FC<TestHeaderProps> = ({
             </button>
           </div>
 
-          {/* Quick Feature Action Links */}
-          <Link
-            href="/create"
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 text-white text-xs font-black shadow-md hover:scale-105 transition-transform"
-          >
-            <Wand2 className="w-3.5 h-3.5 text-amber-200" />
-            <span>Tạo Truyện AI</span>
-          </Link>
-
-          <button
-            onClick={() => onStageChange(5)}
-            className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-              currentStage === 5
-                ? 'bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500 text-white shadow-lg shadow-sky-500/30 scale-[1.03] ring-2 ring-sky-400/50'
-                : 'bg-white/10 hover:bg-white/20 text-white border border-white/10'
-            }`}
-            title="Góc camera Cặp Sách (Đăng Nhập / Đăng Ký)"
-          >
-            <LogIn className="w-3.5 h-3.5 text-sky-300" />
-            <span className="hidden xs:inline">Đăng Nhập / Đăng Ký</span>
-          </button>
+          {/* User Account / Login Button (Click to Zoom into Backpack 3D Stage 5) */}
+          {isLoggedIn && user ? (
+            <button
+              onClick={() => onStageChange(5)}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+                currentStage === 5
+                  ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 text-white shadow-lg shadow-emerald-500/30 scale-[1.03] ring-2 ring-emerald-400/50'
+                  : 'bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 border border-emerald-500/50 shadow-md'
+              }`}
+              title="Bấm để Zoom vào Cặp Sách 3D xem tài khoản"
+            >
+              <div className="w-5 h-5 rounded-lg bg-emerald-400/30 flex items-center justify-center font-black text-[10px] text-emerald-200">
+                {(user.fullName || user.username).charAt(0).toUpperCase()}
+              </div>
+              <span className="font-extrabold text-xs truncate max-w-[150px]">
+                {user.fullName || user.username}
+              </span>
+            </button>
+          ) : (
+            <button
+              onClick={() => onStageChange(5)}
+              className={`flex items-center px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+                currentStage === 5
+                  ? 'bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500 text-white shadow-lg shadow-sky-500/30 scale-[1.03] ring-2 ring-sky-400/50'
+                  : 'bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white shadow-md hover:scale-[1.02]'
+              }`}
+              title="Bấm để Zoom vào Cặp Sách (Đăng Nhập / Đăng Ký)"
+            >
+              <span>Đăng Nhập / Đăng Ký</span>
+            </button>
+          )}
         </div>
 
       </div>

@@ -5,26 +5,43 @@ import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, ArrowRight, BookOpen, ShieldCheck, Sparkles, ArrowLeft, CheckCircle2, Edit2 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 
+import { useAuth } from '../../context/AuthContext';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+
 export const SignInForm: React.FC = () => {
+  const { login } = useAuth();
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [rememberMe, setRememberMe] = useState<boolean>(true);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   // Step 1: Submit Email -> Proceed to Password Step
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim()) {
+      setErrorMessage(null);
       setStep(2);
     }
   };
 
-  // Step 2: Submit Password -> Complete Login
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  // Step 2: Submit Password -> Call Backend API Login
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.trim()) {
+    if (!password.trim()) return;
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    const res = await login({ identifier: email, password });
+    setIsSubmitting(false);
+
+    if (res.success) {
       setStep(3);
+    } else {
+      setErrorMessage(res.message || 'Đăng nhập không thành công.');
     }
   };
 
@@ -134,6 +151,13 @@ export const SignInForm: React.FC = () => {
                 </button>
               </div>
 
+              {errorMessage && (
+                <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-500 text-xs flex items-center gap-2 font-bold">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errorMessage}</span>
+                </div>
+              )}
+
               {/* Password Field */}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="signin-password" className="badge-eyebrow-label text-on-surface-variant">
@@ -182,13 +206,15 @@ export const SignInForm: React.FC = () => {
                 type="submit"
                 variant="primary"
                 size="lg"
+                disabled={isSubmitting}
                 className="w-full mt-2 justify-center py-3.5 text-sm sm:text-base font-black shadow-lg"
-                icon={<ArrowRight className="w-4 h-4" />}
+                icon={isSubmitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
               >
-                Đăng Nhập
+                {isSubmitting ? 'Đang Xử Lý...' : 'Đăng Nhập'}
               </Button>
             </form>
           )}
+
 
           {/* STEP 3: LOGIN SUCCESS STATE */}
           {step === 3 && (

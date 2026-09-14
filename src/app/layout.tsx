@@ -5,6 +5,7 @@ import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
+import { AuthProvider } from "./context/AuthContext";
 
 const comfortaa = Comfortaa({
   variable: "--font-comfortaa",
@@ -36,15 +37,17 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full flex flex-col bg-background text-on-background font-sans transition-colors duration-300">
-        <LanguageProvider>
-          <ThemeProvider>
-            <Header />
-            <main className="flex-1 w-full">
-              {children}
-            </main>
-            <Footer />
-          </ThemeProvider>
-        </LanguageProvider>
+        <AuthProvider>
+          <LanguageProvider>
+            <ThemeProvider>
+              <Header />
+              <main className="flex-1 w-full">
+                {children}
+              </main>
+              <Footer />
+            </ThemeProvider>
+          </LanguageProvider>
+        </AuthProvider>
       </body>
     </html>
   );

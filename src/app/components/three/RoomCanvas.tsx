@@ -6,6 +6,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import { STAGES, CameraStage, TimeOfDay, getVietnamTimeOfDay } from './room/stages';
 import { buildBackpack } from './room/builders/buildBackpack';
+import { useAuth } from '../../context/AuthContext';
 import { buildInteractiveNotebook } from './room/builders/buildInteractiveNotebook';
 import { buildDeskAndChair } from './room/builders/buildDeskAndChair';
 import { buildBookshelf } from './room/builders/buildBookshelf';
@@ -42,6 +43,17 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
   const mountRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<OrbitControls | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+
+  const { user } = useAuth();
+  const updateNameTagRef = useRef<((name?: string, role?: string) => void) | null>(null);
+
+  useEffect(() => {
+    if (updateNameTagRef.current) {
+      const name = user ? (user.fullName || user.username) : '';
+      const role = user?.role || '';
+      updateNameTagRef.current(name, role);
+    }
+  }, [user]);
 
   const onStageChangeRef = useRef(onStageChange);
   useEffect(() => {
@@ -320,7 +332,15 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     );
     deskGroup.add(notebookGroup);
 
-    const { backpackGroup, backpackClickMesh } = buildBackpack(roomW, matBrass);
+    const initialName = user ? (user.fullName || user.username) : '';
+    const initialRole = user?.role || '';
+    const { backpackGroup, backpackClickMesh, updateNameTag } = buildBackpack(
+      roomW,
+      matBrass,
+      initialName,
+      initialRole
+    );
+    updateNameTagRef.current = updateNameTag;
     roomGroup.add(backpackGroup);
     roomGroup.add(backpackClickMesh);
 

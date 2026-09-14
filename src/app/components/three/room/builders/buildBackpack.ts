@@ -3,9 +3,56 @@ import * as THREE from 'three';
 export interface BackpackBuildResult {
   backpackGroup: THREE.Group;
   backpackClickMesh: THREE.Mesh;
+  updateNameTag: (name?: string, role?: string) => void;
 }
 
-export function buildBackpack(roomW: number, matBrass: THREE.Material): BackpackBuildResult {
+export function drawBackpackNameTag(
+  canvas: HTMLCanvasElement,
+  name?: string,
+  role?: string
+) {
+  const ctxTag = canvas.getContext('2d');
+  if (!ctxTag) return;
+
+  // Cream background
+  ctxTag.fillStyle = '#fefcf3';
+  ctxTag.fillRect(0, 0, 256, 128);
+
+  // Outer border (Crimson Red)
+  ctxTag.strokeStyle = '#881337';
+  ctxTag.lineWidth = 10;
+  ctxTag.strokeRect(5, 5, 246, 118);
+
+  // Inner border (Amber Gold)
+  ctxTag.strokeStyle = '#b45309';
+  ctxTag.lineWidth = 3;
+  ctxTag.strokeRect(14, 14, 228, 100);
+
+  ctxTag.textAlign = 'center';
+  ctxTag.textBaseline = 'middle';
+
+  // NAME Label
+  ctxTag.fillStyle = '#0f172a';
+  const displayName = name && name.trim() ? name.trim() : '___________';
+  // Adjust font size dynamically if name is long
+  const nameFontSize = displayName.length > 16 ? 16 : displayName.length > 10 ? 20 : 25;
+  ctxTag.font = `bold ${nameFontSize}px "Segoe UI", Arial, sans-serif`;
+  ctxTag.fillText(`NAME: ${displayName}`, 128, 48);
+
+  // CLASS / ROLE Label
+  ctxTag.fillStyle = '#991b1b';
+  const displayRole = role && role.trim() ? role.trim() : '___________';
+  const roleFontSize = displayRole.length > 16 ? 14 : 18;
+  ctxTag.font = `bold ${roleFontSize}px "Segoe UI", Arial, sans-serif`;
+  ctxTag.fillText(`ROLE: ${displayRole}`, 128, 90);
+}
+
+export function buildBackpack(
+  roomW: number,
+  matBrass: THREE.Material,
+  initialName?: string,
+  initialRole?: string
+): BackpackBuildResult {
   // Nobita's Japanese Red Randoseru Backpack (High-Detail 3D Model with Name Tag)
   const backpackGroup = new THREE.Group();
   backpackGroup.position.set(roomW / 2 - 0.50, 0.16, 0.45);
@@ -65,40 +112,24 @@ export function buildBackpack(roomW: number, matBrass: THREE.Material): Backpack
   zipperSlider.position.set(0.07, 0.005, 0.106);
   backpackGroup.add(zipperSlider);
 
-  // 4. Student Name Tag Label (Nhãn tên: NAME: ___________ - CLASS: ___________)
+  // 4. Student Name Tag Label (Nhãn tên: NAME: _____ - ROLE: _____)
   const nameTagCanvas = document.createElement('canvas');
   nameTagCanvas.width = 256;
   nameTagCanvas.height = 128;
-  const ctxTag = nameTagCanvas.getContext('2d');
-  if (ctxTag) {
-    // Cream background
-    ctxTag.fillStyle = '#fefcf3';
-    ctxTag.fillRect(0, 0, 256, 128);
-    // Outer border
-    ctxTag.strokeStyle = '#881337';
-    ctxTag.lineWidth = 10;
-    ctxTag.strokeRect(5, 5, 246, 118);
-    // Inner line
-    ctxTag.strokeStyle = '#b45309';
-    ctxTag.lineWidth = 3;
-    ctxTag.strokeRect(14, 14, 228, 100);
-    // Blank Name Label Field (No specific name, just blank underlines _________)
-    ctxTag.fillStyle = '#0f172a';
-    ctxTag.font = 'bold 30px "Segoe UI", sans-serif';
-    ctxTag.textAlign = 'center';
-    ctxTag.textBaseline = 'middle';
-    ctxTag.fillText('NAME: ___________', 128, 48);
 
-    ctxTag.fillStyle = '#991b1b';
-    ctxTag.font = 'bold 20px "Segoe UI", sans-serif';
-    ctxTag.fillText('CLASS: ___________', 128, 90);
-  }
+  drawBackpackNameTag(nameTagCanvas, initialName, initialRole);
+
   const nameTagTex = new THREE.CanvasTexture(nameTagCanvas);
   const matNameTag = new THREE.MeshStandardMaterial({
     map: nameTagTex,
     roughness: 0.3,
     metalness: 0.1,
   });
+
+  const updateNameTag = (name?: string, role?: string) => {
+    drawBackpackNameTag(nameTagCanvas, name, role);
+    nameTagTex.needsUpdate = true;
+  };
 
   // Name Tag Frame (Brass border)
   const nameTagFrame = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.07, 0.006), matBrass);
@@ -161,5 +192,5 @@ export function buildBackpack(roomW: number, matBrass: THREE.Material): Backpack
   );
   backpackClickMesh.position.set(roomW / 2 - 0.50, 0.20, 0.45);
 
-  return { backpackGroup, backpackClickMesh };
+  return { backpackGroup, backpackClickMesh, updateNameTag };
 }

@@ -5,31 +5,44 @@ import Link from 'next/link';
 import { Mail, Lock, Eye, EyeOff, User, ArrowRight, BookOpen, ShieldCheck, Wand2, ArrowLeft, CheckCircle2, Edit2, AlertCircle } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 
+import { useAuth } from '../../context/AuthContext';
+import { RefreshCw } from 'lucide-react';
+
 export const SignUpForm: React.FC = () => {
+  const { register } = useAuth();
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const [username, setUsername] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [fullName, setFullName] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState<string>('');
+  const [successMsg, setSuccessMsg] = useState<string>('');
 
   // Step 1: Submit Email -> Proceed to Profile & Password Step
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim()) {
+      setErrorMsg('');
       setStep(2);
     }
   };
 
-  // Step 2: Submit Profile & Passwords -> Complete Registration
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  // Step 2: Submit Profile & Passwords -> Complete Registration via API
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
+    if (!username.trim()) {
+      setErrorMsg('Vui lòng nhập Tên đăng nhập');
+      return;
+    }
+
     if (!fullName.trim()) {
-      setErrorMsg('Vui lòng nhập tên người dùng');
+      setErrorMsg('Vui lòng nhập Họ và Tên');
       return;
     }
 
@@ -43,7 +56,23 @@ export const SignUpForm: React.FC = () => {
       return;
     }
 
-    setStep(3);
+    setIsSubmitting(true);
+    const res = await register({
+      username: username.trim(),
+      email: email.trim(),
+      fullName: fullName.trim(),
+      password,
+      confirmPassword,
+      role: 1,
+    });
+    setIsSubmitting(false);
+
+    if (res.success) {
+      setSuccessMsg(res.message || 'Đăng ký thành công!');
+      setStep(3);
+    } else {
+      setErrorMsg(res.message || (res.errors && res.errors[0]) || 'Đăng ký không thành công.');
+    }
   };
 
   return (
