@@ -22,6 +22,9 @@ export interface RoomHeaderProps {
   onStageChange: (index: number) => void;
   timeOfDay: TimeOfDay;
   onTimeOfDayChange: (time: TimeOfDay) => void;
+  isVisible?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 export const RoomHeader: React.FC<RoomHeaderProps> = ({
@@ -29,12 +32,23 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
   onStageChange,
   timeOfDay,
   onTimeOfDayChange,
+  isVisible = true,
+  onMouseEnter,
+  onMouseLeave,
 }) => {
   const { user, isLoggedIn, backendOnline, backendStatusMessage, pingBackend } = useAuth();
   const stationIcons = [Layers, Clock, BookOpen, DoorOpen, ShieldCheck, Briefcase];
 
   return (
-    <header className="fixed top-0 left-0 right-0 w-full z-30 pointer-events-auto">
+    <header
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      className={`fixed top-0 left-0 right-0 w-full z-40 transition-all duration-300 ease-in-out transform-gpu ${
+        isVisible
+          ? 'translate-y-0 opacity-100 pointer-events-auto'
+          : '-translate-y-full opacity-0 pointer-events-none'
+      }`}
+    >
       <div className="w-full bg-zinc-900/90 dark:bg-zinc-950/90 backdrop-blur-2xl border-b border-white/10 dark:border-zinc-800/80 shadow-lg px-4 sm:px-8 py-3 flex items-center justify-between gap-4 text-white select-none">
         
         {/* 1. Brand Logo & Title */}

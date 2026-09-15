@@ -16,6 +16,7 @@ import {
   Mail,
   User,
   ArrowRight,
+  ArrowLeft,
   Eye,
   EyeOff,
   CheckCircle2,
@@ -32,6 +33,9 @@ export default function Room3DView() {
   const [currentStage, setCurrentStage] = useState<number>(0);
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getVietnamTimeOfDay);
   const [authTab, setAuthTab] = useState<'signin' | 'signup' | 'verify'>('signin');
+  const [isTopHovered, setIsTopHovered] = useState<boolean>(false);
+
+  const isHeaderVisible = currentStage === 0 || isTopHovered;
 
   // Auth Context Hooks
   const {
@@ -250,13 +254,37 @@ export default function Room3DView() {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans">
-      {/* 3D Header Navigation */}
+      {/* Invisible Top Edge Hover Detector (di chuột vào mép trên màn hình để hiện Header khi đang Zoom) */}
+      {currentStage !== 0 && (
+        <div
+          onMouseEnter={() => setIsTopHovered(true)}
+          className="fixed top-0 left-0 right-0 h-8 z-30 pointer-events-auto"
+        />
+      )}
+
+      {/* 3D Header Navigation (Luôn hiện ở Góc 1, trượt xuống khi di chuột mép trên) */}
       <RoomHeader
         currentStage={currentStage}
         onStageChange={setCurrentStage}
         timeOfDay={timeOfDay}
         onTimeOfDayChange={setTimeOfDay}
+        isVisible={isHeaderVisible}
+        onMouseEnter={() => setIsTopHovered(true)}
+        onMouseLeave={() => setIsTopHovered(false)}
       />
+
+      {/* Nút Quay lại Toàn Cảnh khi Zoom vào các góc đồ vật (Stage 3: Tủ trượt, Stage 4: Cửa sổ) */}
+      {(currentStage === 3 || currentStage === 4) && (
+        <div className="fixed top-4 left-4 z-30 pointer-events-auto">
+          <button
+            onClick={() => setCurrentStage(0)}
+            className="px-4 py-2.5 rounded-2xl bg-zinc-900/90 hover:bg-zinc-900 text-white font-extrabold text-xs flex items-center gap-2 border border-white/20 shadow-xl backdrop-blur-xl transition-all hover:scale-105 cursor-pointer"
+          >
+            <ArrowLeft className="w-4 h-4 text-amber-400" />
+            <span>Quay lại Toàn Cảnh (Góc 1)</span>
+          </button>
+        </div>
+      )}
 
       {/* Fullscreen 3D Room Canvas */}
       <RoomCanvas
