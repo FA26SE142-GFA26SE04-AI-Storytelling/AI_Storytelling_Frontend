@@ -3,6 +3,7 @@ import { createRealTimeCalendarTexture, createClockFaceTexture } from '../textur
 
 export interface BookshelfBuildResult {
   shelfGroup: THREE.Group;
+  bookshelfClickMesh: THREE.Mesh;
   wallPosterGroup: THREE.Group;
   globeSphere: THREE.Mesh;
   hourHandGroup: THREE.Group;
@@ -285,5 +286,11 @@ export function buildBookshelf(
   posterFace.position.set(0, -0.01, 0.004);
   wallPosterGroup.add(posterFace);
 
-  return { shelfGroup, wallPosterGroup, globeSphere, hourHandGroup, minuteHandGroup };
+  const bookshelfClickMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(1.2, 1.4, 0.5),
+    new THREE.MeshBasicMaterial({ visible: false })
+  );
+  bookshelfClickMesh.position.set(-1.5, 0.70, -roomL / 2 + 0.20);
+
+  return { shelfGroup, bookshelfClickMesh, wallPosterGroup, globeSphere, hourHandGroup, minuteHandGroup };
 }

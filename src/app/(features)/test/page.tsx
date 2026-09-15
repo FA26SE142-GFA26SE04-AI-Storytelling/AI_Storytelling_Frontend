@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { RoomCanvas, STAGES, TimeOfDay } from '../../components/three/RoomCanvas';
 import { getVietnamTimeOfDay } from '../../components/three/room/stages';
 import { TestHeader } from './TestHeader';
+import { LibraryBookshelfZoomOverlay } from '../../components/library/LibraryBookshelfZoomOverlay';
+import { ParentDeskZoomOverlay } from '../../components/parents/ParentDeskZoomOverlay';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
 import {
@@ -271,6 +273,28 @@ export default function Test3DUIPage() {
         timeOfDay={timeOfDay}
         onTimeOfDayChange={setTimeOfDay}
       />
+
+      {/* Interactive Floating Parent Desk Overlay when zoomed into Desk (Stage 1) */}
+      {currentStage === 1 && (
+        <ParentDeskZoomOverlay
+          currentStage={currentStage}
+          onStageChange={setCurrentStage}
+          timeOfDay={timeOfDay}
+          onTimeOfDayChange={setTimeOfDay}
+          is2DViewAvailable={false}
+        />
+      )}
+
+      {/* Interactive Floating Bookshelf Overlay when zoomed into Bookshelf (Stage 2) */}
+      {currentStage === 2 && (
+        <LibraryBookshelfZoomOverlay
+          currentStage={currentStage}
+          onStageChange={setCurrentStage}
+          timeOfDay={timeOfDay}
+          onTimeOfDayChange={setTimeOfDay}
+          is2DViewAvailable={false}
+        />
+      )}
 
       {/* Interactive Sign In Floating Card when zoomed into Backpack (Stage 5) */}
       {currentStage === 5 && (

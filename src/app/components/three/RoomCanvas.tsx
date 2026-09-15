@@ -289,7 +289,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     roomGroup.add(lowTableGroup);
     roomGroup.add(cornerPlantGroup);
 
-    const { shelfGroup, wallPosterGroup, globeSphere, hourHandGroup, minuteHandGroup } = buildBookshelf(
+    const { shelfGroup, bookshelfClickMesh, wallPosterGroup, globeSphere, hourHandGroup, minuteHandGroup } = buildBookshelf(
       roomL,
       matWoodAmber,
       matWoodAmber,
@@ -299,9 +299,10 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       matPaperWhite
     );
     roomGroup.add(shelfGroup);
+    roomGroup.add(bookshelfClickMesh);
     roomGroup.add(wallPosterGroup);
 
-    const { deskGroup, chairGroup } = buildDeskAndChair(
+    const { deskGroup, chairGroup, deskClickMesh } = buildDeskAndChair(
       roomW,
       matWoodAmber,
       matWoodDark,
@@ -323,6 +324,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     );
     roomGroup.add(deskGroup);
     roomGroup.add(chairGroup);
+    roomGroup.add(deskClickMesh);
 
     const { notebookGroup, notebookClickMesh, rightWing } = buildInteractiveNotebook(
       matClosetBlue,
@@ -581,6 +583,23 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         if (onStageChangeRef.current) {
           onStageChangeRef.current(5);
         }
+        return;
+      }
+
+      const intersectsBookshelf = raycaster.intersectObject(bookshelfClickMesh, true);
+      if (intersectsBookshelf.length > 0) {
+        if (onStageChangeRef.current) {
+          onStageChangeRef.current(2);
+        }
+        return;
+      }
+
+      const intersectsDesk = raycaster.intersectObject(deskClickMesh, true);
+      if (intersectsDesk.length > 0) {
+        if (onStageChangeRef.current) {
+          onStageChangeRef.current(1);
+        }
+        return;
       }
     };
 
@@ -594,7 +613,16 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       const intersectsDoorRight = raycaster.intersectObject(doorRightClickMesh, true);
       const intersectsNotebook = raycaster.intersectObject(notebookClickMesh, true);
       const intersectsBag = raycaster.intersectObject(backpackClickMesh, true);
-      if (intersectsDoorLeft.length > 0 || intersectsDoorRight.length > 0 || intersectsNotebook.length > 0 || intersectsBag.length > 0) {
+      const intersectsBookshelf = raycaster.intersectObject(bookshelfClickMesh, true);
+      const intersectsDesk = raycaster.intersectObject(deskClickMesh, true);
+      if (
+        intersectsDoorLeft.length > 0 ||
+        intersectsDoorRight.length > 0 ||
+        intersectsNotebook.length > 0 ||
+        intersectsBag.length > 0 ||
+        intersectsBookshelf.length > 0 ||
+        intersectsDesk.length > 0
+      ) {
         domElem.style.cursor = 'pointer';
       } else {
         domElem.style.cursor = '';

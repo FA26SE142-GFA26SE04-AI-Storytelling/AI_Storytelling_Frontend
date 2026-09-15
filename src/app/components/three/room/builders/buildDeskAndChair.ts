@@ -3,6 +3,7 @@ import * as THREE from 'three';
 export interface DeskAndChairBuildResult {
   deskGroup: THREE.Group;
   chairGroup: THREE.Group;
+  deskClickMesh: THREE.Mesh;
 }
 
 export function buildDeskAndChair(
@@ -398,5 +399,11 @@ export function buildDeskAndChair(
     chairGroup.add(armPad);
   });
 
-  return { deskGroup, chairGroup };
+  const deskClickMesh = new THREE.Mesh(
+    new THREE.BoxGeometry(1.2, 1.2, 1.2),
+    new THREE.MeshBasicMaterial({ visible: false })
+  );
+  deskClickMesh.position.set(roomW / 2 - 0.65, 0.6, -0.6);
+
+  return { deskGroup, chairGroup, deskClickMesh };
 }
