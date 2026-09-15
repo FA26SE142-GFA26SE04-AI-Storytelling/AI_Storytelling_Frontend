@@ -1,4 +1,4 @@
-import { LoginRequest, RegisterRequest, VerifyEmailRequest, AuthResponseData, ApiResponse, UserProfile } from '../types/auth';
+import { LoginRequest, RegisterRequest, VerifyEmailRequest, ChangePasswordRequest, AuthResponseData, ApiResponse, UserProfile } from '../types/auth';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5259/api/v1';
 
@@ -123,7 +123,43 @@ export const authService = {
         success: false,
         message: 'Không thể tải thông tin cá nhân từ Backend.',
         data: null,
-        errors: [(error as Error).message],
+        errors: [(error as Error).message || 'Network connection failed'],
+      };
+    }
+  },
+
+  /**
+   * Đổi mật khẩu cho tài khoản đang đăng nhập (/Auth/change-password)
+   */
+  async changePassword(data: ChangePasswordRequest, token?: string): Promise<ApiResponse<object | null>> {
+    const accessToken = token || this.getStoredAccessToken();
+    if (!accessToken) {
+      return {
+        success: false,
+        message: 'Bạn chưa đăng nhập hoặc token đã hết hạn.',
+        data: null,
+      };
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/Auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result: ApiResponse<object | null> = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Change password error:', error);
+      return {
+        success: false,
+        message: 'Không thể kết nối đến máy chủ Backend (http://localhost:5259). Vui lòng thử lại.',
+        data: null,
+        errors: [(error as Error).message || 'Network connection failed'],
       };
     }
   },

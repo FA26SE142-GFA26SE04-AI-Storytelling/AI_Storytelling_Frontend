@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { TimeOfDay } from '../stages';
+import { buildLaptop } from './buildLaptop';
 
 export interface ClosetAndWindowBuildResult {
   closetGroup: THREE.Group;
@@ -9,6 +10,8 @@ export interface ClosetAndWindowBuildResult {
   doorRightClickMesh: THREE.Mesh;
   winGroup: THREE.Group;
   lowTableGroup: THREE.Group;
+  laptopClickMesh: THREE.Mesh;
+  laptopLidGroup: THREE.Group;
   cornerPlantGroup: THREE.Group;
   sunGroup: THREE.Group;
   moonGroup: THREE.Group;
@@ -492,27 +495,11 @@ export function buildClosetAndWindow(
   glassCupGroup.add(straw);
   lowTableGroup.add(glassCupGroup);
 
-  const teapotGroup = new THREE.Group();
-  teapotGroup.position.set(0.20, 0.385, 0.10);
-  const teapotBody = new THREE.Mesh(new THREE.SphereGeometry(0.065, 20, 16), matTerracotta);
-  teapotBody.scale.set(1.1, 0.75, 1.1);
-  teapotBody.position.y = 0.045;
-  teapotGroup.add(teapotBody);
-  const teapotLid = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.012, 20), matTerracotta);
-  teapotLid.position.y = 0.092;
-  teapotGroup.add(teapotLid);
-  const teapotKnob = new THREE.Mesh(new THREE.SphereGeometry(0.01, 12, 12), matWoodDark);
-  teapotKnob.position.y = 0.104;
-  teapotGroup.add(teapotKnob);
-  const teapotSpout = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.016, 0.06, 16), matTerracotta);
-  teapotSpout.position.set(-0.07, 0.06, 0);
-  teapotSpout.rotation.z = Math.PI / 3;
-  teapotGroup.add(teapotSpout);
-  const teapotHandle = new THREE.Mesh(new THREE.TorusGeometry(0.035, 0.008, 16, 24, Math.PI * 1.1), matTerracotta);
-  teapotHandle.position.set(0.062, 0.045, 0);
-  teapotHandle.rotation.z = -Math.PI * 0.55;
-  teapotGroup.add(teapotHandle);
-  lowTableGroup.add(teapotGroup);
+  // Modern 3D Laptop on Low Table (Thay thế bình trà cũ theo yêu cầu người dùng)
+  const { laptopGroup, laptopClickMesh, laptopLidGroup } = buildLaptop();
+  laptopGroup.position.set(0.10, 0.385, 0.0);
+  laptopGroup.rotation.y = 0; // Đặt vuông góc trục Z để góc camera nhìn thẳng chính diện vào màn hình
+  lowTableGroup.add(laptopGroup);
 
   const tablePlantGroup = new THREE.Group();
   tablePlantGroup.position.set(-0.25, 0.385, 0.15);
@@ -686,6 +673,8 @@ export function buildClosetAndWindow(
     doorRightClickMesh,
     winGroup,
     lowTableGroup,
+    laptopClickMesh,
+    laptopLidGroup,
     cornerPlantGroup,
     sunGroup,
     moonGroup,

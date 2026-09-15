@@ -21,6 +21,7 @@ import {
   Moon,
   Briefcase,
   RefreshCw,
+  Laptop,
 } from 'lucide-react';
 
 export interface RoomHeaderProps {
@@ -43,7 +44,7 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
   onMouseLeave,
 }) => {
   const { user, isLoggedIn, backendOnline, backendStatusMessage, pingBackend } = useAuth();
-  const stationIcons = [Layers, Clock, BookOpen, DoorOpen, ShieldCheck, Briefcase];
+  const stationIcons = [Layers, Clock, BookOpen, DoorOpen, ShieldCheck, Briefcase, Laptop];
   const headerRef = useRef<HTMLElement>(null);
 
   // GSAP: Hiệu ứng xuất hiện so le khi Header hiển thị
@@ -109,6 +110,7 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
               '4. Tủ Trượt',
               '5. Cửa Sổ',
               '6. Cặp Sách',
+              '7. Laptop',
             ];
             const label = stationShortNames[idx] || stg.name.split(' (')[0];
             return (

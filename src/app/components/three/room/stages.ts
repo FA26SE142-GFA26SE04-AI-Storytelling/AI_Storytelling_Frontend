@@ -75,4 +75,10 @@ export const STAGES: CameraStage[] = [
     camPos: [1.15, 0.60, 1.25],
     targetPos: [1.90, 0.25, 0.45],
   },
+  {
+    id: 'laptop',
+    name: '7. Laptop (Chính Diện Màn Hình AI)',
+    camPos: [-1.70, 0.68, 0.95],
+    targetPos: [-1.70, 0.48, 0.38],
+  },
 ];

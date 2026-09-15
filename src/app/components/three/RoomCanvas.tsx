@@ -92,6 +92,85 @@ function playBookPageSound(isOpen: boolean) {
   }
 }
 
+/**
+ * Hiệu ứng âm thanh mở/đóng nắp laptop & âm khởi động MagicOS nhẹ nhàng (Web Audio API)
+ */
+function playLaptopSound(isOpen: boolean) {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+
+    if (isOpen) {
+      // 1. Tiếng mở bản lề cơ học êm ái
+      const bufferSize = Math.floor(ctx.sampleRate * 0.16);
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.05));
+      }
+      const noise = ctx.createBufferSource();
+      noise.buffer = buffer;
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(600, now);
+      filter.Q.setValueAtTime(2.0, now);
+
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0.08, now);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+      noise.connect(filter);
+      filter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      noise.start(now);
+
+      // 2. Âm thanh khởi động MagicOS nhẹ nhàng (soft futuristic chime)
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const chimeGain = ctx.createGain();
+
+      osc1.type = 'sine';
+      osc2.type = 'triangle';
+      osc1.frequency.setValueAtTime(523.25, now + 0.20); // C5
+      osc1.frequency.exponentialRampToValueAtTime(1046.5, now + 0.60); // C6
+      osc2.frequency.setValueAtTime(659.25, now + 0.20); // E5
+      osc2.frequency.exponentialRampToValueAtTime(1318.5, now + 0.60); // E6
+
+      chimeGain.gain.setValueAtTime(0.0001, now);
+      chimeGain.gain.setValueAtTime(0.0001, now + 0.20);
+      chimeGain.gain.linearRampToValueAtTime(0.07, now + 0.30);
+      chimeGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.85);
+
+      osc1.connect(chimeGain);
+      osc2.connect(chimeGain);
+      chimeGain.connect(ctx.destination);
+
+      osc1.start(now + 0.20);
+      osc2.start(now + 0.20);
+      osc1.stop(now + 0.90);
+      osc2.stop(now + 0.90);
+    } else {
+      // Tiếng gập nắp máy êm ái
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(220, now);
+      osc.frequency.exponentialRampToValueAtTime(60, now + 0.08);
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.09);
+    }
+  } catch {
+    // Ignore audio error
+  }
+}
+
 
 export interface RoomCanvasProps {
   currentStageIndex: number;
@@ -164,6 +243,12 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       } else if (prevStage === 1) {
         // Tự động gập quyển vở lại khi rời khỏi Bàn học
         playBookPageSound(false);
+      } else if (currentStageIndex === 6) {
+        // Tự động mở nắp laptop khi zoom vào góc Laptop
+        setTimeout(() => playLaptopSound(true), 150);
+      } else if (prevStage === 6) {
+        // Tự động gập nắp laptop lại khi rời khỏi góc Laptop
+        playLaptopSound(false);
       }
       prevStageRef.current = currentStageIndex;
     }
@@ -288,7 +373,12 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     const matShojiPaper = new THREE.MeshStandardMaterial({ map: texPaper, color: 0xfffcf5, roughness: 0.85, transparent: true, opacity: 0.92 });
     const matClosetWhite = new THREE.MeshStandardMaterial({ map: texPaper, color: 0xf5eedc, roughness: 0.55 });
     const matClosetBlue = new THREE.MeshStandardMaterial({ color: 0x1d5a8a, roughness: 0.35 });
-    const matTableMahogany = new THREE.MeshStandardMaterial({ map: texWoodDark, color: 0x6b2915, roughness: 0.28 });
+    const matTableMahogany = new THREE.MeshStandardMaterial({
+      map: texWoodAmber,
+      color: 0x9a4a25, // Gỗ Teak/dẻ Nhật Bản ấm áp, vân gỗ rõ nét, không bị tối đen
+      roughness: 0.38,
+      metalness: 0.05,
+    });
     const matGlassWater = new THREE.MeshPhysicalMaterial({ color: 0xffffff, transparent: true, opacity: 0.35, roughness: 0.05, transmission: 0.9 });
     const matWaterLiquid = new THREE.MeshPhysicalMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.75, roughness: 0.10, transmission: 0.75 });
     const matTerracotta = new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.65 });
@@ -339,6 +429,8 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       doorRightClickMesh,
       winGroup,
       lowTableGroup,
+      laptopClickMesh,
+      laptopLidGroup,
       cornerPlantGroup,
       sunGroup,
       moonGroup,
@@ -637,6 +729,11 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       rightWing.rotation.z = THREE.MathUtils.lerp(rightWing.rotation.z, targetNotebookAngle, 0.03);
       rightWing.position.y = THREE.MathUtils.lerp(rightWing.position.y, targetNotebookPosY, 0.03);
 
+      // Laptop tự động mở nắp nghiêng chuẩn khi zoom vào góc Laptop (Stage 6) và gập đóng phẳng khi rời đi
+      const isLaptopOpen = currentStageIndexRef.current === 6;
+      const targetLidAngle = isLaptopOpen ? -0.31 : Math.PI / 2;
+      laptopLidGroup.rotation.x = THREE.MathUtils.lerp(laptopLidGroup.rotation.x, targetLidAngle, 0.04);
+
       // Interactive Closet Doors independent smooth sliding animation
       const targetDoorLeftX = isLeftDoorOpen ? 0.46 : -0.51;
       const targetDoorRightX = isRightDoorOpen ? -0.46 : 0.51;
@@ -729,6 +826,14 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         }
         return;
       }
+
+      const intersectsLaptop = raycaster.intersectObject(laptopClickMesh, true);
+      if (intersectsLaptop.length > 0) {
+        if (onStageChangeRef.current) {
+          onStageChangeRef.current(6); // Zoom góc chính diện vào laptop
+        }
+        return;
+      }
     };
 
     const handlePointerMove = (e: MouseEvent) => {
@@ -744,9 +849,11 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       const intersectsBag = raycaster.intersectObject(backpackClickMesh, true);
       const intersectsBookshelf = raycaster.intersectObject(bookshelfClickMesh, true);
       const intersectsDesk = raycaster.intersectObject(deskClickMesh, true);
+      const intersectsLaptop = raycaster.intersectObject(laptopClickMesh, true);
 
       const isNotebookHoverable = currentStageIndexRef.current !== 1 && intersectsNotebook.length > 0;
       const isDeskHoverable = currentStageIndexRef.current !== 1 && intersectsDesk.length > 0;
+      const isLaptopHoverable = currentStageIndexRef.current !== 6 && intersectsLaptop.length > 0;
 
       if (
         intersectsSwitch.length > 0 ||
@@ -754,6 +861,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         intersectsDoorRight.length > 0 ||
         isNotebookHoverable ||
         isDeskHoverable ||
+        isLaptopHoverable ||
         intersectsBag.length > 0 ||
         intersectsBookshelf.length > 0
       ) {

@@ -43,3 +43,9 @@ export interface VerifyEmailRequest {
   email: string;
   token: string;
 }
+
+export interface ChangePasswordRequest {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

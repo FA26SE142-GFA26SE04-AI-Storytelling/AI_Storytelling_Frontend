@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { UserProfile, LoginRequest, RegisterRequest, AuthResponseData, ApiResponse } from '../types/auth';
+import { UserProfile, LoginRequest, RegisterRequest, ChangePasswordRequest, AuthResponseData, ApiResponse } from '../types/auth';
 import { authService } from '../services/authService';
 
 interface AuthContextType {
@@ -13,6 +13,7 @@ interface AuthContextType {
   backendStatusMessage: string;
   login: (credentials: LoginRequest) => Promise<ApiResponse<AuthResponseData>>;
   register: (data: RegisterRequest) => Promise<ApiResponse<object | null>>;
+  changePassword: (data: ChangePasswordRequest) => Promise<ApiResponse<object | null>>;
   logout: () => Promise<void>;
   refreshProfile: () => Promise<UserProfile | null>;
   pingBackend: () => Promise<void>;
@@ -76,6 +77,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return result;
   };
 
+  const changePassword = async (data: ChangePasswordRequest): Promise<ApiResponse<object | null>> => {
+    setIsLoading(true);
+    const result = await authService.changePassword(data, accessToken || undefined);
+    setIsLoading(false);
+    return result;
+  };
+
   const logout = async (): Promise<void> => {
     setIsLoading(true);
     await authService.logout();
@@ -105,6 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         backendStatusMessage,
         login,
         register,
+        changePassword,
         logout,
         refreshProfile,
         pingBackend,

@@ -12,6 +12,7 @@ import { getVietnamTimeOfDay } from './room/stages';
 import { RoomHeader } from './RoomHeader';
 import { LibraryBookshelfZoomOverlay } from '../library/LibraryBookshelfZoomOverlay';
 import { ParentDeskZoomOverlay } from '../parents/ParentDeskZoomOverlay';
+import { ParentLaptopDashboardOverlay } from '../parents/ParentLaptopDashboardOverlay';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
 import {
@@ -33,6 +34,13 @@ import {
   Key,
   Zap,
   Phone,
+  Copy,
+  Check,
+  Laptop,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  Sparkles,
 } from 'lucide-react';
 
 export default function Room3DView() {
@@ -51,7 +59,9 @@ export default function Room3DView() {
     isLoading: isAuthLoading,
     login,
     register,
+    changePassword,
     logout,
+    refreshProfile,
   } = useAuth();
 
   // Local Login Form States
@@ -74,6 +84,23 @@ export default function Room3DView() {
   const [regRole, setRegRole] = useState<number>(1); // 1 = Parent
   const [showRegPassword, setShowRegPassword] = useState<boolean>(false);
 
+  // Profile View States
+  const [showTokenDetails, setShowTokenDetails] = useState<boolean>(false);
+  const [copiedToken, setCopiedToken] = useState<boolean>(false);
+
+  // Change Password States
+  const [showChangePassword, setShowChangePassword] = useState<boolean>(false);
+  const [currentPassword, setCurrentPassword] = useState<string>('');
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState<string>('');
+  const [showCurrentPassword, setShowCurrentPassword] = useState<boolean>(false);
+  const [showNewPassword, setShowNewPassword] = useState<boolean>(false);
+  const [isChangingPassword, setIsChangingPassword] = useState<boolean>(false);
+  const [changePasswordFeedback, setChangePasswordFeedback] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
+
   // Api Test State
   const [apiFeedback, setApiFeedback] = useState<{
     type: 'success' | 'error' | 'info' | null;
@@ -82,6 +109,13 @@ export default function Room3DView() {
   }>({ type: null, message: '' });
 
   const [testProfileResult, setTestProfileResult] = useState<string | null>(null);
+
+  // Tự động làm mới hồ sơ người dùng khi mở góc nhìn Cặp Sách (Stage 5)
+  useEffect(() => {
+    if (currentStage === 5 && isLoggedIn && refreshProfile) {
+      refreshProfile();
+    }
+  }, [currentStage, isLoggedIn, refreshProfile]);
 
   // Wheel scroll handler to change camera stages smoothly
   useEffect(() => {
@@ -283,6 +317,62 @@ export default function Room3DView() {
     setTestProfileResult(JSON.stringify(res, null, 2));
   };
 
+  const handleChangePasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setChangePasswordFeedback({ type: null, message: '' });
+
+    if (newPassword !== confirmNewPassword) {
+      setChangePasswordFeedback({
+        type: 'error',
+        message: 'Mật khẩu xác nhận không khớp với mật khẩu mới.',
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      setChangePasswordFeedback({
+        type: 'error',
+        message: 'Mật khẩu mới phải có tối thiểu 6 ký tự.',
+      });
+      return;
+    }
+
+    setIsChangingPassword(true);
+    try {
+      const res = await changePassword({
+        currentPassword,
+        newPassword,
+        confirmPassword: confirmNewPassword,
+      });
+
+      if (res.success) {
+        setChangePasswordFeedback({
+          type: 'success',
+          message: res.message || 'Đổi mật khẩu thành công. Vui lòng đăng nhập lại.',
+        });
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+        // Tự động đăng xuất sau 2.5s để người dùng đăng nhập lại với mật khẩu mới
+        setTimeout(async () => {
+          await logout();
+        }, 2500);
+      } else {
+        setChangePasswordFeedback({
+          type: 'error',
+          message: res.message || 'Đổi mật khẩu thất bại. Vui lòng kiểm tra lại mật khẩu hiện tại.',
+        });
+      }
+    } catch (err) {
+      setChangePasswordFeedback({
+        type: 'error',
+        message: (err as Error)?.message || 'Có lỗi xảy ra khi đổi mật khẩu.',
+      });
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
+
   return (
     <div ref={roomViewRef} className="relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans">
       {/* Invisible Top Edge Hover Detector (di chuột vào mép trên màn hình để hiện Header khi đang Zoom) */}
@@ -370,7 +460,7 @@ export default function Room3DView() {
                 <h2 className="font-black text-base tracking-tight text-white flex items-center gap-2">
                   <span className="text-white drop-shadow-sm font-black">
                     {isLoggedIn
-                      ? 'Tài Khoản Đã Xác Thực'
+                      ? 'Hồ Sơ & Thông Tin Tài Khoản'
                       : authTab === 'signin'
                       ? 'Đăng Nhập MagicTales'
                       : authTab === 'verify'
@@ -378,7 +468,9 @@ export default function Room3DView() {
                       : 'Đăng Ký Tài Khoản'}
                   </span>
                 </h2>
-                <p className="text-[10px] text-zinc-300 font-medium">Cặp Sách Nobita 3D Auth</p>
+                <p className="text-[10px] text-zinc-300 font-medium">
+                  {isLoggedIn ? 'Thông tin cá nhân & Quản lý gia đình MagicTales' : 'Cặp Sách Nobita 3D Auth'}
+                </p>
               </div>
             </div>
             <button
@@ -390,73 +482,316 @@ export default function Room3DView() {
             </button>
           </div>
 
-          {/* IF USER IS LOGGED IN: DISPLAY USER PROFILE & TOKEN TESTER */}
+          {/* IF USER IS LOGGED IN: DISPLAY ALL USER PROFILE INFORMATION */}
           {isLoggedIn && user ? (
-            <div className="flex flex-col gap-4">
-              <div className="auth-form-field p-4 rounded-2xl bg-gradient-to-br from-emerald-950/40 via-zinc-900 to-zinc-950 border border-emerald-500/30 flex flex-col gap-3">
+            <div className="flex flex-col gap-3.5">
+              {/* 1. Profile Hero Card */}
+              <div className="auth-form-field p-4 rounded-2xl bg-gradient-to-br from-emerald-950/50 via-zinc-900 to-zinc-950 border border-emerald-500/35 shadow-xl flex flex-col gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center font-black text-lg text-zinc-950 shadow-lg">
-                    {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()}
+                  <div className="w-13 h-13 rounded-2xl bg-gradient-to-tr from-emerald-400 via-teal-500 to-sky-500 flex items-center justify-center font-black text-xl text-zinc-950 shadow-md shadow-emerald-500/20 shrink-0">
+                    {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username ? user.username.charAt(0).toUpperCase() : 'U'}
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-extrabold text-sm text-white truncate">{user.fullName || user.username}</h3>
-                    <p className="text-xs text-emerald-400 font-medium truncate">{user.email}</p>
-                    <span className="inline-block mt-1 px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-bold text-emerald-300 uppercase tracking-wider">
-                      Vai trò: {user.role || 'User'}
+                    <div className="flex items-center gap-1.5">
+                      <h3 className="font-black text-base text-white truncate drop-shadow-sm">
+                        {user.fullName || user.username}
+                      </h3>
+                      <span className="text-emerald-400 shrink-0" title="Tài khoản đã xác thực">
+                        <CheckCircle2 className="w-4 h-4" />
+                      </span>
+                    </div>
+                    <p className="text-xs text-emerald-300 font-medium truncate">{user.email}</p>
+                    <div className="flex items-center gap-1.5 mt-1.5 flex-wrap">
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-extrabold text-emerald-300 uppercase tracking-wider">
+                        {user.role === 'Parent' || user.role === '1' ? '🛡️ Phụ Huynh' : user.role || 'Thành viên'}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md bg-sky-500/20 border border-sky-500/40 text-[10px] font-extrabold text-sky-300">
+                        ✨ VIP Family
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Comprehensive Details Grid */}
+              <div className="auth-form-field p-3.5 rounded-2xl bg-zinc-950/80 border border-zinc-800 text-xs flex flex-col gap-2.5">
+                <span className="text-[11px] font-extrabold text-zinc-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <User className="w-3.5 h-3.5 text-sky-400" /> Tất Cả Thông Tin Cá Nhân
+                </span>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px]">
+                  <div className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/80 flex flex-col">
+                    <span className="text-[10px] text-zinc-400">ID Người Dùng</span>
+                    <strong className="text-white font-mono text-xs">#{user.id}</strong>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/80 flex flex-col">
+                    <span className="text-[10px] text-zinc-400">Tên Đăng Nhập</span>
+                    <strong className="text-sky-300 text-xs font-mono">@{user.username}</strong>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/80 flex flex-col">
+                    <span className="text-[10px] text-zinc-400">Họ và Tên Đầy Đủ</span>
+                    <strong className="text-white text-xs">{user.fullName || 'Chưa cập nhật'}</strong>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/80 flex flex-col">
+                    <span className="text-[10px] text-zinc-400">Số Điện Thoại</span>
+                    <strong className="text-zinc-200 text-xs font-mono">{user.phoneNumber || 'Chưa liên kết'}</strong>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/80 flex flex-col sm:col-span-2">
+                    <span className="text-[10px] text-zinc-400">Địa Chỉ Email Xác Thực</span>
+                    <strong className="text-emerald-300 text-xs truncate">{user.email}</strong>
+                  </div>
+
+                  <div className="p-2.5 rounded-xl bg-zinc-900/90 border border-zinc-800/80 flex items-center justify-between sm:col-span-2">
+                    <div>
+                      <span className="text-[10px] text-zinc-400 block">Vai Trò & Quyền Hạn</span>
+                      <strong className="text-zinc-200 text-xs">
+                        {user.role === 'Parent' || user.role === '1' ? 'Phụ Huynh (Quản Lý Gia Đình)' : user.role || 'Người Dùng'}
+                      </strong>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                      {user.status || 'Active (Đang Trực Tuyến)'}
                     </span>
                   </div>
                 </div>
+              </div>
 
-                <div className="pt-2 border-t border-zinc-800 text-[11px] text-zinc-400 flex flex-col gap-1">
-                  <div className="flex justify-between">
-                    <span>User ID:</span>
-                    <strong className="text-zinc-200">{user.id}</strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Username:</span>
-                    <strong className="text-zinc-200">{user.username}</strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Trạng thái tài khoản:</span>
-                    <strong className="text-emerald-400">{user.status || 'Active'}</strong>
-                  </div>
+              {/* 3. Connected Child & Fast 3D Shortcuts */}
+              <div className="auth-form-field p-3.5 rounded-2xl bg-gradient-to-br from-indigo-950/30 via-zinc-950/80 to-zinc-950/80 border border-indigo-500/30 text-xs flex flex-col gap-2.5">
+                <span className="text-[11px] font-extrabold text-indigo-300 uppercase tracking-wider flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" /> Quản Lý & Chuyển Nhanh Góc Phòng
+                </span>
+
+                <div className="flex flex-col gap-1.5">
+                  <button
+                    onClick={() => setCurrentStage(6)}
+                    className="w-full p-2.5 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-sky-200 font-bold text-xs flex items-center justify-between transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Laptop className="w-4 h-4 text-sky-400" />
+                      <span>Mở Bảng Phụ Huynh (Laptop 3D)</span>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+
+                  <button
+                    onClick={() => setCurrentStage(1)}
+                    className="w-full p-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 font-bold text-xs flex items-center justify-between transition-all cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <BookOpen className="w-4 h-4 text-amber-400" />
+                      <span>Xem Góc Bàn Học Của Bé</span>
+                    </div>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 
-              {/* JWT Token Preview & Api Tester */}
-              <div className="auth-form-field p-3 rounded-2xl bg-zinc-950/90 border border-zinc-800 text-xs flex flex-col gap-2">
-                <div className="flex items-center justify-between text-[11px] font-bold text-zinc-300">
-                  <span className="flex items-center gap-1">
-                    <Key className="w-3.5 h-3.5 text-amber-400" /> JWT Access Token (Active):
-                  </span>
-                  <span className="text-[10px] text-zinc-500 font-mono">Bearer</span>
-                </div>
-                <div className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-400 break-all max-h-16 overflow-y-auto">
-                  {accessToken}
-                </div>
-
+              {/* 4. Technical / JWT Token Details (Collapsible) */}
+              <div className="auth-form-field rounded-2xl bg-zinc-950/90 border border-zinc-800 text-xs overflow-hidden">
                 <button
-                  onClick={handleTestGetProfile}
-                  className="w-full mt-1 py-2 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                  type="button"
+                  onClick={() => setShowTokenDetails(!showTokenDetails)}
+                  className="w-full p-3 flex items-center justify-between text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
                 >
-                  <Zap className="w-3.5 h-3.5 text-amber-400" />
-                  <span>Test API GET /api/v1/Auth/me</span>
+                  <span className="flex items-center gap-1.5 font-bold text-[11px]">
+                    <Key className="w-3.5 h-3.5 text-amber-400" /> Chi Tiết Kỹ Thuật & Access Token
+                  </span>
+                  {showTokenDetails ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
 
-                {testProfileResult && (
-                  <pre className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-emerald-400 overflow-x-auto max-h-32">
-                    {testProfileResult}
-                  </pre>
+                {showTokenDetails && (
+                  <div className="p-3 pt-0 flex flex-col gap-2 border-t border-zinc-800/80">
+                    <div className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-zinc-400 break-all max-h-20 overflow-y-auto">
+                      {accessToken}
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          if (accessToken) {
+                            navigator.clipboard.writeText(accessToken);
+                            setCopiedToken(true);
+                            setTimeout(() => setCopiedToken(false), 2000);
+                          }
+                        }}
+                        className="flex-1 py-1.5 px-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-[11px] font-bold text-zinc-300 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        {copiedToken ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedToken ? 'Đã sao chép!' : 'Sao chép Token'}</span>
+                      </button>
+
+                      <button
+                        onClick={handleTestGetProfile}
+                        className="flex-1 py-1.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-[11px] font-bold text-amber-300 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <Zap className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Test API /me</span>
+                      </button>
+                    </div>
+
+                    {testProfileResult && (
+                      <pre className="p-2 rounded-xl bg-zinc-900 border border-zinc-800 text-[10px] font-mono text-emerald-400 overflow-x-auto max-h-32">
+                        {testProfileResult}
+                      </pre>
+                    )}
+                  </div>
                 )}
               </div>
 
-              {/* Logout Button */}
+              {/* 5. Change Password Card / Accordion Form */}
+              <div className="auth-form-field rounded-2xl bg-zinc-950/90 border border-zinc-800 text-xs overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowChangePassword(!showChangePassword);
+                    setChangePasswordFeedback({ type: null, message: '' });
+                  }}
+                  className="w-full p-3 flex items-center justify-between text-zinc-300 hover:text-white transition-colors cursor-pointer"
+                >
+                  <span className="flex items-center gap-1.5 font-bold text-[11px]">
+                    <Lock className="w-3.5 h-3.5 text-rose-400" /> Đổi Mật Khẩu Tài Khoản (Change Password)
+                  </span>
+                  {showChangePassword ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+
+                {showChangePassword && (
+                  <form onSubmit={handleChangePasswordSubmit} className="p-3.5 pt-0 flex flex-col gap-2.5 border-t border-zinc-800/80">
+                    <p className="text-[10px] text-zinc-400 pt-2 leading-relaxed">
+                      Nhập mật khẩu hiện tại và thiết lập mật khẩu mới (tối thiểu 6 ký tự) để bảo vệ tài khoản của bạn.
+                    </p>
+
+                    {/* Feedback Alert */}
+                    {changePasswordFeedback.type && (
+                      <div
+                        className={`p-2.5 rounded-xl text-xs flex items-center gap-2 ${
+                          changePasswordFeedback.type === 'success'
+                            ? 'bg-emerald-500/20 border border-emerald-500/50 text-emerald-300'
+                            : 'bg-rose-500/20 border border-rose-500/50 text-rose-300'
+                        }`}
+                      >
+                        {changePasswordFeedback.type === 'success' ? (
+                          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
+                        )}
+                        <span className="text-[11px] font-medium leading-snug">{changePasswordFeedback.message}</span>
+                      </div>
+                    )}
+
+                    {/* Current Password Field */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-bold text-zinc-300">Mật khẩu hiện tại *</label>
+                      <div className="relative flex items-center">
+                        <Lock className="absolute left-2.5 w-3.5 h-3.5 text-zinc-400" />
+                        <input
+                          type={showCurrentPassword ? 'text' : 'password'}
+                          required
+                          value={currentPassword}
+                          onChange={(e) => setCurrentPassword(e.target.value)}
+                          placeholder="Nhập mật khẩu hiện tại..."
+                          className="w-full pl-8 pr-8 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-rose-400 transition-colors"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                          className="absolute right-2.5 text-zinc-400 hover:text-white cursor-pointer"
+                        >
+                          {showCurrentPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* New Password Field */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-bold text-zinc-300">Mật khẩu mới (tối thiểu 6 ký tự) *</label>
+                      <div className="relative flex items-center">
+                        <Lock className="absolute left-2.5 w-3.5 h-3.5 text-zinc-400" />
+                        <input
+                          type={showNewPassword ? 'text' : 'password'}
+                          required
+                          minLength={6}
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="Nhập mật khẩu mới..."
+                          className="w-full pl-8 pr-8 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-rose-400 transition-colors"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-2.5 text-zinc-400 hover:text-white cursor-pointer"
+                        >
+                          {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Confirm New Password Field */}
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-bold text-zinc-300">Xác nhận mật khẩu mới *</label>
+                      <div className="relative flex items-center">
+                        <Lock className="absolute left-2.5 w-3.5 h-3.5 text-zinc-400" />
+                        <input
+                          type={showNewPassword ? 'text' : 'password'}
+                          required
+                          minLength={6}
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          placeholder="Nhập lại mật khẩu mới..."
+                          className="w-full pl-8 pr-2 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-rose-400 transition-colors"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowChangePassword(false);
+                          setCurrentPassword('');
+                          setNewPassword('');
+                          setConfirmNewPassword('');
+                          setChangePasswordFeedback({ type: null, message: '' });
+                        }}
+                        className="py-2 px-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold text-xs transition-colors cursor-pointer"
+                      >
+                        Đóng
+                      </button>
+
+                      <button
+                        type="submit"
+                        disabled={isChangingPassword}
+                        className="flex-1 py-2 px-3 rounded-xl bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 text-white font-black text-xs flex items-center justify-center gap-1.5 shadow-md shadow-rose-500/20 disabled:opacity-50 cursor-pointer transition-all"
+                      >
+                        {isChangingPassword ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Đang Cập Nhật...</span>
+                          </>
+                        ) : (
+                          <>
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                            <span>Xác Nhận Đổi Mật Khẩu</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </div>
+
+              {/* 6. Logout Button */}
               <button
                 onClick={logout}
-                className="auth-form-field w-full py-2.5 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="auth-form-field w-full py-2.5 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md"
               >
                 <LogOut className="w-4 h-4" />
-                <span>Đăng Xuất Phiên Hiện Tại</span>
+                <span>Đăng Xuất Khỏi Thiết Bị Này</span>
               </button>
             </div>
           ) : (
@@ -804,7 +1139,18 @@ export default function Room3DView() {
             </div>
           )}
         </div>
-      </div>
+        </div>
+      )}
+
+      {/* Interactive Parent Dashboard Overlay when zoomed into Laptop (Stage 6) */}
+      {currentStage === 6 && (
+        <ParentLaptopDashboardOverlay
+          currentStage={currentStage}
+          onStageChange={setCurrentStage}
+          timeOfDay={timeOfDay}
+          onTimeOfDayChange={setTimeOfDay}
+          is2DViewAvailable={false}
+        />
       )}
     </div>
   );
