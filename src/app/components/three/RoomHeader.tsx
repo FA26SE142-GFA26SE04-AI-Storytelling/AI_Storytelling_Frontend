@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { TimeOfDay, STAGES } from '../../components/three/RoomCanvas';
+import { TimeOfDay, STAGES } from './RoomCanvas';
 import { useAuth } from '../../context/AuthContext';
 import {
   BookOpen,
@@ -14,18 +14,17 @@ import {
   Sun,
   Moon,
   Briefcase,
-  Server,
   RefreshCw,
 } from 'lucide-react';
 
-export interface TestHeaderProps {
+export interface RoomHeaderProps {
   currentStage: number;
   onStageChange: (index: number) => void;
   timeOfDay: TimeOfDay;
   onTimeOfDayChange: (time: TimeOfDay) => void;
 }
 
-export const TestHeader: React.FC<TestHeaderProps> = ({
+export const RoomHeader: React.FC<RoomHeaderProps> = ({
   currentStage,
   onStageChange,
   timeOfDay,
@@ -38,12 +37,12 @@ export const TestHeader: React.FC<TestHeaderProps> = ({
     <header className="fixed top-0 left-0 right-0 w-full z-30 pointer-events-auto">
       <div className="w-full bg-zinc-900/90 dark:bg-zinc-950/90 backdrop-blur-2xl border-b border-white/10 dark:border-zinc-800/80 shadow-lg px-4 sm:px-8 py-3 flex items-center justify-between gap-4 text-white select-none">
         
-        {/* 1. Brand & Back to Home */}
+        {/* 1. Brand Logo & Title */}
         <div className="flex items-center gap-3 shrink-0">
           <Link
             href="/"
             className="flex items-center gap-2 group p-1 rounded-xl hover:bg-white/10 transition-all"
-            title="Về Trang Chủ MagicTales"
+            title="Trang Chủ MagicTales 3D Studio"
           >
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform">
               <BookOpen className="w-5 h-5 fill-white/20" />
@@ -59,7 +58,7 @@ export const TestHeader: React.FC<TestHeaderProps> = ({
           </Link>
         </div>
 
-        {/* 2. Center 3D Station Fast Navigation Tabs */}
+        {/* 2. Center 3D Station Navigation Tabs */}
         <nav className="hidden md:flex items-center gap-1 p-1 bg-zinc-950/80 rounded-2xl border border-zinc-800/80 overflow-x-auto max-w-2xl">
           {STAGES.map((stg, idx) => {
             const Icon = stationIcons[idx] || Layers;
@@ -83,7 +82,7 @@ export const TestHeader: React.FC<TestHeaderProps> = ({
 
         {/* 3. Right Atmosphere & User Account Action Bar */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Compact Live Connection Status Dot */}
+          {/* Live Connection Status Dot */}
           <div
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-zinc-950/90 border border-zinc-800/90 text-xs"
             title={backendStatusMessage}
@@ -100,6 +99,7 @@ export const TestHeader: React.FC<TestHeaderProps> = ({
               <RefreshCw className="w-3 h-3" />
             </button>
           </div>
+
           {/* Time of Day Switcher Pills */}
           <div className="hidden sm:flex items-center p-1 bg-zinc-950/80 rounded-xl border border-zinc-800/80 text-[11px] font-extrabold">
             <button
@@ -142,7 +142,7 @@ export const TestHeader: React.FC<TestHeaderProps> = ({
             </button>
           </div>
 
-          {/* User Account / Login Button (Click to Zoom into Backpack 3D Stage 5) */}
+          {/* User Account / Login Button */}
           {isLoggedIn && user ? (
             <button
               onClick={() => onStageChange(5)}

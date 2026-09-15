@@ -1,6 +1,6 @@
 import React from 'react';
-import Test3DUIPage from './(features)/test/page';
+import Room3DView from './components/three/Room3DView';
 
 export default function HomePage() {
-  return <Test3DUIPage />;
+  return <Room3DView />;
 }

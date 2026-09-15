@@ -343,13 +343,13 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
               <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
               Sáng tạo thêm câu chuyện mới?
             </span>
-            <a
-              href="/create"
+            <button
+              onClick={() => onStageChange(3)}
               className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-zinc-950 font-black text-xs flex items-center gap-1 shadow-md shadow-amber-500/20 transition-all cursor-pointer"
             >
               <span>Tạo Với AI</span>
               <ChevronRight className="w-3.5 h-3.5" />
-            </a>
+            </button>
           </div>
         </div>
 

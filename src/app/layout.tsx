@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Comfortaa, Nunito_Sans } from "next/font/google";
 import "./globals.css";
-import { Header } from "./components/layout/Header";
-import { Footer } from "./components/layout/Footer";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { AuthProvider } from "./context/AuthContext";
@@ -20,8 +18,8 @@ const nunitoSans = Nunito_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "MagicTales - Nền tảng Kể chuyện AI cho Bé",
-  description: "Biến trí tưởng tượng phong phú của con thành những trang sách tranh rực rỡ và hấp dẫn.",
+  title: "MagicTales 3D - Nền tảng Kể chuyện AI 3D cho Bé",
+  description: "Biến trí tưởng tượng phong phú của con thành không gian 3D tương tác sống động và hấp dẫn.",
 };
 
 export default function RootLayout({
@@ -36,15 +34,13 @@ export default function RootLayout({
       className={`${comfortaa.variable} ${nunitoSans.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-background text-on-background font-sans transition-colors duration-300">
+      <body className="min-h-full flex flex-col bg-background text-on-background font-sans transition-colors duration-300 overflow-hidden">
         <AuthProvider>
           <LanguageProvider>
             <ThemeProvider>
-              <Header />
-              <main className="flex-1 w-full">
+              <main className="flex-1 w-full h-full">
                 {children}
               </main>
-              <Footer />
             </ThemeProvider>
           </LanguageProvider>
         </AuthProvider>

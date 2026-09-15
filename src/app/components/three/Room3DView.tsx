@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { RoomCanvas, STAGES, TimeOfDay } from '../../components/three/RoomCanvas';
-import { getVietnamTimeOfDay } from '../../components/three/room/stages';
-import { TestHeader } from './TestHeader';
-import { LibraryBookshelfZoomOverlay } from '../../components/library/LibraryBookshelfZoomOverlay';
-import { ParentDeskZoomOverlay } from '../../components/parents/ParentDeskZoomOverlay';
+import { RoomCanvas, STAGES, TimeOfDay } from './RoomCanvas';
+import { getVietnamTimeOfDay } from './room/stages';
+import { RoomHeader } from './RoomHeader';
+import { LibraryBookshelfZoomOverlay } from '../library/LibraryBookshelfZoomOverlay';
+import { ParentDeskZoomOverlay } from '../parents/ParentDeskZoomOverlay';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
 import {
@@ -15,7 +15,6 @@ import {
   Lock,
   Mail,
   User,
-  Sparkles,
   ArrowRight,
   Eye,
   EyeOff,
@@ -25,13 +24,11 @@ import {
   LogOut,
   ShieldCheck,
   Key,
-  Server,
   Zap,
   Phone,
-  Edit2,
 } from 'lucide-react';
 
-export default function Test3DUIPage() {
+export default function Room3DView() {
   const [currentStage, setCurrentStage] = useState<number>(0);
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getVietnamTimeOfDay);
   const [authTab, setAuthTab] = useState<'signin' | 'signup' | 'verify'>('signin');
@@ -42,13 +39,9 @@ export default function Test3DUIPage() {
     accessToken,
     isLoggedIn,
     isLoading: isAuthLoading,
-    backendOnline,
-    backendStatusMessage,
     login,
     register,
     logout,
-    refreshProfile,
-    pingBackend,
   } = useAuth();
 
   // Local Login Form States
@@ -101,7 +94,7 @@ export default function Test3DUIPage() {
     };
   }, []);
 
-  // Xử lý gửi Form Đăng nhập đến Backend API (POST /api/v1/Auth/login)
+  // Form submit for Login
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier.trim() || !password.trim()) {
@@ -113,7 +106,7 @@ export default function Test3DUIPage() {
     }
 
     setIsSubmitting(true);
-    setApiFeedback({ type: 'info', message: 'Đang gửi yêu cầu đăng nhập tới Backend API (http://localhost:5259)...' });
+    setApiFeedback({ type: 'info', message: 'Đang gửi yêu cầu đăng nhập tới Backend API...' });
 
     try {
       const response = await login({ identifier, password });
@@ -141,7 +134,7 @@ export default function Test3DUIPage() {
     }
   };
 
-  // Xử lý gửi Form Đăng ký bước 2 đến Backend API (POST /api/v1/Auth/register)
+  // Form submit for Register
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regUsername.trim() || !regEmail.trim() || !regFullName.trim() || !regPassword.trim() || !regConfirmPassword.trim()) {
@@ -161,7 +154,7 @@ export default function Test3DUIPage() {
     }
 
     setIsSubmitting(true);
-    setApiFeedback({ type: 'info', message: 'Đang gửi yêu cầu đăng ký tài khoản tới Backend API (http://localhost:5259)...' });
+    setApiFeedback({ type: 'info', message: 'Đang gửi yêu cầu đăng ký tài khoản tới Backend API...' });
 
     try {
       const response = await register({
@@ -200,7 +193,7 @@ export default function Test3DUIPage() {
     }
   };
 
-  // Xử lý gửi Form Xác thực Email đến Backend API (POST /api/v1/Auth/verify-email)
+  // Form submit for Email Verification
   const handleVerifyEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!verifyEmailInput.trim() || !verifyTokenInput.trim()) {
@@ -212,7 +205,7 @@ export default function Test3DUIPage() {
     }
 
     setIsSubmitting(true);
-    setApiFeedback({ type: 'info', message: 'Đang gửi yêu cầu xác thực email tới Backend API (http://localhost:5259)...' });
+    setApiFeedback({ type: 'info', message: 'Đang gửi yêu cầu xác thực email tới Backend API...' });
 
     try {
       const response = await authService.verifyEmail({
@@ -248,7 +241,6 @@ export default function Test3DUIPage() {
     }
   };
 
-  // Nút gọi trực tiếp endpoint GET /api/v1/Auth/me để kiểm thử Token
   const handleTestGetProfile = async () => {
     if (!accessToken) return;
     setTestProfileResult('Đang gọi API GET /api/v1/Auth/me ...');
@@ -258,8 +250,8 @@ export default function Test3DUIPage() {
 
   return (
     <div className="relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans">
-      {/* Dedicated Full-Width Test Page Header */}
-      <TestHeader
+      {/* 3D Header Navigation */}
+      <RoomHeader
         currentStage={currentStage}
         onStageChange={setCurrentStage}
         timeOfDay={timeOfDay}
@@ -326,7 +318,7 @@ export default function Test3DUIPage() {
                       : 'Đăng Ký Tài Khoản'}
                   </span>
                 </h2>
-                <p className="text-[10px] text-zinc-400 font-medium">Cặp Sách Nobita 3D Auth Tester</p>
+                <p className="text-[10px] text-zinc-400 font-medium">Cặp Sách Nobita 3D Auth</p>
               </div>
             </div>
             <button
@@ -453,7 +445,6 @@ export default function Test3DUIPage() {
                 </button>
               </div>
 
-
               {/* API Feedback Alerts */}
               {apiFeedback.type && (
                 <div
@@ -530,7 +521,6 @@ export default function Test3DUIPage() {
                     </div>
                   </div>
 
-                  {/* Submit Login Button */}
                   <button
                     type="submit"
                     disabled={isSubmitting || isAuthLoading}
@@ -551,10 +541,9 @@ export default function Test3DUIPage() {
                 </form>
               )}
 
-              {/* FORM TAB 2: SINGLE-STEP REGISTER FORM */}
+              {/* FORM TAB 2: REGISTER FORM */}
               {authTab === 'signup' && (
                 <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-3">
-                  {/* Email Field */}
                   <div className="flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Địa chỉ Email xác nhận *</label>
                     <div className="relative flex items-center">
@@ -570,7 +559,6 @@ export default function Test3DUIPage() {
                     </div>
                   </div>
 
-                  {/* Username Field */}
                   <div className="flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Tên đăng nhập (Username) *</label>
                     <div className="relative flex items-center">
@@ -586,7 +574,6 @@ export default function Test3DUIPage() {
                     </div>
                   </div>
 
-                  {/* FullName Field */}
                   <div className="flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Họ và Tên *</label>
                     <div className="relative flex items-center">
@@ -602,7 +589,6 @@ export default function Test3DUIPage() {
                     </div>
                   </div>
 
-                  {/* Phone & Role Row */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex flex-col gap-1">
                       <label className="text-[11px] font-bold text-zinc-300">Số Điện Thoại</label>
@@ -631,7 +617,6 @@ export default function Test3DUIPage() {
                     </div>
                   </div>
 
-                  {/* Password & Confirm Password Row */}
                   <div className="grid grid-cols-2 gap-2">
                     <div className="flex flex-col gap-1">
                       <label className="text-[11px] font-bold text-zinc-300">Mật khẩu *</label>
@@ -671,7 +656,6 @@ export default function Test3DUIPage() {
                     </div>
                   </div>
 
-                  {/* Submit Register Button */}
                   <button
                     type="submit"
                     disabled={isSubmitting || isAuthLoading}
@@ -705,7 +689,6 @@ export default function Test3DUIPage() {
                     </p>
                   </div>
 
-                  {/* Email Field */}
                   <div className="flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Địa chỉ Email *</label>
                     <div className="relative flex items-center">
@@ -721,7 +704,6 @@ export default function Test3DUIPage() {
                     </div>
                   </div>
 
-                  {/* Verification Token Field */}
                   <div className="flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Mã xác thực (Token từ Email) *</label>
                     <div className="relative flex items-center">
@@ -736,11 +718,10 @@ export default function Test3DUIPage() {
                       />
                     </div>
                     <p className="text-[10px] text-zinc-400">
-                      Mã token dài được gửi tự động qua dịch vụ Resend đến hòm thư Gmail của bạn.
+                      Mã token được gửi tự động qua Gmail của bạn.
                     </p>
                   </div>
 
-                  {/* Submit Verify Button */}
                   <button
                     type="submit"
                     disabled={isSubmitting}
@@ -761,9 +742,7 @@ export default function Test3DUIPage() {
                 </form>
               )}
             </div>
-
           )}
-
         </div>
       )}
     </div>
