@@ -5,6 +5,7 @@ export interface RoomShellBuildResult {
   roomL: number;
   roomH: number;
   wallT: number;
+  lampPaperMat: THREE.MeshStandardMaterial;
 }
 
 export function buildRoomShell(
@@ -178,22 +179,104 @@ export function buildRoomShell(
     roomGroup.add(beamZ);
   }
 
-  // Ceiling Lamp
+  // --- Ceiling Lamp (Đèn trần phong cách Washitsu Nhật Bản) ---
   const lampGroup = new THREE.Group();
-  lampGroup.position.set(0, roomH - 0.3, 0);
+  lampGroup.position.set(0, roomH - 0.22, 0);
 
-  const lampOuterFrame = new THREE.Mesh(new THREE.BoxGeometry(0.65, 0.25, 0.65), matWoodAmber);
-  lampOuterFrame.castShadow = true;
-  lampOuterFrame.receiveShadow = true;
-  lampGroup.add(lampOuterFrame);
+  // 1. Đế gắn trần và dây treo
+  const lampCeilingMount = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.025, 0.38), matWoodDark);
+  lampCeilingMount.position.y = 0.10;
+  lampGroup.add(lampCeilingMount);
 
-  const lampPaper = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.22, 0.6), matShojiPaper);
-  lampPaper.castShadow = true;
-  lampPaper.receiveShadow = true;
-  lampPaper.position.y = -0.02;
+  const lampCord = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.05, 12), matWoodDark);
+  lampCord.position.y = 0.07;
+  lampGroup.add(lampCord);
+
+  // 2. Chao đèn giấy Shoji phát sáng (Luminous Shoji Paper Shade)
+  const lampPaperMat = new THREE.MeshStandardMaterial({
+    color: 0xfffef7,
+    roughness: 0.25,
+    metalness: 0.0,
+    emissive: 0xffe6b0, // Vàng kem sáng ấm tự nhiên
+    emissiveIntensity: 2.0,
+    transparent: false,
+  });
+
+  const shadeW = 0.62;
+  const shadeH = 0.17;
+  const shadeL = 0.62;
+
+  // Khối chao đèn chính
+  const lampPaper = new THREE.Mesh(new THREE.BoxGeometry(shadeW, shadeH, shadeL), lampPaperMat);
+  lampPaper.position.y = -0.01;
   lampGroup.add(lampPaper);
 
+  // Tấm khuếch tán đáy (Bottom diffuser - phát sáng mạnh chiếu thẳng xuống phòng)
+  const bottomDiffuser = new THREE.Mesh(new THREE.BoxGeometry(shadeW - 0.03, 0.006, shadeL - 0.03), lampPaperMat);
+  bottomDiffuser.position.y = -0.01 - shadeH / 2 - 0.002;
+  lampGroup.add(bottomDiffuser);
+
+  // 3. Khung gỗ nan Kumiko thanh mảnh bao quanh (để lộ toàn bộ mặt giấy phát sáng)
+  const frameGroup = new THREE.Group();
+  const fThick = 0.022;
+
+  // Viền gỗ trên cùng
+  const topRimGeoX = new THREE.BoxGeometry(shadeW + 0.02, fThick, fThick);
+  const topRimGeoZ = new THREE.BoxGeometry(fThick, fThick, shadeL + 0.02);
+  const topY = -0.01 + shadeH / 2;
+
+  const topRimN = new THREE.Mesh(topRimGeoX, matWoodAmber);
+  topRimN.position.set(0, topY, -shadeL / 2);
+  const topRimS = new THREE.Mesh(topRimGeoX, matWoodAmber);
+  topRimS.position.set(0, topY, shadeL / 2);
+  const topRimW = new THREE.Mesh(topRimGeoZ, matWoodAmber);
+  topRimW.position.set(-shadeW / 2, topY, 0);
+  const topRimE = new THREE.Mesh(topRimGeoZ, matWoodAmber);
+  topRimE.position.set(shadeW / 2, topY, 0);
+  frameGroup.add(topRimN, topRimS, topRimW, topRimE);
+
+  // Viền gỗ dưới cùng
+  const botY = -0.01 - shadeH / 2;
+  const botRimN = new THREE.Mesh(topRimGeoX, matWoodAmber);
+  botRimN.position.set(0, botY, -shadeL / 2);
+  const botRimS = new THREE.Mesh(topRimGeoX, matWoodAmber);
+  botRimS.position.set(0, botY, shadeL / 2);
+  const botRimW = new THREE.Mesh(topRimGeoZ, matWoodAmber);
+  botRimW.position.set(-shadeW / 2, botY, 0);
+  const botRimE = new THREE.Mesh(topRimGeoZ, matWoodAmber);
+  botRimE.position.set(shadeW / 2, botY, 0);
+  frameGroup.add(botRimN, botRimS, botRimW, botRimE);
+
+  // 4 cột góc đứng
+  const cornerPostGeo = new THREE.BoxGeometry(fThick, shadeH, fThick);
+  const cornerOffsets = [
+    [-shadeW / 2, -shadeL / 2],
+    [shadeW / 2, -shadeL / 2],
+    [-shadeW / 2, shadeL / 2],
+    [shadeW / 2, shadeL / 2],
+  ];
+  cornerOffsets.forEach(([cx, cz]) => {
+    const post = new THREE.Mesh(cornerPostGeo, matWoodAmber);
+    post.position.set(cx, -0.01, cz);
+    frameGroup.add(post);
+  });
+
+  // Nan gỗ trang trí ngang trên 4 mặt
+  const gridThick = 0.010;
+  const gridBarGeoX = new THREE.BoxGeometry(shadeW, gridThick, 0.012);
+  const gridBarGeoZ = new THREE.BoxGeometry(0.012, gridThick, shadeL);
+  const barN = new THREE.Mesh(gridBarGeoX, matWoodAmber);
+  barN.position.set(0, -0.01, -shadeL / 2 - 0.002);
+  const barS = new THREE.Mesh(gridBarGeoX, matWoodAmber);
+  barS.position.set(0, -0.01, shadeL / 2 + 0.002);
+  const barW = new THREE.Mesh(gridBarGeoZ, matWoodAmber);
+  barW.position.set(-shadeW / 2 - 0.002, -0.01, 0);
+  const barE = new THREE.Mesh(gridBarGeoZ, matWoodAmber);
+  barE.position.set(shadeW / 2 + 0.002, -0.01, 0);
+  frameGroup.add(barN, barS, barW, barE);
+
+  lampGroup.add(frameGroup);
   roomGroup.add(lampGroup);
 
-  return { roomW, roomL, roomH, wallT };
+  return { roomW, roomL, roomH, wallT, lampPaperMat };
 }

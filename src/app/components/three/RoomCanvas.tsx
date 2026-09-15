@@ -12,6 +12,8 @@ import { buildDeskAndChair } from './room/builders/buildDeskAndChair';
 import { buildBookshelf } from './room/builders/buildBookshelf';
 import { buildClosetAndWindow } from './room/builders/buildClosetAndWindow';
 import { buildRoomShell } from './room/builders/buildRoomShell';
+import { buildLightSwitch } from './room/builders/buildLightSwitch';
+
 import {
   createTatamiTexture,
   createTatamiBumpMap,
@@ -24,6 +26,72 @@ import {
 
 export { STAGES };
 export type { CameraStage, TimeOfDay };
+
+/**
+ * Hiệu ứng âm thanh cơ học click-clack chân thực khi bấm công tắc điện (Web Audio API)
+ */
+function playLightSwitchSound(isOn: boolean) {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+
+    const now = ctx.currentTime;
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(isOn ? 1400 : 900, now);
+    osc.frequency.exponentialRampToValueAtTime(140, now + 0.035);
+
+    gain.gain.setValueAtTime(0.25, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+
+    osc.start(now);
+    osc.stop(now + 0.045);
+  } catch {
+    // Ignore audio error if not permitted
+  }
+}
+
+/**
+ * Hiệu ứng âm thanh lật mở/gấp sách vở tự nhiên (Web Audio API)
+ */
+function playBookPageSound(isOpen: boolean) {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+
+    const bufferSize = Math.floor(ctx.sampleRate * 0.25);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.08));
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(isOpen ? 1100 : 750, ctx.currentTime);
+    filter.Q.setValueAtTime(1.5, ctx.currentTime);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.14, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.22);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.start();
+  } catch {
+    // Ignore audio error
+  }
+}
+
 
 export interface RoomCanvasProps {
   currentStageIndex: number;
@@ -76,11 +144,31 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
   });
   const [copied, setCopied] = useState(false);
 
+  // Ceiling light switch states
+  const [isCeilingLightOn, setIsCeilingLightOn] = useState<boolean>(true);
+  const [switchHint, setSwitchHint] = useState<string | null>(null);
+  const hintTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   // Camera LERP target vectors
   const targetCamPos = useRef<THREE.Vector3>(new THREE.Vector3(...STAGES[0].camPos));
   const targetLookAtPos = useRef<THREE.Vector3>(new THREE.Vector3(...STAGES[0].targetPos));
+  const currentStageIndexRef = useRef<number>(currentStageIndex);
+  const prevStageRef = useRef<number>(currentStageIndex);
 
   useEffect(() => {
+    const prevStage = prevStageRef.current;
+    if (prevStage !== currentStageIndex) {
+      if (currentStageIndex === 1) {
+        // Tự động lật mở quyển vở khi zoom vào góc Bàn học (chờ camera bắt đầu lướt tới)
+        setTimeout(() => playBookPageSound(true), 180);
+      } else if (prevStage === 1) {
+        // Tự động gập quyển vở lại khi rời khỏi Bàn học
+        playBookPageSound(false);
+      }
+      prevStageRef.current = currentStageIndex;
+    }
+
+    currentStageIndexRef.current = currentStageIndex;
     const stage = STAGES[currentStageIndex] || STAGES[0];
     targetCamPos.current.set(...stage.camPos);
     targetLookAtPos.current.set(...stage.targetPos);
@@ -108,7 +196,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFShadowMap;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.0;
     container.appendChild(renderer.domElement);
 
     // 4. Orbit Controls
@@ -122,14 +210,15 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     controlsRef.current = controls;
 
     // 5. Lighting Setup
-    const ambientLight = new THREE.AmbientLight(0xfffbeb, 0.45);
+    const ambientLight = new THREE.AmbientLight(0xfffbeb, 0.36);
     scene.add(ambientLight);
 
-    const hemiLight = new THREE.HemisphereLight(0xbae6fd, 0x475569, 0.35);
+    const hemiLight = new THREE.HemisphereLight(0xbae6fd, 0x1e293b, 0.24);
     scene.add(hemiLight);
 
-    // Sun directional light
-    const dirLight = new THREE.DirectionalLight(0xfff7ed, 1.4);
+    // Sun directional light (Nguồn sáng chính chiếu qua cửa sổ)
+    const dirLight = new THREE.DirectionalLight(0xfff7ed, 1.35);
+
     dirLight.position.set(-3.7, 2.4, -1.6);
     dirLight.castShadow = true;
     dirLight.shadow.mapSize.width = 2048;
@@ -140,7 +229,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     dirLight.shadow.camera.bottom = -5;
     dirLight.shadow.camera.near = 0.5;
     dirLight.shadow.camera.far = 15;
-    dirLight.shadow.bias = -0.0005;
+    dirLight.shadow.bias = -0.0003;
     scene.add(dirLight);
 
     // Moon directional light
@@ -155,16 +244,23 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     nightDirLight.shadow.camera.bottom = -5;
     nightDirLight.shadow.camera.near = 0.1;
     nightDirLight.shadow.camera.far = 15;
-    nightDirLight.shadow.bias = -0.0005;
+    nightDirLight.shadow.bias = -0.0003;
     scene.add(nightDirLight);
 
-    // Soft warm room fill light
-    const roomFillLight = new THREE.PointLight(0xffedd5, 0.6, 6);
-    roomFillLight.position.set(0, 2.2, 0);
+    // Soft warm room fill light from ceiling lamp (tỏa sáng ấm áp khắp phòng)
+    const roomFillLight = new THREE.PointLight(0xfff3db, 0.85, 12, 1.2);
+    roomFillLight.position.set(0, 2.22, 0);
     scene.add(roomFillLight);
 
+    // Downward soft spotlight directly from ceiling lamp onto tatami floor
+    const ceilingDownLight = new THREE.SpotLight(0xffedd5, 0.75, 10, Math.PI / 2.6, 0.5, 1.2);
+    ceilingDownLight.position.set(0, 2.24, 0);
+    ceilingDownLight.target.position.set(0, 0, 0);
+    scene.add(ceilingDownLight);
+    scene.add(ceilingDownLight.target);
+
     // Window rim light
-    const windowRimLight = new THREE.PointLight(0x38bdf8, 0.4, 4);
+    const windowRimLight = new THREE.PointLight(0x38bdf8, 0.25, 4);
     windowRimLight.position.set(-2.0, 1.6, 0);
     scene.add(windowRimLight);
 
@@ -218,7 +314,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     scene.add(roomGroup);
 
     // 6. Build Modular 3D Components
-    const { roomW, roomL } = buildRoomShell(
+    const { roomW, roomL, lampPaperMat } = buildRoomShell(
       roomGroup,
       matWoodDark,
       matWoodAmber,
@@ -227,6 +323,13 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       matWallBeige,
       matShojiPaper
     );
+
+    // Xây dựng công tắc điện trên tường bên phải
+    const { switchGroup, switchClickMesh, setSwitchVisualState } = buildLightSwitch(roomW);
+    roomGroup.add(switchGroup);
+
+    let isCeilingLightActive = true;
+
 
     const {
       closetGroup,
@@ -270,11 +373,11 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     // LERP Target States for Smooth Atmosphere Lighting Transitions
     const targetDirLightPos = new THREE.Vector3(-3.7, 1.4, -2.0);
     const targetDirLightColor = new THREE.Color(0xfde047);
-    let targetDirLightIntensity = 1.5;
+    let targetDirLightIntensity = 1.6;
     let targetNightLightIntensity = 0.0;
     const targetAmbientColor = new THREE.Color(0xfef3c7);
-    let targetAmbientIntensity = 0.52;
-    let targetRoomFillIntensity = 0.60;
+    let targetAmbientIntensity = 0.26;
+    let targetRoomFillIntensity = 0.28;
     const targetSkyColor = new THREE.Color(0x7dd3fc);
     const targetSunPos = new THREE.Vector3(-3.7, 1.4, -2.0);
     let targetSunOpacity = 1.0;
@@ -282,7 +385,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     let targetStarOpacity = 0.0;
     const targetCloudColor = new THREE.Color(0xffffff);
     let targetCloudOpacity = 0.92;
-    let targetWindowRimIntensity = 0.25;
+    let targetWindowRimIntensity = 0.20;
 
     roomGroup.add(closetGroup);
     roomGroup.add(winGroup);
@@ -374,7 +477,6 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       }
     });
 
-    let isNotebookOpen = false;
     let isLeftDoorOpen = false;
     let isRightDoorOpen = false;
 
@@ -389,15 +491,15 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       // Time-of-Day lighting target updates
       const currentMode = timeModeRef.current;
       if (currentMode === 'morning') {
-        // Fresh crisp morning daylight
+        // Fresh soft morning daylight (giảm tương phản, ánh sáng ban mai dịu mát chan hòa khắp phòng)
         targetDirLightPos.set(-3.7, 2.5, 1.8);
         targetDirLightColor.setHex(0xfffbeb);
-        targetDirLightIntensity = 1.5;
+        targetDirLightIntensity = 1.25; // Nắng sáng dịu nhẹ, không quá gắt
         targetNightLightIntensity = 0.0;
 
         targetAmbientColor.setHex(0xe0f2fe);
-        targetAmbientIntensity = 0.60;
-        targetRoomFillIntensity = 0.65;
+        targetAmbientIntensity = 0.46; // Nâng sáng vùng tối, làm dịu bóng đổ
+        targetRoomFillIntensity = 0.85; // Đèn trần chiếu sáng rõ ràng, ấm áp và lan tỏa đều
 
         targetSkyColor.setHex(0x38bdf8); // Sky blue
         targetSunPos.set(-3.7, 2.5, 1.8);
@@ -408,34 +510,34 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         targetCloudOpacity = 0.92;
         targetWindowRimIntensity = 0.35;
       } else if (currentMode === 'afternoon') {
-        // Soft warm afternoon daylight (Nắng vàng dịu, bầu trời trong lành)
+        // Soft warm afternoon daylight (Nắng vàng chiều có chiều sâu, bóng đổ ấm và rõ)
         targetDirLightPos.set(-3.7, 1.4, -2.0);
         targetDirLightColor.setHex(0xfde047); // Gentle golden yellow sunlight
-        targetDirLightIntensity = 1.5;
+        targetDirLightIntensity = 1.60;
         targetNightLightIntensity = 0.0;
 
         targetAmbientColor.setHex(0xfef3c7); // Gentle warm amber ambient
-        targetAmbientIntensity = 0.52;
-        targetRoomFillIntensity = 0.60;
+        targetAmbientIntensity = 0.26;
+        targetRoomFillIntensity = 0.80; // Sáng ấm hài hòa với nắng chiều
 
-        targetSkyColor.setHex(0x7dd3fc); // Soft warm sky blue (reduced orange tone)
+        targetSkyColor.setHex(0x7dd3fc); // Soft warm sky blue
         targetSunPos.set(-3.7, 1.4, -2.0);
         targetSunOpacity = 1.0;
         targetMoonOpacity = 0.0;
         targetStarOpacity = 0.0;
         targetCloudColor.setHex(0xffffff);
         targetCloudOpacity = 0.92;
-        targetWindowRimIntensity = 0.25;
+        targetWindowRimIntensity = 0.20;
       } else { // 'night'
         // Cozy midnight blue
         targetDirLightPos.set(-3.7, 2.5, -0.6);
         targetDirLightColor.setHex(0x38bdf8);
         targetDirLightIntensity = 0.0;
-        targetNightLightIntensity = 0.85;
+        targetNightLightIntensity = 0.90;
 
         targetAmbientColor.setHex(0x1e1b4b);
-        targetAmbientIntensity = 0.25;
-        targetRoomFillIntensity = 0.25;
+        targetAmbientIntensity = 0.12;
+        targetRoomFillIntensity = 1.25; // Khi bật đèn trần vào ban đêm, phòng sáng rực rỡ, ấm cúng
 
         targetSkyColor.setHex(0x090d16); // Midnight dark sky
         targetSunPos.set(-3.7, 0.4, -3.0);
@@ -457,8 +559,16 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       ambientLight.color.lerp(targetAmbientColor, 0.04);
       ambientLight.intensity = THREE.MathUtils.lerp(ambientLight.intensity, targetAmbientIntensity, 0.04);
 
-      roomFillLight.intensity = THREE.MathUtils.lerp(roomFillLight.intensity, targetRoomFillIntensity, 0.04);
+      // Cập nhật cường độ đèn trần và độ phát sáng chụp đèn theo công tắc
+      const targetActiveFill = isCeilingLightActive ? targetRoomFillIntensity : 0.0;
+      const targetActiveDownLight = isCeilingLightActive ? (currentMode === 'night' ? 1.05 : 0.75) : 0.0;
+      const targetActiveLampEmissive = isCeilingLightActive ? 2.0 : 0.0;
+      roomFillLight.intensity = THREE.MathUtils.lerp(roomFillLight.intensity, targetActiveFill, 0.08);
+      ceilingDownLight.intensity = THREE.MathUtils.lerp(ceilingDownLight.intensity, targetActiveDownLight, 0.08);
+      lampPaperMat.emissiveIntensity = THREE.MathUtils.lerp(lampPaperMat.emissiveIntensity, targetActiveLampEmissive, 0.08);
+
       windowRimLight.intensity = THREE.MathUtils.lerp(windowRimLight.intensity, targetWindowRimIntensity, 0.04);
+
 
       (skyMat as any).color.lerp(targetSkyColor, 0.04);
       sunGroup.position.lerp(targetSunPos, 0.04);
@@ -520,11 +630,12 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         });
       }
 
-      // Interactive Notebook smooth flip animation
+      // Quyển vở tự động mở chậm rãi, êm dịu khi zoom vào bàn học (Stage 1) và gập lại khi rời đi
+      const isNotebookOpen = currentStageIndexRef.current === 1;
       const targetNotebookAngle = isNotebookOpen ? 0 : Math.PI;
       const targetNotebookPosY = isNotebookOpen ? 0.002 : 0.014;
-      rightWing.rotation.z = THREE.MathUtils.lerp(rightWing.rotation.z, targetNotebookAngle, 0.08);
-      rightWing.position.y = THREE.MathUtils.lerp(rightWing.position.y, targetNotebookPosY, 0.08);
+      rightWing.rotation.z = THREE.MathUtils.lerp(rightWing.rotation.z, targetNotebookAngle, 0.03);
+      rightWing.position.y = THREE.MathUtils.lerp(rightWing.position.y, targetNotebookPosY, 0.03);
 
       // Interactive Closet Doors independent smooth sliding animation
       const targetDoorLeftX = isLeftDoorOpen ? 0.46 : -0.51;
@@ -560,7 +671,21 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
       raycaster.setFromCamera(mouse, camera);
 
+      // 1. Tương tác Công tắc điện bật/tắt đèn trần (Tường bên phải)
+      const intersectsSwitch = raycaster.intersectObject(switchClickMesh, true);
+      if (intersectsSwitch.length > 0) {
+        isCeilingLightActive = !isCeilingLightActive;
+        setIsCeilingLightOn(isCeilingLightActive);
+        setSwitchVisualState(isCeilingLightActive);
+        playLightSwitchSound(isCeilingLightActive);
+        setSwitchHint(isCeilingLightActive ? '💡 Đã BẬT đèn trần' : '🌙 Đã TẮT đèn trần');
+        if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+        hintTimerRef.current = setTimeout(() => setSwitchHint(null), 2000);
+        return;
+      }
+
       const intersectsDoorLeft = raycaster.intersectObject(doorLeftClickMesh, true);
+
       if (intersectsDoorLeft.length > 0) {
         isLeftDoorOpen = !isLeftDoorOpen;
         return;
@@ -574,7 +699,10 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
       const intersectsNotebook = raycaster.intersectObject(notebookClickMesh, true);
       if (intersectsNotebook.length > 0) {
-        isNotebookOpen = !isNotebookOpen;
+        // Quyển vở không còn nhấn mở/đóng thủ công; click vào vở khi chưa zoom sẽ zoom vào bàn học
+        if (currentStageIndexRef.current !== 1 && onStageChangeRef.current) {
+          onStageChangeRef.current(1);
+        }
         return;
       }
 
@@ -609,24 +737,31 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
       raycaster.setFromCamera(mouse, camera);
+      const intersectsSwitch = raycaster.intersectObject(switchClickMesh, true);
       const intersectsDoorLeft = raycaster.intersectObject(doorLeftClickMesh, true);
       const intersectsDoorRight = raycaster.intersectObject(doorRightClickMesh, true);
       const intersectsNotebook = raycaster.intersectObject(notebookClickMesh, true);
       const intersectsBag = raycaster.intersectObject(backpackClickMesh, true);
       const intersectsBookshelf = raycaster.intersectObject(bookshelfClickMesh, true);
       const intersectsDesk = raycaster.intersectObject(deskClickMesh, true);
+
+      const isNotebookHoverable = currentStageIndexRef.current !== 1 && intersectsNotebook.length > 0;
+      const isDeskHoverable = currentStageIndexRef.current !== 1 && intersectsDesk.length > 0;
+
       if (
+        intersectsSwitch.length > 0 ||
         intersectsDoorLeft.length > 0 ||
         intersectsDoorRight.length > 0 ||
-        intersectsNotebook.length > 0 ||
+        isNotebookHoverable ||
+        isDeskHoverable ||
         intersectsBag.length > 0 ||
-        intersectsBookshelf.length > 0 ||
-        intersectsDesk.length > 0
+        intersectsBookshelf.length > 0
       ) {
         domElem.style.cursor = 'pointer';
       } else {
         domElem.style.cursor = '';
       }
+
     };
 
     const domElem = renderer.domElement;
@@ -647,6 +782,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     window.addEventListener('resize', handleResize);
 
     return () => {
+      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
       domElem.removeEventListener('pointerdown', handlePointerDown);
@@ -662,6 +798,12 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
   return (
     <div className={`relative w-full h-full ${className}`}>
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+      {switchHint && (
+        <div className="fixed bottom-6 right-6 z-30 pointer-events-none px-4 py-2 rounded-2xl bg-zinc-900/90 backdrop-blur-xl border border-white/15 shadow-2xl text-xs font-black text-white flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300">
+          <span>{switchHint}</span>
+        </div>
+      )}
     </div>
   );
 };
+

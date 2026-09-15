@@ -1,6 +1,14 @@
-'use client';
+import React, { useState, useRef, useEffect } from 'react';
+import { gsap } from 'gsap';
+import { useGSAP } from '@gsap/react';
+import {
+  animateHeaderDown,
+  animateDrawerLeft,
+  animateDrawerRight,
+  animateFooterUp,
+  animateStaggerList,
+} from '../../utils/gsapAnimations';
 
-import React, { useState } from 'react';
 import {
   Users,
   Clock,
@@ -30,6 +38,8 @@ import {
 } from 'lucide-react';
 import { TimeOfDay } from '../three/RoomCanvas';
 
+gsap.registerPlugin(useGSAP);
+
 export interface ParentDeskZoomOverlayProps {
   currentStage: number;
   onStageChange: (stageIndex: number) => void;
@@ -47,8 +57,18 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
   onToggleViewMode,
   is2DViewAvailable = true,
 }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<'stats' | 'conversation' | 'activity'>('stats');
-  
+  const [isUiVisible, setIsUiVisible] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Đợi camera zoom vào bàn học và quyển vở 3D trên bàn lật mở chậm rãi, êm dịu (~1200ms) rồi mới hiện UI
+    const timer = setTimeout(() => {
+      setIsUiVisible(true);
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
   // Parent Control Settings States
   const [selectedScreenTime, setSelectedScreenTime] = useState<number>(30);
   const [isBedtimeEnabled, setIsBedtimeEnabled] = useState<boolean>(true);
@@ -57,6 +77,23 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
   const [isExportingPdf, setIsExportingPdf] = useState<boolean>(false);
   const [isPlayingAudioSample, setIsPlayingAudioSample] = useState<boolean>(false);
   const [feedbackRating, setFeedbackRating] = useState<'like' | 'dislike' | null>('like');
+
+  // GSAP Entrance Animations
+  useGSAP(() => {
+    if (!isUiVisible) return;
+    animateHeaderDown('.desk-top-bar');
+    animateDrawerLeft('.desk-left-drawer', { delay: 0.08 });
+    animateDrawerRight('.desk-right-drawer', { delay: 0.12 });
+    animateFooterUp('.desk-bottom-bar', { delay: 0.18 });
+    animateStaggerList('.desk-stat-card', { delay: 0.25, stagger: 0.06 });
+  }, { scope: containerRef, dependencies: [isUiVisible] });
+
+  // Tái kích hoạt hiệu ứng stagger mượt mà khi chuyển tab thống kê / gợi ý / nhật ký
+  useGSAP(() => {
+    if (!isUiVisible) return;
+    animateStaggerList('.desk-tab-content-item', { stagger: 0.05, duration: 0.35 });
+  }, { scope: containerRef, dependencies: [activeTab, isUiVisible] });
+
 
   const handleSaveChanges = () => {
     setIsSavedChanges(true);
@@ -71,11 +108,15 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
     }, 1500);
   };
 
+  if (!isUiVisible) {
+    return null;
+  }
+
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-6 overflow-hidden z-20 font-sans">
+    <div ref={containerRef} className="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-6 overflow-hidden z-20 font-sans">
       
       {/* 1. TOP HEADER FLOATING GLASSBAR */}
-      <div className="pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 rounded-3xl bg-zinc-900/85 dark:bg-zinc-950/90 backdrop-blur-xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-white animate-in fade-in-0 slide-in-from-top-4 duration-300">
+      <div className="desk-top-bar pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 rounded-3xl bg-zinc-900/85 dark:bg-zinc-950/90 backdrop-blur-xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-white">
         
         {/* Brand & Stage Selector */}
         <div className="flex items-center justify-between sm:justify-start gap-3">
@@ -155,7 +196,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
       <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-end lg:items-center justify-between gap-4 my-2 overflow-hidden pointer-events-none">
         
         {/* LEFT DRAWER: PARENT NOTEBOOK & ANALYTICS */}
-        <div className="pointer-events-auto w-full lg:w-[460px] max-h-[50vh] lg:max-h-[75vh] flex flex-col rounded-3xl bg-zinc-900/90 dark:bg-zinc-950/95 backdrop-blur-xl border border-sky-500/30 shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-white overflow-hidden animate-in fade-in-0 slide-in-from-left-6 duration-400">
+        <div className="desk-left-drawer pointer-events-auto w-full lg:w-[460px] max-h-[50vh] lg:max-h-[75vh] flex flex-col rounded-3xl bg-zinc-900/90 dark:bg-zinc-950/95 backdrop-blur-xl border border-sky-500/30 shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-white overflow-hidden">
           
           {/* Notebook Header Tabs */}
           <div className="p-3 bg-zinc-950/90 border-b border-zinc-800/80 flex items-center gap-1 overflow-x-auto scrollbar-none">
@@ -202,7 +243,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
               <div className="flex flex-col gap-3.5">
                 {/* 4 Quick Stat Cards */}
                 <div className="grid grid-cols-2 gap-2">
-                  <div className="p-3 rounded-2xl bg-sky-950/40 border border-sky-500/30 flex flex-col gap-1">
+                  <div className="desk-stat-card p-3 rounded-2xl bg-sky-950/40 border border-sky-500/30 flex flex-col gap-1">
                     <span className="text-[10px] font-bold text-sky-300 flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5" /> Thời gian đọc tuần
                     </span>
@@ -210,7 +251,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
                     <span className="text-[9px] text-emerald-400 font-bold">+18% so với tuần trước</span>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-purple-950/40 border border-purple-500/30 flex flex-col gap-1">
+                  <div className="desk-stat-card p-3 rounded-2xl bg-purple-950/40 border border-purple-500/30 flex flex-col gap-1">
                     <span className="text-[10px] font-bold text-purple-300 flex items-center gap-1">
                       <BookOpen className="w-3.5 h-3.5" /> Truyện đã đọc
                     </span>
@@ -218,7 +259,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
                     <span className="text-[9px] text-purple-300 font-bold">5 truyện tự tạo AI</span>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex flex-col gap-1">
+                  <div className="desk-stat-card p-3 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex flex-col gap-1">
                     <span className="text-[10px] font-bold text-emerald-300 flex items-center gap-1">
                       <Brain className="w-3.5 h-3.5" /> Chỉ số EQ & Nhân ái
                     </span>
@@ -226,7 +267,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
                     <span className="text-[9px] text-emerald-300 font-bold">Xuất sắc bài học chia sẻ</span>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-amber-950/40 border border-amber-500/30 flex flex-col gap-1">
+                  <div className="desk-stat-card p-3 rounded-2xl bg-amber-950/40 border border-amber-500/30 flex flex-col gap-1">
                     <span className="text-[10px] font-bold text-amber-300 flex items-center gap-1">
                       <Award className="w-3.5 h-3.5" /> Từ vựng học được
                     </span>
@@ -236,7 +277,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
                 </div>
 
                 {/* EQ & Competency Progress Bar */}
-                <div className="p-3.5 rounded-2xl bg-zinc-950/80 border border-zinc-800 flex flex-col gap-2">
+                <div className="desk-tab-content-item p-3.5 rounded-2xl bg-zinc-950/80 border border-zinc-800 flex flex-col gap-2">
                   <div className="flex items-center justify-between text-xs font-bold">
                     <span className="text-zinc-300">Tiến trình rèn luyện cảm xúc tuần này</span>
                     <span className="text-sky-400">85% Hoàn thành</span>
@@ -253,7 +294,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
 
             {/* TAB 2: AI CONVERSATION STARTERS */}
             {activeTab === 'conversation' && (
-              <div className="flex flex-col gap-3">
+              <div className="desk-tab-content-item flex flex-col gap-3">
                 <div className="p-3.5 rounded-2xl bg-gradient-to-br from-purple-950/50 via-zinc-950 to-zinc-950 border border-purple-500/30 flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <div className="w-7 h-7 rounded-xl bg-purple-500/20 border border-purple-500/40 flex items-center justify-center text-purple-300">
@@ -304,7 +345,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
 
             {/* TAB 3: READING ACTIVITY LOG & PDF REPORT */}
             {activeTab === 'activity' && (
-              <div className="flex flex-col gap-3">
+              <div className="desk-tab-content-item flex flex-col gap-3">
                 <div className="p-3 rounded-2xl bg-zinc-950/80 border border-zinc-800 flex flex-col gap-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-zinc-300">Nhật Ký Đọc Gần Đây</span>
@@ -343,7 +384,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
         </div>
 
         {/* RIGHT DRAWER: PARENT CONTROL & SCREEN TIME CONFIGURATION */}
-        <div className="pointer-events-auto w-full lg:w-[380px] rounded-3xl bg-zinc-900/90 dark:bg-zinc-950/95 backdrop-blur-xl border border-purple-500/30 shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-white p-4 sm:p-5 flex flex-col gap-4 animate-in fade-in-0 slide-in-from-right-6 duration-400">
+        <div className="desk-right-drawer pointer-events-auto w-full lg:w-[380px] rounded-3xl bg-zinc-900/90 dark:bg-zinc-950/95 backdrop-blur-xl border border-purple-500/30 shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-white p-4 sm:p-5 flex flex-col gap-4">
           
           <div className="flex items-center gap-2 pb-2 border-b border-zinc-800">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white shadow-md">
@@ -456,7 +497,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
       </div>
 
       {/* 3. BOTTOM FOOTER BAR */}
-      <div className="pointer-events-auto w-full max-w-7xl mx-auto flex items-center justify-between p-3 rounded-2xl bg-zinc-900/80 dark:bg-zinc-950/85 backdrop-blur-md border border-white/10 text-white animate-in fade-in-0 slide-in-from-bottom-4 duration-300 text-xs font-bold">
+      <div className="desk-bottom-bar pointer-events-auto w-full max-w-7xl mx-auto flex items-center justify-between p-3 rounded-2xl bg-zinc-900/80 dark:bg-zinc-950/85 backdrop-blur-md border border-white/10 text-white text-xs font-bold">
         <div className="flex items-center gap-2">
           <ShieldCheck className="w-4 h-4 text-emerald-400" />
           <span>Bảo mật an toàn cho trẻ em theo chuẩn COPPA & ISO-27001</span>

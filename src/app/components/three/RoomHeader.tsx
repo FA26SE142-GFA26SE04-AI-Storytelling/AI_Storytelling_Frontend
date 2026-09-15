@@ -1,7 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useRef } from 'react';
 import Link from 'next/link';
+import { gsap } from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { animateStaggerList } from '../../utils/gsapAnimations';
+
+gsap.registerPlugin(useGSAP);
+
 import { TimeOfDay, STAGES } from './RoomCanvas';
 import { useAuth } from '../../context/AuthContext';
 import {
@@ -38,9 +44,28 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
 }) => {
   const { user, isLoggedIn, backendOnline, backendStatusMessage, pingBackend } = useAuth();
   const stationIcons = [Layers, Clock, BookOpen, DoorOpen, ShieldCheck, Briefcase];
+  const headerRef = useRef<HTMLElement>(null);
+
+  // GSAP: Hiệu ứng xuất hiện so le khi Header hiển thị
+  useGSAP(() => {
+    if (isVisible) {
+      gsap.fromTo(
+        '.header-brand',
+        { x: -25, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.5, ease: 'power2.out' }
+      );
+      animateStaggerList('.header-stage-btn', { delay: 0.08, stagger: 0.04 });
+      gsap.fromTo(
+        '.header-action-group',
+        { x: 25, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.5, delay: 0.12, ease: 'power2.out' }
+      );
+    }
+  }, { scope: headerRef, dependencies: [isVisible] });
 
   return (
     <header
+      ref={headerRef}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       className={`fixed top-0 left-0 right-0 w-full z-40 transition-all duration-300 ease-in-out transform-gpu ${
@@ -52,7 +77,7 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
       <div className="w-full bg-zinc-900/90 dark:bg-zinc-950/90 backdrop-blur-2xl border-b border-white/10 dark:border-zinc-800/80 shadow-lg px-4 sm:px-8 py-3 flex items-center justify-between gap-4 text-white select-none">
         
         {/* 1. Brand Logo & Title */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="header-brand flex items-center gap-3 shrink-0">
           <Link
             href="/"
             className="flex items-center gap-2 group p-1 rounded-xl hover:bg-white/10 transition-all"
@@ -73,29 +98,40 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
         </div>
 
         {/* 2. Center 3D Station Navigation Tabs */}
-        <nav className="hidden md:flex items-center gap-1 p-1 bg-zinc-950/80 rounded-2xl border border-zinc-800/80 overflow-x-auto max-w-2xl">
+        <nav className="hidden md:flex items-center gap-1 p-1 bg-zinc-950/80 rounded-2xl border border-zinc-800/80 overflow-x-auto scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shrink-0">
           {STAGES.map((stg, idx) => {
             const Icon = stationIcons[idx] || Layers;
             const isActive = currentStage === idx;
+            const stationShortNames = [
+              '1. Toàn Cảnh',
+              '2. Bàn Học',
+              '3. Tủ Sách',
+              '4. Tủ Trượt',
+              '5. Cửa Sổ',
+              '6. Cặp Sách',
+            ];
+            const label = stationShortNames[idx] || stg.name.split(' (')[0];
             return (
               <button
                 key={stg.id}
                 onClick={() => onStageChange(idx)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap ${
+                title={stg.name.split(' (')[0]}
+                className={`header-stage-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap ${
                   isActive
                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-zinc-950 shadow-md shadow-amber-500/20 scale-[1.02]'
                     : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
                 }`}
               >
                 <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-zinc-950' : 'text-amber-400'}`} />
-                <span>{stg.name.split(' (')[0]}</span>
+                <span>{label}</span>
               </button>
             );
           })}
         </nav>
 
+
         {/* 3. Right Atmosphere & User Account Action Bar */}
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="header-action-group flex items-center gap-2 shrink-0">
           {/* Live Connection Status Dot */}
           <div
             className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-zinc-950/90 border border-zinc-800/90 text-xs"

@@ -1,6 +1,12 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { gsap } from 'gsap';
+import { useGSAP } from '@gsap/react';
+import { animateModalPop, animateStaggerList, animatePopItem } from '../../utils/gsapAnimations';
+
+gsap.registerPlugin(useGSAP);
+
 import { RoomCanvas, STAGES, TimeOfDay } from './RoomCanvas';
 import { getVietnamTimeOfDay } from './room/stages';
 import { RoomHeader } from './RoomHeader';
@@ -97,6 +103,31 @@ export default function Room3DView() {
       if (timeoutId) clearTimeout(timeoutId);
     };
   }, []);
+
+  const roomViewRef = useRef<HTMLDivElement>(null);
+
+  // GSAP: Hiệu ứng Pop-in khi mở Hộp thoại Đăng Nhập / Cặp sách (Stage 5)
+  useGSAP(() => {
+    if (currentStage === 5) {
+      animateModalPop('.auth-modal-card');
+      animateStaggerList('.auth-form-field', { delay: 0.12, stagger: 0.04 });
+    }
+  }, { scope: roomViewRef, dependencies: [currentStage] });
+
+  // GSAP: Tái kích hoạt hiệu ứng stagger khi chuyển tab Đăng nhập / Đăng ký / Xác thực
+  useGSAP(() => {
+    if (currentStage === 5) {
+      animateStaggerList('.auth-form-field', { stagger: 0.035, duration: 0.3 });
+    }
+  }, { scope: roomViewRef, dependencies: [authTab] });
+
+  // GSAP: Hiệu ứng nút quay lại toàn cảnh khi Zoom vào Stage 3 hoặc 4
+  useGSAP(() => {
+    if (currentStage === 3 || currentStage === 4) {
+      animatePopItem('.room-back-btn');
+    }
+  }, { scope: roomViewRef, dependencies: [currentStage] });
+
 
   // Form submit for Login
   const handleLoginSubmit = async (e: React.FormEvent) => {
@@ -253,7 +284,7 @@ export default function Room3DView() {
   };
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans">
+    <div ref={roomViewRef} className="relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans">
       {/* Invisible Top Edge Hover Detector (di chuột vào mép trên màn hình để hiện Header khi đang Zoom) */}
       {currentStage !== 0 && (
         <div
@@ -278,7 +309,7 @@ export default function Room3DView() {
         <div className="fixed top-4 left-4 z-30 pointer-events-auto">
           <button
             onClick={() => setCurrentStage(0)}
-            className="px-4 py-2.5 rounded-2xl bg-zinc-900/90 hover:bg-zinc-900 text-white font-extrabold text-xs flex items-center gap-2 border border-white/20 shadow-xl backdrop-blur-xl transition-all hover:scale-105 cursor-pointer"
+            className="room-back-btn px-4 py-2.5 rounded-2xl bg-zinc-900/90 hover:bg-zinc-900 text-white font-extrabold text-xs flex items-center gap-2 border border-white/20 shadow-xl backdrop-blur-xl transition-all hover:scale-105 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 text-amber-400" />
             <span>Quay lại Toàn Cảnh (Góc 1)</span>
@@ -318,7 +349,8 @@ export default function Room3DView() {
 
       {/* Interactive Sign In Floating Card when zoomed into Backpack (Stage 5) */}
       {currentStage === 5 && (
-        <div className="fixed left-4 sm:left-10 top-1/2 -translate-y-1/2 z-30 w-[92%] sm:w-[440px] max-h-[88vh] overflow-y-auto p-5 sm:p-6 rounded-3xl bg-zinc-900/95 dark:bg-zinc-950/95 backdrop-blur-2xl border border-sky-500/40 shadow-[0_0_60px_rgba(56,189,248,0.25)] text-white animate-in fade-in-0 slide-in-from-left-full duration-500 ease-out transform-gpu scrollbar-thin scrollbar-thumb-zinc-700">
+        <div className="fixed inset-y-0 left-4 sm:left-10 z-30 flex items-center pointer-events-none">
+          <div className="auth-modal-card pointer-events-auto w-[92vw] sm:w-[440px] max-h-[88vh] overflow-y-auto p-5 sm:p-6 rounded-3xl bg-zinc-900/95 dark:bg-zinc-950/95 backdrop-blur-2xl border border-sky-500/40 shadow-[0_0_60px_rgba(56,189,248,0.25)] text-white scrollbar-thin scrollbar-thumb-zinc-700">
           
           {/* Header Bar */}
           <div className="flex items-center justify-between gap-2 mb-4">
@@ -336,7 +368,7 @@ export default function Room3DView() {
               </div>
               <div>
                 <h2 className="font-black text-base tracking-tight text-white flex items-center gap-2">
-                  <span>
+                  <span className="text-white drop-shadow-sm font-black">
                     {isLoggedIn
                       ? 'Tài Khoản Đã Xác Thực'
                       : authTab === 'signin'
@@ -346,7 +378,7 @@ export default function Room3DView() {
                       : 'Đăng Ký Tài Khoản'}
                   </span>
                 </h2>
-                <p className="text-[10px] text-zinc-400 font-medium">Cặp Sách Nobita 3D Auth</p>
+                <p className="text-[10px] text-zinc-300 font-medium">Cặp Sách Nobita 3D Auth</p>
               </div>
             </div>
             <button
@@ -361,7 +393,7 @@ export default function Room3DView() {
           {/* IF USER IS LOGGED IN: DISPLAY USER PROFILE & TOKEN TESTER */}
           {isLoggedIn && user ? (
             <div className="flex flex-col gap-4">
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-950/40 via-zinc-900 to-zinc-950 border border-emerald-500/30 flex flex-col gap-3">
+              <div className="auth-form-field p-4 rounded-2xl bg-gradient-to-br from-emerald-950/40 via-zinc-900 to-zinc-950 border border-emerald-500/30 flex flex-col gap-3">
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center font-black text-lg text-zinc-950 shadow-lg">
                     {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase()}
@@ -392,7 +424,7 @@ export default function Room3DView() {
               </div>
 
               {/* JWT Token Preview & Api Tester */}
-              <div className="p-3 rounded-2xl bg-zinc-950/90 border border-zinc-800 text-xs flex flex-col gap-2">
+              <div className="auth-form-field p-3 rounded-2xl bg-zinc-950/90 border border-zinc-800 text-xs flex flex-col gap-2">
                 <div className="flex items-center justify-between text-[11px] font-bold text-zinc-300">
                   <span className="flex items-center gap-1">
                     <Key className="w-3.5 h-3.5 text-amber-400" /> JWT Access Token (Active):
@@ -421,7 +453,7 @@ export default function Room3DView() {
               {/* Logout Button */}
               <button
                 onClick={logout}
-                className="w-full py-2.5 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="auth-form-field w-full py-2.5 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-500/40 text-rose-300 font-bold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 <LogOut className="w-4 h-4" />
                 <span>Đăng Xuất Phiên Hiện Tại</span>
@@ -507,7 +539,7 @@ export default function Room3DView() {
               {/* FORM TAB 1: LOGIN FORM */}
               {authTab === 'signin' && (
                 <form onSubmit={handleLoginSubmit} className="flex flex-col gap-3.5">
-                  <div className="flex flex-col gap-1">
+                  <div className="auth-form-field flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Email hoặc Tên đăng nhập</label>
                     <div className="relative flex items-center">
                       <Mail className="absolute left-3 w-4 h-4 text-zinc-400" />
@@ -522,7 +554,7 @@ export default function Room3DView() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1">
+                  <div className="auth-form-field flex flex-col gap-1">
                     <div className="flex items-center justify-between">
                       <label className="text-[11px] font-bold text-zinc-300">Mật khẩu</label>
                       <a href="#forgot" className="text-[10px] text-sky-400 hover:underline">
@@ -552,7 +584,7 @@ export default function Room3DView() {
                   <button
                     type="submit"
                     disabled={isSubmitting || isAuthLoading}
-                    className="w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 hover:from-sky-400 hover:to-purple-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer"
+                    className="auth-form-field w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-sky-500 via-indigo-500 to-purple-500 hover:from-sky-400 hover:to-purple-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-sky-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>
@@ -572,7 +604,7 @@ export default function Room3DView() {
               {/* FORM TAB 2: REGISTER FORM */}
               {authTab === 'signup' && (
                 <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-3">
-                  <div className="flex flex-col gap-1">
+                  <div className="auth-form-field flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Địa chỉ Email xác nhận *</label>
                     <div className="relative flex items-center">
                       <Mail className="absolute left-3 w-4 h-4 text-zinc-400" />
@@ -587,7 +619,7 @@ export default function Room3DView() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1">
+                  <div className="auth-form-field flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Tên đăng nhập (Username) *</label>
                     <div className="relative flex items-center">
                       <User className="absolute left-3 w-4 h-4 text-zinc-400" />
@@ -602,7 +634,7 @@ export default function Room3DView() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1">
+                  <div className="auth-form-field flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Họ và Tên *</label>
                     <div className="relative flex items-center">
                       <User className="absolute left-3 w-4 h-4 text-zinc-400" />
@@ -617,7 +649,7 @@ export default function Room3DView() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="auth-form-field grid grid-cols-2 gap-2">
                     <div className="flex flex-col gap-1">
                       <label className="text-[11px] font-bold text-zinc-300">Số Điện Thoại</label>
                       <div className="relative flex items-center">
@@ -645,7 +677,7 @@ export default function Room3DView() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="auth-form-field grid grid-cols-2 gap-2">
                     <div className="flex flex-col gap-1">
                       <label className="text-[11px] font-bold text-zinc-300">Mật khẩu *</label>
                       <div className="relative flex items-center">
@@ -687,7 +719,7 @@ export default function Room3DView() {
                   <button
                     type="submit"
                     disabled={isSubmitting || isAuthLoading}
-                    className="w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer"
+                    className="auth-form-field w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>
@@ -707,7 +739,7 @@ export default function Room3DView() {
               {/* FORM TAB 3: EMAIL VERIFICATION FORM */}
               {authTab === 'verify' && (
                 <form onSubmit={handleVerifyEmailSubmit} className="flex flex-col gap-3.5">
-                  <div className="p-3 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-xs flex flex-col gap-1">
+                  <div className="auth-form-field p-3 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-xs flex flex-col gap-1">
                     <span className="font-bold text-emerald-300 flex items-center gap-1.5">
                       <Mail className="w-4 h-4 text-emerald-400" />
                       Xác thực Email tài khoản
@@ -717,7 +749,7 @@ export default function Room3DView() {
                     </p>
                   </div>
 
-                  <div className="flex flex-col gap-1">
+                  <div className="auth-form-field flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Địa chỉ Email *</label>
                     <div className="relative flex items-center">
                       <Mail className="absolute left-3 w-4 h-4 text-zinc-400" />
@@ -732,7 +764,7 @@ export default function Room3DView() {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1">
+                  <div className="auth-form-field flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Mã xác thực (Token từ Email) *</label>
                     <div className="relative flex items-center">
                       <Key className="absolute left-3 w-4 h-4 text-emerald-400" />
@@ -753,7 +785,7 @@ export default function Room3DView() {
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer"
+                    className="auth-form-field w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 hover:from-emerald-400 hover:to-sky-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer"
                   >
                     {isSubmitting ? (
                       <>
@@ -772,6 +804,7 @@ export default function Room3DView() {
             </div>
           )}
         </div>
+      </div>
       )}
     </div>
   );

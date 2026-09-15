@@ -1,6 +1,18 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { gsap } from 'gsap';
+import { useGSAP } from '@gsap/react';
+import {
+  animateHeaderDown,
+  animateDrawerLeft,
+  animateDrawerRight,
+  animateFooterUp,
+  animateStaggerList,
+} from '../../utils/gsapAnimations';
+
+gsap.registerPlugin(useGSAP);
+
 import {
   BookOpen,
   Sparkles,
@@ -58,6 +70,35 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
   const [activeStory, setActiveStory] = useState<LibraryStoryItem | null>(LIBRARY_CREATED_STORIES[0]);
   const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
   const [audioProgress, setAudioProgress] = useState<number>(35);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Hiệu ứng GSAP xuất hiện ban đầu khi mở Tủ Sách Zoom
+  useGSAP(() => {
+    animateHeaderDown('.bookshelf-top-bar');
+    animateDrawerLeft('.bookshelf-left-drawer', { delay: 0.08 });
+    animateDrawerRight('.bookshelf-right-drawer', { delay: 0.12 });
+    animateFooterUp('.bookshelf-bottom-bar', { delay: 0.18 });
+    animateStaggerList('.bookshelf-story-card', { delay: 0.25, stagger: 0.04 });
+    animateStaggerList('.bookshelf-streak-pill', { delay: 0.32, stagger: 0.03 });
+    animateStaggerList('.bookshelf-badge-pill', { delay: 0.38, stagger: 0.03 });
+  }, { scope: containerRef });
+
+  // Tái kích hoạt hiệu ứng stagger mượt mà khi chuyển danh mục kệ sách hoặc tìm kiếm
+  useGSAP(() => {
+    animateStaggerList('.bookshelf-story-card', { stagger: 0.035, duration: 0.35 });
+  }, { scope: containerRef, dependencies: [selectedShelf, searchQuery] });
+
+  // Hiệu ứng chuyển động mượt mà khi đổi truyện đang chọn ở cột chi tiết bên phải
+  useGSAP(() => {
+    if (activeStory) {
+      gsap.fromTo(
+        '.bookshelf-detail-content',
+        { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.35, ease: 'power2.out' }
+      );
+    }
+  }, { scope: containerRef, dependencies: [activeStory?.id] });
+
   const [favoritesMap, setFavoritesMap] = useState<Record<string, boolean>>({
     'cr-1': true,
     'cr-2': true,
@@ -106,9 +147,9 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
   });
 
   return (
-    <div className="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-6 overflow-hidden z-20 font-sans">
+    <div ref={containerRef} className="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-6 overflow-hidden z-20 font-sans">
       {/* 1. TOP HEADER FLOATING GLASSBAR */}
-      <div className="pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 rounded-3xl bg-zinc-900/85 dark:bg-zinc-950/90 backdrop-blur-xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-white animate-in fade-in-0 slide-in-from-top-4 duration-300">
+      <div className="bookshelf-top-bar pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 rounded-3xl bg-zinc-900/85 dark:bg-zinc-950/90 backdrop-blur-xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-white">
         
         {/* Brand & Stage Selector */}
         <div className="flex items-center justify-between sm:justify-start gap-3">
@@ -210,7 +251,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
       <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-end lg:items-center justify-between gap-4 my-2 overflow-hidden pointer-events-none">
         
         {/* LEFT DRAWER: 3-TIER BOOKSHELF STORY SELECTOR */}
-        <div className="pointer-events-auto w-full lg:w-[420px] max-h-[50vh] lg:max-h-[75vh] flex flex-col rounded-3xl bg-zinc-900/90 dark:bg-zinc-950/95 backdrop-blur-xl border border-amber-500/30 shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-white overflow-hidden animate-in fade-in-0 slide-in-from-left-6 duration-400">
+        <div className="bookshelf-left-drawer pointer-events-auto w-full lg:w-[420px] max-h-[50vh] lg:max-h-[75vh] flex flex-col rounded-3xl bg-zinc-900/90 dark:bg-zinc-950/95 backdrop-blur-xl border border-amber-500/30 shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-white overflow-hidden">
           
           {/* Shelf Tiers Tabs */}
           <div className="p-3 bg-zinc-950/90 border-b border-zinc-800/80 flex items-center gap-1 overflow-x-auto scrollbar-none">
@@ -277,7 +318,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
                       setActiveStory(story);
                       setIsPlayingAudio(false);
                     }}
-                    className={`p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 ${
+                    className={`bookshelf-story-card p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 ${
                       isSelected
                         ? 'bg-gradient-to-r from-amber-500/20 via-zinc-900 to-zinc-900 border-amber-400/80 shadow-md ring-1 ring-amber-400/50 scale-[1.01]'
                         : 'bg-zinc-900/60 hover:bg-zinc-800/80 border-zinc-800 text-zinc-300'
@@ -355,7 +396,8 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
 
         {/* RIGHT DRAWER: ACTIVE SELECTED BOOK PLAYER & DETAILS PREVIEW */}
         {activeStory && (
-          <div className="pointer-events-auto w-full lg:w-[380px] rounded-3xl bg-zinc-900/90 dark:bg-zinc-950/95 backdrop-blur-xl border border-sky-500/30 shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-white p-4 sm:p-5 flex flex-col gap-4 animate-in fade-in-0 slide-in-from-right-6 duration-400">
+          <div className="bookshelf-right-drawer pointer-events-auto w-full lg:w-[380px] rounded-3xl bg-zinc-900/90 dark:bg-zinc-950/95 backdrop-blur-xl border border-sky-500/30 shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-white p-4 sm:p-5 flex flex-col gap-4">
+            <div className="bookshelf-detail-content flex flex-col gap-4">
             
             {/* Header: Book Cover & Badges */}
             <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-zinc-950 shadow-inner group">
@@ -449,13 +491,14 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
                 <span>{isPlayingAudio ? 'Tạm Dừng Audio' : 'Nghe Audio'}</span>
               </button>
             </div>
+            </div>
           </div>
         )}
 
       </div>
 
       {/* 3. BOTTOM FOOTER BAR: STREAK & BADGES QUICK PREVIEW */}
-      <div className="pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-2xl bg-zinc-900/80 dark:bg-zinc-950/85 backdrop-blur-md border border-white/10 text-white animate-in fade-in-0 slide-in-from-bottom-4 duration-300">
+      <div className="bookshelf-bottom-bar pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-2xl bg-zinc-900/80 dark:bg-zinc-950/85 backdrop-blur-md border border-white/10 text-white">
         
         {/* Day Streak */}
         <div className="flex items-center gap-2 sm:gap-3">
@@ -468,7 +511,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
             {DAY_STREAKS.map((stk, idx) => (
               <div
                 key={idx}
-                className={`px-2 py-0.5 rounded-lg text-[10px] font-extrabold flex items-center gap-1 ${
+                className={`bookshelf-streak-pill px-2 py-0.5 rounded-lg text-[10px] font-extrabold flex items-center gap-1 ${
                   stk.isCompleted
                     ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300'
                     : stk.isCurrent
@@ -491,7 +534,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
             {LIBRARY_BADGES.map((bdg) => (
               <span
                 key={bdg.id}
-                className="px-2 py-0.5 rounded-lg bg-zinc-800 border border-zinc-700 text-[10px] font-bold text-zinc-300 flex items-center gap-1"
+                className="bookshelf-badge-pill px-2 py-0.5 rounded-lg bg-zinc-800 border border-zinc-700 text-[10px] font-bold text-zinc-300 flex items-center gap-1"
               >
                 <span>{bdg.icon}</span>
                 <span>{bdg.title}</span>

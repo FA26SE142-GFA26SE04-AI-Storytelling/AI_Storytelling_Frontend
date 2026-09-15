@@ -569,3 +569,14 @@ h6 {
 .animate-float-subtle-3 {
   animation: float-subtle 4s ease-in-out 2.6s infinite;
 }
+
+/* 9. Utility ẩn thanh cuộn (Scrollbar None) */
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
