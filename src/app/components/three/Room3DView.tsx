@@ -982,49 +982,51 @@ export default function Room3DView() {
                     </button>
                   </div>
                 </div>
-              ) : (
-                <div className="flex items-center p-1 mb-4 bg-zinc-950/80 rounded-2xl border border-zinc-800/80 text-[11px] font-bold">
+              ) : authTab === 'signup' || authTab === 'verify' ? (
+                <div className="flex items-center justify-between mb-4">
                   <button
+                    type="button"
                     onClick={() => {
                       setAuthTab('signin');
                       setApiFeedback({ type: null, message: '' });
                     }}
-                    className={`flex-1 py-2 rounded-xl text-center transition-all cursor-pointer ${
-                      authTab === 'signin'
-                        ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-md'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-300 hover:text-white hover:border-zinc-700 transition-all cursor-pointer"
                   >
-                    Đăng Nhập
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Đăng Nhập</span>
                   </button>
-                  <button
-                    onClick={() => {
-                      setAuthTab('signup');
-                      setApiFeedback({ type: null, message: '' });
-                    }}
-                    className={`flex-1 py-2 rounded-xl text-center transition-all cursor-pointer ${
-                      authTab === 'signup'
-                        ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-md'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    Đăng Ký
-                  </button>
-                  <button
-                    onClick={() => {
-                      setAuthTab('verify');
-                      setApiFeedback({ type: null, message: '' });
-                    }}
-                    className={`flex-1 py-2 rounded-xl text-center transition-all cursor-pointer ${
-                      authTab === 'verify'
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md'
-                        : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    Xác Thực Mail
-                  </button>
+                  <div className="flex items-center gap-1 bg-zinc-950/80 p-1 rounded-xl border border-zinc-800/80 text-[11px] font-bold">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('signup');
+                        setApiFeedback({ type: null, message: '' });
+                      }}
+                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                        authTab === 'signup'
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      1. Đăng Ký
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('verify');
+                        setApiFeedback({ type: null, message: '' });
+                      }}
+                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                        authTab === 'verify'
+                          ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-sm'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      2. Xác Thực Mail
+                    </button>
+                  </div>
                 </div>
-              )}
+              ) : null}
 
               {/* API Feedback Alerts */}
               {apiFeedback.type && (
@@ -1130,12 +1132,36 @@ export default function Room3DView() {
                       </>
                     )}
                   </button>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-[11px]">
+                    <span className="text-zinc-400">Chưa có tài khoản?</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('signup');
+                        setApiFeedback({ type: null, message: '' });
+                      }}
+                      className="text-emerald-400 hover:text-emerald-300 font-bold cursor-pointer transition-colors"
+                    >
+                      Đăng ký tài khoản mới →
+                    </button>
+                  </div>
                 </form>
               )}
 
               {/* FORM TAB 2: REGISTER FORM */}
               {authTab === 'signup' && (
                 <form onSubmit={handleRegisterSubmit} className="flex flex-col gap-3">
+                  <div className="auth-form-field p-3 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-xs flex flex-col gap-1">
+                    <span className="font-bold text-emerald-300 flex items-center gap-1.5">
+                      <UserPlus className="w-4 h-4 text-emerald-400" />
+                      Bước 1: Điền thông tin tạo tài khoản
+                    </span>
+                    <p className="text-[11px] text-zinc-300 leading-relaxed">
+                      Sau khi đăng ký, hệ thống sẽ tự động gửi <strong>Mã xác thực</strong> tới email để kích hoạt tài khoản ở Bước 2.
+                    </p>
+                  </div>
+
                   <div className="auth-form-field flex flex-col gap-1">
                     <label className="text-[11px] font-bold text-zinc-300">Địa chỉ Email xác nhận *</label>
                     <div className="relative flex items-center">
@@ -1265,6 +1291,31 @@ export default function Room3DView() {
                       </>
                     )}
                   </button>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('signin');
+                        setApiFeedback({ type: null, message: '' });
+                      }}
+                      className="text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <ArrowLeft className="w-3 h-3" />
+                      Đã có tài khoản? Đăng nhập
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('verify');
+                        setApiFeedback({ type: null, message: '' });
+                        if (regEmail) setVerifyEmailInput(regEmail.trim());
+                      }}
+                      className="text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer transition-colors"
+                    >
+                      Đã có mã? Xác thực →
+                    </button>
+                  </div>
                 </form>
               )}
 
@@ -1274,7 +1325,7 @@ export default function Room3DView() {
                   <div className="auth-form-field p-3 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 text-xs flex flex-col gap-1">
                     <span className="font-bold text-emerald-300 flex items-center gap-1.5">
                       <Mail className="w-4 h-4 text-emerald-400" />
-                      Xác thực Email tài khoản
+                      Bước 2: Xác thực Email tài khoản
                     </span>
                     <p className="text-[11px] text-zinc-300 leading-relaxed">
                       Nhập Email đăng ký và dán mã <strong>Verification Token</strong> từ Gmail để kích hoạt tài khoản.
@@ -1331,6 +1382,30 @@ export default function Room3DView() {
                       </>
                     )}
                   </button>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('signup');
+                        setApiFeedback({ type: null, message: '' });
+                      }}
+                      className="text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <ArrowLeft className="w-3 h-3" />
+                      Quay lại Đăng ký
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('signin');
+                        setApiFeedback({ type: null, message: '' });
+                      }}
+                      className="text-sky-400 hover:text-sky-300 font-semibold cursor-pointer transition-colors"
+                    >
+                      Quay lại Đăng nhập →
+                    </button>
+                  </div>
                 </form>
               )}
 
