@@ -46,7 +46,7 @@ import {
 export default function Room3DView() {
   const [currentStage, setCurrentStage] = useState<number>(0);
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getVietnamTimeOfDay);
-  const [authTab, setAuthTab] = useState<'signin' | 'signup' | 'verify'>('signin');
+  const [authTab, setAuthTab] = useState<'signin' | 'signup' | 'verify' | 'forgot' | 'reset'>('signin');
   const [isTopHovered, setIsTopHovered] = useState<boolean>(false);
 
   const isHeaderVisible = currentStage === 0 || isTopHovered;
@@ -60,8 +60,11 @@ export default function Room3DView() {
     login,
     register,
     changePassword,
+    forgotPassword,
+    resetPassword,
     logout,
     refreshProfile,
+    refreshToken,
   } = useAuth();
 
   // Local Login Form States
@@ -73,6 +76,14 @@ export default function Room3DView() {
   // Email Verification Form States
   const [verifyEmailInput, setVerifyEmailInput] = useState<string>('');
   const [verifyTokenInput, setVerifyTokenInput] = useState<string>('');
+
+  // Forgot / Reset Password Form States
+  const [forgotEmailInput, setForgotEmailInput] = useState<string>('');
+  const [resetEmailInput, setResetEmailInput] = useState<string>('');
+  const [resetTokenInput, setResetTokenInput] = useState<string>('');
+  const [resetNewPassword, setResetNewPassword] = useState<string>('');
+  const [resetConfirmPassword, setResetConfirmPassword] = useState<string>('');
+  const [showResetPassword, setShowResetPassword] = useState<boolean>(false);
 
   // Registration Form States
   const [regUsername, setRegUsername] = useState<string>('');
@@ -310,10 +321,131 @@ export default function Room3DView() {
     }
   };
 
+  // Form submit for Forgot Password (Request reset code)
+  const handleForgotPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!forgotEmailInput.trim()) {
+      setApiFeedback({
+        type: 'error',
+        message: 'Vui lòng nhập địa chỉ email.',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setApiFeedback({ type: 'info', message: 'Đang gửi yêu cầu đặt lại mật khẩu...' });
+
+    try {
+      const response = await forgotPassword({
+        email: forgotEmailInput.trim(),
+      });
+
+      if (response.success) {
+        setApiFeedback({
+          type: 'success',
+          message: response.message || 'Mã xác nhận đặt lại mật khẩu đã được gửi qua email của bạn.',
+        });
+        setResetEmailInput(forgotEmailInput.trim());
+        // Tự động chuyển sang bước 2 để dán mã
+        setTimeout(() => {
+          setAuthTab('reset');
+        }, 1200);
+      } else {
+        setApiFeedback({
+          type: 'error',
+          message: response.message || 'Yêu cầu không thành công.',
+          errors: response.errors || [],
+        });
+      }
+    } catch (err) {
+      setApiFeedback({
+        type: 'error',
+        message: 'Lỗi khi gửi yêu cầu đặt lại mật khẩu.',
+        errors: [(err as Error).message],
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Form submit for Reset Password (Set new password with code)
+  const handleResetPasswordSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmailInput.trim() || !resetTokenInput.trim() || !resetNewPassword || !resetConfirmPassword) {
+      setApiFeedback({
+        type: 'error',
+        message: 'Vui lòng điền đầy đủ tất cả các trường.',
+      });
+      return;
+    }
+
+    if (resetNewPassword !== resetConfirmPassword) {
+      setApiFeedback({
+        type: 'error',
+        message: 'Mật khẩu xác nhận không khớp với mật khẩu mới.',
+      });
+      return;
+    }
+
+    if (resetNewPassword.length < 6) {
+      setApiFeedback({
+        type: 'error',
+        message: 'Mật khẩu mới phải có tối thiểu 6 ký tự.',
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+    setApiFeedback({ type: 'info', message: 'Đang đặt lại mật khẩu mới...' });
+
+    try {
+      const response = await resetPassword({
+        email: resetEmailInput.trim(),
+        resetToken: resetTokenInput.trim(),
+        newPassword: resetNewPassword,
+        confirmPassword: resetConfirmPassword,
+      });
+
+      if (response.success) {
+        setApiFeedback({
+          type: 'success',
+          message: response.message || 'Đặt lại mật khẩu thành công! Vui lòng đăng nhập với mật khẩu mới.',
+        });
+        setIdentifier(resetEmailInput.trim());
+        setResetTokenInput('');
+        setResetNewPassword('');
+        setResetConfirmPassword('');
+        setTimeout(() => {
+          setAuthTab('signin');
+        }, 2000);
+      } else {
+        setApiFeedback({
+          type: 'error',
+          message: response.message || 'Đặt lại mật khẩu thất bại. Vui lòng kiểm tra lại mã Token.',
+          errors: response.errors || [],
+        });
+      }
+    } catch (err) {
+      setApiFeedback({
+        type: 'error',
+        message: 'Lỗi không xác định khi đặt lại mật khẩu.',
+        errors: [(err as Error).message],
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleTestGetProfile = async () => {
     if (!accessToken) return;
-    setTestProfileResult('Đang gọi API GET /api/v1/Auth/me ...');
-    const res = await authService.getProfile(accessToken);
+    setTestProfileResult('Đang gọi API GET /api/v1/Auth/me (tự động refresh nếu hết hạn) ...');
+    const res = await authService.getProfile();
+    setTestProfileResult(JSON.stringify(res, null, 2));
+  };
+
+  const handleTestRefreshToken = async () => {
+    setTestProfileResult('Đang gọi API POST /api/v1/Auth/refresh-token ...');
+    const res = await refreshToken();
     setTestProfileResult(JSON.stringify(res, null, 2));
   };
 
@@ -610,7 +742,7 @@ export default function Room3DView() {
                       {accessToken}
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       <button
                         onClick={() => {
                           if (accessToken) {
@@ -619,7 +751,7 @@ export default function Room3DView() {
                             setTimeout(() => setCopiedToken(false), 2000);
                           }
                         }}
-                        className="flex-1 py-1.5 px-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-[11px] font-bold text-zinc-300 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        className="flex-1 min-w-[100px] py-1.5 px-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-[11px] font-bold text-zinc-300 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                       >
                         {copiedToken ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
                         <span>{copiedToken ? 'Đã sao chép!' : 'Sao chép Token'}</span>
@@ -627,10 +759,18 @@ export default function Room3DView() {
 
                       <button
                         onClick={handleTestGetProfile}
-                        className="flex-1 py-1.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-[11px] font-bold text-amber-300 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                        className="flex-1 min-w-[100px] py-1.5 px-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-[11px] font-bold text-amber-300 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
                       >
                         <Zap className="w-3.5 h-3.5 text-amber-400" />
                         <span>Test API /me</span>
+                      </button>
+
+                      <button
+                        onClick={handleTestRefreshToken}
+                        className="flex-1 min-w-[100px] py-1.5 px-2 rounded-xl bg-sky-500/20 hover:bg-sky-500/30 border border-sky-500/40 text-[11px] font-bold text-sky-300 flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 text-sky-400" />
+                        <span>Test Refresh</span>
                       </button>
                     </div>
 
@@ -798,47 +938,93 @@ export default function Room3DView() {
             /* IF NOT LOGGED IN: DISPLAY LOGIN, REGISTER OR VERIFY MAIL FORM */
             <div>
               {/* Tab Selector */}
-              <div className="flex items-center p-1 mb-4 bg-zinc-950/80 rounded-2xl border border-zinc-800/80 text-[11px] font-bold">
-                <button
-                  onClick={() => {
-                    setAuthTab('signin');
-                    setApiFeedback({ type: null, message: '' });
-                  }}
-                  className={`flex-1 py-2 rounded-xl text-center transition-all cursor-pointer ${
-                    authTab === 'signin'
-                      ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-md'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  Đăng Nhập
-                </button>
-                <button
-                  onClick={() => {
-                    setAuthTab('signup');
-                    setApiFeedback({ type: null, message: '' });
-                  }}
-                  className={`flex-1 py-2 rounded-xl text-center transition-all cursor-pointer ${
-                    authTab === 'signup'
-                      ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-md'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  Đăng Ký
-                </button>
-                <button
-                  onClick={() => {
-                    setAuthTab('verify');
-                    setApiFeedback({ type: null, message: '' });
-                  }}
-                  className={`flex-1 py-2 rounded-xl text-center transition-all cursor-pointer ${
-                    authTab === 'verify'
-                      ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md'
-                      : 'text-zinc-400 hover:text-white'
-                  }`}
-                >
-                  Xác Thực Mail
-                </button>
-              </div>
+              {authTab === 'forgot' || authTab === 'reset' ? (
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAuthTab('signin');
+                      setApiFeedback({ type: null, message: '' });
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-300 hover:text-white hover:border-zinc-700 transition-all cursor-pointer"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                    <span>Đăng Nhập</span>
+                  </button>
+                  <div className="flex items-center gap-1 bg-zinc-950/80 p-1 rounded-xl border border-zinc-800/80 text-[11px] font-bold">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('forgot');
+                        setApiFeedback({ type: null, message: '' });
+                      }}
+                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                        authTab === 'forgot'
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      1. Gửi Mã
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('reset');
+                        setApiFeedback({ type: null, message: '' });
+                      }}
+                      className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
+                        authTab === 'reset'
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
+                          : 'text-zinc-400 hover:text-white'
+                      }`}
+                    >
+                      2. Đặt Lại MK
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center p-1 mb-4 bg-zinc-950/80 rounded-2xl border border-zinc-800/80 text-[11px] font-bold">
+                  <button
+                    onClick={() => {
+                      setAuthTab('signin');
+                      setApiFeedback({ type: null, message: '' });
+                    }}
+                    className={`flex-1 py-2 rounded-xl text-center transition-all cursor-pointer ${
+                      authTab === 'signin'
+                        ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-md'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    Đăng Nhập
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAuthTab('signup');
+                      setApiFeedback({ type: null, message: '' });
+                    }}
+                    className={`flex-1 py-2 rounded-xl text-center transition-all cursor-pointer ${
+                      authTab === 'signup'
+                        ? 'bg-gradient-to-r from-sky-500 to-indigo-500 text-white shadow-md'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    Đăng Ký
+                  </button>
+                  <button
+                    onClick={() => {
+                      setAuthTab('verify');
+                      setApiFeedback({ type: null, message: '' });
+                    }}
+                    className={`flex-1 py-2 rounded-xl text-center transition-all cursor-pointer ${
+                      authTab === 'verify'
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md'
+                        : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    Xác Thực Mail
+                  </button>
+                </div>
+              )}
 
               {/* API Feedback Alerts */}
               {apiFeedback.type && (
@@ -892,9 +1078,20 @@ export default function Room3DView() {
                   <div className="auth-form-field flex flex-col gap-1">
                     <div className="flex items-center justify-between">
                       <label className="text-[11px] font-bold text-zinc-300">Mật khẩu</label>
-                      <a href="#forgot" className="text-[10px] text-sky-400 hover:underline">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthTab('forgot');
+                          setApiFeedback({ type: null, message: '' });
+                          if (identifier.includes('@')) {
+                            setForgotEmailInput(identifier.trim());
+                            setResetEmailInput(identifier.trim());
+                          }
+                        }}
+                        className="text-[10px] text-sky-400 hover:text-sky-300 hover:underline cursor-pointer"
+                      >
                         Quên mật khẩu?
-                      </a>
+                      </button>
                     </div>
                     <div className="relative flex items-center">
                       <Lock className="absolute left-3 w-4 h-4 text-zinc-400" />
@@ -1134,6 +1331,206 @@ export default function Room3DView() {
                       </>
                     )}
                   </button>
+                </form>
+              )}
+
+              {/* FORM TAB 4: FORGOT PASSWORD (STEP 1: REQUEST CODE) */}
+              {authTab === 'forgot' && (
+                <form onSubmit={handleForgotPasswordSubmit} className="flex flex-col gap-3.5">
+                  <div className="auth-form-field p-3 rounded-2xl bg-amber-950/40 border border-amber-500/30 text-xs flex flex-col gap-1">
+                    <span className="font-bold text-amber-300 flex items-center gap-1.5">
+                      <Key className="w-4 h-4 text-amber-400" />
+                      Bước 1: Yêu cầu đặt lại mật khẩu
+                    </span>
+                    <p className="text-[11px] text-zinc-300 leading-relaxed">
+                      Nhập địa chỉ Email đã đăng ký tài khoản. Hệ thống sẽ gửi <strong>Mã đặt lại mật khẩu</strong> (Reset Token) qua Gmail của bạn.
+                    </p>
+                  </div>
+
+                  <div className="auth-form-field flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-zinc-300">Địa chỉ Email *</label>
+                    <div className="relative flex items-center">
+                      <Mail className="absolute left-3 w-4 h-4 text-zinc-400" />
+                      <input
+                        type="email"
+                        required
+                        value={forgotEmailInput}
+                        onChange={(e) => setForgotEmailInput(e.target.value)}
+                        placeholder="Ví dụ: parent@example.com"
+                        className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="auth-form-field w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Đang Gửi Yêu Cầu...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Mail className="w-4 h-4" />
+                        <span>Gửi Mã Đặt Lại Mật Khẩu</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('signin');
+                        setApiFeedback({ type: null, message: '' });
+                      }}
+                      className="text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <ArrowLeft className="w-3 h-3" />
+                      Quay lại Đăng nhập
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('reset');
+                        setApiFeedback({ type: null, message: '' });
+                        if (forgotEmailInput) setResetEmailInput(forgotEmailInput);
+                      }}
+                      className="text-amber-400 hover:text-amber-300 font-semibold cursor-pointer transition-colors"
+                    >
+                      Đã có mã? Đặt lại MK →
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* FORM TAB 5: RESET PASSWORD (STEP 2: CONFIRM TOKEN & NEW PASSWORD) */}
+              {authTab === 'reset' && (
+                <form onSubmit={handleResetPasswordSubmit} className="flex flex-col gap-3">
+                  <div className="auth-form-field p-3 rounded-2xl bg-amber-950/40 border border-amber-500/30 text-xs flex flex-col gap-1">
+                    <span className="font-bold text-amber-300 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-amber-400" />
+                      Bước 2: Thiết lập mật khẩu mới
+                    </span>
+                    <p className="text-[11px] text-zinc-300 leading-relaxed">
+                      Dán <strong>Reset Token</strong> nhận được trong Email và nhập mật khẩu mới của bạn.
+                    </p>
+                  </div>
+
+                  <div className="auth-form-field flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-zinc-300">Địa chỉ Email *</label>
+                    <div className="relative flex items-center">
+                      <Mail className="absolute left-3 w-4 h-4 text-zinc-400" />
+                      <input
+                        type="email"
+                        required
+                        value={resetEmailInput}
+                        onChange={(e) => setResetEmailInput(e.target.value)}
+                        placeholder="email@example.com"
+                        className="w-full pl-9 pr-4 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="auth-form-field flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-zinc-300">Mã đặt lại mật khẩu (Token từ Gmail) *</label>
+                    <div className="relative flex items-center">
+                      <Key className="absolute left-3 w-4 h-4 text-amber-400" />
+                      <input
+                        type="text"
+                        required
+                        value={resetTokenInput}
+                        onChange={(e) => setResetTokenInput(e.target.value)}
+                        placeholder="Dán mã Token từ email tại đây..."
+                        className="w-full pl-9 pr-4 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 transition-colors font-mono"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="auth-form-field grid grid-cols-2 gap-2">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-bold text-zinc-300">Mật khẩu mới *</label>
+                      <div className="relative flex items-center">
+                        <Lock className="absolute left-2.5 w-3.5 h-3.5 text-zinc-400" />
+                        <input
+                          type={showResetPassword ? 'text' : 'password'}
+                          required
+                          value={resetNewPassword}
+                          onChange={(e) => setResetNewPassword(e.target.value)}
+                          placeholder="Tối thiểu 6 ký tự"
+                          className="w-full pl-8 pr-7 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 transition-colors"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowResetPassword(!showResetPassword)}
+                          className="absolute right-2 text-zinc-400 hover:text-white cursor-pointer"
+                        >
+                          {showResetPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-[11px] font-bold text-zinc-300">Xác nhận MK *</label>
+                      <div className="relative flex items-center">
+                        <Lock className="absolute left-2.5 w-3.5 h-3.5 text-zinc-400" />
+                        <input
+                          type={showResetPassword ? 'text' : 'password'}
+                          required
+                          value={resetConfirmPassword}
+                          onChange={(e) => setResetConfirmPassword(e.target.value)}
+                          placeholder="Nhập lại MK"
+                          className="w-full pl-8 pr-2 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 transition-colors"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="auth-form-field w-full mt-2 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-amber-500/25 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:pointer-events-none transition-all cursor-pointer"
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        <span>Đang Cập Nhật Mật Khẩu...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>Xác Nhận Đặt Lại Mật Khẩu</span>
+                      </>
+                    )}
+                  </button>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-[11px]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('forgot');
+                        setApiFeedback({ type: null, message: '' });
+                      }}
+                      className="text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+                    >
+                      <ArrowLeft className="w-3 h-3" />
+                      Gửi lại mã mới
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAuthTab('signin');
+                        setApiFeedback({ type: null, message: '' });
+                      }}
+                      className="text-sky-400 hover:text-sky-300 font-semibold cursor-pointer transition-colors"
+                    >
+                      Quay lại Đăng nhập →
+                    </button>
+                  </div>
                 </form>
               )}
             </div>
