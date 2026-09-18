@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { animatePopItem } from '../../utils/gsapAnimations';
@@ -14,7 +14,12 @@ import { LibraryBookshelfZoomOverlay } from '../library/LibraryBookshelfZoomOver
 import { ParentDeskZoomOverlay } from '../parents/ParentDeskZoomOverlay';
 import { ParentLaptopDashboardOverlay } from '../parents/ParentLaptopDashboardOverlay';
 import { BackpackAuthZoomOverlay } from '../backpack/BackpackAuthZoomOverlay';
+import { ChildEasyLoginOverlay } from '../child/ChildEasyLoginOverlay';
+import { ParentalGateModal } from '../common/ParentalGateModal';
 import { useAuth } from '../../context/AuthContext';
+import { useChildSession } from '../../context/ChildSessionContext';
+import { childProfileService } from '../../services/childProfileService';
+import { ChildProfile } from '../../types/childProfile';
 import { ArrowLeft } from 'lucide-react';
 
 export default function Room3DView() {
@@ -29,27 +34,63 @@ export default function Room3DView() {
 
   const isHeaderVisible = currentStage === 0 || isTopHovered;
   const { isLoggedIn } = useAuth();
+  const {
+    isChildModeActive,
+    startChildSession,
+    isParentalGateOpen,
+    closeParentalGate,
+    onParentalGateSuccess,
+    pendingGateDestinationStage,
+    setPendingGateDestinationStage,
+    requestExitWithGate,
+  } = useChildSession();
+
+  const [showChildEasyLogin, setShowChildEasyLogin] = useState<boolean>(false);
+  const [childProfiles, setChildProfiles] = useState<ChildProfile[]>([]);
   const roomViewRef = useRef<HTMLDivElement>(null);
 
-  // Tự động đọc URL query params khi vào trang chủ (nhận link từ email: token, email, auth, code)
-  // để zoom thẳng vào Cặp Sách (Stage 5) hoặc Laptop (Stage 6) và mở đúng tab tương ứng
+  // Tải danh sách bé cho màn hình EasyLogin độc lập
+  const fetchChildrenForEasyLogin = useCallback(async () => {
+    if (!isLoggedIn) return;
+    try {
+      const res = await childProfileService.getMyChildProfiles();
+      if (res.success && res.data) {
+        setChildProfiles(res.data);
+      }
+    } catch (e) {
+      console.error('Failed to load child profiles for easy login:', e);
+    }
+  }, [isLoggedIn]);
+
+  useEffect(() => {
+    fetchChildrenForEasyLogin();
+  }, [fetchChildrenForEasyLogin]);
+
+  // Bộ điều phối chuyển đổi Stage có bảo vệ an toàn cho trẻ em
+  const handleStageChange = useCallback((targetStage: number) => {
+    if (isChildModeActive && (targetStage === 5 || targetStage === 6)) {
+      setPendingGateDestinationStage(targetStage);
+      requestExitWithGate();
+      return;
+    }
+    setCurrentStage(targetStage);
+  }, [isChildModeActive, requestExitWithGate, setPendingGateDestinationStage]);
+
+  // Tự động đọc URL query params khi vào trang chủ
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const params = new URLSearchParams(window.location.search);
     const authParam = params.get('auth');
     const tokenParam = params.get('token') || params.get('resetToken');
     const emailParam = params.get('email') || '';
-
     const codeParam = params.get('code') || params.get('invitationCode') || params.get('inviteCode');
 
     if (codeParam) {
-      if (typeof window !== 'undefined') {
-        sessionStorage.setItem('pendingInvitationCode', codeParam);
-      }
+      sessionStorage.setItem('pendingInvitationCode', codeParam);
       if (isLoggedIn) {
-        setCurrentStage(6); // Chuyển thẳng tới Bảng Phụ Huynh Laptop 3D để nhập mã mời
+        setCurrentStage(6);
       } else {
-        setCurrentStage(5); // Chưa đăng nhập -> Chuyển tới Cặp Sách để tạo tài khoản chính chủ trước
+        setCurrentStage(5);
         setInitialAuthTab('signup');
       }
     } else if (tokenParam || authParam === 'reset') {
@@ -76,16 +117,6 @@ export default function Room3DView() {
     }
   }, [isLoggedIn]);
 
-  // Tự động chuyển tới Laptop Phụ Huynh (Stage 6) khi đăng nhập xong nếu có lời mời đang chờ xử lý
-  useEffect(() => {
-    if (isLoggedIn && typeof window !== 'undefined') {
-      const pendingCode = sessionStorage.getItem('pendingInvitationCode');
-      if (pendingCode) {
-        setCurrentStage(6);
-      }
-    }
-  }, [isLoggedIn]);
-
   // Wheel scroll handler to change camera stages smoothly
   useEffect(() => {
     let timeoutId: NodeJS.Timeout;
@@ -93,9 +124,9 @@ export default function Room3DView() {
       if (timeoutId) return;
       timeoutId = setTimeout(() => {
         if (e.deltaY > 30) {
-          setCurrentStage((prev) => Math.min(prev + 1, STAGES.length - 1));
+          handleStageChange(Math.min(currentStage + 1, STAGES.length - 1));
         } else if (e.deltaY < -30) {
-          setCurrentStage((prev) => Math.max(prev - 1, 0));
+          handleStageChange(Math.max(currentStage - 1, 0));
         }
       }, 250);
     };
@@ -105,7 +136,7 @@ export default function Room3DView() {
       window.removeEventListener('wheel', handleWheel);
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, []);
+  }, [currentStage, handleStageChange]);
 
   // GSAP: Hiệu ứng nút quay lại toàn cảnh khi Zoom vào Stage 3 hoặc 4
   useGSAP(() => {
@@ -114,9 +145,24 @@ export default function Room3DView() {
     }
   }, { scope: roomViewRef, dependencies: [currentStage] });
 
+  const handleEasyLoginSuccess = (child: ChildProfile) => {
+    startChildSession(child, 'IndependentEasyLogin');
+    setShowChildEasyLogin(false);
+    setCurrentStage(2); // Kệ Sách Thần Kỳ
+  };
+
+  const handleGateUnlockSuccess = () => {
+    onParentalGateSuccess();
+    if (pendingGateDestinationStage !== null) {
+      setCurrentStage(pendingGateDestinationStage);
+    } else {
+      setCurrentStage(6); // Quay lại Laptop người lớn
+    }
+  };
+
   return (
     <div ref={roomViewRef} className="relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans">
-      {/* Invisible Top Edge Hover Detector (di chuột vào mép trên màn hình để hiện Header khi đang Zoom) */}
+      {/* Invisible Top Edge Hover Detector */}
       {currentStage !== 0 && (
         <div
           onMouseEnter={() => setIsTopHovered(true)}
@@ -124,22 +170,26 @@ export default function Room3DView() {
         />
       )}
 
-      {/* 3D Header Navigation (Luôn hiện ở Góc 1, trượt xuống khi di chuột mép trên) */}
+      {/* 3D Header Navigation */}
       <RoomHeader
         currentStage={currentStage}
-        onStageChange={setCurrentStage}
+        onStageChange={handleStageChange}
         timeOfDay={timeOfDay}
         onTimeOfDayChange={setTimeOfDay}
         isVisible={isHeaderVisible}
         onMouseEnter={() => setIsTopHovered(true)}
         onMouseLeave={() => setIsTopHovered(false)}
+        onOpenChildLogin={() => {
+          fetchChildrenForEasyLogin();
+          setShowChildEasyLogin(true);
+        }}
       />
 
-      {/* Nút Quay lại Toàn Cảnh khi Zoom vào các góc đồ vật (Stage 3: Tủ trượt, Stage 4: Cửa sổ) */}
+      {/* Nút Quay lại Toàn Cảnh khi Zoom vào các góc đồ vật */}
       {(currentStage === 3 || currentStage === 4) && (
         <div className="fixed top-4 left-4 z-30 pointer-events-auto">
           <button
-            onClick={() => setCurrentStage(0)}
+            onClick={() => handleStageChange(0)}
             className="room-back-btn px-4 py-2.5 rounded-2xl bg-zinc-900/90 hover:bg-zinc-900 text-white font-extrabold text-xs flex items-center gap-2 border border-white/20 shadow-xl backdrop-blur-xl transition-all hover:scale-105 cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4 text-amber-400" />
@@ -151,7 +201,7 @@ export default function Room3DView() {
       {/* Fullscreen 3D Room Canvas */}
       <RoomCanvas
         currentStageIndex={currentStage}
-        onStageChange={setCurrentStage}
+        onStageChange={handleStageChange}
         timeOfDay={timeOfDay}
         onTimeOfDayChange={setTimeOfDay}
       />
@@ -160,7 +210,7 @@ export default function Room3DView() {
       {currentStage === 1 && (
         <ParentDeskZoomOverlay
           currentStage={currentStage}
-          onStageChange={setCurrentStage}
+          onStageChange={handleStageChange}
           timeOfDay={timeOfDay}
           onTimeOfDayChange={setTimeOfDay}
           is2DViewAvailable={false}
@@ -171,7 +221,7 @@ export default function Room3DView() {
       {currentStage === 2 && (
         <LibraryBookshelfZoomOverlay
           currentStage={currentStage}
-          onStageChange={setCurrentStage}
+          onStageChange={handleStageChange}
           timeOfDay={timeOfDay}
           onTimeOfDayChange={setTimeOfDay}
           is2DViewAvailable={false}
@@ -182,7 +232,7 @@ export default function Room3DView() {
       {currentStage === 5 && (
         <BackpackAuthZoomOverlay
           currentStage={currentStage}
-          onStageChange={setCurrentStage}
+          onStageChange={handleStageChange}
           timeOfDay={timeOfDay}
           onTimeOfDayChange={setTimeOfDay}
           initialAuthTab={initialAuthTab}
@@ -195,12 +245,27 @@ export default function Room3DView() {
       {currentStage === 6 && (
         <ParentLaptopDashboardOverlay
           currentStage={currentStage}
-          onStageChange={setCurrentStage}
+          onStageChange={handleStageChange}
           timeOfDay={timeOfDay}
           onTimeOfDayChange={setTimeOfDay}
           is2DViewAvailable={false}
         />
       )}
+
+      {/* Modal Cổng Bảo Vệ Phụ Huynh (Parental Gate) */}
+      <ParentalGateModal
+        isOpen={isParentalGateOpen}
+        onClose={closeParentalGate}
+        onSuccess={handleGateUnlockSuccess}
+      />
+
+      {/* Modal Bé Đăng Nhập Độc Lập (Child EasyLogin Overlay) */}
+      <ChildEasyLoginOverlay
+        isOpen={showChildEasyLogin}
+        onClose={() => setShowChildEasyLogin(false)}
+        childProfiles={childProfiles}
+        onLoginSuccess={handleEasyLoginSuccess}
+      />
     </div>
   );
 }

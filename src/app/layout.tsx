@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { AuthProvider } from "./context/AuthContext";
+import { ChildSessionProvider } from "./context/ChildSessionContext";
 
 const comfortaa = Comfortaa({
   variable: "--font-comfortaa",
@@ -38,9 +39,11 @@ export default function RootLayout({
         <AuthProvider>
           <LanguageProvider>
             <ThemeProvider>
-              <main className="flex-1 w-full h-full">
-                {children}
-              </main>
+              <ChildSessionProvider>
+                <main className="flex-1 w-full h-full">
+                  {children}
+                </main>
+              </ChildSessionProvider>
             </ThemeProvider>
           </LanguageProvider>
         </AuthProvider>

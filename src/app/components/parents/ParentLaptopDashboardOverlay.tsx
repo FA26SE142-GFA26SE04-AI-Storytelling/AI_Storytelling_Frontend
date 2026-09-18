@@ -46,6 +46,12 @@ import { TokenQuotaCard } from './profiles/TokenQuotaCard';
 import { SafetyPolicyControls } from './safety/SafetyPolicyControls';
 import { SupervisionManager } from './supervision/SupervisionManager';
 import { CreativeControlsTab } from './creative/CreativeControlsTab';
+import { ChildAccessCredentialCard } from './profiles/ChildAccessCredentialCard';
+import { SetupChildPinModal } from './modals/SetupChildPinModal';
+import { EasyLoginCardModal } from './modals/EasyLoginCardModal';
+import { useChildSession } from '../../context/ChildSessionContext';
+import { ChildAccessCredential } from '../../types/childCredential';
+import { childAccessCredentialService } from '../../services/childAccessCredentialService';
 
 // Modal Dialogs
 import { AddChildModal } from './modals/AddChildModal';
@@ -105,6 +111,17 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
   const [tokenQuota, setTokenQuota] = useState<TokenQuotaStatus | null>(null);
   const [isLoadingDetail, setIsLoadingDetail] = useState<boolean>(false);
   const [detailError, setDetailError] = useState<string | null>(null);
+
+  // Child Access Credential & Child Session States (Bước 1.10)
+  const { startChildSession } = useChildSession();
+  const [showSetupPinModal, setShowSetupPinModal] = useState<boolean>(false);
+  const [showEasyLoginBadgeModal, setShowEasyLoginBadgeModal] = useState<boolean>(false);
+  const [credentialVersion, setCredentialVersion] = useState<number>(0);
+
+  const handleStartChildSession = (child: ChildProfile) => {
+    startChildSession(child, 'SupervisorLaunched');
+    onStageChange(2); // Zoom camera thẳng vào Kệ Sách Thần Kỳ (Stage 2)
+  };
 
   // Learning Profile Edit States
   const [isEditingLearningProfile, setIsEditingLearningProfile] = useState<boolean>(false);
@@ -1068,6 +1085,15 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
                       availableClasses={availableClasses}
                     />
 
+                    {/* Child Access Credential & Launch Session Card (Bước 1.10) */}
+                    <ChildAccessCredentialCard
+                      child={selectedChild}
+                      onOpenSetupModal={() => setShowSetupPinModal(true)}
+                      onOpenBadgeModal={() => setShowEasyLoginBadgeModal(true)}
+                      onStartChildSession={handleStartChildSession}
+                      credentialVersion={credentialVersion}
+                    />
+
                     {/* Learning Profile Configuration Card */}
                     <LearningProfileCard
                       childId={selectedChild.id}
@@ -1293,6 +1319,24 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
         acceptInviteError={acceptInviteError}
         onAcceptSubmit={handleAcceptInvitationSubmit}
         onRejectSubmit={handleRejectInvitationSubmit}
+      />
+
+      {/* MODAL 5: SETUP CHILD PIN & AVATAR MODAL (Bước 1.10) */}
+      <SetupChildPinModal
+        isOpen={showSetupPinModal}
+        onClose={() => setShowSetupPinModal(false)}
+        child={selectedChild}
+        onCredentialUpdated={() => {
+          setCredentialVersion((prev) => prev + 1);
+        }}
+      />
+
+      {/* MODAL 6: EASY LOGIN CARD & BADGE MODAL (Bước 1.10) */}
+      <EasyLoginCardModal
+        isOpen={showEasyLoginBadgeModal}
+        onClose={() => setShowEasyLoginBadgeModal(false)}
+        child={selectedChild}
+        credential={selectedChild ? childAccessCredentialService.getCredential(selectedChild.id) : null}
       />
     </div>
   );

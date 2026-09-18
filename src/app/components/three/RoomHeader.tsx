@@ -10,6 +10,7 @@ gsap.registerPlugin(useGSAP);
 
 import { TimeOfDay, STAGES } from './RoomCanvas';
 import { useAuth } from '../../context/AuthContext';
+import { useChildSession } from '../../context/ChildSessionContext';
 import {
   BookOpen,
   Layers,
@@ -22,6 +23,8 @@ import {
   Briefcase,
   RefreshCw,
   Laptop,
+  LogOut,
+  Sparkles,
 } from 'lucide-react';
 
 export interface RoomHeaderProps {
@@ -32,6 +35,7 @@ export interface RoomHeaderProps {
   isVisible?: boolean;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  onOpenChildLogin?: () => void;
 }
 
 export const RoomHeader: React.FC<RoomHeaderProps> = ({
@@ -42,8 +46,10 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
   isVisible = true,
   onMouseEnter,
   onMouseLeave,
+  onOpenChildLogin,
 }) => {
   const { user, isLoggedIn, backendOnline, backendStatusMessage, pingBackend } = useAuth();
+  const { currentSession, isChildModeActive, requestExitWithGate } = useChildSession();
   const stationIcons = [Layers, Clock, BookOpen, DoorOpen, ShieldCheck, Briefcase, Laptop];
   const headerRef = useRef<HTMLElement>(null);
 
@@ -193,6 +199,39 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
               <span className="hidden sm:inline">Tối</span>
             </button>
           </div>
+
+          {/* Child Mode Active Pill or Child Login Button */}
+          {isChildModeActive && currentSession ? (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-950/80 via-orange-950/80 to-rose-950/80 border border-amber-500/50 shadow-md">
+              <span className="text-base filter drop-shadow">{currentSession.avatarEmoji}</span>
+              <div className="flex flex-col">
+                <span className="text-[11px] font-black text-amber-300 leading-tight">
+                  Bé {currentSession.nickname}
+                </span>
+                <span className="text-[9px] text-zinc-400">Đang trong phiên đọc</span>
+              </div>
+              <button
+                type="button"
+                onClick={requestExitWithGate}
+                className="ml-1 p-1 rounded-lg bg-white/10 hover:bg-rose-500/30 text-zinc-300 hover:text-rose-300 transition-colors cursor-pointer"
+                title="Thoát phiên đọc của bé (Cần giải câu đố phụ huynh)"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ) : (
+            onOpenChildLogin && (
+              <button
+                type="button"
+                onClick={onOpenChildLogin}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 text-xs font-black transition-all hover:scale-105 cursor-pointer"
+                title="Dành cho bé: Chọn hình đại diện và nhập mã PIN để đọc truyện"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                <span>Bé Đăng Nhập</span>
+              </button>
+            )
+          )}
 
           {/* User Account / Login Button */}
           {isLoggedIn && user ? (
