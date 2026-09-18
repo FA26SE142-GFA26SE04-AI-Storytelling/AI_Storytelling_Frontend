@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 import { STAGES, CameraStage, TimeOfDay, getVietnamTimeOfDay } from './room/stages';
 import { buildBackpack } from './room/builders/buildBackpack';
@@ -188,7 +187,6 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
   className = '',
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
-  const controlsRef = useRef<OrbitControls | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
 
   const { user } = useAuth();
@@ -284,15 +282,9 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     renderer.toneMappingExposure = 1.0;
     container.appendChild(renderer.domElement);
 
-    // 4. Orbit Controls
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.dampingFactor = 0.05;
-    controls.maxPolarAngle = Math.PI / 2 - 0.02; // Prevent camera clipping below floor
-    controls.minDistance = 0.5;
-    controls.maxDistance = 12;
-    controls.target.set(...STAGES[0].targetPos);
-    controlsRef.current = controls;
+    // 4. LookAt Target Vector (Khóa cố định camera, hoàn toàn không xoay tự do)
+    const currentLookAt = new THREE.Vector3(...STAGES[0].targetPos);
+    camera.lookAt(currentLookAt);
 
     // 5. Lighting Setup
     const ambientLight = new THREE.AmbientLight(0xfffbeb, 0.36);
@@ -574,11 +566,30 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
     // 7. Animation Render Loop
     let animId: number;
+    const parallaxTarget = new THREE.Vector2(0, 0);
+    const currentParallax = new THREE.Vector2(0, 0);
+
     const animate = () => {
+      // Smooth Parallax LERP (Nghiêng nhẹ camera theo hướng hover chuột)
+      currentParallax.x = THREE.MathUtils.lerp(currentParallax.x, parallaxTarget.x, 0.05);
+      currentParallax.y = THREE.MathUtils.lerp(currentParallax.y, parallaxTarget.y, 0.05);
+
+      const isZoomed = currentStageIndexRef.current !== 0;
+      const factor = isZoomed ? 0.35 : 1.0;
+      const parallaxLookX = currentParallax.x * 0.24 * factor;
+      const parallaxLookY = currentParallax.y * 0.16 * factor;
+      const parallaxLookZ = -currentParallax.x * 0.24 * factor;
+
+      const dynamicTargetLookAt = new THREE.Vector3(
+        targetLookAtPos.current.x + parallaxLookX,
+        targetLookAtPos.current.y + parallaxLookY,
+        targetLookAtPos.current.z + parallaxLookZ
+      );
+
       // Smooth LERP Camera Transitions
       camera.position.lerp(targetCamPos.current, 0.05);
-      controls.target.lerp(targetLookAtPos.current, 0.05);
-      controls.update();
+      currentLookAt.lerp(dynamicTargetLookAt, 0.05);
+      camera.lookAt(currentLookAt);
 
       // Time-of-Day lighting target updates
       const currentMode = timeModeRef.current;
@@ -838,8 +849,14 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
     const handlePointerMove = (e: MouseEvent) => {
       const rect = renderer.domElement.getBoundingClientRect();
-      mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-      mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      const normX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const normY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      mouse.x = normX;
+      mouse.y = normY;
+
+      // Cập nhật tọa độ góc hover nhẹ (Parallax Target)
+      parallaxTarget.x = Math.max(-1, Math.min(1, normX));
+      parallaxTarget.y = Math.max(-1, Math.min(1, normY));
 
       raycaster.setFromCamera(mouse, camera);
       const intersectsSwitch = raycaster.intersectObject(switchClickMesh, true);
@@ -869,13 +886,22 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       } else {
         domElem.style.cursor = '';
       }
+    };
 
+    const handlePointerLeave = () => {
+      parallaxTarget.x = 0;
+      parallaxTarget.y = 0;
     };
 
     const domElem = renderer.domElement;
+    const handleContextMenu = (e: MouseEvent) => {
+      e.preventDefault();
+    };
+    domElem.addEventListener('contextmenu', handleContextMenu);
     domElem.addEventListener('pointerdown', handlePointerDown);
     domElem.addEventListener('pointerup', handlePointerUp);
     domElem.addEventListener('pointermove', handlePointerMove);
+    domElem.addEventListener('pointerleave', handlePointerLeave);
 
     // Handle Window Resize
     const handleResize = () => {
@@ -893,9 +919,11 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
+      domElem.removeEventListener('contextmenu', handleContextMenu);
       domElem.removeEventListener('pointerdown', handlePointerDown);
       domElem.removeEventListener('pointerup', handlePointerUp);
       domElem.removeEventListener('pointermove', handlePointerMove);
+      domElem.removeEventListener('pointerleave', handlePointerLeave);
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }
@@ -905,7 +933,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
   return (
     <div className={`relative w-full h-full ${className}`}>
-      <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
+      <div ref={mountRef} className="w-full h-full cursor-default" />
       {switchHint && (
         <div className="fixed bottom-6 right-6 z-30 pointer-events-none px-4 py-2 rounded-2xl bg-tod-card backdrop-blur-xl border border-tod-border shadow-2xl text-xs font-black text-tod-text flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300">
           <span>{switchHint}</span>
