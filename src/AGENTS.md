@@ -89,6 +89,6 @@ Tài liệu này tổng hợp các quy tắc kiến trúc, quy chuẩn giao di�
 ## 7. Quy Trình Kiểm Tra & Commit (Build & Verification Standard)
 1. **Kiểm tra tự động trước khi bàn giao**:
    - Chạy `npm run build` trong thư mục `src` trước khi kết thúc tác vụ để đảm bảo Turbopack và TypeScript check đạt **Exit code 0**, không có cảnh báo nghiêm trọng.
-2. **Quy chuẩn ghi commit Git**:
+2. **Quy chuẩn ghi commit Git** (chỉ commit khi user yêu cầu ghi commit) :
    - Sử dụng Conventional Commits: `feat(...)`, `refactor(...)`, `fix(...)`, `style(...)`.
-   - Mô tả ngắn gọn bằng tiếng Việt có dấu/không dấu rõ ràng, đính kèm gạch đầu dòng các thành phần cụ thể đã thay đổi.
+   - Mô tả ngắn gọn bằng tiếng Anh rõ ràng, đính kèm gạch đầu dòng các thành phần cụ thể đã thay đổi.
