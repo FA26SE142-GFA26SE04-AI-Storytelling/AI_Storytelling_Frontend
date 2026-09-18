@@ -41,6 +41,8 @@ export interface BackpackAuthZoomOverlayProps {
 export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = ({
   currentStage: _currentStage,
   onStageChange,
+  timeOfDay = 'night',
+  onTimeOfDayChange: _onTimeOfDayChange,
   initialAuthTab = 'signin',
   initialEmail = '',
   initialToken = '',
@@ -99,8 +101,12 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
   }, { scope: containerRef, dependencies: [authTab] });
 
   return (
-    <div ref={containerRef} className="fixed inset-y-0 left-4 sm:left-10 z-30 flex items-center pointer-events-none">
-      <div className="auth-modal-card pointer-events-auto w-[92vw] sm:w-[440px] max-h-[88vh] overflow-y-auto p-5 sm:p-6 rounded-3xl bg-zinc-900/95 dark:bg-zinc-950/95 backdrop-blur-2xl border border-sky-500/40 shadow-[0_0_60px_rgba(56,189,248,0.25)] text-white scrollbar-thin scrollbar-thumb-zinc-700">
+    <div
+      ref={containerRef}
+      data-time-of-day={timeOfDay}
+      className={`fixed inset-y-0 left-4 sm:left-10 z-30 flex items-center pointer-events-none theme-${timeOfDay} transition-colors duration-500`}
+    >
+      <div className="auth-modal-card pointer-events-auto w-[92vw] sm:w-[440px] max-h-[88vh] overflow-y-auto p-5 sm:p-6 rounded-3xl bg-tod-surface backdrop-blur-2xl border border-tod-border shadow-[0_0_60px_rgba(56,189,248,0.25)] text-tod-text scrollbar-thin scrollbar-thumb-zinc-700 transition-colors duration-500">
         {/* Header Bar */}
         <div className="flex items-center justify-between gap-2 mb-4">
           <div className="flex items-center gap-2">

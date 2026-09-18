@@ -45,45 +45,45 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
       case 'owner':
         return {
           label: 'Chủ tài khoản (Owner)',
-          className: 'bg-amber-950/80 border-amber-500/50 text-amber-300',
+          className: 'bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-300',
           icon: Crown,
         };
       case 'CoParent':
       case 'co_parent':
         return {
           label: 'Đồng phụ huynh',
-          className: 'bg-sky-950/80 border-sky-500/50 text-sky-300',
+          className: 'bg-sky-500/15 border-sky-500/40 text-sky-700 dark:text-sky-300',
           icon: Users,
         };
       case 'Guardian':
       case 'guardian':
         return {
           label: 'Người giám hộ',
-          className: 'bg-indigo-950/80 border-indigo-500/50 text-indigo-300',
+          className: 'bg-indigo-500/15 border-indigo-500/40 text-indigo-700 dark:text-indigo-300',
           icon: ShieldCheck,
         };
       case 'Teacher':
       case 'teacher':
         return {
           label: 'Giáo viên phụ trách',
-          className: 'bg-purple-950/80 border-purple-500/50 text-purple-300',
+          className: 'bg-purple-500/15 border-purple-500/40 text-purple-700 dark:text-purple-300',
           icon: ShieldCheck,
         };
       default:
         return {
           label: role || 'Giám sát viên',
-          className: 'bg-zinc-800 border-zinc-700 text-zinc-300',
+          className: 'bg-tod-surface border-tod-border text-tod-text-muted',
           icon: Users,
         };
     }
   };
 
   return (
-    <div className="laptop-tab-content-row p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex flex-col gap-3">
-      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-zinc-800 shrink-0">
+    <div className="laptop-tab-content-row p-4 rounded-2xl bg-tod-card border border-tod-border flex flex-col gap-3 text-tod-text transition-colors duration-500 shadow-sm">
+      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-tod-border shrink-0">
         <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-indigo-400 shrink-0" />
-          <h3 className="text-xs font-black text-white whitespace-nowrap">
+          <Users className="w-4 h-4 text-indigo-500 shrink-0" />
+          <h3 className="text-xs font-black text-tod-text whitespace-nowrap">
             Người Đang Giám Sát Bé ({supervisors.length})
           </h3>
         </div>
@@ -93,15 +93,15 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
             type="button"
             onClick={onRefresh}
             title="Làm mới"
-            className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white transition-colors cursor-pointer shrink-0"
+            className="p-1.5 rounded-lg bg-tod-surface border border-tod-border text-tod-text-muted hover:text-tod-text transition-colors cursor-pointer shrink-0"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoadingSupervision ? 'animate-spin text-indigo-400' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoadingSupervision ? 'animate-spin text-indigo-500' : ''}`} />
           </button>
           {onOpenAcceptInviteModal && (
             <button
               type="button"
               onClick={onOpenAcceptInviteModal}
-              className="px-2.5 py-1.5 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/50 text-emerald-300 font-bold text-[11px] flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm whitespace-nowrap shrink-0"
+              className="px-2.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm whitespace-nowrap shrink-0"
               title="Nhập mã mời hoặc quét QR để nhận giám sát"
             >
               <QrCode className="w-3.5 h-3.5" />
@@ -120,12 +120,12 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
       </div>
 
       {isLoadingSupervision && supervisors.length === 0 ? (
-        <div className="flex items-center justify-center py-6 text-zinc-400 text-xs gap-2">
-          <RefreshCw className="w-4 h-4 animate-spin text-indigo-400" />
+        <div className="flex items-center justify-center py-6 text-tod-text-muted text-xs gap-2">
+          <RefreshCw className="w-4 h-4 animate-spin text-indigo-500" />
           <span>Đang tải thông tin người giám sát...</span>
         </div>
       ) : supervisors.length === 0 ? (
-        <div className="text-center py-4 text-xs text-zinc-400 italic">
+        <div className="text-center py-4 text-xs text-tod-text-muted italic">
           Chưa có thông tin người giám sát nào cho bé {childNickname}.
         </div>
       ) : (
@@ -139,15 +139,15 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
             return (
               <div
                 key={sup.id}
-                className="p-3 rounded-xl bg-zinc-950/70 border border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:border-zinc-700 transition-colors"
+                className="p-3 rounded-xl bg-tod-surface border border-tod-border flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs hover:border-tod-primary/50 transition-colors"
               >
                 <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center font-bold text-zinc-200">
+                  <div className="w-8 h-8 rounded-full bg-tod-card border border-tod-border flex items-center justify-center font-bold text-tod-text">
                     {(sup.supervisorFullName || sup.supervisorEmail || 'U').charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-tod-text">
                         {sup.supervisorFullName || sup.supervisorEmail || `Tài khoản #${sup.supervisorUserId}`}
                       </span>
                       <span
@@ -158,7 +158,7 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
                       </span>
                     </div>
                     {sup.supervisorEmail && (
-                      <span className="text-[11px] text-zinc-400 block mt-0.5">
+                      <span className="text-[11px] text-tod-text-muted block mt-0.5">
                         {sup.supervisorEmail}
                       </span>
                     )}
@@ -172,9 +172,9 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
                         type="button"
                         onClick={() => onOpenPermissionsModal(sup)}
                         title="Tùy chỉnh quyền hạn an toàn & nội dung"
-                        className="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-indigo-500/50 text-indigo-300 hover:text-indigo-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
+                        className="px-2.5 py-1.5 rounded-lg bg-tod-card border border-tod-border hover:border-indigo-500/50 text-indigo-600 dark:text-indigo-300 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                       >
-                        <KeyRound className="w-3 h-3 text-indigo-400" />
+                        <KeyRound className="w-3 h-3 text-indigo-500" />
                         <span>Phân quyền</span>
                       </button>
 
@@ -182,9 +182,9 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
                         type="button"
                         onClick={() => onOpenTransferOwnershipModal(sup)}
                         title="Chuyển nhượng quyền Chủ sở hữu hồ sơ"
-                        className="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 text-amber-300 hover:text-amber-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
+                        className="px-2.5 py-1.5 rounded-lg bg-tod-card border border-tod-border hover:border-amber-500/50 text-amber-600 dark:text-amber-300 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                       >
-                        <ArrowRightLeft className="w-3 h-3 text-amber-400" />
+                        <ArrowRightLeft className="w-3 h-3 text-amber-500" />
                         <span>Chuyển quyền</span>
                       </button>
 
@@ -198,7 +198,7 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
                           )
                         }
                         title="Thu hồi quyền giám sát của người này"
-                        className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-rose-500/50 text-zinc-400 hover:text-rose-400 transition-colors cursor-pointer disabled:opacity-50"
+                        className="p-1.5 rounded-lg bg-tod-card border border-tod-border hover:border-rose-500/50 text-tod-text-muted hover:text-rose-500 transition-colors cursor-pointer disabled:opacity-50"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>

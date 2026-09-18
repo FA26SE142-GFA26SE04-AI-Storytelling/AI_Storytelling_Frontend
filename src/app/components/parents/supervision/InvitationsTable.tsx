@@ -54,15 +54,15 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
 
     if (status === 'Accepted') {
       return (
-        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 flex items-center gap-1">
-          <ShieldCheck className="w-3 h-3 text-emerald-400" />
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/15 border border-emerald-500/40 text-emerald-600 dark:text-emerald-300 flex items-center gap-1">
+          <ShieldCheck className="w-3 h-3 text-emerald-500" />
           <span>Đã chấp nhận</span>
         </span>
       );
     }
     if (status === 'Revoked') {
       return (
-        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-900 border border-zinc-700 text-zinc-500 flex items-center gap-1">
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-tod-surface border border-tod-border text-tod-text-muted flex items-center gap-1">
           <Trash2 className="w-3 h-3" />
           <span>Đã thu hồi</span>
         </span>
@@ -70,39 +70,39 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
     }
     if (isExpired || status === 'Expired') {
       return (
-        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-950/80 border border-rose-500/50 text-rose-300 flex items-center gap-1">
-          <AlertCircle className="w-3 h-3 text-rose-400" />
+        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-500/15 border border-rose-500/40 text-rose-600 dark:text-rose-300 flex items-center gap-1">
+          <AlertCircle className="w-3 h-3 text-rose-500" />
           <span>Hết hạn</span>
         </span>
       );
     }
 
     return (
-      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-950/80 border border-sky-500/50 text-sky-300 flex items-center gap-1 animate-pulse">
-        <Clock className="w-3 h-3 text-sky-400" />
+      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-500/15 border border-sky-500/40 text-sky-600 dark:text-sky-300 flex items-center gap-1 animate-pulse">
+        <Clock className="w-3 h-3 text-sky-500" />
         <span>Đang chờ nhận</span>
       </span>
     );
   };
 
   return (
-    <div className="laptop-tab-content-row p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex flex-col gap-3">
+    <div className="laptop-tab-content-row p-4 rounded-2xl bg-tod-card border border-tod-border flex flex-col gap-3 text-tod-text transition-colors duration-500 shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-zinc-800 shrink-0">
+      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-tod-border shrink-0">
         <div className="flex items-center gap-2">
-          <Mail className="w-4 h-4 text-sky-400 shrink-0" />
-          <h3 className="text-xs font-black text-white whitespace-nowrap">
+          <Mail className="w-4 h-4 text-sky-500 shrink-0" />
+          <h3 className="text-xs font-black text-tod-text whitespace-nowrap">
             Danh Sách Mã Mời Giám Sát Của Bé ({invitations.length})
           </h3>
         </div>
-        <span className="text-[11px] text-zinc-300 font-medium">
-          Mỗi mã gắn duy nhất với bé <span className="text-sky-300 font-bold">{childNickname}</span>
+        <span className="text-[11px] text-tod-text-muted font-medium">
+          Mỗi mã gắn duy nhất với bé <span className="text-sky-600 dark:text-sky-300 font-bold">{childNickname}</span>
         </span>
       </div>
 
       {invitations.length === 0 ? (
-        <div className="text-center py-5 text-xs text-zinc-400 italic flex flex-col items-center gap-1">
-          <Clock className="w-5 h-5 text-zinc-500" />
+        <div className="text-center py-5 text-xs text-tod-text-muted italic flex flex-col items-center gap-1">
+          <Clock className="w-5 h-5 opacity-40" />
           <span>Chưa có mã mời nào được tạo cho bé. Nhấn &quot;Mời người giám sát&quot; ở trên để khởi tạo mã mới.</span>
         </div>
       ) : (
@@ -119,25 +119,25 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                 key={inv.id}
                 className={`p-3 rounded-xl border flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs transition-colors ${
                   isPending && !isExpired
-                    ? 'bg-zinc-950/80 border-sky-500/30 hover:border-sky-500/60'
-                    : 'bg-zinc-950/50 border-zinc-800'
+                    ? 'bg-tod-surface border-sky-500/30 hover:border-sky-500/60'
+                    : 'bg-tod-surface border-tod-border'
                 }`}
               >
                 {/* Left Info */}
                 <div className="flex items-start sm:items-center gap-2.5 min-w-0">
-                  <div className="p-2 rounded-lg bg-sky-500/10 text-sky-400 shrink-0">
+                  <div className="p-2 rounded-lg bg-sky-500/10 text-sky-500 shrink-0">
                     <Mail className="w-4 h-4" />
                   </div>
                   <div className="space-y-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-bold text-white">
+                      <span className="font-bold text-tod-text">
                         {inv.targetEmail || inv.inviteeEmail || 'Mã mời trực tiếp (Chưa gán liên hệ)'}
                       </span>
                       {getStatusBadge(inv.status, inv.expiresAt)}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-300 font-mono">
-                      <span className="text-sky-300 font-bold bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-500/30">
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-tod-text-muted font-mono">
+                      <span className="text-sky-600 dark:text-sky-300 font-bold bg-sky-500/10 px-1.5 py-0.5 rounded border border-sky-500/20">
                         {inv.invitationCode}
                       </span>
                       <span>•</span>
@@ -164,9 +164,9 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                     type="button"
                     onClick={() => handleCopyInviteCode(inv.invitationCode)}
                     title="Sao chép chuỗi mã mời"
-                    className="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-sky-400 text-zinc-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
+                    className="px-2.5 py-1.5 rounded-lg bg-tod-card border border-tod-border hover:border-sky-400 text-tod-text font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                   >
-                    {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-sky-400" />}
+                    {isCopied ? <Check className="w-3 h-3 text-emerald-500" /> : <Copy className="w-3 h-3 text-sky-500" />}
                     <span>{isCopied ? 'Đã chép' : 'Chép mã'}</span>
                   </button>
 
@@ -175,12 +175,12 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                     type="button"
                     onClick={() => handleCopyDirectLink(inv)}
                     title="Sao chép đường link gửi qua Zalo / SMS / Messenger"
-                    className="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-indigo-400 text-zinc-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
+                    className="px-2.5 py-1.5 rounded-lg bg-tod-card border border-tod-border hover:border-indigo-400 text-tod-text font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                   >
                     {isLinkCopied ? (
-                      <Check className="w-3 h-3 text-emerald-400" />
+                      <Check className="w-3 h-3 text-emerald-500" />
                     ) : (
-                      <ExternalLink className="w-3 h-3 text-indigo-400" />
+                      <ExternalLink className="w-3 h-3 text-indigo-500" />
                     )}
                     <span>{isLinkCopied ? 'Đã chép link' : 'Chép link'}</span>
                   </button>
@@ -190,7 +190,7 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                     type="button"
                     onClick={() => setSelectedQRInvite(inv)}
                     title="Xem mã QR để quét hoặc in ra giấy"
-                    className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-amber-300 transition-colors cursor-pointer shrink-0"
+                    className="p-1.5 rounded-lg bg-tod-card border border-tod-border hover:border-amber-400 text-amber-500 transition-colors cursor-pointer shrink-0"
                   >
                     <QrCode className="w-3.5 h-3.5" />
                   </button>
@@ -201,7 +201,7 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                     disabled={isCancelling}
                     onClick={() => handleReissueInvitation(inv.id, inv.targetEmail || inv.inviteeEmail || undefined)}
                     title="Cấp lại mã mới (Hủy mã cũ và sinh mã mới ngay nếu phụ huynh làm mất)"
-                    className="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-500/70 text-amber-300 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
+                    className="px-2.5 py-1.5 rounded-lg bg-tod-card border border-tod-border hover:border-amber-500/70 text-amber-600 dark:text-amber-300 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span>Cấp lại mã</span>
@@ -214,7 +214,7 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                       disabled={isCancelling}
                       onClick={() => handleCancelInvitation(inv.id)}
                       title="Thu hồi lời mời này"
-                      className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-rose-500/50 text-zinc-400 hover:text-rose-400 transition-colors cursor-pointer disabled:opacity-50"
+                      className="p-1.5 rounded-lg bg-tod-card border border-tod-border hover:border-rose-500/50 text-tod-text-muted hover:text-rose-500 transition-colors cursor-pointer disabled:opacity-50"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>

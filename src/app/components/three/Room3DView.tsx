@@ -161,7 +161,11 @@ export default function Room3DView() {
   };
 
   return (
-    <div ref={roomViewRef} className="relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans">
+    <div
+      ref={roomViewRef}
+      data-time-of-day={timeOfDay}
+      className={`relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans theme-${timeOfDay} transition-colors duration-700`}
+    >
       {/* Invisible Top Edge Hover Detector */}
       {currentStage !== 0 && (
         <div

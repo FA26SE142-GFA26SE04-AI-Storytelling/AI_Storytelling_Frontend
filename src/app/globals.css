@@ -271,9 +271,72 @@
 }
 
 /* ==========================================================================
+   BẢNG MÀU UI 3 THỜI ĐIỂM TRONG NGÀY (SÁNG - CHIỀU - TỐI)
+   Tách biệt rõ rệt: Sáng (Light Theme), Chiều (Sunset Warm), Tối (Pure Dark)
+   ========================================================================== */
+
+/* 1. BUỔI SÁNG (Morning: Chế độ SÁNG TƯƠI SÁNG - Trắng sữa, trời xanh, chữ đen rõ nét) */
+[data-time-of-day="morning"],
+[data-theme="morning"],
+.theme-morning {
+  --tod-bg: #f0f7ff;
+  --tod-surface: rgba(255, 255, 255, 0.95);
+  --tod-card: rgba(241, 246, 254, 0.97);
+  --tod-border: rgba(14, 165, 233, 0.32);
+  --tod-text: #0f172a;
+  --tod-text-muted: #475569;
+  --tod-primary: #0284c7;
+  --tod-accent: #d97706;
+  --tod-glow: rgba(14, 165, 233, 0.25);
+  color-scheme: light;
+}
+
+/* 2. BUỔI CHIỀU / HOÀNG HÔN (Afternoon: Chế độ HOÀNG HÔN ẤM - Vàng cam hổ phách, ráng chiều ấm cúng) */
+[data-time-of-day="afternoon"],
+[data-theme="afternoon"],
+.theme-afternoon {
+  --tod-bg: #1f1108;
+  --tod-surface: rgba(45, 24, 12, 0.94);
+  --tod-card: rgba(62, 33, 16, 0.88);
+  --tod-border: rgba(245, 158, 11, 0.38);
+  --tod-text: #fffbeb;
+  --tod-text-muted: #fde68a;
+  --tod-primary: #f97316;
+  --tod-accent: #fb7185;
+  --tod-glow: rgba(249, 115, 22, 0.35);
+  color-scheme: dark;
+}
+
+/* 3. Mặc định & BUỔI TỐI / BAN ĐÊM (Night: Chế độ BAN ĐÊM TỐI HUYỀN BÍ - Đen vũ trụ, tím neon, chữ ánh bạc) */
+:root,
+[data-time-of-day="night"],
+[data-theme="night"],
+.theme-night {
+  --tod-bg: #050811;
+  --tod-surface: rgba(10, 14, 26, 0.96);
+  --tod-card: rgba(16, 21, 38, 0.92);
+  --tod-border: rgba(99, 102, 241, 0.35);
+  --tod-text: #f8fafc;
+  --tod-text-muted: #94a3b8;
+  --tod-primary: #6366f1;
+  --tod-accent: #c084fc;
+  --tod-glow: rgba(99, 102, 241, 0.45);
+  color-scheme: dark;
+}
+
+/* ==========================================================================
    ÁNH XẠ MÀU TAILWIND CSS (Tailwind CSS Theme Utility Tokens)
    ========================================================================== */
 @theme inline {
+  --color-tod-bg: var(--tod-bg);
+  --color-tod-surface: var(--tod-surface);
+  --color-tod-card: var(--tod-card);
+  --color-tod-border: var(--tod-border);
+  --color-tod-text: var(--tod-text);
+  --color-tod-muted: var(--tod-text-muted);
+  --color-tod-primary: var(--tod-primary);
+  --color-tod-accent: var(--tod-accent);
+
   --color-background: var(--background);
   --color-on-background: var(--on-background);
   --color-surface: var(--surface);
@@ -704,4 +767,102 @@ h6 {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
+}
+
+/* 7. Time-Of-Day (Sáng - Chiều - Tối) UI Helper Utilities */
+.tod-bg {
+  background-color: var(--tod-bg);
+}
+
+.tod-surface {
+  background-color: var(--tod-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.tod-card {
+  background-color: var(--tod-card);
+  border: 1px solid var(--tod-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.tod-border {
+  border-color: var(--tod-border);
+}
+
+.tod-text {
+  color: var(--tod-text);
+}
+
+.tod-text-muted {
+  color: var(--tod-text-muted);
+}
+
+.tod-glow {
+  box-shadow: 0 0 25px var(--tod-glow);
+}
+
+/* ==========================================================================
+   THEME ADAPTORS CHO CÁC KHUNG OVERLAY (SÁNG / CHIỀU / TỐI)
+   ========================================================================== */
+
+/* Khi ở BUỔI SÁNG (Morning Light UI): Chuyển chữ và các ô nhập liệu sang Chế độ Sáng rõ nét */
+.theme-morning,
+[data-time-of-day="morning"] {
+  color: var(--tod-text);
+}
+
+.theme-morning .laptop-unified-card,
+.theme-morning .desk-left-drawer,
+.theme-morning .desk-right-drawer,
+.theme-morning .bookshelf-left-drawer,
+.theme-morning .bookshelf-right-drawer,
+.theme-morning .auth-modal-card {
+  box-shadow: 0 20px 50px rgba(14, 165, 233, 0.15), 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.theme-morning .dashboard-input {
+  background-color: #ffffff;
+  border-color: rgba(14, 165, 233, 0.35);
+  color: #0f172a;
+}
+
+.theme-morning .dashboard-input:focus {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+.theme-morning .dashboard-input::placeholder {
+  color: #94a3b8;
+}
+
+/* Khi ở BUỔI CHIỀU (Afternoon Sunset UI): Tông cam ấm cúng và ánh vàng hoàng hôn */
+.theme-afternoon,
+[data-time-of-day="afternoon"] {
+  color: var(--tod-text);
+}
+
+.theme-afternoon .laptop-unified-card,
+.theme-afternoon .desk-left-drawer,
+.theme-afternoon .desk-right-drawer,
+.theme-afternoon .bookshelf-left-drawer,
+.theme-afternoon .bookshelf-right-drawer,
+.theme-afternoon .auth-modal-card {
+  box-shadow: 0 25px 60px rgba(31, 17, 8, 0.85), 0 0 30px rgba(245, 158, 11, 0.2);
+}
+
+/* Khi ở BUỔI TỐI (Night Pure Dark UI): Tông đen huyền bí và neon tím vũ trụ */
+.theme-night,
+[data-time-of-day="night"] {
+  color: var(--tod-text);
+}
+
+.theme-night .laptop-unified-card,
+.theme-night .desk-left-drawer,
+.theme-night .desk-right-drawer,
+.theme-night .bookshelf-left-drawer,
+.theme-night .bookshelf-right-drawer,
+.theme-night .auth-modal-card {
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(99, 102, 241, 0.25);
 }

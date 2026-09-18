@@ -49,33 +49,33 @@ export const SingleInvitationForm: React.FC<SingleInvitationFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className="laptop-tab-content-row p-4 rounded-2xl bg-indigo-950/20 border border-indigo-500/30 flex flex-col gap-4 text-xs animate-in fade-in duration-200"
+      className="laptop-tab-content-row p-4 rounded-2xl bg-tod-card border border-indigo-500/30 flex flex-col gap-4 text-xs text-tod-text animate-in fade-in duration-200 shadow-sm"
     >
       {/* Title & Target Switcher */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-indigo-500/20">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-tod-border">
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-indigo-500/20 border border-indigo-500/40 flex items-center justify-center text-indigo-300">
+          <div className="w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-500">
             <UserPlus className="w-4 h-4" />
           </div>
           <div>
-            <span className="font-bold text-white block">
+            <span className="font-bold text-tod-text block">
               Tạo Lời Mời Giám Sát Đơn Lẻ
             </span>
-            <span className="text-[11px] text-zinc-400">
-              Sinh mã mời ngẫu nhiên bảo mật 1-1 cho bé <span className="text-indigo-300 font-semibold">{childNickname}</span>
+            <span className="text-[11px] text-tod-text-muted">
+              Sinh mã mời ngẫu nhiên bảo mật 1-1 cho bé <span className="text-indigo-600 dark:text-indigo-300 font-semibold">{childNickname}</span>
             </span>
           </div>
         </div>
 
         {/* Target role selector */}
-        <div className="flex items-center bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 self-start sm:self-auto">
+        <div className="flex items-center bg-tod-surface p-1 rounded-xl border border-tod-border self-start sm:self-auto">
           <button
             type="button"
             onClick={() => setTargetType('Guardian')}
             className={`px-2.5 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1.5 transition-all cursor-pointer ${
               targetType === 'Guardian'
                 ? 'bg-indigo-600 text-white shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200'
+                : 'text-tod-text-muted hover:text-tod-text'
             }`}
           >
             <Users className="w-3.5 h-3.5" />
@@ -87,7 +87,7 @@ export const SingleInvitationForm: React.FC<SingleInvitationFormProps> = ({
             className={`px-2.5 py-1 rounded-lg font-bold text-[11px] flex items-center gap-1.5 transition-all cursor-pointer ${
               targetType === 'Teacher'
                 ? 'bg-purple-600 text-white shadow-sm'
-                : 'text-zinc-400 hover:text-zinc-200'
+                : 'text-tod-text-muted hover:text-tod-text'
             }`}
           >
             <GraduationCap className="w-3.5 h-3.5" />
@@ -99,7 +99,7 @@ export const SingleInvitationForm: React.FC<SingleInvitationFormProps> = ({
       {/* Form Fields */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="sm:col-span-2">
-          <label className="text-[11px] font-bold text-zinc-300 block mb-1">
+          <label className="text-[11px] font-bold text-tod-text block mb-1">
             Thông tin người nhận (Tùy chọn)
           </label>
           <div className="relative">
@@ -114,7 +114,7 @@ export const SingleInvitationForm: React.FC<SingleInvitationFormProps> = ({
                   : 'VD: grandparent@gmail.com, SĐT 0901xxx hoặc Tên người thân'
               }
             />
-            <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-zinc-500">
+            <div className="absolute left-2.5 top-1/2 -translate-y-1/2 text-tod-text-muted">
               {inviteContact.includes('@') ? (
                 <Mail className="w-3.5 h-3.5" />
               ) : (
@@ -122,14 +122,14 @@ export const SingleInvitationForm: React.FC<SingleInvitationFormProps> = ({
               )}
             </div>
           </div>
-          <span className="text-[10px] text-zinc-500 mt-1 block">
+          <span className="text-[10px] text-tod-text-muted mt-1 block">
             Không bắt buộc là email. Chỉ dùng để ghi chú tham khảo hiển thị; hệ thống sẽ sinh mã độc lập để bạn tự gửi qua Zalo, SMS hoặc in QR.
           </span>
         </div>
 
         <div>
-          <label className="text-[11px] font-bold text-zinc-300 block mb-1 flex items-center gap-1">
-            <Clock className="w-3 h-3 text-amber-400" />
+          <label className="text-[11px] font-bold text-tod-text block mb-1 flex items-center gap-1">
+            <Clock className="w-3 h-3 text-amber-500" />
             <span>Thời hạn mã</span>
           </label>
           <select
@@ -142,20 +142,20 @@ export const SingleInvitationForm: React.FC<SingleInvitationFormProps> = ({
             <option value={14}>14 ngày</option>
             <option value={30}>30 ngày</option>
           </select>
-          <span className="text-[10px] text-zinc-500 mt-1 block">
+          <span className="text-[10px] text-tod-text-muted mt-1 block">
             Mã sẽ tự hủy sau thời gian này nếu chưa claim.
           </span>
         </div>
       </div>
 
       {/* Multi-channel hints */}
-      <div className="p-2.5 rounded-xl bg-indigo-950/40 border border-indigo-500/20 text-[11px] text-zinc-300 flex items-start gap-2">
-        <Share2 className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+      <div className="p-2.5 rounded-xl bg-tod-surface border border-tod-border text-[11px] text-tod-text-muted flex items-start gap-2">
+        <Share2 className="w-4 h-4 text-sky-500 shrink-0 mt-0.5" />
         <div className="space-y-0.5">
-          <span className="font-semibold text-sky-300">Tự do lựa chọn kênh gửi:</span> Sau khi tạo, bạn có thể bấm{' '}
-          <strong className="text-white">Chép mã</strong>,{' '}
-          <strong className="text-white">Chép liên kết trực tiếp</strong> hoặc mở{' '}
-          <strong className="text-white">Mã QR</strong> để gửi qua Zalo, Messenger, SMS hoặc in ra giấy.
+          <span className="font-semibold text-sky-600 dark:text-sky-300">Tự do lựa chọn kênh gửi:</span> Sau khi tạo, bạn có thể bấm{' '}
+          <strong className="text-tod-text">Chép mã</strong>,{' '}
+          <strong className="text-tod-text">Chép liên kết trực tiếp</strong> hoặc mở{' '}
+          <strong className="text-tod-text">Mã QR</strong> để gửi qua Zalo, Messenger, SMS hoặc in ra giấy.
         </div>
       </div>
 
@@ -164,7 +164,7 @@ export const SingleInvitationForm: React.FC<SingleInvitationFormProps> = ({
         <button
           type="button"
           onClick={() => setIsInviting(false)}
-          className="px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white font-bold transition-colors cursor-pointer"
+          className="px-3 py-1.5 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text font-bold transition-colors cursor-pointer"
         >
           Hủy bỏ
         </button>

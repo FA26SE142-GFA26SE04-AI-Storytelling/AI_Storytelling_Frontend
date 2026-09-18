@@ -54,25 +54,25 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-3xl bg-zinc-950 border border-sky-500/40 shadow-2xl flex flex-col overflow-hidden text-white animate-in zoom-in-95 duration-150 pointer-events-auto"
+        className="w-full max-w-md rounded-3xl bg-tod-card border border-tod-border shadow-2xl flex flex-col overflow-hidden text-tod-text animate-in zoom-in-95 duration-150 pointer-events-auto transition-colors duration-500"
       >
         {/* Header */}
-        <div className="p-5 border-b border-zinc-800 bg-gradient-to-r from-sky-950/60 via-zinc-900 to-zinc-950 flex items-center justify-between shrink-0">
+        <div className="p-5 border-b border-tod-border bg-tod-surface flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-400">
+            <div className="w-9 h-9 rounded-xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center text-sky-500">
               <QrCode className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-sm text-white flex items-center gap-1.5">
+              <h3 className="font-extrabold text-sm text-tod-text flex items-center gap-1.5">
                 Mã QR Lời Mời Giám Sát
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
               </h3>
-              <p className="text-[11px] text-zinc-400">
-                Dành cho bé <span className="text-sky-300 font-semibold">{childNickname}</span>
+              <p className="text-[11px] text-tod-text-muted">
+                Dành cho bé <span className="text-sky-600 dark:text-sky-300 font-semibold">{childNickname}</span>
               </p>
             </div>
           </div>
@@ -80,7 +80,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="w-8 h-8 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
+            className="w-8 h-8 rounded-xl bg-tod-surface hover:bg-tod-card text-tod-text-muted hover:text-tod-text border border-tod-border flex items-center justify-center transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -89,8 +89,8 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
         {/* Content */}
         <div className="p-6 flex flex-col items-center gap-4 text-center">
           {/* QR Card */}
-          <div className="p-4 rounded-2xl bg-zinc-900/90 border border-sky-500/30 shadow-inner flex flex-col items-center gap-3">
-            <div className="w-52 h-52 rounded-xl overflow-hidden bg-black p-2 border border-zinc-800 flex items-center justify-center">
+          <div className="p-4 rounded-2xl bg-tod-surface border border-tod-border shadow-inner flex flex-col items-center gap-3">
+            <div className="w-52 h-52 rounded-xl overflow-hidden bg-white p-2 border border-tod-border flex items-center justify-center">
               {/* Fallback to simple QR image */}
               <img
                 src={qrImageUrl}
@@ -100,29 +100,29 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
             </div>
 
             <div className="space-y-1">
-              <span className="text-[10px] uppercase tracking-wider text-zinc-400 font-bold">
+              <span className="text-[10px] uppercase tracking-wider text-tod-text-muted font-bold">
                 Mã Mời Dùng 1 Lần
               </span>
-              <div className="px-3 py-1 rounded-lg bg-zinc-950 border border-zinc-800 font-mono text-xs font-bold text-sky-300 tracking-wider">
+              <div className="px-3 py-1 rounded-lg bg-tod-card border border-tod-border font-mono text-xs font-bold text-sky-600 dark:text-sky-300 tracking-wider">
                 {invitationCode}
               </div>
             </div>
           </div>
 
           {/* Details */}
-          <div className="w-full space-y-1 text-xs text-zinc-300">
+          <div className="w-full space-y-1 text-xs text-tod-text">
             {targetEmail && (
-              <p className="text-zinc-400 text-[11px]">
-                Người nhận: <span className="text-zinc-200 font-medium">{targetEmail}</span>
+              <p className="text-tod-text-muted text-[11px]">
+                Người nhận: <span className="text-tod-text font-medium">{targetEmail}</span>
               </p>
             )}
-            <p className="text-[11px] text-zinc-400">
+            <p className="text-[11px] text-tod-text-muted">
               Thời hạn hiệu lực:{' '}
-              <span className="text-amber-300 font-medium">
+              <span className="text-amber-600 dark:text-amber-300 font-medium">
                 {expiresAt ? new Date(expiresAt).toLocaleDateString('vi-VN') : 'Vô thời hạn'}
               </span>
             </p>
-            <p className="text-[10px] text-zinc-500 italic pt-1">
+            <p className="text-[10px] text-tod-text-muted italic pt-1">
               Phụ huynh hoặc Giáo viên chỉ cần quét mã QR hoặc truy cập đường link để nhận quyền giám sát ngay lập tức.
             </p>
           </div>
@@ -132,18 +132,18 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
             <button
               type="button"
               onClick={handleCopyLink}
-              className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 hover:border-sky-500 text-zinc-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+              className="px-3 py-2 rounded-xl bg-tod-surface border border-tod-border hover:border-sky-500 text-tod-text text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
             >
-              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5 text-sky-400" />}
+              {copiedLink ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5 text-sky-500" />}
               <span>{copiedLink ? 'Đã chép link' : 'Chép link mời'}</span>
             </button>
 
             <button
               type="button"
               onClick={handleCopyCode}
-              className="px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-700 hover:border-amber-500 text-zinc-200 text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
+              className="px-3 py-2 rounded-xl bg-tod-surface border border-tod-border hover:border-amber-500 text-tod-text text-xs font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-sm"
             >
-              {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <ShieldCheck className="w-3.5 h-3.5 text-amber-400" />}
+              {copiedCode ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <ShieldCheck className="w-3.5 h-3.5 text-amber-500" />}
               <span>{copiedCode ? 'Đã chép mã' : 'Chép mã số'}</span>
             </button>
           </div>

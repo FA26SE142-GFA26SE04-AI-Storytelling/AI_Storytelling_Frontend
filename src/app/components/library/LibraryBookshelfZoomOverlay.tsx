@@ -147,9 +147,13 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
   });
 
   return (
-    <div ref={containerRef} className="absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-6 overflow-hidden z-20 font-sans">
+    <div
+      ref={containerRef}
+      data-time-of-day={timeOfDay}
+      className={`absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-6 overflow-hidden z-20 font-sans theme-${timeOfDay} transition-colors duration-500`}
+    >
       {/* 1. TOP HEADER FLOATING GLASSBAR */}
-      <div className="bookshelf-top-bar pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 rounded-3xl bg-zinc-900/85 dark:bg-zinc-950/90 backdrop-blur-xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-white">
+      <div className="bookshelf-top-bar pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-tod-text transition-colors duration-500">
         
         {/* Brand & Stage Selector */}
         <div className="flex items-center justify-between sm:justify-start gap-3">
@@ -251,7 +255,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
       <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-end lg:items-center justify-between gap-4 my-2 overflow-hidden pointer-events-none">
         
         {/* LEFT DRAWER: 3-TIER BOOKSHELF STORY SELECTOR */}
-        <div className="bookshelf-left-drawer pointer-events-auto w-full lg:w-[420px] max-h-[50vh] lg:max-h-[75vh] flex flex-col rounded-3xl bg-zinc-900/90 dark:bg-zinc-950/95 backdrop-blur-xl border border-amber-500/30 shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-white overflow-hidden">
+        <div className="bookshelf-left-drawer pointer-events-auto w-full lg:w-[420px] max-h-[50vh] lg:max-h-[75vh] flex flex-col rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-tod-text overflow-hidden transition-colors duration-500">
           
           {/* Shelf Tiers Tabs */}
           <div className="p-3 bg-zinc-950/90 border-b border-zinc-800/80 flex items-center gap-1 overflow-x-auto scrollbar-none">
@@ -396,7 +400,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
 
         {/* RIGHT DRAWER: ACTIVE SELECTED BOOK PLAYER & DETAILS PREVIEW */}
         {activeStory && (
-          <div className="bookshelf-right-drawer pointer-events-auto w-full lg:w-[380px] rounded-3xl bg-zinc-900/90 dark:bg-zinc-950/95 backdrop-blur-xl border border-sky-500/30 shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-white p-4 sm:p-5 flex flex-col gap-4">
+          <div className="bookshelf-right-drawer pointer-events-auto w-full lg:w-[380px] rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-tod-text p-4 sm:p-5 flex flex-col gap-4 transition-colors duration-500">
             <div className="bookshelf-detail-content flex flex-col gap-4">
             
             {/* Header: Book Cover & Badges */}
@@ -498,7 +502,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
       </div>
 
       {/* 3. BOTTOM FOOTER BAR: STREAK & BADGES QUICK PREVIEW */}
-      <div className="bookshelf-bottom-bar pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-2xl bg-zinc-900/80 dark:bg-zinc-950/85 backdrop-blur-md border border-white/10 text-white">
+      <div className="bookshelf-bottom-bar pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3 p-3 rounded-2xl bg-tod-surface backdrop-blur-md border border-tod-border text-tod-text transition-colors duration-500">
         
         {/* Day Streak */}
         <div className="flex items-center gap-2 sm:gap-3">

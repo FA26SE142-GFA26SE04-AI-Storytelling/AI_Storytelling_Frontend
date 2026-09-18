@@ -81,23 +81,23 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
           : '-translate-y-full opacity-0 pointer-events-none'
       }`}
     >
-      <div className="w-full bg-zinc-900/90 dark:bg-zinc-950/90 backdrop-blur-2xl border-b border-white/10 dark:border-zinc-800/80 shadow-lg px-4 sm:px-8 py-3 flex items-center justify-between gap-4 text-white select-none">
+      <div className="w-full bg-tod-surface/95 backdrop-blur-2xl border-b border-tod-border shadow-md px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4 text-tod-text select-none transition-colors duration-500 overflow-x-auto scrollbar-none">
         
         {/* 1. Brand Logo & Title */}
-        <div className="header-brand flex items-center gap-3 shrink-0">
+        <div className="header-brand flex items-center gap-2 shrink-0">
           <Link
             href="/"
-            className="flex items-center gap-2 group p-1 rounded-xl hover:bg-white/10 transition-all"
+            className="flex items-center gap-2 group p-1 rounded-xl hover:bg-tod-card/50 transition-all"
             title="Trang Chủ MagicTales 3D Studio"
           >
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform">
-              <BookOpen className="w-5 h-5 fill-white/20" />
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform">
+              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 fill-white/20" />
             </div>
-            <div className="hidden lg:flex flex-col">
-              <span className="font-black text-sm tracking-tight bg-gradient-to-r from-amber-300 via-rose-400 to-indigo-300 bg-clip-text text-transparent">
+            <div className="hidden xl:flex flex-col">
+              <span className="font-black text-xs sm:text-sm tracking-tight bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 bg-clip-text text-transparent">
                 MagicTales 3D
               </span>
-              <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest -mt-0.5">
+              <span className="text-[8px] sm:text-[9px] font-bold text-tod-text-muted uppercase tracking-widest -mt-0.5">
                 Studio Phòng 3D
               </span>
             </div>
@@ -105,7 +105,7 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
         </div>
 
         {/* 2. Center 3D Station Navigation Tabs */}
-        <nav className="hidden md:flex items-center gap-1 p-1 bg-zinc-950/80 rounded-2xl border border-zinc-800/80 overflow-x-auto scrollbar-none [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden shrink-0">
+        <nav className="hidden lg:flex items-center gap-1 p-1 bg-tod-card border border-tod-border rounded-2xl shrink transition-colors duration-500">
           {STAGES.map((stg, idx) => {
             const Icon = stationIcons[idx] || Layers;
             const isActive = currentStage === idx;
@@ -124,34 +124,33 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
                 key={stg.id}
                 onClick={() => onStageChange(idx)}
                 title={stg.name.split(' (')[0]}
-                className={`header-stage-btn flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap ${
+                className={`header-stage-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap ${
                   isActive
                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-zinc-950 shadow-md shadow-amber-500/20 scale-[1.02]'
-                    : 'text-zinc-400 hover:text-zinc-200 hover:bg-white/5'
+                    : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-zinc-950' : 'text-amber-400'}`} />
+                <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-zinc-950' : 'text-amber-500'}`} />
                 <span>{label}</span>
               </button>
             );
           })}
         </nav>
 
-
         {/* 3. Right Atmosphere & User Account Action Bar */}
-        <div className="header-action-group flex items-center gap-2 shrink-0">
+        <div className="header-action-group flex items-center gap-1.5 sm:gap-2 shrink-0">
           {/* Live Connection Status Dot */}
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-zinc-950/90 border border-zinc-800/90 text-xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-tod-card border border-tod-border text-xs transition-colors duration-500"
             title={backendStatusMessage}
           >
-            <span className={`w-2.5 h-2.5 rounded-full ${backendOnline ? 'bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400' : backendOnline === false ? 'bg-rose-500' : 'bg-amber-400'}`} />
-            <span className="font-extrabold text-[11px] text-zinc-200">
+            <span className={`w-2 h-2 rounded-full ${backendOnline ? 'bg-emerald-500 animate-pulse shadow-sm shadow-emerald-400' : backendOnline === false ? 'bg-rose-500' : 'bg-amber-400'}`} />
+            <span className="font-extrabold text-[11px] text-tod-text">
               {backendOnline ? 'Online' : backendOnline === false ? 'Offline' : '...'}
             </span>
             <button
               onClick={pingBackend}
-              className="p-0.5 text-zinc-400 hover:text-white transition-colors cursor-pointer ml-0.5"
+              className="p-0.5 text-tod-text-muted hover:text-tod-text transition-colors cursor-pointer ml-0.5"
               title="Làm mới kiểm tra kết nối Backend"
             >
               <RefreshCw className="w-3 h-3" />
@@ -159,13 +158,13 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
           </div>
 
           {/* Time of Day Switcher Pills */}
-          <div className="hidden sm:flex items-center p-1 bg-zinc-950/80 rounded-xl border border-zinc-800/80 text-[11px] font-extrabold">
+          <div className="flex items-center p-1 bg-tod-card border border-tod-border rounded-xl text-[11px] font-extrabold transition-colors duration-500">
             <button
               onClick={() => onTimeOfDayChange('morning')}
-              className={`p-1.5 sm:px-2.5 sm:py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
+              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
                 timeOfDay === 'morning'
-                  ? 'bg-sky-500 text-zinc-950 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-sky-500 text-white font-black shadow-sm'
+                  : 'text-tod-text-muted hover:text-tod-text'
               }`}
               title="Buổi Sáng"
             >
@@ -175,10 +174,10 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
 
             <button
               onClick={() => onTimeOfDayChange('afternoon')}
-              className={`p-1.5 sm:px-2.5 sm:py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
+              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
                 timeOfDay === 'afternoon'
-                  ? 'bg-amber-500 text-zinc-950 shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-amber-500 text-zinc-950 font-black shadow-sm'
+                  : 'text-tod-text-muted hover:text-tod-text'
               }`}
               title="Buổi Chiều"
             >
@@ -188,10 +187,10 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
 
             <button
               onClick={() => onTimeOfDayChange('night')}
-              className={`p-1.5 sm:px-2.5 sm:py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
+              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
                 timeOfDay === 'night'
-                  ? 'bg-indigo-500 text-white shadow-sm'
-                  : 'text-zinc-400 hover:text-zinc-200'
+                  ? 'bg-indigo-600 text-white font-black shadow-sm'
+                  : 'text-tod-text-muted hover:text-tod-text'
               }`}
               title="Buổi Tối"
             >
@@ -202,21 +201,21 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
 
           {/* Child Mode Active Pill or Child Login Button */}
           {isChildModeActive && currentSession ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-950/80 via-orange-950/80 to-rose-950/80 border border-amber-500/50 shadow-md">
-              <span className="text-base filter drop-shadow">{currentSession.avatarEmoji}</span>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 shadow-sm">
+              <span className="text-sm filter drop-shadow">{currentSession.avatarEmoji}</span>
               <div className="flex flex-col">
-                <span className="text-[11px] font-black text-amber-300 leading-tight">
+                <span className="text-[11px] font-black text-amber-500 leading-tight">
                   Bé {currentSession.nickname}
                 </span>
-                <span className="text-[9px] text-zinc-400">Đang trong phiên đọc</span>
+                <span className="text-[8px] text-tod-text-muted">Phiên đọc</span>
               </div>
               <button
                 type="button"
                 onClick={requestExitWithGate}
-                className="ml-1 p-1 rounded-lg bg-white/10 hover:bg-rose-500/30 text-zinc-300 hover:text-rose-300 transition-colors cursor-pointer"
+                className="ml-1 p-1 rounded-lg bg-black/10 dark:bg-white/10 hover:bg-rose-500/30 text-tod-text-muted hover:text-rose-500 transition-colors cursor-pointer"
                 title="Thoát phiên đọc của bé (Cần giải câu đố phụ huynh)"
               >
-                <LogOut className="w-3.5 h-3.5" />
+                <LogOut className="w-3 h-3" />
               </button>
             </div>
           ) : (
@@ -224,11 +223,11 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
               <button
                 type="button"
                 onClick={onOpenChildLogin}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 via-orange-500/20 to-rose-500/20 hover:from-amber-500/30 hover:to-orange-500/30 text-amber-300 border border-amber-500/40 text-xs font-black transition-all hover:scale-105 cursor-pointer"
+                className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-zinc-950 font-black text-xs shadow-sm transition-all hover:scale-105 active:scale-95 cursor-pointer whitespace-nowrap"
                 title="Dành cho bé: Chọn hình đại diện và nhập mã PIN để đọc truyện"
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                <span>Bé Đăng Nhập</span>
+                <Sparkles className="w-3.5 h-3.5 text-zinc-950 fill-zinc-950" />
+                <span className="hidden xs:inline">Bé Đăng Nhập</span>
               </button>
             )
           )}
@@ -237,31 +236,31 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
           {isLoggedIn && user ? (
             <button
               onClick={() => onStageChange(5)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 currentStage === 5
                   ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 text-white shadow-lg shadow-emerald-500/30 scale-[1.03] ring-2 ring-emerald-400/50'
-                  : 'bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 border border-emerald-500/50 shadow-md'
+                  : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
               }`}
               title="Bấm để Zoom vào Cặp Sách 3D xem tài khoản"
             >
-              <div className="w-5 h-5 rounded-lg bg-emerald-400/30 flex items-center justify-center font-black text-[10px] text-emerald-200">
+              <div className="w-5 h-5 rounded-lg bg-white/25 flex items-center justify-center font-black text-[10px] text-white">
                 {(user.fullName || user.username).charAt(0).toUpperCase()}
               </div>
-              <span className="font-extrabold text-xs truncate max-w-[150px]">
+              <span className="font-extrabold text-xs truncate max-w-[100px] sm:max-w-[130px]">
                 {user.fullName || user.username}
               </span>
             </button>
           ) : (
             <button
               onClick={() => onStageChange(5)}
-              className={`flex items-center px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap ${
+              className={`flex items-center px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 currentStage === 5
                   ? 'bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500 text-white shadow-lg shadow-sky-500/30 scale-[1.03] ring-2 ring-sky-400/50'
-                  : 'bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white shadow-md hover:scale-[1.02]'
+                  : 'bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white shadow-sm hover:scale-[1.02]'
               }`}
               title="Bấm để Zoom vào Cặp Sách (Đăng Nhập / Đăng Ký)"
             >
-              <span>Đăng Nhập / Đăng Ký</span>
+              <span>Đăng Nhập</span>
             </button>
           )}
         </div>

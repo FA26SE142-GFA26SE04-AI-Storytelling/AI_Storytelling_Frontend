@@ -92,12 +92,12 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
   };
 
   return (
-    <div className="laptop-tab-content-row p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex flex-col gap-3">
+    <div className="laptop-tab-content-row p-4 rounded-2xl bg-tod-card border border-tod-border flex flex-col gap-3 text-tod-text transition-colors duration-500 shadow-sm">
       {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+      <div className="flex items-center justify-between pb-2 border-b border-tod-border">
         <div className="flex items-center gap-2">
-          <Brain className="w-4 h-4 text-sky-400" />
-          <h3 className="text-xs font-bold text-zinc-200">
+          <Brain className="w-4 h-4 text-sky-500" />
+          <h3 className="text-xs font-bold text-tod-text">
             Hồ Sơ Học Tập (Learning Profile)
           </h3>
         </div>
@@ -107,9 +107,9 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
             <button
               type="button"
               onClick={() => setIsEditingLearningProfile(true)}
-              className="px-2.5 py-1 rounded-lg bg-sky-500/20 hover:bg-sky-500/30 text-sky-300 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+              className="px-2.5 py-1 rounded-lg bg-tod-surface hover:bg-tod-card text-tod-text border border-tod-border font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
             >
-              <Edit3 className="w-3 h-3" />
+              <Edit3 className="w-3 h-3 text-tod-text-muted" />
               <span>Cập nhật hồ sơ</span>
             </button>
           ) : (
@@ -130,7 +130,7 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
               <button
                 type="button"
                 onClick={() => setIsEditingLearningProfile(false)}
-                className="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1 rounded-lg bg-tod-surface hover:bg-tod-card text-tod-text-muted hover:text-tod-text border border-tod-border transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -141,16 +141,16 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
             type="button"
             onClick={onRefresh}
             title="Làm mới hồ sơ học tập"
-            className="p-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            className="p-1 rounded-lg bg-tod-surface hover:bg-tod-card text-tod-text-muted hover:text-tod-text border border-tod-border transition-colors cursor-pointer"
           >
-            <RefreshCw className={`w-3 h-3 ${isLoadingDetail ? 'animate-spin text-sky-400' : ''}`} />
+            <RefreshCw className={`w-3 h-3 ${isLoadingDetail ? 'animate-spin text-sky-500' : ''}`} />
           </button>
         </div>
       </div>
 
       {isLoadingDetail ? (
-        <div className="py-6 flex items-center justify-center gap-2 text-zinc-500 text-xs">
-          <RefreshCw className="w-4 h-4 animate-spin text-sky-400" />
+        <div className="py-6 flex items-center justify-center gap-2 text-tod-text-muted text-xs">
+          <RefreshCw className="w-4 h-4 animate-spin text-sky-500" />
           <span>Đang nạp hồ sơ học tập...</span>
         </div>
       ) : isEditingLearningProfile ? (
@@ -159,11 +159,11 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
           {/* Reading Level Selector */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <label className="text-xs font-bold text-zinc-300 flex items-center gap-1.5">
-                <Award className="w-3.5 h-3.5 text-amber-400" />
+              <label className="text-xs font-bold text-tod-text flex items-center gap-1.5">
+                <Award className="w-3.5 h-3.5 text-amber-500" />
                 Cấp độ đọc hiểu (Reading Level: 1 - 5)
               </label>
-              <span className="text-xs font-black text-amber-400 bg-amber-950/60 border border-amber-500/30 px-2 py-0.5 rounded-lg">
+              <span className="text-xs font-black text-amber-500 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-lg">
                 Cấp độ {learningReadingLevel} / 5
               </span>
             </div>
@@ -176,22 +176,22 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
                   onClick={() => setLearningReadingLevel(lvl)}
                   className={`py-2 rounded-xl text-center font-bold text-xs transition-all cursor-pointer border ${
                     learningReadingLevel === lvl
-                      ? 'bg-amber-500/20 border-amber-500 text-amber-300 shadow-md shadow-amber-500/10'
-                      : 'bg-zinc-950/60 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+                      ? 'bg-amber-500/20 border-amber-500 text-amber-600 dark:text-amber-300 shadow-md shadow-amber-500/10'
+                      : 'bg-tod-surface border-tod-border text-tod-text-muted hover:text-tod-text hover:bg-tod-card'
                   }`}
                 >
                   Cấp {lvl}
                 </button>
               ))}
             </div>
-            <p className="text-[11px] text-zinc-400 mt-1.5 italic bg-zinc-950/40 p-2 rounded-lg border border-zinc-800/60">
+            <p className="text-[11px] text-tod-text-muted mt-1.5 italic bg-tod-surface p-2 rounded-lg border border-tod-border">
               {getReadingLevelDesc(learningReadingLevel)}
             </p>
           </div>
 
           {/* Comprehension Goal */}
           <div>
-            <label className="text-xs font-bold text-zinc-300 block mb-1">
+            <label className="text-xs font-bold text-tod-text block mb-1">
               Mục tiêu đọc hiểu & Phát triển tư duy
             </label>
             <input
@@ -205,14 +205,14 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
 
           {/* Topics Management */}
           <div>
-            <label className="text-xs font-bold text-zinc-300 block mb-1.5">
+            <label className="text-xs font-bold text-tod-text block mb-1.5">
               Chủ đề sở thích & Quan tâm của bé
             </label>
 
             {/* Current Topics Chips */}
-            <div className="flex flex-wrap gap-1.5 mb-2 min-h-[32px] p-2 rounded-xl bg-zinc-950/60 border border-zinc-800">
+            <div className="flex flex-wrap gap-1.5 mb-2 min-h-[32px] p-2 rounded-xl bg-tod-surface border border-tod-border">
               {learningTopics.length === 0 ? (
-                <span className="text-[11px] text-zinc-500 italic">Chưa có chủ đề nào được thêm.</span>
+                <span className="text-[11px] text-tod-text-muted italic">Chưa có chủ đề nào được thêm.</span>
               ) : (
                 learningTopics.map((t, idx) => {
                   const isFav = t.relation === 'FavoriteTopic';
@@ -223,10 +223,10 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
                       key={idx}
                       className={`px-2 py-0.5 rounded-lg text-[11px] font-semibold flex items-center gap-1 border ${
                         isFav
-                          ? 'bg-amber-950/50 border-amber-500/40 text-amber-300'
+                          ? 'bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-300'
                           : isInterested
-                          ? 'bg-sky-950/50 border-sky-500/40 text-sky-300'
-                          : 'bg-rose-950/50 border-rose-500/40 text-rose-300'
+                          ? 'bg-sky-500/15 border-sky-500/40 text-sky-700 dark:text-sky-300'
+                          : 'bg-rose-500/15 border-rose-500/40 text-rose-700 dark:text-rose-300'
                       }`}
                     >
                       <span>{isFav ? '⭐' : isInterested ? '👍' : '🚫'}</span>
@@ -234,7 +234,7 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
                       <button
                         type="button"
                         onClick={() => handleRemoveTopic(t.topic)}
-                        className="hover:text-white cursor-pointer ml-0.5"
+                        className="hover:opacity-75 cursor-pointer ml-0.5"
                       >
                         <X className="w-3 h-3" />
                       </button>
@@ -262,7 +262,7 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
               <button
                 type="button"
                 onClick={() => handleAddTopic('FavoriteTopic')}
-                className="px-2.5 py-2 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-bold text-xs flex items-center gap-1 cursor-pointer"
+                className="px-2.5 py-2 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-700 dark:text-amber-300 border border-amber-500/40 font-bold text-xs flex items-center gap-1 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Yêu thích</span>
@@ -270,7 +270,7 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
               <button
                 type="button"
                 onClick={() => handleAddTopic('Avoid')}
-                className="px-2 py-2 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 font-bold text-xs flex items-center gap-1 cursor-pointer"
+                className="px-2 py-2 rounded-xl bg-rose-500/15 hover:bg-rose-500/25 text-rose-700 dark:text-rose-300 border border-rose-500/40 font-bold text-xs flex items-center gap-1 cursor-pointer"
               >
                 <span>Tránh</span>
               </button>
@@ -282,36 +282,36 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
         <div className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 text-xs">
             {/* Reading Level Box */}
-            <div className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800/80 flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-zinc-400 flex items-center gap-1">
-                <Award className="w-3 h-3 text-amber-400" />
+            <div className="p-3 rounded-xl bg-tod-surface border border-tod-border flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-tod-text-muted flex items-center gap-1">
+                <Award className="w-3 h-3 text-amber-500" />
                 Cấp độ đọc hiểu AI (Reading Level)
               </span>
               <div className="flex items-center gap-2">
-                <span className="text-sm font-black text-amber-400">
+                <span className="text-sm font-black text-amber-500 dark:text-amber-400">
                   Cấp độ {learningProfile.readingLevel} / 5
                 </span>
               </div>
-              <p className="text-[10px] text-zinc-400 mt-0.5">
+              <p className="text-[10px] text-tod-text-muted mt-0.5">
                 {getReadingLevelDesc(learningProfile.readingLevel)}
               </p>
             </div>
 
             {/* Comprehension Goal Box */}
-            <div className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800/80 flex flex-col gap-1">
-              <span className="text-[10px] font-bold text-zinc-400 flex items-center gap-1">
-                <BookOpen className="w-3 h-3 text-sky-400" />
+            <div className="p-3 rounded-xl bg-tod-surface border border-tod-border flex flex-col gap-1">
+              <span className="text-[10px] font-bold text-tod-text-muted flex items-center gap-1">
+                <BookOpen className="w-3 h-3 text-sky-500" />
                 Mục tiêu đọc hiểu
               </span>
-              <p className="text-xs text-zinc-200 font-medium leading-relaxed">
+              <p className="text-xs text-tod-text font-medium leading-relaxed">
                 {learningProfile.comprehensionGoal || 'Phát triển từ vựng và tư duy qua truyện kể sinh động'}
               </p>
             </div>
           </div>
 
           {/* Topics Chips */}
-          <div className="p-3 rounded-xl bg-zinc-950/80 border border-zinc-800/80 flex flex-col gap-2">
-            <span className="text-[10px] font-bold text-zinc-400">
+          <div className="p-3 rounded-xl bg-tod-surface border border-tod-border flex flex-col gap-2">
+            <span className="text-[10px] font-bold text-tod-text-muted">
               Chủ đề ưa thích & Lĩnh vực quan tâm ({learningProfile.topics?.length ?? 0} chủ đề)
             </span>
             {learningProfile.topics && learningProfile.topics.length > 0 ? (
@@ -324,10 +324,10 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
                       key={idx}
                       className={`px-2.5 py-1 rounded-xl text-[11px] font-semibold flex items-center gap-1 border ${
                         isFav
-                          ? 'bg-amber-950/50 border-amber-500/40 text-amber-300'
+                          ? 'bg-amber-500/15 border-amber-500/40 text-amber-700 dark:text-amber-300'
                           : isInterested
-                          ? 'bg-sky-950/50 border-sky-500/40 text-sky-300'
-                          : 'bg-rose-950/50 border-rose-500/40 text-rose-300'
+                          ? 'bg-sky-500/15 border-sky-500/40 text-sky-700 dark:text-sky-300'
+                          : 'bg-rose-500/15 border-rose-500/40 text-rose-700 dark:text-rose-300'
                       }`}
                     >
                       <span>{isFav ? '⭐ Yêu thích:' : isInterested ? '👍 Quan tâm:' : '🚫 Tránh:'}</span>
@@ -337,7 +337,7 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
                 })}
               </div>
             ) : (
-              <div className="text-[11px] text-zinc-500 italic">
+              <div className="text-[11px] text-tod-text-muted italic">
                 Chưa chọn chủ đề riêng. AI sẽ đề xuất câu chuyện đa dạng theo độ tuổi của bé.
               </div>
             )}
@@ -345,12 +345,12 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
         </div>
       ) : (
         /* EMPTY STATE */
-        <div className="py-3 px-3.5 rounded-xl bg-zinc-950/50 border border-zinc-800/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+        <div className="py-3 px-3.5 rounded-xl bg-tod-surface border border-tod-border flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-semibold text-zinc-300">
+            <span className="text-xs font-semibold text-tod-text">
               Chưa cấu hình Hồ Sơ Học Tập cho bé {childNickname}
             </span>
-            <span className="text-[10px] text-zinc-500">
+            <span className="text-[10px] text-tod-text-muted">
               Thiết lập cấp độ đọc và chủ đề yêu thích để AI tạo truyện đúng trình độ của bé.
             </span>
           </div>
@@ -367,15 +367,15 @@ export const LearningProfileCard: React.FC<LearningProfileCardProps> = ({
 
       {/* Feedback Alerts */}
       {learningProfileSuccessMsg && (
-        <div className="p-2.5 rounded-xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2">
-          <CheckCheck className="w-4 h-4 shrink-0 text-emerald-400" />
+        <div className="p-2.5 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 text-xs flex items-center gap-2">
+          <CheckCheck className="w-4 h-4 shrink-0 text-emerald-500" />
           <span>{learningProfileSuccessMsg}</span>
         </div>
       )}
 
       {learningProfileErrorMsg && (
-        <div className="p-2.5 rounded-xl bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0 text-rose-400" />
+        <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/40 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 text-rose-500" />
           <span>{learningProfileErrorMsg}</span>
         </div>
       )}
