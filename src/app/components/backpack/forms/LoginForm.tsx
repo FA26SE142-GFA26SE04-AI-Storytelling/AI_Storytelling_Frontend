@@ -68,45 +68,45 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
       <div className="auth-form-field flex flex-col gap-1">
-        <label className="text-[11px] font-bold text-zinc-300">Tên Đăng Nhập hoặc Email *</label>
+        <label className="text-[11px] font-bold text-tod-text">Tên Đăng Nhập hoặc Email *</label>
         <div className="relative flex items-center">
-          <User className="absolute left-3 w-4 h-4 text-zinc-400" />
+          <User className="absolute left-3 w-4 h-4 text-tod-text-muted" />
           <input
             type="text"
             required
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
             placeholder="vd: parent_demo hoặc email@example.com"
-            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 transition-colors font-medium"
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-sky-500 transition-colors font-medium"
           />
         </div>
       </div>
 
       <div className="auth-form-field flex flex-col gap-1">
         <div className="flex items-center justify-between">
-          <label className="text-[11px] font-bold text-zinc-300">Mật khẩu *</label>
+          <label className="text-[11px] font-bold text-tod-text">Mật khẩu *</label>
           <button
             type="button"
             onClick={() => onNavigateToForgot(identifier)}
-            className="text-[10px] text-sky-400 hover:text-sky-300 transition-colors cursor-pointer"
+            className="text-[10px] text-sky-600 dark:text-sky-400 hover:underline transition-colors cursor-pointer"
           >
             Quên mật khẩu?
           </button>
         </div>
         <div className="relative flex items-center">
-          <Lock className="absolute left-3 w-4 h-4 text-zinc-400" />
+          <Lock className="absolute left-3 w-4 h-4 text-tod-text-muted" />
           <input
             type={showPassword ? 'text' : 'password'}
             required
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Nhập mật khẩu..."
-            className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 transition-colors"
+            className="w-full pl-9 pr-9 py-2.5 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-sky-500 transition-colors"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 text-zinc-400 hover:text-white cursor-pointer"
+            className="absolute right-3 text-tod-text-muted hover:text-tod-text cursor-pointer"
           >
             {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
           </button>

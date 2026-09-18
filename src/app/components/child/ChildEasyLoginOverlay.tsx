@@ -126,23 +126,23 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
           onClose();
         }
       }}
-      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-3 sm:p-5 bg-zinc-950/90 backdrop-blur-xl overflow-y-auto"
+      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-3 sm:p-5 bg-zinc-950/80 backdrop-blur-xl overflow-y-auto"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="child-login-card pointer-events-auto w-full max-w-lg rounded-3xl bg-gradient-to-br from-indigo-950/95 via-zinc-950/95 to-slate-950/95 border-2 border-amber-400/40 shadow-[0_25px_70px_rgba(0,0,0,0.95)] p-5 sm:p-7 text-white space-y-4"
+        className="child-login-card pointer-events-auto w-full max-w-lg rounded-3xl bg-tod-card border-2 border-amber-400/50 shadow-2xl p-5 sm:p-7 text-tod-text space-y-4"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-white/10">
+        <div className="flex items-center justify-between pb-3 border-b border-tod-border">
           <div className="flex items-center gap-2.5">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-amber-400 to-rose-500 flex items-center justify-center text-white shadow-lg shadow-rose-500/25">
               <Sparkles className="w-5 h-5 fill-white" />
             </div>
             <div>
-              <h2 className="text-base sm:text-lg font-black bg-gradient-to-r from-amber-300 via-rose-300 to-sky-300 bg-clip-text text-transparent">
+              <h2 className="text-base sm:text-lg font-black bg-gradient-to-r from-amber-500 via-rose-500 to-sky-500 bg-clip-text text-transparent">
                 Xin Chào Bé Yêu!
               </h2>
-              <p className="text-xs text-zinc-300">
+              <p className="text-xs text-tod-text-muted">
                 Hãy chọn ảnh đại diện của bé hoặc quét thẻ để đọc truyện nhé
               </p>
             </div>
@@ -150,14 +150,14 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-tod-surface hover:bg-tod-card text-tod-text-muted hover:text-tod-text border border-tod-border transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Tab Switcher: Chọn Avatar hoặc Nhập Thẻ */}
-        <div className="flex items-center gap-2 p-1 rounded-2xl bg-zinc-900/80 border border-zinc-800">
+        <div className="flex items-center gap-2 p-1 rounded-2xl bg-tod-surface border border-tod-border">
           <button
             type="button"
             onClick={() => {
@@ -168,7 +168,7 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
             className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === 'avatar'
                 ? 'bg-amber-500 text-zinc-950 shadow-md shadow-amber-500/20'
-                : 'text-zinc-400 hover:text-white'
+                : 'text-tod-text-muted hover:text-tod-text'
             }`}
           >
             <BookOpen className="w-3.5 h-3.5" />
@@ -183,7 +183,7 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
             className={`flex-1 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
               activeTab === 'scan'
                 ? 'bg-sky-500 text-zinc-950 shadow-md shadow-sky-500/20'
-                : 'text-zinc-400 hover:text-white'
+                : 'text-tod-text-muted hover:text-tod-text'
             }`}
           >
             <QrCode className="w-3.5 h-3.5" />
@@ -197,8 +197,8 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
             <div className="w-16 h-16 rounded-3xl bg-emerald-500/30 border-2 border-emerald-400 flex items-center justify-center text-4xl shadow-xl shadow-emerald-500/30">
               🎉
             </div>
-            <h3 className="text-xl font-black text-emerald-300">Đăng Nhập Thành Công!</h3>
-            <p className="text-xs text-zinc-300">Đang đưa bé vào Kệ Sách Thần Kỳ...</p>
+            <h3 className="text-xl font-black text-emerald-500 dark:text-emerald-300">Đăng Nhập Thành Công!</h3>
+            <p className="text-xs text-tod-text-muted">Đang đưa bé vào Kệ Sách Thần Kỳ...</p>
           </div>
         )}
 
@@ -208,7 +208,7 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
             {!selectedChild ? (
               /* Bước 1: Danh sách hồ sơ các bé */
               <div className="space-y-3">
-                <span className="text-xs font-bold text-zinc-300 block">
+                <span className="text-xs font-bold text-tod-text block">
                   Bấm vào tên và linh vật của bé:
                 </span>
                 {childProfiles.length > 0 ? (
@@ -222,7 +222,7 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
                           key={child.id}
                           type="button"
                           onClick={() => handleSelectChild(child)}
-                          className="p-3 rounded-2xl bg-zinc-900/80 hover:bg-zinc-800/90 border border-zinc-700 hover:border-amber-400 hover:scale-105 transition-all flex flex-col items-center gap-2 cursor-pointer shadow-md group"
+                          className="p-3 rounded-2xl bg-tod-surface hover:bg-tod-card border border-tod-border hover:border-amber-400 hover:scale-105 transition-all flex flex-col items-center gap-2 cursor-pointer shadow-md group"
                         >
                           <div
                             className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${avatar.bgColor} border ${avatar.borderColor} flex items-center justify-center text-3xl shadow-md group-hover:scale-110 transition-transform`}
@@ -230,17 +230,17 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
                             {avatar.emoji}
                           </div>
                           <div className="text-center">
-                            <span className="text-sm font-black text-white block group-hover:text-amber-300 transition-colors">
+                            <span className="text-sm font-black text-tod-text block group-hover:text-amber-500 dark:group-hover:text-amber-300 transition-colors">
                               {child.nickname}
                             </span>
-                            <span className="text-[10px] text-zinc-400">{avatar.name}</span>
+                            <span className="text-[10px] text-tod-text-muted">{avatar.name}</span>
                           </div>
                         </button>
                       );
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-8 rounded-2xl bg-zinc-900/50 border border-zinc-800 text-xs text-zinc-400">
+                  <div className="text-center py-8 rounded-2xl bg-tod-surface border border-tod-border text-xs text-tod-text-muted">
                     Chưa có hồ sơ bé nào. Vui lòng nhờ bố mẹ đăng nhập vào Laptop để tạo hồ sơ cho bé nhé!
                   </div>
                 )}
@@ -256,12 +256,12 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
                       setEnteredPin('');
                       setErrorMsg(null);
                     }}
-                    className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white font-bold cursor-pointer"
+                    className="flex items-center gap-1.5 text-xs text-tod-text-muted hover:text-tod-text font-bold cursor-pointer transition-colors"
                   >
                     <ArrowLeft className="w-4 h-4" />
                     <span>Chọn bé khác</span>
                   </button>
-                  <span className="text-xs font-bold text-amber-300">
+                  <span className="text-xs font-bold text-amber-500 dark:text-amber-300">
                     Bé: <strong>{selectedChild.nickname}</strong>
                   </span>
                 </div>
@@ -276,7 +276,7 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
                         className={`w-5 h-5 rounded-full border-2 transition-all ${
                           filled
                             ? 'bg-amber-400 border-amber-300 scale-125 shadow-lg shadow-amber-400/50'
-                            : 'bg-zinc-900 border-zinc-700'
+                            : 'bg-tod-surface border-tod-border'
                         }`}
                       />
                     );
@@ -285,7 +285,7 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
 
                 {/* Thông báo lỗi */}
                 {errorMsg && (
-                  <div className="p-2.5 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-300 text-xs font-bold text-center">
+                  <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/40 text-rose-600 dark:text-rose-300 text-xs font-bold text-center">
                     {errorMsg}
                   </div>
                 )}
@@ -297,7 +297,7 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
                       key={digit}
                       type="button"
                       onClick={() => handleDigitClick(digit)}
-                      className="h-12 rounded-2xl bg-zinc-900/90 hover:bg-amber-500 hover:text-zinc-950 active:scale-95 text-white font-black text-xl border border-zinc-700 hover:border-amber-400 transition-all shadow-md cursor-pointer flex items-center justify-center"
+                      className="h-12 rounded-2xl bg-tod-surface hover:bg-amber-500 hover:text-zinc-950 active:scale-95 text-tod-text font-black text-xl border border-tod-border hover:border-amber-400 transition-all shadow-md cursor-pointer flex items-center justify-center"
                     >
                       {digit}
                     </button>
@@ -305,21 +305,21 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
                   <button
                     type="button"
                     onClick={handleClearPin}
-                    className="h-12 rounded-2xl bg-zinc-900/60 hover:bg-zinc-800 text-zinc-400 hover:text-white font-bold text-xs border border-zinc-800 transition-all cursor-pointer flex items-center justify-center"
+                    className="h-12 rounded-2xl bg-tod-surface/60 hover:bg-tod-card text-tod-text-muted hover:text-tod-text font-bold text-xs border border-tod-border transition-all cursor-pointer flex items-center justify-center"
                   >
                     Xóa hết
                   </button>
                   <button
                     type="button"
                     onClick={() => handleDigitClick('0')}
-                    className="h-12 rounded-2xl bg-zinc-900/90 hover:bg-amber-500 hover:text-zinc-950 active:scale-95 text-white font-black text-xl border border-zinc-700 hover:border-amber-400 transition-all shadow-md cursor-pointer flex items-center justify-center"
+                    className="h-12 rounded-2xl bg-tod-surface hover:bg-amber-500 hover:text-zinc-950 active:scale-95 text-tod-text font-black text-xl border border-tod-border hover:border-amber-400 transition-all shadow-md cursor-pointer flex items-center justify-center"
                   >
                     0
                   </button>
                   <button
                     type="button"
                     onClick={handleDeleteDigit}
-                    className="h-12 rounded-2xl bg-zinc-900/60 hover:bg-rose-900/60 text-zinc-300 hover:text-rose-300 font-bold text-xs border border-zinc-800 transition-all cursor-pointer flex items-center justify-center"
+                    className="h-12 rounded-2xl bg-tod-surface/60 hover:bg-rose-500/20 text-tod-text-muted hover:text-rose-500 font-bold text-xs border border-tod-border transition-all cursor-pointer flex items-center justify-center"
                   >
                     <Delete className="w-5 h-5" />
                   </button>
@@ -332,15 +332,15 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
         {/* TAB 2: QUÉT THẺ EASYLOGIN */}
         {!isSuccess && activeTab === 'scan' && (
           <form onSubmit={handleBadgeCodeSubmit} className="space-y-3">
-            <div className="p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 text-center space-y-2">
-              <QrCode className="w-12 h-12 text-sky-400 mx-auto" />
-              <p className="text-xs text-zinc-300 leading-relaxed max-w-xs mx-auto">
-                Nhập mã in trên Thẻ Đọc Sách của bé (Ví dụ: <strong className="text-amber-400">KID-1-FOX-8921</strong>)
+            <div className="p-4 rounded-2xl bg-tod-surface border border-tod-border text-center space-y-2">
+              <QrCode className="w-12 h-12 text-sky-500 dark:text-sky-400 mx-auto" />
+              <p className="text-xs text-tod-text-muted leading-relaxed max-w-xs mx-auto">
+                Nhập mã in trên Thẻ Đọc Sách của bé (Ví dụ: <strong className="text-amber-500 dark:text-amber-400">KID-1-FOX-8921</strong>)
               </p>
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs font-bold text-zinc-300">Mã Thẻ EasyLogin:</label>
+              <label className="text-xs font-bold text-tod-text">Mã Thẻ EasyLogin:</label>
               <input
                 type="text"
                 value={badgeCodeInput}
@@ -354,7 +354,7 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
             </div>
 
             {errorMsg && (
-              <div className="p-2.5 rounded-xl bg-rose-950/70 border border-rose-500/50 text-rose-300 text-xs font-bold text-center">
+              <div className="p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/40 text-rose-600 dark:text-rose-300 text-xs font-bold text-center">
                 {errorMsg}
               </div>
             )}

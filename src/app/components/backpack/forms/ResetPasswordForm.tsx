@@ -102,51 +102,51 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-      <div className="auth-form-field p-3 rounded-2xl bg-amber-950/40 border border-amber-500/30 text-xs flex flex-col gap-1">
-        <span className="font-bold text-amber-300 flex items-center gap-1.5">
-          <ShieldCheck className="w-4 h-4 text-amber-400" />
+      <div className="auth-form-field p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-xs flex flex-col gap-1">
+        <span className="font-bold text-amber-600 dark:text-amber-300 flex items-center gap-1.5">
+          <ShieldCheck className="w-4 h-4 text-amber-500 dark:text-amber-400" />
           Bước 2: Thiết lập mật khẩu mới
         </span>
-        <p className="text-[11px] text-zinc-300 leading-relaxed">
+        <p className="text-[11px] text-tod-text-muted leading-relaxed">
           Dán <strong>Reset Token</strong> nhận được trong Email và nhập mật khẩu mới của bạn.
         </p>
       </div>
 
       <div className="auth-form-field flex flex-col gap-1">
-        <label className="text-[11px] font-bold text-zinc-300">Địa chỉ Email *</label>
+        <label className="text-[11px] font-bold text-tod-text">Địa chỉ Email *</label>
         <div className="relative flex items-center">
-          <Mail className="absolute left-3 w-4 h-4 text-zinc-400" />
+          <Mail className="absolute left-3 w-4 h-4 text-tod-text-muted" />
           <input
             type="email"
             required
             value={resetEmailInput}
             onChange={(e) => setResetEmailInput(e.target.value)}
             placeholder="email@example.com"
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 transition-colors"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-amber-500 transition-colors"
           />
         </div>
       </div>
 
       <div className="auth-form-field flex flex-col gap-1">
-        <label className="text-[11px] font-bold text-zinc-300">Mã đặt lại mật khẩu (Token từ Gmail) *</label>
+        <label className="text-[11px] font-bold text-tod-text">Mã đặt lại mật khẩu (Token từ Gmail) *</label>
         <div className="relative flex items-center">
-          <Key className="absolute left-3 w-4 h-4 text-amber-400" />
+          <Key className="absolute left-3 w-4 h-4 text-amber-500 dark:text-amber-400" />
           <input
             type="text"
             required
             value={resetTokenInput}
             onChange={(e) => setResetTokenInput(e.target.value)}
             placeholder="Dán mã Token từ email tại đây..."
-            className="w-full pl-9 pr-4 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 transition-colors font-mono"
+            className="w-full pl-9 pr-4 py-2 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-amber-500 transition-colors font-mono"
           />
         </div>
       </div>
 
       <div className="auth-form-field grid grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-bold text-zinc-300">Mật khẩu mới *</label>
+          <label className="text-[11px] font-bold text-tod-text">Mật khẩu mới *</label>
           <div className="relative flex items-center">
-            <Lock className="absolute left-2.5 w-3.5 h-3.5 text-zinc-400" />
+            <Lock className="absolute left-2.5 w-3.5 h-3.5 text-tod-text-muted" />
             <input
               type={showResetPassword ? 'text' : 'password'}
               required
@@ -154,12 +154,12 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
               value={resetNewPassword}
               onChange={(e) => setResetNewPassword(e.target.value)}
               placeholder="Tối thiểu 6 ký tự"
-              className="w-full pl-8 pr-7 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 transition-colors"
+              className="w-full pl-8 pr-7 py-2 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-amber-500 transition-colors"
             />
             <button
               type="button"
               onClick={() => setShowResetPassword(!showResetPassword)}
-              className="absolute right-2 text-zinc-400 hover:text-white cursor-pointer"
+              className="absolute right-2 text-tod-text-muted hover:text-tod-text cursor-pointer"
             >
               {showResetPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
             </button>
@@ -167,9 +167,9 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-bold text-zinc-300">Xác nhận MK *</label>
+          <label className="text-[11px] font-bold text-tod-text">Xác nhận MK *</label>
           <div className="relative flex items-center">
-            <Lock className="absolute left-2.5 w-3.5 h-3.5 text-zinc-400" />
+            <Lock className="absolute left-2.5 w-3.5 h-3.5 text-tod-text-muted" />
             <input
               type={showResetPassword ? 'text' : 'password'}
               required
@@ -177,7 +177,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
               value={resetConfirmPassword}
               onChange={(e) => setResetConfirmPassword(e.target.value)}
               placeholder="Nhập lại mật khẩu"
-              className="w-full pl-8 pr-3 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-500 transition-colors"
+              className="w-full pl-8 pr-3 py-2 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-amber-500 transition-colors"
             />
           </div>
         </div>
@@ -201,11 +201,11 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
         )}
       </button>
 
-      <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60 text-[11px]">
+      <div className="flex items-center justify-between pt-2 border-t border-tod-border text-[11px]">
         <button
           type="button"
           onClick={onNavigateToForgot}
-          className="text-zinc-400 hover:text-white flex items-center gap-1 cursor-pointer transition-colors"
+          className="text-tod-text-muted hover:text-tod-text flex items-center gap-1 cursor-pointer transition-colors"
         >
           <ArrowLeft className="w-3 h-3" />
           Gửi lại mã Token
@@ -213,7 +213,7 @@ export const ResetPasswordForm: React.FC<ResetPasswordFormProps> = ({
         <button
           type="button"
           onClick={onNavigateToLogin}
-          className="text-amber-400 hover:text-amber-300 font-semibold cursor-pointer transition-colors"
+          className="text-amber-500 hover:text-amber-400 font-semibold cursor-pointer transition-colors"
         >
           Đăng nhập ngay →
         </button>

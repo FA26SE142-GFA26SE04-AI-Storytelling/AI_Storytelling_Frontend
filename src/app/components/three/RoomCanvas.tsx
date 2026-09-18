@@ -907,7 +907,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     <div className={`relative w-full h-full ${className}`}>
       <div ref={mountRef} className="w-full h-full cursor-grab active:cursor-grabbing" />
       {switchHint && (
-        <div className="fixed bottom-6 right-6 z-30 pointer-events-none px-4 py-2 rounded-2xl bg-zinc-900/90 backdrop-blur-xl border border-white/15 shadow-2xl text-xs font-black text-white flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300">
+        <div className="fixed bottom-6 right-6 z-30 pointer-events-none px-4 py-2 rounded-2xl bg-tod-card backdrop-blur-xl border border-tod-border shadow-2xl text-xs font-black text-tod-text flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-300">
           <span>{switchHint}</span>
         </div>
       )}

@@ -84,63 +84,63 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
       <div className="auth-form-field grid grid-cols-1 sm:grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-bold text-zinc-300">Tên đăng nhập *</label>
+          <label className="text-[11px] font-bold text-tod-text">Tên đăng nhập *</label>
           <input
             type="text"
             required
             value={regUsername}
             onChange={(e) => setRegUsername(e.target.value)}
             placeholder="vd: parent_nguyen"
-            className="w-full px-3 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 transition-colors"
+            className="w-full px-3 py-2 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-sky-500 transition-colors"
           />
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-bold text-zinc-300">Họ và Tên đầy đủ *</label>
+          <label className="text-[11px] font-bold text-tod-text">Họ và Tên đầy đủ *</label>
           <input
             type="text"
             required
             value={regFullName}
             onChange={(e) => setRegFullName(e.target.value)}
             placeholder="vd: Nguyễn Văn A"
-            className="w-full px-3 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 transition-colors"
+            className="w-full px-3 py-2 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-sky-500 transition-colors"
           />
         </div>
       </div>
 
       <div className="auth-form-field flex flex-col gap-1">
-        <label className="text-[11px] font-bold text-zinc-300">Địa chỉ Email nhận mã xác thực *</label>
+        <label className="text-[11px] font-bold text-tod-text">Địa chỉ Email nhận mã xác thực *</label>
         <div className="relative flex items-center">
-          <Mail className="absolute left-3 w-4 h-4 text-zinc-400" />
+          <Mail className="absolute left-3 w-4 h-4 text-tod-text-muted" />
           <input
             type="email"
             required
             value={regEmail}
             onChange={(e) => setRegEmail(e.target.value)}
             placeholder="email@example.com"
-            className="w-full pl-9 pr-3 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 transition-colors"
+            className="w-full pl-9 pr-3 py-2 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-sky-500 transition-colors"
           />
         </div>
       </div>
 
       <div className="auth-form-field grid grid-cols-1 sm:grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-bold text-zinc-300">Số Điện Thoại</label>
+          <label className="text-[11px] font-bold text-tod-text">Số Điện Thoại</label>
           <input
             type="tel"
             value={regPhoneNumber}
             onChange={(e) => setRegPhoneNumber(e.target.value)}
             placeholder="0912345678"
-            className="w-full px-3 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 transition-colors"
+            className="w-full px-3 py-2 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-sky-500 transition-colors"
           />
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-bold text-zinc-300">Vai Trò Hệ Thống</label>
+          <label className="text-[11px] font-bold text-tod-text">Vai Trò Hệ Thống</label>
           <select
             value={regRole}
             onChange={(e) => setRegRole(Number(e.target.value))}
-            className="w-full px-3 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white focus:outline-none focus:border-sky-500 transition-colors cursor-pointer"
+            className="w-full px-3 py-2 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text focus:outline-none focus:border-sky-500 transition-colors cursor-pointer"
           >
             <option value={1}>Phụ huynh (Parent)</option>
             <option value={0}>Quản trị viên (Admin)</option>
@@ -150,9 +150,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
       <div className="auth-form-field grid grid-cols-1 sm:grid-cols-2 gap-2">
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-bold text-zinc-300">Mật khẩu *</label>
+          <label className="text-[11px] font-bold text-tod-text">Mật khẩu *</label>
           <div className="relative flex items-center">
-            <Lock className="absolute left-2.5 w-3.5 h-3.5 text-zinc-400" />
+            <Lock className="absolute left-2.5 w-3.5 h-3.5 text-tod-text-muted" />
             <input
               type={showRegPassword ? 'text' : 'password'}
               required
@@ -160,12 +160,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
               value={regPassword}
               onChange={(e) => setRegPassword(e.target.value)}
               placeholder="Tối thiểu 6 ký tự"
-              className="w-full pl-8 pr-7 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 transition-colors"
+              className="w-full pl-8 pr-7 py-2 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-sky-500 transition-colors"
             />
             <button
               type="button"
               onClick={() => setShowRegPassword(!showRegPassword)}
-              className="absolute right-2 text-zinc-400 hover:text-white cursor-pointer"
+              className="absolute right-2 text-tod-text-muted hover:text-tod-text cursor-pointer"
             >
               {showRegPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
             </button>
@@ -173,9 +173,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         </div>
 
         <div className="flex flex-col gap-1">
-          <label className="text-[11px] font-bold text-zinc-300">Xác nhận MK *</label>
+          <label className="text-[11px] font-bold text-tod-text">Xác nhận MK *</label>
           <div className="relative flex items-center">
-            <Lock className="absolute left-2.5 w-3.5 h-3.5 text-zinc-400" />
+            <Lock className="absolute left-2.5 w-3.5 h-3.5 text-tod-text-muted" />
             <input
               type={showRegPassword ? 'text' : 'password'}
               required
@@ -183,7 +183,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
               value={regConfirmPassword}
               onChange={(e) => setRegConfirmPassword(e.target.value)}
               placeholder="Nhập lại mật khẩu"
-              className="w-full pl-8 pr-3 py-2 rounded-xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-sky-500 transition-colors"
+              className="w-full pl-8 pr-3 py-2 rounded-xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-sky-500 transition-colors"
             />
           </div>
         </div>

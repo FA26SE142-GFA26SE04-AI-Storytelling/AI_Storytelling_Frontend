@@ -194,9 +194,9 @@ export default function Room3DView() {
         <div className="fixed top-4 left-4 z-30 pointer-events-auto">
           <button
             onClick={() => handleStageChange(0)}
-            className="room-back-btn px-4 py-2.5 rounded-2xl bg-zinc-900/90 hover:bg-zinc-900 text-white font-extrabold text-xs flex items-center gap-2 border border-white/20 shadow-xl backdrop-blur-xl transition-all hover:scale-105 cursor-pointer"
+            className="room-back-btn px-4 py-2.5 rounded-2xl bg-tod-card hover:bg-tod-surface text-tod-text font-extrabold text-xs flex items-center gap-2 border border-tod-border shadow-xl backdrop-blur-xl transition-all hover:scale-105 cursor-pointer"
           >
-            <ArrowLeft className="w-4 h-4 text-amber-400" />
+            <ArrowLeft className="w-4 h-4 text-amber-500" />
             <span>Quay lại Toàn Cảnh (Góc 1)</span>
           </button>
         </div>

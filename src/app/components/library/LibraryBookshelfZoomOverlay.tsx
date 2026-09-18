@@ -153,13 +153,13 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
       className={`absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-6 overflow-hidden z-20 font-sans theme-${timeOfDay} transition-colors duration-500`}
     >
       {/* 1. TOP HEADER FLOATING GLASSBAR */}
-      <div className="bookshelf-top-bar pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_10px_30px_rgba(0,0,0,0.5)] text-tod-text transition-colors duration-500">
+      <div className="bookshelf-top-bar pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_10px_30px_rgba(0,0,0,0.3)] text-tod-text transition-colors duration-500">
         
         {/* Brand & Stage Selector */}
         <div className="flex items-center justify-between sm:justify-start gap-3">
           <button
             onClick={() => onStageChange(0)}
-            className="p-2 rounded-2xl bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shrink-0"
+            className="p-2 rounded-2xl bg-tod-card hover:bg-tod-surface border border-tod-border text-tod-text-muted hover:text-tod-text transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shrink-0"
             title="Quay lại góc nhìn toàn cảnh phòng 3D"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -171,13 +171,13 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
               <BookOpen className="w-5 h-5 fill-white/20" />
             </div>
             <div>
-              <h1 className="font-black text-sm sm:text-base tracking-tight bg-gradient-to-r from-amber-300 via-rose-300 to-indigo-300 bg-clip-text text-transparent flex items-center gap-2">
+              <h1 className="font-black text-sm sm:text-base tracking-tight text-tod-text flex items-center gap-2">
                 <span>Tủ Sách Diệu Kỳ Của Bé</span>
-                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[10px] font-extrabold text-amber-300 uppercase tracking-wider hidden sm:inline-block">
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[10px] font-extrabold text-amber-600 dark:text-amber-300 uppercase tracking-wider hidden sm:inline-block">
                   Góc Nhìn 3D Zoom
                 </span>
               </h1>
-              <p className="text-[10px] text-zinc-400 font-medium">Bấm chọn sách trên kệ 3 tầng để đọc & nghe ngay</p>
+              <p className="text-[10px] text-tod-text-muted font-medium">Bấm chọn sách trên kệ 3 tầng để đọc & nghe ngay</p>
             </div>
           </div>
         </div>
@@ -185,18 +185,18 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
         {/* Center Search & Shelf Filter */}
         <div className="flex items-center gap-2 flex-1 max-w-md">
           <div className="relative flex-1 flex items-center">
-            <Search className="absolute left-3 w-4 h-4 text-zinc-400" />
+            <Search className="absolute left-3 w-4 h-4 text-tod-text-muted" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Tìm kiếm truyện trên kệ..."
-              className="w-full pl-9 pr-4 py-2 rounded-2xl bg-zinc-950/80 border border-zinc-800 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-amber-400 transition-all"
+              className="w-full pl-9 pr-4 py-2 rounded-2xl bg-tod-card border border-tod-border text-xs text-tod-text placeholder-tod-text-muted focus:outline-none focus:border-amber-400 transition-all"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 p-0.5 text-zinc-400 hover:text-white"
+                className="absolute right-3 p-0.5 text-tod-text-muted hover:text-tod-text"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -207,11 +207,11 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
         {/* Atmosphere & View Mode Actions */}
         <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
           {/* Time of Day Switcher */}
-          <div className="flex items-center p-1 bg-zinc-950/80 rounded-xl border border-zinc-800/80 text-[11px] font-extrabold">
+          <div className="flex items-center p-1 bg-tod-card rounded-xl border border-tod-border text-[11px] font-extrabold">
             <button
               onClick={() => onTimeOfDayChange('morning')}
               className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-                timeOfDay === 'morning' ? 'bg-sky-500 text-zinc-950 shadow-sm' : 'text-zinc-400 hover:text-white'
+                timeOfDay === 'morning' ? 'bg-sky-500 text-white shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
               }`}
               title="Buổi Sáng"
             >
@@ -220,7 +220,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
             <button
               onClick={() => onTimeOfDayChange('afternoon')}
               className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-                timeOfDay === 'afternoon' ? 'bg-amber-500 text-zinc-950 shadow-sm' : 'text-zinc-400 hover:text-white'
+                timeOfDay === 'afternoon' ? 'bg-amber-500 text-zinc-950 shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
               }`}
               title="Buổi Chiều"
             >
@@ -229,7 +229,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
             <button
               onClick={() => onTimeOfDayChange('night')}
               className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-                timeOfDay === 'night' ? 'bg-indigo-500 text-white shadow-sm' : 'text-zinc-400 hover:text-white'
+                timeOfDay === 'night' ? 'bg-indigo-500 text-white shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
               }`}
               title="Buổi Tối"
             >
@@ -255,16 +255,16 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
       <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-end lg:items-center justify-between gap-4 my-2 overflow-hidden pointer-events-none">
         
         {/* LEFT DRAWER: 3-TIER BOOKSHELF STORY SELECTOR */}
-        <div className="bookshelf-left-drawer pointer-events-auto w-full lg:w-[420px] max-h-[50vh] lg:max-h-[75vh] flex flex-col rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-tod-text overflow-hidden transition-colors duration-500">
+        <div className="bookshelf-left-drawer pointer-events-auto w-full lg:w-[420px] max-h-[50vh] lg:max-h-[75vh] flex flex-col rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_15px_40px_rgba(0,0,0,0.4)] text-tod-text overflow-hidden transition-colors duration-500">
           
           {/* Shelf Tiers Tabs */}
-          <div className="p-3 bg-zinc-950/90 border-b border-zinc-800/80 flex items-center gap-1 overflow-x-auto scrollbar-none">
+          <div className="p-3 bg-tod-card border-b border-tod-border flex items-center gap-1 overflow-x-auto scrollbar-none">
             <button
               onClick={() => setSelectedShelf('all')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
                 selectedShelf === 'all'
                   ? 'bg-amber-500 text-zinc-950 shadow-md font-extrabold'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                  : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
               }`}
             >
               Tất Cả ({allStories.length})
@@ -273,8 +273,8 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
               onClick={() => setSelectedShelf('created')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
                 selectedShelf === 'created'
-                  ? 'bg-emerald-500 text-zinc-950 shadow-md font-extrabold'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                  ? 'bg-emerald-500 text-white shadow-md font-extrabold'
+                  : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
               }`}
             >
               <Wand2 className="w-3.5 h-3.5" />
@@ -285,7 +285,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
                 selectedShelf === 'favorites'
                   ? 'bg-rose-500 text-white shadow-md font-extrabold'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                  : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
               }`}
             >
               <Heart className="w-3.5 h-3.5 fill-current" />
@@ -296,7 +296,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 ${
                 selectedShelf === 'lullaby'
                   ? 'bg-indigo-500 text-white shadow-md font-extrabold'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                  : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
               }`}
             >
               <Headphones className="w-3.5 h-3.5" />
@@ -305,9 +305,9 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
           </div>
 
           {/* Stories List Scrollable Container */}
-          <div className="flex-1 p-3 overflow-y-auto space-y-2.5 scrollbar-thin scrollbar-thumb-zinc-700">
+          <div className="flex-1 p-3 overflow-y-auto space-y-2.5 dashboard-scrollbar">
             {filteredStories.length === 0 ? (
-              <div className="py-8 text-center text-zinc-400 text-xs">
+              <div className="py-8 text-center text-tod-text-muted text-xs">
                 <p>Không tìm thấy truyện nào khớp với từ khóa "{searchQuery}"</p>
               </div>
             ) : (
@@ -324,12 +324,12 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
                     }}
                     className={`bookshelf-story-card p-2.5 rounded-2xl border transition-all cursor-pointer flex items-center gap-3 ${
                       isSelected
-                        ? 'bg-gradient-to-r from-amber-500/20 via-zinc-900 to-zinc-900 border-amber-400/80 shadow-md ring-1 ring-amber-400/50 scale-[1.01]'
-                        : 'bg-zinc-900/60 hover:bg-zinc-800/80 border-zinc-800 text-zinc-300'
+                        ? 'bg-amber-500/10 border-amber-500/80 shadow-md ring-1 ring-amber-400/50 scale-[1.01]'
+                        : 'bg-tod-card hover:bg-tod-surface border-tod-border text-tod-text'
                     }`}
                   >
                     {/* Story Thumbnail */}
-                    <div className="relative w-14 h-16 rounded-xl overflow-hidden shrink-0 bg-zinc-800 shadow-md">
+                    <div className="relative w-14 h-16 rounded-xl overflow-hidden shrink-0 bg-tod-surface shadow-md">
                       <img
                         src={story.imageUrl}
                         alt={story.title}
@@ -344,20 +344,20 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-1.5 mb-1">
-                        <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-zinc-800 border border-zinc-700 text-amber-300 truncate">
+                        <span className="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-tod-surface border border-tod-border text-amber-600 dark:text-amber-300 truncate">
                           {story.badge}
                         </span>
                         {story.rating && (
-                          <span className="text-[10px] text-amber-400 font-bold flex items-center gap-0.5 shrink-0">
+                          <span className="text-[10px] text-amber-500 font-bold flex items-center gap-0.5 shrink-0">
                             <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                             {story.rating}
                           </span>
                         )}
                       </div>
-                      <h3 className="font-extrabold text-xs text-white truncate group-hover:text-amber-300 transition-colors">
+                      <h3 className="font-extrabold text-xs text-tod-text truncate group-hover:text-amber-500 transition-colors">
                         {story.title}
                       </h3>
-                      <p className="text-[10px] text-zinc-400 truncate mt-0.5">{story.tag}</p>
+                      <p className="text-[10px] text-tod-text-muted truncate mt-0.5">{story.tag}</p>
                     </div>
 
                     {/* Favorite Star Toggle Button */}
@@ -369,12 +369,12 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
                       }}
                       className={`p-2 rounded-xl transition-all cursor-pointer ${
                         isFav
-                          ? 'text-rose-400 bg-rose-500/10 hover:bg-rose-500/20'
-                          : 'text-zinc-500 hover:text-white hover:bg-white/10'
+                          ? 'text-rose-500 bg-rose-500/10 hover:bg-rose-500/20'
+                          : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-card'
                       }`}
                       title={isFav ? 'Đã yêu thích' : 'Thêm vào danh sách yêu thích'}
                     >
-                      <Heart className={`w-4 h-4 ${isFav ? 'fill-rose-400' : ''}`} />
+                      <Heart className={`w-4 h-4 ${isFav ? 'fill-rose-500' : ''}`} />
                     </button>
                   </div>
                 );
@@ -383,9 +383,9 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
           </div>
 
           {/* Quick AI Create Story CTA Bar */}
-          <div className="p-3 bg-zinc-950 border-t border-zinc-800 flex items-center justify-between gap-2">
-            <span className="text-[11px] font-bold text-zinc-400 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
+          <div className="p-3 bg-tod-card border-t border-tod-border flex items-center justify-between gap-2">
+            <span className="text-[11px] font-bold text-tod-text-muted flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
               Sáng tạo thêm câu chuyện mới?
             </span>
             <button
@@ -400,17 +400,17 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
 
         {/* RIGHT DRAWER: ACTIVE SELECTED BOOK PLAYER & DETAILS PREVIEW */}
         {activeStory && (
-          <div className="bookshelf-right-drawer pointer-events-auto w-full lg:w-[380px] rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_15px_40px_rgba(0,0,0,0.6)] text-tod-text p-4 sm:p-5 flex flex-col gap-4 transition-colors duration-500">
+          <div className="bookshelf-right-drawer pointer-events-auto w-full lg:w-[380px] rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_15px_40px_rgba(0,0,0,0.4)] text-tod-text p-4 sm:p-5 flex flex-col gap-4 transition-colors duration-500">
             <div className="bookshelf-detail-content flex flex-col gap-4">
             
             {/* Header: Book Cover & Badges */}
-            <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-zinc-950 shadow-inner group">
+            <div className="relative w-full h-44 rounded-2xl overflow-hidden bg-tod-card shadow-inner group">
               <img
                 src={activeStory.imageUrl}
                 alt={activeStory.title}
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
               
               <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
                 <span className="px-2.5 py-1 rounded-xl bg-black/70 backdrop-blur-md border border-white/20 text-[10px] font-black text-amber-300">
@@ -437,43 +437,43 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
             </div>
 
             {/* Description */}
-            <p className="text-xs text-zinc-300 leading-relaxed bg-zinc-950/60 p-3 rounded-2xl border border-zinc-800/80">
+            <p className="text-xs text-tod-text leading-relaxed bg-tod-card p-3 rounded-2xl border border-tod-border">
               {activeStory.description}
             </p>
 
             {/* Interactive Audio Preview Player */}
-            <div className="p-3.5 rounded-2xl bg-gradient-to-br from-sky-950/50 via-zinc-950 to-zinc-950 border border-sky-500/30 flex flex-col gap-2.5">
+            <div className="p-3.5 rounded-2xl bg-tod-card border border-sky-500/30 flex flex-col gap-2.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-400">
+                  <div className="w-7 h-7 rounded-xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center text-sky-500 dark:text-sky-400">
                     <Headphones className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[11px] font-extrabold text-white">Audio Ru Ngủ & Đọc Truyện</span>
-                    <p className="text-[9px] text-zinc-400">Giọng đọc AI thủ thỉ ấm áp</p>
+                    <span className="text-[11px] font-extrabold text-tod-text">Audio Ru Ngủ & Đọc Truyện</span>
+                    <p className="text-[9px] text-tod-text-muted">Giọng đọc AI thủ thỉ ấm áp</p>
                   </div>
                 </div>
 
                 <button
                   onClick={() => setIsPlayingAudio(!isPlayingAudio)}
-                  className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-sky-400 to-indigo-500 hover:from-sky-300 hover:to-indigo-400 text-zinc-950 flex items-center justify-center shadow-md shadow-sky-500/25 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
+                  className="w-9 h-9 rounded-2xl bg-gradient-to-tr from-sky-400 to-indigo-500 hover:from-sky-300 hover:to-indigo-400 text-white flex items-center justify-center shadow-md shadow-sky-500/25 transition-transform hover:scale-105 active:scale-95 cursor-pointer"
                 >
-                  {isPlayingAudio ? <Pause className="w-4 h-4 fill-zinc-950" /> : <Play className="w-4 h-4 fill-zinc-950 ml-0.5" />}
+                  {isPlayingAudio ? <Pause className="w-4 h-4 fill-white" /> : <Play className="w-4 h-4 fill-white ml-0.5" />}
                 </button>
               </div>
 
               {/* Progress Slider Bar */}
               <div className="flex items-center gap-2 pt-1">
-                <span className="text-[9px] font-mono text-zinc-400">01:45</span>
+                <span className="text-[9px] font-mono text-tod-text-muted">01:45</span>
                 <input
                   type="range"
                   min="0"
                   max="100"
                   value={audioProgress}
                   onChange={(e) => setAudioProgress(Number(e.target.value))}
-                  className="flex-1 h-1.5 bg-zinc-800 rounded-lg appearance-none cursor-pointer accent-sky-400"
+                  className="flex-1 h-1.5 bg-tod-surface border border-tod-border rounded-lg appearance-none cursor-pointer accent-sky-500"
                 />
-                <span className="text-[9px] font-mono text-zinc-400">08:00</span>
+                <span className="text-[9px] font-mono text-tod-text-muted">08:00</span>
               </div>
             </div>
 
@@ -489,9 +489,9 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
 
               <button
                 onClick={() => setIsPlayingAudio(!isPlayingAudio)}
-                className="py-3 rounded-2xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-zinc-200 font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+                className="py-3 rounded-2xl bg-tod-card hover:bg-tod-surface border border-tod-border text-tod-text font-extrabold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
-                <Headphones className="w-4 h-4 text-sky-400" />
+                <Headphones className="w-4 h-4 text-sky-500" />
                 <span>{isPlayingAudio ? 'Tạm Dừng Audio' : 'Nghe Audio'}</span>
               </button>
             </div>
@@ -506,7 +506,7 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
         
         {/* Day Streak */}
         <div className="flex items-center gap-2 sm:gap-3">
-          <div className="flex items-center gap-1.5 text-xs font-black text-amber-400">
+          <div className="flex items-center gap-1.5 text-xs font-black text-amber-500 dark:text-amber-400">
             <Flame className="w-4 h-4 fill-amber-400 text-amber-500 animate-bounce" />
             <span>Thử Thách 7 Ngày:</span>
           </div>
@@ -517,14 +517,14 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
                 key={idx}
                 className={`bookshelf-streak-pill px-2 py-0.5 rounded-lg text-[10px] font-extrabold flex items-center gap-1 ${
                   stk.isCompleted
-                    ? 'bg-amber-500/20 border border-amber-500/40 text-amber-300'
+                    ? 'bg-amber-500/20 border border-amber-500/40 text-amber-600 dark:text-amber-300'
                     : stk.isCurrent
-                    ? 'bg-sky-500/20 border border-sky-500/40 text-sky-300 animate-pulse'
-                    : 'bg-zinc-800 text-zinc-500'
+                    ? 'bg-sky-500/20 border border-sky-500/40 text-sky-600 dark:text-sky-300 animate-pulse'
+                    : 'bg-tod-card border border-tod-border text-tod-text-muted'
                 }`}
               >
                 <span>{stk.day}</span>
-                {stk.isCompleted && <CheckCircle2 className="w-3 h-3 text-amber-400" />}
+                {stk.isCompleted && <CheckCircle2 className="w-3 h-3 text-amber-500" />}
               </div>
             ))}
           </div>
@@ -532,13 +532,13 @@ export const LibraryBookshelfZoomOverlay: React.FC<LibraryBookshelfZoomOverlayPr
 
         {/* Badges Preview */}
         <div className="hidden md:flex items-center gap-2 text-xs">
-          <Award className="w-4 h-4 text-rose-400" />
-          <span className="font-extrabold text-zinc-300">Huy hiệu:</span>
+          <Award className="w-4 h-4 text-rose-500" />
+          <span className="font-extrabold text-tod-text">Huy hiệu:</span>
           <div className="flex items-center gap-1.5">
             {LIBRARY_BADGES.map((bdg) => (
               <span
                 key={bdg.id}
-                className="bookshelf-badge-pill px-2 py-0.5 rounded-lg bg-zinc-800 border border-zinc-700 text-[10px] font-bold text-zinc-300 flex items-center gap-1"
+                className="bookshelf-badge-pill px-2 py-0.5 rounded-lg bg-tod-card border border-tod-border text-[10px] font-bold text-tod-text flex items-center gap-1"
               >
                 <span>{bdg.icon}</span>
                 <span>{bdg.title}</span>

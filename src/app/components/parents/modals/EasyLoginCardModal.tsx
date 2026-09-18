@@ -49,23 +49,23 @@ export const EasyLoginCardModal: React.FC<EasyLoginCardModalProps> = ({
           onClose();
         }
       }}
-      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
+      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-md overflow-y-auto"
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="easy-login-card-modal pointer-events-auto w-full max-w-md rounded-3xl bg-zinc-950/95 border border-sky-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-5 sm:p-6 text-white space-y-4"
+        className="easy-login-card-modal pointer-events-auto w-full max-w-md rounded-3xl bg-tod-card border border-sky-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.4)] p-5 sm:p-6 text-tod-text space-y-4"
       >
         {/* Header */}
-        <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+        <div className="flex items-center justify-between pb-3 border-b border-tod-border">
           <div className="flex items-center gap-2">
-            <QrCode className="w-5 h-5 text-sky-400" />
-            <h3 className="text-sm sm:text-base font-black text-white">
+            <QrCode className="w-5 h-5 text-sky-500" />
+            <h3 className="text-sm sm:text-base font-black text-tod-text">
               Thẻ Đọc Sách EasyLogin Của Bé
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            className="p-2 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -74,7 +74,7 @@ export const EasyLoginCardModal: React.FC<EasyLoginCardModalProps> = ({
         {/* The Kid Badge / Card (Printable) */}
         <div
           ref={cardRef}
-          className="relative overflow-hidden rounded-3xl p-5 bg-gradient-to-br from-indigo-900/80 via-slate-900/90 to-sky-950/90 border-2 border-amber-400/40 shadow-2xl flex flex-col items-center text-center space-y-3 print:bg-white print:text-black print:border-black"
+          className="relative overflow-hidden rounded-3xl p-5 bg-gradient-to-br from-indigo-900/90 via-slate-900/90 to-sky-950/90 border-2 border-amber-400/40 shadow-2xl flex flex-col items-center text-center space-y-3 print:bg-white print:text-black print:border-black text-white"
         >
           {/* Top Brand Pill */}
           <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-[10px] font-black uppercase tracking-wider text-amber-300">
@@ -96,32 +96,32 @@ export const EasyLoginCardModal: React.FC<EasyLoginCardModalProps> = ({
           </div>
 
           {/* EasyLogin Badge Code Display */}
-          <div className="w-full p-3 rounded-2xl bg-zinc-950/80 border border-zinc-700/80 flex flex-col items-center gap-1">
-            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
+          <div className="w-full p-3 rounded-2xl bg-black/50 border border-white/20 flex flex-col items-center gap-1">
+            <span className="text-[10px] font-bold text-zinc-300 uppercase tracking-wider">
               Mã Nhận Diện Nhanh (EasyLogin)
             </span>
             <span className="font-mono text-base font-black text-amber-400 tracking-wider">
               {credential.easyLoginBadgeCode}
             </span>
-            <span className="text-[10px] text-zinc-400">
-              Mã PIN bảo mật: <strong className="text-zinc-200">{credential.pinCode}</strong>
+            <span className="text-[10px] text-zinc-300">
+              Mã PIN bảo mật: <strong className="text-white">{credential.pinCode}</strong>
             </span>
           </div>
 
           {/* Friendly Note */}
-          <p className="text-[11px] text-zinc-300 leading-relaxed max-w-xs">
+          <p className="text-[11px] text-zinc-200 leading-relaxed max-w-xs">
             Bé chỉ cần bấm vào hình <strong className="text-amber-300">{avatar.name} ({avatar.emoji})</strong> và nhập 4 số PIN trên máy tính bảng để đọc truyện!
           </p>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex items-center justify-between pt-2 border-t border-zinc-800">
+        <div className="flex items-center justify-between pt-2 border-t border-tod-border">
           <button
             type="button"
             onClick={handlePrint}
-            className="px-4 py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="px-4 py-2 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
           >
-            <Printer className="w-3.5 h-3.5 text-sky-400" />
+            <Printer className="w-3.5 h-3.5 text-sky-500" />
             <span>In Thẻ Đọc Sách</span>
           </button>
           <button

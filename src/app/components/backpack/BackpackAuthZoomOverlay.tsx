@@ -122,8 +122,8 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
               )}
             </div>
             <div>
-              <h2 className="font-black text-base tracking-tight text-white flex items-center gap-2">
-                <span className="text-white drop-shadow-sm font-black">
+              <h2 className="font-black text-base tracking-tight text-tod-text flex items-center gap-2">
+                <span>
                   {isLoggedIn
                     ? 'Hồ Sơ & Thông Tin Tài Khoản'
                     : authTab === 'signin'
@@ -133,14 +133,14 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
                     : 'Đăng Ký Tài Khoản'}
                 </span>
               </h2>
-              <p className="text-[10px] text-zinc-300 font-medium">
+              <p className="text-[10px] text-tod-text-muted font-medium">
                 {isLoggedIn ? 'Thông tin cá nhân & Quản lý gia đình MagicTales' : 'Cặp Sách Nobita 3D Auth'}
               </p>
             </div>
           </div>
           <button
             onClick={() => onStageChange(0)}
-            className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text transition-colors cursor-pointer"
             title="Quay lại góc nhìn toàn cảnh"
           >
             <X className="w-4 h-4" />
@@ -162,11 +162,11 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
           <div>
             {/* Notice for incoming invitation claim */}
             {typeof window !== 'undefined' && sessionStorage.getItem('pendingInvitationCode') && (
-              <div className="mb-3 p-3 rounded-2xl bg-gradient-to-r from-sky-950/70 to-indigo-950/70 border border-sky-500/40 text-xs flex items-start gap-2.5 shadow-md">
-                <ShieldCheck className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+              <div className="mb-3 p-3 rounded-2xl bg-sky-500/10 border border-sky-500/40 text-xs flex items-start gap-2.5 shadow-md">
+                <ShieldCheck className="w-4 h-4 text-sky-500 shrink-0 mt-0.5" />
                 <div className="space-y-0.5">
-                  <span className="font-bold text-sky-300">Xác nhận danh tính Phụ huynh</span>
-                  <p className="text-[11px] text-zinc-300 leading-normal">
+                  <span className="font-bold text-sky-600 dark:text-sky-300">Xác nhận danh tính Phụ huynh</span>
+                  <p className="text-[11px] text-tod-text-muted leading-normal">
                     Bạn đang có mã mời kết nối giám sát bé. Vui lòng tạo tài khoản bằng Email/SĐT cá nhân và xác thực OTP để đảm bảo quyền lợi bảo vệ dữ liệu cho con.
                   </p>
                 </div>
@@ -182,12 +182,12 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
                     setAuthTab('signin');
                     setApiFeedback({ type: null, message: '' });
                   }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900/90 border border-zinc-800 text-xs text-zinc-300 hover:text-white hover:border-zinc-700 transition-all cursor-pointer"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-tod-card hover:bg-tod-surface border border-tod-border text-xs text-tod-text-muted hover:text-tod-text transition-all cursor-pointer"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" />
                   <span>Đăng Nhập</span>
                 </button>
-                <div className="flex items-center gap-1 bg-zinc-950/80 p-1 rounded-xl border border-zinc-800/80 text-[11px] font-bold">
+                <div className="flex items-center gap-1 bg-tod-card p-1 rounded-xl border border-tod-border text-[11px] font-bold">
                   <button
                     type="button"
                     onClick={() => {
@@ -197,7 +197,7 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
                     className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                       authTab === 'forgot'
                         ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
-                        : 'text-zinc-400 hover:text-white'
+                        : 'text-tod-text-muted hover:text-tod-text'
                     }`}
                   >
                     1. Gửi Mã
@@ -211,7 +211,7 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
                     className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
                       authTab === 'reset'
                         ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white shadow-sm'
-                        : 'text-zinc-400 hover:text-white'
+                        : 'text-tod-text-muted hover:text-tod-text'
                     }`}
                   >
                     2. Đặt Lại MK
@@ -219,7 +219,7 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-3 gap-1 bg-zinc-950/80 p-1 rounded-2xl border border-zinc-800/80 mb-4 text-xs font-bold">
+              <div className="grid grid-cols-3 gap-1 bg-tod-card p-1 rounded-2xl border border-tod-border mb-4 text-xs font-bold">
                 <button
                   type="button"
                   onClick={() => {
@@ -229,7 +229,7 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
                   className={`py-2 rounded-xl transition-all cursor-pointer ${
                     authTab === 'signin'
                       ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20'
-                      : 'text-zinc-400 hover:text-white'
+                      : 'text-tod-text-muted hover:text-tod-text'
                   }`}
                 >
                   Đăng Nhập
@@ -243,7 +243,7 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
                   className={`py-2 rounded-xl transition-all cursor-pointer ${
                     authTab === 'signup'
                       ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20'
-                      : 'text-zinc-400 hover:text-white'
+                      : 'text-tod-text-muted hover:text-tod-text'
                   }`}
                 >
                   Đăng Ký
@@ -257,7 +257,7 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
                   className={`py-2 rounded-xl transition-all cursor-pointer ${
                     authTab === 'verify'
                       ? 'bg-gradient-to-r from-sky-500 to-indigo-600 text-white shadow-md shadow-sky-500/20'
-                      : 'text-zinc-400 hover:text-white'
+                      : 'text-tod-text-muted hover:text-tod-text'
                   }`}
                 >
                   Xác Thực
@@ -270,23 +270,23 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
               <div
                 className={`auth-form-field mb-4 p-3 rounded-2xl text-xs flex items-start gap-2.5 shadow-lg ${
                   apiFeedback.type === 'success'
-                    ? 'bg-emerald-950/80 border border-emerald-500/50 text-emerald-200'
+                    ? 'bg-emerald-500/10 border border-emerald-500/40 text-emerald-700 dark:text-emerald-200'
                     : apiFeedback.type === 'error'
-                    ? 'bg-rose-950/80 border border-rose-500/50 text-rose-200'
-                    : 'bg-sky-950/80 border border-sky-500/50 text-sky-200'
+                    ? 'bg-rose-500/10 border border-rose-500/40 text-rose-700 dark:text-rose-200'
+                    : 'bg-sky-500/10 border border-sky-500/40 text-sky-700 dark:text-sky-200'
                 }`}
               >
                 {apiFeedback.type === 'success' ? (
-                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400 mt-0.5" />
+                  <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-500 mt-0.5" />
                 ) : apiFeedback.type === 'error' ? (
-                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5" />
+                  <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 mt-0.5" />
                 ) : (
-                  <RefreshCw className="w-4 h-4 shrink-0 text-sky-400 animate-spin mt-0.5" />
+                  <RefreshCw className="w-4 h-4 shrink-0 text-sky-500 animate-spin mt-0.5" />
                 )}
                 <div className="flex flex-col gap-0.5">
                   <span className="font-semibold leading-tight">{apiFeedback.message}</span>
                   {apiFeedback.errors && apiFeedback.errors.length > 0 && (
-                    <ul className="list-disc list-inside text-[11px] text-rose-300 mt-1">
+                    <ul className="list-disc list-inside text-[11px] text-rose-600 dark:text-rose-300 mt-1">
                       {apiFeedback.errors.map((err, idx) => (
                         <li key={idx}>{err}</li>
                       ))}

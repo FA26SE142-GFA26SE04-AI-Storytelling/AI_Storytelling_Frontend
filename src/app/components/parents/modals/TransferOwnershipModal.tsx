@@ -28,35 +28,35 @@ export const TransferOwnershipModal: React.FC<TransferOwnershipModalProps> = ({
       onClick={(e) => {
         if (e.target === e.currentTarget && !isTransferringOwnership) onClose();
       }}
-      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-200"
     >
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-3xl bg-zinc-950 border border-amber-500/40 shadow-2xl flex flex-col overflow-hidden text-white pointer-events-auto">
-        <div className="p-5 border-b border-zinc-800 bg-gradient-to-r from-amber-950/60 via-zinc-900 to-zinc-950 flex items-center justify-between shrink-0">
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-3xl bg-tod-card border border-amber-500/40 shadow-2xl flex flex-col overflow-hidden text-tod-text pointer-events-auto">
+        <div className="p-5 border-b border-tod-border bg-tod-surface flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-md">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-500 dark:text-amber-300 shadow-md">
               <Crown className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-sm text-white">
+              <h3 className="font-extrabold text-sm text-tod-text">
                 Hoán Đổi Vai Trò Chủ Sở Hữu (Role Swap)
               </h3>
-              <p className="text-[11px] text-zinc-400">
-                Hồ sơ bé: <strong className="text-white">{childNickname}</strong>
+              <p className="text-[11px] text-tod-text-muted">
+                Hồ sơ bé: <strong className="text-tod-text">{childNickname}</strong>
               </p>
             </div>
           </div>
         </div>
 
-        <div className="p-5 space-y-3.5 text-xs text-zinc-300 leading-relaxed">
-          <div className="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-[11px] space-y-2">
-            <div className="flex items-center gap-2 font-bold text-amber-300">
-              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+        <div className="p-5 space-y-3.5 text-xs text-tod-text leading-relaxed">
+          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/40 text-amber-700 dark:text-amber-200 text-[11px] space-y-2">
+            <div className="flex items-center gap-2 font-bold text-amber-600 dark:text-amber-300">
+              <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
               <span>Quy tắc hoán đổi vai trò (BR-1.13):</span>
             </div>
-            <ul className="list-disc list-inside space-y-1 text-zinc-300 text-[11px] pl-1">
+            <ul className="list-disc list-inside space-y-1 text-tod-text-muted text-[11px] pl-1">
               <li>
                 <strong>Người nhận:</strong>{' '}
-                <span className="text-white font-semibold">
+                <span className="text-tod-text font-semibold">
                   {targetSupervisor.supervisorFullName || targetSupervisor.supervisorEmail || `Tài khoản #${targetSupervisor.supervisorUserId}`}
                 </span>{' '}
                 sẽ trở thành <strong>Chủ sở hữu mới (Owner)</strong> với toàn quyền quản lý.
@@ -70,25 +70,25 @@ export const TransferOwnershipModal: React.FC<TransferOwnershipModalProps> = ({
             </ul>
           </div>
 
-          <p className="text-zinc-300">
+          <p className="text-tod-text">
             Bạn có chắc chắn muốn gửi yêu cầu chuyển giao quyền Owner hồ sơ bé{' '}
-            <strong className="text-white">"{childNickname}"</strong> không?
+            <strong className="text-amber-600 dark:text-amber-400">"{childNickname}"</strong> không?
           </p>
 
           {transferError && (
-            <div className="p-3 rounded-xl bg-rose-950/70 border border-rose-500/40 text-rose-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/40 text-rose-600 dark:text-rose-300 text-xs flex items-center gap-2">
+              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
               <span>{transferError}</span>
             </div>
           )}
         </div>
 
-        <div className="p-4 border-t border-zinc-800 bg-zinc-950/90 flex items-center justify-end gap-2 shrink-0">
+        <div className="p-4 border-t border-tod-border bg-tod-surface flex items-center justify-end gap-2 shrink-0">
           <button
             type="button"
             onClick={onClose}
             disabled={isTransferringOwnership}
-            className="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-300 text-xs font-semibold cursor-pointer transition-colors"
+            className="px-4 py-2 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text text-xs font-semibold cursor-pointer transition-colors"
           >
             Hủy Bỏ
           </button>
