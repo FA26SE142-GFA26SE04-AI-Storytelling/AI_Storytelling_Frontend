@@ -31,36 +31,48 @@ export const TransferOwnershipModal: React.FC<TransferOwnershipModalProps> = ({
       className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200"
     >
       <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-3xl bg-zinc-950 border border-amber-500/40 shadow-2xl flex flex-col overflow-hidden text-white pointer-events-auto">
-        <div className="p-5 border-b border-zinc-800 bg-gradient-to-r from-amber-950/60 via-zinc-900 to-zinc-950 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-md">
-            <Crown className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="font-extrabold text-sm text-white">
-              Chuyển Nhượng Quyền Chủ Sở Hữu (Owner)
-            </h3>
-            <p className="text-[11px] text-zinc-400">
-              Hồ sơ bé: <strong>{childNickname}</strong>
-            </p>
+        <div className="p-5 border-b border-zinc-800 bg-gradient-to-r from-amber-950/60 via-zinc-900 to-zinc-950 flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-md">
+              <Crown className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-extrabold text-sm text-white">
+                Hoán Đổi Vai Trò Chủ Sở Hữu (Role Swap)
+              </h3>
+              <p className="text-[11px] text-zinc-400">
+                Hồ sơ bé: <strong className="text-white">{childNickname}</strong>
+              </p>
+            </div>
           </div>
         </div>
 
         <div className="p-5 space-y-3.5 text-xs text-zinc-300 leading-relaxed">
-          <div className="p-3 rounded-2xl bg-amber-950/30 border border-amber-500/30 text-amber-200/90 text-[11px] flex gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-            <div>
-              <strong>Lưu ý quan trọng:</strong> Sau khi chuyển quyền Owner cho{' '}
-              <strong>
-                {targetSupervisor.supervisorFullName || `Supervisor #${targetSupervisor.supervisorUserId}`}
-              </strong>
-              , bạn sẽ trở thành <strong>Giám sát viên phụ</strong> với quyền xem tiến độ cơ bản. Bạn sẽ không
-              còn quyền thu hồi hoặc đổi vai trò của người nhận nữa.
+          <div className="p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/40 text-amber-200 text-[11px] space-y-2">
+            <div className="flex items-center gap-2 font-bold text-amber-300">
+              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+              <span>Quy tắc hoán đổi vai trò (BR-1.13):</span>
             </div>
+            <ul className="list-disc list-inside space-y-1 text-zinc-300 text-[11px] pl-1">
+              <li>
+                <strong>Người nhận:</strong>{' '}
+                <span className="text-white font-semibold">
+                  {targetSupervisor.supervisorFullName || targetSupervisor.supervisorEmail || `Tài khoản #${targetSupervisor.supervisorUserId}`}
+                </span>{' '}
+                sẽ trở thành <strong>Chủ sở hữu mới (Owner)</strong> với toàn quyền quản lý.
+              </li>
+              <li>
+                <strong>Bạn:</strong> Sẽ chuyển xuống vai trò <strong>Giám sát viên phụ (Additional Supervisor)</strong>. Quyền hạn cũ sẽ được làm mới và cần được Owner mới phân quyền lại từ đầu (Least Privilege).
+              </li>
+              <li>
+                <strong>Điều kiện an toàn:</strong> Giao dịch sẽ bị từ chối nếu việc hoán đổi làm vi phạm quy định bảo vệ dữ liệu trẻ em (thiếu phụ huynh bảo hộ).
+              </li>
+            </ul>
           </div>
 
-          <p>
-            Bạn có chắc chắn muốn chuyển giao toàn quyền quản lý hồ sơ bé{' '}
-            <strong>"{childNickname}"</strong> không?
+          <p className="text-zinc-300">
+            Bạn có chắc chắn muốn gửi yêu cầu chuyển giao quyền Owner hồ sơ bé{' '}
+            <strong className="text-white">"{childNickname}"</strong> không?
           </p>
 
           {transferError && (
@@ -84,17 +96,17 @@ export const TransferOwnershipModal: React.FC<TransferOwnershipModalProps> = ({
             type="button"
             onClick={onConfirmTransfer}
             disabled={isTransferringOwnership}
-            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-zinc-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer disabled:opacity-50 transition-all"
+            className="px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-zinc-950 font-black text-xs flex items-center gap-2 shadow-lg shadow-amber-500/20 cursor-pointer disabled:opacity-50 transition-all whitespace-nowrap"
           >
             {isTransferringOwnership ? (
               <>
                 <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                <span>Đang chuyển quyền...</span>
+                <span>Đang xử lý hoán đổi...</span>
               </>
             ) : (
               <>
                 <Crown className="w-3.5 h-3.5" />
-                <span>Xác Nhận Chuyển Owner</span>
+                <span>Xác Nhận Hoán Đổi Vai Trò</span>
               </>
             )}
           </button>
