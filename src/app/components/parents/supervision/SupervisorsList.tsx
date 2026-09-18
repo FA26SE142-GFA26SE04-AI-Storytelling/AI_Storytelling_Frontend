@@ -10,6 +10,7 @@ import {
   Trash2,
   RefreshCw,
   Plus,
+  QrCode,
 } from 'lucide-react';
 import { SupervisionRelationship } from '../../../types/childProfile';
 
@@ -18,6 +19,7 @@ export interface SupervisorsListProps {
   childNickname: string;
   isLoadingSupervision: boolean;
   onOpenInvite: () => void;
+  onOpenAcceptInviteModal?: () => void;
   onOpenPermissionsModal: (supervisor: SupervisionRelationship) => void;
   onOpenTransferOwnershipModal: (supervisor: SupervisionRelationship) => void;
   revokingRelId: number | null;
@@ -30,6 +32,7 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
   childNickname,
   isLoadingSupervision,
   onOpenInvite,
+  onOpenAcceptInviteModal,
   onOpenPermissionsModal,
   onOpenTransferOwnershipModal,
   revokingRelId,
@@ -77,28 +80,38 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
 
   return (
     <div className="laptop-tab-content-row p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex flex-col gap-3">
-      <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-zinc-800 shrink-0">
         <div className="flex items-center gap-2">
-          <Users className="w-4 h-4 text-indigo-400" />
-          <h3 className="text-xs font-bold text-zinc-200">
+          <Users className="w-4 h-4 text-indigo-400 shrink-0" />
+          <h3 className="text-xs font-black text-white whitespace-nowrap">
             Người Đang Giám Sát Bé ({supervisors.length})
           </h3>
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5 shrink-0 flex-wrap justify-end">
           <button
             type="button"
             onClick={onRefresh}
-            disabled={isLoadingSupervision}
-            title="Làm mới danh sách"
-            className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-400 hover:text-white transition-colors cursor-pointer disabled:opacity-50"
+            title="Làm mới"
+            className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white transition-colors cursor-pointer shrink-0"
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoadingSupervision ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`w-3.5 h-3.5 ${isLoadingSupervision ? 'animate-spin text-indigo-400' : ''}`} />
           </button>
+          {onOpenAcceptInviteModal && (
+            <button
+              type="button"
+              onClick={onOpenAcceptInviteModal}
+              className="px-2.5 py-1.5 rounded-xl bg-emerald-950/90 hover:bg-emerald-900 border border-emerald-500/50 text-emerald-300 font-bold text-[11px] flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm whitespace-nowrap shrink-0"
+              title="Nhập mã mời hoặc quét QR để nhận giám sát"
+            >
+              <QrCode className="w-3.5 h-3.5" />
+              <span>Nhập mã lời mời</span>
+            </button>
+          )}
           <button
             type="button"
             onClick={onOpenInvite}
-            className="px-2.5 py-1 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer shadow-sm"
+            className="px-2.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-[11px] flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm whitespace-nowrap shrink-0"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Mời người giám sát</span>
@@ -112,7 +125,7 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
           <span>Đang tải thông tin người giám sát...</span>
         </div>
       ) : supervisors.length === 0 ? (
-        <div className="text-center py-4 text-xs text-zinc-500 italic">
+        <div className="text-center py-4 text-xs text-zinc-400 italic">
           Chưa có thông tin người giám sát nào cho bé {childNickname}.
         </div>
       ) : (
@@ -152,14 +165,14 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-1.5 self-end sm:self-center">
+                <div className="flex items-center gap-1.5 self-end sm:self-center shrink-0">
                   {!isOwner && (
                     <>
                       <button
                         type="button"
                         onClick={() => onOpenPermissionsModal(sup)}
                         title="Tùy chỉnh quyền hạn an toàn & nội dung"
-                        className="px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-indigo-500/50 text-indigo-300 hover:text-indigo-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                        className="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-indigo-500/50 text-indigo-300 hover:text-indigo-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                       >
                         <KeyRound className="w-3 h-3 text-indigo-400" />
                         <span>Phân quyền</span>
@@ -169,7 +182,7 @@ export const SupervisorsList: React.FC<SupervisorsListProps> = ({
                         type="button"
                         onClick={() => onOpenTransferOwnershipModal(sup)}
                         title="Chuyển nhượng quyền Chủ sở hữu hồ sơ"
-                        className="px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 text-amber-300 hover:text-amber-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                        className="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 hover:border-amber-500/50 text-amber-300 hover:text-amber-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                       >
                         <ArrowRightLeft className="w-3 h-3 text-amber-400" />
                         <span>Chuyển quyền</span>

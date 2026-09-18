@@ -891,13 +891,18 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
         <div className="laptop-unified-card pointer-events-auto w-full h-[80vh] max-h-[860px] min-h-[580px] flex flex-col lg:flex-row rounded-3xl bg-zinc-950/92 backdrop-blur-3xl border border-sky-500/30 shadow-[0_25px_60px_rgba(0,0,0,0.85)] text-white overflow-hidden">
           
           {/* CỘT TRÁI: DANH SÁCH HỒ SƠ CÁC BÉ */}
-          <div className="w-full lg:w-[320px] xl:w-[340px] shrink-0 border-b lg:border-b-0 lg:border-r border-zinc-800/80 bg-zinc-900/40 flex flex-col h-full overflow-hidden">
+          <div className="w-full lg:w-[350px] xl:w-[370px] shrink-0 border-b lg:border-b-0 lg:border-r border-zinc-800/80 bg-zinc-900/40 flex flex-col h-full overflow-hidden">
             <ChildProfilesSidebar
               childProfiles={childProfiles}
               selectedChildId={selectedChildId}
               onSelectChild={(id) => setSelectedChildId(id)}
               isLoadingChildren={isLoadingChildren}
               onOpenAddChildModal={handleOpenAddChildModal}
+              onOpenAcceptInviteModal={() => {
+                setAcceptInviteError(null);
+                setAcceptCodeInput('');
+                setShowAcceptInviteModal(true);
+              }}
               onActivateChild={handleActivateChild}
               activatingChildId={activatingChildId}
               onRefresh={fetchChildProfiles}
@@ -910,49 +915,49 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
             <div className="p-2.5 sm:p-3 bg-zinc-900/80 border-b border-zinc-800/90 flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none shrink-0">
               <button
                 onClick={() => setActiveTab('analytics')}
-                className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2 ${
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
                   activeTab === 'analytics'
                     ? 'bg-sky-500 text-zinc-950 font-black shadow-md shadow-sky-500/20'
-                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                    : 'text-zinc-300 hover:text-white hover:bg-white/5'
                 }`}
               >
                 <User className="w-3.5 h-3.5" />
                 <span>Hồ Sơ & Học Tập</span>
               </button>
-            <button
-              onClick={() => setActiveTab('controls')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'controls'
-                  ? 'bg-purple-500 text-white font-black shadow-md'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Kiểm Soát An Toàn</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('supervision')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'supervision'
-                  ? 'bg-emerald-500 text-zinc-950 font-black shadow-md'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Users className="w-3.5 h-3.5" />
-              <span>Người Giám Sát</span>
-            </button>
-            <button
-              onClick={() => setActiveTab('prompts')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'prompts'
-                  ? 'bg-amber-500 text-zinc-950 font-black shadow-md'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Gợi Ý Trò Chuyện</span>
-            </button>
-          </div>
+              <button
+                onClick={() => setActiveTab('controls')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+                  activeTab === 'controls'
+                    ? 'bg-purple-500 text-white font-black shadow-md shadow-purple-500/20'
+                    : 'text-zinc-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Kiểm Soát An Toàn</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('supervision')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+                  activeTab === 'supervision'
+                    ? 'bg-emerald-500 text-zinc-950 font-black shadow-md shadow-emerald-500/20'
+                    : 'text-zinc-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>Người Giám Sát</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('prompts')}
+                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+                  activeTab === 'prompts'
+                    ? 'bg-amber-500 text-zinc-950 font-black shadow-md shadow-amber-500/20'
+                    : 'text-zinc-300 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Gợi Ý Trò Chuyện</span>
+              </button>
+            </div>
 
           {/* Tab Content Container */}
           <div className="flex-1 p-4 overflow-y-auto dashboard-scrollbar space-y-3.5">
@@ -1120,6 +1125,11 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
                   onOpenTransferOwnershipModal={(sup) => {
                     setTransferError(null);
                     setTransferTargetSupervisor(sup);
+                  }}
+                  onOpenAcceptInviteModal={() => {
+                    setAcceptInviteError(null);
+                    setAcceptCodeInput('');
+                    setShowAcceptInviteModal(true);
                   }}
                   revokingRelId={revokingRelId}
                   handleRevokeSupervision={(relId) => handleRevokeSupervision(relId)}

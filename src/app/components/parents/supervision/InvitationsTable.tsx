@@ -88,21 +88,21 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
   return (
     <div className="laptop-tab-content-row p-4 rounded-2xl bg-zinc-900/80 border border-zinc-800 flex flex-col gap-3">
       {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+      <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-zinc-800 shrink-0">
         <div className="flex items-center gap-2">
-          <Mail className="w-4 h-4 text-sky-400" />
-          <h3 className="text-xs font-bold text-zinc-200">
+          <Mail className="w-4 h-4 text-sky-400 shrink-0" />
+          <h3 className="text-xs font-black text-white whitespace-nowrap">
             Danh Sách Mã Mời Giám Sát Của Bé ({invitations.length})
           </h3>
         </div>
-        <span className="text-[10px] text-zinc-400">
-          Mỗi mã gắn duy nhất với bé <span className="text-sky-300 font-semibold">{childNickname}</span>
+        <span className="text-[11px] text-zinc-300 font-medium">
+          Mỗi mã gắn duy nhất với bé <span className="text-sky-300 font-bold">{childNickname}</span>
         </span>
       </div>
 
       {invitations.length === 0 ? (
-        <div className="text-center py-5 text-xs text-zinc-500 italic flex flex-col items-center gap-1">
-          <Clock className="w-5 h-5 text-zinc-600" />
+        <div className="text-center py-5 text-xs text-zinc-400 italic flex flex-col items-center gap-1">
+          <Clock className="w-5 h-5 text-zinc-500" />
           <span>Chưa có mã mời nào được tạo cho bé. Nhấn &quot;Mời người giám sát&quot; ở trên để khởi tạo mã mới.</span>
         </div>
       ) : (
@@ -124,11 +124,11 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                 }`}
               >
                 {/* Left Info */}
-                <div className="flex items-start sm:items-center gap-2.5">
+                <div className="flex items-start sm:items-center gap-2.5 min-w-0">
                   <div className="p-2 rounded-lg bg-sky-500/10 text-sky-400 shrink-0">
                     <Mail className="w-4 h-4" />
                   </div>
-                  <div className="space-y-1">
+                  <div className="space-y-1 min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="font-bold text-white">
                         {inv.targetEmail || inv.inviteeEmail || 'Mã mời trực tiếp (Chưa gán liên hệ)'}
@@ -136,7 +136,7 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                       {getStatusBadge(inv.status, inv.expiresAt)}
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-400 font-mono">
+                    <div className="flex flex-wrap items-center gap-2 text-[11px] text-zinc-300 font-mono">
                       <span className="text-sky-300 font-bold bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-500/30">
                         {inv.invitationCode}
                       </span>
@@ -158,13 +158,13 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                 </div>
 
                 {/* Right Action Tools */}
-                <div className="flex flex-wrap items-center gap-1.5 self-end lg:self-center pt-1 lg:pt-0">
+                <div className="flex flex-wrap items-center gap-1.5 self-end lg:self-center pt-1 lg:pt-0 shrink-0">
                   {/* Copy Code */}
                   <button
                     type="button"
                     onClick={() => handleCopyInviteCode(inv.invitationCode)}
                     title="Sao chép chuỗi mã mời"
-                    className="px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-sky-400 text-zinc-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-sky-400 text-zinc-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                   >
                     {isCopied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-sky-400" />}
                     <span>{isCopied ? 'Đã chép' : 'Chép mã'}</span>
@@ -175,7 +175,7 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                     type="button"
                     onClick={() => handleCopyDirectLink(inv)}
                     title="Sao chép đường link gửi qua Zalo / SMS / Messenger"
-                    className="px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-indigo-400 text-zinc-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer"
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-indigo-400 text-zinc-200 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer whitespace-nowrap"
                   >
                     {isLinkCopied ? (
                       <Check className="w-3 h-3 text-emerald-400" />
@@ -190,7 +190,7 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                     type="button"
                     onClick={() => setSelectedQRInvite(inv)}
                     title="Xem mã QR để quét hoặc in ra giấy"
-                    className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-amber-300 transition-colors cursor-pointer"
+                    className="p-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-400 text-amber-300 transition-colors cursor-pointer shrink-0"
                   >
                     <QrCode className="w-3.5 h-3.5" />
                   </button>
@@ -201,7 +201,7 @@ export const InvitationsTable: React.FC<InvitationsTableProps> = ({
                     disabled={isCancelling}
                     onClick={() => handleReissueInvitation(inv.id, inv.targetEmail || inv.inviteeEmail || undefined)}
                     title="Cấp lại mã mới (Hủy mã cũ và sinh mã mới ngay nếu phụ huynh làm mất)"
-                    className="px-2 py-1 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-500/70 text-amber-300 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50"
+                    className="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-700 hover:border-amber-500/70 text-amber-300 font-bold text-[11px] flex items-center gap-1 transition-colors cursor-pointer disabled:opacity-50 whitespace-nowrap"
                   >
                     <RotateCcw className="w-3 h-3" />
                     <span>Cấp lại mã</span>

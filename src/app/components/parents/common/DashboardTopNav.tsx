@@ -13,6 +13,7 @@ import {
   ShieldCheck,
   UserPlus,
   Grid,
+  QrCode,
 } from 'lucide-react';
 import { TimeOfDay } from '../../three/RoomCanvas';
 
@@ -65,82 +66,35 @@ export const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-black text-sm sm:text-base tracking-tight bg-gradient-to-r from-sky-300 via-indigo-300 to-purple-300 bg-clip-text text-transparent">
-                Bảng Điều Khiển Của Phụ Huynh
+              <h1 className="font-black text-sm sm:text-base tracking-tight text-white flex items-center gap-2">
+                <span>Bảng Điều Khiển Của Phụ Huynh</span>
               </h1>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-extrabold text-emerald-300 flex items-center gap-1">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-extrabold text-emerald-300 flex items-center gap-1 shrink-0">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                 Trực Tuyến
               </span>
             </div>
-            <p className="text-[10px] text-zinc-400 font-medium hidden sm:block">
+            <p className="text-[11px] text-zinc-300 font-medium hidden sm:block">
               Theo dõi tiến trình đọc, cảm xúc EQ và thiết lập bảo vệ bé thời gian thực
             </p>
           </div>
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex items-center gap-1 bg-zinc-900/90 p-1 rounded-xl border border-zinc-800 text-xs">
-        <button
-          type="button"
-          data-tab="analytics"
-          onClick={() => setActiveTab?.('analytics')}
-          className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-            activeTab === 'analytics'
-              ? 'bg-sky-500 text-white shadow-md shadow-sky-500/30'
-              : 'text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          <Users className="w-3.5 h-3.5" />
-          <span>Hồ Sơ & Học Tập</span>
-        </button>
+      {/* Right Controls: Nhập Mã Mời, User Profile Pill, TimeOfDay, 2D View Switcher */}
+      <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap justify-end">
+        {onOpenAcceptInviteModal && (
+          <button
+            type="button"
+            onClick={onOpenAcceptInviteModal}
+            className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
+            title="Nhập mã hoặc quét QR để nhận quyền giám sát bé"
+          >
+            <QrCode className="w-3.5 h-3.5 text-white" />
+            <span>Nhập Mã Mời / QR</span>
+          </button>
+        )}
 
-        <button
-          type="button"
-          data-tab="controls"
-          onClick={() => setActiveTab?.('controls')}
-          className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-            activeTab === 'controls'
-              ? 'bg-purple-600 text-white shadow-md shadow-purple-500/30'
-              : 'text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          <Sliders className="w-3.5 h-3.5" />
-          <span>Quy Tắc An Toàn</span>
-        </button>
-
-        <button
-          type="button"
-          data-tab="supervision"
-          onClick={() => setActiveTab?.('supervision')}
-          className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-            activeTab === 'supervision'
-              ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/30'
-              : 'text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Giám Sát & Lời Mời</span>
-        </button>
-
-        <button
-          type="button"
-          data-tab="prompts"
-          onClick={() => setActiveTab?.('prompts')}
-          className={`px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
-            activeTab === 'prompts'
-              ? 'bg-amber-500 text-zinc-950 font-black shadow-md shadow-amber-500/30'
-              : 'text-zinc-400 hover:text-zinc-200'
-          }`}
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          <span>Cài Đặt AI</span>
-        </button>
-      </div>
-
-      {/* Right Controls: User Profile Pill, TimeOfDay, 2D View Switcher */}
-      <div className="flex items-center gap-2 shrink-0">
         {user && (
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-zinc-900/90 rounded-xl border border-zinc-800 text-xs">
             <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-400 to-teal-500 flex items-center justify-center font-black text-[11px] text-zinc-950">

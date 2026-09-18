@@ -30,6 +30,7 @@ export interface SupervisionManagerProps {
   handleSendInvitation: () => void;
   onOpenPermissionsModal: (supervisor: SupervisionRelationship) => void;
   onOpenTransferOwnershipModal: (supervisor: SupervisionRelationship) => void;
+  onOpenAcceptInviteModal?: () => void;
   revokingRelId: number | null;
   handleRevokeSupervision: (relId: number, name: string) => void;
   cancellingInvId: number | null;
@@ -57,6 +58,7 @@ export const SupervisionManager: React.FC<SupervisionManagerProps> = ({
   handleSendInvitation,
   onOpenPermissionsModal,
   onOpenTransferOwnershipModal,
+  onOpenAcceptInviteModal,
   revokingRelId,
   handleRevokeSupervision,
   cancellingInvId,
@@ -146,6 +148,7 @@ export const SupervisionManager: React.FC<SupervisionManagerProps> = ({
             childNickname={childNickname}
             isLoadingSupervision={isLoadingSupervision}
             onOpenInvite={() => setIsInviting(true)}
+            onOpenAcceptInviteModal={onOpenAcceptInviteModal}
             onOpenPermissionsModal={onOpenPermissionsModal}
             onOpenTransferOwnershipModal={onOpenTransferOwnershipModal}
             revokingRelId={revokingRelId}
