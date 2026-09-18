@@ -288,6 +288,9 @@
   --tod-primary: #0284c7;
   --tod-accent: #d97706;
   --tod-glow: rgba(14, 165, 233, 0.25);
+  --on-surface: #0f172a;
+  --on-surface-variant: #475569;
+  --on-background: #0f172a;
   color-scheme: light;
 }
 
@@ -304,6 +307,9 @@
   --tod-primary: #f97316;
   --tod-accent: #fb7185;
   --tod-glow: rgba(249, 115, 22, 0.35);
+  --on-surface: #fffbeb;
+  --on-surface-variant: #fde68a;
+  --on-background: #fffbeb;
   color-scheme: dark;
 }
 
@@ -321,6 +327,9 @@
   --tod-primary: #6366f1;
   --tod-accent: #c084fc;
   --tod-glow: rgba(99, 102, 241, 0.45);
+  --on-surface: #f8fafc;
+  --on-surface-variant: #94a3b8;
+  --on-background: #f8fafc;
   color-scheme: dark;
 }
 
@@ -333,6 +342,7 @@
   --color-tod-card: var(--tod-card);
   --color-tod-border: var(--tod-border);
   --color-tod-text: var(--tod-text);
+  --color-tod-text-muted: var(--tod-text-muted);
   --color-tod-muted: var(--tod-text-muted);
   --color-tod-primary: var(--tod-primary);
   --color-tod-accent: var(--tod-accent);
@@ -398,7 +408,7 @@ h6 {
   font-family: var(--font-comfortaa), cursive, sans-serif;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: var(--on-surface);
+  color: inherit;
 }
 
 /* 2. Tiêu đề Trang chính / Hero (Headline 1) */

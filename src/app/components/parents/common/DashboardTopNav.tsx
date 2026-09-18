@@ -53,10 +53,10 @@ export const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
           <button
             type="button"
             onClick={() => onStageChange(0)}
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shrink-0"
+            className="p-2 rounded-xl bg-tod-card hover:bg-tod-surface border border-tod-border text-tod-text-muted hover:text-tod-text transition-all cursor-pointer flex items-center gap-1.5 text-xs font-bold shrink-0"
             title="Quay lại góc nhìn toàn cảnh phòng 3D"
           >
-            <ArrowLeft className="w-4 h-4 text-sky-400" />
+            <ArrowLeft className="w-4 h-4 text-sky-500" />
             <span className="hidden xs:inline">Toàn Cảnh</span>
           </button>
         )}
@@ -66,15 +66,15 @@ export const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-black text-sm sm:text-base tracking-tight text-white flex items-center gap-2">
+              <h1 className="font-black text-sm sm:text-base tracking-tight text-tod-text flex items-center gap-2">
                 <span>Bảng Điều Khiển Của Phụ Huynh</span>
               </h1>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-extrabold text-emerald-300 flex items-center gap-1 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-extrabold text-emerald-600 dark:text-emerald-300 flex items-center gap-1 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Trực Tuyến
               </span>
             </div>
-            <p className="text-[11px] text-zinc-300 font-medium hidden sm:block">
+            <p className="text-[11px] text-tod-text-muted font-medium hidden sm:block">
               Theo dõi tiến trình đọc, cảm xúc EQ và thiết lập bảo vệ bé thời gian thực
             </p>
           </div>
