@@ -1251,6 +1251,7 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
       <SupervisionPermissionsModal
         targetSupervisor={permissionTargetSupervisor}
         childNickname={selectedChild?.nickname || ''}
+        childScope={selectedChild?.scope}
         onClose={() => setPermissionTargetSupervisor(null)}
         supervisorPermissions={supervisorPermissions}
         isLoadingPermissions={isLoadingPermissions}

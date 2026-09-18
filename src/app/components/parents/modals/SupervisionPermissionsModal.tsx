@@ -20,6 +20,7 @@ import {
 export interface SupervisionPermissionsModalProps {
   targetSupervisor: SupervisionRelationship | null;
   childNickname: string;
+  childScope?: 'Personal' | 'Organization' | string;
   onClose: () => void;
   supervisorPermissions: string[];
   isLoadingPermissions: boolean;
@@ -31,6 +32,7 @@ export interface SupervisionPermissionsModalProps {
 export const SupervisionPermissionsModal: React.FC<SupervisionPermissionsModalProps> = ({
   targetSupervisor,
   childNickname,
+  childScope = 'Personal',
   onClose,
   supervisorPermissions,
   isLoadingPermissions,
@@ -55,14 +57,19 @@ export const SupervisionPermissionsModal: React.FC<SupervisionPermissionsModalPr
               <Shield className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-extrabold text-sm sm:text-base text-white flex items-center gap-2">
-                <span>Phân Quyền Giám Sát</span>
-                <span className="text-[11px] px-2 py-0.5 rounded-full bg-sky-950 border border-sky-500/40 text-sky-300 font-mono">
-                  Supervisor #{targetSupervisor.supervisorUserId}
+              <div className="flex items-center gap-2">
+                <h3 className="font-extrabold text-sm sm:text-base text-white">
+                  Phân Quyền Giám Sát
+                </h3>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-sky-950 border border-sky-500/40 text-sky-300 font-mono font-bold">
+                  {targetSupervisor.supervisorRole || 'AdditionalSupervisor'}
                 </span>
-              </h3>
-              <p className="text-[11px] text-zinc-400">
-                Hồ sơ bé: <strong className="text-zinc-200">{childNickname}</strong> (Mối quan hệ #{targetSupervisor.id})
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 border border-zinc-700 text-zinc-300 font-bold">
+                  {childScope === 'Organization' ? 'Trường học' : 'Cá nhân'}
+                </span>
+              </div>
+              <p className="text-[11px] text-zinc-300 mt-0.5">
+                Hồ sơ bé: <strong className="text-white">{childNickname}</strong> (Người giám sát #{targetSupervisor.supervisorUserId})
               </p>
             </div>
           </div>
@@ -76,14 +83,18 @@ export const SupervisionPermissionsModal: React.FC<SupervisionPermissionsModalPr
           </button>
         </div>
 
-        {/* Summary Banner */}
-        <div className="px-4 py-2.5 bg-zinc-900/60 border-b border-zinc-800/80 flex items-center justify-between text-xs shrink-0">
-          <span className="text-zinc-400 flex items-center gap-1.5">
-            <Info className="w-3.5 h-3.5 text-sky-400" />
-            Quyền có hiệu lực tức thời khi bật/tắt
+        {/* Scope & Least Privilege Guideline Banner */}
+        <div className="px-4 py-2.5 bg-zinc-900/80 border-b border-zinc-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs shrink-0">
+          <span className="text-zinc-300 flex items-center gap-1.5 text-[11px]">
+            <Info className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+            <span>
+              {childScope === 'Organization'
+                ? 'Phạm vi Trường học: Quyền duyệt truyện mặc định thuộc Giáo viên lớp. Bạn có thể ghi đè bật thêm cho phụ huynh.'
+                : 'Phạm vi Cá nhân: Quyền duyệt truyện mặc định thuộc Phụ huynh. Có thể tùy chỉnh cấp thêm quyền cho người giám hộ.'}
+            </span>
           </span>
-          <span className="px-2.5 py-0.5 rounded-full bg-sky-500/20 border border-sky-500/30 text-sky-300 font-extrabold text-[11px]">
-            {supervisorPermissions.length} / {SYSTEM_PERMISSIONS_LIST.length} Quyền Đã Cấp
+          <span className="px-2.5 py-0.5 rounded-full bg-sky-500/20 border border-sky-500/30 text-sky-300 font-extrabold text-[11px] whitespace-nowrap self-start sm:self-auto">
+            {supervisorPermissions.length} / {SYSTEM_PERMISSIONS_LIST.length} Đã Cấp
           </span>
         </div>
 
