@@ -312,9 +312,22 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
     try {
       const res = await childProfileService.setupAndActivateChild(childId, nickname, ageBand);
       if (res.success) {
-        setCreateChildSuccess(`⚡ Đã kích hoạt hồ sơ bé "${nickname}" thành công (Đang hoạt động)!`);
         await fetchChildProfiles();
-        setTimeout(() => setCreateChildSuccess(null), 5000);
+        const updatedList = await childProfileService.getMyChildProfiles();
+        const targetChild = updatedList.data?.find((c) => c.id === childId);
+
+        if (
+          targetChild?.status === 'PendingParentConsent' ||
+          targetChild?.status === 'Pending Parent Consent' ||
+          targetChild?.status === 'pending_parent_consent'
+        ) {
+          setCreateChildSuccess(
+            `⚡ Hồ sơ bé "${nickname}" đã sẵn sàng và đang ở trạng thái: Chờ phụ huynh chấp thuận (Pending Parent Consent). Hãy gửi mã mời cho phụ huynh để kích hoạt Đang hoạt động.`
+          );
+        } else {
+          setCreateChildSuccess(`⚡ Đã kích hoạt hồ sơ bé "${nickname}" thành công (Đang hoạt động)!`);
+        }
+        setTimeout(() => setCreateChildSuccess(null), 6000);
       } else {
         setChildError(res.message || 'Không thể kích hoạt hồ sơ bé.');
       }
