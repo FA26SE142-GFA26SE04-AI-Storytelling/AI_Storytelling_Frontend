@@ -9,6 +9,7 @@ import { animateStaggerList } from '../../utils/gsapAnimations';
 gsap.registerPlugin(useGSAP);
 
 import { TimeOfDay, STAGES } from './RoomCanvas';
+import { TimeOfDaySwitcher } from '../common/TimeOfDaySwitcher';
 import { useAuth } from '../../context/AuthContext';
 import { useChildSession } from '../../context/ChildSessionContext';
 import {
@@ -31,7 +32,7 @@ export interface RoomHeaderProps {
   currentStage: number;
   onStageChange: (index: number) => void;
   timeOfDay: TimeOfDay;
-  onTimeOfDayChange: (time: TimeOfDay) => void;
+  onTimeOfDayChange: (time: TimeOfDay, e?: React.MouseEvent) => void;
   isVisible?: boolean;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
@@ -75,14 +76,13 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
       ref={headerRef}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
-      className={`fixed top-0 left-0 right-0 w-full z-40 transition-all duration-300 ease-in-out transform-gpu ${
-        isVisible
+      className={`fixed top-0 left-0 right-0 w-full z-40 transition-all duration-300 ease-in-out transform-gpu ${isVisible
           ? 'translate-y-0 opacity-100 pointer-events-auto'
           : '-translate-y-full opacity-0 pointer-events-none'
-      }`}
+        }`}
     >
       <div className="w-full bg-tod-surface/95 backdrop-blur-2xl border-b border-tod-border shadow-md px-3 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between gap-2 sm:gap-4 text-tod-text select-none transition-colors duration-500 overflow-x-auto scrollbar-none">
-        
+
         {/* 1. Brand Logo & Title */}
         <div className="header-brand flex items-center gap-2 shrink-0">
           <Link
@@ -124,11 +124,10 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
                 key={stg.id}
                 onClick={() => onStageChange(idx)}
                 title={stg.name.split(' (')[0]}
-                className={`header-stage-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap ${
-                  isActive
+                className={`header-stage-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap ${isActive
                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-zinc-950 shadow-md shadow-amber-500/20 scale-[1.02]'
                     : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
-                }`}
+                  }`}
               >
                 <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-zinc-950' : 'text-amber-500'}`} />
                 <span>{label}</span>
@@ -157,47 +156,11 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
             </button>
           </div>
 
-          {/* Time of Day Switcher Pills */}
-          <div className="flex items-center p-1 bg-tod-card border border-tod-border rounded-xl text-[11px] font-extrabold transition-colors duration-500">
-            <button
-              onClick={() => onTimeOfDayChange('morning')}
-              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-                timeOfDay === 'morning'
-                  ? 'bg-sky-500 text-white font-black shadow-sm'
-                  : 'text-tod-text-muted hover:text-tod-text'
-              }`}
-              title="Buổi Sáng"
-            >
-              <Sunrise className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Sáng</span>
-            </button>
-
-            <button
-              onClick={() => onTimeOfDayChange('afternoon')}
-              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-                timeOfDay === 'afternoon'
-                  ? 'bg-amber-500 text-zinc-950 font-black shadow-sm'
-                  : 'text-tod-text-muted hover:text-tod-text'
-              }`}
-              title="Buổi Chiều"
-            >
-              <Sun className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Chiều</span>
-            </button>
-
-            <button
-              onClick={() => onTimeOfDayChange('night')}
-              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-                timeOfDay === 'night'
-                  ? 'bg-indigo-600 text-white font-black shadow-sm'
-                  : 'text-tod-text-muted hover:text-tod-text'
-              }`}
-              title="Buổi Tối"
-            >
-              <Moon className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Tối</span>
-            </button>
-          </div>
+            {/* Time of Day Switcher with Expanding Circle Ripple Effect */}
+            <TimeOfDaySwitcher
+              timeOfDay={timeOfDay}
+              onTimeOfDayChange={onTimeOfDayChange}
+            />
 
           {/* Child Mode Active Pill or Child Login Button */}
           {isChildModeActive && currentSession ? (
@@ -236,11 +199,10 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
           {isLoggedIn && user ? (
             <button
               onClick={() => onStageChange(5)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                currentStage === 5
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap shrink-0 ${currentStage === 5
                   ? 'bg-gradient-to-r from-emerald-500 via-teal-500 to-sky-500 text-white shadow-lg shadow-emerald-500/30 scale-[1.03] ring-2 ring-emerald-400/50'
                   : 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm'
-              }`}
+                }`}
               title="Bấm để Zoom vào Cặp Sách 3D xem tài khoản"
             >
               <div className="w-5 h-5 rounded-lg bg-white/25 flex items-center justify-center font-black text-[10px] text-white">
@@ -253,11 +215,10 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
           ) : (
             <button
               onClick={() => onStageChange(5)}
-              className={`flex items-center px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap shrink-0 ${
-                currentStage === 5
+              className={`flex items-center px-3.5 py-1.5 rounded-xl text-xs font-black transition-all cursor-pointer whitespace-nowrap shrink-0 ${currentStage === 5
                   ? 'bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500 text-white shadow-lg shadow-sky-500/30 scale-[1.03] ring-2 ring-sky-400/50'
                   : 'bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white shadow-sm hover:scale-[1.02]'
-              }`}
+                }`}
               title="Bấm để Zoom vào Cặp Sách (Đăng Nhập / Đăng Ký)"
             >
               <span>Đăng Nhập</span>

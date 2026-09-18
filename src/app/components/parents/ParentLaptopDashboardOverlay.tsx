@@ -65,7 +65,7 @@ export interface ParentLaptopDashboardOverlayProps {
   currentStage: number;
   onStageChange: (stageIndex: number) => void;
   timeOfDay: TimeOfDay;
-  onTimeOfDayChange: (time: TimeOfDay) => void;
+  onTimeOfDayChange: (time: TimeOfDay, e?: React.MouseEvent) => void;
   onToggleViewMode?: () => void;
   is2DViewAvailable?: boolean;
 }

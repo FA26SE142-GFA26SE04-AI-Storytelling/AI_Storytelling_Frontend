@@ -26,6 +26,83 @@ export default function Room3DView() {
   const [currentStage, setCurrentStage] = useState<number>(0);
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getVietnamTimeOfDay);
   const [isTopHovered, setIsTopHovered] = useState<boolean>(false);
+  const rippleContainerRef = useRef<HTMLDivElement>(null);
+
+  // GSAP: Hiệu ứng lan tỏa màu sắc (Circular Ripple Wave) khi chuyển đổi buổi
+  const handleTimeOfDayTransition = useCallback((newTime: TimeOfDay, e?: React.MouseEvent | MouseEvent) => {
+    if (newTime === timeOfDay && rippleContainerRef.current?.childElementCount === 0) return;
+
+    // Xác định tọa độ nguồn phát hiệu ứng lan tỏa (từ vị trí nút bấm)
+    let originX = typeof window !== 'undefined' ? window.innerWidth / 2 : 0;
+    let originY = typeof window !== 'undefined' ? 50 : 0;
+
+    if (e && 'clientX' in e && e.clientX !== undefined && e.clientX > 0) {
+      originX = e.clientX;
+      originY = e.clientY;
+    } else if (e && 'currentTarget' in e && (e.currentTarget as any) instanceof HTMLElement) {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      originX = rect.left + rect.width / 2;
+      originY = rect.top + rect.height / 2;
+    }
+
+    if (rippleContainerRef.current) {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      const maxDist = Math.hypot(Math.max(originX, w - originX), Math.max(originY, h - originY));
+      const targetSize = maxDist * 2.4;
+
+      // Cấu hình bảng màu sóng lan tỏa đặc trưng theo từng thời điểm trong ngày
+      const themes = {
+        morning: {
+          bg: 'radial-gradient(circle, rgba(56, 189, 248, 0.75) 0%, rgba(254, 240, 138, 0.55) 35%, rgba(125, 211, 252, 0.35) 65%, transparent 100%)',
+          glow: '0 0 100px rgba(56, 189, 248, 0.6)',
+          ringColor: 'rgba(254, 240, 138, 0.8)',
+        },
+        afternoon: {
+          bg: 'radial-gradient(circle, rgba(245, 158, 11, 0.80) 0%, rgba(251, 146, 60, 0.60) 35%, rgba(244, 63, 94, 0.35) 65%, transparent 100%)',
+          glow: '0 0 100px rgba(245, 158, 11, 0.6)',
+          ringColor: 'rgba(251, 146, 60, 0.8)',
+        },
+        night: {
+          bg: 'radial-gradient(circle, rgba(99, 102, 241, 0.85) 0%, rgba(30, 27, 75, 0.75) 40%, rgba(15, 23, 42, 0.50) 70%, transparent 100%)',
+          glow: '0 0 100px rgba(99, 102, 241, 0.7)',
+          ringColor: 'rgba(167, 139, 250, 0.8)',
+        },
+      };
+
+      const theme = themes[newTime] || themes.morning;
+
+      // Tạo phần tử sóng lan tỏa động
+      const wave = document.createElement('div');
+      wave.className = 'fixed rounded-full pointer-events-none z-40';
+      wave.style.left = `${originX}px`;
+      wave.style.top = `${originY}px`;
+      wave.style.width = '0px';
+      wave.style.height = '0px';
+      wave.style.transform = 'translate(-50%, -50%)';
+      wave.style.background = theme.bg;
+      wave.style.boxShadow = theme.glow;
+      wave.style.border = `2px solid ${theme.ringColor}`;
+
+      rippleContainerRef.current.appendChild(wave);
+
+      // Animation bung tỏa toàn màn hình bằng GSAP
+      gsap.to(wave, {
+        width: targetSize,
+        height: targetSize,
+        opacity: 0,
+        duration: 0.85,
+        ease: 'power2.out',
+        onComplete: () => {
+          if (wave.parentNode) {
+            wave.parentNode.removeChild(wave);
+          }
+        },
+      });
+    }
+
+    setTimeOfDay(newTime);
+  }, [timeOfDay]);
 
   // Initial Auth parameters parsed from URL
   const [initialAuthTab, setInitialAuthTab] = useState<'signin' | 'signup' | 'verify' | 'forgot' | 'reset'>('signin');
@@ -179,7 +256,7 @@ export default function Room3DView() {
         currentStage={currentStage}
         onStageChange={handleStageChange}
         timeOfDay={timeOfDay}
-        onTimeOfDayChange={setTimeOfDay}
+        onTimeOfDayChange={handleTimeOfDayTransition}
         isVisible={isHeaderVisible}
         onMouseEnter={() => setIsTopHovered(true)}
         onMouseLeave={() => setIsTopHovered(false)}
@@ -207,7 +284,7 @@ export default function Room3DView() {
         currentStageIndex={currentStage}
         onStageChange={handleStageChange}
         timeOfDay={timeOfDay}
-        onTimeOfDayChange={setTimeOfDay}
+        onTimeOfDayChange={handleTimeOfDayTransition}
       />
 
       {/* Interactive Floating Parent Desk Overlay when zoomed into Desk (Stage 1) */}
@@ -216,7 +293,7 @@ export default function Room3DView() {
           currentStage={currentStage}
           onStageChange={handleStageChange}
           timeOfDay={timeOfDay}
-          onTimeOfDayChange={setTimeOfDay}
+          onTimeOfDayChange={handleTimeOfDayTransition}
           is2DViewAvailable={false}
         />
       )}
@@ -227,7 +304,7 @@ export default function Room3DView() {
           currentStage={currentStage}
           onStageChange={handleStageChange}
           timeOfDay={timeOfDay}
-          onTimeOfDayChange={setTimeOfDay}
+          onTimeOfDayChange={handleTimeOfDayTransition}
           is2DViewAvailable={false}
         />
       )}
@@ -238,7 +315,7 @@ export default function Room3DView() {
           currentStage={currentStage}
           onStageChange={handleStageChange}
           timeOfDay={timeOfDay}
-          onTimeOfDayChange={setTimeOfDay}
+          onTimeOfDayChange={handleTimeOfDayTransition}
           initialAuthTab={initialAuthTab}
           initialEmail={initialEmail}
           initialToken={initialToken}
@@ -251,7 +328,7 @@ export default function Room3DView() {
           currentStage={currentStage}
           onStageChange={handleStageChange}
           timeOfDay={timeOfDay}
-          onTimeOfDayChange={setTimeOfDay}
+          onTimeOfDayChange={handleTimeOfDayTransition}
           is2DViewAvailable={false}
         />
       )}
@@ -270,6 +347,9 @@ export default function Room3DView() {
         childProfiles={childProfiles}
         onLoginSuccess={handleEasyLoginSuccess}
       />
+
+      {/* GSAP Time of Day Circular Ripple Wave Overlay Container */}
+      <div ref={rippleContainerRef} className="fixed inset-0 pointer-events-none z-40 overflow-hidden" />
     </div>
   );
 }

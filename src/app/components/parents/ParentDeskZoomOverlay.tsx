@@ -44,7 +44,7 @@ export interface ParentDeskZoomOverlayProps {
   currentStage: number;
   onStageChange: (stageIndex: number) => void;
   timeOfDay: TimeOfDay;
-  onTimeOfDayChange: (time: TimeOfDay) => void;
+  onTimeOfDayChange: (time: TimeOfDay, e?: React.MouseEvent) => void;
   onToggleViewMode?: () => void;
   is2DViewAvailable?: boolean;
 }
@@ -118,10 +118,10 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
       data-time-of-day={timeOfDay}
       className={`absolute inset-0 pointer-events-none flex flex-col justify-between p-3 sm:p-6 overflow-hidden z-20 font-sans theme-${timeOfDay} transition-colors duration-500`}
     >
-      
+
       {/* 1. TOP HEADER FLOATING GLASSBAR */}
       <div className="desk-top-bar pointer-events-auto w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 p-3 sm:px-5 sm:py-3.5 rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_10px_30px_rgba(0,0,0,0.3)] text-tod-text transition-colors duration-500">
-        
+
         {/* Brand & Stage Selector */}
         <div className="flex items-center justify-between sm:justify-start gap-3">
           <button
@@ -154,28 +154,25 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
           {/* Time of Day Switcher */}
           <div className="flex items-center p-1 bg-tod-card rounded-xl border border-tod-border text-[11px] font-extrabold">
             <button
-              onClick={() => onTimeOfDayChange('morning')}
-              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-                timeOfDay === 'morning' ? 'bg-sky-500 text-white shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
-              }`}
+              onClick={(e) => onTimeOfDayChange('morning', e)}
+              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${timeOfDay === 'morning' ? 'bg-sky-500 text-white shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
+                }`}
               title="Buổi Sáng"
             >
               <Sunrise className="w-3.5 h-3.5" />
             </button>
             <button
-              onClick={() => onTimeOfDayChange('afternoon')}
-              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-                timeOfDay === 'afternoon' ? 'bg-amber-500 text-zinc-950 shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
-              }`}
+              onClick={(e) => onTimeOfDayChange('afternoon', e)}
+              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${timeOfDay === 'afternoon' ? 'bg-amber-500 text-zinc-950 shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
+                }`}
               title="Buổi Chiều"
             >
               <Sun className="w-3.5 h-3.5" />
             </button>
             <button
-              onClick={() => onTimeOfDayChange('night')}
-              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-                timeOfDay === 'night' ? 'bg-indigo-500 text-white shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
-              }`}
+              onClick={(e) => onTimeOfDayChange('night', e)}
+              className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${timeOfDay === 'night' ? 'bg-indigo-500 text-white shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
+                }`}
               title="Buổi Tối"
             >
               <Moon className="w-3.5 h-3.5" />
@@ -198,41 +195,38 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
 
       {/* 2. MAIN CONTENT AREA (LEFT NOTEBOOK DRAWER & RIGHT CONTROL PANEL) */}
       <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-end lg:items-center justify-between gap-4 my-2 overflow-hidden pointer-events-none">
-        
+
         {/* LEFT DRAWER: PARENT NOTEBOOK & ANALYTICS */}
         <div className="desk-left-drawer pointer-events-auto w-full lg:w-[460px] max-h-[50vh] lg:max-h-[75vh] flex flex-col rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_15px_40px_rgba(0,0,0,0.4)] text-tod-text overflow-hidden transition-colors duration-500">
-          
+
           {/* Notebook Header Tabs */}
           <div className="p-3 bg-tod-card border-b border-tod-border flex items-center gap-1 overflow-x-auto scrollbar-none">
             <button
               onClick={() => setActiveTab('stats')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'stats'
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === 'stats'
                   ? 'bg-sky-500 text-white shadow-md font-extrabold'
                   : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
-              }`}
+                }`}
             >
               <BarChart3 className="w-3.5 h-3.5" />
               <span>Thống Kê Đọc Tuần</span>
             </button>
             <button
               onClick={() => setActiveTab('conversation')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'conversation'
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === 'conversation'
                   ? 'bg-purple-500 text-white shadow-md font-extrabold'
                   : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
-              }`}
+                }`}
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>Gợi Ý Trò Chuyện AI</span>
             </button>
             <button
               onClick={() => setActiveTab('activity')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'activity'
+              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${activeTab === 'activity'
                   ? 'bg-emerald-500 text-white shadow-md font-extrabold'
                   : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
-              }`}
+                }`}
             >
               <FileText className="w-3.5 h-3.5" />
               <span>Nhật Ký & Báo Cáo</span>
@@ -241,7 +235,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
 
           {/* Tab Content Container */}
           <div className="flex-1 p-4 overflow-y-auto dashboard-scrollbar">
-            
+
             {/* TAB 1: WEEKLY STATS */}
             {activeTab === 'stats' && (
               <div className="flex flex-col gap-3.5">
@@ -327,17 +321,15 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
                     <div className="flex items-center gap-1 text-xs">
                       <button
                         onClick={() => setFeedbackRating('like')}
-                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-                          feedbackRating === 'like' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-600 dark:text-emerald-300' : 'bg-tod-surface border-tod-border text-tod-text-muted'
-                        }`}
+                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${feedbackRating === 'like' ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-600 dark:text-emerald-300' : 'bg-tod-surface border-tod-border text-tod-text-muted'
+                          }`}
                       >
                         👍
                       </button>
                       <button
                         onClick={() => setFeedbackRating('dislike')}
-                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
-                          feedbackRating === 'dislike' ? 'bg-rose-500/20 border-rose-500/50 text-rose-600 dark:text-rose-300' : 'bg-tod-surface border-tod-border text-tod-text-muted'
-                        }`}
+                        className={`p-1.5 rounded-lg border transition-all cursor-pointer ${feedbackRating === 'dislike' ? 'bg-rose-500/20 border-rose-500/50 text-rose-600 dark:text-rose-300' : 'bg-tod-surface border-tod-border text-tod-text-muted'
+                          }`}
                       >
                         👎
                       </button>
@@ -389,7 +381,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
 
         {/* RIGHT DRAWER: PARENT CONTROL & SCREEN TIME CONFIGURATION */}
         <div className="desk-right-drawer pointer-events-auto w-full lg:w-[380px] rounded-3xl bg-tod-surface backdrop-blur-xl border border-tod-border shadow-[0_15px_40px_rgba(0,0,0,0.4)] text-tod-text p-4 sm:p-5 flex flex-col gap-4 transition-colors duration-500">
-          
+
           <div className="flex items-center gap-2 pb-2 border-b border-tod-border">
             <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-purple-500 to-indigo-500 flex items-center justify-center text-white shadow-md">
               <ShieldCheck className="w-4 h-4" />
@@ -442,14 +434,12 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
 
               <button
                 onClick={() => setIsBedtimeEnabled(!isBedtimeEnabled)}
-                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  isBedtimeEnabled ? 'bg-indigo-500' : 'bg-zinc-400 dark:bg-zinc-700'
-                }`}
+                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${isBedtimeEnabled ? 'bg-indigo-500' : 'bg-zinc-400 dark:bg-zinc-700'
+                  }`}
               >
                 <div
-                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform shadow ${
-                    isBedtimeEnabled ? 'left-6' : 'left-1'
-                  }`}
+                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform shadow ${isBedtimeEnabled ? 'left-6' : 'left-1'
+                    }`}
                 />
               </button>
             </div>
@@ -466,14 +456,12 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
 
               <button
                 onClick={() => setIsPinProtected(!isPinProtected)}
-                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${
-                  isPinProtected ? 'bg-emerald-500' : 'bg-zinc-400 dark:bg-zinc-700'
-                }`}
+                className={`w-11 h-6 rounded-full transition-colors relative cursor-pointer ${isPinProtected ? 'bg-emerald-500' : 'bg-zinc-400 dark:bg-zinc-700'
+                  }`}
               >
                 <div
-                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform shadow ${
-                    isPinProtected ? 'left-6' : 'left-1'
-                  }`}
+                  className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform shadow ${isPinProtected ? 'left-6' : 'left-1'
+                    }`}
                 />
               </button>
             </div>

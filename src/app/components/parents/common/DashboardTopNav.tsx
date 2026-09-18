@@ -20,7 +20,7 @@ import { TimeOfDay } from '../../three/RoomCanvas';
 export interface DashboardTopNavProps {
   onStageChange?: (stageIndex: number) => void;
   timeOfDay: TimeOfDay;
-  onTimeOfDayChange: (time: TimeOfDay) => void;
+  onTimeOfDayChange: (time: TimeOfDay, e?: React.MouseEvent) => void;
   onToggleViewMode?: () => void;
   is2DViewAvailable?: boolean;
   activeTab?: 'analytics' | 'controls' | 'supervision' | 'prompts';
@@ -115,30 +115,27 @@ export const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
         <div className="flex items-center p-1 bg-tod-card rounded-xl border border-tod-border text-[11px] font-extrabold transition-colors duration-500">
           <button
             type="button"
-            onClick={() => onTimeOfDayChange('morning')}
-            className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-              timeOfDay === 'morning' ? 'bg-sky-500 text-white font-black shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
-            }`}
+            onClick={(e) => onTimeOfDayChange('morning', e)}
+            className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${timeOfDay === 'morning' ? 'bg-sky-500 text-white font-black shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
+              }`}
             title="Buổi Sáng"
           >
             <Sunrise className="w-3.5 h-3.5" />
           </button>
           <button
             type="button"
-            onClick={() => onTimeOfDayChange('afternoon')}
-            className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-              timeOfDay === 'afternoon' ? 'bg-amber-500 text-zinc-950 font-black shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
-            }`}
+            onClick={(e) => onTimeOfDayChange('afternoon', e)}
+            className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${timeOfDay === 'afternoon' ? 'bg-amber-500 text-zinc-950 font-black shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
+              }`}
             title="Buổi Chiều"
           >
             <Sun className="w-3.5 h-3.5" />
           </button>
           <button
             type="button"
-            onClick={() => onTimeOfDayChange('night')}
-            className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${
-              timeOfDay === 'night' ? 'bg-indigo-600 text-white font-black shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
-            }`}
+            onClick={(e) => onTimeOfDayChange('night', e)}
+            className={`p-1.5 sm:px-2 py-1 rounded-lg flex items-center gap-1 transition-all cursor-pointer ${timeOfDay === 'night' ? 'bg-indigo-600 text-white font-black shadow-sm' : 'text-tod-text-muted hover:text-tod-text'
+              }`}
             title="Buổi Tối"
           >
             <Moon className="w-3.5 h-3.5" />

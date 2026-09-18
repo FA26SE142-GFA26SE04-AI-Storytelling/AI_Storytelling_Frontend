@@ -177,3 +177,74 @@ export function animatePopItem(
   });
 }
 
+/**
+ * Hiệu ứng vòng tròn to dần ra từ nút bấm (Expanding Circle Ripple Effect)
+ */
+export function animateExpandingCircleRipple(
+  targetButton: HTMLElement,
+  theme: 'morning' | 'afternoon' | 'night' = 'morning'
+) {
+  if (typeof window === 'undefined' || typeof document === 'undefined' || !targetButton) return;
+
+  const rect = targetButton.getBoundingClientRect();
+  const centerX = rect.left + rect.width / 2;
+  const centerY = rect.top + rect.height / 2;
+
+  // Cấu hình màu sắc vòng tròn theo buổi
+  const themeColors = {
+    morning: {
+      border: 'rgba(56, 189, 248, 0.85)',
+      glow: '0 0 20px rgba(56, 189, 248, 0.7), inset 0 0 10px rgba(254, 240, 138, 0.5)',
+      fill: 'radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(254, 240, 138, 0.2) 50%, transparent 70%)',
+    },
+    afternoon: {
+      border: 'rgba(245, 158, 11, 0.9)',
+      glow: '0 0 20px rgba(245, 158, 11, 0.7), inset 0 0 10px rgba(251, 146, 60, 0.5)',
+      fill: 'radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, rgba(251, 146, 60, 0.2) 50%, transparent 70%)',
+    },
+    night: {
+      border: 'rgba(129, 140, 248, 0.9)',
+      glow: '0 0 20px rgba(99, 102, 241, 0.7), inset 0 0 10px rgba(167, 139, 250, 0.5)',
+      fill: 'radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, rgba(30, 27, 75, 0.2) 50%, transparent 70%)',
+    },
+  };
+
+  const currentTheme = themeColors[theme] || themeColors.morning;
+
+  // Hiệu ứng micro-bounce cho nút được nhấn
+  gsap.fromTo(
+    targetButton,
+    { scale: 0.88 },
+    { scale: 1, duration: 0.3, ease: 'back.out(2)' }
+  );
+
+  // Tạo ĐÚNG 1 vòng tròn mở rộng to dần ra ngoài từ tâm nút bấm
+  const ring = document.createElement('div');
+  ring.className = 'fixed rounded-full pointer-events-none z-50';
+  ring.style.left = `${centerX}px`;
+  ring.style.top = `${centerY}px`;
+  ring.style.width = '24px';
+  ring.style.height = '24px';
+  ring.style.transform = 'translate(-50%, -50%)';
+  ring.style.border = `2.5px solid ${currentTheme.border}`;
+  ring.style.boxShadow = currentTheme.glow;
+  ring.style.background = currentTheme.fill;
+  ring.style.opacity = '1';
+
+  document.body.appendChild(ring);
+
+  gsap.to(ring, {
+    width: 200,
+    height: 200,
+    opacity: 0,
+    scale: 1.4,
+    duration: 0.6,
+    ease: 'power2.out',
+    onComplete: () => {
+      if (ring.parentNode) {
+        ring.parentNode.removeChild(ring);
+      }
+    },
+  });
+}
+
