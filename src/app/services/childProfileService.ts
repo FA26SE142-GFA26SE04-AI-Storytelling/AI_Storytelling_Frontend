@@ -1,12 +1,30 @@
 import { ApiResponse } from '../types/auth';
-import { ChildProfile, CreateChildProfileRequest } from '../types/childProfile';
+import {
+  ChildProfile,
+  CreateChildProfileRequest,
+  OrganizationSummary,
+  ClassGroupSummary,
+} from '../types/childProfile';
 import { authService } from './authService';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5259/api/v1';
 
+/**
+ * Trợ giúp phân tích JSON an toàn tránh lỗi 'Unexpected end of JSON input'
+ */
+async function parseJsonResponse<T>(response: Response): Promise<T | null> {
+  try {
+    const text = await response.text();
+    if (!text || !text.trim()) return null;
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
+
 export const childProfileService = {
   /**
-   * Lấy danh sách hồ sơ trẻ do tài khoản đang đăng nhập sở hữu (GET /ChildProfile/mine)
+   * Lấy danh sách hồ sơ trẻ em của người dùng hiện tại (GET /api/v1/ChildProfile/mine)
    */
   async getMyChildProfiles(): Promise<ApiResponse<ChildProfile[]>> {
     try {
@@ -14,39 +32,121 @@ export const childProfileService = {
         method: 'GET',
       });
 
-      const data: ApiResponse<ChildProfile[]> = await response.json();
-      return data;
+      if (!response.ok) {
+        return {
+          success: false,
+          message: 'Không thể tải danh sách hồ sơ trẻ.',
+          data: [],
+        };
+      }
+
+      const data = await parseJsonResponse<ApiResponse<ChildProfile[]>>(response);
+      return data ?? { success: true, message: '', data: [] };
     } catch (error) {
       console.error('Get my child profiles error:', error);
       return {
         success: false,
-        message: 'Không thể tải danh sách hồ sơ trẻ từ Backend (http://localhost:5259).',
-        data: null,
+        message: 'Không thể tải danh sách hồ sơ trẻ từ Backend.',
+        data: [],
         errors: [(error as Error).message || 'Network connection failed'],
       };
     }
   },
 
   /**
-   * Tạo hồ sơ trẻ mới (POST /ChildProfile)
+   * Lấy danh sách tổ chức mà tài khoản có tham gia (GET /api/v1/Organization/mine)
+   */
+  async getMyOrganizations(): Promise<ApiResponse<OrganizationSummary[]>> {
+    try {
+      const response = await authService.authenticatedFetch(`${API_BASE_URL}/Organization/mine`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: 'Không thể tải danh sách tổ chức.',
+          data: [],
+        };
+      }
+
+      const data = await parseJsonResponse<ApiResponse<OrganizationSummary[]>>(response);
+      return data ?? { success: true, message: '', data: [] };
+    } catch (error) {
+      console.error('Get my organizations error:', error);
+      return {
+        success: false,
+        message: 'Không thể tải danh sách tổ chức.',
+        data: [],
+        errors: [(error as Error).message || 'Network error'],
+      };
+    }
+  },
+
+  /**
+   * Lấy danh sách nhóm lớp học của giáo viên (GET /api/v1/ClassGroup/mine)
+   */
+  async getMyClassGroups(): Promise<ApiResponse<ClassGroupSummary[]>> {
+    try {
+      const response = await authService.authenticatedFetch(`${API_BASE_URL}/ClassGroup/mine`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        return {
+          success: false,
+          message: 'Không thể tải danh sách lớp học.',
+          data: [],
+        };
+      }
+
+      const data = await parseJsonResponse<ApiResponse<ClassGroupSummary[]>>(response);
+      return data ?? { success: true, message: '', data: [] };
+    } catch (error) {
+      console.error('Get my class groups error:', error);
+      return {
+        success: false,
+        message: 'Không thể tải danh sách lớp học.',
+        data: [],
+        errors: [(error as Error).message || 'Network error'],
+      };
+    }
+  },
+
+  /**
+   * Tạo hồ sơ trẻ mới độc lập (POST /ChildProfile)
+   * Trạng thái sau xử lý: Draft.
+   * Nếu scope=Personal: organizationId và classGroupId để null.
+   * Nếu scope=Organization: bắt buộc organizationId và classGroupId.
    */
   async createChildProfile(data: CreateChildProfileRequest): Promise<ApiResponse<ChildProfile>> {
     try {
+      const payload: Record<string, any> = {
+        nickname: data.nickname.trim(),
+        ageBand: data.ageBand,
+        language: data.language?.trim() || 'vi',
+        scope: data.scope || 'Personal',
+      };
+
+      if (data.scope === 'Organization') {
+        payload.organizationId = data.organizationId;
+        payload.classGroupId = data.classGroupId;
+      }
+
       const response = await authService.authenticatedFetch(`${API_BASE_URL}/ChildProfile`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          nickname: data.nickname,
-          ageBand: data.ageBand,
-          language: data.language || 'vi',
-          scope: data.scope || 'Personal',
-        }),
+        body: JSON.stringify(payload),
       });
 
-      const result: ApiResponse<ChildProfile> = await response.json();
-      return result;
+      const result = await parseJsonResponse<ApiResponse<ChildProfile>>(response);
+      return result ?? {
+        success: response.ok,
+        message: response.ok ? 'Tạo hồ sơ thành công' : 'Không thể tạo hồ sơ trẻ.',
+        data: null,
+      };
     } catch (error) {
       console.error('Create child profile error:', error);
       return {
@@ -124,7 +224,12 @@ export const childProfileService = {
         }
       );
 
-      return await response.json();
+      const result = await parseJsonResponse<ApiResponse<unknown>>(response);
+      return result ?? {
+        success: response.ok,
+        message: response.ok ? 'Đã lưu quy tắc an toàn thành công.' : 'Không thể thiết lập quy tắc an toàn.',
+        data: null,
+      };
     } catch (error) {
       console.error('Set safety policy error:', error);
       return {
@@ -328,15 +433,39 @@ export const childProfileService = {
           method: 'GET',
         }
       );
-      return await response.json();
+      const result = await parseJsonResponse<ApiResponse<import('../types/childProfile').SafetyPolicy>>(response);
+      return result ?? {
+        success: false,
+        message: 'Không thể lấy quy tắc an toàn của bé.',
+        data: null as any,
+      };
     } catch (error) {
       console.error('Get safety policy error:', error);
       return {
         success: false,
         message: 'Không thể lấy quy tắc an toàn của bé.',
-        data: null,
+        data: null as any,
         errors: [(error as Error).message || 'Network error'],
       };
+    }
+  },
+
+  /**
+   * Lấy danh sách toàn bộ danh mục nội dung an toàn (GET /api/v1/ContentCategory)
+   */
+  async getContentCategories(): Promise<ApiResponse<import('../types/childProfile').ContentCategory[]>> {
+    try {
+      const response = await authService.authenticatedFetch(`${API_BASE_URL}/ContentCategory`, {
+        method: 'GET',
+      });
+      if (!response.ok) {
+        return { success: false, message: 'Không thể tải danh mục nội dung.', data: [] };
+      }
+      const data = await parseJsonResponse<ApiResponse<import('../types/childProfile').ContentCategory[]>>(response);
+      return data ?? { success: true, message: '', data: [] };
+    } catch (error) {
+      console.error('Get content categories error:', error);
+      return { success: false, message: 'Lỗi tải danh mục nội dung.', data: [] };
     }
   },
 

@@ -579,4 +579,129 @@ h6 {
   display: none;
   width: 0;
   height: 0;
+}
+
+/* ==========================================================================
+   WONDERSPUN DASHBOARD DESIGN SYSTEM (Parent Dashboard Base Tokens & Utilities)
+   ========================================================================== */
+
+/* 1. Glassmorphism Panels */
+.dashboard-glass-panel {
+  background: rgba(15, 19, 28, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .dashboard-glass-panel,
+:root:not(.dark):not([data-theme="dark"]) .dashboard-glass-panel {
+  background: rgba(255, 247, 230, 0.88);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(158, 134, 107, 0.18);
+}
+
+/* 2. Standard Dashboard Cards */
+.dashboard-card {
+  border-radius: 1rem;
+  background-color: rgba(24, 27, 37, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dashboard-card-interactive {
+  border-radius: 1rem;
+  background-color: rgba(24, 27, 37, 0.75);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.dashboard-card-interactive:hover {
+  border-color: rgba(56, 189, 248, 0.4);
+  background-color: rgba(30, 35, 48, 0.85);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+}
+
+/* 3. Inputs & Selects */
+.dashboard-input {
+  width: 100%;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.75rem;
+  background-color: rgba(15, 19, 28, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f0f4fc;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.dashboard-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+.dashboard-input::placeholder {
+  color: #71717a;
+}
+
+/* 4. Elegant Custom Scrollbar */
+.dashboard-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 9999px;
+}
+
+.dashboard-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* 5. Reusable Status Badges */
+.badge-safety-configured {
+  background-color: rgba(6, 78, 59, 0.8);
+  border: 1px solid rgba(16, 185, 129, 0.5);
+  color: #6ee7b7;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
+}
+
+/* 6. Buttons */
+.btn-dashboard-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #0ea5e9, #6366f1);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.25);
+}
+
+.btn-dashboard-primary:hover {
+  background: linear-gradient(135deg, #38bdf8, #818cf8);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-dashboard-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
 }

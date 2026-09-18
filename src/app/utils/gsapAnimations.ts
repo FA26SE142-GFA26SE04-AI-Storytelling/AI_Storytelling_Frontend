@@ -1,5 +1,32 @@
 import { gsap } from 'gsap';
 
+// Tắt cảnh báo null target từ GSAP toàn cục
+if (typeof window !== 'undefined') {
+  gsap.config({ nullTargetWarn: false });
+}
+
+/**
+ * Kiểm tra xem target có tồn tại trong DOM không trước khi chạy animation
+ */
+export function hasValidTarget(target: gsap.DOMTarget): boolean {
+  if (!target) return false;
+  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+  if (typeof target === 'string') {
+    try {
+      return document.querySelectorAll(target).length > 0;
+    } catch {
+      return false;
+    }
+  }
+  if (Array.isArray(target)) {
+    return target.length > 0 && target.some((t) => hasValidTarget(t));
+  }
+  if (target instanceof NodeList || target instanceof HTMLCollection) {
+    return target.length > 0;
+  }
+  return true;
+}
+
 /**
  * GSAP Animation Helpers & Presets
  * Cung cấp các hiệu ứng xuất hiện (entrance animations) chuẩn hóa và mượt mà cho UI
@@ -20,6 +47,7 @@ export function animateHeaderDown(
   target: gsap.DOMTarget,
   options?: gsap.TweenVars
 ) {
+  if (!hasValidTarget(target)) return null;
   return gsap.from(target, {
     y: -40,
     opacity: 0,
@@ -36,6 +64,7 @@ export function animateDrawerLeft(
   target: gsap.DOMTarget,
   options?: gsap.TweenVars
 ) {
+  if (!hasValidTarget(target)) return null;
   return gsap.from(target, {
     x: -80,
     opacity: 0,
@@ -52,6 +81,7 @@ export function animateDrawerRight(
   target: gsap.DOMTarget,
   options?: gsap.TweenVars
 ) {
+  if (!hasValidTarget(target)) return null;
   return gsap.from(target, {
     x: 80,
     opacity: 0,
@@ -68,6 +98,7 @@ export function animateFooterUp(
   target: gsap.DOMTarget,
   options?: gsap.TweenVars
 ) {
+  if (!hasValidTarget(target)) return null;
   return gsap.from(target, {
     y: 35,
     opacity: 0,
@@ -84,6 +115,7 @@ export function animateModalPop(
   target: gsap.DOMTarget,
   options?: gsap.TweenVars
 ) {
+  if (!hasValidTarget(target)) return null;
   return gsap.fromTo(
     target,
     {
@@ -109,6 +141,7 @@ export function animateStaggerList(
   target: gsap.DOMTarget,
   options?: gsap.TweenVars & { stagger?: number }
 ) {
+  if (!hasValidTarget(target)) return null;
   const { stagger = 0.05, ...rest } = options || {};
   return gsap.fromTo(
     target,
@@ -134,6 +167,7 @@ export function animatePopItem(
   target: gsap.DOMTarget,
   options?: gsap.TweenVars
 ) {
+  if (!hasValidTarget(target)) return null;
   return gsap.from(target, {
     scale: 0.75,
     opacity: 0,
@@ -142,3 +176,4 @@ export function animatePopItem(
     ...options,
   });
 }
+

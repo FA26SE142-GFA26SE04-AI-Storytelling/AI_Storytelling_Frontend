@@ -9,6 +9,25 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/forgot-password',
+        destination: '/?auth=forgot',
+        permanent: false,
+      },
+      {
+        source: '/reset-password',
+        destination: '/?auth=reset',
+        permanent: false,
+      },
+      {
+        source: '/invitations/:path*',
+        destination: '/',
+        permanent: false,
+      },
+    ];
+  },
 };
 
 export default nextConfig;
