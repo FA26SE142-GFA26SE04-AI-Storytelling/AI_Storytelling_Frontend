@@ -51,9 +51,9 @@ export const ChildProfilesSidebar: React.FC<ChildProfilesSidebarProps> = ({
   };
 
   return (
-    <div className="laptop-right-card w-full lg:w-[380px] shrink-0 p-4 rounded-3xl bg-zinc-950/90 backdrop-blur-2xl border border-sky-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.7)] text-white flex flex-col gap-3.5 max-h-[75vh] overflow-hidden">
+    <div className="w-full h-full p-4 flex flex-col gap-3.5 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between pb-2 border-b border-zinc-800">
+      <div className="flex items-center justify-between pb-2.5 border-b border-zinc-800 shrink-0">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-sky-500/20 text-sky-400">
             <Users className="w-4 h-4" />
@@ -85,7 +85,7 @@ export const ChildProfilesSidebar: React.FC<ChildProfilesSidebarProps> = ({
       </div>
 
       {/* Profiles List */}
-      <div className="flex-1 overflow-y-auto dashboard-scrollbar space-y-2 max-h-[calc(100vh-280px)] pr-1">
+      <div className="flex-1 overflow-y-auto dashboard-scrollbar space-y-2 pr-1">
         {isLoadingChildren ? (
           <div className="py-12 flex flex-col items-center justify-center gap-2 text-zinc-500 text-xs">
             <RefreshCw className="w-5 h-5 animate-spin text-sky-400" />

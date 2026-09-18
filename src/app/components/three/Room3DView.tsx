@@ -43,11 +43,14 @@ export default function Room3DView() {
     const codeParam = params.get('code') || params.get('invitationCode') || params.get('inviteCode');
 
     if (codeParam) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('pendingInvitationCode', codeParam);
+      }
       if (isLoggedIn) {
         setCurrentStage(6); // Chuyển thẳng tới Bảng Phụ Huynh Laptop 3D để nhập mã mời
       } else {
-        setCurrentStage(5); // Chưa đăng nhập -> Chuyển tới Cặp Sách để đăng nhập trước
-        setInitialAuthTab('signin');
+        setCurrentStage(5); // Chưa đăng nhập -> Chuyển tới Cặp Sách để tạo tài khoản chính chủ trước
+        setInitialAuthTab('signup');
       }
     } else if (tokenParam || authParam === 'reset') {
       setCurrentStage(5);
@@ -70,6 +73,16 @@ export default function Room3DView() {
       setCurrentStage(5);
       setInitialAuthTab('verify');
       if (emailParam) setInitialEmail(emailParam);
+    }
+  }, [isLoggedIn]);
+
+  // Tự động chuyển tới Laptop Phụ Huynh (Stage 6) khi đăng nhập xong nếu có lời mời đang chờ xử lý
+  useEffect(() => {
+    if (isLoggedIn && typeof window !== 'undefined') {
+      const pendingCode = sessionStorage.getItem('pendingInvitationCode');
+      if (pendingCode) {
+        setCurrentStage(6);
+      }
     }
   }, [isLoggedIn]);
 

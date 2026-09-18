@@ -12,6 +12,7 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 Tài liệu này tổng hợp các quy tắc kiến trúc, quy chuẩn giao diện và kinh nghiệm thực tế của dự án để đảm bảo codebase luôn sạch sẽ, có tính mở rộng cao và trải nghiệm người dùng đồng nhất.
 
+(TUYỆT ĐỐI KHÔNG THAY ĐỔI BACKEND, API HAY DATABASE, CHỈ TẬP TRUNG VÀO FRONTEND)
 ---
 
 ## 1. Triết Lý Trải Nghiệm Không Gian 3D (3D Room First)

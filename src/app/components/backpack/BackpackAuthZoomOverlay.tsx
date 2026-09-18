@@ -154,6 +154,19 @@ export const BackpackAuthZoomOverlay: React.FC<BackpackAuthZoomOverlayProps> = (
         ) : (
           /* IF NOT LOGGED IN: DISPLAY LOGIN, REGISTER OR VERIFY MAIL FORM */
           <div>
+            {/* Notice for incoming invitation claim */}
+            {typeof window !== 'undefined' && sessionStorage.getItem('pendingInvitationCode') && (
+              <div className="mb-3 p-3 rounded-2xl bg-gradient-to-r from-sky-950/70 to-indigo-950/70 border border-sky-500/40 text-xs flex items-start gap-2.5 shadow-md">
+                <ShieldCheck className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+                <div className="space-y-0.5">
+                  <span className="font-bold text-sky-300">Xác nhận danh tính Phụ huynh</span>
+                  <p className="text-[11px] text-zinc-300 leading-normal">
+                    Bạn đang có mã mời kết nối giám sát bé. Vui lòng tạo tài khoản bằng Email/SĐT cá nhân và xác thực OTP để đảm bảo quyền lợi bảo vệ dữ liệu cho con.
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Tab Selector */}
             {authTab === 'forgot' || authTab === 'reset' ? (
               <div className="flex items-center justify-between mb-4">

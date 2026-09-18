@@ -104,6 +104,30 @@ export const supervisionService = {
   },
 
   /**
+   * Cấp lại mã mời mới (Huỷ mã cũ nếu còn pending và tạo mã mới ngay)
+   */
+  async reissueInvitation(
+    childProfileId: number,
+    oldInvitationId: number,
+    data: CreateInvitationRequest
+  ): Promise<ApiResponse<SupervisionInvitation>> {
+    try {
+      // Hủy mã cũ nếu có
+      await this.cancelInvitation(oldInvitationId);
+      // Tạo mã mới
+      return await this.createInvitation(childProfileId, data);
+    } catch (error) {
+      console.error('Reissue invitation error:', error);
+      return {
+        success: false,
+        message: 'Không thể cấp lại mã mời mới.',
+        data: null,
+        errors: [(error as Error).message || 'Network error'],
+      };
+    }
+  },
+
+  /**
    * Thu hồi quan hệ giám sát (DELETE /Supervision/relationships/{relationshipId})
    */
   async revokeSupervision(relationshipId: number): Promise<ApiResponse<null>> {

@@ -5,8 +5,7 @@ import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import {
   animateHeaderDown,
-  animateDrawerLeft,
-  animateDrawerRight,
+  animateModalPop,
   animateStaggerList,
 } from '../../utils/gsapAnimations';
 
@@ -202,10 +201,11 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
   useEffect(() => {
     fetchChildProfiles();
 
-    // Tự động kiểm tra mã mời trên URL khi mở bảng điều khiển
+    // Tự động kiểm tra mã mời trên URL hoặc sessionStorage khi mở bảng điều khiển
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const inviteCode = params.get('code') || params.get('invitationCode') || params.get('inviteCode');
+      const storedCode = sessionStorage.getItem('pendingInvitationCode');
+      const inviteCode = params.get('code') || params.get('invitationCode') || params.get('inviteCode') || storedCode;
       if (inviteCode) {
         setAcceptCodeInput(inviteCode.trim());
         setShowAcceptInviteModal(true);
@@ -492,8 +492,11 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
     setIsSendingInvite(true);
     setSupervisionError(null);
     try {
+      const rawContact = inviteEmail.trim();
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawContact);
+
       const res = await supervisionService.createInvitation(selectedChild.id, {
-        inviteeEmail: inviteEmail.trim() || undefined,
+        inviteeEmail: isEmail ? rawContact : undefined,
         expiresInDays: inviteExpiresDays,
       });
 
@@ -510,6 +513,31 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
       setSupervisionError((err as Error).message || 'Lỗi khi tạo lời mời.');
     } finally {
       setIsSendingInvite(false);
+    }
+  };
+
+  const handleReissueInvitation = async (invitationId: number, targetEmail?: string, expiresInDays?: number) => {
+    if (!selectedChild) return;
+    setCancellingInvId(invitationId);
+    setSupervisionError(null);
+    try {
+      const isEmail = targetEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(targetEmail.trim());
+      const res = await supervisionService.reissueInvitation(selectedChild.id, invitationId, {
+        inviteeEmail: isEmail ? targetEmail?.trim() : undefined,
+        expiresInDays: expiresInDays || inviteExpiresDays || 7,
+      });
+
+      if (res.success && res.data) {
+        setSupervisionSuccessMsg(`✓ Đã cấp lại mã mời mới: ${res.data.invitationCode}`);
+        await fetchSupervisionData(selectedChild.id);
+        setTimeout(() => setSupervisionSuccessMsg(null), 6000);
+      } else {
+        setSupervisionError(res.message || 'Không thể cấp lại mã.');
+      }
+    } catch (err) {
+      setSupervisionError((err as Error).message || 'Lỗi khi cấp lại mã.');
+    } finally {
+      setCancellingInvId(null);
     }
   };
 
@@ -641,18 +669,21 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
     }
   };
 
-  const handleAcceptInvitationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!acceptCodeInput.trim()) return;
+  const handleAcceptInvitationSubmit = async (customCode?: string) => {
+    const codeToUse = (typeof customCode === 'string' && customCode.trim()) ? customCode.trim() : acceptCodeInput.trim();
+    if (!codeToUse) return;
     setIsAcceptingInvite(true);
     setAcceptInviteError(null);
     try {
-      const res = await supervisionService.acceptInvitation(acceptCodeInput.trim());
+      const res = await supervisionService.acceptInvitation(codeToUse);
       if (res.success && res.data) {
         const newRel = res.data;
         setSupervisionSuccessMsg(
-          `✓ Chấp nhận mã mời thành công! Bạn đã trở thành người giám sát bé (Hồ sơ #${newRel.childProfileId}).`
+          `✓ Liên kết giám sát thành công (Supervisor Linked)! Đã kích hoạt quyền giám sát bé (Hồ sơ #${newRel.childProfileId}).`
         );
+        if (typeof window !== 'undefined') {
+          sessionStorage.removeItem('pendingInvitationCode');
+        }
         setAcceptCodeInput('');
         setShowAcceptInviteModal(false);
         await fetchChildProfiles();
@@ -666,6 +697,18 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
     } finally {
       setIsAcceptingInvite(false);
     }
+  };
+
+  const handleRejectInvitationSubmit = (codeToReject?: string) => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('pendingInvitationCode');
+    }
+    setAcceptCodeInput('');
+    setShowAcceptInviteModal(false);
+    setSupervisionSuccessMsg(
+      'Đã từ chối lời mời giám sát (Trạng thái: Rejected). Nếu muốn liên kết sau này, vui lòng liên hệ Người mời để nhận mã mới.'
+    );
+    setTimeout(() => setSupervisionSuccessMsg(null), 6000);
   };
 
   const handleSaveChildProfile = async () => {
@@ -807,8 +850,7 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
   useGSAP(() => {
     if (!isUiVisible) return;
     animateHeaderDown('.laptop-top-bar');
-    animateDrawerLeft('.laptop-left-card', { delay: 0.08 });
-    animateDrawerRight('.laptop-right-card', { delay: 0.12 });
+    animateModalPop('.laptop-unified-card', { delay: 0.08 });
     animateStaggerList('.laptop-metric-item', { delay: 0.22, stagger: 0.05 });
   }, { scope: containerRef, dependencies: [isUiVisible] });
 
@@ -844,23 +886,39 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
         user={user}
       />
 
-      {/* 2. MAIN DASHBOARD CONTENT AREA */}
-      <div className="flex-1 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-end lg:items-center justify-between gap-4 my-2 overflow-hidden pointer-events-none">
-        {/* LEFT CARD: MAIN INTERACTIVE DASHBOARD TABS */}
-        <div className="laptop-left-card pointer-events-auto w-full lg:w-[540px] max-h-[56vh] lg:max-h-[76vh] flex flex-col rounded-3xl bg-zinc-950/90 backdrop-blur-2xl border border-sky-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.7)] text-white overflow-hidden">
-          {/* Navigation Tabs Header */}
-          <div className="p-2.5 bg-zinc-900/90 border-b border-zinc-800 flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
-            <button
-              onClick={() => setActiveTab('analytics')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
-                activeTab === 'analytics'
-                  ? 'bg-sky-500 text-zinc-950 font-black shadow-md'
-                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
-              }`}
-            >
-              <User className="w-3.5 h-3.5" />
-              <span>Hồ Sơ & Học Tập</span>
-            </button>
+      {/* 2. MAIN DASHBOARD CONTENT AREA - UNIFIED SINGLE PANEL */}
+      <div className="flex-1 w-full max-w-7xl mx-auto flex items-center justify-center my-auto px-1 sm:px-2 py-1 overflow-hidden pointer-events-none">
+        <div className="laptop-unified-card pointer-events-auto w-full h-[80vh] max-h-[860px] min-h-[580px] flex flex-col lg:flex-row rounded-3xl bg-zinc-950/92 backdrop-blur-3xl border border-sky-500/30 shadow-[0_25px_60px_rgba(0,0,0,0.85)] text-white overflow-hidden">
+          
+          {/* CỘT TRÁI: DANH SÁCH HỒ SƠ CÁC BÉ */}
+          <div className="w-full lg:w-[320px] xl:w-[340px] shrink-0 border-b lg:border-b-0 lg:border-r border-zinc-800/80 bg-zinc-900/40 flex flex-col h-full overflow-hidden">
+            <ChildProfilesSidebar
+              childProfiles={childProfiles}
+              selectedChildId={selectedChildId}
+              onSelectChild={(id) => setSelectedChildId(id)}
+              isLoadingChildren={isLoadingChildren}
+              onOpenAddChildModal={handleOpenAddChildModal}
+              onActivateChild={handleActivateChild}
+              activatingChildId={activatingChildId}
+              onRefresh={fetchChildProfiles}
+            />
+          </div>
+
+          {/* CỘT PHẢI: NỘI DUNG CHÍNH (CÁC TAB ĐIỀU KHIỂN & QUẢN LÝ) */}
+          <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-zinc-950/20">
+            {/* Navigation Tabs Header */}
+            <div className="p-2.5 sm:p-3 bg-zinc-900/80 border-b border-zinc-800/90 flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none shrink-0">
+              <button
+                onClick={() => setActiveTab('analytics')}
+                className={`px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2 ${
+                  activeTab === 'analytics'
+                    ? 'bg-sky-500 text-zinc-950 font-black shadow-md shadow-sky-500/20'
+                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                }`}
+              >
+                <User className="w-3.5 h-3.5" />
+                <span>Hồ Sơ & Học Tập</span>
+              </button>
             <button
               onClick={() => setActiveTab('controls')}
               className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 ${
@@ -1041,35 +1099,68 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
             )}
 
             {/* TAB 3: SUPERVISION MANAGEMENT */}
-            {activeTab === 'supervision' && selectedChild && (
-              <SupervisionManager
-                childNickname={selectedChild.nickname}
-                supervisors={supervisors}
-                invitations={invitations}
-                isLoadingSupervision={isLoadingSupervision}
-                supervisionError={supervisionError}
-                supervisionSuccessMsg={supervisionSuccessMsg}
-                isInviting={isInviting}
-                setIsInviting={setIsInviting}
-                inviteEmail={inviteEmail}
-                setInviteEmail={setInviteEmail}
-                inviteExpiresDays={inviteExpiresDays}
-                setInviteExpiresDays={setInviteExpiresDays}
-                isSendingInvite={isSendingInvite}
-                handleSendInvitation={handleCreateInvitation}
-                onOpenPermissionsModal={handleOpenPermissions}
-                onOpenTransferOwnershipModal={(sup) => {
-                  setTransferError(null);
-                  setTransferTargetSupervisor(sup);
-                }}
-                revokingRelId={revokingRelId}
-                handleRevokeSupervision={(relId) => handleRevokeSupervision(relId)}
-                cancellingInvId={cancellingInvId}
-                handleCancelInvitation={handleCancelInvitation}
-                copiedCode={copiedCode}
-                handleCopyInviteCode={handleCopyCode}
-                onRefresh={() => fetchSupervisionData(selectedChild.id)}
-              />
+            {activeTab === 'supervision' && (
+              selectedChild ? (
+                <SupervisionManager
+                  childNickname={selectedChild.nickname}
+                  supervisors={supervisors}
+                  invitations={invitations}
+                  isLoadingSupervision={isLoadingSupervision}
+                  supervisionError={supervisionError}
+                  supervisionSuccessMsg={supervisionSuccessMsg}
+                  isInviting={isInviting}
+                  setIsInviting={setIsInviting}
+                  inviteEmail={inviteEmail}
+                  setInviteEmail={setInviteEmail}
+                  inviteExpiresDays={inviteExpiresDays}
+                  setInviteExpiresDays={setInviteExpiresDays}
+                  isSendingInvite={isSendingInvite}
+                  handleSendInvitation={handleCreateInvitation}
+                  onOpenPermissionsModal={handleOpenPermissions}
+                  onOpenTransferOwnershipModal={(sup) => {
+                    setTransferError(null);
+                    setTransferTargetSupervisor(sup);
+                  }}
+                  revokingRelId={revokingRelId}
+                  handleRevokeSupervision={(relId) => handleRevokeSupervision(relId)}
+                  cancellingInvId={cancellingInvId}
+                  handleCancelInvitation={handleCancelInvitation}
+                  handleReissueInvitation={handleReissueInvitation}
+                  copiedCode={copiedCode}
+                  handleCopyInviteCode={handleCopyCode}
+                  onRefresh={() => fetchSupervisionData(selectedChild.id)}
+                />
+              ) : (
+                <div className="text-center py-12 px-4 rounded-3xl bg-zinc-950/60 border border-zinc-800 space-y-3">
+                  <Users className="w-10 h-10 text-indigo-400 mx-auto" />
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-bold text-white">Chưa chọn hồ sơ bé</h3>
+                    <p className="text-xs text-zinc-400 max-w-sm mx-auto">
+                      Vui lòng chọn một hồ sơ bé từ danh sách bên phải hoặc nhập mã mời giám sát bạn nhận được.
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAcceptInviteError(null);
+                        setAcceptCodeInput('');
+                        setShowAcceptInviteModal(true);
+                      }}
+                      className="btn-dashboard-primary text-xs px-4 py-2"
+                    >
+                      Nhập Mã Mời Giám Sát
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddChildModal(true)}
+                      className="px-4 py-2 rounded-xl bg-zinc-900 border border-zinc-700 hover:border-zinc-500 text-zinc-300 text-xs font-bold transition-colors cursor-pointer"
+                    >
+                      + Tạo Hồ Sơ Bé Mới
+                    </button>
+                  </div>
+                </div>
+              )
             )}
 
             {/* TAB 4: CONVERSATION STARTERS & CREATIVE CONTROLS */}
@@ -1083,19 +1174,8 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
             )}
           </div>
         </div>
-
-        {/* RIGHT CARD: CHILD PROFILES LIST SIDEBAR */}
-        <ChildProfilesSidebar
-          childProfiles={childProfiles}
-          selectedChildId={selectedChildId}
-          onSelectChild={(id) => setSelectedChildId(id)}
-          isLoadingChildren={isLoadingChildren}
-          onOpenAddChildModal={handleOpenAddChildModal}
-          onActivateChild={handleActivateChild}
-          activatingChildId={activatingChildId}
-          onRefresh={fetchChildProfiles}
-        />
       </div>
+    </div>
 
       {/* MODAL 1: ADD NEW CHILD PROFILE */}
       <AddChildModal
@@ -1153,6 +1233,7 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
         isAcceptingInvite={isAcceptingInvite}
         acceptInviteError={acceptInviteError}
         onAcceptSubmit={handleAcceptInvitationSubmit}
+        onRejectSubmit={handleRejectInvitationSubmit}
       />
     </div>
   );

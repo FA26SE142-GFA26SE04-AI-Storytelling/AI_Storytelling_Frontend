@@ -24,8 +24,13 @@ export const TransferOwnershipModal: React.FC<TransferOwnershipModalProps> = ({
   if (!targetSupervisor) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-md rounded-3xl bg-zinc-950 border border-amber-500/40 shadow-2xl flex flex-col overflow-hidden text-white">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !isTransferringOwnership) onClose();
+      }}
+      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200"
+    >
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-md rounded-3xl bg-zinc-950 border border-amber-500/40 shadow-2xl flex flex-col overflow-hidden text-white pointer-events-auto">
         <div className="p-5 border-b border-zinc-800 bg-gradient-to-r from-amber-950/60 via-zinc-900 to-zinc-950 flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-300 shadow-md">
             <Crown className="w-5 h-5" />

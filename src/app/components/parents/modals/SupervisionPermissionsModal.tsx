@@ -41,8 +41,13 @@ export const SupervisionPermissionsModal: React.FC<SupervisionPermissionsModalPr
   if (!targetSupervisor) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="w-full max-w-xl max-h-[85vh] rounded-3xl bg-zinc-950 border border-sky-500/40 shadow-2xl flex flex-col overflow-hidden text-white">
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-4 bg-black/75 backdrop-blur-md animate-in fade-in duration-200"
+    >
+      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-xl max-h-[85vh] rounded-3xl bg-zinc-950 border border-sky-500/40 shadow-2xl flex flex-col overflow-hidden text-white pointer-events-auto">
         {/* Modal Header */}
         <div className="p-4 sm:p-5 border-b border-zinc-800 bg-gradient-to-r from-sky-950/60 via-zinc-900 to-zinc-950 flex items-center justify-between shrink-0">
           <div className="flex items-center gap-3">
