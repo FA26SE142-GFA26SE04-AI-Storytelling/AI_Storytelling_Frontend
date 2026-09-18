@@ -29,12 +29,15 @@ export const DashboardStatusBadge: React.FC<DashboardStatusBadgeProps> = ({ stat
         </span>
       );
     case 'PendingParentConsent':
+    case 'Pending Parent Consent':
+    case 'pending_parent_consent':
+    case 'PendingParentApproval':
       return (
         <span
-          className={`px-2 py-0.5 rounded-full border text-[10px] font-bold flex items-center gap-1 bg-amber-950/70 border-amber-500/40 text-amber-300 ${className}`}
+          className={`px-2 py-0.5 rounded-full border text-[10px] font-bold flex items-center gap-1 bg-amber-950/80 border-amber-500/50 text-amber-300 ${className}`}
         >
           <Clock className="w-3 h-3 text-amber-400" />
-          <span>Chờ đồng ý</span>
+          <span>Chờ phụ huynh</span>
         </span>
       );
     case 'Archived':

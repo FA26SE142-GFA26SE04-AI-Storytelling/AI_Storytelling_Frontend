@@ -560,15 +560,22 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
     }
   };
 
-  const handleRevokeSupervision = async (relId: number) => {
+  const handleRevokeSupervision = async (relId: number, supervisorName?: string) => {
     if (!selectedChild) return;
-    if (!confirm('Bạn có chắc chắn muốn thu hồi quan hệ giám sát này không?')) return;
+    const confirmMsg = supervisorName
+      ? `Bạn có chắc chắn muốn thu hồi quyền giám sát của "${supervisorName}" không?\n\nLưu ý: Nếu đây là phụ huynh duy nhất của bé, hồ sơ sẽ tự động chuyển về trạng thái 'Chờ phụ huynh chấp thuận' (Pending Parent Consent) để bảo vệ dữ liệu trẻ em.`
+      : 'Bạn có chắc chắn muốn thu hồi quan hệ giám sát này không?';
+
+    if (!confirm(confirmMsg)) return;
     setRevokingRelId(relId);
     try {
       const res = await supervisionService.revokeSupervision(relId);
       if (res.success) {
         setSupervisionSuccessMsg('✓ Đã thu hồi quyền giám sát.');
-        await fetchSupervisionData(selectedChild.id);
+        await Promise.allSettled([
+          fetchSupervisionData(selectedChild.id),
+          fetchChildProfiles(),
+        ]);
         setTimeout(() => setSupervisionSuccessMsg(null), 4000);
       } else {
         setSupervisionError(res.message || 'Không thể thu hồi quyền giám sát.');
@@ -992,6 +999,34 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
                               <Zap className="w-3 h-3 text-amber-400 fill-amber-400" />
                             )}
                             <span>Kích hoạt ngay</span>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Pending Parent Consent Banner */}
+                    {(selectedChild.status === 'PendingParentConsent' ||
+                      selectedChild.status === 'Pending Parent Consent' ||
+                      selectedChild.status === 'pending_parent_consent') && (
+                      <div className="laptop-metric-item p-3.5 rounded-2xl bg-gradient-to-r from-orange-950/60 via-zinc-900 to-amber-950/40 border border-orange-500/50 shadow-lg flex items-start gap-3 text-orange-200 animate-in fade-in duration-200">
+                        <AlertCircle className="w-5 h-5 text-orange-400 shrink-0 mt-0.5" />
+                        <div className="flex flex-col gap-1 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="font-bold text-orange-300">Chờ phụ huynh chấp thuận (Pending Parent Consent)</span>
+                            <span className="px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/40 text-[10px] font-mono text-orange-300 font-bold">
+                              Tạm dừng truy cập AI
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-300 leading-relaxed">
+                            Hồ sơ bé chưa có phụ huynh nào liên kết giám sát (hoặc phụ huynh trước đó đã rời đi). Dữ liệu học tập được bảo lưu nguyên vẹn, nhưng quyền tương tác AI đang tạm giữ cho đến khi có phụ huynh quét mã chấp nhận lời mời.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setActiveTab('supervision')}
+                            className="self-start mt-1 px-3 py-1 rounded-xl bg-orange-500/20 hover:bg-orange-500/30 border border-orange-500/50 text-orange-300 font-bold text-xs flex items-center gap-1 cursor-pointer transition-all hover:scale-105"
+                          >
+                            <Users className="w-3.5 h-3.5 text-orange-400" />
+                            <span>Gửi mã mời phụ huynh</span>
                           </button>
                         </div>
                       </div>
