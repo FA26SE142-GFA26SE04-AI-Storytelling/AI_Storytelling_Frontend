@@ -68,9 +68,17 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
   return (
     <div
       ref={modalRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-lg overflow-y-auto"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-lg overflow-y-auto"
     >
-      <div className="parental-gate-card w-full max-w-md rounded-3xl bg-zinc-950/95 border border-indigo-500/40 shadow-[0_25px_60px_rgba(0,0,0,0.9)] p-5 sm:p-6 text-white space-y-4">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="parental-gate-card pointer-events-auto w-full max-w-md rounded-3xl bg-zinc-950/95 border border-indigo-500/40 shadow-[0_25px_60px_rgba(0,0,0,0.9)] p-5 sm:p-6 text-white space-y-4"
+      >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
           <div className="flex items-center gap-2.5">

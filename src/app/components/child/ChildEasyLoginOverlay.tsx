@@ -121,9 +121,17 @@ export const ChildEasyLoginOverlay: React.FC<ChildEasyLoginOverlayProps> = ({
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-zinc-950/90 backdrop-blur-xl overflow-y-auto"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-3 sm:p-5 bg-zinc-950/90 backdrop-blur-xl overflow-y-auto"
     >
-      <div className="child-login-card w-full max-w-lg rounded-3xl bg-gradient-to-br from-indigo-950/95 via-zinc-950/95 to-slate-950/95 border-2 border-amber-400/40 shadow-[0_25px_70px_rgba(0,0,0,0.95)] p-5 sm:p-7 text-white space-y-4">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="child-login-card pointer-events-auto w-full max-w-lg rounded-3xl bg-gradient-to-br from-indigo-950/95 via-zinc-950/95 to-slate-950/95 border-2 border-amber-400/40 shadow-[0_25px_70px_rgba(0,0,0,0.95)] p-5 sm:p-7 text-white space-y-4"
+      >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-white/10">
           <div className="flex items-center gap-2.5">

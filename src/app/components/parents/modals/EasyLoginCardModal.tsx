@@ -44,9 +44,17 @@ export const EasyLoginCardModal: React.FC<EasyLoginCardModalProps> = ({
   return (
     <div
       ref={modalRef}
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 pointer-events-auto flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto"
     >
-      <div className="easy-login-card-modal w-full max-w-md rounded-3xl bg-zinc-950/95 border border-sky-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-5 sm:p-6 text-white space-y-4">
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="easy-login-card-modal pointer-events-auto w-full max-w-md rounded-3xl bg-zinc-950/95 border border-sky-500/30 shadow-[0_20px_50px_rgba(0,0,0,0.85)] p-5 sm:p-6 text-white space-y-4"
+      >
         {/* Header */}
         <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
           <div className="flex items-center gap-2">
