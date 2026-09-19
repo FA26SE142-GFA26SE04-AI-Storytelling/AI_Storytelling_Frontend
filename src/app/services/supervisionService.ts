@@ -6,7 +6,7 @@ import {
 } from '../types/childProfile';
 import { authService } from './authService';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5259/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://zirk5zduks.ap-southeast-1.awsapprunner.com/api/v1';
 
 export const supervisionService = {
   /**

@@ -1,6 +1,6 @@
 import { LoginRequest, RegisterRequest, VerifyEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse, UserProfile } from '../types/auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5259/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://zirk5zduks.ap-southeast-1.awsapprunner.com/api/v1';
 
 export const TOKEN_STORAGE_KEY = 'magictales_access_token';
 export const REFRESH_TOKEN_STORAGE_KEY = 'magictales_refresh_token';
@@ -66,7 +66,7 @@ export const authService = {
       this.notifyAuthStateChange(null, null);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend (http://localhost:5259). Vui lòng kiểm tra lại dịch vụ backend.',
+        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng kiểm tra lại dịch vụ backend.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -210,7 +210,7 @@ export const authService = {
       console.error('Register error:', error);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend (http://localhost:5259). Vui lòng kiểm tra lại kết nối.',
+        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng kiểm tra lại kết nối.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -236,7 +236,7 @@ export const authService = {
       console.error('Verify email error:', error);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend (http://localhost:5259). Vui lòng kiểm tra lại kết nối.',
+        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng kiểm tra lại kết nối.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -262,7 +262,7 @@ export const authService = {
       console.error('Forgot password error:', error);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend (http://localhost:5259). Vui lòng thử lại.',
+        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng thử lại.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -288,7 +288,7 @@ export const authService = {
       console.error('Reset password error:', error);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend (http://localhost:5259). Vui lòng thử lại.',
+        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng thử lại.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -364,7 +364,7 @@ export const authService = {
       console.error('Change password error:', error);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend (http://localhost:5259). Vui lòng thử lại.',
+        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng thử lại.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -412,7 +412,8 @@ export const authService = {
       const timeoutId = setTimeout(() => controller.abort(), 3000);
 
       // Thử ping qua route root hoặc swagger/swagger.json
-      const response = await fetch('http://localhost:5259/swagger/v1/swagger.json', {
+      const swaggerUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, '') + '/swagger/v1/swagger.json';
+      const response = await fetch(swaggerUrl, {
         method: 'GET',
         signal: controller.signal,
       }).catch(() => null);
@@ -420,11 +421,11 @@ export const authService = {
       clearTimeout(timeoutId);
 
       if (response && response.ok) {
-        return { isOnline: true, message: 'Backend Swagger v1 Online (http://localhost:5259)' };
+        return { isOnline: true, message: `Backend Swagger v1 Online (${swaggerUrl})` };
       }
 
       // Secondary check: OPTIONS call to auth login
-      const optionsResponse = await fetch(`${API_BASE_URL}/auth/login`, {
+      const optionsResponse = await fetch(`${API_BASE_URL}/Auth/login`, {
         method: 'OPTIONS',
       }).catch(() => null);
 
@@ -432,7 +433,7 @@ export const authService = {
         return { isOnline: true, message: 'Backend API Service Reachable' };
       }
 
-      return { isOnline: false, message: 'Backend chưa chạy tại http://localhost:5259' };
+      return { isOnline: false, message: `Backend chưa phản hồi tại ${API_BASE_URL}` };
     } catch {
       return { isOnline: false, message: 'Không kết nối được tới Backend (Offline)' };
     }
