@@ -1,7 +1,19 @@
 import { LoginRequest, RegisterRequest, VerifyEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse, UserProfile } from '../types/auth';
 
-const RAW_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://zirk5zduks.ap-southeast-1.awsapprunner.com';
-const API_BASE_URL = `${RAW_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/\/+$/, '')}/api/v1`;
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://zirk5zduks.ap-southeast-1.awsapprunner.com/api/v1';
+
+/**
+ * Trợ giúp phân tích JSON an toàn tránh lỗi 'Unexpected end of JSON input'
+ */
+async function safeJsonParse<T>(response: Response): Promise<T | null> {
+  try {
+    const text = await response.text();
+    if (!text || !text.trim()) return null;
+    return JSON.parse(text) as T;
+  } catch {
+    return null;
+  }
+}
 
 export const TOKEN_STORAGE_KEY = 'magictales_access_token';
 export const REFRESH_TOKEN_STORAGE_KEY = 'magictales_refresh_token';
@@ -48,18 +60,22 @@ export const authService = {
         body: JSON.stringify(credentials),
       });
 
-      const data: ApiResponse<AuthResponseData> = await response.json();
+      const data = await safeJsonParse<ApiResponse<AuthResponseData>>(response);
 
-      if (response.ok && data.success && data.data) {
+      if (response.ok && data?.success && data.data) {
         this.setStoredAuth(data.data);
         this.notifyAuthStateChange(data.data.user, data.data.accessToken);
+        return data;
       } else {
         // Đăng nhập thất bại -> xóa sạch auth lưu trữ và out tài khoản
         this.clearStoredAuth();
         this.notifyAuthStateChange(null, null);
+        return data || {
+          success: false,
+          message: 'Tài khoản hoặc mật khẩu không chính xác.',
+          data: null,
+        };
       }
-
-      return data;
     } catch (error) {
       console.error('Login error:', error);
       // Gặp lỗi kết nối / ngoại lệ -> xóa sạch auth lưu trữ và out tài khoản
@@ -106,23 +122,23 @@ export const authService = {
           body: JSON.stringify({ refreshToken: refreshTokenValue }),
         });
 
-        const data: ApiResponse<AuthResponseData> = await response.json();
+        const data = await safeJsonParse<ApiResponse<AuthResponseData>>(response);
 
-        if (response.ok && data.success && data.data) {
+        if (response.ok && data?.success && data.data) {
           // Ghi đè cả access token và refresh token mới vào storage (Token Rotation)
           this.setStoredAuth(data.data);
           this.notifyAuthStateChange(data.data.user, data.data.accessToken);
           return data;
         } else {
           // Refresh token đã hết hạn hoặc bị thu hồi -> Tự động out tài khoản
-          console.warn('Refresh token expired or invalid, logging out...', data.message);
+          console.warn('Refresh token expired or invalid, logging out...', data?.message);
           this.clearStoredAuth();
           this.notifyAuthStateChange(null, null);
           return {
             success: false,
-            message: data.message || 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
+            message: data?.message || 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
             data: null,
-            errors: data.errors,
+            errors: data?.errors,
           };
         }
       } catch (error) {
@@ -318,11 +334,16 @@ export const authService = {
         token
       );
 
-      const data: ApiResponse<UserProfile> = await response.json();
-      if (response.ok && data.success && data.data) {
+      const data = await safeJsonParse<ApiResponse<UserProfile>>(response);
+      if (response.ok && data?.success && data.data) {
         this.setStoredUser(data.data);
+        return data;
       }
-      return data;
+      return data || {
+        success: false,
+        message: 'Không thể tải thông tin cá nhân từ Backend.',
+        data: null,
+      };
     } catch (error) {
       console.error('Get profile error:', error);
       return {
