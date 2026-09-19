@@ -7,7 +7,7 @@ import { animateExpandingCircleRipple } from '../../utils/gsapAnimations';
 
 export interface TimeOfDaySwitcherProps {
   timeOfDay: TimeOfDay;
-  onTimeOfDayChange: (time: TimeOfDay) => void;
+  onTimeOfDayChange: (time: TimeOfDay, e?: React.MouseEvent) => void;
   showLabels?: boolean;
   className?: string;
 }
@@ -19,9 +19,10 @@ export const TimeOfDaySwitcher: React.FC<TimeOfDaySwitcherProps> = ({
   className = '',
 }) => {
   const handleClick = (newTime: TimeOfDay, e: React.MouseEvent<HTMLButtonElement>) => {
-    // Kích hoạt hiệu ứng vòng tròn phát sáng to dần ra ngoài từ tâm nút bấm
+    if (newTime === timeOfDay) return;
+    // Kích hoạt hiệu ứng micro-bounce và gọi callback chuyển buổi kèm tọa độ click
     animateExpandingCircleRipple(e.currentTarget, newTime);
-    onTimeOfDayChange(newTime);
+    onTimeOfDayChange(newTime, e);
   };
 
   return (

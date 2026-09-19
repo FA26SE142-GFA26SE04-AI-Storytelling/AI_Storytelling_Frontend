@@ -178,7 +178,7 @@ export function animatePopItem(
 }
 
 /**
- * Hiệu ứng vòng tròn to dần ra từ nút bấm (Expanding Circle Ripple Effect)
+ * Hiệu ứng vòng tròn gợn sóng tinh tế từ nút bấm (Subtle Button Ripple Effect)
  */
 export function animateExpandingCircleRipple(
   targetButton: HTMLElement,
@@ -190,22 +190,22 @@ export function animateExpandingCircleRipple(
   const centerX = rect.left + rect.width / 2;
   const centerY = rect.top + rect.height / 2;
 
-  // Cấu hình màu sắc vòng tròn theo buổi
+  // Cấu hình màu sắc gợn sóng theo buổi
   const themeColors = {
     morning: {
-      border: 'rgba(56, 189, 248, 0.85)',
-      glow: '0 0 20px rgba(56, 189, 248, 0.7), inset 0 0 10px rgba(254, 240, 138, 0.5)',
-      fill: 'radial-gradient(circle, rgba(56, 189, 248, 0.35) 0%, rgba(254, 240, 138, 0.2) 50%, transparent 70%)',
+      border: 'rgba(56, 189, 248, 0.9)',
+      glow: '0 0 12px rgba(56, 189, 248, 0.6)',
+      fill: 'radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, transparent 70%)',
     },
     afternoon: {
-      border: 'rgba(245, 158, 11, 0.9)',
-      glow: '0 0 20px rgba(245, 158, 11, 0.7), inset 0 0 10px rgba(251, 146, 60, 0.5)',
-      fill: 'radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, rgba(251, 146, 60, 0.2) 50%, transparent 70%)',
+      border: 'rgba(245, 158, 11, 0.95)',
+      glow: '0 0 12px rgba(245, 158, 11, 0.6)',
+      fill: 'radial-gradient(circle, rgba(245, 158, 11, 0.25) 0%, transparent 70%)',
     },
     night: {
-      border: 'rgba(129, 140, 248, 0.9)',
-      glow: '0 0 20px rgba(99, 102, 241, 0.7), inset 0 0 10px rgba(167, 139, 250, 0.5)',
-      fill: 'radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, rgba(30, 27, 75, 0.2) 50%, transparent 70%)',
+      border: 'rgba(129, 140, 248, 0.95)',
+      glow: '0 0 12px rgba(99, 102, 241, 0.6)',
+      fill: 'radial-gradient(circle, rgba(99, 102, 241, 0.25) 0%, transparent 70%)',
     },
   };
 
@@ -214,19 +214,19 @@ export function animateExpandingCircleRipple(
   // Hiệu ứng micro-bounce cho nút được nhấn
   gsap.fromTo(
     targetButton,
-    { scale: 0.88 },
-    { scale: 1, duration: 0.3, ease: 'back.out(2)' }
+    { scale: 0.9 },
+    { scale: 1, duration: 0.25, ease: 'back.out(2)' }
   );
 
-  // Tạo ĐÚNG 1 vòng tròn mở rộng to dần ra ngoài từ tâm nút bấm
+  // Vòng gợn sóng nhỏ tinh tế quanh nút
   const ring = document.createElement('div');
   ring.className = 'fixed rounded-full pointer-events-none z-50';
   ring.style.left = `${centerX}px`;
   ring.style.top = `${centerY}px`;
-  ring.style.width = '24px';
-  ring.style.height = '24px';
+  ring.style.width = '16px';
+  ring.style.height = '16px';
   ring.style.transform = 'translate(-50%, -50%)';
-  ring.style.border = `2.5px solid ${currentTheme.border}`;
+  ring.style.border = `1.5px solid ${currentTheme.border}`;
   ring.style.boxShadow = currentTheme.glow;
   ring.style.background = currentTheme.fill;
   ring.style.opacity = '1';
@@ -234,11 +234,10 @@ export function animateExpandingCircleRipple(
   document.body.appendChild(ring);
 
   gsap.to(ring, {
-    width: 200,
-    height: 200,
+    width: 65,
+    height: 65,
     opacity: 0,
-    scale: 1.4,
-    duration: 0.6,
+    duration: 0.4,
     ease: 'power2.out',
     onComplete: () => {
       if (ring.parentNode) {
@@ -246,5 +245,78 @@ export function animateExpandingCircleRipple(
       }
     },
   });
+}
+
+/**
+ * Hiệu ứng Circular Reveal Theme Transition chuẩn hiện đại (View Transitions API)
+ * Hiển thị trực tiếp giao diện buổi mới (Text, Button, Theme, 3D Canvas) bung nở mượt mà từ tâm nút bấm.
+ */
+export function triggerCircularRevealTransition(
+  originElementOrEvent: HTMLElement | React.MouseEvent | MouseEvent | { clientX?: number; clientY?: number } | undefined,
+  _targetTheme: 'morning' | 'afternoon' | 'night',
+  onApplyTheme: () => void
+) {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    onApplyTheme();
+    return;
+  }
+
+  // 1. Tính toán tọa độ tâm bung vòng tròn
+  let originX = window.innerWidth / 2;
+  let originY = window.innerHeight / 2;
+
+  if (originElementOrEvent) {
+    if (originElementOrEvent instanceof HTMLElement) {
+      const rect = originElementOrEvent.getBoundingClientRect();
+      originX = rect.left + rect.width / 2;
+      originY = rect.top + rect.height / 2;
+    } else if ('clientX' in originElementOrEvent && typeof originElementOrEvent.clientX === 'number' && originElementOrEvent.clientX > 0) {
+      originX = originElementOrEvent.clientX;
+      originY = originElementOrEvent.clientY ?? originY;
+    } else if (
+      'currentTarget' in originElementOrEvent &&
+      originElementOrEvent.currentTarget instanceof HTMLElement
+    ) {
+      const rect = originElementOrEvent.currentTarget.getBoundingClientRect();
+      originX = rect.left + rect.width / 2;
+      originY = rect.top + rect.height / 2;
+    }
+  }
+
+  // 2. Tính bán kính xa nhất tới 4 góc màn hình để vòng tròn nở kín toàn bộ viewport
+  const maxRadius = Math.hypot(
+    Math.max(originX, window.innerWidth - originX),
+    Math.max(originY, window.innerHeight - originY)
+  );
+
+  // 3. Nếu trình duyệt hỗ trợ View Transitions API (Chrome, Edge, Safari 18+, Firefox)
+  const doc = document as Document & {
+    startViewTransition?: (callback: () => void) => { ready: Promise<void> };
+  };
+
+  if (typeof doc.startViewTransition === 'function') {
+    const transition = doc.startViewTransition(() => {
+      onApplyTheme();
+    });
+
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${originX}px ${originY}px)`,
+            `circle(${maxRadius * 1.08}px at ${originX}px ${originY}px)`,
+          ],
+        },
+        {
+          duration: 600,
+          easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+          pseudoElement: '::view-transition-new(root)',
+        }
+      );
+    });
+  } else {
+    // Fallback cho trình duyệt cũ
+    onApplyTheme();
+  }
 }
 
