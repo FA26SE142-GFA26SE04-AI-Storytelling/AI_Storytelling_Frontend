@@ -1,6 +1,7 @@
 import { LoginRequest, RegisterRequest, VerifyEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse, UserProfile } from '../types/auth';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://zirk5zduks.ap-southeast-1.awsapprunner.com/api/v1';
+const RAW_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://zirk5zduks.ap-southeast-1.awsapprunner.com';
+const API_BASE_URL = `${RAW_BASE_URL.replace(/\/api\/v1\/?$/, '').replace(/\/+$/, '')}/api/v1`;
 
 export const TOKEN_STORAGE_KEY = 'magictales_access_token';
 export const REFRESH_TOKEN_STORAGE_KEY = 'magictales_refresh_token';
