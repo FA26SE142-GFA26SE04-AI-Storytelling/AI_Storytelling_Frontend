@@ -177,6 +177,7 @@ export interface RoomCanvasProps {
   timeOfDay?: TimeOfDay;
   onTimeOfDayChange?: (mode: TimeOfDay) => void;
   className?: string;
+  onSelectBook?: (storyId: string) => void;
 }
 
 export const RoomCanvas: React.FC<RoomCanvasProps> = ({
@@ -185,9 +186,15 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
   timeOfDay = getVietnamTimeOfDay(),
   onTimeOfDayChange,
   className = '',
+  onSelectBook,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+
+  const onSelectBookRef = useRef(onSelectBook);
+  useEffect(() => {
+    onSelectBookRef.current = onSelectBook;
+  }, [onSelectBook]);
 
   const { user } = useAuth();
   const updateNameTagRef = useRef<((name?: string, role?: string) => void) | null>(null);
@@ -476,7 +483,15 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     roomGroup.add(lowTableGroup);
     roomGroup.add(cornerPlantGroup);
 
-    const { shelfGroup, bookshelfClickMesh, wallPosterGroup, globeSphere, hourHandGroup, minuteHandGroup } = buildBookshelf(
+    const {
+      shelfGroup,
+      bookshelfClickMesh,
+      wallPosterGroup,
+      globeSphere,
+      hourHandGroup,
+      minuteHandGroup,
+      showcaseBooks,
+    } = buildBookshelf(
       roomL,
       matWoodAmber,
       matWoodAmber,
@@ -652,40 +667,41 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         targetWindowRimIntensity = 0.0;
       }
 
-      // Smooth LERP Lighting & Celestial Object Movements (chuyển đổi buổi chậm rãi, điện ảnh)
-      dirLight.position.lerp(targetDirLightPos, 0.014);
-      dirLight.color.lerp(targetDirLightColor, 0.014);
-      dirLight.intensity = THREE.MathUtils.lerp(dirLight.intensity, targetDirLightIntensity, 0.014);
+      // Smooth LERP Lighting & Celestial Object Movements (chuyển đổi ánh sáng nhanh, mượt mà và sống động)
+      const lightLerpSpeed = 0.065;
+      dirLight.position.lerp(targetDirLightPos, lightLerpSpeed);
+      dirLight.color.lerp(targetDirLightColor, lightLerpSpeed);
+      dirLight.intensity = THREE.MathUtils.lerp(dirLight.intensity, targetDirLightIntensity, lightLerpSpeed);
 
-      nightDirLight.intensity = THREE.MathUtils.lerp(nightDirLight.intensity, targetNightLightIntensity, 0.014);
+      nightDirLight.intensity = THREE.MathUtils.lerp(nightDirLight.intensity, targetNightLightIntensity, lightLerpSpeed);
 
-      ambientLight.color.lerp(targetAmbientColor, 0.014);
-      ambientLight.intensity = THREE.MathUtils.lerp(ambientLight.intensity, targetAmbientIntensity, 0.014);
+      ambientLight.color.lerp(targetAmbientColor, lightLerpSpeed);
+      ambientLight.intensity = THREE.MathUtils.lerp(ambientLight.intensity, targetAmbientIntensity, lightLerpSpeed);
 
       // Cập nhật cường độ đèn trần và độ phát sáng chụp đèn theo công tắc
       const targetActiveFill = isCeilingLightActive ? targetRoomFillIntensity : 0.0;
       const targetActiveDownLight = isCeilingLightActive ? (currentMode === 'night' ? 1.05 : 0.75) : 0.0;
       const targetActiveLampEmissive = isCeilingLightActive ? 2.0 : 0.0;
-      roomFillLight.intensity = THREE.MathUtils.lerp(roomFillLight.intensity, targetActiveFill, 0.022);
-      ceilingDownLight.intensity = THREE.MathUtils.lerp(ceilingDownLight.intensity, targetActiveDownLight, 0.022);
-      lampPaperMat.emissiveIntensity = THREE.MathUtils.lerp(lampPaperMat.emissiveIntensity, targetActiveLampEmissive, 0.022);
+      roomFillLight.intensity = THREE.MathUtils.lerp(roomFillLight.intensity, targetActiveFill, 0.075);
+      ceilingDownLight.intensity = THREE.MathUtils.lerp(ceilingDownLight.intensity, targetActiveDownLight, 0.075);
+      lampPaperMat.emissiveIntensity = THREE.MathUtils.lerp(lampPaperMat.emissiveIntensity, targetActiveLampEmissive, 0.075);
 
-      windowRimLight.intensity = THREE.MathUtils.lerp(windowRimLight.intensity, targetWindowRimIntensity, 0.014);
+      windowRimLight.intensity = THREE.MathUtils.lerp(windowRimLight.intensity, targetWindowRimIntensity, lightLerpSpeed);
 
-      (skyMat as any).color.lerp(targetSkyColor, 0.014);
-      sunGroup.position.lerp(targetSunPos, 0.014);
+      (skyMat as any).color.lerp(targetSkyColor, lightLerpSpeed);
+      sunGroup.position.lerp(targetSunPos, lightLerpSpeed);
 
-      sunCoreMat.opacity = THREE.MathUtils.lerp(sunCoreMat.opacity, targetSunOpacity, 0.014);
-      sunGlowMat.opacity = THREE.MathUtils.lerp(sunGlowMat.opacity, targetSunOpacity * 0.35, 0.014);
+      sunCoreMat.opacity = THREE.MathUtils.lerp(sunCoreMat.opacity, targetSunOpacity, lightLerpSpeed);
+      sunGlowMat.opacity = THREE.MathUtils.lerp(sunGlowMat.opacity, targetSunOpacity * 0.35, lightLerpSpeed);
 
-      moonMat.opacity = THREE.MathUtils.lerp(moonMat.opacity, targetMoonOpacity, 0.014);
-      moonMaskMat.opacity = THREE.MathUtils.lerp(moonMaskMat.opacity, targetMoonOpacity, 0.014);
-      moonGlowMat.opacity = THREE.MathUtils.lerp(moonGlowMat.opacity, targetMoonOpacity * 0.4, 0.014);
+      moonMat.opacity = THREE.MathUtils.lerp(moonMat.opacity, targetMoonOpacity, lightLerpSpeed);
+      moonMaskMat.opacity = THREE.MathUtils.lerp(moonMaskMat.opacity, targetMoonOpacity, lightLerpSpeed);
+      moonGlowMat.opacity = THREE.MathUtils.lerp(moonGlowMat.opacity, targetMoonOpacity * 0.4, lightLerpSpeed);
 
-      starMat.opacity = THREE.MathUtils.lerp(starMat.opacity, targetStarOpacity, 0.014);
+      starMat.opacity = THREE.MathUtils.lerp(starMat.opacity, targetStarOpacity, lightLerpSpeed);
 
-      (cloudMat as any).color.lerp(targetCloudColor, 0.014);
-      cloudMat.opacity = THREE.MathUtils.lerp(cloudMat.opacity, targetCloudOpacity, 0.014);
+      (cloudMat as any).color.lerp(targetCloudColor, lightLerpSpeed);
+      cloudMat.opacity = THREE.MathUtils.lerp(cloudMat.opacity, targetCloudOpacity, lightLerpSpeed);
 
       // Smooth 3D Globe Rotation
       if (globeSphere) {
@@ -750,10 +766,20 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       fDoorLeft.position.x = THREE.MathUtils.lerp(fDoorLeft.position.x, targetDoorLeftX, 0.04);
       fDoorRight.position.x = THREE.MathUtils.lerp(fDoorRight.position.x, targetDoorRightX, 0.04);
 
+      // Smooth 3D Showcase Books hover elevation animation (nhấc nhẹ sách 3D lên khi rê chuột)
+      showcaseBooks.forEach((sb) => {
+        const isHovered = hoveredBookStoryId === sb.storyId;
+        const targetY = isHovered ? sb.baseY + 0.022 : sb.baseY;
+        const targetZ = isHovered ? sb.baseZ + 0.035 : sb.baseZ;
+        sb.group.position.y = THREE.MathUtils.lerp(sb.group.position.y, targetY, 0.1);
+        sb.group.position.z = THREE.MathUtils.lerp(sb.group.position.z, targetZ, 0.1);
+      });
+
       renderer.render(scene, camera);
       animId = requestAnimationFrame(animate);
     };
 
+    let hoveredBookStoryId: string | null = null;
     animate();
 
     // 8. Raycaster Pointer Click & Hover Detection
@@ -791,8 +817,21 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         return;
       }
 
-      const intersectsDoorLeft = raycaster.intersectObject(doorLeftClickMesh, true);
+      // 2. Click vào các cuốn sách 3D trên kệ
+      for (const sb of showcaseBooks) {
+        const intersectsSB = raycaster.intersectObject(sb.clickMesh, true);
+        if (intersectsSB.length > 0) {
+          if (currentStageIndexRef.current !== 2 && onStageChangeRef.current) {
+            onStageChangeRef.current(2); // Zoom góc vào kệ sách
+          }
+          if (onSelectBookRef.current) {
+            onSelectBookRef.current(sb.storyId);
+          }
+          return;
+        }
+      }
 
+      const intersectsDoorLeft = raycaster.intersectObject(doorLeftClickMesh, true);
       if (intersectsDoorLeft.length > 0) {
         isLeftDoorOpen = !isLeftDoorOpen;
         return;
@@ -806,7 +845,6 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
       const intersectsNotebook = raycaster.intersectObject(notebookClickMesh, true);
       if (intersectsNotebook.length > 0) {
-        // Quyển vở không còn nhấn mở/đóng thủ công; click vào vở khi chưa zoom sẽ zoom vào bàn học
         if (currentStageIndexRef.current !== 1 && onStageChangeRef.current) {
           onStageChangeRef.current(1);
         }
@@ -858,6 +896,18 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       parallaxTarget.y = Math.max(-1, Math.min(1, normY));
 
       raycaster.setFromCamera(mouse, camera);
+
+      // Hover trên sách 3D
+      let matchedBookId: string | null = null;
+      for (const sb of showcaseBooks) {
+        const intersectsSB = raycaster.intersectObject(sb.clickMesh, true);
+        if (intersectsSB.length > 0) {
+          matchedBookId = sb.storyId;
+          break;
+        }
+      }
+      hoveredBookStoryId = matchedBookId;
+
       const intersectsSwitch = raycaster.intersectObject(switchClickMesh, true);
       const intersectsDoorLeft = raycaster.intersectObject(doorLeftClickMesh, true);
       const intersectsDoorRight = raycaster.intersectObject(doorRightClickMesh, true);
@@ -872,6 +922,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       const isLaptopHoverable = currentStageIndexRef.current !== 6 && intersectsLaptop.length > 0;
 
       if (
+        matchedBookId !== null ||
         intersectsSwitch.length > 0 ||
         intersectsDoorLeft.length > 0 ||
         intersectsDoorRight.length > 0 ||

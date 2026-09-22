@@ -84,6 +84,7 @@ export default function Room3DView() {
 
   const [showChildEasyLogin, setShowChildEasyLogin] = useState<boolean>(false);
   const [childProfiles, setChildProfiles] = useState<ChildProfile[]>([]);
+  const [selectedBookStoryId, setSelectedBookStoryId] = useState<string | null>(null);
   const roomViewRef = useRef<HTMLDivElement>(null);
 
   // Tải danh sách bé cho màn hình EasyLogin độc lập
@@ -154,26 +155,6 @@ export default function Room3DView() {
     }
   }, [isLoggedIn]);
 
-  // Wheel scroll handler to change camera stages smoothly
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
-    const handleWheel = (e: WheelEvent) => {
-      if (timeoutId) return;
-      timeoutId = setTimeout(() => {
-        if (e.deltaY > 30) {
-          handleStageChange(Math.min(currentStage + 1, STAGES.length - 1));
-        } else if (e.deltaY < -30) {
-          handleStageChange(Math.max(currentStage - 1, 0));
-        }
-      }, 250);
-    };
-
-    window.addEventListener('wheel', handleWheel, { passive: true });
-    return () => {
-      window.removeEventListener('wheel', handleWheel);
-      if (timeoutId) clearTimeout(timeoutId);
-    };
-  }, [currentStage, handleStageChange]);
 
   // GSAP: Hiệu ứng nút quay lại toàn cảnh khi Zoom vào Stage 3 hoặc 4
   useGSAP(() => {
@@ -201,7 +182,7 @@ export default function Room3DView() {
     <div
       ref={roomViewRef}
       data-time-of-day={timeOfDay}
-      className={`relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans theme-${timeOfDay} transition-colors duration-1400 ease-in-out`}
+      className={`relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans theme-${timeOfDay} transition-colors duration-500 ease-in-out`}
     >
       {/* Invisible Top Edge Hover Detector */}
       {currentStage !== 0 && (
@@ -245,6 +226,7 @@ export default function Room3DView() {
         onStageChange={handleStageChange}
         timeOfDay={timeOfDay}
         onTimeOfDayChange={handleTimeOfDayTransition}
+        onSelectBook={(storyId) => setSelectedBookStoryId(storyId)}
       />
 
       {/* Interactive Floating Parent Desk Overlay when zoomed into Desk (Stage 1) */}
@@ -265,6 +247,8 @@ export default function Room3DView() {
           onStageChange={handleStageChange}
           timeOfDay={timeOfDay}
           onTimeOfDayChange={handleTimeOfDayTransition}
+          selectedBookId={selectedBookStoryId}
+          onClearSelectedBook={() => setSelectedBookStoryId(null)}
           is2DViewAvailable={false}
         />
       )}

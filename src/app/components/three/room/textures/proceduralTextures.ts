@@ -457,3 +457,189 @@ export function createClockFaceTexture(): THREE.CanvasTexture {
   texture.anisotropy = 16;
   return texture;
 }
+
+/**
+ * 12. Procedural Tactile 3D Book Cover Generator (Inspired by Three.js Working Volumes)
+ * Generates authored illustrated book covers with cloth texture, foil borders & embossed motifs.
+ */
+export interface BookCoverConfig {
+  title: string;
+  subtitle: string;
+  volume: string;
+  bgColor: string;
+  bgDark: string;
+  foilColor: string;
+  accentColor: string;
+  motifType: 'arches' | 'compass' | 'paths' | 'portal' | 'caret';
+}
+
+export function createBookShowcaseCoverTexture(config: BookCoverConfig): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 512;
+  canvas.height = 720;
+  const ctx = canvas.getContext('2d')!;
+
+  // 1. Cloth Textured Background
+  const grad = ctx.createLinearGradient(0, 0, 512, 720);
+  grad.addColorStop(0, config.bgColor);
+  grad.addColorStop(1, config.bgDark);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 512, 720);
+
+  // Subtle cloth texture noise
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
+  for (let i = 0; i < 512; i += 4) {
+    ctx.fillRect(i, 0, 1.5, 720);
+  }
+  for (let j = 0; j < 720; j += 4) {
+    ctx.fillRect(0, j, 512, 1.5);
+  }
+
+  // 2. Embossed Double Foil Border
+  ctx.strokeStyle = config.foilColor;
+  ctx.lineWidth = 2.5;
+  ctx.strokeRect(28, 28, 512 - 56, 720 - 56);
+
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(36, 36, 512 - 72, 720 - 72);
+
+  // Corner decorations
+  const corners = [
+    [28, 28],
+    [512 - 28, 28],
+    [28, 720 - 28],
+    [512 - 28, 720 - 28],
+  ];
+  corners.forEach(([cx, cy]) => {
+    ctx.fillStyle = config.foilColor;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+
+  // 3. Top Volume Header
+  ctx.fillStyle = config.foilColor;
+  ctx.font = 'bold 15px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.letterSpacing = '4px';
+  ctx.fillText(`MAGICTALES · VOL. ${config.volume}`, 256, 75);
+
+  ctx.strokeStyle = config.foilColor;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(150, 92);
+  ctx.lineTo(362, 92);
+  ctx.stroke();
+
+  // 4. Center Embossed Motif
+  const centerX = 256;
+  const centerY = 330;
+
+  if (config.motifType === 'arches') {
+    // Nested isometric arches
+    for (let r = 0; r < 5; r++) {
+      const w = 150 - r * 24;
+      const h = 200 - r * 30;
+      ctx.strokeStyle = r % 2 === 0 ? config.foilColor : config.accentColor;
+      ctx.lineWidth = 3 - r * 0.4;
+      ctx.strokeRect(centerX - w / 2, centerY - h / 2, w, h);
+    }
+  } else if (config.motifType === 'compass') {
+    // Precision geometric compass & circles
+    ctx.strokeStyle = config.foilColor;
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 80, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, 55, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(centerX - 95, centerY);
+    ctx.lineTo(centerX + 95, centerY);
+    ctx.moveTo(centerX, centerY - 95);
+    ctx.lineTo(centerX, centerY + 95);
+    ctx.stroke();
+  } else if (config.motifType === 'paths') {
+    // Organic interlaced tree & star paths
+    for (let s = 1; s <= 4; s++) {
+      ctx.strokeStyle = s % 2 === 0 ? config.foilColor : config.accentColor;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.ellipse(centerX, centerY, 75 - s * 12, 100 - s * 16, (s * Math.PI) / 4, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+  } else if (config.motifType === 'portal') {
+    // Stepped portal & crescent moon
+    for (let p = 0; p < 5; p++) {
+      ctx.strokeStyle = config.foilColor;
+      ctx.lineWidth = 2;
+      ctx.strokeRect(centerX - 80 + p * 14, centerY - 80 + p * 14, 160 - p * 28, 160 - p * 28);
+    }
+    ctx.fillStyle = config.accentColor;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 24, 0, Math.PI * 2);
+    ctx.fill();
+  } else {
+    // Directional caret & starburst
+    ctx.strokeStyle = config.foilColor;
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(centerX - 60, centerY + 60);
+    ctx.lineTo(centerX, centerY - 70);
+    ctx.lineTo(centerX + 60, centerY + 60);
+    ctx.stroke();
+  }
+
+  // 5. Bottom Title & Subtitle
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 36px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(config.title, 256, 560);
+
+  ctx.fillStyle = config.foilColor;
+  ctx.font = 'bold 20px sans-serif';
+  ctx.letterSpacing = '3px';
+  ctx.fillText(config.subtitle, 256, 605);
+
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+  ctx.font = '14px sans-serif';
+  ctx.letterSpacing = '1px';
+  ctx.fillText('AI STORYTELLING EDITION', 256, 650);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.anisotropy = 16;
+  return texture;
+}
+
+/**
+ * 13. Procedural Spine Texture Generator
+ */
+export function createBookSpineTexture(title: string, colorHex: string, foilHex: string): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 720;
+  const ctx = canvas.getContext('2d')!;
+
+  ctx.fillStyle = colorHex;
+  ctx.fillRect(0, 0, 128, 720);
+
+  ctx.strokeStyle = foilHex;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(10, 16, 108, 688);
+
+  ctx.save();
+  ctx.translate(64, 360);
+  ctx.rotate(-Math.PI / 2);
+  ctx.fillStyle = foilHex;
+  ctx.font = 'bold 26px serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(title.toUpperCase(), 0, 0);
+  ctx.restore();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.anisotropy = 16;
+  return texture;
+}
+
