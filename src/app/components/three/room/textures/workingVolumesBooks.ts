@@ -181,8 +181,8 @@ const COVER_CROPS: [number, number, number, number][] = [
 
 export function createWorkingVolumeCoverTexture(book: WorkingVolumeBook): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 768;
-  canvas.height = 1152;
+  canvas.width = 860;
+  canvas.height = 1120;
   const ctx = canvas.getContext('2d')!;
 
   const renderCover = () => {
@@ -208,21 +208,21 @@ export function createWorkingVolumeCoverTexture(book: WorkingVolumeBook): THREE.
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.strokeStyle = book.foil;
-      ctx.lineWidth = 3;
-      ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
+      ctx.lineWidth = 4;
+      ctx.strokeRect(45, 45, canvas.width - 90, canvas.height - 90);
 
       ctx.fillStyle = book.foil;
-      ctx.font = 'bold 24px sans-serif';
+      ctx.font = 'bold 26px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`WORKING VOLUMES / ${book.volume}`, canvas.width / 2, 90);
+      ctx.fillText(`WORKING VOLUMES / ${book.volume}`, canvas.width / 2, 95);
 
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 54px serif';
+      ctx.font = 'bold 60px sans-serif';
       ctx.fillText(book.title, canvas.width / 2, canvas.height / 2);
 
       ctx.fillStyle = book.foil;
-      ctx.font = '20px sans-serif';
-      ctx.fillText(book.discipline.toUpperCase(), canvas.width / 2, canvas.height / 2 + 50);
+      ctx.font = 'bold 24px sans-serif';
+      ctx.fillText(book.discipline.toUpperCase(), canvas.width / 2, canvas.height / 2 + 60);
     }
   };
 
@@ -244,8 +244,8 @@ export function createWorkingVolumeCoverTexture(book: WorkingVolumeBook): THREE.
 
 export function createWorkingVolumeSpineTexture(book: WorkingVolumeBook): THREE.CanvasTexture {
   const canvas = document.createElement('canvas');
-  canvas.width = 160;
-  canvas.height = 1152;
+  canvas.width = 180;
+  canvas.height = 1120;
   const ctx = canvas.getContext('2d')!;
 
   ctx.fillStyle = book.color;
@@ -267,7 +267,7 @@ export function createWorkingVolumeSpineTexture(book: WorkingVolumeBook): THREE.
 
   // Roman Numeral Top
   ctx.fillStyle = book.foil;
-  ctx.font = 'bold 22px sans-serif';
+  ctx.font = 'bold 24px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(book.roman, canvas.width / 2, 70);
@@ -276,16 +276,205 @@ export function createWorkingVolumeSpineTexture(book: WorkingVolumeBook): THREE.
   ctx.save();
   ctx.translate(canvas.width / 2, canvas.height / 2);
   ctx.rotate(Math.PI / 2);
-  ctx.font = 'bold 36px serif';
+  ctx.font = 'bold 42px sans-serif';
   ctx.fillText(book.title.toUpperCase(), 0, 0);
   ctx.restore();
 
   // Bottom Volume
-  ctx.font = 'bold 16px sans-serif';
+  ctx.font = 'bold 20px sans-serif';
   ctx.fillText(`VOL. ${book.volume}`, canvas.width / 2, canvas.height - 70);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
+  texture.anisotropy = 16;
+  return texture;
+}
+
+export function createWorkingVolumeInsideCoverTexture(book: WorkingVolumeBook): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1100;
+  canvas.height = 1440;
+  const ctx = canvas.getContext('2d')!;
+
+  // Endpaper warm cream textured background
+  ctx.fillStyle = '#f6f1e8';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Subtle decorative geometric dot pattern
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.035)';
+  const step = 38;
+  for (let x = 25; x < canvas.width; x += step) {
+    for (let y = 25; y < canvas.height; y += step) {
+      ctx.beginPath();
+      ctx.arc(x, y, 2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  // Right-side inner shadow where the page joins the spine
+  const innerSpineShade = ctx.createLinearGradient(canvas.width - 90, 0, canvas.width, 0);
+  innerSpineShade.addColorStop(0, 'rgba(0,0,0,0)');
+  innerSpineShade.addColorStop(1, 'rgba(0,0,0,0.22)');
+  ctx.fillStyle = innerSpineShade;
+  ctx.fillRect(canvas.width - 90, 0, 90, canvas.height);
+
+  // Elegant decorative double border
+  ctx.strokeStyle = book.color;
+  ctx.lineWidth = 5;
+  ctx.strokeRect(50, 50, canvas.width - 100, canvas.height - 100);
+
+  ctx.strokeStyle = book.foil;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(64, 64, canvas.width - 128, canvas.height - 128);
+
+  // Center Ex Libris Plate Card
+  ctx.fillStyle = '#ffffff';
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.12)';
+  ctx.shadowBlur = 24;
+  ctx.shadowOffsetY = 8;
+  ctx.beginPath();
+  ctx.roundRect(canvas.width / 2 - 330, canvas.height / 2 - 380, 660, 760, 24);
+  ctx.fill();
+  ctx.shadowBlur = 0;
+
+  ctx.strokeStyle = book.color;
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  ctx.strokeStyle = book.foil;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(canvas.width / 2 - 305, canvas.height / 2 - 355, 610, 710);
+
+  // Ex Libris Header
+  ctx.fillStyle = book.color;
+  ctx.font = 'bold 36px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('EX LIBRIS', canvas.width / 2, canvas.height / 2 - 240);
+
+  // Book Title in Ex Libris (Super bold and large)
+  ctx.fillStyle = '#09090b';
+  ctx.font = 'bold 76px sans-serif';
+  ctx.fillText(book.title, canvas.width / 2, canvas.height / 2 - 120);
+
+  // Edition details
+  ctx.fillStyle = '#18181b';
+  ctx.font = 'bold 34px sans-serif';
+  ctx.fillText(`ẤN BẢN TẬP ${book.volume}`, canvas.width / 2, canvas.height / 2 - 20);
+
+  ctx.fillStyle = '#52525b';
+  ctx.font = 'bold 28px sans-serif';
+  ctx.fillText('THƯ VIỆN KỆ SÁCH NOBITA', canvas.width / 2, canvas.height / 2 + 50);
+
+  ctx.fillStyle = book.color;
+  ctx.font = 'bold 34px sans-serif';
+  ctx.fillText('✦ MagicTales 3D ✦', canvas.width / 2, canvas.height / 2 + 180);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  texture.anisotropy = 16;
+  return texture;
+}
+
+export function createWorkingVolumePageTexture(book: WorkingVolumeBook): THREE.CanvasTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = 1100;
+  canvas.height = 1440;
+  const ctx = canvas.getContext('2d')!;
+
+  // Warm book paper background
+  ctx.fillStyle = '#faf7f0';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Soft spine gradient shadow on left margin
+  const spineShade = ctx.createLinearGradient(0, 0, 110, 0);
+  spineShade.addColorStop(0, 'rgba(0,0,0,0.22)');
+  spineShade.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = spineShade;
+  ctx.fillRect(0, 0, 110, canvas.height);
+
+  // Top header rule
+  ctx.fillStyle = '#52525b';
+  ctx.font = 'bold 26px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('MAGICTALES 3D STORYTELLING', canvas.width / 2, 75);
+
+  ctx.strokeStyle = '#d4d4d8';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(80, 100);
+  ctx.lineTo(canvas.width - 80, 100);
+  ctx.stroke();
+
+  // Volume badge (Large & vibrant)
+  ctx.fillStyle = book.color;
+  ctx.font = 'bold 36px sans-serif';
+  ctx.fillText(`TẬP ${book.volume} · ${book.discipline.toUpperCase()}`, canvas.width / 2, 175);
+
+  // Story Title (HUGE & Jet-Black)
+  ctx.fillStyle = '#09090b';
+  ctx.font = 'bold 88px sans-serif';
+  ctx.fillText(book.title, canvas.width / 2, 280);
+
+  // Star flourish
+  ctx.fillStyle = book.color;
+  ctx.font = 'bold 34px sans-serif';
+  ctx.fillText('✦   ✦   ✦', canvas.width / 2, 350);
+
+  // Deck / Story Excerpt (Large 40px text with wide layout)
+  ctx.fillStyle = '#09090b';
+  ctx.font = 'bold 40px sans-serif';
+  ctx.textAlign = 'left';
+  const words = book.deck.split(' ');
+  let line = '';
+  let y = 460;
+  const maxWidth = 900;
+  const x = 100;
+
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line + words[i] + ' ';
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && i > 0) {
+      ctx.fillText(line, x, y);
+      line = words[i] + ' ';
+      y += 62;
+    } else {
+      line = testLine;
+    }
+  }
+  ctx.fillText(line, x, y);
+
+  // Quote Box with high contrast
+  y += 65;
+  ctx.fillStyle = '#f0ebd8';
+  ctx.beginPath();
+  ctx.roundRect(80, y, canvas.width - 160, 160, 20);
+  ctx.fill();
+
+  ctx.strokeStyle = book.color;
+  ctx.lineWidth = 7;
+  ctx.beginPath();
+  ctx.moveTo(80, y + 20);
+  ctx.lineTo(80, y + 140);
+  ctx.stroke();
+
+  ctx.fillStyle = '#18181b';
+  ctx.font = 'italic bold 32px sans-serif';
+  ctx.fillText(`"${book.note}"`, 115, y + 85);
+
+  // Footer page number
+  ctx.fillStyle = '#52525b';
+  ctx.font = 'bold 28px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('— Trang 01 —', canvas.width / 2, canvas.height - 60);
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  texture.generateMipmaps = true;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
   texture.anisotropy = 16;
   return texture;
 }
