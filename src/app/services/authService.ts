@@ -1,6 +1,5 @@
 import { LoginRequest, RegisterRequest, VerifyEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse, UserProfile } from '../types/auth';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://zirk5zduks.ap-southeast-1.awsapprunner.com/api/v1';
+import { API_BASE_URL } from './apiConfig';
 
 /**
  * Trợ giúp phân tích JSON an toàn tránh lỗi 'Unexpected end of JSON input'

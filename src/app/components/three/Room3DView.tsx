@@ -27,6 +27,34 @@ export default function Room3DView() {
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getVietnamTimeOfDay);
   const [isTopHovered, setIsTopHovered] = useState<boolean>(false);
 
+  // Tự động đồng bộ theme và nút switcher theo thời gian thực tế ngay khi vào web
+  useEffect(() => {
+    const currentRealTime = getVietnamTimeOfDay();
+    setTimeOfDay(currentRealTime);
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-time-of-day', currentRealTime);
+      document.documentElement.setAttribute('data-theme', currentRealTime === 'morning' ? 'light' : 'dark');
+      if (currentRealTime === 'morning') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+    }
+  }, []);
+
+  // Cập nhật thuộc tính DOM khi chuyển đổi theme
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.setAttribute('data-time-of-day', timeOfDay);
+      document.documentElement.setAttribute('data-theme', timeOfDay === 'morning' ? 'light' : 'dark');
+      if (timeOfDay === 'morning') {
+        document.documentElement.classList.remove('dark');
+      } else {
+        document.documentElement.classList.add('dark');
+      }
+    }
+  }, [timeOfDay]);
+
   // GSAP: Hiệu ứng Circular Reveal Transition toàn màn hình khi chuyển đổi buổi (Sáng - Chiều - Tối)
   const handleTimeOfDayTransition = useCallback((newTime: TimeOfDay, e?: React.MouseEvent | MouseEvent) => {
     if (newTime === timeOfDay) return;
@@ -173,7 +201,7 @@ export default function Room3DView() {
     <div
       ref={roomViewRef}
       data-time-of-day={timeOfDay}
-      className={`relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans theme-${timeOfDay} transition-colors duration-700`}
+      className={`relative w-screen h-screen overflow-hidden select-none bg-zinc-950 font-sans theme-${timeOfDay} transition-colors duration-1400 ease-in-out`}
     >
       {/* Invisible Top Edge Hover Detector */}
       {currentStage !== 0 && (

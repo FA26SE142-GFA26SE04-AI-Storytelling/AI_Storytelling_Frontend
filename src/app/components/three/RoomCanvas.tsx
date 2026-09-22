@@ -586,9 +586,9 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         targetLookAtPos.current.z + parallaxLookZ
       );
 
-      // Smooth LERP Camera Transitions
-      camera.position.lerp(targetCamPos.current, 0.05);
-      currentLookAt.lerp(dynamicTargetLookAt, 0.05);
+      // Smooth LERP Camera Transitions (lướt camera chậm rãi, êm ái hơn)
+      camera.position.lerp(targetCamPos.current, 0.022);
+      currentLookAt.lerp(dynamicTargetLookAt, 0.022);
       camera.lookAt(currentLookAt);
 
       // Time-of-Day lighting target updates
@@ -652,41 +652,40 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         targetWindowRimIntensity = 0.0;
       }
 
-      // Smooth LERP Lighting & Celestial Object Movements
-      dirLight.position.lerp(targetDirLightPos, 0.04);
-      dirLight.color.lerp(targetDirLightColor, 0.04);
-      dirLight.intensity = THREE.MathUtils.lerp(dirLight.intensity, targetDirLightIntensity, 0.04);
+      // Smooth LERP Lighting & Celestial Object Movements (chuyển đổi buổi chậm rãi, điện ảnh)
+      dirLight.position.lerp(targetDirLightPos, 0.014);
+      dirLight.color.lerp(targetDirLightColor, 0.014);
+      dirLight.intensity = THREE.MathUtils.lerp(dirLight.intensity, targetDirLightIntensity, 0.014);
 
-      nightDirLight.intensity = THREE.MathUtils.lerp(nightDirLight.intensity, targetNightLightIntensity, 0.04);
+      nightDirLight.intensity = THREE.MathUtils.lerp(nightDirLight.intensity, targetNightLightIntensity, 0.014);
 
-      ambientLight.color.lerp(targetAmbientColor, 0.04);
-      ambientLight.intensity = THREE.MathUtils.lerp(ambientLight.intensity, targetAmbientIntensity, 0.04);
+      ambientLight.color.lerp(targetAmbientColor, 0.014);
+      ambientLight.intensity = THREE.MathUtils.lerp(ambientLight.intensity, targetAmbientIntensity, 0.014);
 
       // Cập nhật cường độ đèn trần và độ phát sáng chụp đèn theo công tắc
       const targetActiveFill = isCeilingLightActive ? targetRoomFillIntensity : 0.0;
       const targetActiveDownLight = isCeilingLightActive ? (currentMode === 'night' ? 1.05 : 0.75) : 0.0;
       const targetActiveLampEmissive = isCeilingLightActive ? 2.0 : 0.0;
-      roomFillLight.intensity = THREE.MathUtils.lerp(roomFillLight.intensity, targetActiveFill, 0.08);
-      ceilingDownLight.intensity = THREE.MathUtils.lerp(ceilingDownLight.intensity, targetActiveDownLight, 0.08);
-      lampPaperMat.emissiveIntensity = THREE.MathUtils.lerp(lampPaperMat.emissiveIntensity, targetActiveLampEmissive, 0.08);
+      roomFillLight.intensity = THREE.MathUtils.lerp(roomFillLight.intensity, targetActiveFill, 0.022);
+      ceilingDownLight.intensity = THREE.MathUtils.lerp(ceilingDownLight.intensity, targetActiveDownLight, 0.022);
+      lampPaperMat.emissiveIntensity = THREE.MathUtils.lerp(lampPaperMat.emissiveIntensity, targetActiveLampEmissive, 0.022);
 
-      windowRimLight.intensity = THREE.MathUtils.lerp(windowRimLight.intensity, targetWindowRimIntensity, 0.04);
+      windowRimLight.intensity = THREE.MathUtils.lerp(windowRimLight.intensity, targetWindowRimIntensity, 0.014);
 
+      (skyMat as any).color.lerp(targetSkyColor, 0.014);
+      sunGroup.position.lerp(targetSunPos, 0.014);
 
-      (skyMat as any).color.lerp(targetSkyColor, 0.04);
-      sunGroup.position.lerp(targetSunPos, 0.04);
+      sunCoreMat.opacity = THREE.MathUtils.lerp(sunCoreMat.opacity, targetSunOpacity, 0.014);
+      sunGlowMat.opacity = THREE.MathUtils.lerp(sunGlowMat.opacity, targetSunOpacity * 0.35, 0.014);
 
-      sunCoreMat.opacity = THREE.MathUtils.lerp(sunCoreMat.opacity, targetSunOpacity, 0.04);
-      sunGlowMat.opacity = THREE.MathUtils.lerp(sunGlowMat.opacity, targetSunOpacity * 0.35, 0.04);
+      moonMat.opacity = THREE.MathUtils.lerp(moonMat.opacity, targetMoonOpacity, 0.014);
+      moonMaskMat.opacity = THREE.MathUtils.lerp(moonMaskMat.opacity, targetMoonOpacity, 0.014);
+      moonGlowMat.opacity = THREE.MathUtils.lerp(moonGlowMat.opacity, targetMoonOpacity * 0.4, 0.014);
 
-      moonMat.opacity = THREE.MathUtils.lerp(moonMat.opacity, targetMoonOpacity, 0.04);
-      moonMaskMat.opacity = THREE.MathUtils.lerp(moonMaskMat.opacity, targetMoonOpacity, 0.04);
-      moonGlowMat.opacity = THREE.MathUtils.lerp(moonGlowMat.opacity, targetMoonOpacity * 0.4, 0.04);
+      starMat.opacity = THREE.MathUtils.lerp(starMat.opacity, targetStarOpacity, 0.014);
 
-      starMat.opacity = THREE.MathUtils.lerp(starMat.opacity, targetStarOpacity, 0.04);
-
-      (cloudMat as any).color.lerp(targetCloudColor, 0.04);
-      cloudMat.opacity = THREE.MathUtils.lerp(cloudMat.opacity, targetCloudOpacity, 0.04);
+      (cloudMat as any).color.lerp(targetCloudColor, 0.014);
+      cloudMat.opacity = THREE.MathUtils.lerp(cloudMat.opacity, targetCloudOpacity, 0.014);
 
       // Smooth 3D Globe Rotation
       if (globeSphere) {
@@ -737,19 +736,19 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       const isNotebookOpen = currentStageIndexRef.current === 1;
       const targetNotebookAngle = isNotebookOpen ? 0 : Math.PI;
       const targetNotebookPosY = isNotebookOpen ? 0.002 : 0.014;
-      rightWing.rotation.z = THREE.MathUtils.lerp(rightWing.rotation.z, targetNotebookAngle, 0.03);
-      rightWing.position.y = THREE.MathUtils.lerp(rightWing.position.y, targetNotebookPosY, 0.03);
+      rightWing.rotation.z = THREE.MathUtils.lerp(rightWing.rotation.z, targetNotebookAngle, 0.018);
+      rightWing.position.y = THREE.MathUtils.lerp(rightWing.position.y, targetNotebookPosY, 0.018);
 
       // Laptop tự động mở nắp nghiêng chuẩn khi zoom vào góc Laptop (Stage 6) và gập đóng phẳng khi rời đi
       const isLaptopOpen = currentStageIndexRef.current === 6;
       const targetLidAngle = isLaptopOpen ? -0.31 : Math.PI / 2;
-      laptopLidGroup.rotation.x = THREE.MathUtils.lerp(laptopLidGroup.rotation.x, targetLidAngle, 0.04);
+      laptopLidGroup.rotation.x = THREE.MathUtils.lerp(laptopLidGroup.rotation.x, targetLidAngle, 0.022);
 
       // Interactive Closet Doors independent smooth sliding animation
       const targetDoorLeftX = isLeftDoorOpen ? 0.46 : -0.51;
       const targetDoorRightX = isRightDoorOpen ? -0.46 : 0.51;
-      fDoorLeft.position.x = THREE.MathUtils.lerp(fDoorLeft.position.x, targetDoorLeftX, 0.08);
-      fDoorRight.position.x = THREE.MathUtils.lerp(fDoorRight.position.x, targetDoorRightX, 0.08);
+      fDoorLeft.position.x = THREE.MathUtils.lerp(fDoorLeft.position.x, targetDoorLeftX, 0.04);
+      fDoorRight.position.x = THREE.MathUtils.lerp(fDoorRight.position.x, targetDoorRightX, 0.04);
 
       renderer.render(scene, camera);
       animId = requestAnimationFrame(animate);

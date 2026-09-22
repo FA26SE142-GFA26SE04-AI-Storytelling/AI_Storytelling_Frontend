@@ -8,33 +8,46 @@ export interface CameraStage {
 export type TimeOfDay = 'morning' | 'afternoon' | 'night';
 
 /**
- * Automatically checks current Vietnam local time (UTC+7 / Asia/Ho_Chi_Minh)
- * to determine initial atmosphere lighting mode:
- * - Morning (Sáng): 07:00 - 13:59 (7h - 14h)
- * - Afternoon (Chiều): 14:00 - 17:59 (14h - 18h)
- * - Night (Tối/Đêm): 18:00 - 06:59 (18h - 7h)
+ * Automatically checks current local time (Asia/Ho_Chi_Minh / UTC+7 or device local time)
+ * to determine atmosphere lighting mode:
+ * - Morning (Sáng): 05:00 - 11:59 (5h - 12h)
+ * - Afternoon (Chiều): 12:00 - 17:59 (12h - 18h)
+ * - Night (Tối/Đêm): 18:00 - 04:59 (18h - 5h)
  */
 export function getVietnamTimeOfDay(): TimeOfDay {
   try {
     const now = new Date();
-    const vnHourStr = new Intl.DateTimeFormat('en-US', {
-      timeZone: 'Asia/Ho_Chi_Minh',
-      hour: 'numeric',
-      hour12: false,
-    }).format(now);
+    let hour: number = now.getHours();
 
-    const hour = parseInt(vnHourStr, 10);
-    if (isNaN(hour)) return 'afternoon';
+    try {
+      const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Ho_Chi_Minh',
+        hour: 'numeric',
+        hourCycle: 'h23',
+      }).formatToParts(now);
+      const hourPart = parts.find((p) => p.type === 'hour');
+      if (hourPart) {
+        const parsed = parseInt(hourPart.value, 10);
+        if (!isNaN(parsed)) {
+          hour = parsed;
+        }
+      }
+    } catch {
+      hour = now.getHours();
+    }
 
-    if (hour >= 7 && hour < 14) {
+    if (hour >= 5 && hour < 12) {
       return 'morning';
-    } else if (hour >= 14 && hour < 18) {
+    } else if (hour >= 12 && hour < 18) {
       return 'afternoon';
     } else {
       return 'night';
     }
-  } catch (e) {
-    return 'afternoon';
+  } catch {
+    const fallbackHour = new Date().getHours();
+    if (fallbackHour >= 5 && fallbackHour < 12) return 'morning';
+    if (fallbackHour >= 12 && fallbackHour < 18) return 'afternoon';
+    return 'night';
   }
 }
 
