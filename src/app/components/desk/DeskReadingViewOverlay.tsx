@@ -50,10 +50,6 @@ export const DeskReadingViewOverlay: React.FC<DeskReadingViewOverlayProps> = ({
     };
   }, []);
 
-  const handleOpenBook = () => {
-    window.dispatchEvent(new CustomEvent('room:trigger-open-desk-book'));
-  };
-
   const handleCloseBook = () => {
     setReadingStage('closed');
     window.dispatchEvent(new CustomEvent('room:close-desk-book'));
@@ -129,24 +125,7 @@ export const DeskReadingViewOverlay: React.FC<DeskReadingViewOverlayProps> = ({
         </div>
       )}
 
-      {/* 4. TRẠNG THÁI CLOSED: NÚT KÊU GỌI LẬT MỞ SÁCH TRÊN BÀN */}
-      {readingStage === 'closed' && (
-        <div className="desk-reading-control absolute bottom-8 sm:bottom-12 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex flex-col items-center gap-3 animate-in fade-in zoom-in duration-300">
-          <button
-            onClick={handleOpenBook}
-            className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white font-extrabold text-sm sm:text-base shadow-[0_12px_35px_rgba(245,158,11,0.55)] border border-amber-300/40 hover:scale-105 active:scale-95 transition-all flex items-center gap-3 cursor-pointer group hover:shadow-[0_16px_40px_rgba(245,158,11,0.7)]"
-          >
-            <BookOpen className="w-5 h-5 text-white group-hover:rotate-12 transition-transform" />
-            <span>Lật Mở Sách Để Đọc</span>
-            <Sparkles className="w-4 h-4 text-amber-200 animate-pulse" />
-          </button>
-          <span className="text-xs font-bold text-tod-text-muted px-3.5 py-1 rounded-full bg-tod-surface/90 backdrop-blur-md border border-tod-border shadow-md">
-            Nhấp vào nút hoặc nhấp thẳng vào quyển sách trên bàn để mở
-          </span>
-        </div>
-      )}
-
-      {/* 5. TRẠNG THÁI READING: TOÀN MÀN HÌNH KHÔNG GIAN ĐỌC SÁCH 3D */}
+      {/* 4. TRẠNG THÁI READING: TOÀN MÀN HÌNH KHÔNG GIAN ĐỌC SÁCH 3D */}
       {readingStage === 'reading' && (
         <div className="desk-reading-control absolute inset-0 w-full h-full pointer-events-auto flex items-center justify-center p-0 z-30 animate-in fade-in zoom-in-95 duration-500 overflow-hidden">
           <DeskPageTurningBook
