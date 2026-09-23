@@ -15,12 +15,16 @@ import {
   RotateCcw,
   X,
 } from 'lucide-react';
+import { gsap } from 'gsap';
+import { useGSAP } from '@gsap/react';
 import {
   WorkingVolumeBook,
   createWorkingVolumeCoverTexture,
   createWorkingVolumeInsideCoverTexture,
   createWorkingVolumePageTexture,
 } from '../three/room/textures/workingVolumesBooks';
+
+gsap.registerPlugin(useGSAP);
 
 export interface DeskPageTurningBookProps {
   book: WorkingVolumeBook;
@@ -36,8 +40,8 @@ interface PageSpread {
 
 // Số lượng strips để tạo độ cong mượt mà
 const N = 18;
-// Tỷ lệ độ rộng từ gáy ra mép trang
-const SPAN = 0.449;
+// Tỷ lệ độ rộng từ gáy ra mép trang (Chính xác 50% độ rộng 2 trang)
+const SPAN = 0.5;
 // Độ cong cực đại của trang giấy (radian)
 const BETA = 0.60;
 
@@ -53,76 +57,198 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
 
   const [pageSpreads, setPageSpreads] = useState<PageSpread[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState<number>(0);
+  const currentPageRef = useRef<number>(0);
   const [isReady, setIsReady] = useState<boolean>(false);
+  const [isExiting, setIsExiting] = useState<boolean>(false);
+
+  useEffect(() => {
+    currentPageRef.current = currentPageIndex;
+  }, [currentPageIndex]);
 
   // Focus Mode & Zoom State (Phóng to trang sách & Giảm phân tâm)
   const [zoomLevel, setZoomLevel] = useState<number>(1.0);
   const [isFocusDimmer, setIsFocusDimmer] = useState<boolean>(true);
 
-  // Helper tạo canvas 2 trang đôi (Spread 1760x1240)
+  // GSAP: Hiệu ứng phóng to rõ dần (Blur-to-Clear Depth of Field Zoom-In) khi vào chế độ đọc sách
+  useGSAP(
+    () => {
+      if (!containerRef.current) return;
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      // 1. Phông nền tối mờ xuất hiện
+      tl.fromTo(
+        '.desk-dimmer-backdrop',
+        { opacity: 0 },
+        { opacity: 1, duration: 0.6 }
+      );
+
+      // 2. Quyển sách 3D phóng to từ xa và RÕ DẦN (từ mờ ảo blur(22px) sang sắc nét blur(0px))
+      if (sb3dRef.current) {
+        tl.fromTo(
+          sb3dRef.current,
+          {
+            scale: 0.52,
+            opacity: 0,
+            filter: 'blur(22px)',
+            y: 90,
+            rotateX: 14,
+          },
+          {
+            scale: zoomLevel,
+            opacity: 1,
+            filter: 'blur(0px)',
+            y: 0,
+            rotateX: 2,
+            duration: 0.75,
+            ease: 'power3.out',
+          },
+          '-=0.45'
+        );
+      }
+
+      // 3. Nút đóng sách góc trên trượt xuống
+      tl.fromTo(
+        '.desk-top-exit-btn',
+        { opacity: 0, y: -25, scale: 0.9 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.4 },
+        '-=0.35'
+      );
+
+      // 4. Thanh công cụ nổi đáy màn hình bật nảy lên
+      if (captionRef.current) {
+        tl.fromTo(
+          captionRef.current,
+          { opacity: 0, y: 40, scale: 0.92 },
+          { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.4)' },
+          '-=0.25'
+        );
+      }
+
+      // 5. Nút mũi tên điều hướng 2 bên trượt nhẹ vào
+      tl.fromTo(
+        '.desk-nav-arrow-left',
+        { opacity: 0, x: -25 },
+        { opacity: 0.75, x: 0, duration: 0.4 },
+        '-=0.3'
+      );
+      tl.fromTo(
+        '.desk-nav-arrow-right',
+        { opacity: 0, x: 25 },
+        { opacity: 0.75, x: 0, duration: 0.4 },
+        '-=0.4'
+      );
+    },
+    { scope: containerRef }
+  );
+
+  // GSAP: Hiệu ứng thu nhỏ lùi dần và mờ đi khi thoát chế độ đọc (Exit Animation)
+  const handleExit = useCallback(() => {
+    if (isExiting) return;
+    setIsExiting(true);
+
+    if (containerRef.current) {
+      const tl = gsap.timeline({
+        defaults: { ease: 'power2.in', duration: 0.35 },
+        onComplete: () => {
+          onClose?.();
+        },
+      });
+
+      // 1. Mũi tên 2 bên trượt ra
+      tl.to('.desk-nav-arrow-left', { opacity: 0, x: -20, duration: 0.25 });
+      tl.to('.desk-nav-arrow-right', { opacity: 0, x: 20, duration: 0.25 }, '-=0.25');
+
+      // 2. Thanh điều khiển đáy trượt xuống
+      if (captionRef.current) {
+        tl.to(captionRef.current, { opacity: 0, y: 30, scale: 0.95, duration: 0.3 }, '-=0.2');
+      }
+
+      // 3. Nút đóng sách trượt lên
+      tl.to('.desk-top-exit-btn', { opacity: 0, y: -20, duration: 0.25 }, '-=0.25');
+
+      // 4. Quyển sách 3D thu nhỏ lùi dần về phía bàn học và mờ dần (blur(18px))
+      if (sb3dRef.current) {
+        tl.to(
+          sb3dRef.current,
+          {
+            scale: 0.58,
+            opacity: 0,
+            filter: 'blur(18px)',
+            y: 70,
+            rotateX: 10,
+            duration: 0.38,
+            ease: 'power2.in',
+          },
+          '-=0.25'
+        );
+      }
+
+      // 5. Nền tối mờ dần
+      tl.to('.desk-dimmer-backdrop', { opacity: 0, duration: 0.3 }, '-=0.2');
+    } else {
+      onClose?.();
+    }
+  }, [isExiting, onClose]);
+
+  // Helper tạo canvas 2 trang đôi toàn màn hình chuẩn 16:9 (Spread 1920x1080)
   const generateSpreads = useCallback((): PageSpread[] => {
-    const W = 1760;
-    const H = 1240;
+    const W = 1920;
+    const H = 1080;
     const halfW = W / 2;
 
     const spreads: PageSpread[] = [];
 
-    // --- Spread 0: Bìa sách gập đôi (Bìa sau & Bìa trước) ---
+    // --- Spread 0: Bìa trước đơn (Chỉ hiển thị nửa bên phải, sách đang đóng) ---
     {
       const canvas = document.createElement('canvas');
       canvas.width = W;
       canvas.height = H;
       const ctx = canvas.getContext('2d')!;
 
-      // Nền vải sách
+      // Nửa bên trái hoàn toàn trong suốt (Sách đang gập lại)
+      ctx.clearRect(0, 0, W, H);
+
+      // Nửa bên phải: Bìa trước của sách
       ctx.fillStyle = book.color;
-      ctx.fillRect(0, 0, W, H);
+      ctx.beginPath();
+      ctx.roundRect(halfW, 0, halfW, H, [0, 20, 20, 0]);
+      ctx.fill();
 
-      // Gáy sách ở giữa
-      const spineGrad = ctx.createLinearGradient(halfW - 50, 0, halfW + 50, 0);
-      spineGrad.addColorStop(0, 'rgba(0,0,0,0.4)');
-      spineGrad.addColorStop(0.5, 'rgba(255,255,255,0.15)');
-      spineGrad.addColorStop(1, 'rgba(0,0,0,0.4)');
+      // Gáy sách ở mép trái của bìa trước (tại halfW)
+      const spineGrad = ctx.createLinearGradient(halfW, 0, halfW + 60, 0);
+      spineGrad.addColorStop(0, 'rgba(0,0,0,0.5)');
+      spineGrad.addColorStop(0.25, 'rgba(255,255,255,0.2)');
+      spineGrad.addColorStop(1, 'rgba(0,0,0,0)');
       ctx.fillStyle = spineGrad;
-      ctx.fillRect(halfW - 50, 0, 100, H);
-
-      // Bìa sau (Left)
-      ctx.strokeStyle = book.foil;
-      ctx.lineWidth = 3;
-      ctx.strokeRect(60, 60, halfW - 120, H - 120);
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'italic 28px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(`"${book.note}"`, halfW / 2, H / 2 - 40);
-      ctx.font = 'bold 22px sans-serif';
-      ctx.fillStyle = book.foil;
-      ctx.fillText(`ẤN BẢN TẬP ${book.volume} · ${book.discipline.toUpperCase()}`, halfW / 2, H / 2 + 40);
+      ctx.fillRect(halfW, 0, 60, H);
 
       // Bìa trước (Right)
-      ctx.strokeRect(halfW + 60, 60, halfW - 120, H - 120);
-      ctx.strokeRect(halfW + 80, 80, halfW - 160, H - 160);
+      ctx.strokeStyle = book.foil;
+      ctx.lineWidth = 3;
+      ctx.strokeRect(halfW + 60, 50, halfW - 120, H - 100);
+      ctx.strokeRect(halfW + 80, 70, halfW - 160, H - 140);
 
       ctx.fillStyle = book.foil;
       ctx.font = 'bold 36px sans-serif';
-      ctx.fillText(`TẬP ${book.volume} · ${book.roman}`, halfW + halfW / 2, 160);
+      ctx.textAlign = 'center';
+      ctx.fillText(`TẬP ${book.volume} · ${book.roman}`, halfW + halfW / 2, 140);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 92px sans-serif';
-      ctx.fillText(book.title, halfW + halfW / 2, H / 2 - 50);
+      ctx.fillText(book.title, halfW + halfW / 2, H / 2 - 40);
 
       ctx.fillStyle = book.foil;
       ctx.font = 'bold 32px sans-serif';
-      ctx.fillText(`✦  ${book.discipline.toUpperCase()}  ✦`, halfW + halfW / 2, H / 2 + 40);
+      ctx.fillText(`✦  ${book.discipline.toUpperCase()}  ✦`, halfW + halfW / 2, H / 2 + 50);
 
       ctx.fillStyle = '#f8fafc';
       ctx.font = 'bold 24px sans-serif';
-      ctx.fillText('MAGICTALES 3D EDITION', halfW + halfW / 2, H - 130);
+      ctx.fillText('MAGICTALES 3D EDITION', halfW + halfW / 2, H - 110);
 
       spreads.push({
-        title: `${book.title} — Bìa Ấn Bản`,
+        title: `${book.title} — Bìa Trước`,
         subtitle: `Tập ${book.volume} · ${book.discipline}`,
-        dataUrl: canvas.toDataURL('image/jpeg', 0.92),
+        dataUrl: canvas.toDataURL('image/png'),
       });
     }
 
@@ -150,7 +276,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
       ctx.shadowColor = 'rgba(0,0,0,0.1)';
       ctx.shadowBlur = 16;
       ctx.beginPath();
-      ctx.roundRect(100, 140, halfW - 200, H - 280, 20);
+      ctx.roundRect(100, 110, halfW - 200, H - 220, 20);
       ctx.fill();
       ctx.shadowBlur = 0;
 
@@ -160,38 +286,38 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
 
       ctx.strokeStyle = book.foil;
       ctx.lineWidth = 2;
-      ctx.strokeRect(120, 160, halfW - 240, H - 320);
+      ctx.strokeRect(120, 130, halfW - 240, H - 260);
 
       ctx.fillStyle = book.color;
       ctx.font = 'bold 28px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText('EX LIBRIS', halfW / 2, 240);
+      ctx.fillText('EX LIBRIS', halfW / 2, 210);
 
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 64px sans-serif';
-      ctx.fillText(book.title, halfW / 2, 340);
+      ctx.fillText(book.title, halfW / 2, 310);
 
       ctx.fillStyle = '#475569';
       ctx.font = 'bold 22px sans-serif';
-      ctx.fillText(`ẤN BẢN NOBITA · TẬP ${book.volume}`, halfW / 2, 420);
-      ctx.fillText('✦ MagicTales Storytelling ✦', halfW / 2, 480);
+      ctx.fillText(`ẤN BẢN NOBITA · TẬP ${book.volume}`, halfW / 2, 390);
+      ctx.fillText('✦ MagicTales Storytelling ✦', halfW / 2, 450);
 
       // Right Page: Mở đầu câu chuyện
       ctx.textAlign = 'left';
       ctx.fillStyle = book.color;
       ctx.font = 'bold 26px sans-serif';
-      ctx.fillText(`TẬP ${book.volume} · ${book.discipline.toUpperCase()}`, halfW + 90, 160);
+      ctx.fillText(`TẬP ${book.volume} · ${book.discipline.toUpperCase()}`, halfW + 90, 140);
 
       ctx.fillStyle = '#09090b';
       ctx.font = 'bold 64px sans-serif';
-      ctx.fillText(book.title, halfW + 90, 240);
+      ctx.fillText(book.title, halfW + 90, 220);
 
       // Deck synopsis
       ctx.fillStyle = '#1e293b';
-      ctx.font = 'medium 26px sans-serif';
+      ctx.font = '28px sans-serif';
       const words = book.deck.split(' ');
       let line = '';
-      let y = 330;
+      let y = 300;
       for (let i = 0; i < words.length; i++) {
         const testLine = line + words[i] + ' ';
         if (ctx.measureText(testLine).width > halfW - 180 && i > 0) {
@@ -205,27 +331,27 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
       ctx.fillText(line, halfW + 90, y);
 
       // Quote box
-      y += 50;
+      y += 45;
       ctx.fillStyle = `${book.color}15`;
       ctx.beginPath();
-      ctx.roundRect(halfW + 80, y, halfW - 160, 120, 14);
+      ctx.roundRect(halfW + 80, y, halfW - 160, 110, 14);
       ctx.fill();
       ctx.strokeStyle = book.color;
       ctx.lineWidth = 5;
       ctx.beginPath();
       ctx.moveTo(halfW + 80, y + 10);
-      ctx.lineTo(halfW + 80, y + 110);
+      ctx.lineTo(halfW + 80, y + 100);
       ctx.stroke();
 
       ctx.fillStyle = '#09090b';
       ctx.font = 'italic bold 22px sans-serif';
-      ctx.fillText(`"${book.note}"`, halfW + 110, y + 68);
+      ctx.fillText(`"${book.note}"`, halfW + 110, y + 62);
 
       // Page numbers
       ctx.textAlign = 'center';
       ctx.fillStyle = '#94a3b8';
       ctx.font = 'bold 18px sans-serif';
-      ctx.fillText('— Trang 01 —', halfW + halfW / 2, H - 70);
+      ctx.fillText('— Trang 01 —', halfW + halfW / 2, H - 55);
 
       spreads.push({
         title: `${book.title} — Mở Đầu Câu Chuyện`,
@@ -255,32 +381,32 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 36px sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText('Chương I: Khởi Nguồn Sáng Tạo', 90, 160);
+      ctx.fillText('Chương I: Khởi Nguồn Sáng Tạo', 90, 140);
 
       ctx.fillStyle = '#334155';
       ctx.font = '24px sans-serif';
-      ctx.fillText('Mỗi câu chuyện đều bắt đầu từ một ý niệm nhỏ bé.', 90, 220);
-      ctx.fillText('Khi bàn tay chạm vào trang giấy, trí tưởng tượng', 90, 265);
-      ctx.fillText('mở ra vô vàn những thế giới diệu kỳ đang chờ đón.', 90, 310);
+      ctx.fillText('Mỗi câu chuyện đều bắt đầu từ một ý niệm nhỏ bé.', 90, 200);
+      ctx.fillText('Khi bàn tay chạm vào trang giấy, trí tưởng tượng', 90, 245);
+      ctx.fillText('mở ra vô vàn những thế giới diệu kỳ đang chờ đón.', 90, 290);
 
       // Minh họa thẻ màu
       ctx.fillStyle = book.color;
       ctx.beginPath();
-      ctx.roundRect(90, 370, halfW - 180, 240, 20);
+      ctx.roundRect(90, 350, halfW - 180, 220, 20);
       ctx.fill();
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 32px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(book.motif, 90 + (halfW - 180) / 2, 480);
+      ctx.fillText(book.motif, 90 + (halfW - 180) / 2, 450);
       ctx.font = 'bold 20px sans-serif';
-      ctx.fillText(`Chủ đề: ${book.theme}`, 90 + (halfW - 180) / 2, 530);
+      ctx.fillText(`Chủ đề: ${book.theme}`, 90 + (halfW - 180) / 2, 500);
 
       // Right Page: Thử thách & Câu hỏi tương tác
       ctx.textAlign = 'left';
       ctx.fillStyle = '#0f172a';
       ctx.font = 'bold 36px sans-serif';
-      ctx.fillText('Câu Hỏi Suy Ngẫm Cho Bé', halfW + 90, 160);
+      ctx.fillText('Câu Hỏi Suy Ngẫm Cho Bé', halfW + 90, 140);
 
       const questions = [
         '1. Bé thích chi tiết nào nhất trong hành trình vừa qua?',
@@ -288,19 +414,19 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
         '3. Cùng chia sẻ cảm xúc của bé với ba mẹ nhé!',
       ];
 
-      let y = 230;
+      let y = 210;
       ctx.fillStyle = '#1e293b';
       ctx.font = '24px sans-serif';
       questions.forEach((q) => {
         ctx.fillText(q, halfW + 90, y);
-        y += 70;
+        y += 65;
       });
 
       // Box bài học
-      y += 40;
+      y += 35;
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
-      ctx.roundRect(halfW + 80, y, halfW - 160, 160, 16);
+      ctx.roundRect(halfW + 80, y, halfW - 160, 140, 16);
       ctx.fill();
       ctx.strokeStyle = '#e2e8f0';
       ctx.lineWidth = 2;
@@ -308,15 +434,15 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
 
       ctx.fillStyle = book.color;
       ctx.font = 'bold 22px sans-serif';
-      ctx.fillText('✦ BÀI HỌC Ý NGHĨA ✦', halfW + 110, y + 45);
+      ctx.fillText('✦ BÀI HỌC Ý NGHĨA ✦', halfW + 110, y + 40);
       ctx.fillStyle = '#334155';
       ctx.font = 'italic 20px sans-serif';
-      ctx.fillText('Kiên trì và sáng tạo sẽ mở ra những cánh cửa bất ngờ.', halfW + 110, y + 90);
+      ctx.fillText('Kiên trì và sáng tạo sẽ mở ra những cánh cửa bất ngờ.', halfW + 110, y + 80);
 
       ctx.textAlign = 'center';
       ctx.fillStyle = '#94a3b8';
       ctx.font = 'bold 18px sans-serif';
-      ctx.fillText('— Trang 02 —', halfW + halfW / 2, H - 70);
+      ctx.fillText('— Trang 02 —', halfW + halfW / 2, H - 55);
 
       spreads.push({
         title: `${book.title} — Chương I & Bài Học`,
@@ -446,19 +572,20 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
   }, []);
 
   // 3. Paint book DOM state
-  const paint = useCallback(() => {
+  const paint = useCallback((overrideIndex?: number) => {
     const bookEl = bookDomRef.current;
     if (!bookEl || pageSpreads.length === 0) return;
 
     bookEl.innerHTML = '';
     const turn = turnRef.current;
+    const activeIdx = overrideIndex !== undefined ? overrideIndex : currentPageRef.current;
 
     if (!turn) {
       const f = document.createElement('div');
       f.className = 'sb-full';
       const im = new Image();
-      im.src = pageSpreads[currentPageIndex]?.dataUrl || '';
-      im.alt = pageSpreads[currentPageIndex]?.title || '';
+      im.src = pageSpreads[activeIdx]?.dataUrl || '';
+      im.alt = pageSpreads[activeIdx]?.title || '';
       im.draggable = false;
       f.appendChild(im);
       bookEl.appendChild(f);
@@ -513,8 +640,8 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
       sb3dRef.current.style.setProperty('--bw', `${bookEl.clientWidth}px`);
     }
 
-    onPageChange?.(currentPageIndex + 1, pageSpreads.length);
-  }, [buildCurl, applyTurn, currentPageIndex, pageSpreads, onPageChange]);
+    onPageChange?.(activeIdx + 1, pageSpreads.length);
+  }, [buildCurl, applyTurn, pageSpreads, onPageChange]);
 
   // 4. Spring loop physics
   const kick = useCallback(() => {
@@ -572,50 +699,67 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
     (dir: 'next' | 'prev', t = 0) => {
       springRef.current = null;
       if (turnRef.current) {
-        setCurrentPageIndex(turnRef.current.to);
+        const prevTo = turnRef.current.to;
+        currentPageRef.current = prevTo;
+        setCurrentPageIndex(prevTo);
         turnRef.current = null;
       }
       const M = pageSpreads.length;
       if (M <= 1) return;
 
-      const from = currentPageIndex;
-      const to = dir === 'next' ? (from + 1) % M : (from - 1 + M) % M;
+      const from = currentPageRef.current;
+      if (from === 0 && dir === 'prev') return;
+      if (from === M - 1 && dir === 'next') return;
+
+      const to = dir === 'next' ? from + 1 : from - 1;
 
       turnRef.current = { dir, from, to, t };
       paint();
     },
-    [currentPageIndex, pageSpreads.length, paint]
+    [pageSpreads.length, paint]
   );
 
   const commit = useCallback(() => {
     if (!turnRef.current) return;
     animateTo(1, () => {
       if (turnRef.current) {
-        setCurrentPageIndex(turnRef.current.to);
+        const nextIdx = turnRef.current.to;
         turnRef.current = null;
+        currentPageRef.current = nextIdx;
+        setCurrentPageIndex(nextIdx);
+        paint(nextIdx);
+      } else {
+        paint();
       }
-      paint();
     });
   }, [animateTo, paint]);
 
   const cancel = useCallback(() => {
     if (!turnRef.current) return;
     animateTo(0, () => {
+      const stayIdx = turnRef.current ? turnRef.current.from : currentPageRef.current;
       turnRef.current = null;
-      paint();
+      currentPageRef.current = stayIdx;
+      setCurrentPageIndex(stayIdx);
+      paint(stayIdx);
     });
   }, [animateTo, paint]);
 
   const step = useCallback(
     (dir: 'next' | 'prev') => {
+      if (currentPageRef.current === 0 && dir === 'prev') return;
+      if (currentPageRef.current === pageSpreads.length - 1 && dir === 'next') return;
+
       if (turnRef.current) {
-        setCurrentPageIndex(turnRef.current.to);
+        const target = turnRef.current.to;
         turnRef.current = null;
+        currentPageRef.current = target;
+        setCurrentPageIndex(target);
       }
       startTurn(dir, 0);
       commit();
     },
-    [startTurn, commit]
+    [pageSpreads.length, startTurn, commit]
   );
 
   // 5. Pointer drag listeners for physics interactive turning
@@ -640,8 +784,11 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
       if (!onBook) return;
 
       const r = bookEl.getBoundingClientRect();
-      const dir: 'next' | 'prev' =
-        (e.clientX - r.left) / r.width > 0.5 ? 'next' : 'prev';
+      const isRightSide = (e.clientX - r.left) / r.width > 0.5;
+      const dir: 'next' | 'prev' = isRightSide ? 'next' : 'prev';
+
+      if (currentPageRef.current === 0 && dir === 'prev') return;
+      if (currentPageRef.current === pageSpreads.length - 1 && dir === 'next') return;
 
       startTurn(dir, 0);
       drag = {
@@ -737,6 +884,8 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
         step('prev');
       } else if (e.key === 'ArrowRight') {
         step('next');
+      } else if (e.key === 'Escape') {
+        handleExit();
       } else if (e.key === '+' || e.key === '=') {
         setZoomLevel((prev) => Math.min(1.45, Number((prev + 0.1).toFixed(2))));
       } else if (e.key === '-' || e.key === '_') {
@@ -749,7 +898,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [step]);
+  }, [step, handleExit]);
 
   const activeSpread = pageSpreads[currentPageIndex] || pageSpreads[0];
 
@@ -768,58 +917,73 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-full max-w-full flex flex-col items-center justify-between px-2 sm:px-6 py-2 select-none font-sans overflow-hidden"
+      className="relative w-full h-full max-w-full flex items-center justify-center p-0 select-none font-sans overflow-hidden"
     >
       {/* 1. FOCUS MODE BACKDROP DIMMER (Tối & mờ không gian phòng để tập trung đọc sách) */}
       <div
-        className={`fixed inset-0 pointer-events-none transition-all duration-700 ease-out -z-10 ${
+        className={`desk-dimmer-backdrop fixed inset-0 pointer-events-none transition-all duration-700 ease-out -z-10 ${
           isFocusDimmer
-            ? 'bg-zinc-950/85 backdrop-blur-md opacity-100'
-            : 'bg-transparent opacity-0'
+            ? 'bg-zinc-950/90 backdrop-blur-lg opacity-100'
+            : 'bg-zinc-950/40 opacity-100'
         }`}
         aria-hidden="true"
       />
 
-      {/* 2. ENLARGED 3D CURVED PAGE TURN STAGE */}
-      <div className="relative flex-1 w-full min-h-0 flex items-center justify-center touch-none my-auto">
-        {/* Nút lùi trang nổi bên trái */}
+      {/* 2. TOP FLOATING QUICK EXIT BUTTON */}
+      {onClose && (
         <button
-          onClick={() => step('prev')}
-          className="absolute left-2 sm:left-6 lg:left-10 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-2xl bg-tod-surface/95 hover:bg-tod-card border border-tod-border text-tod-text shadow-2xl backdrop-blur-2xl transition-all hover:scale-110 active:scale-95 cursor-pointer z-40 group"
-          title="Trang trước (←)"
+          onClick={handleExit}
+          className="desk-top-exit-btn absolute top-3 sm:top-5 right-3 sm:right-6 p-2.5 sm:px-3.5 sm:py-2 rounded-2xl bg-tod-surface/90 hover:bg-rose-500/20 border border-tod-border hover:border-rose-500/40 text-tod-text-muted hover:text-rose-400 shadow-2xl backdrop-blur-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer z-50 flex items-center gap-2 text-xs font-bold group"
+          title="Đóng sách và quay lại xem bàn học (ESC)"
         >
-          <ChevronLeft className="w-6 h-6 text-amber-500 group-hover:-translate-x-0.5 transition-transform" />
+          <X className="w-4 h-4 text-amber-500 group-hover:text-rose-400 group-hover:rotate-90 transition-transform" />
+          <span className="hidden sm:inline">Đóng sách</span>
         </button>
+      )}
 
-        {/* Khung 3D Perspective Book (Tự động tính toán tỷ lệ để vừa vặn màn hình mà không che thanh công cụ) */}
+      {/* 3. ENLARGED 3D CURVED PAGE TURN STAGE (MỞ RỘNG TOÀN MÀN HÌNH) */}
+      <div className="desk-reading-book-stage relative w-full h-full flex items-center justify-center touch-none">
+        {/* Nút lùi trang nổi bên trái */}
+        {currentPageIndex > 0 && (
+          <button
+            onClick={() => step('prev')}
+            className="desk-nav-arrow-left absolute left-2 sm:left-4 lg:left-6 top-1/2 -translate-y-1/2 p-3 sm:p-3.5 rounded-2xl bg-tod-surface/85 hover:bg-tod-surface border border-tod-border/80 text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all hover:scale-110 active:scale-95 cursor-pointer z-40 group opacity-70 hover:opacity-100"
+            title="Trang trước (←)"
+          >
+            <ChevronLeft className="w-6 h-6 text-amber-500 group-hover:-translate-x-0.5 transition-transform" />
+          </button>
+        )}
+
+        {/* Khung 3D Perspective Book (Trải rộng tối đa theo chiều ngang toàn màn hình 99vw) */}
         <div
           ref={sb3dRef}
           className="relative flex items-center justify-center transition-transform duration-300 ease-out"
           style={
             {
-              perspective: '2400px',
+              perspective: '2800px',
               perspectiveOrigin: '50% 50%',
-              width: 'min(90vw, calc((100vh - 200px) * 1.419), 1280px)',
-              maxWidth: '92vw',
+              width: 'min(99vw, calc((100vh - 28px) * 1.777))',
+              maxWidth: '99.5vw',
+              maxHeight: 'calc(100vh - 24px)',
               transform: `scale(${zoomLevel})`,
               transformOrigin: 'center center',
             } as React.CSSProperties
           }
         >
           <div
-            className="relative w-full aspect-[1760/1240]"
+            className="relative w-full aspect-[1920/1080]"
             style={{
               transformStyle: 'preserve-3d',
-              transform: 'rotateX(2.5deg) rotateY(0deg)',
+              transform: 'rotateX(2deg) rotateY(0deg)',
             }}
           >
             {/* Đổ bóng tự nhiên dưới mặt sách */}
             <div
-              className="absolute pointer-events-none -inset-8 rounded-3xl"
+              className="absolute pointer-events-none -inset-6 rounded-3xl"
               style={{
                 background:
-                  'radial-gradient(50% 50% at 50% 55%, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.25) 50%, transparent 80%)',
-                filter: 'blur(28px)',
+                  'radial-gradient(50% 50% at 50% 55%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, transparent 80%)',
+                filter: 'blur(32px)',
                 zIndex: 0,
               }}
             />
@@ -827,7 +991,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
             {/* DOM Container của sách 3D */}
             <div
               ref={bookDomRef}
-              className="relative w-full aspect-[1760/1240] rounded-2xl shadow-[0_20px_60px_rgba(0,0,0,0.7)] overflow-visible"
+              className="relative w-full aspect-[1920/1080] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.75)] overflow-visible"
               style={{ transformStyle: 'preserve-3d', zIndex: 1 }}
             />
           </div>
@@ -836,98 +1000,87 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
         {/* Nút tiến trang nổi bên phải */}
         <button
           onClick={() => step('next')}
-          className="absolute right-2 sm:right-6 lg:right-10 top-1/2 -translate-y-1/2 p-3 sm:p-4 rounded-2xl bg-tod-surface/95 hover:bg-tod-card border border-tod-border text-tod-text shadow-2xl backdrop-blur-2xl transition-all hover:scale-110 active:scale-95 cursor-pointer z-40 group"
+          className="desk-nav-arrow-right absolute right-2 sm:right-4 lg:right-6 top-1/2 -translate-y-1/2 p-3 sm:p-3.5 rounded-2xl bg-tod-surface/85 hover:bg-tod-surface border border-tod-border/80 text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all hover:scale-110 active:scale-95 cursor-pointer z-40 group opacity-70 hover:opacity-100"
           title="Trang tiếp theo (→)"
         >
           <ChevronRight className="w-6 h-6 text-amber-500 group-hover:translate-x-0.5 transition-transform" />
         </button>
       </div>
 
-      {/* 3. FOCUS MODE BOTTOM TOOLBAR & CAPTION */}
+      {/* 4. FOCUS MODE FLOATING BOTTOM CONTROLS PILL */}
       <div
         ref={captionRef}
-        className="mt-2 flex flex-col sm:flex-row items-center justify-between gap-3 w-full max-w-3xl px-4 py-2.5 rounded-2xl bg-tod-surface/95 border border-tod-border backdrop-blur-2xl shadow-2xl z-40 text-tod-text shrink-0"
+        className="absolute bottom-2.5 sm:bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-between gap-3 sm:gap-4 w-auto max-w-[94vw] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-tod-surface/90 border border-tod-border/80 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-40 text-tod-text transition-all hover:bg-tod-surface/98"
       >
         {/* Left: Book Spread Title */}
-        <div className="flex items-center gap-2 min-w-0">
-          <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
+        <div className="flex items-center gap-2 min-w-0 max-w-[200px] sm:max-w-[320px]">
+          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
           <div className="flex flex-col min-w-0">
-            <span className="font-extrabold text-xs sm:text-sm text-tod-text truncate">
+            <span className="font-extrabold text-xs text-tod-text truncate">
               {activeSpread?.title || book.title}
             </span>
-            <span className="text-[11px] font-semibold text-tod-text-muted truncate">
+            <span className="text-[10px] font-semibold text-tod-text-muted truncate hidden sm:inline">
               {activeSpread?.subtitle || 'Lật trang bằng kéo chuột hoặc phím ← →'}
             </span>
           </div>
         </div>
 
-        {/* Right: Focus & Zoom Controls */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* Zoom Out */}
+        <div className="h-4 w-px bg-tod-border/80" />
+
+        {/* Center: Zoom Controls */}
+        <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={handleZoomOut}
             disabled={zoomLevel <= 0.85}
-            className="p-1.5 rounded-xl bg-tod-card hover:bg-tod-surface border border-tod-border text-tod-text disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="p-1 rounded-lg bg-tod-card/80 hover:bg-tod-card border border-tod-border/60 text-tod-text disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all cursor-pointer"
             title="Thu nhỏ (-)"
           >
-            <ZoomOut className="w-3.5 h-3.5" />
+            <ZoomOut className="w-3 h-3" />
           </button>
 
-          {/* Zoom % Indicator (Click to toggle 100% / 115%) */}
           <button
             onClick={handleResetZoom}
-            className="px-2 py-1 rounded-xl bg-tod-card hover:bg-tod-surface border border-tod-border text-[11px] font-extrabold text-amber-500 min-w-[50px] text-center transition-all cursor-pointer hover:scale-105"
+            className="px-1.5 py-0.5 rounded-lg bg-tod-card/80 hover:bg-tod-card border border-tod-border/60 text-[10px] font-extrabold text-amber-500 min-w-[40px] text-center transition-all cursor-pointer hover:scale-105"
             title="Đặt lại mức phóng to mặc định"
           >
             {Math.round(zoomLevel * 100)}%
           </button>
 
-          {/* Zoom In */}
           <button
             onClick={handleZoomIn}
             disabled={zoomLevel >= 1.45}
-            className="p-1.5 rounded-xl bg-tod-card hover:bg-tod-surface border border-tod-border text-tod-text disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all cursor-pointer"
+            className="p-1 rounded-lg bg-tod-card/80 hover:bg-tod-card border border-tod-border/60 text-tod-text disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all cursor-pointer"
             title="Phóng to (+)"
           >
-            <ZoomIn className="w-3.5 h-3.5" />
+            <ZoomIn className="w-3 h-3" />
           </button>
+        </div>
 
-          <div className="h-4 w-px bg-tod-border mx-1" />
+        <div className="h-4 w-px bg-tod-border/80" />
 
-          {/* Focus Mode Dimmer Toggle */}
+        {/* Right: Dimmer & Page Counter */}
+        <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => setIsFocusDimmer((prev) => !prev)}
-            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1 px-2 py-1 rounded-full border text-[11px] font-bold transition-all cursor-pointer ${
               isFocusDimmer
-                ? 'bg-amber-500/20 border-amber-500/40 text-amber-500 shadow-sm shadow-amber-500/10'
-                : 'bg-tod-card hover:bg-tod-surface border-tod-border text-tod-text-muted hover:text-tod-text'
+                ? 'bg-amber-500/20 border-amber-500/40 text-amber-500'
+                : 'bg-tod-card/80 hover:bg-tod-card border-tod-border/60 text-tod-text-muted hover:text-tod-text'
             }`}
-            title="Bật/tắt chế độ tập trung làm tối nền phòng (Phím F)"
+            title="Bật/tắt làm tối nền phòng (Phím F)"
           >
             {isFocusDimmer ? (
-              <Eye className="w-3.5 h-3.5 text-amber-500" />
+              <Eye className="w-3 h-3 text-amber-500" />
             ) : (
-              <EyeOff className="w-3.5 h-3.5 text-tod-text-muted" />
+              <EyeOff className="w-3 h-3 text-tod-text-muted" />
             )}
             <span className="hidden md:inline">Tập trung</span>
           </button>
 
-          {/* Spread Count Badge */}
           {pageSpreads.length > 0 && (
-            <span className="text-[11px] font-bold text-tod-text-muted px-2 py-1 rounded-xl bg-tod-card border border-tod-border ml-1">
-              {currentPageIndex + 1} / {pageSpreads.length}
+            <span className="text-[10px] font-bold text-tod-text-muted px-2 py-0.5 rounded-full bg-tod-card/80 border border-tod-border/60">
+              {currentPageIndex + 1}/{pageSpreads.length}
             </span>
-          )}
-
-          {/* Close / Minimize to Desk Button */}
-          {onClose && (
-            <button
-              onClick={onClose}
-              className="p-1.5 ml-1 rounded-xl bg-tod-card hover:bg-rose-500/20 border border-tod-border hover:border-rose-500/40 text-tod-text-muted hover:text-rose-400 transition-all cursor-pointer hover:scale-105 active:scale-95"
-              title="Đóng sách và quay lại xem bàn học"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
           )}
         </div>
       </div>
@@ -937,7 +1090,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
         .sb-full {
           position: absolute;
           inset: 0;
-          border-radius: 14px;
+          border-radius: 16px;
           overflow: hidden;
         }
         .sb-full img {
@@ -954,13 +1107,13 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
         }
         .sb-half.left {
           left: 0;
-          border-top-left-radius: 14px;
-          border-bottom-left-radius: 14px;
+          border-top-left-radius: 16px;
+          border-bottom-left-radius: 16px;
         }
         .sb-half.right {
           left: 50%;
-          border-top-right-radius: 14px;
-          border-bottom-right-radius: 14px;
+          border-top-right-radius: 16px;
+          border-bottom-right-radius: 16px;
         }
         .sb-half-img {
           width: 200%;
@@ -1001,7 +1154,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
           position: absolute;
           top: 0;
           height: 100%;
-          width: calc(var(--bw, 0px) * var(--span, 0.449));
+          width: calc(var(--bw, 0px) * var(--span, 0.5));
           transform-style: preserve-3d;
           z-index: 6;
         }
@@ -1019,7 +1172,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
           position: absolute;
           top: 0;
           height: 100%;
-          width: calc(var(--bw, 0px) * var(--span, 0.449) / var(--n, 18));
+          width: calc(var(--bw, 0px) * var(--span, 0.5) / var(--n, 18));
           transform-style: preserve-3d;
         }
         .curl.next .strip {
@@ -1052,10 +1205,31 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
           backface-visibility: hidden;
           -webkit-backface-visibility: hidden;
           background-repeat: no-repeat;
-          background-size: var(--bw, 0px) auto;
+          background-size: var(--bw, 0px) 100%;
         }
         .face.back {
           transform: rotateY(180deg);
+        }
+        /* Bo viền các góc ngoài của trang sách khi đang lật / nhấc lên */
+        .curl.next .strip.edge .face.front {
+          border-top-right-radius: 16px;
+          border-bottom-right-radius: 16px;
+          overflow: hidden;
+        }
+        .curl.next .strip.edge .face.back {
+          border-top-left-radius: 16px;
+          border-bottom-left-radius: 16px;
+          overflow: hidden;
+        }
+        .curl.prev .strip.edge .face.front {
+          border-top-left-radius: 16px;
+          border-bottom-left-radius: 16px;
+          overflow: hidden;
+        }
+        .curl.prev .strip.edge .face.back {
+          border-top-right-radius: 16px;
+          border-bottom-right-radius: 16px;
+          overflow: hidden;
         }
         .face .sh {
           position: absolute;

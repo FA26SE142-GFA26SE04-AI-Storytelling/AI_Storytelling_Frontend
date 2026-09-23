@@ -76,63 +76,58 @@ export const DeskReadingViewOverlay: React.FC<DeskReadingViewOverlayProps> = ({
       data-time-of-day={timeOfDay}
       className={`absolute inset-0 pointer-events-none w-full h-full overflow-hidden z-20 font-sans theme-${timeOfDay} transition-colors duration-500`}
     >
-      {/* 1. TOP-LEFT NAVIGATION BUTTONS */}
-      <div className="absolute top-3 sm:top-5 left-3 sm:left-6 z-50 flex items-center gap-2 pointer-events-auto">
-        <button
-          onClick={() => {
-            handleCloseBook();
-            onStageChange(0);
-          }}
-          className="desk-reading-control p-2.5 sm:px-4 sm:py-2.5 rounded-2xl bg-tod-surface/90 hover:bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text transition-all cursor-pointer flex items-center gap-2 text-xs font-extrabold shadow-2xl backdrop-blur-2xl hover:scale-105 active:scale-95 group"
-          title="Quay lại góc nhìn toàn cảnh phòng 3D"
-        >
-          <ArrowLeft className="w-4 h-4 text-amber-500 group-hover:-translate-x-1 transition-transform" />
-          <span className="hidden sm:inline">Toàn Cảnh Phòng</span>
-        </button>
-
-        <button
-          onClick={() => {
-            handleCloseBook();
-            onStageChange(2);
-          }}
-          className="desk-reading-control p-2.5 sm:px-4 sm:py-2.5 rounded-2xl bg-tod-surface/90 hover:bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text transition-all cursor-pointer flex items-center gap-2 text-xs font-extrabold shadow-2xl backdrop-blur-2xl hover:scale-105 active:scale-95 group"
-          title="Quay lại Kệ Sách"
-        >
-          <BookOpen className="w-4 h-4 text-sky-500 group-hover:scale-110 transition-transform" />
-          <span className="hidden sm:inline">Kệ Sách</span>
-        </button>
-
-        {readingStage === 'reading' && (
+      {/* 1. TOP-LEFT NAVIGATION BUTTONS (Chỉ hiển thị khi đang xem bàn 3D, ẩn khi mở sách đọc toàn màn hình) */}
+      {readingStage === 'closed' && (
+        <div className="absolute top-3 sm:top-5 left-3 sm:left-6 z-50 flex items-center gap-2 pointer-events-auto">
           <button
-            onClick={handleCloseBook}
-            className="desk-reading-control p-2.5 sm:px-4 sm:py-2.5 rounded-2xl bg-tod-surface/90 hover:bg-tod-card border border-tod-border text-tod-text-muted hover:text-amber-500 transition-all cursor-pointer flex items-center gap-2 text-xs font-extrabold shadow-2xl backdrop-blur-2xl hover:scale-105 active:scale-95 group"
-            title="Đóng sách để xem góc bàn học 3D"
+            onClick={() => {
+              handleCloseBook();
+              onStageChange(0);
+            }}
+            className="desk-reading-control p-2.5 sm:px-4 sm:py-2.5 rounded-2xl bg-tod-surface/90 hover:bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text transition-all cursor-pointer flex items-center gap-2 text-xs font-extrabold shadow-2xl backdrop-blur-2xl hover:scale-105 active:scale-95 group"
+            title="Quay lại góc nhìn toàn cảnh phòng 3D"
           >
-            <X className="w-4 h-4 text-amber-500" />
-            <span className="hidden md:inline">Đóng Sách</span>
+            <ArrowLeft className="w-4 h-4 text-amber-500 group-hover:-translate-x-1 transition-transform" />
+            <span className="hidden sm:inline">Toàn Cảnh Phòng</span>
           </button>
-        )}
-      </div>
 
-      {/* 2. TOP-CENTER MINIMAL BOOK PILL */}
-      <div className="desk-reading-control absolute top-3 sm:top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-auto hidden md:flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-tod-surface/90 backdrop-blur-2xl border border-tod-border text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
-        <Sparkles className="w-4 h-4 text-amber-500" />
-        <span className="font-extrabold text-xs sm:text-sm text-tod-text">
-          {activeBook.title}
-        </span>
-        <span className="text-[10px] font-bold text-tod-text-muted px-2 py-0.5 rounded-full bg-tod-card border border-tod-border">
-          Tập {activeBook.volume} · {activeBook.discipline}
-        </span>
-      </div>
+          <button
+            onClick={() => {
+              handleCloseBook();
+              onStageChange(2);
+            }}
+            className="desk-reading-control p-2.5 sm:px-4 sm:py-2.5 rounded-2xl bg-tod-surface/90 hover:bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text transition-all cursor-pointer flex items-center gap-2 text-xs font-extrabold shadow-2xl backdrop-blur-2xl hover:scale-105 active:scale-95 group"
+            title="Quay lại Kệ Sách"
+          >
+            <BookOpen className="w-4 h-4 text-sky-500 group-hover:scale-110 transition-transform" />
+            <span className="hidden sm:inline">Kệ Sách</span>
+          </button>
+        </div>
+      )}
 
-      {/* 3. TOP-RIGHT ATMOSPHERE SWITCHER */}
-      <div className="desk-reading-control absolute top-3 sm:top-5 right-3 sm:right-6 z-50 flex items-center gap-2 pointer-events-auto">
-        <TimeOfDaySwitcher
-          timeOfDay={timeOfDay}
-          onTimeOfDayChange={onTimeOfDayChange}
-          showLabels={false}
-        />
-      </div>
+      {/* 2. TOP-CENTER MINIMAL BOOK PILL (Chỉ hiển thị khi sách đóng) */}
+      {readingStage === 'closed' && (
+        <div className="desk-reading-control absolute top-3 sm:top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-auto hidden md:flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-tod-surface/90 backdrop-blur-2xl border border-tod-border text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+          <Sparkles className="w-4 h-4 text-amber-500" />
+          <span className="font-extrabold text-xs sm:text-sm text-tod-text">
+            {activeBook.title}
+          </span>
+          <span className="text-[10px] font-bold text-tod-text-muted px-2 py-0.5 rounded-full bg-tod-card border border-tod-border">
+            Tập {activeBook.volume} · {activeBook.discipline}
+          </span>
+        </div>
+      )}
+
+      {/* 3. TOP-RIGHT ATMOSPHERE SWITCHER (Chỉ hiển thị khi sách đóng) */}
+      {readingStage === 'closed' && (
+        <div className="desk-reading-control absolute top-3 sm:top-5 right-3 sm:right-6 z-50 flex items-center gap-2 pointer-events-auto">
+          <TimeOfDaySwitcher
+            timeOfDay={timeOfDay}
+            onTimeOfDayChange={onTimeOfDayChange}
+            showLabels={false}
+          />
+        </div>
+      )}
 
       {/* 4. TRẠNG THÁI CLOSED: NÚT KÊU GỌI LẬT MỞ SÁCH TRÊN BÀN */}
       {readingStage === 'closed' && (
@@ -151,9 +146,9 @@ export const DeskReadingViewOverlay: React.FC<DeskReadingViewOverlayProps> = ({
         </div>
       )}
 
-      {/* 5. TRẠNG THÁI READING: ĐÃ MỞ SÁCH & ZOOM XONG -> HIỂN THỊ KHUNG ĐỌC SÁCH 3D VÀ CHẾ ĐỘ TẬP TRUNG */}
+      {/* 5. TRẠNG THÁI READING: TOÀN MÀN HÌNH KHÔNG GIAN ĐỌC SÁCH 3D */}
       {readingStage === 'reading' && (
-        <div className="desk-reading-control absolute inset-0 w-full h-full pointer-events-auto flex items-center justify-center pt-14 sm:pt-16 pb-2 px-2 sm:px-6 z-30 animate-in fade-in zoom-in-95 duration-500 overflow-hidden">
+        <div className="desk-reading-control absolute inset-0 w-full h-full pointer-events-auto flex items-center justify-center p-0 z-30 animate-in fade-in zoom-in-95 duration-500 overflow-hidden">
           <DeskPageTurningBook
             book={activeBook}
             onClose={handleCloseBook}
