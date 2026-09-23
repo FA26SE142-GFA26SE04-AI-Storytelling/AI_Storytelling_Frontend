@@ -1,28 +1,14 @@
 'use client';
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  Sparkles,
-  ZoomIn,
-  ZoomOut,
-  Maximize2,
-  Minimize2,
-  Eye,
-  EyeOff,
-  BookOpen,
-  RotateCcw,
-  X,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
-import {
-  WorkingVolumeBook,
-  createWorkingVolumeCoverTexture,
-  createWorkingVolumeInsideCoverTexture,
-  createWorkingVolumePageTexture,
-} from '../three/room/textures/workingVolumesBooks';
+import { WorkingVolumeBook } from '../three/room/textures/workingVolumesBooks';
+import { generateSpreads, PageSpread } from './deskSpreadsGenerator';
+import { DeskPageTurningStyles } from './deskPageTurningStyles';
+import { buildCurl, MAX_BETA_CURL, N_STRIPS } from './deskStripCurlBuilder';
+import { DeskReadingBottomToolbar } from './DeskReadingBottomToolbar';
 
 gsap.registerPlugin(useGSAP);
 
@@ -31,19 +17,6 @@ export interface DeskPageTurningBookProps {
   onPageChange?: (pageIndex: number, totalPages: number) => void;
   onClose?: () => void;
 }
-
-interface PageSpread {
-  title: string;
-  subtitle: string;
-  dataUrl: string;
-}
-
-// Số lượng strips để tạo độ cong mượt mà
-const N = 18;
-// Tỷ lệ độ rộng từ gáy ra mép trang (Chính xác 50% độ rộng 2 trang)
-const SPAN = 0.5;
-// Độ cong cực đại của trang giấy (radian)
-const BETA = 0.60;
 
 export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
   book,
@@ -75,68 +48,25 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
       if (!containerRef.current) return;
       const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
 
-      // 1. Phông nền tối mờ xuất hiện
-      tl.fromTo(
-        '.desk-dimmer-backdrop',
-        { opacity: 0 },
-        { opacity: 1, duration: 0.6 }
-      );
+      tl.fromTo('.desk-dimmer-backdrop', { opacity: 0 }, { opacity: 1, duration: 0.6 });
 
-      // 2. Quyển sách 3D phóng to từ xa và RÕ DẦN (từ mờ ảo blur(22px) sang sắc nét blur(0px))
       if (sb3dRef.current) {
         tl.fromTo(
           sb3dRef.current,
-          {
-            scale: 0.52,
-            opacity: 0,
-            filter: 'blur(22px)',
-            y: 90,
-            rotateX: 14,
-          },
-          {
-            scale: zoomLevel,
-            opacity: 1,
-            filter: 'blur(0px)',
-            y: 0,
-            rotateX: 2,
-            duration: 0.75,
-            ease: 'power3.out',
-          },
+          { scale: 0.52, opacity: 0, filter: 'blur(22px)', y: 90, rotateX: 14 },
+          { scale: zoomLevel, opacity: 1, filter: 'blur(0px)', y: 0, rotateX: 2, duration: 0.75, ease: 'power3.out' },
           '-=0.45'
         );
       }
 
-      // 3. Nút đóng sách góc trên trượt xuống
-      tl.fromTo(
-        '.desk-top-exit-btn',
-        { opacity: 0, y: -25, scale: 0.9 },
-        { opacity: 1, y: 0, scale: 1, duration: 0.4 },
-        '-=0.35'
-      );
+      tl.fromTo('.desk-top-exit-btn', { opacity: 0, y: -25, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.4 }, '-=0.35');
 
-      // 4. Thanh công cụ nổi đáy màn hình bật nảy lên
       if (captionRef.current) {
-        tl.fromTo(
-          captionRef.current,
-          { opacity: 0, y: 40, scale: 0.92 },
-          { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.4)' },
-          '-=0.25'
-        );
+        tl.fromTo(captionRef.current, { opacity: 0, y: 40, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.4)' }, '-=0.25');
       }
 
-      // 5. Nút mũi tên điều hướng 2 bên trượt nhẹ vào
-      tl.fromTo(
-        '.desk-nav-arrow-left',
-        { opacity: 0, x: -25 },
-        { opacity: 0.75, x: 0, duration: 0.4 },
-        '-=0.3'
-      );
-      tl.fromTo(
-        '.desk-nav-arrow-right',
-        { opacity: 0, x: 25 },
-        { opacity: 0.75, x: 0, duration: 0.4 },
-        '-=0.4'
-      );
+      tl.fromTo('.desk-nav-arrow-left', { opacity: 0, x: -25 }, { opacity: 0.75, x: 0, duration: 0.4 }, '-=0.3');
+      tl.fromTo('.desk-nav-arrow-right', { opacity: 0, x: 25 }, { opacity: 0.75, x: 0, duration: 0.4 }, '-=0.4');
     },
     { scope: containerRef }
   );
@@ -154,312 +84,37 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
         },
       });
 
-      // 1. Mũi tên 2 bên trượt ra
       tl.to('.desk-nav-arrow-left', { opacity: 0, x: -20, duration: 0.25 });
       tl.to('.desk-nav-arrow-right', { opacity: 0, x: 20, duration: 0.25 }, '-=0.25');
 
-      // 2. Thanh điều khiển đáy trượt xuống
       if (captionRef.current) {
         tl.to(captionRef.current, { opacity: 0, y: 30, scale: 0.95, duration: 0.3 }, '-=0.2');
       }
 
-      // 3. Nút đóng sách trượt lên
       tl.to('.desk-top-exit-btn', { opacity: 0, y: -20, duration: 0.25 }, '-=0.25');
 
-      // 4. Quyển sách 3D thu nhỏ lùi dần về phía bàn học và mờ dần (blur(18px))
       if (sb3dRef.current) {
         tl.to(
           sb3dRef.current,
-          {
-            scale: 0.58,
-            opacity: 0,
-            filter: 'blur(18px)',
-            y: 70,
-            rotateX: 10,
-            duration: 0.38,
-            ease: 'power2.in',
-          },
+          { scale: 0.58, opacity: 0, filter: 'blur(18px)', y: 70, rotateX: 10, duration: 0.38, ease: 'power2.in' },
           '-=0.25'
         );
       }
 
-      // 5. Nền tối mờ dần
       tl.to('.desk-dimmer-backdrop', { opacity: 0, duration: 0.3 }, '-=0.2');
     } else {
       onClose?.();
     }
   }, [isExiting, onClose]);
 
-  // Helper tạo canvas 2 trang đôi toàn màn hình chuẩn 16:9 (Spread 1920x1080)
-  const generateSpreads = useCallback((): PageSpread[] => {
-    const W = 1920;
-    const H = 1080;
-    const halfW = W / 2;
-
-    const spreads: PageSpread[] = [];
-
-    // --- Spread 0: Bìa trước đơn (Chỉ hiển thị nửa bên phải, sách đang đóng) ---
-    {
-      const canvas = document.createElement('canvas');
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext('2d')!;
-
-      // Nửa bên trái hoàn toàn trong suốt (Sách đang gập lại)
-      ctx.clearRect(0, 0, W, H);
-
-      // Nửa bên phải: Bìa trước của sách
-      ctx.fillStyle = book.color;
-      ctx.beginPath();
-      ctx.roundRect(halfW, 0, halfW, H, [0, 20, 20, 0]);
-      ctx.fill();
-
-      // Gáy sách ở mép trái của bìa trước (tại halfW)
-      const spineGrad = ctx.createLinearGradient(halfW, 0, halfW + 60, 0);
-      spineGrad.addColorStop(0, 'rgba(0,0,0,0.5)');
-      spineGrad.addColorStop(0.25, 'rgba(255,255,255,0.2)');
-      spineGrad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = spineGrad;
-      ctx.fillRect(halfW, 0, 60, H);
-
-      // Bìa trước (Right)
-      ctx.strokeStyle = book.foil;
-      ctx.lineWidth = 3;
-      ctx.strokeRect(halfW + 60, 50, halfW - 120, H - 100);
-      ctx.strokeRect(halfW + 80, 70, halfW - 160, H - 140);
-
-      ctx.fillStyle = book.foil;
-      ctx.font = 'bold 36px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(`TẬP ${book.volume} · ${book.roman}`, halfW + halfW / 2, 140);
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 92px sans-serif';
-      ctx.fillText(book.title, halfW + halfW / 2, H / 2 - 40);
-
-      ctx.fillStyle = book.foil;
-      ctx.font = 'bold 32px sans-serif';
-      ctx.fillText(`✦  ${book.discipline.toUpperCase()}  ✦`, halfW + halfW / 2, H / 2 + 50);
-
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 24px sans-serif';
-      ctx.fillText('MAGICTALES 3D EDITION', halfW + halfW / 2, H - 110);
-
-      spreads.push({
-        title: `${book.title} — Bìa Trước`,
-        subtitle: `Tập ${book.volume} · ${book.discipline}`,
-        dataUrl: canvas.toDataURL('image/png'),
-      });
-    }
-
-    // --- Spread 1: Trang Ex Libris & Trang Tiêu Đề (Trang 01) ---
-    {
-      const canvas = document.createElement('canvas');
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext('2d')!;
-
-      // Trang giấy ấm áp
-      ctx.fillStyle = '#fbf7ee';
-      ctx.fillRect(0, 0, W, H);
-
-      // Bóng râm gáy ở giữa
-      const spineShadow = ctx.createLinearGradient(halfW - 80, 0, halfW + 80, 0);
-      spineShadow.addColorStop(0, 'rgba(0,0,0,0)');
-      spineShadow.addColorStop(0.5, 'rgba(0,0,0,0.22)');
-      spineShadow.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = spineShadow;
-      ctx.fillRect(halfW - 80, 0, 160, H);
-
-      // Left Page: Ex Libris
-      ctx.fillStyle = '#ffffff';
-      ctx.shadowColor = 'rgba(0,0,0,0.1)';
-      ctx.shadowBlur = 16;
-      ctx.beginPath();
-      ctx.roundRect(100, 110, halfW - 200, H - 220, 20);
-      ctx.fill();
-      ctx.shadowBlur = 0;
-
-      ctx.strokeStyle = book.color;
-      ctx.lineWidth = 4;
-      ctx.stroke();
-
-      ctx.strokeStyle = book.foil;
-      ctx.lineWidth = 2;
-      ctx.strokeRect(120, 130, halfW - 240, H - 260);
-
-      ctx.fillStyle = book.color;
-      ctx.font = 'bold 28px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('EX LIBRIS', halfW / 2, 210);
-
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 64px sans-serif';
-      ctx.fillText(book.title, halfW / 2, 310);
-
-      ctx.fillStyle = '#475569';
-      ctx.font = 'bold 22px sans-serif';
-      ctx.fillText(`ẤN BẢN NOBITA · TẬP ${book.volume}`, halfW / 2, 390);
-      ctx.fillText('✦ MagicTales Storytelling ✦', halfW / 2, 450);
-
-      // Right Page: Mở đầu câu chuyện
-      ctx.textAlign = 'left';
-      ctx.fillStyle = book.color;
-      ctx.font = 'bold 26px sans-serif';
-      ctx.fillText(`TẬP ${book.volume} · ${book.discipline.toUpperCase()}`, halfW + 90, 140);
-
-      ctx.fillStyle = '#09090b';
-      ctx.font = 'bold 64px sans-serif';
-      ctx.fillText(book.title, halfW + 90, 220);
-
-      // Deck synopsis
-      ctx.fillStyle = '#1e293b';
-      ctx.font = '28px sans-serif';
-      const words = book.deck.split(' ');
-      let line = '';
-      let y = 300;
-      for (let i = 0; i < words.length; i++) {
-        const testLine = line + words[i] + ' ';
-        if (ctx.measureText(testLine).width > halfW - 180 && i > 0) {
-          ctx.fillText(line, halfW + 90, y);
-          line = words[i] + ' ';
-          y += 44;
-        } else {
-          line = testLine;
-        }
-      }
-      ctx.fillText(line, halfW + 90, y);
-
-      // Quote box
-      y += 45;
-      ctx.fillStyle = `${book.color}15`;
-      ctx.beginPath();
-      ctx.roundRect(halfW + 80, y, halfW - 160, 110, 14);
-      ctx.fill();
-      ctx.strokeStyle = book.color;
-      ctx.lineWidth = 5;
-      ctx.beginPath();
-      ctx.moveTo(halfW + 80, y + 10);
-      ctx.lineTo(halfW + 80, y + 100);
-      ctx.stroke();
-
-      ctx.fillStyle = '#09090b';
-      ctx.font = 'italic bold 22px sans-serif';
-      ctx.fillText(`"${book.note}"`, halfW + 110, y + 62);
-
-      // Page numbers
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = 'bold 18px sans-serif';
-      ctx.fillText('— Trang 01 —', halfW + halfW / 2, H - 55);
-
-      spreads.push({
-        title: `${book.title} — Mở Đầu Câu Chuyện`,
-        subtitle: `Tập ${book.volume} · Trang 01`,
-        dataUrl: canvas.toDataURL('image/jpeg', 0.92),
-      });
-    }
-
-    // --- Spread 2: Nội dung chương 1 & Thử thách khám phá ---
-    {
-      const canvas = document.createElement('canvas');
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext('2d')!;
-
-      ctx.fillStyle = '#fbf7ee';
-      ctx.fillRect(0, 0, W, H);
-
-      const spineShadow = ctx.createLinearGradient(halfW - 80, 0, halfW + 80, 0);
-      spineShadow.addColorStop(0, 'rgba(0,0,0,0)');
-      spineShadow.addColorStop(0.5, 'rgba(0,0,0,0.22)');
-      spineShadow.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = spineShadow;
-      ctx.fillRect(halfW - 80, 0, 160, H);
-
-      // Left Page: Minh họa & Bối cảnh
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 36px sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText('Chương I: Khởi Nguồn Sáng Tạo', 90, 140);
-
-      ctx.fillStyle = '#334155';
-      ctx.font = '24px sans-serif';
-      ctx.fillText('Mỗi câu chuyện đều bắt đầu từ một ý niệm nhỏ bé.', 90, 200);
-      ctx.fillText('Khi bàn tay chạm vào trang giấy, trí tưởng tượng', 90, 245);
-      ctx.fillText('mở ra vô vàn những thế giới diệu kỳ đang chờ đón.', 90, 290);
-
-      // Minh họa thẻ màu
-      ctx.fillStyle = book.color;
-      ctx.beginPath();
-      ctx.roundRect(90, 350, halfW - 180, 220, 20);
-      ctx.fill();
-
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 32px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(book.motif, 90 + (halfW - 180) / 2, 450);
-      ctx.font = 'bold 20px sans-serif';
-      ctx.fillText(`Chủ đề: ${book.theme}`, 90 + (halfW - 180) / 2, 500);
-
-      // Right Page: Thử thách & Câu hỏi tương tác
-      ctx.textAlign = 'left';
-      ctx.fillStyle = '#0f172a';
-      ctx.font = 'bold 36px sans-serif';
-      ctx.fillText('Câu Hỏi Suy Ngẫm Cho Bé', halfW + 90, 140);
-
-      const questions = [
-        '1. Bé thích chi tiết nào nhất trong hành trình vừa qua?',
-        '2. Nếu là nhân vật chính, bé sẽ lựa chọn giải pháp nào?',
-        '3. Cùng chia sẻ cảm xúc của bé với ba mẹ nhé!',
-      ];
-
-      let y = 210;
-      ctx.fillStyle = '#1e293b';
-      ctx.font = '24px sans-serif';
-      questions.forEach((q) => {
-        ctx.fillText(q, halfW + 90, y);
-        y += 65;
-      });
-
-      // Box bài học
-      y += 35;
-      ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.roundRect(halfW + 80, y, halfW - 160, 140, 16);
-      ctx.fill();
-      ctx.strokeStyle = '#e2e8f0';
-      ctx.lineWidth = 2;
-      ctx.stroke();
-
-      ctx.fillStyle = book.color;
-      ctx.font = 'bold 22px sans-serif';
-      ctx.fillText('✦ BÀI HỌC Ý NGHĨA ✦', halfW + 110, y + 40);
-      ctx.fillStyle = '#334155';
-      ctx.font = 'italic 20px sans-serif';
-      ctx.fillText('Kiên trì và sáng tạo sẽ mở ra những cánh cửa bất ngờ.', halfW + 110, y + 80);
-
-      ctx.textAlign = 'center';
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = 'bold 18px sans-serif';
-      ctx.fillText('— Trang 02 —', halfW + halfW / 2, H - 55);
-
-      spreads.push({
-        title: `${book.title} — Chương I & Bài Học`,
-        subtitle: `Tập ${book.volume} · Trang 02`,
-        dataUrl: canvas.toDataURL('image/jpeg', 0.92),
-      });
-    }
-
-    return spreads;
-  }, [book]);
-
+  // Khởi tạo danh sách Spreads từ book data
   useEffect(() => {
-    const spreads = generateSpreads();
+    const spreads = generateSpreads(book);
     setPageSpreads(spreads);
     setCurrentPageIndex(0);
+    currentPageRef.current = 0;
     setIsReady(true);
-  }, [generateSpreads]);
+  }, [book]);
 
   // CSS 3D Strip Page Turning Engine Ref States
   const turnRef = useRef<{
@@ -482,80 +137,14 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
   const rafRef = useRef<number | null>(null);
   const lastTimeRef = useRef<number>(0);
 
-  // 1. Build nested strip chain for curved realistic page curl
-  const buildCurl = useCallback(
-    (dir: 'next' | 'prev', from: number, to: number): HTMLDivElement => {
-      stripsRef.current = [];
-      const c = document.createElement('div');
-      c.className = `curl ${dir}`;
-      c.style.setProperty('--n', String(N));
-      c.style.setProperty('--span', String(SPAN));
-
-      let host: HTMLElement = c;
-      for (let i = 0; i < N; i++) {
-        const s = document.createElement('div');
-        s.className = 'strip';
-        s.style.setProperty('--i', String(i));
-
-        const gut = 'calc(var(--bw) * 0.5)';
-        const sw = `calc(var(--bw) * ${SPAN} / ${N})`;
-        const A = `calc(-1 * (${gut} + ${i} * ${sw}))`; // faces from-page
-        const B = `calc(${(i + 1)} * ${sw} - ${gut})`; // faces to-page
-
-        const f = document.createElement('div');
-        f.className = 'face front';
-        const b = document.createElement('div');
-        b.className = 'face back';
-
-        const dress = (el: HTMLElement, url: string, px: string) => {
-          el.style.backgroundImage = `url(${url})`;
-          el.style.backgroundPositionX = px;
-        };
-
-        if (pageSpreads[from] && pageSpreads[to]) {
-          dress(f, pageSpreads[from].dataUrl, dir === 'next' ? A : B);
-          dress(b, pageSpreads[to].dataUrl, dir === 'next' ? B : A);
-        }
-
-        const shF = document.createElement('div');
-        shF.className = 'sh';
-        const glF = document.createElement('div');
-        glF.className = 'gl';
-        f.appendChild(shF);
-        f.appendChild(glF);
-
-        const shB = document.createElement('div');
-        shB.className = 'sh';
-        const glB = document.createElement('div');
-        glB.className = 'gl';
-        b.appendChild(shB);
-        b.appendChild(glB);
-
-        s.appendChild(f);
-        s.appendChild(b);
-
-        if (i === N - 1) {
-          s.classList.add('edge');
-        }
-
-        host.appendChild(s);
-        host = s;
-        stripsRef.current.push(s);
-      }
-
-      return c;
-    },
-    [pageSpreads]
-  );
-
-  // 2. Apply dynamic turn progress t (0 -> 1) to rotate and curve strips with lighting
+  // 1. Áp dụng tiến trình xoay uốn cong dải 3D và ánh sáng quang học
   const applyTurn = useCallback((t: number) => {
     if (!sb3dRef.current) return;
-    const th = Math.PI * t; // how far the leaf has swung
-    const beta = BETA * Math.sin(Math.PI * t); // flat at both ends
+    const th = Math.PI * t;
+    const beta = MAX_BETA_CURL * Math.sin(Math.PI * t);
     const D = 180 / Math.PI;
     const tt = th + beta;
-    const td = (2 * beta) / N;
+    const td = (2 * beta) / N_STRIPS;
 
     sb3dRef.current.style.setProperty('--tt', `${(tt * D).toFixed(2)}deg`);
     sb3dRef.current.style.setProperty('--td', `${(td * D).toFixed(3)}deg`);
@@ -571,7 +160,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
     }
   }, []);
 
-  // 3. Paint book DOM state
+  // 2. Vẽ trạng thái DOM cuốn sách
   const paint = useCallback((overrideIndex?: number) => {
     const bookEl = bookDomRef.current;
     if (!bookEl || pageSpreads.length === 0) return;
@@ -620,7 +209,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
       bookEl.appendChild(rightHalf);
 
       // 3D Nested Curved Leaf
-      const curl = buildCurl(turn.dir, turn.from, turn.to);
+      const curl = buildCurl(turn.dir, turn.from, turn.to, pageSpreads, stripsRef);
       bookEl.appendChild(curl);
 
       applyTurn(turn.t);
@@ -641,9 +230,9 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
     }
 
     onPageChange?.(activeIdx + 1, pageSpreads.length);
-  }, [buildCurl, applyTurn, pageSpreads, onPageChange]);
+  }, [applyTurn, pageSpreads, onPageChange]);
 
-  // 4. Spring loop physics
+  // 3. Vòng lặp vật lý lò xo
   const kick = useCallback(() => {
     if (rafRef.current === null) {
       lastTimeRef.current = performance.now();
@@ -762,7 +351,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
     [pageSpreads.length, startTurn, commit]
   );
 
-  // 5. Pointer drag listeners for physics interactive turning
+  // 4. Pointer drag listeners
   useEffect(() => {
     const stage = containerRef.current;
     const bookEl = bookDomRef.current;
@@ -855,14 +444,11 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
     }
   }, [isReady, pageSpreads, paint]);
 
-  // Dynamic resize listener to keep --bw matching actual width
+  // Resize listener
   useEffect(() => {
     const updateBw = () => {
       if (bookDomRef.current && sb3dRef.current) {
-        sb3dRef.current.style.setProperty(
-          '--bw',
-          `${bookDomRef.current.clientWidth}px`
-        );
+        sb3dRef.current.style.setProperty('--bw', `${bookDomRef.current.clientWidth}px`);
       }
     };
     updateBw();
@@ -873,12 +459,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
   // Keyboard navigation & zoom shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ignore if user is typing in an input
-      if (
-        e.target instanceof HTMLInputElement ||
-        e.target instanceof HTMLTextAreaElement
-      )
-        return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
 
       if (e.key === 'ArrowLeft') {
         step('prev');
@@ -902,29 +483,15 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
 
   const activeSpread = pageSpreads[currentPageIndex] || pageSpreads[0];
 
-  const handleZoomIn = () => {
-    setZoomLevel((prev) => Math.min(1.45, Number((prev + 0.1).toFixed(2))));
-  };
-
-  const handleZoomOut = () => {
-    setZoomLevel((prev) => Math.max(0.85, Number((prev - 0.1).toFixed(2))));
-  };
-
-  const handleResetZoom = () => {
-    setZoomLevel(1.0);
-  };
-
   return (
     <div
       ref={containerRef}
       className="relative w-full h-full max-w-full flex items-center justify-center p-0 select-none font-sans overflow-hidden"
     >
-      {/* 1. FOCUS MODE BACKDROP DIMMER (Tối & mờ không gian phòng để tập trung đọc sách) */}
+      {/* 1. FOCUS MODE BACKDROP DIMMER */}
       <div
         className={`desk-dimmer-backdrop fixed inset-0 pointer-events-none transition-all duration-700 ease-out -z-10 ${
-          isFocusDimmer
-            ? 'bg-zinc-950/90 backdrop-blur-lg opacity-100'
-            : 'bg-zinc-950/40 opacity-100'
+          isFocusDimmer ? 'bg-zinc-950/90 backdrop-blur-lg opacity-100' : 'bg-zinc-950/40 opacity-100'
         }`}
         aria-hidden="true"
       />
@@ -932,6 +499,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
       {/* 2. TOP FLOATING QUICK EXIT BUTTON */}
       {onClose && (
         <button
+          type="button"
           onClick={handleExit}
           className="desk-top-exit-btn absolute top-3 sm:top-5 right-3 sm:right-6 p-2.5 sm:px-3.5 sm:py-2 rounded-2xl bg-tod-surface/90 hover:bg-rose-500/20 border border-tod-border hover:border-rose-500/40 text-tod-text-muted hover:text-rose-400 shadow-2xl backdrop-blur-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer z-50 flex items-center gap-2 text-xs font-bold group"
           title="Đóng sách và quay lại xem bàn học (ESC)"
@@ -941,11 +509,11 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
         </button>
       )}
 
-      {/* 3. ENLARGED 3D CURVED PAGE TURN STAGE (MỞ RỘNG TOÀN MÀN HÌNH) */}
+      {/* 3. ENLARGED 3D CURVED PAGE TURN STAGE */}
       <div className="desk-reading-book-stage relative w-full h-full flex items-center justify-center touch-none">
-        {/* Nút lùi trang nổi bên trái */}
         {currentPageIndex > 0 && (
           <button
+            type="button"
             onClick={() => step('prev')}
             className="desk-nav-arrow-left absolute left-2 sm:left-4 lg:left-6 top-1/2 -translate-y-1/2 p-3 sm:p-3.5 rounded-2xl bg-tod-surface/85 hover:bg-tod-surface border border-tod-border/80 text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all hover:scale-110 active:scale-95 cursor-pointer z-40 group opacity-70 hover:opacity-100"
             title="Trang trước (←)"
@@ -954,7 +522,6 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
           </button>
         )}
 
-        {/* Khung 3D Perspective Book (Trải rộng tối đa theo chiều ngang toàn màn hình 99vw) */}
         <div
           ref={sb3dRef}
           className="relative flex items-center justify-center transition-transform duration-300 ease-out"
@@ -977,18 +544,15 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
               transform: 'rotateX(2deg) rotateY(0deg)',
             }}
           >
-            {/* Đổ bóng tự nhiên dưới mặt sách */}
             <div
               className="absolute pointer-events-none -inset-6 rounded-3xl"
               style={{
-                background:
-                  'radial-gradient(50% 50% at 50% 55%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, transparent 80%)',
+                background: 'radial-gradient(50% 50% at 50% 55%, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 50%, transparent 80%)',
                 filter: 'blur(32px)',
                 zIndex: 0,
               }}
             />
 
-            {/* DOM Container của sách 3D */}
             <div
               ref={bookDomRef}
               className="relative w-full aspect-[1920/1080] rounded-2xl shadow-[0_25px_70px_rgba(0,0,0,0.75)] overflow-visible"
@@ -997,8 +561,8 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
           </div>
         </div>
 
-        {/* Nút tiến trang nổi bên phải */}
         <button
+          type="button"
           onClick={() => step('next')}
           className="desk-nav-arrow-right absolute right-2 sm:right-4 lg:right-6 top-1/2 -translate-y-1/2 p-3 sm:p-3.5 rounded-2xl bg-tod-surface/85 hover:bg-tod-surface border border-tod-border/80 text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all hover:scale-110 active:scale-95 cursor-pointer z-40 group opacity-70 hover:opacity-100"
           title="Trang tiếp theo (→)"
@@ -1008,281 +572,21 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
       </div>
 
       {/* 4. FOCUS MODE FLOATING BOTTOM CONTROLS PILL */}
-      <div
+      <DeskReadingBottomToolbar
         ref={captionRef}
-        className="absolute bottom-2.5 sm:bottom-3 left-1/2 -translate-x-1/2 flex items-center justify-between gap-3 sm:gap-4 w-auto max-w-[94vw] px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-tod-surface/90 border border-tod-border/80 backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.5)] z-40 text-tod-text transition-all hover:bg-tod-surface/98"
-      >
-        {/* Left: Book Spread Title */}
-        <div className="flex items-center gap-2 min-w-0 max-w-[200px] sm:max-w-[320px]">
-          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-          <div className="flex flex-col min-w-0">
-            <span className="font-extrabold text-xs text-tod-text truncate">
-              {activeSpread?.title || book.title}
-            </span>
-            <span className="text-[10px] font-semibold text-tod-text-muted truncate hidden sm:inline">
-              {activeSpread?.subtitle || 'Lật trang bằng kéo chuột hoặc phím ← →'}
-            </span>
-          </div>
-        </div>
+        activeSpread={activeSpread}
+        bookTitle={book.title}
+        zoomLevel={zoomLevel}
+        onZoomIn={() => setZoomLevel((prev) => Math.min(1.45, Number((prev + 0.1).toFixed(2))))}
+        onZoomOut={() => setZoomLevel((prev) => Math.max(0.85, Number((prev - 0.1).toFixed(2))))}
+        onResetZoom={() => setZoomLevel(1.0)}
+        isFocusDimmer={isFocusDimmer}
+        onToggleFocusDimmer={() => setIsFocusDimmer((prev) => !prev)}
+        currentPageIndex={currentPageIndex}
+        totalPages={pageSpreads.length}
+      />
 
-        <div className="h-4 w-px bg-tod-border/80" />
-
-        {/* Center: Zoom Controls */}
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            onClick={handleZoomOut}
-            disabled={zoomLevel <= 0.85}
-            className="p-1 rounded-lg bg-tod-card/80 hover:bg-tod-card border border-tod-border/60 text-tod-text disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            title="Thu nhỏ (-)"
-          >
-            <ZoomOut className="w-3 h-3" />
-          </button>
-
-          <button
-            onClick={handleResetZoom}
-            className="px-1.5 py-0.5 rounded-lg bg-tod-card/80 hover:bg-tod-card border border-tod-border/60 text-[10px] font-extrabold text-amber-500 min-w-[40px] text-center transition-all cursor-pointer hover:scale-105"
-            title="Đặt lại mức phóng to mặc định"
-          >
-            {Math.round(zoomLevel * 100)}%
-          </button>
-
-          <button
-            onClick={handleZoomIn}
-            disabled={zoomLevel >= 1.45}
-            className="p-1 rounded-lg bg-tod-card/80 hover:bg-tod-card border border-tod-border/60 text-tod-text disabled:opacity-40 disabled:cursor-not-allowed hover:scale-105 active:scale-95 transition-all cursor-pointer"
-            title="Phóng to (+)"
-          >
-            <ZoomIn className="w-3 h-3" />
-          </button>
-        </div>
-
-        <div className="h-4 w-px bg-tod-border/80" />
-
-        {/* Right: Dimmer & Page Counter */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            onClick={() => setIsFocusDimmer((prev) => !prev)}
-            className={`flex items-center gap-1 px-2 py-1 rounded-full border text-[11px] font-bold transition-all cursor-pointer ${
-              isFocusDimmer
-                ? 'bg-amber-500/20 border-amber-500/40 text-amber-500'
-                : 'bg-tod-card/80 hover:bg-tod-card border-tod-border/60 text-tod-text-muted hover:text-tod-text'
-            }`}
-            title="Bật/tắt làm tối nền phòng (Phím F)"
-          >
-            {isFocusDimmer ? (
-              <Eye className="w-3 h-3 text-amber-500" />
-            ) : (
-              <EyeOff className="w-3 h-3 text-tod-text-muted" />
-            )}
-            <span className="hidden md:inline">Tập trung</span>
-          </button>
-
-          {pageSpreads.length > 0 && (
-            <span className="text-[10px] font-bold text-tod-text-muted px-2 py-0.5 rounded-full bg-tod-card/80 border border-tod-border/60">
-              {currentPageIndex + 1}/{pageSpreads.length}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {/* CSS 3D Nested Curved Strips Styles */}
-      <style jsx global>{`
-        .sb-full {
-          position: absolute;
-          inset: 0;
-          border-radius: 16px;
-          overflow: hidden;
-        }
-        .sb-full img {
-          width: 100%;
-          height: auto;
-          display: block;
-        }
-        .sb-half {
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          width: 50%;
-          overflow: hidden;
-        }
-        .sb-half.left {
-          left: 0;
-          border-top-left-radius: 16px;
-          border-bottom-left-radius: 16px;
-        }
-        .sb-half.right {
-          left: 50%;
-          border-top-right-radius: 16px;
-          border-bottom-right-radius: 16px;
-        }
-        .sb-half-img {
-          width: 200%;
-          max-width: none;
-          height: 100%;
-          display: block;
-        }
-        .sb-half-img.right {
-          margin-left: -100%;
-        }
-        .gutter-shade {
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          width: 40%;
-          pointer-events: none;
-          opacity: calc(var(--shade, 0) * 0.65);
-        }
-        .gutter-shade.left {
-          right: 0;
-          background: linear-gradient(
-            270deg,
-            rgba(0, 0, 0, 0.35),
-            rgba(0, 0, 0, 0) 80%
-          );
-        }
-        .gutter-shade.right {
-          left: 0;
-          background: linear-gradient(
-            90deg,
-            rgba(0, 0, 0, 0.35),
-            rgba(0, 0, 0, 0) 80%
-          );
-        }
-
-        /* 3D Turning Nested Strips */
-        .curl {
-          position: absolute;
-          top: 0;
-          height: 100%;
-          width: calc(var(--bw, 0px) * var(--span, 0.5));
-          transform-style: preserve-3d;
-          z-index: 6;
-        }
-        .curl.next {
-          left: 50%;
-          transform-origin: left center;
-          transform: rotateY(calc(-1 * var(--tt, 0deg)));
-        }
-        .curl.prev {
-          right: 50%;
-          transform-origin: right center;
-          transform: rotateY(var(--tt, 0deg));
-        }
-        .strip {
-          position: absolute;
-          top: 0;
-          height: 100%;
-          width: calc(var(--bw, 0px) * var(--span, 0.5) / var(--n, 18));
-          transform-style: preserve-3d;
-        }
-        .curl.next .strip {
-          transform-origin: left center;
-        }
-        .curl.prev .strip {
-          transform-origin: right center;
-        }
-        .curl.next > .strip {
-          left: 0;
-        }
-        .curl.prev > .strip {
-          right: 0;
-          left: auto;
-        }
-        .curl.next .strip .strip {
-          left: 100%;
-          transform: rotateY(var(--td, 0deg));
-        }
-        .curl.prev .strip .strip {
-          right: 100%;
-          transform: rotateY(calc(-1 * var(--td, 0deg)));
-        }
-        .face {
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          left: 0;
-          right: -1.2px;
-          backface-visibility: hidden;
-          -webkit-backface-visibility: hidden;
-          background-repeat: no-repeat;
-          background-size: var(--bw, 0px) 100%;
-        }
-        .face.back {
-          transform: rotateY(180deg);
-        }
-        /* Bo viền các góc ngoài của trang sách khi đang lật / nhấc lên */
-        .curl.next .strip.edge .face.front {
-          border-top-right-radius: 16px;
-          border-bottom-right-radius: 16px;
-          overflow: hidden;
-        }
-        .curl.next .strip.edge .face.back {
-          border-top-left-radius: 16px;
-          border-bottom-left-radius: 16px;
-          overflow: hidden;
-        }
-        .curl.prev .strip.edge .face.front {
-          border-top-left-radius: 16px;
-          border-bottom-left-radius: 16px;
-          overflow: hidden;
-        }
-        .curl.prev .strip.edge .face.back {
-          border-top-right-radius: 16px;
-          border-bottom-right-radius: 16px;
-          overflow: hidden;
-        }
-        .face .sh {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-        }
-        .curl.next .face.front .sh,
-        .curl.prev .face.back .sh {
-          background: linear-gradient(
-            90deg,
-            rgba(40, 25, 10, var(--a1, 0)),
-            rgba(40, 25, 10, var(--a2, 0))
-          );
-        }
-        .curl.next .face.back .sh,
-        .curl.prev .face.front .sh {
-          background: linear-gradient(
-            90deg,
-            rgba(40, 25, 10, var(--a2, 0)),
-            rgba(40, 25, 10, var(--a1, 0))
-          );
-        }
-        .face .gl {
-          position: absolute;
-          inset: 0;
-          pointer-events: none;
-          background: #ffffff;
-          opacity: calc(
-            var(--shade, 0) * var(--lit, 1) * var(--lit, 1) * 0.22
-          );
-        }
-        .sb-zone {
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          border: 0;
-          background: transparent;
-          cursor: grab;
-          z-index: 20;
-          touch-action: none;
-        }
-        .sb-zone:active {
-          cursor: grabbing;
-        }
-        .sb-prev {
-          left: 0;
-          width: 50%;
-        }
-        .sb-next {
-          right: 0;
-          width: 50%;
-        }
-      `}</style>
+      <DeskPageTurningStyles />
     </div>
   );
 };

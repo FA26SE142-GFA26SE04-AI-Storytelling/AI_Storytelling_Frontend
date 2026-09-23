@@ -89,7 +89,7 @@ export const BulkEnrollmentTab: React.FC<BulkEnrollmentTabProps> = ({ onSwitchTo
         </div>
       </div>
 
-      {/* Upload & Setup Placeholder (Ready for Luồng 7 integration) */}
+      {/* Khu vực tải lên danh sách học sinh */}
       <div className="p-6 rounded-2xl bg-tod-card border border-dashed border-tod-border flex flex-col items-center justify-center text-center gap-3 shadow-sm">
         <div className="w-14 h-14 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex items-center justify-center text-purple-500">
           <UploadCloud className="w-7 h-7" />
@@ -97,7 +97,7 @@ export const BulkEnrollmentTab: React.FC<BulkEnrollmentTabProps> = ({ onSwitchTo
 
         <div className="space-y-1 max-w-md">
           <h4 className="font-bold text-tod-text text-sm">
-            Khu Vực Chuẩn Bị Tích Hợp Luồng Ghi Danh Hàng Loạt
+            Khu Vực Ghi Danh Hàng Loạt Cho Lớp Học
           </h4>
           <p className="text-xs text-tod-text-muted">
             Kéo và thả file danh sách học sinh (.xlsx, .csv) vào đây hoặc chọn tải lên từ máy tính của bạn.
@@ -107,7 +107,7 @@ export const BulkEnrollmentTab: React.FC<BulkEnrollmentTabProps> = ({ onSwitchTo
         <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
           <button
             type="button"
-            onClick={() => alert('Mẫu file Excel đang được chuẩn bị và sẽ kích hoạt trong đợt phát hành Luồng 7.')}
+            onClick={() => alert('Mẫu file Excel đang được chuẩn bị và sẽ sớm được kích hoạt.')}
             className="px-3 py-1.5 rounded-xl bg-tod-surface border border-tod-border hover:border-tod-primary text-tod-text font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
           >
             <FileText className="w-3.5 h-3.5 text-amber-500" />

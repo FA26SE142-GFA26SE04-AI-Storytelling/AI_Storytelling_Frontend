@@ -7,15 +7,12 @@ import {
   User,
   Brain,
   Globe,
-  Tag,
-  Building2,
-  GraduationCap,
   RefreshCw,
   ShieldCheck,
   AlertCircle,
-  Check,
 } from 'lucide-react';
 import { OrganizationSummary, ClassGroupSummary } from '../../../types/childProfile';
+import { AddChildScopeSelector } from './AddChildScopeSelector';
 
 export interface AddChildModalProps {
   isOpen: boolean;
@@ -118,19 +115,16 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
               maxLength={150}
               value={newChildNickname}
               onChange={(e) => setNewChildNickname(e.target.value)}
-              placeholder="Ví dụ: Bé Bắp, Sam, Tí Hon..."
-              className="dashboard-input text-xs"
+              placeholder="Ví dụ: Bé Bo, An Nhiên, Tony..."
+              className="w-full px-4 py-2.5 rounded-2xl bg-tod-surface border border-tod-border text-tod-text placeholder:text-tod-text-muted text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all"
             />
-            <span className="text-[10px] text-tod-text-muted">
-              Tên gọi thân mật của bé trên ứng dụng. Tránh dùng họ tên đầy đủ để bảo vệ danh tính của trẻ.
-            </span>
           </div>
 
-          {/* 2. Nhóm tuổi nhận thức */}
-          <div className="flex flex-col gap-2">
+          {/* 2. Nhóm tuổi phát triển (AgeBand) */}
+          <div className="flex flex-col gap-1.5">
             <label className="text-xs font-bold text-tod-text flex items-center gap-1.5">
               <Brain className="w-3.5 h-3.5 text-emerald-500" />
-              <span>Nhóm tuổi nhận thức (Cognitive Age Band) *</span>
+              <span>Nhóm tuổi phát triển & Nhận thức *</span>
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <button
@@ -220,234 +214,52 @@ export const AddChildModal: React.FC<AddChildModalProps> = ({
             </div>
           </div>
 
-          {/* 4. Lựa chọn Phạm vi (Scope) */}
-          <div className="flex flex-col gap-2 pt-1 border-t border-tod-border">
-            <label className="text-xs font-bold text-tod-text flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Lựa chọn Phạm vi Quản lý *</span>
-              </span>
-              <span className="text-[10px] text-tod-text-muted font-normal">
-                Chọn hình thức quản lý phù hợp
-              </span>
-            </label>
+          {/* 4. Lựa chọn Phạm vi (Scope) & Organization Selector */}
+          <AddChildScopeSelector
+            newChildScope={newChildScope}
+            setNewChildScope={setNewChildScope}
+            newChildOrgId={newChildOrgId}
+            setNewChildOrgId={setNewChildOrgId}
+            newChildClassGroupId={newChildClassGroupId}
+            setNewChildClassGroupId={setNewChildClassGroupId}
+            availableOrgs={availableOrgs}
+            availableClasses={availableClasses}
+            isLoadingOrgsAndClasses={isLoadingOrgsAndClasses}
+            loadOrgsAndClasses={loadOrgsAndClasses}
+          />
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              {/* Scope: Personal */}
-              <button
-                type="button"
-                onClick={() => {
-                  setNewChildScope('Personal');
-                  setNewChildOrgId(null);
-                  setNewChildClassGroupId(null);
-                }}
-                className={`p-3 rounded-2xl border text-left flex flex-col gap-1.5 cursor-pointer transition-all ${
-                  newChildScope === 'Personal'
-                    ? 'bg-sky-500/10 border-sky-500/80 shadow-md shadow-sky-500/10 ring-1 ring-sky-500/30'
-                    : 'bg-tod-surface hover:bg-tod-card border-tod-border'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className="font-bold text-xs text-tod-text flex items-center gap-1.5">
-                    <User className="w-3.5 h-3.5 text-sky-500" />
-                    <span>Cá nhân / Gia đình</span>
-                  </span>
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-sky-500/30">
-                    Cá nhân
-                  </span>
-                </div>
-                <p className="text-[10px] text-tod-text-muted leading-relaxed">
-                  Dành cho phụ huynh tạo hồ sơ riêng cho con, tự do quản lý việc đọc truyện tại nhà.
-                </p>
-              </button>
-
-              {/* Scope: Organization */}
-              <button
-                type="button"
-                onClick={() => {
-                  setNewChildScope('Organization');
-                  loadOrgsAndClasses();
-                }}
-                className={`p-3 rounded-2xl border text-left flex flex-col gap-1.5 cursor-pointer transition-all ${
-                  newChildScope === 'Organization'
-                    ? 'bg-purple-500/10 border-purple-500/80 shadow-md shadow-purple-500/10 ring-1 ring-purple-500/30'
-                    : 'bg-tod-surface hover:bg-tod-card border-tod-border'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className="font-bold text-xs text-tod-text flex items-center gap-1.5">
-                    <Building2 className="w-3.5 h-3.5 text-purple-500" />
-                    <span>Trường học / Lớp học</span>
-                  </span>
-                  <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30">
-                    Trường học
-                  </span>
-                </div>
-                <p className="text-[10px] text-tod-text-muted leading-relaxed">
-                  Dành cho giáo viên hoặc nhà trường để quản lý hồ sơ bé theo lớp học cụ thể.
-                </p>
-              </button>
-            </div>
-          </div>
-
-          {/* 5. Khối chọn Organization và Class Group (BẮT BUỘC KHI SCOPE = ORGANIZATION) */}
-          {newChildScope === 'Organization' && (
-            <div className="p-3.5 rounded-2xl bg-tod-surface border border-purple-500/30 flex flex-col gap-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-purple-600 dark:text-purple-300 flex items-center gap-1.5">
-                  <GraduationCap className="w-4 h-4 text-purple-500" />
-                  <span>Thông tin Trường học & Lớp học *</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={loadOrgsAndClasses}
-                  disabled={isLoadingOrgsAndClasses}
-                  className="text-[10px] text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1 cursor-pointer font-semibold"
-                >
-                  <RefreshCw className={`w-3 h-3 ${isLoadingOrgsAndClasses ? 'animate-spin' : ''}`} />
-                  <span>Tải lại</span>
-                </button>
-              </div>
-
-              {/* Dropdown Organization */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-tod-text flex items-center justify-between">
-                  <span>1. Chọn Trường học / Tổ chức *</span>
-                </label>
-
-                {isLoadingOrgsAndClasses ? (
-                  <div className="py-2 text-xs text-tod-text-muted flex items-center gap-2">
-                    <RefreshCw className="w-3 h-3 animate-spin text-purple-500" />
-                    <span>Đang tải danh sách tổ chức...</span>
-                  </div>
-                ) : availableOrgs.length === 0 ? (
-                  <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-[11px] flex flex-col gap-1">
-                    <span>
-                      ⚠️ Bạn chưa tham gia Tổ chức nào (hoặc tài khoản hiện tại không có quyền giáo viên/quản trị trường).
-                    </span>
-                    <span className="text-[10px] text-tod-text-muted">
-                      Nếu bạn là phụ huynh, vui lòng chuyển sang "Cá nhân / Gia đình".
-                    </span>
-                  </div>
-                ) : (
-                  <select
-                    value={newChildOrgId ?? ''}
-                    onChange={(e) => {
-                      const val = e.target.value ? Number(e.target.value) : null;
-                      setNewChildOrgId(val);
-                      setNewChildClassGroupId(null);
-                    }}
-                    className="dashboard-input cursor-pointer"
-                  >
-                    <option value="">-- Chọn một tổ chức trường học --</option>
-                    {availableOrgs.map((org) => {
-                      const isActive = org.verificationStatus === 'Active';
-                      return (
-                        <option
-                          key={org.id}
-                          value={org.id}
-                          disabled={!isActive}
-                          className={!isActive ? 'text-tod-text-muted bg-tod-surface' : 'text-tod-text bg-tod-card'}
-                        >
-                          {org.name} {isActive ? '✓ (Hoạt động)' : `— (${org.verificationStatus || 'Chờ duyệt'})`}
-                        </option>
-                      );
-                    })}
-                  </select>
-                )}
-              </div>
-
-              {/* Dropdown Class Group */}
-              <div className="flex flex-col gap-1">
-                <label className="text-[10px] font-bold text-tod-text flex items-center justify-between">
-                  <span>2. Chọn Lớp học *</span>
-                </label>
-
-                {!newChildOrgId ? (
-                  <div className="px-3 py-2 rounded-xl bg-tod-card border border-tod-border text-tod-text-muted text-xs italic">
-                    Vui lòng chọn Trường học / Tổ chức ở trên trước
-                  </div>
-                ) : (
-                  (() => {
-                    const orgClasses = availableClasses.filter(
-                      (c) => c.organizationId === newChildOrgId && c.status === 'Active'
-                    );
-                    if (orgClasses.length === 0) {
-                      return (
-                        <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-[11px]">
-                          Không tìm thấy Lớp học nào đang hoạt động trong tổ chức này. Vui lòng tạo lớp học trước trong mục Quản lý lớp.
-                        </div>
-                      );
-                    }
-                    return (
-                      <select
-                        value={newChildClassGroupId ?? ''}
-                        onChange={(e) => {
-                          const val = e.target.value ? Number(e.target.value) : null;
-                          setNewChildClassGroupId(val);
-                        }}
-                        className="dashboard-input cursor-pointer"
-                      >
-                        <option value="">-- Chọn lớp học --</option>
-                        {orgClasses.map((cls) => (
-                          <option key={cls.id} value={cls.id} className="text-tod-text bg-tod-card">
-                            {cls.name}
-                          </option>
-                        ))}
-                      </select>
-                    );
-                  })()
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* 6. Dữ liệu cá nhân hóa tối thiểu & Nguyên tắc bảo vệ trẻ em */}
-          <div className="p-3 rounded-2xl bg-tod-surface border border-emerald-500/20 text-tod-text text-[11px] flex items-start gap-2.5 leading-relaxed">
+          {/* Business & COPPA Note */}
+          <div className="p-3 rounded-2xl bg-tod-surface border border-tod-border flex items-start gap-2 text-tod-text-muted text-[11px] leading-relaxed">
             <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
-            <div>
-              <strong className="text-emerald-600 dark:text-emerald-300">Bảo mật thông tin của trẻ:</strong> Hệ thống chỉ sử dụng biệt danh và độ tuổi nhận thức để lựa chọn nội dung phù hợp. Chúng tôi luôn cam kết bảo vệ thông tin và quyền riêng tư của bé.
-            </div>
+            <span>
+              Hồ sơ trẻ độc lập được bảo vệ hoàn toàn theo tiêu chuẩn COPPA.
+            </span>
           </div>
 
-          {/* Modal Error */}
+          {/* Error display */}
           {createChildModalError && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/40 text-rose-600 dark:text-rose-300 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0" />
-              <span className="font-semibold">{createChildModalError}</span>
+            <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2 text-rose-600 dark:text-rose-300 text-xs animate-in fade-in">
+              <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+              <span>{createChildModalError}</span>
             </div>
           )}
 
-          {/* Modal Footer Buttons */}
-          <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-tod-border">
+          {/* Modal Footer / Action Buttons */}
+          <div className="pt-2 flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={onClose}
-              disabled={isCreatingChild}
-              className="px-4 py-2 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text text-xs font-semibold cursor-pointer transition-colors"
+              className="px-4 py-2.5 rounded-2xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text text-xs font-bold transition-all cursor-pointer"
             >
-              Hủy bỏ
+              Hủy
             </button>
             <button
               type="submit"
-              disabled={
-                isCreatingChild ||
-                !newChildNickname.trim() ||
-                (newChildScope === 'Organization' && (!newChildOrgId || !newChildClassGroupId))
-              }
-              className="btn-dashboard-primary text-xs"
+              disabled={isCreatingChild || !newChildNickname.trim()}
+              className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-white font-extrabold text-xs shadow-lg shadow-emerald-500/25 flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
             >
-              {isCreatingChild ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>Đang tạo hồ sơ...</span>
-                </>
-              ) : (
-                <>
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Tạo Hồ Sơ</span>
-                </>
-              )}
+              {isCreatingChild && <RefreshCw className="w-3.5 h-3.5 animate-spin" />}
+              <span>{isCreatingChild ? 'Đang tạo hồ sơ...' : 'Tạo Hồ Sơ Bé'}</span>
             </button>
           </div>
         </form>

@@ -14,50 +14,29 @@ import {
   ShieldCheck,
   Sparkles,
   User,
-  AlertCircle,
-  CheckCircle2,
-  RefreshCw,
-  Zap,
 } from 'lucide-react';
 import { TimeOfDay } from '../three/RoomCanvas';
 import { useAuth } from '../../context/AuthContext';
-import { childProfileService } from '../../services/childProfileService';
-import { supervisionService } from '../../services/supervisionService';
-import {
-  ChildProfile,
-  LearningProfile,
-  SafetyPolicy,
-  TokenQuotaStatus,
-  SupervisionRelationship,
-  SupervisionInvitation,
-  SupervisionPermissionKey,
-  OrganizationSummary,
-  ClassGroupSummary,
-  ContentCategory,
-} from '../../types/childProfile';
+import { useChildSession } from '../../context/ChildSessionContext';
+import { ChildProfile } from '../../types/childProfile';
+import { childAccessCredentialService } from '../../services/childAccessCredentialService';
 
 // Domain Subcomponents
 import { DashboardTopNav } from './common/DashboardTopNav';
 import { ChildProfilesSidebar } from './profiles/ChildProfilesSidebar';
-import { ChildProfileDetailCard } from './profiles/ChildProfileDetailCard';
-import { LearningProfileCard } from './profiles/LearningProfileCard';
-import { SafetySummaryCard } from './profiles/SafetySummaryCard';
-import { TokenQuotaCard } from './profiles/TokenQuotaCard';
+import { ParentAnalyticsTab } from './tabs/ParentAnalyticsTab';
 import { SafetyPolicyControls } from './safety/SafetyPolicyControls';
 import { SupervisionManager } from './supervision/SupervisionManager';
 import { CreativeControlsTab } from './creative/CreativeControlsTab';
-import { ChildAccessCredentialCard } from './profiles/ChildAccessCredentialCard';
-import { SetupChildPinModal } from './modals/SetupChildPinModal';
-import { EasyLoginCardModal } from './modals/EasyLoginCardModal';
-import { useChildSession } from '../../context/ChildSessionContext';
-import { ChildAccessCredential } from '../../types/childCredential';
-import { childAccessCredentialService } from '../../services/childAccessCredentialService';
+import { useParentLaptopData } from './hooks/useParentLaptopData';
 
 // Modal Dialogs
 import { AddChildModal } from './modals/AddChildModal';
 import { SupervisionPermissionsModal } from './modals/SupervisionPermissionsModal';
 import { TransferOwnershipModal } from './modals/TransferOwnershipModal';
 import { AcceptInvitationModal } from './modals/AcceptInvitationModal';
+import { SetupChildPinModal } from './modals/SetupChildPinModal';
+import { EasyLoginCardModal } from './modals/EasyLoginCardModal';
 
 gsap.registerPlugin(useGSAP);
 
@@ -82,798 +61,13 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<'analytics' | 'controls' | 'supervision' | 'prompts'>('analytics');
   const [isUiVisible, setIsUiVisible] = useState<boolean>(false);
-
-  // Child Profiles States (fetched from GET /api/v1/ChildProfile/mine)
-  const [childProfiles, setChildProfiles] = useState<ChildProfile[]>([]);
-  const [isLoadingChildren, setIsLoadingChildren] = useState<boolean>(true);
-  const [selectedChildId, setSelectedChildId] = useState<number | null>(null);
-  const [childError, setChildError] = useState<string | null>(null);
-
-  // New Child Profile Form States (Bước 1.2 — Tạo ChildProfile độc lập)
-  const [showAddChildModal, setShowAddChildModal] = useState<boolean>(false);
-  const [newChildNickname, setNewChildNickname] = useState<string>('');
-  const [newChildAgeBand, setNewChildAgeBand] = useState<'Age_6_8' | 'Age_9_12'>('Age_6_8');
-  const [newChildLanguage, setNewChildLanguage] = useState<string>('vi');
-  const [newChildScope, setNewChildScope] = useState<'Personal' | 'Organization'>('Personal');
-  const [newChildOrgId, setNewChildOrgId] = useState<number | null>(null);
-  const [newChildClassGroupId, setNewChildClassGroupId] = useState<number | null>(null);
-  const [isCreatingChild, setIsCreatingChild] = useState<boolean>(false);
-  const [createChildModalError, setCreateChildModalError] = useState<string | null>(null);
-  const [availableOrgs, setAvailableOrgs] = useState<OrganizationSummary[]>([]);
-  const [availableClasses, setAvailableClasses] = useState<ClassGroupSummary[]>([]);
-  const [isLoadingOrgsAndClasses, setIsLoadingOrgsAndClasses] = useState<boolean>(false);
-  const [activatingChildId, setActivatingChildId] = useState<number | null>(null);
-  const [createChildSuccess, setCreateChildSuccess] = useState<string | null>(null);
-
-  // Selected Child Detailed Data (Learning Profile, Safety Policy, Token Quota)
-  const [learningProfile, setLearningProfile] = useState<LearningProfile | null>(null);
-  const [safetyPolicy, setSafetyPolicy] = useState<SafetyPolicy | null>(null);
-  const [tokenQuota, setTokenQuota] = useState<TokenQuotaStatus | null>(null);
-  const [isLoadingDetail, setIsLoadingDetail] = useState<boolean>(false);
-  const [detailError, setDetailError] = useState<string | null>(null);
-
-  // Child Access Credential & Child Session States (Bước 1.10)
   const { startChildSession } = useChildSession();
-  const [showSetupPinModal, setShowSetupPinModal] = useState<boolean>(false);
-  const [showEasyLoginBadgeModal, setShowEasyLoginBadgeModal] = useState<boolean>(false);
-  const [credentialVersion, setCredentialVersion] = useState<number>(0);
+
+  const laptopData = useParentLaptopData();
 
   const handleStartChildSession = (child: ChildProfile) => {
     startChildSession(child, 'SupervisorLaunched');
     onStageChange(2); // Zoom camera thẳng vào Kệ Sách Thần Kỳ (Stage 2)
-  };
-
-  // Learning Profile Edit States
-  const [isEditingLearningProfile, setIsEditingLearningProfile] = useState<boolean>(false);
-  const [learningReadingLevel, setLearningReadingLevel] = useState<number>(2);
-  const [learningComprehensionGoal, setLearningComprehensionGoal] = useState<string>('');
-  const [learningTopics, setLearningTopics] = useState<Array<{ topic: string; relation: 'FavoriteTopic' | 'Interested' | 'Avoid' }>>([]);
-  const [customTopicInput, setCustomTopicInput] = useState<string>('');
-  const [isSavingLearningProfile, setIsSavingLearningProfile] = useState<boolean>(false);
-  const [learningProfileSuccessMsg, setLearningProfileSuccessMsg] = useState<string | null>(null);
-  const [learningProfileErrorMsg, setLearningProfileErrorMsg] = useState<string | null>(null);
-
-  // Inline Edit Child Profile States
-  const [isEditingChild, setIsEditingChild] = useState<boolean>(false);
-  const [editNickname, setEditNickname] = useState<string>('');
-  const [editAgeBand, setEditAgeBand] = useState<string>('Age_6_8');
-  const [editLanguage, setEditLanguage] = useState<string>('vi');
-  const [isSavingEdit, setIsSavingEdit] = useState<boolean>(false);
-  const [editSuccessMsg, setEditSuccessMsg] = useState<string | null>(null);
-
-  // Delete Child Profile States
-  const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
-  const [isDeletingChild, setIsDeletingChild] = useState<boolean>(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
-
-  // Supervision States (GET /api/v1/Supervision/{childProfileId}/relationships & /invitations)
-  const [supervisors, setSupervisors] = useState<SupervisionRelationship[]>([]);
-  const [invitations, setInvitations] = useState<SupervisionInvitation[]>([]);
-  const [isLoadingSupervision, setIsLoadingSupervision] = useState<boolean>(false);
-  const [supervisionError, setSupervisionError] = useState<string | null>(null);
-  const [isInviting, setIsInviting] = useState<boolean>(false);
-  const [inviteEmail, setInviteEmail] = useState<string>('');
-  const [inviteExpiresDays, setInviteExpiresDays] = useState<number>(7);
-  const [isSendingInvite, setIsSendingInvite] = useState<boolean>(false);
-  const [supervisionSuccessMsg, setSupervisionSuccessMsg] = useState<string | null>(null);
-  const [revokingRelId, setRevokingRelId] = useState<number | null>(null);
-  const [cancellingInvId, setCancellingInvId] = useState<number | null>(null);
-  const [copiedCode, setCopiedCode] = useState<string | null>(null);
-
-  // Permissions Management Modal States
-  const [permissionTargetSupervisor, setPermissionTargetSupervisor] = useState<SupervisionRelationship | null>(null);
-  const [supervisorPermissions, setSupervisorPermissions] = useState<string[]>([]);
-  const [isLoadingPermissions, setIsLoadingPermissions] = useState<boolean>(false);
-  const [togglingPermissionKey, setTogglingPermissionKey] = useState<string | null>(null);
-  const [permissionModalError, setPermissionModalError] = useState<string | null>(null);
-
-  // Transfer Ownership Modal States
-  const [transferTargetSupervisor, setTransferTargetSupervisor] = useState<SupervisionRelationship | null>(null);
-  const [isTransferringOwnership, setIsTransferringOwnership] = useState<boolean>(false);
-  const [transferError, setTransferError] = useState<string | null>(null);
-
-  // Accept Invitation Modal States
-  const [showAcceptInviteModal, setShowAcceptInviteModal] = useState<boolean>(false);
-  const [acceptCodeInput, setAcceptCodeInput] = useState<string>('');
-  const [isAcceptingInvite, setIsAcceptingInvite] = useState<boolean>(false);
-  const [acceptInviteError, setAcceptInviteError] = useState<string | null>(null);
-
-  // Safety Policy Edit States
-  const [safetyMaxStoryLength, setSafetyMaxStoryLength] = useState<number>(2000);
-  const [safetyApprovalMode, setSafetyApprovalMode] = useState<'AlwaysManual' | 'AutoPublishOnThreshold'>('AlwaysManual');
-  const [safetyParentalGate, setSafetyParentalGate] = useState<boolean>(true);
-  const [safetyConsent, setSafetyConsent] = useState<boolean>(true);
-  const [contentCategories, setContentCategories] = useState<ContentCategory[]>([]);
-  const [safetyCategories, setSafetyCategories] = useState<Array<{ contentCategoryId: number; rule: 'Allowed' | 'Restricted' | 'Blocked' }>>([]);
-  const [isLoadingCategories, setIsLoadingCategories] = useState<boolean>(false);
-  const [isSavingSafety, setIsSavingSafety] = useState<boolean>(false);
-  const [safetySuccessMsg, setSafetySuccessMsg] = useState<string | null>(null);
-  const [safetyErrorMsg, setSafetyErrorMsg] = useState<string | null>(null);
-  const [isSavedChanges, setIsSavedChanges] = useState<boolean>(false);
-
-  // Conversation Starter Audio & Feedback
-  const [isPlayingAudio, setIsPlayingAudio] = useState<boolean>(false);
-  const [feedbackRating, setFeedbackRating] = useState<'like' | 'dislike' | null>('like');
-
-  const fetchChildProfiles = async () => {
-    setIsLoadingChildren(true);
-    setChildError(null);
-    try {
-      const res = await childProfileService.getMyChildProfiles();
-      if (res.success && res.data) {
-        setChildProfiles(res.data);
-        if (res.data.length > 0 && !selectedChildId) {
-          setSelectedChildId(res.data[0].id);
-        }
-      } else {
-        setChildError(res.message || 'Không thể tải danh sách hồ sơ trẻ.');
-      }
-    } catch (err) {
-      setChildError((err as Error).message || 'Lỗi kết nối tới máy chủ.');
-    } finally {
-      setIsLoadingChildren(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchChildProfiles();
-
-    // Tự động kiểm tra mã mời trên URL hoặc sessionStorage khi mở bảng điều khiển
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const storedCode = sessionStorage.getItem('pendingInvitationCode');
-      const inviteCode = params.get('code') || params.get('invitationCode') || params.get('inviteCode') || storedCode;
-      if (inviteCode) {
-        setAcceptCodeInput(inviteCode.trim());
-        setShowAcceptInviteModal(true);
-      }
-    }
-  }, []);
-
-  const loadOrgsAndClasses = async () => {
-    setIsLoadingOrgsAndClasses(true);
-    try {
-      const [orgsRes, classesRes] = await Promise.allSettled([
-        childProfileService.getMyOrganizations(),
-        childProfileService.getMyClassGroups(),
-      ]);
-
-      if (orgsRes.status === 'fulfilled' && orgsRes.value.success && orgsRes.value.data) {
-        setAvailableOrgs(orgsRes.value.data);
-      } else {
-        setAvailableOrgs([]);
-      }
-
-      if (classesRes.status === 'fulfilled' && classesRes.value.success && classesRes.value.data) {
-        setAvailableClasses(classesRes.value.data);
-      } else {
-        setAvailableClasses([]);
-      }
-    } catch (err) {
-      console.error('Error loading organizations or class groups:', err);
-    } finally {
-      setIsLoadingOrgsAndClasses(false);
-    }
-  };
-
-  const handleOpenAddChildModal = () => {
-    setNewChildNickname('');
-    setNewChildAgeBand('Age_6_8');
-    setNewChildLanguage('vi');
-    setNewChildScope('Personal');
-    setNewChildOrgId(null);
-    setNewChildClassGroupId(null);
-    setCreateChildModalError(null);
-    setShowAddChildModal(true);
-    loadOrgsAndClasses();
-  };
-
-  const handleCreateChildSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newChildNickname.trim()) {
-      setCreateChildModalError('Biệt danh của bé không được để trống.');
-      return;
-    }
-
-    if (newChildScope === 'Organization') {
-      if (!newChildOrgId) {
-        setCreateChildModalError('Bắt buộc chọn một Tổ chức đã kích hoạt (Active) khi tạo hồ sơ với phạm vi Trường học/Tổ chức.');
-        return;
-      }
-      if (!newChildClassGroupId) {
-        setCreateChildModalError('Bắt buộc chọn Lớp học đích thuộc Tổ chức đã chọn.');
-        return;
-      }
-    }
-
-    setIsCreatingChild(true);
-    setCreateChildModalError(null);
-    setChildError(null);
-    setCreateChildSuccess(null);
-
-    try {
-      const res = await childProfileService.createChildProfile({
-        nickname: newChildNickname.trim(),
-        ageBand: newChildAgeBand,
-        language: newChildLanguage || 'vi',
-        scope: newChildScope,
-        organizationId: newChildScope === 'Organization' ? newChildOrgId : null,
-        classGroupId: newChildScope === 'Organization' ? newChildClassGroupId : null,
-      });
-
-      if (res.success && res.data) {
-        const createdChild = res.data;
-        setCreateChildSuccess(
-          `✓ Đã tạo hồ sơ bé "${createdChild.nickname}" thành công (Mã: #${createdChild.id}, Phạm vi: ${
-            createdChild.scope === 'Organization' ? 'Trường học/Tổ chức' : 'Cá nhân/Gia đình'
-          }, Trạng thái: Bản nháp / Draft). Vui lòng thiết lập Hồ sơ học tập & Quy tắc an toàn trước khi kích hoạt.`
-        );
-
-        setShowAddChildModal(false);
-        await fetchChildProfiles();
-        setSelectedChildId(createdChild.id);
-        setTimeout(() => setCreateChildSuccess(null), 8000);
-      } else {
-        setCreateChildModalError(res.message || 'Không thể tạo hồ sơ bé.');
-      }
-    } catch (err) {
-      setCreateChildModalError((err as Error).message || 'Có lỗi xảy ra khi tạo hồ sơ bé.');
-    } finally {
-      setIsCreatingChild(false);
-    }
-  };
-
-  const handleActivateChild = async (childId: number, nickname: string, ageBand: string) => {
-    setActivatingChildId(childId);
-    setChildError(null);
-    try {
-      const res = await childProfileService.setupAndActivateChild(childId, nickname, ageBand);
-      if (res.success) {
-        await fetchChildProfiles();
-        const updatedList = await childProfileService.getMyChildProfiles();
-        const targetChild = updatedList.data?.find((c) => c.id === childId);
-
-        if (
-          targetChild?.status === 'PendingParentConsent' ||
-          targetChild?.status === 'Pending Parent Consent' ||
-          targetChild?.status === 'pending_parent_consent'
-        ) {
-          setCreateChildSuccess(
-            `⚡ Hồ sơ bé "${nickname}" đã sẵn sàng và đang ở trạng thái: Chờ phụ huynh chấp thuận (Pending Parent Consent). Hãy gửi mã mời cho phụ huynh để kích hoạt Đang hoạt động.`
-          );
-        } else {
-          setCreateChildSuccess(`⚡ Đã kích hoạt hồ sơ bé "${nickname}" thành công (Đang hoạt động)!`);
-        }
-        setTimeout(() => setCreateChildSuccess(null), 6000);
-      } else {
-        setChildError(res.message || 'Không thể kích hoạt hồ sơ bé.');
-      }
-    } catch (err) {
-      setChildError((err as Error).message || 'Lỗi khi kích hoạt hồ sơ bé.');
-    } finally {
-      setActivatingChildId(null);
-    }
-  };
-
-  const selectedChild = childProfiles.find((c) => c.id === selectedChildId) || childProfiles[0] || null;
-
-  const ensureContentCategories = async (): Promise<ContentCategory[]> => {
-    if (contentCategories.length > 0) return contentCategories;
-    try {
-      setIsLoadingCategories(true);
-      const res = await childProfileService.getContentCategories();
-      if (res.success && res.data && res.data.length > 0) {
-        setContentCategories(res.data);
-        return res.data;
-      }
-    } catch (e) {
-      console.error('Failed to load content categories:', e);
-    } finally {
-      setIsLoadingCategories(false);
-    }
-    const fallbackCats: ContentCategory[] = [
-      { id: 1, code: 'VIOLENCE', displayName: 'Bạo lực & Chiến đấu mạnh', isActive: true },
-      { id: 2, code: 'HORROR', displayName: 'Kinh dị & Yếu tố gây sợ hãi', isActive: true },
-      { id: 3, code: 'SENSITIVE_LANG', displayName: 'Ngôn từ nhạy cảm & Thô tục', isActive: true },
-      { id: 4, code: 'ADULT_THEME', displayName: 'Chủ đề người lớn & Phức tạp', isActive: true },
-      { id: 5, code: 'FAIRY_TALE', displayName: 'Cổ tích & Huyền thoại dân gian', isActive: true },
-      { id: 6, code: 'SCIENCE_NATURE', displayName: 'Khoa học, Tự nhiên & Không gian', isActive: true },
-    ];
-    setContentCategories(fallbackCats);
-    return fallbackCats;
-  };
-
-  const fetchChildDetail = async (childId: number) => {
-    setIsLoadingDetail(true);
-    setDetailError(null);
-    try {
-      const [lpRes, spRes, quotaRes] = await Promise.allSettled([
-        childProfileService.getLearningProfile(childId),
-        childProfileService.getSafetyPolicy(childId),
-        childProfileService.getTokenQuotaForChild(childId),
-      ]);
-
-      if (lpRes.status === 'fulfilled' && lpRes.value.success && lpRes.value.data) {
-        setLearningProfile(lpRes.value.data);
-        setLearningReadingLevel(lpRes.value.data.readingLevel || 2);
-        setLearningComprehensionGoal(lpRes.value.data.comprehensionGoal || '');
-        setLearningTopics(
-          (lpRes.value.data.topics || []).map((t) => ({
-            topic: t.topic,
-            relation: (t.relation as any) || 'FavoriteTopic',
-          }))
-        );
-      } else {
-        setLearningProfile(null);
-        setLearningReadingLevel(2);
-        setLearningComprehensionGoal('');
-        setLearningTopics([
-          { topic: 'Khám phá thế giới & Thiên nhiên', relation: 'FavoriteTopic' },
-          { topic: 'Khoa học & Vũ trụ', relation: 'FavoriteTopic' },
-        ]);
-      }
-
-      const availableCats = await ensureContentCategories();
-
-      if (spRes.status === 'fulfilled' && spRes.value.success && spRes.value.data) {
-        const sp = spRes.value.data;
-        setSafetyPolicy(sp);
-        setSafetyMaxStoryLength(sp.maxStoryLength || 2000);
-        setSafetyApprovalMode(
-          sp.requiredApprovalMode === 'AutoPublishOnThreshold' ? 'AutoPublishOnThreshold' : 'AlwaysManual'
-        );
-        setSafetyParentalGate(sp.parentalGateEnabled ?? true);
-        setSafetyConsent(sp.consentRecorded ?? true);
-        if (sp.categories && sp.categories.length > 0) {
-          setSafetyCategories(
-            sp.categories.map((c) => ({
-              contentCategoryId: c.contentCategoryId,
-              rule: (c.rule as 'Allowed' | 'Restricted' | 'Blocked') || 'Blocked',
-            }))
-          );
-        } else {
-          setSafetyCategories(
-            availableCats.map((c) => ({
-              contentCategoryId: c.id,
-              rule: ['VIOLENCE', 'HORROR', 'SENSITIVE_LANG', 'ADULT_THEME'].some((code) =>
-                c.code.toUpperCase().includes(code)
-              )
-                ? 'Blocked'
-                : 'Allowed',
-            }))
-          );
-        }
-      } else {
-        setSafetyPolicy(null);
-        setSafetyMaxStoryLength(2000);
-        setSafetyApprovalMode('AlwaysManual');
-        setSafetyParentalGate(true);
-        setSafetyConsent(true);
-        setSafetyCategories(
-          availableCats.map((c) => ({
-            contentCategoryId: c.id,
-            rule: ['VIOLENCE', 'HORROR', 'SENSITIVE_LANG', 'ADULT_THEME'].some((code) =>
-              c.code.toUpperCase().includes(code)
-            )
-              ? 'Blocked'
-              : 'Allowed',
-          }))
-        );
-      }
-
-      if (quotaRes.status === 'fulfilled' && quotaRes.value.success && quotaRes.value.data) {
-        setTokenQuota(quotaRes.value.data);
-      } else {
-        setTokenQuota(null);
-      }
-    } catch (err) {
-      console.error('Error fetching child details:', err);
-    } finally {
-      setIsLoadingDetail(false);
-    }
-  };
-
-  const fetchSupervisionData = async (childId: number) => {
-    setIsLoadingSupervision(true);
-    setSupervisionError(null);
-    try {
-      const [relRes, invRes] = await Promise.allSettled([
-        supervisionService.getSupervisors(childId),
-        supervisionService.getInvitations(childId),
-      ]);
-
-      if (relRes.status === 'fulfilled' && relRes.value.success && relRes.value.data) {
-        setSupervisors(relRes.value.data);
-      } else {
-        setSupervisors([]);
-      }
-
-      if (invRes.status === 'fulfilled' && invRes.value.success && invRes.value.data) {
-        setInvitations(invRes.value.data);
-      } else {
-        setInvitations([]);
-      }
-    } catch (err) {
-      console.error('Error fetching supervision:', err);
-      setSupervisionError('Không thể nạp danh sách giám sát.');
-    } finally {
-      setIsLoadingSupervision(false);
-    }
-  };
-
-  useEffect(() => {
-    if (selectedChild) {
-      setEditNickname(selectedChild.nickname);
-      setEditAgeBand(selectedChild.ageBand);
-      setEditLanguage(selectedChild.language || 'vi');
-      fetchChildDetail(selectedChild.id);
-      fetchSupervisionData(selectedChild.id);
-    }
-  }, [selectedChildId, childProfiles.length]);
-
-  useEffect(() => {
-    if (selectedChild && activeTab === 'supervision') {
-      fetchSupervisionData(selectedChild.id);
-    }
-  }, [activeTab]);
-
-  const handleCreateInvitation = async () => {
-    if (!selectedChild) return;
-    setIsSendingInvite(true);
-    setSupervisionError(null);
-    try {
-      const rawContact = inviteEmail.trim();
-      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawContact);
-
-      const res = await supervisionService.createInvitation(selectedChild.id, {
-        inviteeEmail: isEmail ? rawContact : undefined,
-        expiresInDays: inviteExpiresDays,
-      });
-
-      if (res.success && res.data) {
-        setSupervisionSuccessMsg(`✓ Đã tạo mã mời giám sát: ${res.data.invitationCode}`);
-        setInviteEmail('');
-        setIsInviting(false);
-        await fetchSupervisionData(selectedChild.id);
-        setTimeout(() => setSupervisionSuccessMsg(null), 6000);
-      } else {
-        setSupervisionError(res.message || 'Không thể tạo lời mời.');
-      }
-    } catch (err) {
-      setSupervisionError((err as Error).message || 'Lỗi khi tạo lời mời.');
-    } finally {
-      setIsSendingInvite(false);
-    }
-  };
-
-  const handleReissueInvitation = async (invitationId: number, targetEmail?: string, expiresInDays?: number) => {
-    if (!selectedChild) return;
-    setCancellingInvId(invitationId);
-    setSupervisionError(null);
-    try {
-      const isEmail = targetEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(targetEmail.trim());
-      const res = await supervisionService.reissueInvitation(selectedChild.id, invitationId, {
-        inviteeEmail: isEmail ? targetEmail?.trim() : undefined,
-        expiresInDays: expiresInDays || inviteExpiresDays || 7,
-      });
-
-      if (res.success && res.data) {
-        setSupervisionSuccessMsg(`✓ Đã cấp lại mã mời mới: ${res.data.invitationCode}`);
-        await fetchSupervisionData(selectedChild.id);
-        setTimeout(() => setSupervisionSuccessMsg(null), 6000);
-      } else {
-        setSupervisionError(res.message || 'Không thể cấp lại mã.');
-      }
-    } catch (err) {
-      setSupervisionError((err as Error).message || 'Lỗi khi cấp lại mã.');
-    } finally {
-      setCancellingInvId(null);
-    }
-  };
-
-  const handleCancelInvitation = async (invitationId: number) => {
-    if (!selectedChild) return;
-    setCancellingInvId(invitationId);
-    try {
-      const res = await supervisionService.cancelInvitation(invitationId);
-      if (res.success) {
-        setSupervisionSuccessMsg('✓ Đã huỷ lời mời giám sát.');
-        await fetchSupervisionData(selectedChild.id);
-        setTimeout(() => setSupervisionSuccessMsg(null), 4000);
-      } else {
-        setSupervisionError(res.message || 'Không thể huỷ lời mời.');
-      }
-    } catch (err) {
-      setSupervisionError((err as Error).message || 'Lỗi khi huỷ lời mời.');
-    } finally {
-      setCancellingInvId(null);
-    }
-  };
-
-  const handleRevokeSupervision = async (relId: number, supervisorName?: string) => {
-    if (!selectedChild) return;
-    const confirmMsg = supervisorName
-      ? `Bạn có chắc chắn muốn thu hồi quyền giám sát của "${supervisorName}" không?\n\nLưu ý: Nếu đây là phụ huynh duy nhất của bé, hồ sơ sẽ tự động chuyển về trạng thái 'Chờ phụ huynh chấp thuận' (Pending Parent Consent) để bảo vệ dữ liệu trẻ em.`
-      : 'Bạn có chắc chắn muốn thu hồi quan hệ giám sát này không?';
-
-    if (!confirm(confirmMsg)) return;
-    setRevokingRelId(relId);
-    try {
-      const res = await supervisionService.revokeSupervision(relId);
-      if (res.success) {
-        setSupervisionSuccessMsg('✓ Đã thu hồi quyền giám sát.');
-        await Promise.allSettled([
-          fetchSupervisionData(selectedChild.id),
-          fetchChildProfiles(),
-        ]);
-        setTimeout(() => setSupervisionSuccessMsg(null), 4000);
-      } else {
-        setSupervisionError(res.message || 'Không thể thu hồi quyền giám sát.');
-      }
-    } catch (err) {
-      setSupervisionError((err as Error).message || 'Lỗi khi thu hồi quyền.');
-    } finally {
-      setRevokingRelId(null);
-    }
-  };
-
-  const handleCopyCode = (code: string) => {
-    navigator.clipboard.writeText(code);
-    setCopiedCode(code);
-    setTimeout(() => setCopiedCode(null), 2500);
-  };
-
-  const handleOpenPermissions = async (sup: SupervisionRelationship) => {
-    setPermissionTargetSupervisor(sup);
-    setPermissionModalError(null);
-    setIsLoadingPermissions(true);
-    try {
-      const res = await supervisionService.getRelationshipPermissions(sup.id);
-      if (res.success && res.data) {
-        setSupervisorPermissions(res.data);
-      } else {
-        setSupervisorPermissions([]);
-        setPermissionModalError(res.message || 'Chưa thể tải quyền của người giám sát này.');
-      }
-    } catch (err) {
-      setPermissionModalError((err as Error).message || 'Lỗi khi tải danh sách quyền.');
-    } finally {
-      setIsLoadingPermissions(false);
-    }
-  };
-
-  const handleTogglePermission = async (permissionKey: SupervisionPermissionKey) => {
-    if (!permissionTargetSupervisor || togglingPermissionKey) return;
-    const relId = permissionTargetSupervisor.id;
-    const isGranted = supervisorPermissions.includes(permissionKey);
-    setTogglingPermissionKey(permissionKey);
-    setPermissionModalError(null);
-
-    // Optimistic UI update
-    setSupervisorPermissions((prev) =>
-      isGranted ? prev.filter((p) => p !== permissionKey) : [...prev, permissionKey]
-    );
-
-    try {
-      const res = isGranted
-        ? await supervisionService.revokePermission(relId, permissionKey)
-        : await supervisionService.grantPermission(relId, permissionKey);
-
-      if (!res.success) {
-        // Rollback on failure
-        setSupervisorPermissions((prev) =>
-          isGranted ? [...prev, permissionKey] : prev.filter((p) => p !== permissionKey)
-        );
-        setPermissionModalError(res.message || 'Không thể cập nhật quyền.');
-      }
-    } catch (err) {
-      // Rollback on error
-      setSupervisorPermissions((prev) =>
-        isGranted ? [...prev, permissionKey] : prev.filter((p) => p !== permissionKey)
-      );
-      setPermissionModalError((err as Error).message || 'Lỗi khi cập nhật quyền.');
-    } finally {
-      setTogglingPermissionKey(null);
-    }
-  };
-
-  const handleTransferOwnershipSubmit = async () => {
-    if (!selectedChild || !transferTargetSupervisor) return;
-    setIsTransferringOwnership(true);
-    setTransferError(null);
-    try {
-      const res = await supervisionService.transferOwnership(
-        selectedChild.id,
-        transferTargetSupervisor.supervisorUserId
-      );
-      if (res.success) {
-        setSupervisionSuccessMsg(
-          `✓ Đã chuyển nhượng quyền Owner bé "${selectedChild.nickname}" cho Supervisor #${transferTargetSupervisor.supervisorUserId} thành công!`
-        );
-        setTransferTargetSupervisor(null);
-        await Promise.all([
-          fetchChildProfiles(),
-          fetchSupervisionData(selectedChild.id),
-        ]);
-        setTimeout(() => setSupervisionSuccessMsg(null), 5000);
-      } else {
-        setTransferError(res.message || 'Không thể chuyển giao quyền Owner.');
-      }
-    } catch (err) {
-      setTransferError((err as Error).message || 'Lỗi khi chuyển quyền Owner.');
-    } finally {
-      setIsTransferringOwnership(false);
-    }
-  };
-
-  const handleAcceptInvitationSubmit = async (customCode?: string) => {
-    const codeToUse = (typeof customCode === 'string' && customCode.trim()) ? customCode.trim() : acceptCodeInput.trim();
-    if (!codeToUse) return;
-    setIsAcceptingInvite(true);
-    setAcceptInviteError(null);
-    try {
-      const res = await supervisionService.acceptInvitation(codeToUse);
-      if (res.success && res.data) {
-        const newRel = res.data;
-        setSupervisionSuccessMsg(
-          `✓ Liên kết giám sát thành công (Supervisor Linked)! Đã kích hoạt quyền giám sát bé (Hồ sơ #${newRel.childProfileId}).`
-        );
-        if (typeof window !== 'undefined') {
-          sessionStorage.removeItem('pendingInvitationCode');
-        }
-        setAcceptCodeInput('');
-        setShowAcceptInviteModal(false);
-        await fetchChildProfiles();
-        setSelectedChildId(newRel.childProfileId);
-        setTimeout(() => setSupervisionSuccessMsg(null), 6000);
-      } else {
-        setAcceptInviteError(res.message || res.errors?.[0] || 'Mã mời không hợp lệ hoặc đã hết hạn.');
-      }
-    } catch (err) {
-      setAcceptInviteError((err as Error).message || 'Lỗi khi chấp nhận mã mời.');
-    } finally {
-      setIsAcceptingInvite(false);
-    }
-  };
-
-  const handleRejectInvitationSubmit = (codeToReject?: string) => {
-    if (typeof window !== 'undefined') {
-      sessionStorage.removeItem('pendingInvitationCode');
-    }
-    setAcceptCodeInput('');
-    setShowAcceptInviteModal(false);
-    setSupervisionSuccessMsg(
-      'Đã từ chối lời mời giám sát (Trạng thái: Rejected). Nếu muốn liên kết sau này, vui lòng liên hệ Người mời để nhận mã mới.'
-    );
-    setTimeout(() => setSupervisionSuccessMsg(null), 6000);
-  };
-
-  const handleSaveChildProfile = async () => {
-    if (!selectedChild || !editNickname.trim()) return;
-
-    setIsSavingEdit(true);
-    setDetailError(null);
-    try {
-      const res = await childProfileService.updateChildProfile(selectedChild.id, {
-        nickname: editNickname.trim(),
-        ageBand: editAgeBand,
-        language: editLanguage || 'vi',
-      });
-
-      if (res.success && res.data) {
-        setEditSuccessMsg(`✓ Đã cập nhật thành công hồ sơ bé "${res.data.nickname}"!`);
-        setIsEditingChild(false);
-        setChildProfiles((prev) =>
-          prev.map((c) => (c.id === res.data!.id ? { ...c, ...res.data } : c))
-        );
-        await fetchChildProfiles();
-        setTimeout(() => setEditSuccessMsg(null), 4000);
-      } else {
-        setDetailError(res.message || 'Không thể cập nhật hồ sơ bé.');
-      }
-    } catch (err) {
-      setDetailError((err as Error).message || 'Có lỗi xảy ra khi cập nhật.');
-    } finally {
-      setIsSavingEdit(false);
-    }
-  };
-
-  const handleDeleteChildProfile = async () => {
-    if (!selectedChild) return;
-    setIsDeletingChild(true);
-    setDeleteError(null);
-    try {
-      const res = await childProfileService.deleteChildProfile(selectedChild.id);
-      if (res.success) {
-        setEditSuccessMsg(`✓ Đã lưu trữ/xóa hồ sơ bé "${selectedChild.nickname}" thành công!`);
-        setIsConfirmingDelete(false);
-        setIsEditingChild(false);
-
-        const updatedProfilesRes = await childProfileService.getMyChildProfiles();
-        if (updatedProfilesRes.success && updatedProfilesRes.data) {
-          setChildProfiles(updatedProfilesRes.data);
-          const remaining = updatedProfilesRes.data.filter((c) => c.id !== selectedChild.id);
-          if (remaining.length > 0) {
-            setSelectedChildId(remaining[0].id);
-          } else {
-            setSelectedChildId(null);
-          }
-        }
-        setTimeout(() => setEditSuccessMsg(null), 4000);
-      } else {
-        setDeleteError(res.message || 'Không thể xóa hồ sơ trẻ.');
-      }
-    } catch (err) {
-      setDeleteError((err as Error).message || 'Có lỗi xảy ra khi xóa hồ sơ.');
-    } finally {
-      setIsDeletingChild(false);
-    }
-  };
-
-  const handleSaveLearningProfile = async () => {
-    if (!selectedChild) return;
-    setIsSavingLearningProfile(true);
-    setLearningProfileErrorMsg(null);
-    try {
-      const res = await childProfileService.setLearningProfile(selectedChild.id, {
-        readingLevel: learningReadingLevel,
-        comprehensionGoal: learningComprehensionGoal.trim() || 'Phát triển từ vựng và tư duy qua truyện kể',
-        topics: learningTopics.length > 0 ? learningTopics : [
-          { topic: 'Khám phá thế giới & Thiên nhiên', relation: 'FavoriteTopic' },
-        ],
-      });
-
-      if (res.success) {
-        setLearningProfileSuccessMsg('Đã lưu cấu hình học tập thành công!');
-        setIsEditingLearningProfile(false);
-        await fetchChildDetail(selectedChild.id);
-        setTimeout(() => setLearningProfileSuccessMsg(null), 3500);
-      } else {
-        setLearningProfileErrorMsg(res.message || 'Không thể lưu hồ sơ học tập.');
-      }
-    } catch (err) {
-      setLearningProfileErrorMsg((err as Error).message || 'Có lỗi xảy ra khi lưu.');
-    } finally {
-      setIsSavingLearningProfile(false);
-    }
-  };
-
-  const handleSaveSafetyPolicy = async () => {
-    if (!selectedChild) return;
-    setSafetyErrorMsg(null);
-    setSafetySuccessMsg(null);
-
-    if (!safetyConsent) {
-      setSafetyErrorMsg('Phụ huynh cần tích chọn xác nhận đồng thuận giám sát và bảo vệ dữ liệu trẻ em (Consent Record) trước khi lưu.');
-      return;
-    }
-
-    setIsSavingSafety(true);
-    try {
-      const res = await childProfileService.setSafetyPolicy(selectedChild.id, {
-        maxStoryLength: safetyMaxStoryLength,
-        requiredApprovalMode: safetyApprovalMode,
-        parentalGateEnabled: safetyParentalGate,
-        consentRecorded: safetyConsent,
-        categories: safetyCategories,
-      });
-
-      if (res.success) {
-        setIsSavedChanges(true);
-        setSafetySuccessMsg(`✓ Đã lưu thành công quy tắc an toàn cho bé ${selectedChild.nickname}! Trạng thái nghiệp vụ: Safety Configured.`);
-        await fetchChildDetail(selectedChild.id);
-        setTimeout(() => {
-          setIsSavedChanges(false);
-          setSafetySuccessMsg(null);
-        }, 4000);
-      } else {
-        setSafetyErrorMsg(res.message || 'Không thể lưu quy tắc an toàn.');
-      }
-    } catch (err) {
-      setSafetyErrorMsg((err as Error).message || 'Lỗi khi lưu quy tắc an toàn.');
-    } finally {
-      setIsSavingSafety(false);
-    }
   };
 
   useEffect(() => {
@@ -917,9 +111,9 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenAcceptInviteModal={() => {
-          setAcceptInviteError(null);
-          setAcceptCodeInput('');
-          setShowAcceptInviteModal(true);
+          laptopData.setAcceptInviteError(null);
+          laptopData.setAcceptCodeInput('');
+          laptopData.setShowAcceptInviteModal(true);
         }}
         user={user}
       />
@@ -931,19 +125,19 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
           {/* CỘT TRÁI: DANH SÁCH HỒ SƠ CÁC BÉ */}
           <div className="w-full lg:w-[350px] xl:w-[370px] shrink-0 border-b lg:border-b-0 lg:border-r border-tod-border bg-tod-card flex flex-col h-full overflow-hidden transition-colors duration-500">
             <ChildProfilesSidebar
-              childProfiles={childProfiles}
-              selectedChildId={selectedChildId}
-              onSelectChild={(id) => setSelectedChildId(id)}
-              isLoadingChildren={isLoadingChildren}
-              onOpenAddChildModal={handleOpenAddChildModal}
+              childProfiles={laptopData.childProfiles}
+              selectedChildId={laptopData.selectedChildId}
+              onSelectChild={(id) => laptopData.setSelectedChildId(id)}
+              isLoadingChildren={laptopData.isLoadingChildren}
+              onOpenAddChildModal={laptopData.handleOpenAddChildModal}
               onOpenAcceptInviteModal={() => {
-                setAcceptInviteError(null);
-                setAcceptCodeInput('');
-                setShowAcceptInviteModal(true);
+                laptopData.setAcceptInviteError(null);
+                laptopData.setAcceptCodeInput('');
+                laptopData.setShowAcceptInviteModal(true);
               }}
-              onActivateChild={handleActivateChild}
-              activatingChildId={activatingChildId}
-              onRefresh={fetchChildProfiles}
+              onActivateChild={laptopData.handleActivateChild}
+              activatingChildId={laptopData.activatingChildId}
+              onRefresh={laptopData.fetchChildProfiles}
             />
           </div>
 
@@ -997,347 +191,246 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
               </button>
             </div>
 
-          {/* Tab Content Container */}
-          <div className="flex-1 p-4 overflow-y-auto dashboard-scrollbar space-y-3.5">
-            {/* TAB 1: CHILD PROFILE & LEARNING CONFIGURATION */}
-            {activeTab === 'analytics' && (
-              <div className="space-y-3">
-                {selectedChild ? (
-                  <>
-                    {/* Draft Banner if status is Draft */}
-                    {selectedChild.status === 'Draft' && (
-                      <div className="laptop-metric-item p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 shadow-sm flex items-start gap-3 text-amber-700 dark:text-amber-200 animate-in fade-in duration-200">
-                        <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-                        <div className="flex flex-col gap-1 text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-amber-700 dark:text-amber-300">Hồ sơ mới tạo (Bản nháp)</span>
-                            <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[10px] font-mono text-amber-700 dark:text-amber-300 font-bold">
-                              Chờ kích hoạt
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-tod-text-muted leading-relaxed">
-                            Hồ sơ trẻ độc lập đã được tạo thành công. Vui lòng thiết lập <strong>Hồ sơ học tập</strong> và <strong>Quy tắc an toàn</strong> bên dưới trước khi bấm nút <strong>Kích hoạt</strong> để đưa bé vào trạng thái Đang hoạt động.
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => handleActivateChild(selectedChild.id, selectedChild.nickname, selectedChild.ageBand)}
-                            disabled={activatingChildId === selectedChild.id}
-                            className="self-start mt-1 px-3 py-1 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/40 text-emerald-700 dark:text-emerald-300 font-bold text-xs flex items-center gap-1 cursor-pointer transition-all hover:scale-105"
-                          >
-                            {activatingChildId === selectedChild.id ? (
-                              <RefreshCw className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Zap className="w-3 h-3 text-amber-500 fill-amber-500" />
-                            )}
-                            <span>Kích hoạt ngay</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Pending Parent Consent Banner */}
-                    {(selectedChild.status === 'PendingParentConsent' ||
-                      selectedChild.status === 'Pending Parent Consent' ||
-                      selectedChild.status === 'pending_parent_consent') && (
-                      <div className="laptop-metric-item p-3.5 rounded-2xl bg-orange-500/10 border border-orange-500/30 shadow-sm flex items-start gap-3 text-orange-700 dark:text-orange-200 animate-in fade-in duration-200">
-                        <AlertCircle className="w-5 h-5 text-orange-500 shrink-0 mt-0.5" />
-                        <div className="flex flex-col gap-1 text-xs">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-orange-700 dark:text-orange-300">Chờ phụ huynh chấp thuận (Pending Parent Consent)</span>
-                            <span className="px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/40 text-[10px] font-mono text-orange-700 dark:text-orange-300 font-bold">
-                              Tạm dừng truy cập AI
-                            </span>
-                          </div>
-                          <p className="text-[11px] text-tod-text-muted leading-relaxed">
-                            Hồ sơ bé chưa có phụ huynh nào liên kết giám sát (hoặc phụ huynh trước đó đã rời đi). Dữ liệu học tập được bảo lưu nguyên vẹn, nhưng quyền tương tác AI đang tạm giữ cho đến khi có phụ huynh quét mã chấp nhận lời mời.
-                          </p>
-                          <button
-                            type="button"
-                            onClick={() => setActiveTab('supervision')}
-                            className="self-start mt-1 px-3 py-1 rounded-xl bg-orange-500/15 hover:bg-orange-500/25 border border-orange-500/40 text-orange-700 dark:text-orange-300 font-bold text-xs flex items-center gap-1 cursor-pointer transition-all hover:scale-105"
-                          >
-                            <Users className="w-3.5 h-3.5 text-orange-500" />
-                            <span>Gửi mã mời phụ huynh</span>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Profile Detail Card */}
-                    <ChildProfileDetailCard
-                      selectedChild={selectedChild}
-                      isEditingChild={isEditingChild}
-                      setIsEditingChild={setIsEditingChild}
-                      editNickname={editNickname}
-                      setEditNickname={setEditNickname}
-                      editAgeBand={editAgeBand}
-                      setEditAgeBand={setEditAgeBand}
-                      editLanguage={editLanguage}
-                      setEditLanguage={setEditLanguage}
-                      isSavingEdit={isSavingEdit}
-                      handleSaveEditChild={handleSaveChildProfile}
-                      editSuccessMsg={editSuccessMsg}
-                      isConfirmingDelete={isConfirmingDelete}
-                      setIsConfirmingDelete={setIsConfirmingDelete}
-                      isDeletingChild={isDeletingChild}
-                      handleDeleteChild={handleDeleteChildProfile}
-                      deleteError={deleteError}
-                      availableOrgs={availableOrgs}
-                      availableClasses={availableClasses}
-                    />
-
-                    {/* Child Access Credential & Launch Session Card (Bước 1.10) */}
-                    <ChildAccessCredentialCard
-                      child={selectedChild}
-                      onOpenSetupModal={() => setShowSetupPinModal(true)}
-                      onOpenBadgeModal={() => setShowEasyLoginBadgeModal(true)}
-                      onStartChildSession={handleStartChildSession}
-                      credentialVersion={credentialVersion}
-                    />
-
-                    {/* Learning Profile Configuration Card */}
-                    <LearningProfileCard
-                      childId={selectedChild.id}
-                      childNickname={selectedChild.nickname}
-                      learningProfile={learningProfile}
-                      isEditingLearningProfile={isEditingLearningProfile}
-                      setIsEditingLearningProfile={setIsEditingLearningProfile}
-                      learningReadingLevel={learningReadingLevel}
-                      setLearningReadingLevel={setLearningReadingLevel}
-                      learningComprehensionGoal={learningComprehensionGoal}
-                      setLearningComprehensionGoal={setLearningComprehensionGoal}
-                      learningTopics={learningTopics}
-                      setLearningTopics={setLearningTopics}
-                      customTopicInput={customTopicInput}
-                      setCustomTopicInput={setCustomTopicInput}
-                      isSavingLearningProfile={isSavingLearningProfile}
-                      handleSaveLearningProfile={handleSaveLearningProfile}
-                      learningProfileSuccessMsg={learningProfileSuccessMsg}
-                      learningProfileErrorMsg={learningProfileErrorMsg}
-                      isLoadingDetail={isLoadingDetail}
-                      onRefresh={() => fetchChildDetail(selectedChild.id)}
-                    />
-
-                    {/* Safety Policy Quick Summary Card */}
-                    <SafetySummaryCard
-                      safetyPolicy={safetyPolicy}
-                      contentCategories={contentCategories}
-                      isLoadingDetail={isLoadingDetail}
-                      onNavigateToControls={() => setActiveTab('controls')}
-                      onRefresh={() => fetchChildDetail(selectedChild.id)}
-                    />
-
-                    {/* AI Token Quota Status Card */}
-                    <TokenQuotaCard
-                      tokenQuota={tokenQuota}
-                      isLoadingDetail={isLoadingDetail}
-                      onRefresh={() => fetchChildDetail(selectedChild.id)}
-                    />
-                  </>
-                ) : (
-                  <div className="py-12 px-6 rounded-3xl bg-tod-card border border-tod-border text-center flex flex-col items-center justify-center gap-3 shadow-sm">
-                    <User className="w-10 h-10 text-tod-text-muted opacity-40" />
-                    <span className="text-sm font-bold text-tod-text">Chưa chọn hồ sơ bé nào</span>
-                    <p className="text-xs text-tod-text-muted max-w-xs">
-                      Vui lòng chọn một hồ sơ ở danh sách bên phải hoặc tạo hồ sơ bé mới để bắt đầu thiết lập.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={handleOpenAddChildModal}
-                      className="mt-2 px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/20 cursor-pointer"
-                    >
-                      + Tạo Hồ Sơ Bé Mới
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* TAB 2: SAFETY POLICY CONTROLS */}
-            {activeTab === 'controls' && selectedChild && (
-              <SafetyPolicyControls
-                selectedChildNickname={selectedChild.nickname}
-                safetyPolicy={safetyPolicy}
-                safetyMaxStoryLength={safetyMaxStoryLength}
-                setSafetyMaxStoryLength={setSafetyMaxStoryLength}
-                safetyApprovalMode={safetyApprovalMode}
-                setSafetyApprovalMode={setSafetyApprovalMode}
-                safetyParentalGate={safetyParentalGate}
-                setSafetyParentalGate={setSafetyParentalGate}
-                safetyConsent={safetyConsent}
-                setSafetyConsent={setSafetyConsent}
-                contentCategories={contentCategories}
-                safetyCategories={safetyCategories}
-                setSafetyCategories={setSafetyCategories}
-                isLoadingCategories={isLoadingCategories}
-                isSavingSafety={isSavingSafety}
-                isSavedChanges={isSavedChanges}
-                handleSaveSafetyPolicy={handleSaveSafetyPolicy}
-                safetyErrorMsg={safetyErrorMsg}
-                safetySuccessMsg={safetySuccessMsg}
-              />
-            )}
-
-            {/* TAB 3: SUPERVISION MANAGEMENT */}
-            {activeTab === 'supervision' && (
-              selectedChild ? (
-                <SupervisionManager
-                  childNickname={selectedChild.nickname}
-                  supervisors={supervisors}
-                  invitations={invitations}
-                  isLoadingSupervision={isLoadingSupervision}
-                  supervisionError={supervisionError}
-                  supervisionSuccessMsg={supervisionSuccessMsg}
-                  isInviting={isInviting}
-                  setIsInviting={setIsInviting}
-                  inviteEmail={inviteEmail}
-                  setInviteEmail={setInviteEmail}
-                  inviteExpiresDays={inviteExpiresDays}
-                  setInviteExpiresDays={setInviteExpiresDays}
-                  isSendingInvite={isSendingInvite}
-                  handleSendInvitation={handleCreateInvitation}
-                  onOpenPermissionsModal={handleOpenPermissions}
-                  onOpenTransferOwnershipModal={(sup) => {
-                    setTransferError(null);
-                    setTransferTargetSupervisor(sup);
-                  }}
-                  onOpenAcceptInviteModal={() => {
-                    setAcceptInviteError(null);
-                    setAcceptCodeInput('');
-                    setShowAcceptInviteModal(true);
-                  }}
-                  revokingRelId={revokingRelId}
-                  handleRevokeSupervision={(relId) => handleRevokeSupervision(relId)}
-                  cancellingInvId={cancellingInvId}
-                  handleCancelInvitation={handleCancelInvitation}
-                  handleReissueInvitation={handleReissueInvitation}
-                  copiedCode={copiedCode}
-                  handleCopyInviteCode={handleCopyCode}
-                  onRefresh={() => fetchSupervisionData(selectedChild.id)}
+            {/* Tab Content Container */}
+            <div className="flex-1 p-4 overflow-y-auto dashboard-scrollbar space-y-3.5">
+              {/* TAB 1: CHILD PROFILE & LEARNING CONFIGURATION */}
+              {activeTab === 'analytics' && (
+                <ParentAnalyticsTab
+                  selectedChild={laptopData.selectedChild}
+                  activatingChildId={laptopData.activatingChildId}
+                  handleActivateChild={laptopData.handleActivateChild}
+                  setActiveTab={setActiveTab}
+                  isEditingChild={laptopData.isEditingChild}
+                  setIsEditingChild={laptopData.setIsEditingChild}
+                  editNickname={laptopData.editNickname}
+                  setEditNickname={laptopData.setEditNickname}
+                  editAgeBand={laptopData.editAgeBand}
+                  setEditAgeBand={laptopData.setEditAgeBand}
+                  editLanguage={laptopData.editLanguage}
+                  setEditLanguage={laptopData.setEditLanguage}
+                  isSavingEdit={laptopData.isSavingEdit}
+                  handleSaveChildProfile={laptopData.handleSaveChildProfile}
+                  editSuccessMsg={laptopData.editSuccessMsg}
+                  isConfirmingDelete={laptopData.isConfirmingDelete}
+                  setIsConfirmingDelete={laptopData.setIsConfirmingDelete}
+                  isDeletingChild={laptopData.isDeletingChild}
+                  handleDeleteChildProfile={laptopData.handleDeleteChildProfile}
+                  deleteError={laptopData.deleteError}
+                  availableOrgs={laptopData.availableOrgs}
+                  availableClasses={laptopData.availableClasses}
+                  setShowSetupPinModal={laptopData.setShowSetupPinModal}
+                  setShowEasyLoginBadgeModal={laptopData.setShowEasyLoginBadgeModal}
+                  handleStartChildSession={handleStartChildSession}
+                  credentialVersion={laptopData.credentialVersion}
+                  learningProfile={laptopData.learningProfile}
+                  isEditingLearningProfile={laptopData.isEditingLearningProfile}
+                  setIsEditingLearningProfile={laptopData.setIsEditingLearningProfile}
+                  learningReadingLevel={laptopData.learningReadingLevel}
+                  setLearningReadingLevel={laptopData.setLearningReadingLevel}
+                  learningComprehensionGoal={laptopData.learningComprehensionGoal}
+                  setLearningComprehensionGoal={laptopData.setLearningComprehensionGoal}
+                  learningTopics={laptopData.learningTopics}
+                  setLearningTopics={laptopData.setLearningTopics}
+                  customTopicInput={laptopData.customTopicInput}
+                  setCustomTopicInput={laptopData.setCustomTopicInput}
+                  isSavingLearningProfile={laptopData.isSavingLearningProfile}
+                  handleSaveLearningProfile={laptopData.handleSaveLearningProfile}
+                  learningProfileSuccessMsg={laptopData.learningProfileSuccessMsg}
+                  learningProfileErrorMsg={laptopData.learningProfileErrorMsg}
+                  isLoadingDetail={laptopData.isLoadingDetail}
+                  fetchChildDetail={laptopData.fetchChildDetail}
+                  safetyPolicy={laptopData.safetyPolicy}
+                  contentCategories={laptopData.contentCategories}
+                  tokenQuota={laptopData.tokenQuota}
+                  handleOpenAddChildModal={laptopData.handleOpenAddChildModal}
                 />
-              ) : (
-                <div className="text-center py-12 px-4 rounded-3xl bg-tod-card border border-tod-border space-y-3 shadow-sm text-tod-text">
-                  <Users className="w-10 h-10 text-indigo-500 mx-auto" />
-                  <div className="space-y-1">
-                    <h3 className="text-sm font-bold text-tod-text">Chưa chọn hồ sơ bé</h3>
-                    <p className="text-xs text-tod-text-muted max-w-sm mx-auto">
-                      Vui lòng chọn một hồ sơ bé từ danh sách bên phải hoặc nhập mã mời giám sát bạn nhận được.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setAcceptInviteError(null);
-                        setAcceptCodeInput('');
-                        setShowAcceptInviteModal(true);
-                      }}
-                      className="btn-dashboard-primary text-xs px-4 py-2"
-                    >
-                      Nhập Mã Mời Giám Sát
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowAddChildModal(true)}
-                      className="px-4 py-2 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      + Tạo Hồ Sơ Bé Mới
-                    </button>
-                  </div>
-                </div>
-              )
-            )}
+              )}
 
-            {/* TAB 4: CONVERSATION STARTERS & CREATIVE CONTROLS */}
-            {activeTab === 'prompts' && (
-              <CreativeControlsTab
-                isPlayingAudio={isPlayingAudio}
-                setIsPlayingAudio={setIsPlayingAudio}
-                feedbackRating={feedbackRating}
-                setFeedbackRating={setFeedbackRating}
-              />
-            )}
+              {/* TAB 2: SAFETY POLICY CONTROLS */}
+              {activeTab === 'controls' && laptopData.selectedChild && (
+                <SafetyPolicyControls
+                  selectedChildNickname={laptopData.selectedChild.nickname}
+                  safetyPolicy={laptopData.safetyPolicy}
+                  safetyMaxStoryLength={laptopData.safetyMaxStoryLength}
+                  setSafetyMaxStoryLength={laptopData.setSafetyMaxStoryLength}
+                  safetyApprovalMode={laptopData.safetyApprovalMode}
+                  setSafetyApprovalMode={laptopData.setSafetyApprovalMode}
+                  safetyParentalGate={laptopData.safetyParentalGate}
+                  setSafetyParentalGate={laptopData.setSafetyParentalGate}
+                  safetyConsent={laptopData.safetyConsent}
+                  setSafetyConsent={laptopData.setSafetyConsent}
+                  contentCategories={laptopData.contentCategories}
+                  safetyCategories={laptopData.safetyCategories}
+                  setSafetyCategories={laptopData.setSafetyCategories}
+                  isLoadingCategories={laptopData.isLoadingCategories}
+                  isSavingSafety={laptopData.isSavingSafety}
+                  isSavedChanges={laptopData.isSavedChanges}
+                  handleSaveSafetyPolicy={laptopData.handleSaveSafetyPolicy}
+                  safetyErrorMsg={laptopData.safetyErrorMsg}
+                  safetySuccessMsg={laptopData.safetySuccessMsg}
+                />
+              )}
+
+              {/* TAB 3: SUPERVISION MANAGEMENT */}
+              {activeTab === 'supervision' && (
+                laptopData.selectedChild ? (
+                  <SupervisionManager
+                    childNickname={laptopData.selectedChild.nickname}
+                    supervisors={laptopData.supervisors}
+                    invitations={laptopData.invitations}
+                    isLoadingSupervision={laptopData.isLoadingSupervision}
+                    supervisionError={laptopData.supervisionError}
+                    supervisionSuccessMsg={laptopData.supervisionSuccessMsg}
+                    isInviting={laptopData.isInviting}
+                    setIsInviting={laptopData.setIsInviting}
+                    inviteEmail={laptopData.inviteEmail}
+                    setInviteEmail={laptopData.setInviteEmail}
+                    inviteExpiresDays={laptopData.inviteExpiresDays}
+                    setInviteExpiresDays={laptopData.setInviteExpiresDays}
+                    isSendingInvite={laptopData.isSendingInvite}
+                    handleSendInvitation={laptopData.handleCreateInvitation}
+                    onOpenPermissionsModal={laptopData.handleOpenPermissions}
+                    onOpenTransferOwnershipModal={(sup) => {
+                      laptopData.setTransferError(null);
+                      laptopData.setTransferTargetSupervisor(sup);
+                    }}
+                    onOpenAcceptInviteModal={() => {
+                      laptopData.setAcceptInviteError(null);
+                      laptopData.setAcceptCodeInput('');
+                      laptopData.setShowAcceptInviteModal(true);
+                    }}
+                    revokingRelId={laptopData.revokingRelId}
+                    handleRevokeSupervision={(relId) => laptopData.handleRevokeSupervision(relId)}
+                    cancellingInvId={laptopData.cancellingInvId}
+                    handleCancelInvitation={laptopData.handleCancelInvitation}
+                    handleReissueInvitation={laptopData.handleReissueInvitation}
+                    copiedCode={laptopData.copiedCode}
+                    handleCopyInviteCode={laptopData.handleCopyCode}
+                    onRefresh={() => laptopData.fetchSupervisionData(laptopData.selectedChild!.id)}
+                  />
+                ) : (
+                  <div className="text-center py-12 px-4 rounded-3xl bg-tod-card border border-tod-border space-y-3 shadow-sm text-tod-text">
+                    <Users className="w-10 h-10 text-indigo-500 mx-auto" />
+                    <div className="space-y-1">
+                      <h3 className="text-sm font-bold text-tod-text">Chưa chọn hồ sơ bé</h3>
+                      <p className="text-xs text-tod-text-muted max-w-sm mx-auto">
+                        Vui lòng chọn một hồ sơ bé từ danh sách bên trái hoặc nhập mã mời giám sát bạn nhận được.
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          laptopData.setAcceptInviteError(null);
+                          laptopData.setAcceptCodeInput('');
+                          laptopData.setShowAcceptInviteModal(true);
+                        }}
+                        className="btn-dashboard-primary text-xs px-4 py-2"
+                      >
+                        Nhập Mã Mời Giám Sát
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => laptopData.setShowAddChildModal(true)}
+                        className="px-4 py-2 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        + Tạo Hồ Sơ Bé Mới
+                      </button>
+                    </div>
+                  </div>
+                )
+              )}
+
+              {/* TAB 4: CONVERSATION STARTERS & CREATIVE CONTROLS */}
+              {activeTab === 'prompts' && (
+                <CreativeControlsTab
+                  isPlayingAudio={laptopData.isPlayingAudio}
+                  setIsPlayingAudio={laptopData.setIsPlayingAudio}
+                  feedbackRating={laptopData.feedbackRating}
+                  setFeedbackRating={laptopData.setFeedbackRating}
+                />
+              )}
+            </div>
           </div>
         </div>
       </div>
-    </div>
 
       {/* MODAL 1: ADD NEW CHILD PROFILE */}
       <AddChildModal
-        isOpen={showAddChildModal}
-        onClose={() => setShowAddChildModal(false)}
-        newChildNickname={newChildNickname}
-        setNewChildNickname={setNewChildNickname}
-        newChildAgeBand={newChildAgeBand}
-        setNewChildAgeBand={setNewChildAgeBand}
-        newChildLanguage={newChildLanguage}
-        setNewChildLanguage={setNewChildLanguage}
-        newChildScope={newChildScope}
-        setNewChildScope={setNewChildScope}
-        newChildOrgId={newChildOrgId}
-        setNewChildOrgId={setNewChildOrgId}
-        newChildClassGroupId={newChildClassGroupId}
-        setNewChildClassGroupId={setNewChildClassGroupId}
-        availableOrgs={availableOrgs}
-        availableClasses={availableClasses}
-        isLoadingOrgsAndClasses={isLoadingOrgsAndClasses}
-        loadOrgsAndClasses={loadOrgsAndClasses}
-        isCreatingChild={isCreatingChild}
-        createChildModalError={createChildModalError}
-        handleCreateChildSubmit={handleCreateChildSubmit}
+        isOpen={laptopData.showAddChildModal}
+        onClose={() => laptopData.setShowAddChildModal(false)}
+        newChildNickname={laptopData.newChildNickname}
+        setNewChildNickname={laptopData.setNewChildNickname}
+        newChildAgeBand={laptopData.newChildAgeBand}
+        setNewChildAgeBand={laptopData.setNewChildAgeBand}
+        newChildLanguage={laptopData.newChildLanguage}
+        setNewChildLanguage={laptopData.setNewChildLanguage}
+        newChildScope={laptopData.newChildScope}
+        setNewChildScope={laptopData.setNewChildScope}
+        newChildOrgId={laptopData.newChildOrgId}
+        setNewChildOrgId={laptopData.setNewChildOrgId}
+        newChildClassGroupId={laptopData.newChildClassGroupId}
+        setNewChildClassGroupId={laptopData.setNewChildClassGroupId}
+        availableOrgs={laptopData.availableOrgs}
+        availableClasses={laptopData.availableClasses}
+        isLoadingOrgsAndClasses={laptopData.isLoadingOrgsAndClasses}
+        loadOrgsAndClasses={laptopData.loadOrgsAndClasses}
+        isCreatingChild={laptopData.isCreatingChild}
+        createChildModalError={laptopData.createChildModalError}
+        handleCreateChildSubmit={laptopData.handleCreateChildSubmit}
       />
 
       {/* MODAL 2: SUPERVISOR PERMISSIONS MANAGEMENT */}
       <SupervisionPermissionsModal
-        targetSupervisor={permissionTargetSupervisor}
-        childNickname={selectedChild?.nickname || ''}
-        childScope={selectedChild?.scope}
-        onClose={() => setPermissionTargetSupervisor(null)}
-        supervisorPermissions={supervisorPermissions}
-        isLoadingPermissions={isLoadingPermissions}
-        permissionModalError={permissionModalError}
-        togglingPermissionKey={togglingPermissionKey}
-        handleTogglePermission={handleTogglePermission}
+        targetSupervisor={laptopData.permissionTargetSupervisor}
+        childNickname={laptopData.selectedChild?.nickname || ''}
+        childScope={laptopData.selectedChild?.scope}
+        onClose={() => laptopData.setPermissionTargetSupervisor(null)}
+        supervisorPermissions={laptopData.supervisorPermissions}
+        isLoadingPermissions={laptopData.isLoadingPermissions}
+        permissionModalError={laptopData.permissionModalError}
+        togglingPermissionKey={laptopData.togglingPermissionKey}
+        handleTogglePermission={laptopData.handleTogglePermission}
       />
 
       {/* MODAL 3: TRANSFER OWNERSHIP MODAL */}
       <TransferOwnershipModal
-        targetSupervisor={transferTargetSupervisor}
-        childNickname={selectedChild?.nickname || ''}
-        onClose={() => setTransferTargetSupervisor(null)}
-        isTransferringOwnership={isTransferringOwnership}
-        transferError={transferError}
-        onConfirmTransfer={handleTransferOwnershipSubmit}
+        targetSupervisor={laptopData.transferTargetSupervisor}
+        childNickname={laptopData.selectedChild?.nickname || ''}
+        onClose={() => laptopData.setTransferTargetSupervisor(null)}
+        isTransferringOwnership={laptopData.isTransferringOwnership}
+        transferError={laptopData.transferError}
+        onConfirmTransfer={laptopData.handleTransferOwnershipSubmit}
       />
 
       {/* MODAL 4: ACCEPT INVITATION MODAL */}
       <AcceptInvitationModal
-        isOpen={showAcceptInviteModal}
-        onClose={() => setShowAcceptInviteModal(false)}
-        acceptCodeInput={acceptCodeInput}
-        setAcceptCodeInput={setAcceptCodeInput}
-        isAcceptingInvite={isAcceptingInvite}
-        acceptInviteError={acceptInviteError}
-        onAcceptSubmit={handleAcceptInvitationSubmit}
-        onRejectSubmit={handleRejectInvitationSubmit}
+        isOpen={laptopData.showAcceptInviteModal}
+        onClose={() => laptopData.setShowAcceptInviteModal(false)}
+        acceptCodeInput={laptopData.acceptCodeInput}
+        setAcceptCodeInput={laptopData.setAcceptCodeInput}
+        isAcceptingInvite={laptopData.isAcceptingInvite}
+        acceptInviteError={laptopData.acceptInviteError}
+        onAcceptSubmit={laptopData.handleAcceptInvitationSubmit}
+        onRejectSubmit={laptopData.handleRejectInvitationSubmit}
       />
 
-      {/* MODAL 5: SETUP CHILD PIN & AVATAR MODAL (Bước 1.10) */}
+      {/* MODAL 5: SETUP CHILD PIN & AVATAR MODAL */}
       <SetupChildPinModal
-        isOpen={showSetupPinModal}
-        onClose={() => setShowSetupPinModal(false)}
-        child={selectedChild}
+        isOpen={laptopData.showSetupPinModal}
+        onClose={() => laptopData.setShowSetupPinModal(false)}
+        child={laptopData.selectedChild}
         onCredentialUpdated={() => {
-          setCredentialVersion((prev) => prev + 1);
+          laptopData.setCredentialVersion((prev) => prev + 1);
         }}
       />
 
-      {/* MODAL 6: EASY LOGIN CARD & BADGE MODAL (Bước 1.10) */}
+      {/* MODAL 6: EASY LOGIN CARD & BADGE MODAL */}
       <EasyLoginCardModal
-        isOpen={showEasyLoginBadgeModal}
-        onClose={() => setShowEasyLoginBadgeModal(false)}
-        child={selectedChild}
-        credential={selectedChild ? childAccessCredentialService.getCredential(selectedChild.id) : null}
+        isOpen={laptopData.showEasyLoginBadgeModal}
+        onClose={() => laptopData.setShowEasyLoginBadgeModal(false)}
+        child={laptopData.selectedChild}
+        credential={laptopData.selectedChild ? childAccessCredentialService.getCredential(laptopData.selectedChild.id) : null}
       />
     </div>
   );

@@ -22,6 +22,8 @@ import { childProfileService } from '../../services/childProfileService';
 import { ChildProfile } from '../../types/childProfile';
 import { ArrowLeft } from 'lucide-react';
 
+import { useRoomUrlParams } from '../../utils/useRoomUrlParams';
+
 export default function Room3DView() {
   const [currentStage, setCurrentStage] = useState<number>(0);
   const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>(getVietnamTimeOfDay);
@@ -64,11 +66,6 @@ export default function Room3DView() {
     });
   }, [timeOfDay]);
 
-  // Initial Auth parameters parsed from URL
-  const [initialAuthTab, setInitialAuthTab] = useState<'signin' | 'signup' | 'verify' | 'forgot' | 'reset'>('signin');
-  const [initialEmail, setInitialEmail] = useState<string>('');
-  const [initialToken, setInitialToken] = useState<string>('');
-
   const isHeaderVisible = currentStage === 0 || isTopHovered;
   const { isLoggedIn } = useAuth();
   const {
@@ -81,6 +78,9 @@ export default function Room3DView() {
     setPendingGateDestinationStage,
     requestExitWithGate,
   } = useChildSession();
+
+  // Tự động đọc URL query params khi vào trang chủ và điều phối Auth/Invitation
+  const { initialAuthTab, initialEmail, initialToken } = useRoomUrlParams(isLoggedIn, setCurrentStage);
 
   const [showChildEasyLogin, setShowChildEasyLogin] = useState<boolean>(false);
   const [childProfiles, setChildProfiles] = useState<ChildProfile[]>([]);
@@ -113,47 +113,6 @@ export default function Room3DView() {
     }
     setCurrentStage(targetStage);
   }, [isChildModeActive, requestExitWithGate, setPendingGateDestinationStage]);
-
-  // Tự động đọc URL query params khi vào trang chủ
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const params = new URLSearchParams(window.location.search);
-    const authParam = params.get('auth');
-    const tokenParam = params.get('token') || params.get('resetToken');
-    const emailParam = params.get('email') || '';
-    const codeParam = params.get('code') || params.get('invitationCode') || params.get('inviteCode');
-
-    if (codeParam) {
-      sessionStorage.setItem('pendingInvitationCode', codeParam);
-      if (isLoggedIn) {
-        setCurrentStage(6);
-      } else {
-        setCurrentStage(5);
-        setInitialAuthTab('signup');
-      }
-    } else if (tokenParam || authParam === 'reset') {
-      setCurrentStage(5);
-      setInitialAuthTab('reset');
-      if (tokenParam) setInitialToken(tokenParam);
-      if (emailParam) setInitialEmail(emailParam);
-    } else if (authParam === 'forgot') {
-      setCurrentStage(5);
-      setInitialAuthTab('forgot');
-      if (emailParam) setInitialEmail(emailParam);
-    } else if (authParam === 'signin') {
-      setCurrentStage(5);
-      setInitialAuthTab('signin');
-      if (emailParam) setInitialEmail(emailParam);
-    } else if (authParam === 'signup') {
-      setCurrentStage(5);
-      setInitialAuthTab('signup');
-      if (emailParam) setInitialEmail(emailParam);
-    } else if (authParam === 'verify') {
-      setCurrentStage(5);
-      setInitialAuthTab('verify');
-      if (emailParam) setInitialEmail(emailParam);
-    }
-  }, [isLoggedIn]);
 
 
   // GSAP: Hiệu ứng nút quay lại toàn cảnh khi Zoom vào Stage 3 hoặc 4
