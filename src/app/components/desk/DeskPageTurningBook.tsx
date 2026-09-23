@@ -115,6 +115,10 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
   } | null>(null);
 
   const stripsRef = useRef<HTMLDivElement[]>([]);
+  const isTurningRef = useRef<boolean>(false);
+  const [isTurning, setIsTurning] = useState<boolean>(false);
+  const safetyTimerRef = useRef<NodeJS.Timeout | null>(null);
+
   const springRef = useRef<{
     kind: 'spring' | 'tween';
     v: number;
@@ -260,7 +264,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
   }, [applyTurn]);
 
   const animateTo = useCallback(
-    (target: number, onDone: () => void, stiff = 160, damp = 24) => {
+    (target: number, onDone: () => void, stiff = 220, damp = 26) => {
       springRef.current = {
         kind: 'spring',
         v: 0,
@@ -276,13 +280,6 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
 
   const startTurn = useCallback(
     (dir: 'next' | 'prev', t = 0) => {
-      springRef.current = null;
-      if (turnRef.current) {
-        const prevTo = turnRef.current.to;
-        currentPageRef.current = prevTo;
-        setCurrentPageIndex(prevTo);
-        turnRef.current = null;
-      }
       const M = pageSpreads.length;
       if (M <= 1) return;
 
@@ -292,15 +289,32 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
 
       const to = dir === 'next' ? from + 1 : from - 1;
 
+      springRef.current = null;
       turnRef.current = { dir, from, to, t };
+      isTurningRef.current = true;
+      setIsTurning(true);
       paint();
     },
     [pageSpreads.length, paint]
   );
 
   const commit = useCallback(() => {
-    if (!turnRef.current) return;
-    animateTo(1, () => {
+    if (!turnRef.current) {
+      isTurningRef.current = false;
+      setIsTurning(false);
+      return;
+    }
+
+    if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
+
+    isTurningRef.current = true;
+    setIsTurning(true);
+
+    const finishTurn = () => {
+      if (safetyTimerRef.current) {
+        clearTimeout(safetyTimerRef.current);
+        safetyTimerRef.current = null;
+      }
       if (turnRef.current) {
         const nextIdx = turnRef.current.to;
         turnRef.current = null;
@@ -310,31 +324,55 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
       } else {
         paint();
       }
-    });
+      isTurningRef.current = false;
+      setIsTurning(false);
+    };
+
+    // Safety timeout fallback (480ms)
+    safetyTimerRef.current = setTimeout(finishTurn, 480);
+
+    animateTo(1, finishTurn, 220, 26);
   }, [animateTo, paint]);
 
   const cancel = useCallback(() => {
-    if (!turnRef.current) return;
-    animateTo(0, () => {
+    if (!turnRef.current) {
+      isTurningRef.current = false;
+      setIsTurning(false);
+      return;
+    }
+
+    if (safetyTimerRef.current) clearTimeout(safetyTimerRef.current);
+
+    isTurningRef.current = true;
+    setIsTurning(true);
+
+    const finishCancel = () => {
+      if (safetyTimerRef.current) {
+        clearTimeout(safetyTimerRef.current);
+        safetyTimerRef.current = null;
+      }
       const stayIdx = turnRef.current ? turnRef.current.from : currentPageRef.current;
       turnRef.current = null;
       currentPageRef.current = stayIdx;
       setCurrentPageIndex(stayIdx);
       paint(stayIdx);
-    });
+      isTurningRef.current = false;
+      setIsTurning(false);
+    };
+
+    // Safety timeout fallback (480ms)
+    safetyTimerRef.current = setTimeout(finishCancel, 480);
+
+    animateTo(0, finishCancel, 220, 26);
   }, [animateTo, paint]);
 
   const step = useCallback(
     (dir: 'next' | 'prev') => {
+      // Guard against rapid multi-clicks while page is already flipping
+      if (isTurningRef.current) return;
       if (currentPageRef.current === 0 && dir === 'prev') return;
       if (currentPageRef.current === pageSpreads.length - 1 && dir === 'next') return;
 
-      if (turnRef.current) {
-        const target = turnRef.current.to;
-        turnRef.current = null;
-        currentPageRef.current = target;
-        setCurrentPageIndex(target);
-      }
       startTurn(dir, 0);
       commit();
     },
@@ -357,6 +395,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
     } | null = null;
 
     const handlePointerDown = (e: PointerEvent) => {
+      if (isTurningRef.current) return;
       if (e.button !== 0) return;
       e.preventDefault();
       const onBook = (e.target as HTMLElement)?.closest('.sb-zone');
@@ -502,8 +541,9 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
         {currentPageIndex > 0 && (
           <button
             type="button"
+            disabled={isTurning}
             onClick={() => step('prev')}
-            className="desk-nav-arrow-left absolute left-2 sm:left-4 lg:left-6 top-1/2 -translate-y-1/2 p-3 sm:p-3.5 rounded-2xl bg-tod-surface/85 hover:bg-tod-surface border border-tod-border/80 text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all hover:scale-110 active:scale-95 cursor-pointer z-40 group opacity-70 hover:opacity-100"
+            className="desk-nav-arrow-left absolute left-2 sm:left-4 lg:left-6 top-1/2 -translate-y-1/2 p-3 sm:p-3.5 rounded-2xl bg-tod-surface/85 hover:bg-tod-surface border border-tod-border/80 text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all hover:scale-110 active:scale-95 cursor-pointer z-40 group opacity-70 hover:opacity-100 disabled:opacity-30 disabled:pointer-events-none"
             title="Trang trước (←)"
           >
             <ChevronLeft className="w-6 h-6 text-amber-500 group-hover:-translate-x-0.5 transition-transform" />
@@ -551,8 +591,9 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
 
         <button
           type="button"
+          disabled={isTurning || currentPageIndex === pageSpreads.length - 1}
           onClick={() => step('next')}
-          className="desk-nav-arrow-right absolute right-2 sm:right-4 lg:right-6 top-1/2 -translate-y-1/2 p-3 sm:p-3.5 rounded-2xl bg-tod-surface/85 hover:bg-tod-surface border border-tod-border/80 text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all hover:scale-110 active:scale-95 cursor-pointer z-40 group opacity-70 hover:opacity-100"
+          className="desk-nav-arrow-right absolute right-2 sm:right-4 lg:right-6 top-1/2 -translate-y-1/2 p-3 sm:p-3.5 rounded-2xl bg-tod-surface/85 hover:bg-tod-surface border border-tod-border/80 text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.5)] backdrop-blur-2xl transition-all hover:scale-110 active:scale-95 cursor-pointer z-40 group opacity-70 hover:opacity-100 disabled:opacity-30 disabled:pointer-events-none"
           title="Trang tiếp theo (→)"
         >
           <ChevronRight className="w-6 h-6 text-amber-500 group-hover:translate-x-0.5 transition-transform" />
