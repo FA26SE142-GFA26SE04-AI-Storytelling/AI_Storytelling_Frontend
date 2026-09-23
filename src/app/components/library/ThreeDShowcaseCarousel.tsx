@@ -13,18 +13,17 @@ import {
 
 export interface ThreeDShowcaseCarouselProps {
   activeIndex: number;
-  isBookOpened?: boolean;
+  isDetailOpen?: boolean;
+  isExiting?: boolean;
   onSelectIndex: (index: number) => void;
-  onToggleBookOpen?: () => void;
+  onToggleDetail?: () => void;
 }
 
 interface BookMeshHolder {
   group: THREE.Group;
-  frontCoverPivot: THREE.Group;
   book: WorkingVolumeBook;
   bookIndex: number;
   clickCollider: THREE.Mesh;
-  currentCoverAngle: number;
 }
 
 // Thuật toán tính khoảng cách vòng tròn ngắn nhất
@@ -37,9 +36,10 @@ function getShortestOffset(index: number, activeIndex: number, total: number): n
 
 export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
   activeIndex,
-  isBookOpened = false,
+  isDetailOpen = false,
+  isExiting = false,
   onSelectIndex,
-  onToggleBookOpen,
+  onToggleDetail,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -49,20 +49,25 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
     activeIndexRef.current = activeIndex;
   }, [activeIndex]);
 
-  const isBookOpenedRef = useRef<boolean>(isBookOpened);
+  const isDetailOpenRef = useRef<boolean>(isDetailOpen);
   useEffect(() => {
-    isBookOpenedRef.current = isBookOpened;
-  }, [isBookOpened]);
+    isDetailOpenRef.current = isDetailOpen;
+  }, [isDetailOpen]);
+
+  const isExitingRef = useRef<boolean>(isExiting);
+  useEffect(() => {
+    isExitingRef.current = isExiting;
+  }, [isExiting]);
 
   const onSelectIndexRef = useRef(onSelectIndex);
   useEffect(() => {
     onSelectIndexRef.current = onSelectIndex;
   }, [onSelectIndex]);
 
-  const onToggleBookOpenRef = useRef(onToggleBookOpen);
+  const onToggleDetailRef = useRef(onToggleDetail);
   useEffect(() => {
-    onToggleBookOpenRef.current = onToggleBookOpen;
-  }, [onToggleBookOpen]);
+    onToggleDetailRef.current = onToggleDetail;
+  }, [onToggleDetail]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -109,7 +114,7 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
     topLight.position.set(0, 6, 2);
     scene.add(topLight);
 
-    // 3. Build 3D Hardcover Book Models with Interactive Hinged Cover
+    // 3. Build 3D Hardcover Book Models
     const bookHolders: BookMeshHolder[] = [];
     const bW = 2.05;
     const bH = 2.68;
@@ -122,8 +127,6 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
 
       const coverTex = createWorkingVolumeCoverTexture(book);
       const spineTex = createWorkingVolumeSpineTexture(book);
-      const insideCoverTex = createWorkingVolumeInsideCoverTexture(book);
-      const firstPageTex = createWorkingVolumePageTexture(book);
 
       const matCoverSolid = new THREE.MeshStandardMaterial({
         color: new THREE.Color(book.color),
@@ -137,29 +140,18 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
         metalness: 0.22,
       });
 
-      const matFrontInside = new THREE.MeshStandardMaterial({
-        map: insideCoverTex,
-        roughness: 0.50,
-        metalness: 0.05,
-      });
-
-      // A. Front Cover with Pivot Hinge at Left Spine Edge
-      const frontCoverPivot = new THREE.Group();
-      frontCoverPivot.position.set(-bW / 2, 0, (bThickness - coverT) / 2);
-      bGroup.add(frontCoverPivot);
-
+      // A. Front Cover
       const frontMaterials = [
         matCoverSolid,   // +X
         matCoverSolid,   // -X
         matCoverSolid,   // +Y
         matCoverSolid,   // -Y
-        matFrontOutside, // +Z (Bìa ngoài trước)
-        matFrontInside,  // -Z (Mặt trong bìa khi lật mở)
+        matFrontOutside, // +Z (Bìa trước)
+        matCoverSolid,   // -Z
       ];
-
       const frontMesh = new THREE.Mesh(new THREE.BoxGeometry(bW, bH, coverT), frontMaterials);
-      frontMesh.position.set(bW / 2, 0, 0);
-      frontCoverPivot.add(frontMesh);
+      frontMesh.position.set(0, 0, (bThickness - coverT) / 2);
+      bGroup.add(frontMesh);
 
       // B. Back Cover
       const backMesh = new THREE.Mesh(new THREE.BoxGeometry(bW, bH, coverT), matCoverSolid);
@@ -184,10 +176,10 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
       });
       const spineMesh = new THREE.Mesh(spineGeo, matSpine);
       spineMesh.position.set(-bW / 2, 0, 0);
-      spineMesh.rotation.y = 0; // Bản lề chuẩn ôm trọn mép trái từ bìa sau sang bìa trước
+      spineMesh.rotation.y = 0;
       bGroup.add(spineMesh);
 
-      // D. Book Block (Paper Pages) with First Page on Front
+      // D. Book Block (Paper Pages)
       const paperW = bW - 0.06;
       const paperH = bH - 0.08;
       const paperT = bThickness - coverT * 2 - 0.005;
@@ -210,24 +202,9 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
         metalness: 0.02,
       });
 
-      const matFirstPage = new THREE.MeshStandardMaterial({
-        map: firstPageTex,
-        roughness: 0.55,
-        metalness: 0.04,
-      });
-
-      const paperMaterials = [
-        matPaperSides, // +X (Mép trang phải)
-        matPaperSides, // -X (Gáy trang trái)
-        matPaperSides, // +Y (Mép trên)
-        matPaperSides, // -Y (Mép dưới)
-        matFirstPage,  // +Z (Trang đầu tiên lộ ra khi mở bìa!)
-        matPaperSides, // -Z (Mặt sau gắn bìa sau)
-      ];
-
       const paperMesh = new THREE.Mesh(
         new THREE.BoxGeometry(paperW, paperH, paperT),
-        paperMaterials
+        matPaperSides
       );
       paperMesh.position.set(0.02, 0, 0);
       bGroup.add(paperMesh);
@@ -240,13 +217,24 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
 
       bookHolders.push({
         group: bGroup,
-        frontCoverPivot,
         book,
         bookIndex: bIdx,
         clickCollider,
-        currentCoverAngle: 0,
       });
     });
+
+    // Dark Backdrop Dimmer Plane (Lớp nền tối mờ tràn toàn màn hình làm nổi bật cuốn sách khi mở popup)
+    const dimBackdropGeo = new THREE.PlaneGeometry(240, 160);
+    const dimBackdropMat = new THREE.MeshBasicMaterial({
+      color: 0x05070c,
+      transparent: true,
+      opacity: 0,
+      depthWrite: false,
+    });
+    const dimBackdropMesh = new THREE.Mesh(dimBackdropGeo, dimBackdropMat);
+    dimBackdropMesh.position.set(0, 0, -4.5);
+    dimBackdropMesh.renderOrder = -1;
+    scene.add(dimBackdropMesh);
 
     // 4. State & Drag Variables
     let isDisposed = false;
@@ -270,10 +258,9 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
     let targetRotX = 0.05;
 
     let prevActiveIndex = activeIndex;
-    let prevOpenedState = isBookOpened;
 
     const tempQuat = new THREE.Quaternion();
-    const activeZoomedScaleVec = new THREE.Vector3(1.14, 1.14, 1.14);
+    const activeZoomedScaleVec = new THREE.Vector3(1.06, 1.06, 1.06);
     const activeNormalScaleVec = new THREE.Vector3(1.04, 1.04, 1.04);
     const restingScaleVec = new THREE.Vector3(0.84, 0.84, 0.84);
     const outerScaleVec = new THREE.Vector3(0.70, 0.70, 0.70);
@@ -286,26 +273,26 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
 
       const now = Date.now();
       const curActive = activeIndexRef.current;
-      const isOpened = isBookOpenedRef.current;
+      const isDetail = isDetailOpenRef.current;
+      const isExiting = isExitingRef.current;
 
-      // Khi chuyển sang cuốn sách khác hoặc đóng/mở sách, đồng bộ lại góc xoay
-      if (curActive !== prevActiveIndex || isOpened !== prevOpenedState) {
+      // Khi chuyển sang cuốn sách khác, reset nhẹ góc xoay
+      if (curActive !== prevActiveIndex) {
         prevActiveIndex = curActive;
-        prevOpenedState = isOpened;
-        targetRotY = isOpened ? 0.0 : -0.24;
-        targetRotX = isOpened ? 0.0 : 0.03;
+        targetRotY = isDetail ? -0.30 : -0.24;
+        targetRotX = 0.04;
       }
 
       const total = WORKING_VOLUMES_BOOKS.length;
       const timeSec = (now - startTime) * 0.0015;
 
       // Smooth damping góc xoay 3D
-      if (isOpened) {
-        targetRotY = 0.0;
-        targetRotX = 0.0;
-      }
       rotY += (targetRotY - rotY) * 0.12;
       rotX += (targetRotX - rotX) * 0.12;
+
+      // Hiệu ứng làm tối mờ nền xung quanh khi mở popup chi tiết (fade out khi exit)
+      const targetDimOpacity = isExiting ? 0.0 : (isDetail ? 0.55 : 0.0);
+      dimBackdropMat.opacity += (targetDimOpacity - dimBackdropMat.opacity) * (isExiting ? 0.18 : 0.10);
 
       bookHolders.forEach((holder) => {
         const offset = getShortestOffset(holder.bookIndex, curActive, total);
@@ -316,65 +303,68 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
         let targetScale = restingScaleVec.clone();
         const rotEuler = new THREE.Euler(0, 0, 0, 'YXZ');
 
-        // Góc mở bìa (0 khi đóng, -Math.PI khi mở thẳng hoàn toàn)
-        const targetCoverAngle = isCenter && isOpened ? -Math.PI : 0;
-        holder.currentCoverAngle += (targetCoverAngle - holder.currentCoverAngle) * 0.12;
-        holder.frontCoverPivot.rotation.y = holder.currentCoverAngle;
+        const floatBobY = isDragging || isExiting ? 0 : Math.sin(timeSec * 2.2) * 0.03;
+        const floatTiltX = isDragging || isExiting ? 0 : Math.cos(timeSec * 1.8) * 0.012;
+        const floatTiltY = isDragging || isExiting ? 0 : Math.sin(timeSec * 1.6) * 0.015;
 
         if (isCenter) {
-          if (isOpened) {
-            // TRẠNG THÁI ZOOM VÀO & MỞ BÌA: Khóa góc thẳng chính diện 100% hướng về người dùng
-            targetPos.set((bW / 2) * activeZoomedScaleVec.x, -0.04, 1.65);
+          if (isDetail) {
+            // TRẠNG THÁI MỞ POPUP CHI TIẾT: Căn vừa vặn nửa bên trái gần trung tâm màn hình
+            targetPos.set(-1.15, 0.05 + floatBobY, 0.85);
             targetScale = activeZoomedScaleVec.clone();
-            rotEuler.set(0, 0, 0, 'YXZ');
+            rotEuler.set(rotX + floatTiltX, rotY + floatTiltY, 0, 'YXZ');
           } else {
-            // TRẠNG THÁI CAROUSEL TRUNG TÂM BÌA ĐÓNG
-            const floatBobY = isDragging ? 0 : Math.sin(timeSec * 2.2) * 0.03;
-            const floatTiltX = isDragging ? 0 : Math.cos(timeSec * 1.8) * 0.012;
-            const floatTiltY = isDragging ? 0 : Math.sin(timeSec * 1.6) * 0.015;
-
+            // TRẠNG THÁI CAROUSEL TRUNG TÂM
             targetPos.set(0, 0.08 + floatBobY, 0.35);
             targetScale = activeNormalScaleVec.clone();
             rotEuler.set(rotX + floatTiltX, rotY + floatTiltY, 0, 'YXZ');
           }
         } else if (offset === -1) {
-          targetPos.set(isOpened ? -5.2 : -2.35, -0.04, isOpened ? -1.6 : -0.12);
-          targetScale = isOpened ? outerScaleVec.clone() : restingScaleVec.clone();
-          rotEuler.set(0.06, -0.28, 0, 'YXZ');
+          targetPos.set(isDetail ? -7.20 : -2.30, -0.04, isDetail ? -2.2 : -0.15);
+          targetScale = isDetail ? outerScaleVec.clone() : restingScaleVec.clone();
+          rotEuler.set(0.06, isDetail ? 0.35 : 0.28, 0, 'YXZ');
         } else if (offset === -2) {
-          targetPos.set(isOpened ? -8.2 : -4.50, -0.08, isOpened ? -2.6 : -0.55);
+          targetPos.set(isDetail ? -10.50 : -4.60, -0.08, isDetail ? -3.2 : -0.60);
           targetScale = outerScaleVec.clone();
-          rotEuler.set(0.04, -0.18, 0, 'YXZ');
+          rotEuler.set(0.04, isDetail ? 0.25 : 0.18, 0, 'YXZ');
         } else if (offset === 1) {
-          targetPos.set(isOpened ? 5.2 : 2.35, -0.04, isOpened ? -1.6 : -0.12);
-          targetScale = isOpened ? outerScaleVec.clone() : restingScaleVec.clone();
-          rotEuler.set(0.06, -0.42, 0, 'YXZ');
+          targetPos.set(isDetail ? 7.20 : 2.30, -0.04, isDetail ? -2.2 : -0.15);
+          targetScale = isDetail ? outerScaleVec.clone() : restingScaleVec.clone();
+          rotEuler.set(0.06, isDetail ? -0.35 : -0.28, 0, 'YXZ');
         } else if (offset === 2) {
-          targetPos.set(isOpened ? 8.2 : 4.50, -0.08, isOpened ? -2.6 : -0.55);
+          targetPos.set(isDetail ? 10.50 : 4.60, -0.08, isDetail ? -3.2 : -0.60);
           targetScale = outerScaleVec.clone();
-          rotEuler.set(0.04, -0.52, 0, 'YXZ');
+          rotEuler.set(0.04, isDetail ? -0.25 : -0.18, 0, 'YXZ');
         } else if (offset < -2) {
-          targetPos.set(-9.5, -0.16, -3.0);
+          targetPos.set(isDetail ? -14.0 : -7.50, -0.16, -3.5);
           targetScale = hiddenScaleVec.clone();
           rotEuler.set(0, 0, 0, 'YXZ');
         } else {
-          targetPos.set(9.5, -0.16, -3.0);
+          targetPos.set(isDetail ? 14.0 : 7.50, -0.16, -3.5);
           targetScale = hiddenScaleVec.clone();
           rotEuler.set(0, 0, 0, 'YXZ');
         }
 
         // Hover micro-elevation cho các cuốn 2 bên
-        if (isHovered && !isCenter && targetScale.x > 0.1) {
+        if (isHovered && !isCenter && targetScale.x > 0.1 && !isExiting) {
           targetPos.y += 0.12;
           targetPos.z += 0.10;
+        }
+
+        // KHI THOÁT RA TOÀN CẢNH: Quyển sách di chuyển bay lên trên và mờ dần
+        if (isExiting) {
+          targetPos.set(targetPos.x, targetPos.y + 8.5, targetPos.z - 0.5);
+          targetScale = hiddenScaleVec.clone();
+          rotEuler.x -= 0.35;
         }
 
         tempQuat.setFromEuler(rotEuler);
 
         // Kinematic interpolation
-        holder.group.position.lerp(targetPos, 0.10);
-        holder.group.quaternion.slerp(tempQuat, 0.10);
-        holder.group.scale.lerp(targetScale, 0.10);
+        const lerpSpeed = isExiting ? 0.15 : 0.10;
+        holder.group.position.lerp(targetPos, lerpSpeed);
+        holder.group.quaternion.slerp(tempQuat, lerpSpeed);
+        holder.group.scale.lerp(targetScale, lerpSpeed);
       });
 
       renderer.render(scene, camera);
@@ -399,9 +389,7 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
         dragStartY = e.clientY;
         prevMouseX = e.clientX;
         prevMouseY = e.clientY;
-        if (!isBookOpenedRef.current) {
-          canvas.style.cursor = 'grabbing';
-        }
+        canvas.style.cursor = 'grabbing';
       }
     };
 
@@ -410,7 +398,7 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
         isDragging = false;
         canvas.style.cursor = hoveredHolder ? 'pointer' : 'default';
 
-        // Nếu chỉ là một cú click nhẹ (không kéo di chuyển), xử lý mở sách / chọn sách
+        // Nếu chỉ là một cú click nhẹ (không kéo di chuyển), xử lý mở popup / chọn sách
         if (!hasMoved) {
           const rect = canvas.getBoundingClientRect();
           const clickMouse = new THREE.Vector2(
@@ -428,9 +416,9 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
             if (found) {
               if (found.bookIndex !== activeIndexRef.current) {
                 onSelectIndexRef.current(found.bookIndex);
-              } else if (onToggleBookOpenRef.current) {
-                // Nhấn vào cuốn sách ở giữa -> Zoom vào và mở ra!
-                onToggleBookOpenRef.current();
+              } else if (onToggleDetailRef.current) {
+                // Nhấn vào cuốn sách ở giữa -> Hiện UI Popup chi tiết bên cạnh!
+                onToggleDetailRef.current();
               }
             }
           }
@@ -444,15 +432,6 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
       if (isDragging) {
-        // Khi sách đang mở, không cho phép kéo xoay 3D
-        if (isBookOpenedRef.current) {
-          const distMoved = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY);
-          if (distMoved > 4) {
-            hasMoved = true;
-          }
-          return;
-        }
-
         const deltaX = e.clientX - prevMouseX;
         const deltaY = e.clientY - prevMouseY;
         const distMoved = Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY);
@@ -522,7 +501,7 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
   return (
     <div
       ref={containerRef}
-      className="relative w-full h-[440px] sm:h-[540px] lg:h-[620px] flex items-center justify-center select-none"
+      className="relative w-full h-full min-h-full flex items-center justify-center select-none overflow-hidden"
     >
       <canvas
         ref={canvasRef}

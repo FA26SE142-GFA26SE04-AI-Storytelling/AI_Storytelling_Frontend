@@ -7,6 +7,8 @@ import { STAGES, CameraStage, TimeOfDay, getVietnamTimeOfDay } from './room/stag
 import { buildBackpack } from './room/builders/buildBackpack';
 import { useAuth } from '../../context/AuthContext';
 import { buildInteractiveNotebook } from './room/builders/buildInteractiveNotebook';
+import { buildInteractiveStoryBook } from './room/builders/buildInteractiveStoryBook';
+import { WORKING_VOLUMES_BOOKS } from './room/textures/workingVolumesBooks';
 import { buildDeskAndChair } from './room/builders/buildDeskAndChair';
 import { buildBookshelf } from './room/builders/buildBookshelf';
 import { buildClosetAndWindow } from './room/builders/buildClosetAndWindow';
@@ -177,6 +179,7 @@ export interface RoomCanvasProps {
   timeOfDay?: TimeOfDay;
   onTimeOfDayChange?: (mode: TimeOfDay) => void;
   className?: string;
+  selectedBookId?: string | null;
   onSelectBook?: (storyId: string) => void;
 }
 
@@ -186,6 +189,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
   timeOfDay = getVietnamTimeOfDay(),
   onTimeOfDayChange,
   className = '',
+  selectedBookId = null,
   onSelectBook,
 }) => {
   const mountRef = useRef<HTMLDivElement>(null);
@@ -195,6 +199,13 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
   useEffect(() => {
     onSelectBookRef.current = onSelectBook;
   }, [onSelectBook]);
+
+  const updateDeskStoryBookRef = useRef<((bookId: string | null) => void) | null>(null);
+  useEffect(() => {
+    if (updateDeskStoryBookRef.current) {
+      updateDeskStoryBookRef.current(selectedBookId);
+    }
+  }, [selectedBookId]);
 
   const { user } = useAuth();
   const updateNameTagRef = useRef<((name?: string, role?: string) => void) | null>(null);
@@ -242,18 +253,15 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
   useEffect(() => {
     const prevStage = prevStageRef.current;
     if (prevStage !== currentStageIndex) {
-      if (currentStageIndex === 1) {
-        // Tự động lật mở quyển vở khi zoom vào góc Bàn học (chờ camera bắt đầu lướt tới)
-        setTimeout(() => playBookPageSound(true), 180);
-      } else if (prevStage === 1) {
-        // Tự động gập quyển vở lại khi rời khỏi Bàn học
-        playBookPageSound(false);
-      } else if (currentStageIndex === 6) {
+      if (currentStageIndex === 6) {
         // Tự động mở nắp laptop khi zoom vào góc Laptop
         setTimeout(() => playLaptopSound(true), 150);
       } else if (prevStage === 6) {
         // Tự động gập nắp laptop lại khi rời khỏi góc Laptop
         playLaptopSound(false);
+      } else if (prevStage === 1) {
+        // Tự động đóng sách nếu rời khỏi bàn học
+        window.dispatchEvent(new CustomEvent('room:close-desk-book'));
       }
       prevStageRef.current = currentStageIndex;
     }
@@ -528,13 +536,15 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     roomGroup.add(chairGroup);
     roomGroup.add(deskClickMesh);
 
-    const { notebookGroup, notebookClickMesh, rightWing } = buildInteractiveNotebook(
-      matClosetBlue,
-      matPaperWhite,
-      matPencilYellow,
-      matChrome
-    );
-    deskGroup.add(notebookGroup);
+    // 3D Story Book đặt trên mặt bàn học
+    const initialStory = (selectedBookId && WORKING_VOLUMES_BOOKS.find((b) => b.id === selectedBookId)) || WORKING_VOLUMES_BOOKS[2];
+    const { storyBookGroup, rightWing, notebookClickMesh, updateBook: updateStoryBook } = buildInteractiveStoryBook(initialStory);
+    deskGroup.add(storyBookGroup);
+
+    updateDeskStoryBookRef.current = (bookId: string | null) => {
+      const found = WORKING_VOLUMES_BOOKS.find((b) => b.id === bookId) || WORKING_VOLUMES_BOOKS[2];
+      updateStoryBook(found);
+    };
 
     const initialName = user ? (user.fullName || user.username) : '';
     const initialRole = user?.role || '';
@@ -578,6 +588,42 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
     let isLeftDoorOpen = false;
     let isRightDoorOpen = false;
+    let isDeskBook3DOpen = false;
+
+    const triggerOpenDeskBook = () => {
+      if (currentStageIndexRef.current === 1 && !isDeskBook3DOpen) {
+        isDeskBook3DOpen = true;
+        storyBookGroup.visible = true;
+        playBookPageSound(true);
+        // Zoom camera vào gần quyển sách đang mở trên bàn học
+        targetCamPos.current.set(1.05, 1.48, -0.58);
+        targetLookAtPos.current.set(1.40, 0.96, -0.58);
+        window.dispatchEvent(new CustomEvent('room:opening-desk-book'));
+        setTimeout(() => {
+          storyBookGroup.visible = false; // Ẩn sách 3D dưới bàn khi lớp đọc sách 2D/3D hiện lên
+          window.dispatchEvent(new CustomEvent('room:desk-book-opened'));
+        }, 750);
+      }
+    };
+
+    const triggerCloseDeskBook = () => {
+      storyBookGroup.visible = true;
+      if (isDeskBook3DOpen) {
+        isDeskBook3DOpen = false;
+        playBookPageSound(false);
+        if (currentStageIndexRef.current === 1) {
+          const deskStage = STAGES[1] || STAGES[0];
+          targetCamPos.current.set(...deskStage.camPos);
+          targetLookAtPos.current.set(...deskStage.targetPos);
+        }
+        window.dispatchEvent(new CustomEvent('room:desk-book-closed'));
+      }
+    };
+
+    const handleTriggerOpenEvent = () => triggerOpenDeskBook();
+    const handleCloseEvent = () => triggerCloseDeskBook();
+    window.addEventListener('room:trigger-open-desk-book', handleTriggerOpenEvent);
+    window.addEventListener('room:close-desk-book', handleCloseEvent);
 
     // 7. Animation Render Loop
     let animId: number;
@@ -748,12 +794,12 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         });
       }
 
-      // Quyển vở tự động mở chậm rãi, êm dịu khi zoom vào bàn học (Stage 1) và gập lại khi rời đi
-      const isNotebookOpen = currentStageIndexRef.current === 1;
-      const targetNotebookAngle = isNotebookOpen ? 0 : Math.PI;
-      const targetNotebookPosY = isNotebookOpen ? 0.002 : 0.014;
-      rightWing.rotation.z = THREE.MathUtils.lerp(rightWing.rotation.z, targetNotebookAngle, 0.018);
-      rightWing.position.y = THREE.MathUtils.lerp(rightWing.position.y, targetNotebookPosY, 0.018);
+      // Quyển sách 3D trên bàn học: lật mở khi bấm đọc và gập lại khi đóng
+      const isStoryOpen = currentStageIndexRef.current === 1 && isDeskBook3DOpen;
+      const targetWingRot = isStoryOpen ? 0.0 : Math.PI;
+      const targetWingPosY = isStoryOpen ? 0.002 : 0.014;
+      rightWing.rotation.z = THREE.MathUtils.lerp(rightWing.rotation.z, targetWingRot, 0.06);
+      rightWing.position.y = THREE.MathUtils.lerp(rightWing.position.y, targetWingPosY, 0.06);
 
       // Laptop tự động mở nắp nghiêng chuẩn khi zoom vào góc Laptop (Stage 6) và gập đóng phẳng khi rời đi
       const isLaptopOpen = currentStageIndexRef.current === 6;
@@ -769,10 +815,8 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       // Smooth 3D Showcase Books hover elevation animation (nhấc nhẹ sách 3D lên khi rê chuột)
       showcaseBooks.forEach((sb) => {
         const isHovered = hoveredBookStoryId === sb.storyId;
-        const targetY = isHovered ? sb.baseY + 0.022 : sb.baseY;
-        const targetZ = isHovered ? sb.baseZ + 0.035 : sb.baseZ;
-        sb.group.position.y = THREE.MathUtils.lerp(sb.group.position.y, targetY, 0.1);
-        sb.group.position.z = THREE.MathUtils.lerp(sb.group.position.z, targetZ, 0.1);
+        const targetY = isHovered ? sb.baseY + 0.05 : sb.baseY;
+        sb.group.position.y = THREE.MathUtils.lerp(sb.group.position.y, targetY, 0.08);
       });
 
       renderer.render(scene, camera);
@@ -847,6 +891,8 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       if (intersectsNotebook.length > 0) {
         if (currentStageIndexRef.current !== 1 && onStageChangeRef.current) {
           onStageChangeRef.current(1);
+        } else if (currentStageIndexRef.current === 1) {
+          triggerOpenDeskBook();
         }
         return;
       }
@@ -917,7 +963,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       const intersectsDesk = raycaster.intersectObject(deskClickMesh, true);
       const intersectsLaptop = raycaster.intersectObject(laptopClickMesh, true);
 
-      const isNotebookHoverable = currentStageIndexRef.current !== 1 && intersectsNotebook.length > 0;
+      const isNotebookHoverable = intersectsNotebook.length > 0;
       const isDeskHoverable = currentStageIndexRef.current !== 1 && intersectsDesk.length > 0;
       const isLaptopHoverable = currentStageIndexRef.current !== 6 && intersectsLaptop.length > 0;
 
@@ -969,6 +1015,8 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
+      window.removeEventListener('room:trigger-open-desk-book', handleTriggerOpenEvent);
+      window.removeEventListener('room:close-desk-book', handleCloseEvent);
       domElem.removeEventListener('contextmenu', handleContextMenu);
       domElem.removeEventListener('pointerdown', handlePointerDown);
       domElem.removeEventListener('pointerup', handlePointerUp);

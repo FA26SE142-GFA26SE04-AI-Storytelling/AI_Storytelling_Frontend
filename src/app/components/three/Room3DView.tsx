@@ -11,7 +11,7 @@ import { RoomCanvas, STAGES, TimeOfDay } from './RoomCanvas';
 import { getVietnamTimeOfDay } from './room/stages';
 import { RoomHeader } from './RoomHeader';
 import { LibraryBookshelfZoomOverlay } from '../library/LibraryBookshelfZoomOverlay';
-import { ParentDeskZoomOverlay } from '../parents/ParentDeskZoomOverlay';
+import { DeskReadingViewOverlay } from '../desk/DeskReadingViewOverlay';
 import { ParentLaptopDashboardOverlay } from '../parents/ParentLaptopDashboardOverlay';
 import { BackpackAuthZoomOverlay } from '../backpack/BackpackAuthZoomOverlay';
 import { ChildEasyLoginOverlay } from '../child/ChildEasyLoginOverlay';
@@ -226,17 +226,18 @@ export default function Room3DView() {
         onStageChange={handleStageChange}
         timeOfDay={timeOfDay}
         onTimeOfDayChange={handleTimeOfDayTransition}
+        selectedBookId={selectedBookStoryId}
         onSelectBook={(storyId) => setSelectedBookStoryId(storyId)}
       />
 
-      {/* Interactive Floating Parent Desk Overlay when zoomed into Desk (Stage 1) */}
+      {/* Interactive Clean Floating Desk Reading Overlay when zoomed into Desk (Stage 1) */}
       {currentStage === 1 && (
-        <ParentDeskZoomOverlay
+        <DeskReadingViewOverlay
           currentStage={currentStage}
           onStageChange={handleStageChange}
           timeOfDay={timeOfDay}
           onTimeOfDayChange={handleTimeOfDayTransition}
-          is2DViewAvailable={false}
+          selectedBookId={selectedBookStoryId}
         />
       )}
 
@@ -248,6 +249,11 @@ export default function Room3DView() {
           timeOfDay={timeOfDay}
           onTimeOfDayChange={handleTimeOfDayTransition}
           selectedBookId={selectedBookStoryId}
+          onSelectBook={(bookId) => setSelectedBookStoryId(bookId)}
+          onReadBook={(bookId) => {
+            setSelectedBookStoryId(bookId);
+            handleStageChange(1); // Zoom vào Bàn Học (Stage 1)
+          }}
           onClearSelectedBook={() => setSelectedBookStoryId(null)}
           is2DViewAvailable={false}
         />
