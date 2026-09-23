@@ -8,7 +8,6 @@ import { WorkingVolumeBook } from '../three/room/textures/workingVolumesBooks';
 import { generateSpreads, PageSpread } from './deskSpreadsGenerator';
 import { DeskPageTurningStyles } from './deskPageTurningStyles';
 import { buildCurl, MAX_BETA_CURL, N_STRIPS } from './deskStripCurlBuilder';
-import { DeskReadingBottomToolbar } from './DeskReadingBottomToolbar';
 
 gsap.registerPlugin(useGSAP);
 
@@ -26,7 +25,6 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const sb3dRef = useRef<HTMLDivElement>(null);
   const bookDomRef = useRef<HTMLDivElement>(null);
-  const captionRef = useRef<HTMLDivElement>(null);
 
   const [pageSpreads, setPageSpreads] = useState<PageSpread[]>([]);
   const [currentPageIndex, setCurrentPageIndex] = useState<number>(0);
@@ -38,7 +36,7 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
     currentPageRef.current = currentPageIndex;
   }, [currentPageIndex]);
 
-  // Focus Mode & Zoom State (Phóng to trang sách & Giảm phân tâm)
+  // Focus Mode & Zoom State (Phóng to trang sách)
   const [zoomLevel, setZoomLevel] = useState<number>(1.0);
   const [isFocusDimmer, setIsFocusDimmer] = useState<boolean>(true);
 
@@ -61,10 +59,6 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
 
       tl.fromTo('.desk-top-exit-btn', { opacity: 0, y: -25, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.4 }, '-=0.35');
 
-      if (captionRef.current) {
-        tl.fromTo(captionRef.current, { opacity: 0, y: 40, scale: 0.92 }, { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.4)' }, '-=0.25');
-      }
-
       tl.fromTo('.desk-nav-arrow-left', { opacity: 0, x: -25 }, { opacity: 0.75, x: 0, duration: 0.4 }, '-=0.3');
       tl.fromTo('.desk-nav-arrow-right', { opacity: 0, x: 25 }, { opacity: 0.75, x: 0, duration: 0.4 }, '-=0.4');
     },
@@ -86,10 +80,6 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
 
       tl.to('.desk-nav-arrow-left', { opacity: 0, x: -20, duration: 0.25 });
       tl.to('.desk-nav-arrow-right', { opacity: 0, x: 20, duration: 0.25 }, '-=0.25');
-
-      if (captionRef.current) {
-        tl.to(captionRef.current, { opacity: 0, y: 30, scale: 0.95, duration: 0.3 }, '-=0.2');
-      }
 
       tl.to('.desk-top-exit-btn', { opacity: 0, y: -20, duration: 0.25 }, '-=0.25');
 
@@ -481,8 +471,6 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [step, handleExit]);
 
-  const activeSpread = pageSpreads[currentPageIndex] || pageSpreads[0];
-
   return (
     <div
       ref={containerRef}
@@ -570,21 +558,6 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
           <ChevronRight className="w-6 h-6 text-amber-500 group-hover:translate-x-0.5 transition-transform" />
         </button>
       </div>
-
-      {/* 4. FOCUS MODE FLOATING BOTTOM CONTROLS PILL */}
-      <DeskReadingBottomToolbar
-        ref={captionRef}
-        activeSpread={activeSpread}
-        bookTitle={book.title}
-        zoomLevel={zoomLevel}
-        onZoomIn={() => setZoomLevel((prev) => Math.min(1.45, Number((prev + 0.1).toFixed(2))))}
-        onZoomOut={() => setZoomLevel((prev) => Math.max(0.85, Number((prev - 0.1).toFixed(2))))}
-        onResetZoom={() => setZoomLevel(1.0)}
-        isFocusDimmer={isFocusDimmer}
-        onToggleFocusDimmer={() => setIsFocusDimmer((prev) => !prev)}
-        currentPageIndex={currentPageIndex}
-        totalPages={pageSpreads.length}
-      />
 
       <DeskPageTurningStyles />
     </div>
