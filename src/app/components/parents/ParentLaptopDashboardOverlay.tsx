@@ -344,6 +344,7 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
               {/* TAB 4: CONVERSATION STARTERS & CREATIVE CONTROLS */}
               {activeTab === 'prompts' && (
                 <CreativeControlsTab
+                  selectedChild={laptopData.selectedChild}
                   isPlayingAudio={laptopData.isPlayingAudio}
                   setIsPlayingAudio={laptopData.setIsPlayingAudio}
                   feedbackRating={laptopData.feedbackRating}

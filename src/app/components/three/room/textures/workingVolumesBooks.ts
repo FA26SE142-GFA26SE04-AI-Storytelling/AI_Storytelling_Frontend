@@ -18,6 +18,8 @@ export interface WorkingVolumeBook {
   color: string;
   foil: string;
   cropIndex: number;
+  isEmptyPlaceholder?: boolean;
+  isCustomStory?: boolean;
 }
 
 export const WORKING_VOLUMES_BOOKS: WorkingVolumeBook[] = [
@@ -186,6 +188,78 @@ export function createWorkingVolumeCoverTexture(book: WorkingVolumeBook): THREE.
   const ctx = canvas.getContext('2d')!;
 
   const renderCover = () => {
+    // 1. EMPTY PLACEHOLDER BOOK (Chưa có truyện: Sách trống không có tiêu đề)
+    if (book.isEmptyPlaceholder) {
+      ctx.fillStyle = book.color || '#27272a';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.strokeStyle = book.foil || '#71717a';
+      ctx.lineWidth = 3;
+      ctx.strokeRect(50, 50, canvas.width - 100, canvas.height - 100);
+      ctx.strokeRect(65, 65, canvas.width - 130, canvas.height - 130);
+
+      // Subtle center blank insignia
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.beginPath();
+      ctx.arc(canvas.width / 2, canvas.height / 2, 80, 0, Math.PI * 2);
+      ctx.fill();
+      return;
+    }
+
+    // 2. CUSTOM STORY FROM BACKEND API
+    if (book.isCustomStory) {
+      ctx.fillStyle = book.color;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Double decorative foil frame
+      ctx.strokeStyle = book.foil;
+      ctx.lineWidth = 4;
+      ctx.strokeRect(45, 45, canvas.width - 90, canvas.height - 90);
+      ctx.lineWidth = 2;
+      ctx.strokeRect(60, 60, canvas.width - 120, canvas.height - 120);
+
+      // Header
+      ctx.fillStyle = book.foil;
+      ctx.font = 'bold 24px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`MAGICTALES · TẬP ${book.volume}`, canvas.width / 2, 110);
+
+      // Star flourish top
+      ctx.fillText('✦   ✦   ✦', canvas.width / 2, 155);
+
+      // Title (Multi-line centered with word wrap)
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 54px sans-serif';
+      const words = book.title.split(' ');
+      let line = '';
+      let y = canvas.height / 2 - 80;
+      const maxW = canvas.width - 180;
+
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line + words[i] + ' ';
+        if (ctx.measureText(testLine).width > maxW && i > 0) {
+          ctx.fillText(line.trim(), canvas.width / 2, y);
+          line = words[i] + ' ';
+          y += 65;
+        } else {
+          line = testLine;
+        }
+      }
+      ctx.fillText(line.trim(), canvas.width / 2, y);
+
+      // Category / Discipline
+      ctx.fillStyle = book.foil;
+      ctx.font = 'bold 26px sans-serif';
+      ctx.fillText(book.discipline.toUpperCase(), canvas.width / 2, y + 80);
+
+      // Bottom footer badge
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.fillText('THƯ VIỆN KỆ SÁCH 3D', canvas.width / 2, canvas.height - 90);
+      return;
+    }
+
+    // 3. DEFAULT WORKING VOLUMES (Nếu atlas sẵn sàng)
     const img = getAtlasImage();
     if (atlasLoaded && img && img.width > 0 && img.height > 0) {
       const sliceW = img.width / 7;
@@ -203,7 +277,6 @@ export function createWorkingVolumeCoverTexture(book: WorkingVolumeBook): THREE.
       ctx.fillStyle = edgeShade;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     } else {
-      // Procedural fallback while atlas loads
       ctx.fillStyle = book.color;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -214,7 +287,7 @@ export function createWorkingVolumeCoverTexture(book: WorkingVolumeBook): THREE.
       ctx.fillStyle = book.foil;
       ctx.font = 'bold 26px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`WORKING VOLUMES / ${book.volume}`, canvas.width / 2, 95);
+      ctx.fillText(`MAGICTALES / ${book.volume}`, canvas.width / 2, 95);
 
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 60px sans-serif';
@@ -232,7 +305,7 @@ export function createWorkingVolumeCoverTexture(book: WorkingVolumeBook): THREE.
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 16;
 
-  if (!atlasLoaded) {
+  if (!atlasLoaded && !book.isCustomStory && !book.isEmptyPlaceholder) {
     pendingTextureUpdates.push(() => {
       renderCover();
       texture.needsUpdate = true;
@@ -478,3 +551,68 @@ export function createWorkingVolumePageTexture(book: WorkingVolumeBook): THREE.C
   texture.anisotropy = 16;
   return texture;
 }
+
+const STORY_PALETTES = [
+  { color: '#c83222', foil: '#efb0aa', binding: 'Vermilion cloth · rose-gold foil', paletteLabel: 'Vermilion · plum · blush', cropIndex: 4 },
+  { color: '#da3b2f', foil: '#ff8eab', binding: 'Coral cloth · copper foil', paletteLabel: 'Coral · pink · oxblood', cropIndex: 5 },
+  { color: '#78a7bd', foil: '#e4e7e5', binding: 'Icy-cyan cloth · aluminum foil', paletteLabel: 'Icy cyan · navy · aluminum', cropIndex: 6 },
+  { color: '#182a43', foil: '#c87046', binding: 'Ultramarine cloth · copper foil', paletteLabel: 'Ultramarine · bone · copper', cropIndex: 0 },
+  { color: '#c24d24', foil: '#efc16d', binding: 'Burnt-orange cloth · antique-gold foil', paletteLabel: 'Burnt orange · cream · burgundy', cropIndex: 1 },
+  { color: '#afc400', foil: '#171a16', binding: 'Citron cloth · black gloss foil', paletteLabel: 'Citron · ink · off-white', cropIndex: 2 },
+  { color: '#1537a1', foil: '#dbe8f1', binding: 'Cobalt cloth · cool-silver foil', paletteLabel: 'Cobalt · sky · silver', cropIndex: 3 },
+];
+
+const ROMAN_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+
+export const EMPTY_BLANK_BOOK: WorkingVolumeBook = {
+  id: 'empty-bookshelf',
+  title: 'Chưa Có Truyện Nào',
+  roman: '—',
+  volume: '00',
+  discipline: 'Kệ Sách Đang Trống',
+  note: 'Hiện chưa có câu chuyện nào được phát hành trong thư viện.',
+  deck: 'Kệ sách hiện chưa có ấn bản nào. Bạn có thể mở Laptop Phụ Huynh để sáng tạo câu chuyện AI đầu tiên cho bé!',
+  binding: 'Vải mộc xám mờ',
+  format: '150 × 220 mm · Chưa xuất bản',
+  theme: 'Thư viện Nobita · Trống',
+  motif: 'Kệ sách chưa có truyện',
+  motifKey: 'empty',
+  paletteLabel: 'Xám khói · Bạc mờ',
+  color: '#27272a',
+  foil: '#71717a',
+  cropIndex: 0,
+  isEmptyPlaceholder: true,
+};
+
+export function mapStoryDtoToWorkingVolumeBook(story: any, index: number = 0): WorkingVolumeBook {
+  const p = STORY_PALETTES[index % STORY_PALETTES.length];
+  const volNum = String(index + 1).padStart(2, '0');
+  const roman = ROMAN_NUMERALS[index % ROMAN_NUMERALS.length] || 'I';
+
+  const ageText = story.ageBand ? String(story.ageBand).replace(/Age_/i, 'Độ tuổi ').replace(/_/g, ' - ') : '';
+  const categoryOrGenre = story.categoryName || story.genre || (ageText ? ageText : 'Truyện AI Thiếu Nhi');
+  const synopsisOrDesc = story.description || story.synopsis || story.moralLesson || 'Một hành trình khám phá diệu kỳ cùng những bài học ý nghĩa.';
+  const fullContent = story.content || synopsisOrDesc;
+
+  return {
+    id: `story-${story.id}`,
+    title: story.title || 'Câu Chuyện Phép Màu',
+    roman,
+    volume: volNum,
+    discipline: categoryOrGenre,
+    note: story.moralLesson || synopsisOrDesc,
+    deck: fullContent,
+    binding: p.binding,
+    format: '150 × 220 mm · Ấn bản phép màu',
+    theme: `${categoryOrGenre} · ${ageText || 'Dành cho bé'}`,
+    motif: story.genre || 'Cánh cửa thần kỳ',
+    motifKey: 'portal',
+    paletteLabel: p.paletteLabel,
+    color: p.color,
+    foil: p.foil,
+    cropIndex: p.cropIndex,
+    isCustomStory: true,
+  };
+}
+
+

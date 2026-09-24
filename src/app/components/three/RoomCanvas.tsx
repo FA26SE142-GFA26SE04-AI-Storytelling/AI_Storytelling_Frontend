@@ -8,7 +8,8 @@ import { buildBackpack } from './room/builders/buildBackpack';
 import { useAuth } from '../../context/AuthContext';
 import { buildInteractiveNotebook } from './room/builders/buildInteractiveNotebook';
 import { buildInteractiveStoryBook } from './room/builders/buildInteractiveStoryBook';
-import { WORKING_VOLUMES_BOOKS } from './room/textures/workingVolumesBooks';
+import { WORKING_VOLUMES_BOOKS, mapStoryDtoToWorkingVolumeBook } from './room/textures/workingVolumesBooks';
+import { storyService } from '../../services/storyService';
 import { buildDeskAndChair } from './room/builders/buildDeskAndChair';
 import { buildBookshelf } from './room/builders/buildBookshelf';
 import { buildClosetAndWindow } from './room/builders/buildClosetAndWindow';
@@ -541,10 +542,33 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     const { storyBookGroup, rightWing, notebookClickMesh, updateBook: updateStoryBook } = buildInteractiveStoryBook(initialStory);
     deskGroup.add(storyBookGroup);
 
-    updateDeskStoryBookRef.current = (bookId: string | null) => {
+    updateDeskStoryBookRef.current = async (bookId: string | null) => {
+      if (bookId && (bookId.startsWith('story-') || !isNaN(Number(bookId)))) {
+        const numId = parseInt(bookId.replace('story-', ''), 10);
+        if (!isNaN(numId)) {
+          try {
+            const res = await storyService.getStoryById(numId);
+            if (res.success && res.data) {
+              updateStoryBook(mapStoryDtoToWorkingVolumeBook(res.data, 0));
+              return;
+            }
+          } catch (e) {
+            console.error('Failed to update desk story book:', e);
+          }
+        }
+      }
       const found = WORKING_VOLUMES_BOOKS.find((b) => b.id === bookId) || WORKING_VOLUMES_BOOKS[2];
       updateStoryBook(found);
     };
+
+    // Tự động load truyện đầu tiên từ API nếu chưa có quyển nào được chọn
+    if (!selectedBookId) {
+      storyService.getStories({ pageSize: 1 }).then((res) => {
+        if (res.success && res.data?.items && res.data.items.length > 0) {
+          updateStoryBook(mapStoryDtoToWorkingVolumeBook(res.data.items[0], 0));
+        }
+      }).catch(console.error);
+    }
 
     const initialName = user ? (user.fullName || user.username) : '';
     const initialRole = user?.role || '';
@@ -889,9 +913,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
       const intersectsNotebook = raycaster.intersectObject(notebookClickMesh, true);
       if (intersectsNotebook.length > 0) {
-        if (currentStageIndexRef.current !== 1 && onStageChangeRef.current) {
-          onStageChangeRef.current(1);
-        } else if (currentStageIndexRef.current === 1) {
+        if (currentStageIndexRef.current === 1) {
           triggerOpenDeskBook();
         }
         return;
@@ -915,9 +937,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
       const intersectsDesk = raycaster.intersectObject(deskClickMesh, true);
       if (intersectsDesk.length > 0) {
-        if (onStageChangeRef.current) {
-          onStageChangeRef.current(1);
-        }
+        // Không vào bàn học trực tiếp khi bấm vào bàn học nữa - chỉ vào bàn học khi chọn truyện từ Kệ Sách để đọc
         return;
       }
 
@@ -960,11 +980,10 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       const intersectsNotebook = raycaster.intersectObject(notebookClickMesh, true);
       const intersectsBag = raycaster.intersectObject(backpackClickMesh, true);
       const intersectsBookshelf = raycaster.intersectObject(bookshelfClickMesh, true);
-      const intersectsDesk = raycaster.intersectObject(deskClickMesh, true);
       const intersectsLaptop = raycaster.intersectObject(laptopClickMesh, true);
 
-      const isNotebookHoverable = intersectsNotebook.length > 0;
-      const isDeskHoverable = currentStageIndexRef.current !== 1 && intersectsDesk.length > 0;
+      // Chỉ có thể tương tác với sách trên bàn khi đang ở Stage Bàn Học (Stage 1)
+      const isNotebookHoverable = currentStageIndexRef.current === 1 && intersectsNotebook.length > 0;
       const isLaptopHoverable = currentStageIndexRef.current !== 6 && intersectsLaptop.length > 0;
 
       if (
@@ -973,7 +992,6 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         intersectsDoorLeft.length > 0 ||
         intersectsDoorRight.length > 0 ||
         isNotebookHoverable ||
-        isDeskHoverable ||
         isLaptopHoverable ||
         intersectsBag.length > 0 ||
         intersectsBookshelf.length > 0

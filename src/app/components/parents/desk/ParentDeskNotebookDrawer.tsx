@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import {
   Clock,
@@ -10,11 +12,18 @@ import {
   Brain,
   BookOpen,
   Award,
+  Compass,
 } from 'lucide-react';
+import { LearningProfile, TokenQuotaStatus } from '../../../types/childProfile';
+import { StoryDto } from '../../../types/story';
 
 export interface ParentDeskNotebookDrawerProps {
   activeTab: 'stats' | 'conversation' | 'activity';
   setActiveTab: (tab: 'stats' | 'conversation' | 'activity') => void;
+  childNickname?: string;
+  learningProfile?: LearningProfile | null;
+  tokenQuota?: TokenQuotaStatus | null;
+  recentStories?: StoryDto[];
   isPlayingAudioSample: boolean;
   setIsPlayingAudioSample: (val: boolean) => void;
   feedbackRating: 'like' | 'dislike' | null;
@@ -26,6 +35,10 @@ export interface ParentDeskNotebookDrawerProps {
 export const ParentDeskNotebookDrawer: React.FC<ParentDeskNotebookDrawerProps> = ({
   activeTab,
   setActiveTab,
+  childNickname = 'Bé',
+  learningProfile,
+  tokenQuota,
+  recentStories = [],
   isPlayingAudioSample,
   setIsPlayingAudioSample,
   feedbackRating,
@@ -46,7 +59,7 @@ export const ParentDeskNotebookDrawer: React.FC<ParentDeskNotebookDrawerProps> =
           }`}
         >
           <BarChart3 className="w-3.5 h-3.5" />
-          <span>Thống Kê Đọc Tuần</span>
+          <span>Hồ Sơ & Thống Kê</span>
         </button>
         <button
           onClick={() => setActiveTab('conversation')}
@@ -57,7 +70,7 @@ export const ParentDeskNotebookDrawer: React.FC<ParentDeskNotebookDrawerProps> =
           }`}
         >
           <Sparkles className="w-3.5 h-3.5" />
-          <span>Gợi Ý Trò Chuyện AI</span>
+          <span>Gợi Ý Trò Chuyện</span>
         </button>
         <button
           onClick={() => setActiveTab('activity')}
@@ -68,61 +81,81 @@ export const ParentDeskNotebookDrawer: React.FC<ParentDeskNotebookDrawerProps> =
           }`}
         >
           <FileText className="w-3.5 h-3.5" />
-          <span>Nhật Ký & Báo Cáo</span>
+          <span>Nhật Ký Truyện ({recentStories.length})</span>
         </button>
       </div>
 
       {/* Tab Content Container */}
       <div className="flex-1 p-4 overflow-y-auto dashboard-scrollbar">
-        {/* TAB 1: WEEKLY STATS */}
+        {/* TAB 1: WEEKLY STATS & LIVE LEARNING PROFILE */}
         {activeTab === 'stats' && (
           <div className="flex flex-col gap-3.5">
             {/* 4 Quick Stat Cards */}
             <div className="grid grid-cols-2 gap-2">
               <div className="desk-stat-card p-3 rounded-2xl bg-sky-500/10 border border-sky-500/30 flex flex-col gap-1">
                 <span className="text-[10px] font-bold text-sky-600 dark:text-sky-300 flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5" /> Thời gian đọc tuần
+                  <Brain className="w-3.5 h-3.5" /> Cấp độ đọc hiểu
                 </span>
-                <strong className="text-lg font-black text-tod-text">145 Phút</strong>
-                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">+18% so với tuần trước</span>
+                <strong className="text-lg font-black text-tod-text">
+                  Cấp Độ {learningProfile?.readingLevel ?? 2}
+                </strong>
+                <span className="text-[9px] text-emerald-600 dark:text-emerald-400 font-bold">
+                  Phù hợp độ tuổi nhận thức
+                </span>
               </div>
 
               <div className="desk-stat-card p-3 rounded-2xl bg-purple-500/10 border border-purple-500/30 flex flex-col gap-1">
                 <span className="text-[10px] font-bold text-purple-600 dark:text-purple-300 flex items-center gap-1">
-                  <BookOpen className="w-3.5 h-3.5" /> Truyện đã đọc
+                  <BookOpen className="w-3.5 h-3.5" /> Truyện đã xuất bản
                 </span>
-                <strong className="text-lg font-black text-tod-text">12 Câu Truyện</strong>
-                <span className="text-[9px] text-purple-600 dark:text-purple-300 font-bold">5 truyện tự tạo AI</span>
-              </div>
-
-              <div className="desk-stat-card p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col gap-1">
-                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-300 flex items-center gap-1">
-                  <Brain className="w-3.5 h-3.5" /> Chỉ số EQ & Nhân ái
+                <strong className="text-lg font-black text-tod-text">
+                  {recentStories.length} Truyện
+                </strong>
+                <span className="text-[9px] text-purple-600 dark:text-purple-300 font-bold">
+                  Sáng tạo & kiểm duyệt
                 </span>
-                <strong className="text-lg font-black text-tod-text">94 / 100</strong>
-                <span className="text-[9px] text-emerald-600 dark:text-emerald-300 font-bold">Xuất sắc bài học chia sẻ</span>
               </div>
 
               <div className="desk-stat-card p-3 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex flex-col gap-1">
                 <span className="text-[10px] font-bold text-amber-600 dark:text-amber-300 flex items-center gap-1">
-                  <Award className="w-3.5 h-3.5" /> Từ vựng học được
+                  <Award className="w-3.5 h-3.5" /> Token Quota AI
                 </span>
-                <strong className="text-lg font-black text-tod-text">28 Từ Mới</strong>
-                <span className="text-[9px] text-amber-600 dark:text-amber-300 font-bold">Tiếng Việt & Tiếng Anh</span>
+                <strong className="text-lg font-black text-tod-text">
+                  {tokenQuota?.isUnlimited
+                    ? 'Không giới hạn'
+                    : tokenQuota?.remaining !== undefined && tokenQuota?.remaining !== null
+                    ? `${tokenQuota.remaining} Tokens`
+                    : 'Đang nạp'}
+                </strong>
+                <span className="text-[9px] text-amber-600 dark:text-amber-300 font-bold">
+                  {tokenQuota?.isUnlimited
+                    ? 'Tài khoản VIP'
+                    : `Hạn mức: ${tokenQuota?.quotaLimit ?? 1000} tokens`}
+                </span>
+              </div>
+
+              <div className="desk-stat-card p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex flex-col gap-1">
+                <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-300 flex items-center gap-1">
+                  <Compass className="w-3.5 h-3.5" /> Chủ đề yêu thích
+                </span>
+                <strong className="text-sm font-black text-tod-text truncate">
+                  {learningProfile?.topics?.[0]?.topic || 'Khám phá thế giới'}
+                </strong>
+                <span className="text-[9px] text-emerald-600 dark:text-emerald-300 font-bold">
+                  {learningProfile?.topics?.length ?? 1} chủ đề quan tâm
+                </span>
               </div>
             </div>
 
-            {/* EQ & Competency Progress Bar */}
+            {/* Goal Card */}
             <div className="desk-tab-content-item p-3.5 rounded-2xl bg-tod-card border border-tod-border flex flex-col gap-2">
               <div className="flex items-center justify-between text-xs font-bold">
-                <span className="text-tod-text">Tiến trình rèn luyện cảm xúc tuần này</span>
-                <span className="text-sky-500 font-bold">85% Hoàn thành</span>
+                <span className="text-tod-text">Mục tiêu phát triển của {childNickname}</span>
+                <span className="text-sky-500 font-bold">Đang áp dụng</span>
               </div>
-              <div className="w-full h-2 bg-tod-surface border border-tod-border rounded-full overflow-hidden">
-                <div className="h-full bg-gradient-to-r from-sky-400 via-indigo-500 to-purple-500 w-[85%] rounded-full" />
-              </div>
-              <p className="text-[10px] text-tod-text-muted leading-normal mt-0.5">
-                Bé Bo đã thể hiện sự thấu hiểu tuyệt vời thông qua các lựa chọn ứng xử trong truyện "Chiếc Bánh Quy Biết Bay".
+              <p className="text-[11px] text-tod-text-muted leading-relaxed">
+                {learningProfile?.comprehensionGoal ||
+                  `Phát triển tư duy nhận thức, bồi dưỡng lòng nhân ái và thói quen đọc sách cho ${childNickname}.`}
               </p>
             </div>
           </div>
@@ -138,17 +171,20 @@ export const ParentDeskNotebookDrawer: React.FC<ParentDeskNotebookDrawerProps> =
                 </div>
                 <div>
                   <h3 className="font-black text-xs text-tod-text">Chủ Đề Trò Chuyện Tối Nay</h3>
-                  <p className="text-[10px] text-purple-600 dark:text-purple-300 font-medium">Gợi ý câu hỏi AI dựa trên truyện hôm nay</p>
+                  <p className="text-[10px] text-purple-600 dark:text-purple-300 font-medium">
+                    Gợi ý câu hỏi AI dựa trên nội dung bé {childNickname} vừa đọc
+                  </p>
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-tod-surface border border-tod-border text-xs text-tod-text leading-relaxed font-medium">
-                "Hôm nay khi chú thỏ Bông nướng bánh quy và chia sẻ cho cả xóm làng, con cảm thấy hành động đó như thế nào? Nếu là con, con sẽ chia sẻ món quà nào cho bạn bè?"
+                "Hôm nay khi nhân vật trong câu chuyện đối diện với thử thách và chọn cách sẻ chia với bạn bè, con cảm thấy hành động đó như thế nào? Nếu là con, con sẽ xử lý ra sao?"
               </div>
 
               {/* Audio voice sample player */}
               <div className="flex items-center justify-between pt-1">
                 <button
+                  type="button"
                   onClick={() => setIsPlayingAudioSample(!isPlayingAudioSample)}
                   className="px-3 py-1.5 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-700 dark:text-purple-200 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer"
                 >
@@ -158,6 +194,7 @@ export const ParentDeskNotebookDrawer: React.FC<ParentDeskNotebookDrawerProps> =
 
                 <div className="flex items-center gap-1 text-xs">
                   <button
+                    type="button"
                     onClick={() => setFeedbackRating('like')}
                     className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
                       feedbackRating === 'like'
@@ -168,6 +205,7 @@ export const ParentDeskNotebookDrawer: React.FC<ParentDeskNotebookDrawerProps> =
                     👍
                   </button>
                   <button
+                    type="button"
                     onClick={() => setFeedbackRating('dislike')}
                     className={`p-1.5 rounded-lg border transition-all cursor-pointer ${
                       feedbackRating === 'dislike'
@@ -183,40 +221,48 @@ export const ParentDeskNotebookDrawer: React.FC<ParentDeskNotebookDrawerProps> =
           </div>
         )}
 
-        {/* TAB 3: READING ACTIVITY LOG & PDF REPORT */}
+        {/* TAB 3: READING ACTIVITY LOG */}
         {activeTab === 'activity' && (
           <div className="desk-tab-content-item flex flex-col gap-3">
             <div className="p-3 rounded-2xl bg-tod-card border border-tod-border flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-tod-text">Nhật Ký Đọc Gần Đây</span>
+                <span className="text-xs font-bold text-tod-text">Nhật Ký Truyện Của Bé</span>
                 <button
+                  type="button"
                   onClick={handleExportPdf}
                   disabled={isExportingPdf}
                   className="py-1 px-2.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-600 dark:text-emerald-300 font-extrabold text-[11px] flex items-center gap-1 transition-all cursor-pointer disabled:opacity-50"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>{isExportingPdf ? 'Đang Xuất...' : 'Xuất PDF Tuần'}</span>
+                  <span>{isExportingPdf ? 'Đang Xuất...' : 'Xuất Báo Cáo'}</span>
                 </button>
               </div>
 
               {/* Activity Rows */}
-              <div className="space-y-2 text-xs">
-                <div className="p-2 rounded-xl bg-tod-surface border border-tod-border flex items-center justify-between">
-                  <div>
-                    <strong className="text-tod-text block text-[11px]">Chiếc Bánh Quy Biết Bay Của Thỏ Bông</strong>
-                    <span className="text-[10px] text-tod-text-muted">12/03 • 8 phút • Bé An đồng tác giả AI</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold">100%</span>
+              {recentStories.length > 0 ? (
+                <div className="space-y-2 text-xs">
+                  {recentStories.map((story) => (
+                    <div
+                      key={story.id}
+                      className="p-2.5 rounded-xl bg-tod-surface border border-tod-border flex items-center justify-between"
+                    >
+                      <div className="min-w-0 pr-2">
+                        <strong className="text-tod-text block text-xs truncate">{story.title}</strong>
+                        <span className="text-[10px] text-tod-text-muted">
+                          {story.categoryName || story.ageBand} • {story.pages?.length || 1} trang • {story.isPublished ? 'Đã xuất bản' : 'Bản nháp'}
+                        </span>
+                      </div>
+                      <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold shrink-0">
+                        {story.status}
+                      </span>
+                    </div>
+                  ))}
                 </div>
-
-                <div className="p-2 rounded-xl bg-tod-surface border border-tod-border flex items-center justify-between">
-                  <div>
-                    <strong className="text-tod-text block text-[11px]">Khủng Long Dino Đi Tìm Mẹ Thần Tiên</strong>
-                    <span className="text-[10px] text-tod-text-muted">09/03 • 12 phút • Nghe trước ngủ</span>
-                  </div>
-                  <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-600 dark:text-emerald-300 text-[10px] font-bold">100%</span>
+              ) : (
+                <div className="py-6 text-center text-xs text-tod-text-muted">
+                  Bé chưa có truyện nào được tạo hoặc đọc gần đây.
                 </div>
-              </div>
+              )}
             </div>
           </div>
         )}

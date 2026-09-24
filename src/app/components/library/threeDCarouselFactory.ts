@@ -21,14 +21,15 @@ export function getShortestOffset(index: number, activeIndex: number, total: num
   return diff;
 }
 
-export function buildCarouselBookHolders(scene: THREE.Scene): BookMeshHolder[] {
+export function buildCarouselBookHolders(scene: THREE.Scene, customBooks?: WorkingVolumeBook[]): BookMeshHolder[] {
+  const booksToRender = customBooks && customBooks.length > 0 ? customBooks : WORKING_VOLUMES_BOOKS;
   const bookHolders: BookMeshHolder[] = [];
   const bW = 2.05;
   const bH = 2.68;
   const bThickness = 0.28;
   const coverT = 0.035;
 
-  WORKING_VOLUMES_BOOKS.forEach((book, bIdx) => {
+  booksToRender.forEach((book, bIdx) => {
     const bGroup = new THREE.Group();
     scene.add(bGroup);
 

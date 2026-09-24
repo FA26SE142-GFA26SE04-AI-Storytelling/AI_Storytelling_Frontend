@@ -16,6 +16,54 @@ export function generateSpreads(book: WorkingVolumeBook): PageSpread[] {
 
   const spreads: PageSpread[] = [];
 
+  // Nếu là sách trống
+  if (book.isEmptyPlaceholder) {
+    const canvas0 = document.createElement('canvas');
+    canvas0.width = W;
+    canvas0.height = H;
+    const ctx0 = canvas0.getContext('2d')!;
+    ctx0.fillStyle = book.color || '#27272a';
+    ctx0.fillRect(halfW, 0, halfW, H);
+    ctx0.strokeStyle = book.foil || '#71717a';
+    ctx0.lineWidth = 4;
+    ctx0.strokeRect(halfW + 60, 50, halfW - 120, H - 100);
+    ctx0.fillStyle = '#ffffff';
+    ctx0.font = 'bold 56px sans-serif';
+    ctx0.textAlign = 'center';
+    ctx0.fillText('KỆ SÁCH TRỐNG', halfW + halfW / 2, H / 2 - 20);
+    ctx0.fillStyle = book.foil || '#a1a1aa';
+    ctx0.font = 'bold 24px sans-serif';
+    ctx0.fillText('Chưa có truyện nào được phát hành', halfW + halfW / 2, H / 2 + 40);
+
+    spreads.push({
+      title: 'Kệ Sách Trống — Bìa',
+      subtitle: 'Chưa có truyện',
+      dataUrl: canvas0.toDataURL('image/png'),
+    });
+
+    const canvas1 = document.createElement('canvas');
+    canvas1.width = W;
+    canvas1.height = H;
+    const ctx1 = canvas1.getContext('2d')!;
+    ctx1.fillStyle = '#fbf7ee';
+    ctx1.fillRect(0, 0, W, H);
+    ctx1.fillStyle = '#09090b';
+    ctx1.font = 'bold 42px sans-serif';
+    ctx1.textAlign = 'center';
+    ctx1.fillText('Thư Viện Chưa Có Câu Chuyện Nào', W / 2, H / 2 - 30);
+    ctx1.fillStyle = '#71717a';
+    ctx1.font = '24px sans-serif';
+    ctx1.fillText('Hãy chuyển sang Laptop phụ huynh để sáng tạo câu chuyện AI cho bé!', W / 2, H / 2 + 30);
+
+    spreads.push({
+      title: 'Thông Báo',
+      subtitle: 'Thư viện trống',
+      dataUrl: canvas1.toDataURL('image/jpeg', 0.92),
+    });
+
+    return spreads;
+  }
+
   // --- Spread 0: Bìa trước đơn (Chỉ hiển thị nửa bên phải, sách đang đóng) ---
   {
     const canvas = document.createElement('canvas');

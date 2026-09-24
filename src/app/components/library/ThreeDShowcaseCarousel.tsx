@@ -2,7 +2,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import * as THREE from 'three';
-import { WORKING_VOLUMES_BOOKS } from '../three/room/textures/workingVolumesBooks';
+import { WORKING_VOLUMES_BOOKS, WorkingVolumeBook } from '../three/room/textures/workingVolumesBooks';
 import {
   BookMeshHolder,
   getShortestOffset,
@@ -11,6 +11,7 @@ import {
 } from './threeDCarouselFactory';
 
 export interface ThreeDShowcaseCarouselProps {
+  books?: WorkingVolumeBook[];
   activeIndex: number;
   isDetailOpen?: boolean;
   isExiting?: boolean;
@@ -19,6 +20,7 @@ export interface ThreeDShowcaseCarouselProps {
 }
 
 export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
+  books,
   activeIndex,
   isDetailOpen = false,
   isExiting = false,
@@ -99,7 +101,8 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
     scene.add(topLight);
 
     // 3. Build 3D Hardcover Book Models & Dimmer Backdrop
-    const bookHolders: BookMeshHolder[] = buildCarouselBookHolders(scene);
+    const booksList = books && books.length > 0 ? books : WORKING_VOLUMES_BOOKS;
+    const bookHolders: BookMeshHolder[] = buildCarouselBookHolders(scene, booksList);
     const { material: dimBackdropMat } = createBackdropDimmer(scene);
 
     // 4. State & Drag Variables
@@ -148,7 +151,7 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
         targetRotX = 0.04;
       }
 
-      const total = WORKING_VOLUMES_BOOKS.length;
+      const total = booksList.length;
       const timeSec = (now - startTime) * 0.0015;
 
       rotY += (targetRotY - rotY) * 0.12;
@@ -369,7 +372,7 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
       });
       renderer.dispose();
     };
-  }, []);
+  }, [books]);
 
   return (
     <div

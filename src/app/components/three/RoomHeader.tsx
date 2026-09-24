@@ -118,14 +118,32 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
               '6. Cặp Sách',
               '7. Laptop',
             ];
+            const isDeskStage = idx === 1;
+            const handleClick = () => {
+              if (isDeskStage && currentStage !== 1) {
+                // Chỉ vào bàn học khi chọn truyện - chuyển hướng người dùng sang Kệ Sách (Stage 2)
+                onStageChange(2);
+              } else {
+                onStageChange(idx);
+              }
+            };
+
+            const tooltipTitle =
+              isDeskStage && currentStage !== 1
+                ? 'Chọn truyện từ Kệ Sách để bắt đầu đọc tại Bàn Học'
+                : stg.name.split(' (')[0];
+
             const label = stationShortNames[idx] || stg.name.split(' (')[0];
+
             return (
               <button
                 key={stg.id}
-                onClick={() => onStageChange(idx)}
-                title={stg.name.split(' (')[0]}
+                onClick={handleClick}
+                title={tooltipTitle}
                 className={`header-stage-btn flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer whitespace-nowrap ${isActive
                     ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-zinc-950 shadow-md shadow-amber-500/20 scale-[1.02]'
+                    : isDeskStage && currentStage !== 1
+                    ? 'text-tod-text-muted/60 hover:text-tod-text hover:bg-tod-surface'
                     : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
                   }`}
               >

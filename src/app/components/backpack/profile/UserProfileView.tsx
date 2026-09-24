@@ -222,12 +222,12 @@ export const UserProfileView: React.FC<UserProfileViewProps> = ({
           </button>
 
           <button
-            onClick={() => onStageChange(1)}
+            onClick={() => onStageChange(2)}
             className="w-full p-2.5 rounded-xl bg-tod-card hover:bg-tod-surface border border-tod-border text-tod-text font-bold text-xs flex items-center justify-between transition-all cursor-pointer"
           >
             <div className="flex items-center gap-2">
               <BookOpen className="w-4 h-4 text-amber-500" />
-              <span>Xem Góc Bàn Học Của Bé</span>
+              <span>Đến Kệ Sách Chọn Truyện Đọc</span>
             </div>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
