@@ -1,10 +1,10 @@
 # 📖 MagicTales - AI Storytelling Platform
 
-[![Vercel Deployment](https://img.shields.io/badge/Vercel-Live%20Demo-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://ai-storytelling-frontend.vercel.app/)
+[![Vercel Deployment](https://img.shields.io/badge/Live%20Demo-taletale.site-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://www.taletale.site/)
 [![Next.js](https://img.shields.io/badge/Next.js-16.3-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 
-🌐 **Live Demo Website**: [https://ai-storytelling-frontend.vercel.app/](https://ai-storytelling-frontend.vercel.app/)
+🌐 **Live Demo Website**: [https://www.taletale.site/](https://www.taletale.site/)
 
 Nền tảng kể chuyện AI tương tác cho bé, giúp biến trí tưởng tượng thành những trang sách tranh rực rỡ và phát triển ngôn ngữ tự nhiên.
 
