@@ -99,11 +99,31 @@ export const DeskPageTurningBook: React.FC<DeskPageTurningBookProps> = ({
 
   // Khởi tạo danh sách Spreads từ book data
   useEffect(() => {
-    const spreads = generateSpreads(book);
-    setPageSpreads(spreads);
-    setCurrentPageIndex(0);
-    currentPageRef.current = 0;
-    setIsReady(true);
+    let isCancelled = false;
+    let loadedCover: HTMLImageElement | null = null;
+
+    const build = () => {
+      if (isCancelled) return;
+      const spreads = generateSpreads(book, loadedCover);
+      setPageSpreads(spreads);
+      setIsReady(true);
+    };
+
+    build();
+
+    if (book.coverImageUrl) {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = () => {
+        loadedCover = img;
+        build();
+      };
+      img.src = book.coverImageUrl;
+    }
+
+    return () => {
+      isCancelled = true;
+    };
   }, [book]);
 
   // CSS 3D Strip Page Turning Engine Ref States

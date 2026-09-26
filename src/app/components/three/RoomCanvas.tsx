@@ -539,7 +539,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
     // 3D Story Book đặt trên mặt bàn học
     const initialStory = (selectedBookId && WORKING_VOLUMES_BOOKS.find((b) => b.id === selectedBookId)) || WORKING_VOLUMES_BOOKS[2];
-    const { storyBookGroup, rightWing, notebookClickMesh, updateBook: updateStoryBook } = buildInteractiveStoryBook(initialStory);
+    const { storyBookGroup, leftWing, notebookClickMesh, updateBook: updateStoryBook } = buildInteractiveStoryBook(initialStory);
     deskGroup.add(storyBookGroup);
 
     updateDeskStoryBookRef.current = async (bookId: string | null) => {
@@ -820,10 +820,10 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
       // Quyển sách 3D trên bàn học: lật mở khi bấm đọc và gập lại khi đóng
       const isStoryOpen = currentStageIndexRef.current === 1 && isDeskBook3DOpen;
-      const targetWingRot = isStoryOpen ? 0.0 : Math.PI;
+      const targetWingRot = isStoryOpen ? 0.0 : -Math.PI;
       const targetWingPosY = isStoryOpen ? 0.002 : 0.014;
-      rightWing.rotation.z = THREE.MathUtils.lerp(rightWing.rotation.z, targetWingRot, 0.06);
-      rightWing.position.y = THREE.MathUtils.lerp(rightWing.position.y, targetWingPosY, 0.06);
+      leftWing.rotation.z = THREE.MathUtils.lerp(leftWing.rotation.z, targetWingRot, 0.06);
+      leftWing.position.y = THREE.MathUtils.lerp(leftWing.position.y, targetWingPosY, 0.06);
 
       // Laptop tự động mở nắp nghiêng chuẩn khi zoom vào góc Laptop (Stage 6) và gập đóng phẳng khi rời đi
       const isLaptopOpen = currentStageIndexRef.current === 6;

@@ -9,17 +9,23 @@ export interface StoryPageDto {
 export interface StoryDto {
   id: number;
   title: string;
+  description?: string | null;
   synopsis?: string | null;
   content?: string | null;
   coverImageUrl?: string | null;
+  genre?: string | null;
+  moralLesson?: string | null;
   ageBand: string;
+  language?: string;
+  source?: string;
   status: string;
   isPublished: boolean;
-  publishedAt?: string | null;
+  authorUserId?: number;
+  authorId?: number;
+  authorName?: string | null;
   createdAt: string;
   updatedAt?: string | null;
-  authorId: number;
-  authorName?: string | null;
+  publishedAt?: string | null;
   childProfileId?: number | null;
   childNickname?: string | null;
   categoryId?: number | null;

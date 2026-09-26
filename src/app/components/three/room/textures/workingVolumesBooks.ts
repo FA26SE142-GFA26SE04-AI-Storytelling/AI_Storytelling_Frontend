@@ -20,6 +20,22 @@ export interface WorkingVolumeBook {
   cropIndex: number;
   isEmptyPlaceholder?: boolean;
   isCustomStory?: boolean;
+  // DTO fields
+  storyId?: number;
+  description?: string | null;
+  content?: string | null;
+  coverImageUrl?: string | null;
+  genre?: string | null;
+  moralLesson?: string | null;
+  ageBand?: string;
+  language?: string;
+  source?: string;
+  status?: string;
+  isPublished?: boolean;
+  authorUserId?: number;
+  authorName?: string | null;
+  createdAt?: string;
+  updatedAt?: string | null;
 }
 
 export const WORKING_VOLUMES_BOOKS: WorkingVolumeBook[] = [
@@ -187,6 +203,8 @@ export function createWorkingVolumeCoverTexture(book: WorkingVolumeBook): THREE.
   canvas.height = 1120;
   const ctx = canvas.getContext('2d')!;
 
+  let loadedCoverImage: HTMLImageElement | null = null;
+
   const renderCover = () => {
     // 1. EMPTY PLACEHOLDER BOOK (Chưa có truyện: Sách trống không có tiêu đề)
     if (book.isEmptyPlaceholder) {
@@ -206,56 +224,166 @@ export function createWorkingVolumeCoverTexture(book: WorkingVolumeBook): THREE.
       return;
     }
 
-    // 2. CUSTOM STORY FROM BACKEND API
+    // 2. CUSTOM STORY FROM BACKEND API (Hoặc truyện có ảnh bìa)
     if (book.isCustomStory) {
+      // Background cloth/leather color
       ctx.fillStyle = book.color;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Double decorative foil frame
+      // Edge shading for realistic 3D book curvature
+      const edgeShade = ctx.createLinearGradient(0, 0, canvas.width, 0);
+      edgeShade.addColorStop(0, 'rgba(0,0,0,0.32)');
+      edgeShade.addColorStop(0.04, 'rgba(255,255,255,0.08)');
+      edgeShade.addColorStop(0.96, 'rgba(255,255,255,0.02)');
+      edgeShade.addColorStop(1, 'rgba(0,0,0,0.28)');
+      ctx.fillStyle = edgeShade;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Outer Decorative Foil Border
       ctx.strokeStyle = book.foil;
       ctx.lineWidth = 4;
-      ctx.strokeRect(45, 45, canvas.width - 90, canvas.height - 90);
+      ctx.strokeRect(40, 40, canvas.width - 80, canvas.height - 80);
       ctx.lineWidth = 2;
-      ctx.strokeRect(60, 60, canvas.width - 120, canvas.height - 120);
+      ctx.strokeRect(52, 52, canvas.width - 104, canvas.height - 104);
 
-      // Header
+      // Top Header: Series / Volume & Flourish
       ctx.fillStyle = book.foil;
-      ctx.font = 'bold 24px sans-serif';
+      ctx.font = 'bold 22px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(`MAGICTALES · TẬP ${book.volume}`, canvas.width / 2, 110);
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText(`✦   MAGICTALES · TẬP ${book.volume}   ✦`, canvas.width / 2, 92);
 
-      // Star flourish top
-      ctx.fillText('✦   ✦   ✦', canvas.width / 2, 155);
+      // Illustration Artwork Window
+      const imgX = 72;
+      const imgY = 125;
+      const imgW = canvas.width - 144;
+      const imgH = 540;
+      const cornerR = 24;
 
-      // Title (Multi-line centered with word wrap)
+      if (loadedCoverImage && loadedCoverImage.complete && loadedCoverImage.naturalWidth > 0) {
+        // Draw real cover image inside rounded clipping frame (object-fit: cover)
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(imgX, imgY, imgW, imgH, cornerR);
+        ctx.clip();
+
+        // Calculate aspect ratio cover math
+        const imgRatio = loadedCoverImage.naturalWidth / loadedCoverImage.naturalHeight;
+        const targetRatio = imgW / imgH;
+        let sWidth = loadedCoverImage.naturalWidth;
+        let sHeight = loadedCoverImage.naturalHeight;
+        let sx = 0;
+        let sy = 0;
+
+        if (imgRatio > targetRatio) {
+          sWidth = loadedCoverImage.naturalHeight * targetRatio;
+          sx = (loadedCoverImage.naturalWidth - sWidth) / 2;
+        } else {
+          sHeight = loadedCoverImage.naturalWidth / targetRatio;
+          sy = (loadedCoverImage.naturalHeight - sHeight) / 2;
+        }
+
+        ctx.drawImage(loadedCoverImage, sx, sy, sWidth, sHeight, imgX, imgY, imgW, imgH);
+
+        // Subtle inner vignette shadow for print depth
+        const imgVignette = ctx.createLinearGradient(imgX, imgY + imgH - 120, imgX, imgY + imgH);
+        imgVignette.addColorStop(0, 'rgba(0,0,0,0)');
+        imgVignette.addColorStop(1, 'rgba(0,0,0,0.5)');
+        ctx.fillStyle = imgVignette;
+        ctx.fillRect(imgX, imgY, imgW, imgH);
+
+        ctx.restore();
+      } else {
+        // Procedural magical illustration placeholder while loading or if no image
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(imgX, imgY, imgW, imgH, cornerR);
+        ctx.clip();
+
+        const skyGrad = ctx.createLinearGradient(imgX, imgY, imgX, imgY + imgH);
+        skyGrad.addColorStop(0, '#111827');
+        skyGrad.addColorStop(0.5, '#1e1b4b');
+        skyGrad.addColorStop(1, '#311042');
+        ctx.fillStyle = skyGrad;
+        ctx.fillRect(imgX, imgY, imgW, imgH);
+
+        // Glowing stars & crescent
+        ctx.fillStyle = '#fef08a';
+        ctx.beginPath();
+        ctx.arc(imgX + imgW / 2, imgY + imgH / 2 - 40, 50, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#1e1b4b';
+        ctx.beginPath();
+        ctx.arc(imgX + imgW / 2 + 18, imgY + imgH / 2 - 50, 44, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.font = 'bold 24px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('✨ Sáng Tạo Phép Màu ✨', imgX + imgW / 2, imgY + imgH / 2 + 80);
+
+        ctx.restore();
+      }
+
+      // Artwork Window Embossed Foil Border
+      ctx.strokeStyle = book.foil;
+      ctx.lineWidth = 4;
+      ctx.beginPath();
+      ctx.roundRect(imgX, imgY, imgW, imgH, cornerR);
+      ctx.stroke();
+
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.roundRect(imgX + 6, imgY + 6, imgW - 12, imgH - 12, cornerR - 4);
+      ctx.stroke();
+
+      // Title Section (Below artwork window)
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 54px sans-serif';
+      ctx.font = 'bold 44px sans-serif';
+      ctx.textAlign = 'center';
       const words = book.title.split(' ');
       let line = '';
-      let y = canvas.height / 2 - 80;
-      const maxW = canvas.width - 180;
+      let y = imgY + imgH + 60;
+      const maxW = canvas.width - 160;
 
       for (let i = 0; i < words.length; i++) {
         const testLine = line + words[i] + ' ';
         if (ctx.measureText(testLine).width > maxW && i > 0) {
           ctx.fillText(line.trim(), canvas.width / 2, y);
           line = words[i] + ' ';
-          y += 65;
+          y += 52;
         } else {
           line = testLine;
         }
       }
       ctx.fillText(line.trim(), canvas.width / 2, y);
 
-      // Category / Discipline
-      ctx.fillStyle = book.foil;
-      ctx.font = 'bold 26px sans-serif';
-      ctx.fillText(book.discipline.toUpperCase(), canvas.width / 2, y + 80);
+      // Genre Capsule Badge
+      const genreY = Math.min(y + 55, canvas.height - 110);
+      const genreText = (book.genre || book.discipline || 'TRUYỆN THIẾU NHI').toUpperCase();
+      ctx.font = 'bold 22px sans-serif';
+      const textMetrics = ctx.measureText(genreText);
+      const badgeW = Math.max(textMetrics.width + 48, 180);
+      const badgeH = 38;
 
-      // Bottom footer badge
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = 'bold 20px sans-serif';
-      ctx.fillText('THƯ VIỆN KỆ SÁCH 3D', canvas.width / 2, canvas.height - 90);
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.35)';
+      ctx.beginPath();
+      ctx.roundRect(canvas.width / 2 - badgeW / 2, genreY - 26, badgeW, badgeH, 19);
+      ctx.fill();
+
+      ctx.strokeStyle = book.foil;
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      ctx.fillStyle = book.foil;
+      ctx.fillText(genreText, canvas.width / 2, genreY);
+
+      // Bottom Inscription
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText(book.authorName ? `Tác giả: ${book.authorName}` : 'THƯ VIỆN KỆ SÁCH 3D', canvas.width / 2, canvas.height - 62);
       return;
     }
 
@@ -304,6 +432,21 @@ export function createWorkingVolumeCoverTexture(book: WorkingVolumeBook): THREE.
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   texture.anisotropy = 16;
+
+  // Asynchronous Image Loading for Cover
+  if (book.coverImageUrl) {
+    const coverImg = new Image();
+    coverImg.crossOrigin = 'anonymous';
+    coverImg.onload = () => {
+      loadedCoverImage = coverImg;
+      renderCover();
+      texture.needsUpdate = true;
+    };
+    coverImg.onerror = (err) => {
+      console.warn('Failed to load book cover image:', book.coverImageUrl, err);
+    };
+    coverImg.src = book.coverImageUrl;
+  }
 
   if (!atlasLoaded && !book.isCustomStory && !book.isEmptyPlaceholder) {
     pendingTextureUpdates.push(() => {
@@ -589,29 +732,47 @@ export function mapStoryDtoToWorkingVolumeBook(story: any, index: number = 0): W
   const volNum = String(index + 1).padStart(2, '0');
   const roman = ROMAN_NUMERALS[index % ROMAN_NUMERALS.length] || 'I';
 
-  const ageText = story.ageBand ? String(story.ageBand).replace(/Age_/i, 'Độ tuổi ').replace(/_/g, ' - ') : '';
-  const categoryOrGenre = story.categoryName || story.genre || (ageText ? ageText : 'Truyện AI Thiếu Nhi');
-  const synopsisOrDesc = story.description || story.synopsis || story.moralLesson || 'Một hành trình khám phá diệu kỳ cùng những bài học ý nghĩa.';
-  const fullContent = story.content || synopsisOrDesc;
+  const rawAge = story.ageBand || '';
+  const ageText = rawAge ? String(rawAge).replace(/Age_/i, 'Độ tuổi ').replace(/_/g, ' - ') : '';
+  const genre = story.genre || story.categoryName || 'Truyện Thiếu Nhi';
+  const description = story.description || story.synopsis || null;
+  const moralLesson = story.moralLesson || null;
+  const fullContent = story.content || description || 'Một hành trình khám phá diệu kỳ cùng những bài học ý nghĩa.';
 
   return {
     id: `story-${story.id}`,
     title: story.title || 'Câu Chuyện Phép Màu',
     roman,
     volume: volNum,
-    discipline: categoryOrGenre,
-    note: story.moralLesson || synopsisOrDesc,
-    deck: fullContent,
+    discipline: genre,
+    note: moralLesson || description || 'Bài học nuôi dưỡng tâm hồn và trí tưởng tượng cho bé.',
+    deck: description || fullContent,
     binding: p.binding,
     format: '150 × 220 mm · Ấn bản phép màu',
-    theme: `${categoryOrGenre} · ${ageText || 'Dành cho bé'}`,
-    motif: story.genre || 'Cánh cửa thần kỳ',
+    theme: `${genre} · ${ageText || 'Dành cho bé'}`,
+    motif: genre,
     motifKey: 'portal',
     paletteLabel: p.paletteLabel,
     color: p.color,
     foil: p.foil,
     cropIndex: p.cropIndex,
     isCustomStory: true,
+    // Story DTO attributes
+    storyId: story.id,
+    description: description,
+    content: story.content || null,
+    coverImageUrl: story.coverImageUrl || story.CoverImageUrl || story.coverImage || story.imageUrl || null,
+    genre: genre,
+    moralLesson: moralLesson,
+    ageBand: rawAge,
+    language: story.language || 'vi',
+    source: story.source || 'AI Sáng Tạo',
+    status: story.status || (story.isPublished ? 'Published' : 'Draft'),
+    isPublished: typeof story.isPublished === 'boolean' ? story.isPublished : true,
+    authorUserId: story.authorUserId || story.authorId || 0,
+    authorName: story.authorName || 'MagicTales Studio',
+    createdAt: story.createdAt || new Date().toISOString(),
+    updatedAt: story.updatedAt || null,
   };
 }
 

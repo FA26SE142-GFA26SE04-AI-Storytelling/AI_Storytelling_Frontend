@@ -11,7 +11,7 @@ export function buildDeskAndChair(
   matWoodAmber: THREE.Material,
   matWoodDark: THREE.Material,
   matCeramicWhite: THREE.Material,
-  matClosetBlue: THREE.Material,
+  _matClosetBlue: THREE.Material,
   matLampGreen: THREE.Material,
   matBrass: THREE.Material,
   matSwitchRed: THREE.Material,
@@ -64,12 +64,6 @@ export function buildDeskAndChair(
   mugHandle.position.set(0.22, 0.96 + 0.045, 0.28);
   mugHandle.rotation.y = Math.PI / 2;
   deskGroup.add(mugHandle);
-
-  // MONO Eraser Block on Desk
-  const eraser = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.012, 0.06), matClosetBlue);
-  eraser.position.set(-0.15, 0.963 + 0.006, -0.22);
-  eraser.rotation.y = 0.3;
-  deskGroup.add(eraser);
 
   // 1. Classic Japanese Anime Desk Lamp
   const deskLamp = new THREE.Group();
