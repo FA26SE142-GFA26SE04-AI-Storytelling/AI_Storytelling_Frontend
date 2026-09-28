@@ -219,3 +219,14 @@ export interface ArchiveResponseDto {
   status: string;
   archivedAt: string;
 }
+
+export interface MediaProgressDto {
+  storyId: number;
+  storyStatus: string;
+  jobStatus?: string;
+  sceneCount: number;
+  readyIllustrations: number;
+  readyAudio: number;
+  isReady: boolean;
+}
+

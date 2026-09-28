@@ -26,6 +26,10 @@ export interface ClosetAndWindowBuildResult {
   cloudMat: THREE.Material;
   starParticles: Array<{ mesh: THREE.Mesh; phase: number; baseRadius: number }>;
   cloudDriftObjects: Array<{ group: THREE.Group; baseZ: number; speed: number }>;
+  robotMeterMat: THREE.Material;
+  robotBtnRedMat: THREE.Material;
+  robotBtnYellowMat: THREE.Material;
+  robotHeadGroup: THREE.Group;
 }
 
 export function buildClosetAndWindow(
@@ -78,138 +82,570 @@ export function buildClosetAndWindow(
   cShelf.position.set(0, 1.15, 0.24);
   closetGroup.add(cShelf);
 
-  // --- Detailed Closet Interior Items ---
+  // --- Detailed 2-Tier Closet Interior Items (Tủ 2 ngăn: Ngăn trên tấm nệm, ngăn dưới hộp đồ đạc) ---
   const closetInteriorGroup = new THREE.Group();
 
-  // A. Hanging Clothes Rod (Chrome metal rod across upper section)
-  const clothesRod = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.012, 0.012, 2.04, 16),
-    matMetalLegs
+  // ==========================================
+  // 1. NGĂN TRÊN: TẤM NỆM ĐƯỢC TRẢI RA & CHÚ ROBOT ĐỒ CHƠI CHIBI ĐÁNG YÊU
+  // ==========================================
+  const futonTierGroup = new THREE.Group();
+
+  // A. Tấm nệm chính trải phẳng rộng khắp mặt sàn ngăn trên (Laid-out Futon Mattress - Blue Indigo)
+  const futonMattress = new THREE.Mesh(
+    new THREE.BoxGeometry(1.94, 0.07, 0.46),
+    new THREE.MeshStandardMaterial({ color: 0x1e40af, roughness: 0.70 })
   );
-  clothesRod.rotation.z = Math.PI / 2;
-  clothesRod.position.set(0, 1.95, 0.24);
-  closetInteriorGroup.add(clothesRod);
+  futonMattress.position.set(0, 1.185, 0.24);
+  futonMattress.castShadow = true;
+  futonMattress.receiveShadow = true;
+  futonTierGroup.add(futonMattress);
 
-  // B. Hanging Garments (Shirts & Jackets on wooden hangers)
-  const clothesData = [
-    { x: -0.82, color: 0x2563eb, width: 0.14, height: 0.58 }, // Left Side - Blue Navy Jacket
-    { x: -0.62, color: 0xdc2626, width: 0.12, height: 0.52 }, // Left Side - Red Shirt
-    { x: -0.42, color: 0xeab308, width: 0.13, height: 0.50 }, // Left Side - Yellow Hoodie
-    { x: 0.35, color: 0x166534, width: 0.14, height: 0.54 },  // Right Side - Green Coat
-    { x: 0.58, color: 0x475569, width: 0.13, height: 0.50 },  // Right Side - Grey Jacket
-    { x: 0.78, color: 0x9333ea, width: 0.12, height: 0.46 },  // Right Side - Purple Shirt
-  ];
+  // Lớp ga nệm mềm mại (Soft Bed Sheet Layer - Light Powder Blue)
+  const futonSheet = new THREE.Mesh(
+    new THREE.BoxGeometry(1.92, 0.015, 0.44),
+    new THREE.MeshStandardMaterial({ color: 0x93c5fd, roughness: 0.60 })
+  );
+  futonSheet.position.set(0, 1.225, 0.24);
+  futonSheet.castShadow = true;
+  futonSheet.receiveShadow = true;
+  futonTierGroup.add(futonSheet);
 
-  clothesData.forEach((item) => {
-    // Wooden Hanger
-    const hanger = new THREE.Mesh(
-      new THREE.TorusGeometry(0.07, 0.005, 8, 16, Math.PI),
-      matWoodAmber
-    );
-    hanger.position.set(item.x, 1.88, 0.24);
-    hanger.rotation.z = Math.PI;
-    closetInteriorGroup.add(hanger);
+  // B. Tấm chăn bông ấm áp được gấp phẳng gọn gàng ở nửa bên phải (Folded Comforter - Cream White)
+  const foldedQuiltRight = new THREE.Mesh(
+    new THREE.BoxGeometry(0.85, 0.08, 0.42),
+    new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.75 })
+  );
+  foldedQuiltRight.position.set(0.50, 1.27, 0.24);
+  foldedQuiltRight.castShadow = true;
+  foldedQuiltRight.receiveShadow = true;
+  futonTierGroup.add(foldedQuiltRight);
 
-    // Clothes Garment Box
-    const garment = new THREE.Mesh(
-      new THREE.BoxGeometry(item.width, item.height, 0.22),
-      new THREE.MeshStandardMaterial({ color: item.color, roughness: 0.5 })
-    );
-    garment.position.set(item.x, 1.88 - item.height / 2 - 0.02, 0.24);
-    garment.castShadow = true;
-    garment.receiveShadow = true;
-    closetInteriorGroup.add(garment);
+  // C. Cuộn chăn phụ / gối ôm đặt trên chăn bên phải (Accent Pillow - Cyan)
+  const accentPillowRight = new THREE.Mesh(
+    new THREE.BoxGeometry(0.46, 0.08, 0.24),
+    new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.6 })
+  );
+  accentPillowRight.position.set(0.50, 1.345, 0.24);
+  accentPillowRight.castShadow = true;
+  accentPillowRight.receiveShadow = true;
+  futonTierGroup.add(accentPillowRight);
+
+  // ==========================================
+  // D. CHÚ ROBOT ĐỒ CHƠI HÌNH VUÔNG RETRO VỚI CÁC KHỚP ĐỒNG BỘ (COHESIVE CUBIC BOX ROBOT)
+  // ==========================================
+  const robotGroup = new THREE.Group();
+  robotGroup.position.set(-0.38, 1.23, 0.24);
+  robotGroup.rotation.y = 0.15; // Hướng mặt ngộ nghĩnh về phía trước
+
+  // Bảng màu & Vật liệu tươi sáng cao cấp
+  const matBoxMain = new THREE.MeshStandardMaterial({
+    color: 0x0284c7, // Xanh Cyan/Sky Blue tươi sáng rõ nét
+    roughness: 0.28,
+    metalness: 0.15,
+  });
+  const matBoxAccent = new THREE.MeshStandardMaterial({
+    color: 0xfbbf24, // Vàng hổ phách sáng tươi tắn (đồng bộ bàn tay, bàn chân, núm tai và viền)
+    roughness: 0.25,
+    metalness: 0.25,
+  });
+  const matJointMetal = new THREE.MeshStandardMaterial({
+    color: 0x94a3b8, // Bạc sáng bóng cho các khớp cơ học
+    roughness: 0.18,
+    metalness: 0.85,
+  });
+  const matScreenDark = new THREE.MeshStandardMaterial({
+    color: 0x0f172a, // Kính màn hình đen bóng
+    roughness: 0.15,
+    metalness: 0.35,
+  });
+  const matGlowEye = new THREE.MeshBasicMaterial({
+    color: 0xfef08a, // Mắt vàng sáng ấm áp
+  });
+  const matAntennaGlow = new THREE.MeshBasicMaterial({
+    color: 0xf43f5e, // Đèn ăng-ten đỏ hồng tươi
   });
 
-  // C. Folded Futon & Bedding Stack on Left Middle Shelf
-  const futonStackGroup = new THREE.Group();
-  futonStackGroup.position.set(-0.62, 1.17, 0.24);
+  // Vật liệu đèn ngực nhấp nháy (Dynamic Blinking Chest Light Materials)
+  const robotMeterMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
+  const robotBtnRedMat = new THREE.MeshBasicMaterial({ color: 0xef4444 });
+  const robotBtnYellowMat = new THREE.MeshBasicMaterial({ color: 0xfbbf24 });
 
-  // Bottom Futon Mattress (Blue)
-  const futon1 = new THREE.Mesh(
-    new THREE.BoxGeometry(0.68, 0.12, 0.40),
-    new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.6 })
+  // ----------------------------------------------------
+  // 1. THÂN HÌNH HỘP & BẢNG ĐIỀU KHIỂN (CUBIC TORSO)
+  // ----------------------------------------------------
+  const torsoGroup = new THREE.Group();
+
+  // Khối thân hộp vuông chính
+  const torsoMain = new THREE.Mesh(
+    new THREE.BoxGeometry(0.18, 0.18, 0.14),
+    matBoxMain
   );
-  futon1.position.y = 0.06;
-  futon1.castShadow = true;
-  futonStackGroup.add(futon1);
+  torsoMain.position.set(0, 0.14, 0);
+  torsoMain.castShadow = true;
+  torsoMain.receiveShadow = true;
+  torsoGroup.add(torsoMain);
 
-  // Middle Folded Quilt (White/Cream)
-  const futon2 = new THREE.Mesh(
-    new THREE.BoxGeometry(0.62, 0.10, 0.38),
-    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.7 })
+  // Đế thắt lưng kim loại ở đáy thân
+  const pelvisBase = new THREE.Mesh(
+    new THREE.BoxGeometry(0.185, 0.025, 0.145),
+    matJointMetal
   );
-  futon2.position.y = 0.17;
-  futon2.castShadow = true;
-  futonStackGroup.add(futon2);
+  pelvisBase.position.set(0, 0.038, 0);
+  torsoGroup.add(pelvisBase);
 
-  // Soft Pillow on top (Yellow/Gold)
-  const pillow = new THREE.Mesh(
-    new THREE.BoxGeometry(0.42, 0.09, 0.28),
-    new THREE.MeshStandardMaterial({ color: 0xfde047, roughness: 0.5 })
+  // Màn hình bảng điều khiển trước ngực
+  const chestBezel = new THREE.Mesh(
+    new THREE.BoxGeometry(0.13, 0.09, 0.01),
+    matScreenDark
   );
-  pillow.position.set(0, 0.265, 0);
-  pillow.castShadow = true;
-  futonStackGroup.add(pillow);
-  closetInteriorGroup.add(futonStackGroup);
+  chestBezel.position.set(0, 0.15, 0.071);
+  torsoGroup.add(chestBezel);
 
-  // D. Memory Storage Boxes on Right Middle Shelf
-  const box1 = new THREE.Mesh(
-    new THREE.BoxGeometry(0.45, 0.22, 0.36),
+  // Vạch đo năng lượng xanh ngọc nhấp nháy trên màn hình
+  const meterBar = new THREE.Mesh(
+    new THREE.BoxGeometry(0.09, 0.016, 0.005),
+    robotMeterMat
+  );
+  meterBar.position.set(0, 0.17, 0.077);
+  torsoGroup.add(meterBar);
+
+  // 2 Nút bấm hình vuông nhỏ nhấp nháy
+  const btnRedSquare = new THREE.Mesh(
+    new THREE.BoxGeometry(0.022, 0.022, 0.01),
+    robotBtnRedMat
+  );
+  btnRedSquare.position.set(-0.03, 0.13, 0.076);
+  torsoGroup.add(btnRedSquare);
+
+  const btnYellowSquare = new THREE.Mesh(
+    new THREE.BoxGeometry(0.022, 0.022, 0.01),
+    robotBtnYellowMat
+  );
+  btnYellowSquare.position.set(0.03, 0.13, 0.076);
+  torsoGroup.add(btnYellowSquare);
+
+  robotGroup.add(torsoGroup);
+
+  // ----------------------------------------------------
+  // 2. KHỚP CỔ & ĐẦU HÌNH HỘP (CUBIC HEAD & NECK JOINT)
+  // ----------------------------------------------------
+  // Khớp cổ kim loại nối liền thân và đầu
+  const neckJoint = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.032, 0.032, 0.035, 16),
+    matJointMetal
+  );
+  neckJoint.position.set(0, 0.245, 0);
+  robotGroup.add(neckJoint);
+
+  const neckCollar = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.045, 0.045, 0.01, 16),
+    matBoxAccent
+  );
+  neckCollar.position.set(0, 0.235, 0);
+  robotGroup.add(neckCollar);
+
+  // Khối đầu hình hộp
+  const headGroup = new THREE.Group();
+  headGroup.position.set(0, 0.335, 0);
+
+  const headBox = new THREE.Mesh(
+    new THREE.BoxGeometry(0.17, 0.14, 0.14),
+    matBoxMain
+  );
+  headBox.castShadow = true;
+  headBox.receiveShadow = true;
+  headGroup.add(headBox);
+
+  // Màn hình mặt trước
+  const faceVisor = new THREE.Mesh(
+    new THREE.BoxGeometry(0.14, 0.09, 0.01),
+    matScreenDark
+  );
+  faceVisor.position.set(0, 0, 0.071);
+  headGroup.add(faceVisor);
+
+  // Đôi mắt tròn phát sáng gắn trên màn hình
+  const eyeL = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.020, 0.020, 0.005, 20),
+    matGlowEye
+  );
+  eyeL.rotation.x = Math.PI / 2;
+  eyeL.position.set(-0.038, 0.012, 0.077);
+  headGroup.add(eyeL);
+
+  const eyeR = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.020, 0.020, 0.005, 20),
+    matGlowEye
+  );
+  eyeR.rotation.x = Math.PI / 2;
+  eyeR.position.set(0.038, 0.012, 0.077);
+  headGroup.add(eyeR);
+
+  // Miệng robot dạng rãnh tản nhiệt
+  const mouthGrill = new THREE.Mesh(
+    new THREE.BoxGeometry(0.07, 0.012, 0.005),
+    matJointMetal
+  );
+  mouthGrill.position.set(0, -0.026, 0.077);
+  headGroup.add(mouthGrill);
+
+  // Tai ốc xoay cơ học 2 bên đầu gắn liền lạc
+  const earPinL = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.014, 0.014, 0.015, 16),
+    matJointMetal
+  );
+  earPinL.rotation.z = Math.PI / 2;
+  earPinL.position.set(-0.09, 0, 0);
+  headGroup.add(earPinL);
+
+  const earDialL = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.025, 0.025, 0.015, 16),
+    matBoxAccent
+  );
+  earDialL.rotation.z = Math.PI / 2;
+  earDialL.position.set(-0.098, 0, 0);
+  headGroup.add(earDialL);
+
+  const earPinR = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.014, 0.014, 0.015, 16),
+    matJointMetal
+  );
+  earPinR.rotation.z = Math.PI / 2;
+  earPinR.position.set(0.09, 0, 0);
+  headGroup.add(earPinR);
+
+  const earDialR = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.025, 0.025, 0.015, 16),
+    matBoxAccent
+  );
+  earDialR.rotation.z = Math.PI / 2;
+  earDialR.position.set(0.098, 0, 0);
+  headGroup.add(earDialR);
+
+  // Ăng-ten trên đỉnh đầu có đế gắn chắc chắn
+  const antBase = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.018, 0.018, 0.01, 16),
+    matJointMetal
+  );
+  antBase.position.set(0, 0.075, 0);
+  headGroup.add(antBase);
+
+  const antStem = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.004, 0.004, 0.055, 8),
+    matJointMetal
+  );
+  antStem.position.set(0, 0.105, 0);
+  headGroup.add(antStem);
+
+  const antBall = new THREE.Mesh(
+    new THREE.SphereGeometry(0.016, 16, 16),
+    matAntennaGlow
+  );
+  antBall.position.set(0, 0.138, 0);
+  headGroup.add(antBall);
+
+  robotGroup.add(headGroup);
+
+  // ----------------------------------------------------
+  // 3. KHỚP VAI, CÁNH TAY & BÀN TAY KẸP (SHOULDER & ARM JOINTS)
+  // ----------------------------------------------------
+  // --- TAY TRÁI (Thả chống nhẹ bên cạnh hông) ---
+  const leftArmGroup = new THREE.Group();
+  leftArmGroup.position.set(-0.09, 0.19, 0);
+
+  // Khớp vai kim loại
+  const shoulderJointL = new THREE.Mesh(
+    new THREE.SphereGeometry(0.022, 16, 16),
+    matJointMetal
+  );
+  leftArmGroup.add(shoulderJointL);
+
+  // Cánh tay hình hộp
+  const armMeshL = new THREE.Mesh(
+    new THREE.BoxGeometry(0.044, 0.11, 0.044),
+    matBoxMain
+  );
+  armMeshL.position.set(-0.025, -0.065, 0.01);
+  armMeshL.rotation.z = 0.14;
+  armMeshL.castShadow = true;
+  leftArmGroup.add(armMeshL);
+
+  // Khớp cổ tay kim loại gắn liền cánh tay
+  const wristJointL = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.014, 0.014, 0.018, 14),
+    matJointMetal
+  );
+  wristJointL.position.set(-0.038, -0.125, 0.01);
+  wristJointL.rotation.z = 0.14;
+  leftArmGroup.add(wristJointL);
+
+  // Bàn tay kẹp chữ C gắn liền vào cổ tay
+  const handBaseL = new THREE.Mesh(
+    new THREE.BoxGeometry(0.038, 0.032, 0.032),
+    matBoxAccent
+  );
+  handBaseL.position.set(-0.044, -0.145, 0.015);
+  leftArmGroup.add(handBaseL);
+
+  robotGroup.add(leftArmGroup);
+
+  // --- TAY PHẢI (Hạ xuống xuôi theo bên hông đồng bộ) ---
+  const rightArmGroup = new THREE.Group();
+  rightArmGroup.position.set(0.09, 0.19, 0);
+
+  // Khớp vai kim loại phải
+  const shoulderJointR = new THREE.Mesh(
+    new THREE.SphereGeometry(0.022, 16, 16),
+    matJointMetal
+  );
+  rightArmGroup.add(shoulderJointR);
+
+  // Cánh tay hình hộp hạ xuống tự nhiên
+  const armMeshR = new THREE.Mesh(
+    new THREE.BoxGeometry(0.044, 0.11, 0.044),
+    matBoxMain
+  );
+  armMeshR.position.set(0.025, -0.065, 0.01);
+  armMeshR.rotation.z = -0.14;
+  armMeshR.castShadow = true;
+  rightArmGroup.add(armMeshR);
+
+  // Khớp cổ tay kim loại
+  const wristJointR = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.014, 0.014, 0.018, 14),
+    matJointMetal
+  );
+  wristJointR.position.set(0.038, -0.125, 0.01);
+  wristJointR.rotation.z = -0.14;
+  rightArmGroup.add(wristJointR);
+
+  // Bàn tay kẹp chữ C gắn chắc chắn
+  const handBaseR = new THREE.Mesh(
+    new THREE.BoxGeometry(0.038, 0.032, 0.032),
+    matBoxAccent
+  );
+  handBaseR.position.set(0.044, -0.145, 0.015);
+  rightArmGroup.add(handBaseR);
+
+  robotGroup.add(rightArmGroup);
+
+  // ----------------------------------------------------
+  // 4. KHỚP HÔNG, CHÂN & BÀN CHÂN HÌNH HỘP (HIPS, LEGS & FEET)
+  // ----------------------------------------------------
+  // Trục hông kim loại kết nối ngang
+  const hipAxle = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.014, 0.014, 0.14, 16),
+    matJointMetal
+  );
+  hipAxle.rotation.z = Math.PI / 2;
+  hipAxle.position.set(0, 0.025, 0.03);
+  robotGroup.add(hipAxle);
+
+  // --- CHÂN TRÁI ---
+  const leftLegGroup = new THREE.Group();
+  leftLegGroup.position.set(-0.052, 0.025, 0.03);
+
+  // Khớp hông xoay
+  const hipJointL = new THREE.Mesh(
+    new THREE.SphereGeometry(0.018, 14, 14),
+    matJointMetal
+  );
+  leftLegGroup.add(hipJointL);
+
+  // Chân hình hộp duỗi thẳng ra phía trước
+  const legMeshL = new THREE.Mesh(
+    new THREE.BoxGeometry(0.050, 0.050, 0.12),
+    matBoxMain
+  );
+  legMeshL.position.set(0, 0.003, 0.065);
+  legMeshL.castShadow = true;
+  leftLegGroup.add(legMeshL);
+
+  // Khớp cổ chân kim loại
+  const ankleJointL = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.014, 0.014, 0.016, 14),
+    matJointMetal
+  );
+  ankleJointL.rotation.x = Math.PI / 2;
+  ankleJointL.position.set(0, 0.003, 0.13);
+  leftLegGroup.add(ankleJointL);
+
+  // Bàn chân hình hộp vuông vức ăn khớp
+  const footMeshL = new THREE.Mesh(
+    new THREE.BoxGeometry(0.054, 0.052, 0.045),
+    matBoxAccent
+  );
+  footMeshL.position.set(0, 0.005, 0.158);
+  footMeshL.castShadow = true;
+  leftLegGroup.add(footMeshL);
+
+  // Đế giày kim loại mỏng dưới đáy
+  const soleMeshL = new THREE.Mesh(
+    new THREE.BoxGeometry(0.056, 0.006, 0.047),
+    matJointMetal
+  );
+  soleMeshL.position.set(0, -0.021, 0.158);
+  leftLegGroup.add(soleMeshL);
+
+  robotGroup.add(leftLegGroup);
+
+  // --- CHÂN PHẢI ---
+  const rightLegGroup = new THREE.Group();
+  rightLegGroup.position.set(0.052, 0.025, 0.03);
+
+  // Khớp hông xoay phải
+  const hipJointR = new THREE.Mesh(
+    new THREE.SphereGeometry(0.018, 14, 14),
+    matJointMetal
+  );
+  rightLegGroup.add(hipJointR);
+
+  // Chân hình hộp duỗi thẳng ra trước
+  const legMeshR = new THREE.Mesh(
+    new THREE.BoxGeometry(0.050, 0.050, 0.12),
+    matBoxMain
+  );
+  legMeshR.position.set(0, 0.003, 0.065);
+  legMeshR.castShadow = true;
+  rightLegGroup.add(legMeshR);
+
+  // Khớp cổ chân kim loại
+  const ankleJointR = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.014, 0.014, 0.016, 14),
+    matJointMetal
+  );
+  ankleJointR.rotation.x = Math.PI / 2;
+  ankleJointR.position.set(0, 0.003, 0.13);
+  rightLegGroup.add(ankleJointR);
+
+  // Bàn chân hình hộp vuông vức
+  const footMeshR = new THREE.Mesh(
+    new THREE.BoxGeometry(0.054, 0.052, 0.045),
+    matBoxAccent
+  );
+  footMeshR.position.set(0, 0.005, 0.158);
+  footMeshR.castShadow = true;
+  rightLegGroup.add(footMeshR);
+
+  // Đế giày kim loại
+  const soleMeshR = new THREE.Mesh(
+    new THREE.BoxGeometry(0.056, 0.006, 0.047),
+    matJointMetal
+  );
+  soleMeshR.position.set(0, -0.021, 0.158);
+  rightLegGroup.add(soleMeshR);
+
+  robotGroup.add(rightLegGroup);
+
+  futonTierGroup.add(robotGroup);
+
+  closetInteriorGroup.add(futonTierGroup);
+
+  // ==========================================
+  // 2. NGĂN DƯỚI: CÁC HỘP ĐỒ ĐẠC (STORAGE BOXES & CONTAINERS)
+  // ==========================================
+  const boxesTierGroup = new THREE.Group();
+
+  // A. Hộp lưu trữ đồ đạc lớn bên trái có nắp & quai xách (Teal Fabric Storage Box)
+  const boxLeftLarge = new THREE.Mesh(
+    new THREE.BoxGeometry(0.58, 0.42, 0.40),
+    new THREE.MeshStandardMaterial({ color: 0x0f766e, roughness: 0.45 })
+  );
+  boxLeftLarge.position.set(-0.62, 0.27, 0.24);
+  boxLeftLarge.castShadow = true;
+  boxLeftLarge.receiveShadow = true;
+  boxesTierGroup.add(boxLeftLarge);
+
+  // Nắp hộp lớn bên trái
+  const boxLeftLid = new THREE.Mesh(
+    new THREE.BoxGeometry(0.60, 0.04, 0.42),
+    new THREE.MeshStandardMaterial({ color: 0x14b8a6, roughness: 0.4 })
+  );
+  boxLeftLid.position.set(-0.62, 0.50, 0.24);
+  boxesTierGroup.add(boxLeftLid);
+
+  // Tay cầm quai da hộp trái
+  const boxLeftHandle = new THREE.Mesh(
+    new THREE.BoxGeometry(0.14, 0.03, 0.02),
     new THREE.MeshStandardMaterial({ color: 0x92400e, roughness: 0.4 })
   );
-  box1.position.set(0.55, 1.28, 0.24);
-  box1.castShadow = true;
-  closetInteriorGroup.add(box1);
+  boxLeftHandle.position.set(-0.62, 0.30, 0.45);
+  boxesTierGroup.add(boxLeftHandle);
 
-  const box2 = new THREE.Mesh(
-    new THREE.BoxGeometry(0.38, 0.18, 0.32),
-    new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.4 })
+  // Hộp đồ phụ dẹt đặt trên hộp lớn bên trái (Beige Organizer Box)
+  const boxLeftTop = new THREE.Mesh(
+    new THREE.BoxGeometry(0.52, 0.20, 0.36),
+    new THREE.MeshStandardMaterial({ color: 0xfef3c7, roughness: 0.5 })
   );
-  box2.position.set(0.55, 1.48, 0.24);
-  box2.castShadow = true;
-  closetInteriorGroup.add(box2);
+  boxLeftTop.position.set(-0.62, 0.62, 0.24);
+  boxLeftTop.castShadow = true;
+  boxLeftTop.receiveShadow = true;
+  boxesTierGroup.add(boxLeftTop);
 
-  // E. Lower Storage Section (Dividers & Drawers)
-  const bottomShelf = new THREE.Mesh(new THREE.BoxGeometry(2.08, 0.04, 0.48), closetFrameMat);
-  bottomShelf.position.set(0, 0.58, 0.24);
-  closetInteriorGroup.add(bottomShelf);
-
-  const centerDivider = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.54, 0.48), closetFrameMat);
-  centerDivider.position.set(0, 0.30, 0.24);
-  closetInteriorGroup.add(centerDivider);
-
-  // Left Drawer Block with Chrome Handle
-  const drawerLeft = new THREE.Mesh(
-    new THREE.BoxGeometry(0.88, 0.44, 0.42),
-    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 })
+  // B. Hộp đồ đạc gỗ vintage ở giữa có nhãn (Wooden Storage Box with Label)
+  const boxCenterWood = new THREE.Mesh(
+    new THREE.BoxGeometry(0.54, 0.46, 0.40),
+    matWoodAmber
   );
-  drawerLeft.position.set(-0.50, 0.28, 0.24);
-  drawerLeft.castShadow = true;
-  closetInteriorGroup.add(drawerLeft);
+  boxCenterWood.position.set(0.02, 0.29, 0.24);
+  boxCenterWood.castShadow = true;
+  boxCenterWood.receiveShadow = true;
+  boxesTierGroup.add(boxCenterWood);
 
-  const drawerLeftHandle = new THREE.Mesh(
-    new THREE.BoxGeometry(0.18, 0.03, 0.025),
-    matWoodDark
+  // Nhãn ghi chú màu trắng trên hộp giữa
+  const centerBoxLabel = new THREE.Mesh(
+    new THREE.BoxGeometry(0.16, 0.09, 0.01),
+    new THREE.MeshBasicMaterial({ color: 0xffffff })
   );
-  drawerLeftHandle.position.set(-0.50, 0.28, 0.46);
-  closetInteriorGroup.add(drawerLeftHandle);
+  centerBoxLabel.position.set(0.02, 0.32, 0.445);
+  boxesTierGroup.add(centerBoxLabel);
 
-  // Right Drawer Block with Chrome Handle
-  const drawerRight = new THREE.Mesh(
-    new THREE.BoxGeometry(0.88, 0.44, 0.42),
-    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.3 })
+  // Hộp nhỏ màu xanh đặt trên hộp gỗ giữa (Navy Accent Box)
+  const boxCenterTop = new THREE.Mesh(
+    new THREE.BoxGeometry(0.46, 0.18, 0.34),
+    new THREE.MeshStandardMaterial({ color: 0x1e3a8a, roughness: 0.4 })
   );
-  drawerRight.position.set(0.50, 0.28, 0.24);
-  drawerRight.castShadow = true;
-  closetInteriorGroup.add(drawerRight);
+  boxCenterTop.position.set(0.02, 0.61, 0.24);
+  boxCenterTop.castShadow = true;
+  boxCenterTop.receiveShadow = true;
+  boxesTierGroup.add(boxCenterTop);
 
-  const drawerRightHandle = new THREE.Mesh(
-    new THREE.BoxGeometry(0.18, 0.03, 0.025),
-    matWoodDark
+  // C. Chồng 2 hộp đồ đạc gọn gàng bên phải (Stacked Right Boxes - Terracotta & Gold)
+  // Hộp dưới bên phải
+  const boxRightBottom = new THREE.Mesh(
+    new THREE.BoxGeometry(0.48, 0.36, 0.38),
+    new THREE.MeshStandardMaterial({ color: 0xc2410c, roughness: 0.45 })
   );
-  drawerRightHandle.position.set(0.50, 0.28, 0.46);
-  closetInteriorGroup.add(drawerRightHandle);
+  boxRightBottom.position.set(0.64, 0.24, 0.24);
+  boxRightBottom.castShadow = true;
+  boxRightBottom.receiveShadow = true;
+  boxesTierGroup.add(boxRightBottom);
+
+  const boxRightBottomLid = new THREE.Mesh(
+    new THREE.BoxGeometry(0.50, 0.035, 0.40),
+    new THREE.MeshStandardMaterial({ color: 0x9a3412, roughness: 0.4 })
+  );
+  boxRightBottomLid.position.set(0.64, 0.435, 0.24);
+  boxesTierGroup.add(boxRightBottomLid);
+
+  // Hộp trên bên phải
+  const boxRightTop = new THREE.Mesh(
+    new THREE.BoxGeometry(0.42, 0.26, 0.34),
+    new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.45 })
+  );
+  boxRightTop.position.set(0.64, 0.58, 0.24);
+  boxRightTop.castShadow = true;
+  boxRightTop.receiveShadow = true;
+  boxesTierGroup.add(boxRightTop);
+
+  const boxRightTopLid = new THREE.Mesh(
+    new THREE.BoxGeometry(0.44, 0.03, 0.36),
+    new THREE.MeshStandardMaterial({ color: 0xca8a04, roughness: 0.4 })
+  );
+  boxRightTopLid.position.set(0.64, 0.725, 0.24);
+  boxesTierGroup.add(boxRightTopLid);
+
+  closetInteriorGroup.add(boxesTierGroup);
 
   closetGroup.add(closetInteriorGroup);
 
@@ -689,5 +1125,9 @@ export function buildClosetAndWindow(
     cloudMat,
     starParticles,
     cloudDriftObjects,
+    robotMeterMat,
+    robotBtnRedMat,
+    robotBtnYellowMat,
+    robotHeadGroup: headGroup,
   };
 }

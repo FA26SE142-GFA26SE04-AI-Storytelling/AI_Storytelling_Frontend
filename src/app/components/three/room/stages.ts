@@ -73,8 +73,8 @@ export const STAGES: CameraStage[] = [
   {
     id: 'closet',
     name: '4. Tủ Trượt Âm Tường (Closet Panel B)',
-    camPos: [0.2, 1.6, -0.4],
-    targetPos: [0.9, 1.4, -2.1],
+    camPos: [0.40, 1.48, -0.35],
+    targetPos: [1.22, 1.40, -1.95],
   },
   {
     id: 'window',

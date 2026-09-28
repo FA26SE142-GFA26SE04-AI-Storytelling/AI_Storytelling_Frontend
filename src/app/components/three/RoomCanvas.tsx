@@ -173,6 +173,51 @@ function playLaptopSound(isOpen: boolean) {
   }
 }
 
+/**
+ * Hiệu ứng âm thanh trượt cửa gỗ Fusuma êm ái (Web Audio API)
+ */
+function playClosetDoorSound(isOpen: boolean) {
+  try {
+    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    const duration = 0.36;
+    const bufferSize = Math.floor(ctx.sampleRate * duration);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    // Tiếng ma sát thanh trượt gỗ mượt mà
+    for (let i = 0; i < bufferSize; i++) {
+      const t = i / (ctx.sampleRate * duration);
+      const env = Math.sin(t * Math.PI) * Math.exp(-t * 1.2);
+      data[i] = (Math.random() * 2 - 1) * env * 0.45;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(isOpen ? 460 : 380, now);
+    filter.frequency.exponentialRampToValueAtTime(isOpen ? 340 : 440, now + duration);
+    filter.Q.setValueAtTime(2.0, now);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.10, now + 0.06);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.start(now);
+  } catch {
+    // Ignore audio error
+  }
+}
+
 
 export interface RoomCanvasProps {
   currentStageIndex: number;
@@ -260,6 +305,12 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       } else if (prevStage === 6) {
         // Tự động gập nắp laptop lại khi rời khỏi góc Laptop
         playLaptopSound(false);
+      } else if (currentStageIndex === 3) {
+        // Tự động mở cánh cửa tủ bên trái khi zoom vào tủ trượt
+        setTimeout(() => playClosetDoorSound(true), 180);
+      } else if (prevStage === 3) {
+        // Tự động đóng cánh cửa tủ khi zoom out / rời khỏi tủ trượt
+        playClosetDoorSound(false);
       } else if (prevStage === 1) {
         // Tự động đóng sách nếu rời khỏi bàn học
         window.dispatchEvent(new CustomEvent('room:close-desk-book'));
@@ -453,6 +504,10 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       cloudMat,
       starParticles,
       cloudDriftObjects,
+      robotMeterMat,
+      robotBtnRedMat,
+      robotBtnYellowMat,
+      robotHeadGroup,
     } = buildClosetAndWindow(
       roomW,
       roomL,
@@ -610,8 +665,6 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       }
     });
 
-    let isLeftDoorOpen = false;
-    let isRightDoorOpen = false;
     let isDeskBook3DOpen = false;
 
     const triggerOpenDeskBook = () => {
@@ -830,11 +883,11 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       const targetLidAngle = isLaptopOpen ? -0.31 : Math.PI / 2;
       laptopLidGroup.rotation.x = THREE.MathUtils.lerp(laptopLidGroup.rotation.x, targetLidAngle, 0.022);
 
-      // Interactive Closet Doors independent smooth sliding animation
-      const targetDoorLeftX = isLeftDoorOpen ? 0.46 : -0.51;
-      const targetDoorRightX = isRightDoorOpen ? -0.46 : 0.51;
+      // Interactive Closet Doors: Tự động mở cánh cửa bên trái khi zoom vào tủ trượt (Stage 3) và đóng lại khi zoom out
+      const isClosetStage = currentStageIndexRef.current === 3;
+      const targetDoorLeftX = isClosetStage ? 0.46 : -0.51;
       fDoorLeft.position.x = THREE.MathUtils.lerp(fDoorLeft.position.x, targetDoorLeftX, 0.04);
-      fDoorRight.position.x = THREE.MathUtils.lerp(fDoorRight.position.x, targetDoorRightX, 0.04);
+      fDoorRight.position.x = THREE.MathUtils.lerp(fDoorRight.position.x, 0.51, 0.04);
 
       // Smooth 3D Showcase Books hover elevation animation (nhấc nhẹ sách 3D lên khi rê chuột)
       showcaseBooks.forEach((sb) => {
@@ -842,6 +895,54 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         const targetY = isHovered ? sb.baseY + 0.05 : sb.baseY;
         sb.group.position.y = THREE.MathUtils.lerp(sb.group.position.y, targetY, 0.08);
       });
+
+      // Robot Đồ Chơi: Đèn trên ngực nhấp nháy sinh động (Blinking Chest Indicators & Pulsing Energy Meter)
+      const robotTime = Date.now() * 0.005;
+      const isRedBlink = Math.sin(robotTime * 3.5) > 0.0;
+      (robotBtnRedMat as any).color.setHex(isRedBlink ? 0xef4444 : 0x3f0a0a);
+
+      const isYellowBlink = Math.sin(robotTime * 2.2 + 1.2) > -0.1;
+      (robotBtnYellowMat as any).color.setHex(isYellowBlink ? 0xfbbf24 : 0x452205);
+
+      const meterGlow = 0.55 + 0.45 * Math.sin(robotTime * 4.0);
+      (robotMeterMat as any).color.setRGB(0.06 * meterGlow, 0.95 * meterGlow, 0.55 * meterGlow);
+
+      // Robot Đồ Chơi: Cử động giật khấc cơ học đặc trưng của Robot / Động cơ Servo (Stepped Robotic / Servo-Motor Head Movement)
+      if (robotHeadGroup) {
+        // Chu kỳ cơ học chậm rãi 10.4 giây với thời gian dừng quan sát lâu hơn
+        const cycleMs = Date.now() % 10400;
+        let targetTiltZ = 0;
+        let targetTurnY = 0;
+        let targetNodX = 0.02;
+
+        if (cycleMs < 2800) {
+          // Pha 1 (0 - 2.8s): Đứng yên thẳng hàng, nhìn về phía trước
+          targetTiltZ = 0.0;
+          targetTurnY = 0.0;
+          targetNodX = 0.02;
+        } else if (cycleMs < 5600) {
+          // Pha 2 (2.8s - 5.6s): Giật nấc sang phải & nghiêng đầu tò mò
+          targetTiltZ = -0.22;
+          targetTurnY = 0.18;
+          targetNodX = 0.05;
+        } else if (cycleMs < 8200) {
+          // Pha 3 (5.6s - 8.2s): Giật nấc sang trái & nghiêng đầu sang hướng khác
+          targetTiltZ = 0.22;
+          targetTurnY = -0.16;
+          targetNodX = -0.01;
+        } else {
+          // Pha 4 (8.2s - 10.4s): Giật về giữa hơi ngước nhìn
+          targetTiltZ = 0.07;
+          targetTurnY = 0.04;
+          targetNodX = 0.04;
+        }
+
+        // Tốc độ servo cơ học đầm chắc, di chuyển chậm rãi vừa phải
+        const servoSpeed = 0.12;
+        robotHeadGroup.rotation.z = THREE.MathUtils.lerp(robotHeadGroup.rotation.z, targetTiltZ, servoSpeed);
+        robotHeadGroup.rotation.y = THREE.MathUtils.lerp(robotHeadGroup.rotation.y, targetTurnY, servoSpeed);
+        robotHeadGroup.rotation.x = THREE.MathUtils.lerp(robotHeadGroup.rotation.x, targetNodX, servoSpeed);
+      }
 
       // 3D-to-Screen Real-Time Projection cho các Icon Hotspot
       if (currentStageIndexRef.current === 0) {
@@ -935,8 +1036,8 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       const intersectsDoorLeft = raycaster.intersectObject(doorLeftClickMesh, true);
       const intersectsDoorRight = raycaster.intersectObject(doorRightClickMesh, true);
       if (intersectsDoorLeft.length > 0 || intersectsDoorRight.length > 0) {
-        if (onStageChangeRef.current) {
-          onStageChangeRef.current(3); // Zoom vào góc Tủ Trượt thay vì mở cánh tủ
+        if (currentStageIndexRef.current !== 3 && onStageChangeRef.current) {
+          onStageChangeRef.current(3); // Zoom vào góc Tủ Trượt (cánh trái sẽ tự động mở ra khi zoom)
         }
         return;
       }
@@ -1013,14 +1114,14 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       const intersectsLaptop = raycaster.intersectObject(laptopClickMesh, true);
 
       // Chỉ có thể tương tác với sách trên bàn khi đang ở Stage Bàn Học (Stage 1)
+      const isClosetHoverable = currentStageIndexRef.current !== 3 && (intersectsDoorLeft.length > 0 || intersectsDoorRight.length > 0);
       const isNotebookHoverable = currentStageIndexRef.current === 1 && intersectsNotebook.length > 0;
       const isLaptopHoverable = currentStageIndexRef.current !== 6 && intersectsLaptop.length > 0;
 
       if (
         matchedBookId !== null ||
         intersectsSwitch.length > 0 ||
-        intersectsDoorLeft.length > 0 ||
-        intersectsDoorRight.length > 0 ||
+        isClosetHoverable ||
         isNotebookHoverable ||
         isLaptopHoverable ||
         intersectsBag.length > 0 ||
@@ -1057,13 +1158,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       hintTimerRef.current = setTimeout(() => setSwitchHint(null), 2000);
     };
 
-    const handleToggleClosetEvent = () => {
-      isLeftDoorOpen = !isLeftDoorOpen;
-      isRightDoorOpen = !isRightDoorOpen;
-    };
-
     window.addEventListener('room:toggle-switch', handleToggleSwitchEvent);
-    window.addEventListener('room:toggle-closet', handleToggleClosetEvent);
 
     // Handle Window Resize
     const handleResize = () => {
@@ -1082,7 +1177,6 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('room:toggle-switch', handleToggleSwitchEvent);
-      window.removeEventListener('room:toggle-closet', handleToggleClosetEvent);
       domElem.removeEventListener('contextmenu', handleContextMenu);
       domElem.removeEventListener('pointerdown', handlePointerDown);
       domElem.removeEventListener('pointerup', handlePointerUp);

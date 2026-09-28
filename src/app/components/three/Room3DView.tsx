@@ -13,6 +13,7 @@ import { RoomHeader } from './RoomHeader';
 import { LibraryBookshelfZoomOverlay } from '../library/LibraryBookshelfZoomOverlay';
 import { DeskReadingViewOverlay } from '../desk/DeskReadingViewOverlay';
 import { ParentLaptopDashboardOverlay } from '../parents/ParentLaptopDashboardOverlay';
+import { ClosetStoryStudioOverlay } from '../closet/ClosetStoryStudioOverlay';
 import { BackpackAuthZoomOverlay } from '../backpack/BackpackAuthZoomOverlay';
 import { ChildEasyLoginOverlay } from '../child/ChildEasyLoginOverlay';
 import { ParentalGateModal } from '../common/ParentalGateModal';
@@ -116,9 +117,9 @@ export default function Room3DView() {
   }, [isChildModeActive, requestExitWithGate, setPendingGateDestinationStage]);
 
 
-  // GSAP: Hiệu ứng nút quay lại toàn cảnh khi Zoom vào Stage 3 hoặc 4
+  // GSAP: Hiệu ứng nút quay lại toàn cảnh khi Zoom vào Stage 4
   useGSAP(() => {
-    if (currentStage === 3 || currentStage === 4) {
+    if (currentStage === 4) {
       animatePopItem('.room-back-btn');
     }
   }, { scope: roomViewRef, dependencies: [currentStage] });
@@ -168,7 +169,7 @@ export default function Room3DView() {
       />
 
       {/* Nút Quay lại Toàn Cảnh khi Zoom vào các góc đồ vật */}
-      {(currentStage === 3 || currentStage === 4) && (
+      {currentStage === 4 && (
         <div className="fixed top-4 left-4 z-30 pointer-events-auto">
           <button
             onClick={() => handleStageChange(0)}
@@ -223,6 +224,17 @@ export default function Room3DView() {
           }}
           onClearSelectedBook={() => setSelectedBookStoryId(null)}
           is2DViewAvailable={false}
+        />
+      )}
+
+      {/* Interactive Story Studio Overlay when zoomed into Sliding Closet (Stage 3) */}
+      {currentStage === 3 && (
+        <ClosetStoryStudioOverlay
+          currentStage={currentStage}
+          onStageChange={handleStageChange}
+          timeOfDay={timeOfDay}
+          onTimeOfDayChange={handleTimeOfDayTransition}
+          onSelectBookToRead={(storyId) => setSelectedBookStoryId(storyId)}
         />
       )}
 

@@ -9,6 +9,7 @@ import {
   Briefcase,
   Lightbulb,
   DoorClosed,
+  Wand2,
 } from 'lucide-react';
 import { TimeOfDay } from './room/stages';
 
@@ -68,8 +69,8 @@ export function RoomInteractionGuideOverlay({
     },
     {
       id: 'closet',
-      title: 'Tủ Trượt Âm Tường',
-      icon: DoorClosed,
+      title: 'Xưởng Sáng Tác Truyện Thần Kỳ (Tủ Trượt)',
+      icon: Wand2,
       colorScheme: 'emerald',
       position: { top: '35%', left: '57%' },
       onClick: () => onStageChange(3),

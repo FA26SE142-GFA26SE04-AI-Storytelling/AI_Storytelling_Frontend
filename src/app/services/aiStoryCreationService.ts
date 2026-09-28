@@ -29,6 +29,7 @@ import {
   ApproveResponseDto,
   ArchiveRequestDto,
   ArchiveResponseDto,
+  MediaProgressDto,
 } from '../types/aiStory';
 import { authService } from './authService';
 import { API_BASE_URL } from './apiConfig';
@@ -694,6 +695,32 @@ export const aiStoryCreationService = {
     } catch (error) {
       console.error('Discard proposal error:', error);
       return { success: false, message: 'Lỗi hủy đề xuất.', data: null };
+    }
+  },
+
+  // ==========================================
+  // PHASE 5: MEDIA PRODUCTION MONITORING
+  // ==========================================
+
+  /**
+   * Theo dõi tiến độ sinh ảnh minh họa và giọng đọc audio (GET /api/v1/stories/{storyId}/media/progress)
+   */
+  async getMediaProgress(storyId: number): Promise<ApiResponse<MediaProgressDto | null>> {
+    try {
+      const response = await authService.authenticatedFetch(
+        `${API_BASE_URL}/stories/${storyId}/media/progress`,
+        { method: 'GET' }
+      );
+      const data = await parseJsonResponse<ApiResponse<MediaProgressDto>>(response);
+      return data ?? { success: false, message: 'Lỗi nạp tiến độ media.', data: null };
+    } catch (error) {
+      console.error('Get media progress error:', error);
+      return {
+        success: false,
+        message: 'Không thể theo dõi tiến độ sản xuất hình ảnh & giọng đọc.',
+        data: null,
+        errors: [(error as Error).message || 'Network error'],
+      };
     }
   },
 };
