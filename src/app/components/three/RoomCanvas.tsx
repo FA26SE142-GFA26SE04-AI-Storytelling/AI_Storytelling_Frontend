@@ -843,6 +843,39 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         sb.group.position.y = THREE.MathUtils.lerp(sb.group.position.y, targetY, 0.08);
       });
 
+      // 3D-to-Screen Real-Time Projection cho các Icon Hotspot
+      if (currentStageIndexRef.current === 0) {
+        const hotspotAnchors = [
+          { id: 'bookshelf', pos: new THREE.Vector3(-1.50, 0.75, -roomL / 2 + 0.35) },
+          { id: 'laptop', pos: new THREE.Vector3(-1.70, 0.42, 0.40) },
+          { id: 'backpack', pos: new THREE.Vector3(roomW / 2 - 0.50, 0.22, 0.45) },
+          { id: 'closet', pos: new THREE.Vector3(0.90, 1.35, -roomL / 2 + 0.35) },
+        ];
+
+        const w = container ? (container.clientWidth || window.innerWidth) : window.innerWidth;
+        const h = container ? (container.clientHeight || window.innerHeight) : window.innerHeight;
+        const tempV = new THREE.Vector3();
+
+        for (let i = 0; i < hotspotAnchors.length; i++) {
+          const anchor = hotspotAnchors[i];
+          const el = document.getElementById(`hotspot-pin-${anchor.id}`);
+          if (el) {
+            tempV.copy(anchor.pos);
+            tempV.project(camera);
+            if (tempV.z > 1) {
+              el.style.opacity = '0';
+              el.style.pointerEvents = 'none';
+            } else {
+              const screenX = (tempV.x * 0.5 + 0.5) * w;
+              const screenY = (-tempV.y * 0.5 + 0.5) * h;
+              el.style.opacity = '1';
+              el.style.pointerEvents = 'auto';
+              el.style.transform = `translate3d(${screenX}px, ${screenY}px, 0) translate(-50%, -50%)`;
+            }
+          }
+        }
+      }
+
       renderer.render(scene, camera);
       animId = requestAnimationFrame(animate);
     };
@@ -900,14 +933,11 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       }
 
       const intersectsDoorLeft = raycaster.intersectObject(doorLeftClickMesh, true);
-      if (intersectsDoorLeft.length > 0) {
-        isLeftDoorOpen = !isLeftDoorOpen;
-        return;
-      }
-
       const intersectsDoorRight = raycaster.intersectObject(doorRightClickMesh, true);
-      if (intersectsDoorRight.length > 0) {
-        isRightDoorOpen = !isRightDoorOpen;
+      if (intersectsDoorLeft.length > 0 || intersectsDoorRight.length > 0) {
+        if (onStageChangeRef.current) {
+          onStageChangeRef.current(3); // Zoom vào góc Tủ Trượt thay vì mở cánh tủ
+        }
         return;
       }
 
@@ -1017,6 +1047,24 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     domElem.addEventListener('pointermove', handlePointerMove);
     domElem.addEventListener('pointerleave', handlePointerLeave);
 
+    const handleToggleSwitchEvent = () => {
+      isCeilingLightActive = !isCeilingLightActive;
+      setIsCeilingLightOn(isCeilingLightActive);
+      setSwitchVisualState(isCeilingLightActive);
+      playLightSwitchSound(isCeilingLightActive);
+      setSwitchHint(isCeilingLightActive ? '💡 Đã BẬT đèn trần' : '🌙 Đã TẮT đèn trần');
+      if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
+      hintTimerRef.current = setTimeout(() => setSwitchHint(null), 2000);
+    };
+
+    const handleToggleClosetEvent = () => {
+      isLeftDoorOpen = !isLeftDoorOpen;
+      isRightDoorOpen = !isRightDoorOpen;
+    };
+
+    window.addEventListener('room:toggle-switch', handleToggleSwitchEvent);
+    window.addEventListener('room:toggle-closet', handleToggleClosetEvent);
+
     // Handle Window Resize
     const handleResize = () => {
       if (!container) return;
@@ -1033,8 +1081,8 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       if (hintTimerRef.current) clearTimeout(hintTimerRef.current);
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('room:trigger-open-desk-book', handleTriggerOpenEvent);
-      window.removeEventListener('room:close-desk-book', handleCloseEvent);
+      window.removeEventListener('room:toggle-switch', handleToggleSwitchEvent);
+      window.removeEventListener('room:toggle-closet', handleToggleClosetEvent);
       domElem.removeEventListener('contextmenu', handleContextMenu);
       domElem.removeEventListener('pointerdown', handlePointerDown);
       domElem.removeEventListener('pointerup', handlePointerUp);

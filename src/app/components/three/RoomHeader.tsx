@@ -87,20 +87,15 @@ export const RoomHeader: React.FC<RoomHeaderProps> = ({
         <div className="header-brand flex items-center gap-2 shrink-0">
           <Link
             href="/"
-            className="flex items-center gap-2 group p-1 rounded-xl hover:bg-tod-card/50 transition-all"
-            title="Trang Chủ MagicTales 3D Studio"
+            className="flex items-center gap-2.5 group p-1 rounded-xl hover:bg-tod-card/50 transition-all"
+            title="Trang Chủ Taletale"
           >
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform">
-              <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 fill-white/20" />
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-amber-400 via-rose-500 to-indigo-500 flex items-center justify-center text-white shadow-md shadow-rose-500/20 group-hover:scale-105 transition-transform shrink-0">
+              <BookOpen className="w-5 h-5 sm:w-5.5 sm:h-5.5 fill-white/20" />
             </div>
-            <div className="hidden xl:flex flex-col">
-              <span className="font-black text-xs sm:text-sm tracking-tight bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 bg-clip-text text-transparent">
-                MagicTales 3D
-              </span>
-              <span className="text-[8px] sm:text-[9px] font-bold text-tod-text-muted uppercase tracking-widest -mt-0.5">
-                Studio Phòng 3D
-              </span>
-            </div>
+            <span className="hidden xl:inline-block font-black text-lg sm:text-xl lg:text-2xl tracking-tight bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-500 bg-clip-text text-transparent leading-none">
+              Taletale
+            </span>
           </Link>
         </div>
 

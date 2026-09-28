@@ -20,6 +20,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useChildSession } from '../../context/ChildSessionContext';
 import { childProfileService } from '../../services/childProfileService';
 import { ChildProfile } from '../../types/childProfile';
+import { RoomInteractionGuideOverlay } from './RoomInteractionGuideOverlay';
 import { ArrowLeft } from 'lucide-react';
 
 import { useRoomUrlParams } from '../../utils/useRoomUrlParams';
@@ -187,6 +188,13 @@ export default function Room3DView() {
         onTimeOfDayChange={handleTimeOfDayTransition}
         selectedBookId={selectedBookStoryId}
         onSelectBook={(storyId) => setSelectedBookStoryId(storyId)}
+      />
+
+      {/* Interactive Guidance & Hotspots Overlay for 3D Room (Stage 0) */}
+      <RoomInteractionGuideOverlay
+        currentStage={currentStage}
+        onStageChange={handleStageChange}
+        timeOfDay={timeOfDay}
       />
 
       {/* Interactive Clean Floating Desk Reading Overlay when zoomed into Desk (Stage 1) */}

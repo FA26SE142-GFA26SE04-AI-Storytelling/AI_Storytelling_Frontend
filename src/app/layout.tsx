@@ -19,7 +19,7 @@ const nunitoSans = Nunito_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "MagicTales 3D - Nền tảng Kể chuyện AI 3D cho Bé",
+  title: "Taletale - Nền tảng Kể chuyện AI 3D cho Bé",
   description: "Biến trí tưởng tượng phong phú của con thành không gian 3D tương tác sống động và hấp dẫn.",
 };
 
