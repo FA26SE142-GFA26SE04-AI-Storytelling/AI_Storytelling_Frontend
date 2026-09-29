@@ -99,53 +99,55 @@ export const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 
       {/* Right Controls: Nhập Mã Mời, User Profile Pill, TimeOfDay, 2D View Switcher */}
       <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap justify-end">
-        {onOpenNotificationDrawer && (
-          <button
-            type="button"
-            onClick={onOpenNotificationDrawer}
-            className="relative p-2 rounded-xl bg-tod-card hover:bg-tod-surface border border-tod-border text-tod-text transition-all cursor-pointer hover:border-indigo-500/40"
-            title="Xem thông báo"
-          >
-            <Bell className="w-4 h-4 text-indigo-400" />
-            {unreadNotificationsCount !== undefined && unreadNotificationsCount > 0 && (
-              <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-black shadow-sm">
-                {unreadNotificationsCount}
-              </span>
-            )}
-          </button>
-        )}
-
-        {onOpenAcceptInviteModal && (
-          <button
-            type="button"
-            onClick={onOpenAcceptInviteModal}
-            className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
-            title="Nhập mã hoặc quét QR để nhận quyền giám sát bé"
-          >
-            <QrCode className="w-3.5 h-3.5 text-white" />
-            <span>Nhập Mã Mời / QR</span>
-          </button>
-        )}
-
         {user ? (
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-tod-card rounded-xl border border-tod-border text-xs transition-colors duration-500">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center font-black text-[11px] text-white">
-              {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username ? user.username.charAt(0).toUpperCase() : 'P'}
+          <>
+            {onOpenNotificationDrawer && (
+              <button
+                type="button"
+                onClick={onOpenNotificationDrawer}
+                className="relative p-2 rounded-xl bg-tod-card hover:bg-tod-surface border border-tod-border text-tod-text transition-all cursor-pointer hover:border-indigo-500/40"
+                title="Xem thông báo"
+              >
+                <Bell className="w-4 h-4 text-indigo-400" />
+                {unreadNotificationsCount !== undefined && unreadNotificationsCount > 0 && (
+                  <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-black shadow-sm">
+                    {unreadNotificationsCount}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {onOpenAcceptInviteModal && (
+              <button
+                type="button"
+                onClick={onOpenAcceptInviteModal}
+                className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
+                title="Nhập mã hoặc quét QR để nhận quyền giám sát bé"
+              >
+                <QrCode className="w-3.5 h-3.5 text-white" />
+                <span>Nhập Mã Mời / QR</span>
+              </button>
+            )}
+
+            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-tod-card rounded-xl border border-tod-border text-xs transition-colors duration-500">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center font-black text-[11px] text-white">
+                {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username ? user.username.charAt(0).toUpperCase() : 'P'}
+              </div>
+              <div className="text-left">
+                <span className="text-[11px] font-bold text-tod-text block leading-tight">
+                  {user.fullName || user.username || 'Phụ Huynh'}
+                </span>
+                <span className="text-[9px] text-emerald-500 block leading-tight font-medium">
+                  {user.role || 'Phụ Huynh'}
+                </span>
+              </div>
             </div>
-            <div className="text-left">
-              <span className="text-[11px] font-bold text-tod-text block leading-tight">
-                {user.fullName || user.username || 'Phụ Huynh'}
-              </span>
-              <span className="text-[9px] text-emerald-500 block leading-tight font-medium">
-                {user.role || 'Phụ Huynh'}
-              </span>
-            </div>
-          </div>
+          </>
         ) : (
           <button
             type="button"
             onClick={() => onStageChange?.(4)}
-            className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-sky-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
+            className="py-1.5 px-3.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-sky-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
             title="Đăng nhập tài khoản"
           >
             <LogIn className="w-3.5 h-3.5 text-white" />

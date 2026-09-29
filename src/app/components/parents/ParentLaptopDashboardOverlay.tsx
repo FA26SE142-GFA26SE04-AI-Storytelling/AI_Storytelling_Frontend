@@ -253,7 +253,7 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
 
               {/* TAB 2: ASSIGNMENT MANAGEMENT (LUỒNG 4.1 & 4.1b & 4.4) */}
               {activeTab === 'assignments' && (
-                <AssignmentManagerTab />
+                <AssignmentManagerTab onLogin={() => onStageChange(4)} />
               )}
 
               {/* TAB 3: COMMUNITY SHARING & CLASS GATEKEEPING (LUỒNG 4.2) */}

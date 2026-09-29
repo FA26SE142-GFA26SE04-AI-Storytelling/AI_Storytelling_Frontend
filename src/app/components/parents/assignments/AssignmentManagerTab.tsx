@@ -6,6 +6,7 @@ import {
   Plus,
   Search,
   Sparkles,
+  LogIn,
 } from 'lucide-react';
 import { flow4Service } from '../../../services/flow4Service';
 import {
@@ -19,7 +20,11 @@ import { O2OScoringModal } from './O2OScoringModal';
 
 import { useAuth } from '../../../context/AuthContext';
 
-export const AssignmentManagerTab: React.FC = () => {
+export interface AssignmentManagerTabProps {
+  onLogin?: () => void;
+}
+
+export const AssignmentManagerTab: React.FC<AssignmentManagerTabProps> = ({ onLogin }) => {
   const { user } = useAuth();
   const [assignments, setAssignments] = useState<AssignmentItem[]>([]);
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -92,13 +97,23 @@ export const AssignmentManagerTab: React.FC = () => {
           </p>
         </div>
 
-        <button
-          onClick={() => setIsCreateModalOpen(true)}
-          className="btn-dashboard-primary px-4 py-2.5 rounded-xl text-xs font-extrabold text-zinc-950 flex items-center gap-2 shadow-lg shadow-indigo-500/20 cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Giao bài mới</span>
-        </button>
+        {user ? (
+          <button
+            onClick={() => setIsCreateModalOpen(true)}
+            className="btn-dashboard-primary px-4 py-2.5 rounded-xl text-xs font-extrabold text-zinc-950 flex items-center gap-2 shadow-lg shadow-indigo-500/20 cursor-pointer self-start sm:self-auto"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Giao bài mới</span>
+          </button>
+        ) : (
+          <button
+            onClick={onLogin}
+            className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-xs flex items-center gap-2 shadow-lg shadow-sky-500/20 cursor-pointer self-start sm:self-auto hover:scale-105 active:scale-95"
+          >
+            <LogIn className="w-4 h-4" />
+            <span>Đăng Nhập</span>
+          </button>
+        )}
       </div>
 
       {/* Action Feedback Notification */}

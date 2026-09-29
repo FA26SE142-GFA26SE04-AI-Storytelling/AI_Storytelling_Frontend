@@ -73,39 +73,41 @@ export const ChildProfilesSidebar: React.FC<ChildProfilesSidebarProps> = ({
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={onRefresh}
-            title="Tải lại danh sách bé"
-            className="p-1.5 rounded-lg bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text transition-colors cursor-pointer shrink-0"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${isLoadingChildren ? 'animate-spin text-sky-500' : ''}`} />
-          </button>
-          {onOpenAcceptInviteModal && (
-            <button
-              type="button"
-              onClick={onOpenAcceptInviteModal}
-              title="Nhập mã mời hoặc quét QR để nhận giám sát"
-              className="px-2 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              <span>Nhập Mã</span>
-            </button>
-          )}
           {isLoggedIn ? (
-            <button
-              type="button"
-              onClick={onOpenAddChildModal}
-              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-md shadow-sky-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 hover:scale-105 active:scale-95"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Thêm Bé</span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={onRefresh}
+                title="Tải lại danh sách bé"
+                className="p-1.5 rounded-lg bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text transition-colors cursor-pointer shrink-0"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingChildren ? 'animate-spin text-sky-500' : ''}`} />
+              </button>
+              {onOpenAcceptInviteModal && (
+                <button
+                  type="button"
+                  onClick={onOpenAcceptInviteModal}
+                  title="Nhập mã mời hoặc quét QR để nhận giám sát"
+                  className="px-2 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
+                >
+                  <QrCode className="w-3.5 h-3.5" />
+                  <span>Nhập Mã</span>
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onOpenAddChildModal}
+                className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-md shadow-sky-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 hover:scale-105 active:scale-95"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Thêm Bé</span>
+              </button>
+            </>
           ) : (
             <button
               type="button"
               onClick={onLogin}
-              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-[11px] flex items-center gap-1.5 shadow-md shadow-sky-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 hover:scale-105 active:scale-95"
+              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-sky-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 hover:scale-105 active:scale-95"
               title="Đăng nhập tài khoản"
             >
               <LogIn className="w-3.5 h-3.5" />
