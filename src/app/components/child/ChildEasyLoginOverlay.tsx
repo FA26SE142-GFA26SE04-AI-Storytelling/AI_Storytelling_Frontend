@@ -7,16 +7,13 @@ import { animateModalPop } from '../../utils/gsapAnimations';
 import {
   Sparkles,
   X,
-  Lock,
   ArrowLeft,
   QrCode,
-  CheckCircle2,
-  AlertCircle,
   Delete,
   BookOpen,
 } from 'lucide-react';
 import { ChildProfile } from '../../types/childProfile';
-import { CHILD_AVATAR_LIST, ChildAccessCredential } from '../../types/childCredential';
+import { CHILD_AVATAR_LIST } from '../../types/childCredential';
 import { childAccessCredentialService } from '../../services/childAccessCredentialService';
 
 gsap.registerPlugin(useGSAP);

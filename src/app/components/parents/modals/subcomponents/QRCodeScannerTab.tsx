@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Upload, AlertCircle, RefreshCw, QrCode, Sparkles } from 'lucide-react';
+import { Camera, Upload, AlertCircle, QrCode } from 'lucide-react';
 
 export interface QRCodeScannerTabProps {
   onCodeDetected: (code: string) => void;

@@ -5,11 +5,9 @@ import {
   KeyRound,
   Eye,
   EyeOff,
-  Sparkles,
   QrCode,
   Play,
   RotateCcw,
-  ShieldCheck,
   Lock,
 } from 'lucide-react';
 import { ChildProfile } from '../../../types/childProfile';

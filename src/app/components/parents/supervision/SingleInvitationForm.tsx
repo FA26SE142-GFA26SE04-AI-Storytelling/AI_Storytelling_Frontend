@@ -9,7 +9,6 @@ import {
   Share2,
   GraduationCap,
   Users,
-  Info,
   Sparkles,
   Phone,
 } from 'lucide-react';

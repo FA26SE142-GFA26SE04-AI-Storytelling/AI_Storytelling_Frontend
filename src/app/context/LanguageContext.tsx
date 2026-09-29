@@ -5,7 +5,7 @@ import { DEFAULT_LANGUAGE, LanguageOption, SUPPORTED_LANGUAGES } from '../i18n/c
 import { vi } from '../i18n/locales/vi';
 import { en } from '../i18n/locales/en';
 
-type Dictionary = Record<string, any>;
+type Dictionary = Record<string, unknown>;
 
 const dictionaries: Record<string, Dictionary> = {
   vi,
@@ -24,7 +24,12 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 
 // Helper to extract nested key string (e.g. 'hero.badges.safe')
 function getNestedValue(obj: Dictionary, path: string): string | undefined {
-  const res = path.split('.').reduce((prev: any, curr: string) => (prev && prev[curr] !== undefined ? prev[curr] : undefined), obj);
+  const res = path.split('.').reduce((prev: unknown, curr: string) => {
+    if (prev && typeof prev === 'object' && curr in prev) {
+      return (prev as Record<string, unknown>)[curr];
+    }
+    return undefined;
+  }, obj);
   return typeof res === 'string' ? res : undefined;
 }
 

@@ -4,16 +4,12 @@ import React, { useState, useEffect } from 'react';
 import {
   BookOpen,
   Sparkles,
-  HelpCircle,
-  MessageCircle,
   Edit3,
   Check,
   CheckCircle2,
   AlertCircle,
   Loader2,
   ArrowRight,
-  Plus,
-  Trash2,
 } from 'lucide-react';
 import { aiStoryCreationService } from '../../../services/aiStoryCreationService';
 import { ReviewPackageDto, VocabularyItemDto, QuizQuestionDto, DiscussionPromptDto } from '../../../types/aiStory';
@@ -30,7 +26,7 @@ export const Step4_ReviewAndFineTune: React.FC<Step4_ReviewAndFineTuneProps> = (
   onProceedToMedia,
   onBack,
 }) => {
-  const [reviewPackage, setReviewPackage] = useState<ReviewPackageDto | null>(null);
+  const [_reviewPackage, setReviewPackage] = useState<ReviewPackageDto | null>(null);
   const [activeTab, setActiveTab] = useState<'vocab' | 'quiz' | 'discussion'>('vocab');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isApproving, setIsApproving] = useState<boolean>(false);
@@ -100,7 +96,7 @@ export const Step4_ReviewAndFineTune: React.FC<Step4_ReviewAndFineTuneProps> = (
   };
 
   // Partial AI rewrite call
-  const handleAiRewriteSnippet = async (prompt: string, text: string): Promise<string | null> => {
+  const handleAiRewriteSnippet = async (_prompt: string, _text: string): Promise<string | null> => {
     // Simulated quick snippet adjustment
     await new Promise((r) => setTimeout(r, 1200));
     return `Chú Sóc Bông tươi cười, cẩn thận nhường những quả hạt dẻ thơm ngon nhất cho bạn Thỏ trắng.`;

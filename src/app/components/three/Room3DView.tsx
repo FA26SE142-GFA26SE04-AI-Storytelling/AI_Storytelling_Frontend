@@ -7,7 +7,7 @@ import { animatePopItem, triggerCircularRevealTransition } from '../../utils/gsa
 
 gsap.registerPlugin(useGSAP);
 
-import { RoomCanvas, STAGES, TimeOfDay } from './RoomCanvas';
+import { RoomCanvas, TimeOfDay } from './RoomCanvas';
 import { getVietnamTimeOfDay } from './room/stages';
 import { RoomHeader } from './RoomHeader';
 import { LibraryBookshelfZoomOverlay } from '../library/LibraryBookshelfZoomOverlay';

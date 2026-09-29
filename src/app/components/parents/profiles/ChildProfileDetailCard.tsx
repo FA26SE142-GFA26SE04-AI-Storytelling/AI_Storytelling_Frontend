@@ -2,7 +2,6 @@
 
 import React from 'react';
 import {
-  User,
   Edit3,
   Trash2,
   Save,

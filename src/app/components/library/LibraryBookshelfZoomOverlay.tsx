@@ -5,14 +5,12 @@ import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import {
   ArrowLeft,
-  BookOpen,
-  Sparkles,
   Grid,
 } from 'lucide-react';
 import { TimeOfDay } from '../three/RoomCanvas';
 import { TimeOfDaySwitcher } from '../common/TimeOfDaySwitcher';
 import { BookshelfSelectorFrame } from './BookshelfSelectorFrame';
-import { animateHeaderDown, animateFooterUp } from '../../utils/gsapAnimations';
+import { animateHeaderDown } from '../../utils/gsapAnimations';
 
 gsap.registerPlugin(useGSAP);
 

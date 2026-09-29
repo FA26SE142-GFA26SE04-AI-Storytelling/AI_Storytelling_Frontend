@@ -92,6 +92,7 @@ export const QRCodeModal: React.FC<QRCodeModalProps> = ({
           <div className="p-4 rounded-2xl bg-tod-surface border border-tod-border shadow-inner flex flex-col items-center gap-3">
             <div className="w-52 h-52 rounded-xl overflow-hidden bg-white p-2 border border-tod-border flex items-center justify-center">
               {/* Fallback to simple QR image */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src={qrImageUrl}
                 alt={`QR code cho mã mời ${invitationCode}`}

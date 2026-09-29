@@ -7,9 +7,8 @@ import {
   BookOpen,
   Laptop,
   Briefcase,
-  Lightbulb,
-  DoorClosed,
   Wand2,
+  Sparkles,
 } from 'lucide-react';
 import { TimeOfDay } from './room/stages';
 
@@ -34,7 +33,7 @@ interface RoomInteractionGuideOverlayProps {
 export function RoomInteractionGuideOverlay({
   currentStage,
   onStageChange,
-  timeOfDay,
+  timeOfDay: _timeOfDay,
 }: RoomInteractionGuideOverlayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -74,6 +73,14 @@ export function RoomInteractionGuideOverlay({
       colorScheme: 'emerald',
       position: { top: '35%', left: '57%' },
       onClick: () => onStageChange(3),
+    },
+    {
+      id: 'desk',
+      title: 'Bàn Học & Ngăn Kéo (Giấy tờ & Bài tập)',
+      icon: Sparkles,
+      colorScheme: 'yellow',
+      position: { top: '53%', left: '77%' },
+      onClick: () => onStageChange(1),
     },
   ];
 

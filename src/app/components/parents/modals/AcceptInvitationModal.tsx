@@ -9,8 +9,6 @@ import {
   Clipboard,
   Check,
   ArrowRight,
-  ShieldCheck,
-  CheckCircle2,
 } from 'lucide-react';
 import { QRCodeScannerTab } from './subcomponents/QRCodeScannerTab';
 import { InvitationDecisionCard } from './subcomponents/InvitationDecisionCard';
@@ -47,7 +45,7 @@ export const AcceptInvitationModal: React.FC<AcceptInvitationModalProps> = ({
     } else {
       setStep('input');
     }
-  }, [isOpen]);
+  }, [isOpen, acceptCodeInput]);
 
   if (!isOpen) return null;
 

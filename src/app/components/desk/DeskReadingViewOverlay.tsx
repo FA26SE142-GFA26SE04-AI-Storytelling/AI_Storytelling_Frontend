@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, BookOpen, Layers, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, BookOpen, Sparkles, MessageCircle, CheckCircle2 } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import { gsap } from 'gsap';
 import { TimeOfDay } from '../three/RoomCanvas';
@@ -13,7 +13,10 @@ import {
   mapStoryDtoToWorkingVolumeBook,
 } from '../three/room/textures/workingVolumesBooks';
 import { storyService } from '../../services/storyService';
+import { flow4Service } from '../../services/flow4Service';
+import { AssignmentStatus, Flow4NotificationType } from '../../types/flow4Types';
 import { DeskPageTurningBook } from './DeskPageTurningBook';
+import { PostReadingDiscussionSheet } from './PostReadingDiscussionSheet';
 
 export interface DeskReadingViewOverlayProps {
   currentStage: number;
@@ -32,6 +35,11 @@ export const DeskReadingViewOverlay: React.FC<DeskReadingViewOverlayProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [readingStage, setReadingStage] = useState<'closed' | 'opening' | 'reading'>('closed');
   const [apiBook, setApiBook] = useState<WorkingVolumeBook | null>(null);
+
+  // Flow 4: Telemetry (4.3) & Post-Reading Discussion (4.3b)
+  const [readingSeconds, setReadingSeconds] = useState<number>(0);
+  const [isDiscussionOpen, setIsDiscussionOpen] = useState<boolean>(false);
+  const [completionBanner, setCompletionBanner] = useState<string | null>(null);
 
   // If selectedBookId refers to a backend story (e.g. "story-123"), fetch from API
   useEffect(() => {
@@ -58,7 +66,10 @@ export const DeskReadingViewOverlay: React.FC<DeskReadingViewOverlayProps> = ({
 
   useEffect(() => {
     const handleOpening = () => setReadingStage('opening');
-    const handleOpened = () => setReadingStage('reading');
+    const handleOpened = () => {
+      setReadingStage('reading');
+      setReadingSeconds(0);
+    };
     const handleClosed = () => setReadingStage('closed');
 
     window.addEventListener('room:opening-desk-book', handleOpening);
@@ -72,9 +83,52 @@ export const DeskReadingViewOverlay: React.FC<DeskReadingViewOverlayProps> = ({
     };
   }, []);
 
+  // Step 4.3: Background Telemetry timer while reading
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (readingStage === 'reading') {
+      timer = setInterval(() => {
+        setReadingSeconds((prev) => prev + 1);
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [readingStage]);
+
   const handleCloseBook = () => {
     setReadingStage('closed');
     window.dispatchEvent(new CustomEvent('room:close-desk-book'));
+  };
+
+  const handleCompleteSession = (comprehensionScore: number, reflections: string) => {
+    // 1. Cập nhật bài tập nếu câu chuyện này là bài được giao
+    const assignments = flow4Service.getAssignments();
+    const matchedAssignment = assignments.find(
+      (a) => a.storyTitle === activeBook.title || a.storyId.toString() === activeBook.id
+    );
+
+    if (matchedAssignment) {
+      const recipient = matchedAssignment.recipients.find((r) => r.childProfileId === 1 || r.status !== AssignmentStatus.Completed);
+      if (recipient) {
+        recipient.status = AssignmentStatus.Completed;
+        recipient.completedAt = new Date().toISOString();
+        if (matchedAssignment.recipients.every((r) => r.status === AssignmentStatus.Completed || r.status === AssignmentStatus.Cancelled)) {
+          matchedAssignment.status = AssignmentStatus.Completed;
+        }
+        localStorage.setItem('flow4_assignments_store', JSON.stringify(assignments));
+      }
+    }
+
+    // 2. Telemetry Notification (Step 4.3)
+    flow4Service.addNotification({
+      type: Flow4NotificationType.TeacherInteractionScore,
+      title: 'Bé đã hoàn thành bài đọc truyện!',
+      message: `Bé đã đọc xong "${activeBook.title}" trong ${Math.max(1, Math.round(readingSeconds / 60))} phút. Điểm đọc hiểu: ${comprehensionScore}%. Cảm nghĩ: "${reflections || 'Bé rất thích câu chuyện'}"`,
+    });
+
+    setCompletionBanner(`Bé đã hoàn thành xuất sắc tác phẩm "${activeBook.title}"! Nhận 1 Sao Thần Kỳ ⭐`);
+    setTimeout(() => setCompletionBanner(null), 4000);
   };
 
   useGSAP(
@@ -126,24 +180,43 @@ export const DeskReadingViewOverlay: React.FC<DeskReadingViewOverlayProps> = ({
       {/* 2. TOP-CENTER MINIMAL BOOK PILL */}
       {readingStage === 'closed' && (
         <div className="desk-reading-control absolute top-3 sm:top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-auto hidden md:flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-tod-surface/90 backdrop-blur-2xl border border-tod-border text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
-          <Sparkles className="w-4 h-4 text-amber-500" />
+          <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
           <span className="font-extrabold text-xs sm:text-sm text-tod-text">
-            {activeBook.title}
+            {selectedBookId ? activeBook.title : 'Bàn Học & Ngăn Kéo Tài Liệu'}
           </span>
           <span className="text-[10px] font-bold text-tod-text-muted px-2 py-0.5 rounded-full bg-tod-card border border-tod-border">
-            Tập {activeBook.volume} · {activeBook.discipline}
+            {selectedBookId ? `Tập ${activeBook.volume} · ${activeBook.discipline}` : 'Giấy Tờ & Vở Bài Tập · Nobita'}
           </span>
         </div>
       )}
 
-      {/* 3. TOP-RIGHT ATMOSPHERE SWITCHER */}
+      {/* 3. TOP-RIGHT ATMOSPHERE SWITCHER & DISCUSSION BUTTON */}
       {readingStage === 'closed' && (
         <div className="desk-reading-control absolute top-3 sm:top-5 right-3 sm:right-6 z-50 flex items-center gap-2 pointer-events-auto">
+          {selectedBookId && (
+            <button
+              onClick={() => setIsDiscussionOpen(true)}
+              className="py-2 px-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-zinc-950 font-black text-xs flex items-center gap-1.5 shadow-lg shadow-amber-500/20 transition-all cursor-pointer hover:scale-105 active:scale-95"
+              title="Mở bảng thảo luận & bài học đạo đức"
+            >
+              <MessageCircle className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Thảo Luận (4.3b)</span>
+            </button>
+          )}
+
           <TimeOfDaySwitcher
             timeOfDay={timeOfDay}
             onTimeOfDayChange={onTimeOfDayChange}
             showLabels={false}
           />
+        </div>
+      )}
+
+      {/* BANNER NOTIFICATION KHI HOÀN TẤT BÀI ĐỌC */}
+      {completionBanner && (
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 z-50 pointer-events-auto p-3.5 px-6 rounded-2xl bg-emerald-500/20 border border-emerald-500/40 backdrop-blur-xl text-emerald-300 font-extrabold text-xs shadow-2xl flex items-center gap-2.5 animate-in fade-in zoom-in-95">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{completionBanner}</span>
         </div>
       )}
 
@@ -154,8 +227,29 @@ export const DeskReadingViewOverlay: React.FC<DeskReadingViewOverlayProps> = ({
             book={activeBook}
             onClose={handleCloseBook}
           />
+
+          {/* Quick Floating Post-Reading Discussion Trigger */}
+          <div className="absolute bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 pointer-events-auto">
+            <button
+              onClick={() => setIsDiscussionOpen(true)}
+              className="py-2.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-zinc-950 font-black text-xs flex items-center gap-2 shadow-2xl shadow-amber-500/30 transition-all cursor-pointer hover:scale-105 active:scale-95 border border-amber-300/40"
+            >
+              <Sparkles className="w-4 h-4" />
+              <span>Thảo Luận & Nhận Sao (4.3b)</span>
+            </button>
+          </div>
         </div>
       )}
+
+      {/* 5. POST-READING DISCUSSION SHEET (STEP 4.3b) */}
+      <PostReadingDiscussionSheet
+        isOpen={isDiscussionOpen}
+        onClose={() => setIsDiscussionOpen(false)}
+        bookTitle={activeBook.title}
+        moralLesson={activeBook.moralLesson || activeBook.note}
+        readingDurationSeconds={readingSeconds}
+        onCompleteSession={handleCompleteSession}
+      />
     </div>
   );
 };

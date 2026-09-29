@@ -30,7 +30,7 @@ export interface UserProfileViewProps {
   onStageChange: (stageIndex: number) => void;
   logout: () => Promise<void>;
   changePassword: (data: ChangePasswordRequest) => Promise<ApiResponse<object | null>>;
-  refreshToken: () => Promise<any>;
+  refreshToken: () => Promise<unknown>;
 }
 
 export const UserProfileView: React.FC<UserProfileViewProps> = ({

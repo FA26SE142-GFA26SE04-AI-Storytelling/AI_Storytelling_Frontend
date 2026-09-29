@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck, CheckCircle2, Clock, Archive } from 'lucide-react';
+import { ShieldCheck, Clock, Archive } from 'lucide-react';
 
 export interface DashboardStatusBadgeProps {
   status: string;

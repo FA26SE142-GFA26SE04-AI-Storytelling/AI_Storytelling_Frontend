@@ -42,7 +42,7 @@ export const CreativeControlsTab: React.FC<CreativeControlsTabProps> = ({
   const [genreInput, setGenreInput] = useState<string>('Thám hiểm & Phép thuật');
   const [lessonInput, setLessonInput] = useState<string>('Lòng dũng cảm & Tinh thần sẻ chia');
   const [isSubmittingPrompt, setIsSubmittingPrompt] = useState<boolean>(false);
-  const [createdProgress, setCreatedProgress] = useState<AIStoryInputProgressDto | null>(null);
+  const [_createdProgress, setCreatedProgress] = useState<AIStoryInputProgressDto | null>(null);
   const [outlineProgress, setOutlineProgress] = useState<OutlineProgressDto | null>(null);
   const [creationFeedback, setCreationFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 

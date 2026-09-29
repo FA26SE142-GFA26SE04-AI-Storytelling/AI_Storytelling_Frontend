@@ -162,7 +162,7 @@ export const authService = {
    * Nếu refresh token cũng hết hạn -> tự động xóa token và đăng xuất (out tài khoản).
    */
   async authenticatedFetch(input: RequestInfo | URL, init: RequestInit = {}, customToken?: string): Promise<Response> {
-    let token = customToken || this.getStoredAccessToken();
+    const token = customToken || this.getStoredAccessToken();
 
     const headers = new Headers(init.headers || {});
     if (token && !headers.has('Authorization')) {

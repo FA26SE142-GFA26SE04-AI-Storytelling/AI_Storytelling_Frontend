@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { COVER_ATLAS_DATA } from './coverAtlasData';
+import { StoryDto } from '../../../../types/story';
 
 export interface WorkingVolumeBook {
   id: string;
@@ -187,7 +188,7 @@ function getAtlasImage(): HTMLImageElement | null {
   return atlasImage;
 }
 
-const COVER_CROPS: [number, number, number, number][] = [
+const _COVER_CROPS: [number, number, number, number][] = [
   [0, 0, 768, 1152], // Codex
   [768, 0, 768, 1152], // Claude Code
   [1536, 0, 768, 1152], // Cursor
@@ -727,7 +728,13 @@ export const EMPTY_BLANK_BOOK: WorkingVolumeBook = {
   isEmptyPlaceholder: true,
 };
 
-export function mapStoryDtoToWorkingVolumeBook(story: any, index: number = 0): WorkingVolumeBook {
+export interface StoryMappingInput extends Partial<StoryDto> {
+  CoverImageUrl?: string | null;
+  coverImage?: string | null;
+  imageUrl?: string | null;
+}
+
+export function mapStoryDtoToWorkingVolumeBook(story: StoryMappingInput, index: number = 0): WorkingVolumeBook {
   const p = STORY_PALETTES[index % STORY_PALETTES.length];
   const volNum = String(index + 1).padStart(2, '0');
   const roman = ROMAN_NUMERALS[index % ROMAN_NUMERALS.length] || 'I';
@@ -738,9 +745,11 @@ export function mapStoryDtoToWorkingVolumeBook(story: any, index: number = 0): W
   const description = story.description || story.synopsis || null;
   const moralLesson = story.moralLesson || null;
   const fullContent = story.content || description || 'Một hành trình khám phá diệu kỳ cùng những bài học ý nghĩa.';
+  const storyIdNum = typeof story.id === 'number' ? story.id : (story.id ? Number(story.id) : undefined);
+  const coverImg = story.coverImageUrl || story.CoverImageUrl || story.coverImage || story.imageUrl || null;
 
   return {
-    id: `story-${story.id}`,
+    id: `story-${story.id ?? index}`,
     title: story.title || 'Câu Chuyện Phép Màu',
     roman,
     volume: volNum,
@@ -758,10 +767,10 @@ export function mapStoryDtoToWorkingVolumeBook(story: any, index: number = 0): W
     cropIndex: p.cropIndex,
     isCustomStory: true,
     // Story DTO attributes
-    storyId: story.id,
+    storyId: storyIdNum,
     description: description,
     content: story.content || null,
-    coverImageUrl: story.coverImageUrl || story.CoverImageUrl || story.coverImage || story.imageUrl || null,
+    coverImageUrl: coverImg,
     genre: genre,
     moralLesson: moralLesson,
     ageBand: rawAge,

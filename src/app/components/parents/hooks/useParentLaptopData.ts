@@ -153,6 +153,7 @@ export function useParentLaptopData() {
         setShowAcceptInviteModal(true);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadOrgsAndClasses = async () => {
@@ -440,6 +441,7 @@ export function useParentLaptopData() {
       setSupervisors([]);
       setInvitations([]);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedChildId, childProfiles.length]);
 
   const handleCreateInvitation = async (e?: React.FormEvent) => {
@@ -772,7 +774,7 @@ export function useParentLaptopData() {
         await fetchChildDetail(selectedChild.id);
         setTimeout(() => {
           setIsSavedChanges(false);
-          setSafetySuccessMsg(null), 4000;
+          setSafetySuccessMsg(null);
         }, 4000);
       } else {
         setSafetyErrorMsg(res.message || 'Không thể lưu quy tắc an toàn.');

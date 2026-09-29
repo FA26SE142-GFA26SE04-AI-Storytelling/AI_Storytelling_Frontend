@@ -2,7 +2,6 @@
 
 import React from 'react';
 import {
-  Clock,
   Sparkles,
   BarChart3,
   FileText,

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { animateModalPop } from '../../utils/gsapAnimations';
-import { Lock, ShieldAlert, X, CheckCircle, RefreshCw, KeyRound, Calculator, Loader2 } from 'lucide-react';
+import { Lock, X, RefreshCw, KeyRound, Calculator, Loader2 } from 'lucide-react';
 import { parentalGateService } from '../../services/parentalGateService';
 import { useAuth } from '../../context/AuthContext';
 

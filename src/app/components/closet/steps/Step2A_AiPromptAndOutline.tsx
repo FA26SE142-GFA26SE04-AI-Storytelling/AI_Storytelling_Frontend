@@ -12,7 +12,6 @@ import {
   Edit3,
   Check,
   ArrowRight,
-  BookOpen,
 } from 'lucide-react';
 import { aiStoryCreationService } from '../../../services/aiStoryCreationService';
 import { ChildProfile } from '../../../types/childProfile';
@@ -48,7 +47,7 @@ export const Step2A_AiPromptAndOutline: React.FC<Step2A_AiPromptAndOutlineProps>
 
   // Guardrail & Outline states
   const [createdStoryId, setCreatedStoryId] = useState<number | null>(null);
-  const [createdRequestId, setCreatedRequestId] = useState<number | null>(null);
+  const [_createdRequestId, setCreatedRequestId] = useState<number | null>(null);
   const [guardrailStatus, setGuardrailStatus] = useState<AIStoryInputProgressDto | null>(null);
   const [outlineData, setOutlineData] = useState<OutlineProgressDto | null>(null);
 

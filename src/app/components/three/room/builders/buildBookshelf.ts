@@ -3,11 +3,6 @@ import {
   createRealTimeCalendarTexture,
   createClockFaceTexture,
 } from '../textures/proceduralTextures';
-import {
-  WORKING_VOLUMES_BOOKS,
-  createWorkingVolumeCoverTexture,
-  createWorkingVolumeSpineTexture,
-} from '../textures/workingVolumesBooks';
 
 export interface ShowcaseBookItem {
   group: THREE.Group;

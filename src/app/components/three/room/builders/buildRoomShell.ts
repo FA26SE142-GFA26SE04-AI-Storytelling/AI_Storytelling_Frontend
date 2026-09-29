@@ -15,7 +15,7 @@ export function buildRoomShell(
   matTatami: THREE.Material,
   matTatamiBorder: THREE.Material,
   matWallBeige: THREE.Material,
-  matShojiPaper: THREE.Material
+  _matShojiPaper: THREE.Material
 ): RoomShellBuildResult {
   const roomW = 4.8;
   const roomL = 4.8;

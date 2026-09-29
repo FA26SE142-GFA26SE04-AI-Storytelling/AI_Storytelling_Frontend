@@ -6,8 +6,6 @@ import {
   Mic,
   Sparkles,
   BookOpen,
-  CheckCircle2,
-  Loader2,
   ArrowRight,
   PartyPopper,
 } from 'lucide-react';

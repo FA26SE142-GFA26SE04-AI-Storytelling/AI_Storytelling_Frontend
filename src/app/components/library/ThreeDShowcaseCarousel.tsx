@@ -126,7 +126,7 @@ export const ThreeDShowcaseCarousel: React.FC<ThreeDShowcaseCarouselProps> = ({
     let targetRotY = -0.22;
     let targetRotX = 0.05;
 
-    let prevActiveIndex = activeIndex;
+    let prevActiveIndex = activeIndexRef.current;
 
     const tempQuat = new THREE.Quaternion();
     const activeZoomedScaleVec = new THREE.Vector3(1.06, 1.06, 1.06);

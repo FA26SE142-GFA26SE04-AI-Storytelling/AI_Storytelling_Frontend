@@ -6,8 +6,6 @@ import {
   Users,
   Check,
   Ban,
-  Sparkles,
-  Info,
   RefreshCw,
   AlertTriangle,
   ArrowLeft,

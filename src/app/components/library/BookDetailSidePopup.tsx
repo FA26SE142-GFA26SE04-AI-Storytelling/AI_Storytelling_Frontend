@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   X,
   BookOpen,
@@ -17,10 +17,12 @@ import {
   FileText,
   Clock,
   Sparkle,
+  ShieldAlert,
 } from 'lucide-react';
 import { useGSAP } from '@gsap/react';
 import { gsap } from 'gsap';
 import { WorkingVolumeBook } from '../three/room/textures/workingVolumesBooks';
+import { ContentReportModal } from './modals/ContentReportModal';
 
 export interface BookDetailSidePopupProps {
   book: WorkingVolumeBook;
@@ -65,6 +67,7 @@ export const BookDetailSidePopup: React.FC<BookDetailSidePopupProps> = ({
   onReadBook,
 }) => {
   const popupRef = useRef<HTMLDivElement>(null);
+  const [isReportModalOpen, setIsReportModalOpen] = useState<boolean>(false);
 
   useGSAP(() => {
     if (isOpen && popupRef.current) {
@@ -144,6 +147,7 @@ export const BookDetailSidePopup: React.FC<BookDetailSidePopupProps> = ({
       {/* 2. Cover Image Banner (if available) */}
       {book.coverImageUrl && (
         <div className="mb-3.5 relative w-full h-36 sm:h-40 rounded-2xl overflow-hidden border border-tod-border shadow-md group">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={book.coverImageUrl}
             alt={book.title}
@@ -283,31 +287,52 @@ export const BookDetailSidePopup: React.FC<BookDetailSidePopupProps> = ({
       </div>
 
       {/* 7. Action Button */}
-      <div className="flex items-center gap-2">
-        {!book.isEmptyPlaceholder && onReadBook && (
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          {!book.isEmptyPlaceholder && onReadBook && (
+            <button
+              onClick={() => onReadBook(book.id)}
+              className="flex-1 py-3 px-4 rounded-2xl font-black text-xs sm:text-sm text-white flex items-center justify-center gap-2 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group"
+              style={{
+                background: `linear-gradient(135deg, ${book.color}, #f59e0b)`,
+                boxShadow: `0 10px 25px -5px ${book.color}66`,
+              }}
+            >
+              <BookOpen className="w-4 h-4 group-hover:rotate-12 transition-transform" />
+              <span>Đọc Truyện Ngay</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+          )}
+
           <button
-            onClick={() => onReadBook(book.id)}
-            className="flex-1 py-3 px-4 rounded-2xl font-black text-xs sm:text-sm text-white flex items-center justify-center gap-2 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer group"
-            style={{
-              background: `linear-gradient(135deg, ${book.color}, #f59e0b)`,
-              boxShadow: `0 10px 25px -5px ${book.color}66`,
-            }}
+            onClick={onClose}
+            className={`${
+              book.isEmptyPlaceholder ? 'w-full' : ''
+            } py-3 px-4 rounded-2xl bg-tod-card hover:bg-tod-surface border border-tod-border font-bold text-xs text-tod-text transition-all cursor-pointer hover:scale-105 active:scale-95`}
           >
-            <BookOpen className="w-4 h-4 group-hover:rotate-12 transition-transform" />
-            <span>Đọc Truyện Ngay</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            Đóng
+          </button>
+        </div>
+
+        {!book.isEmptyPlaceholder && (
+          <button
+            type="button"
+            onClick={() => setIsReportModalOpen(true)}
+            className="w-full py-2 px-3 rounded-xl bg-tod-card/50 hover:bg-rose-500/10 border border-tod-border hover:border-rose-500/30 text-tod-text-muted hover:text-rose-400 text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+          >
+            <ShieldAlert className="w-3.5 h-3.5" />
+            <span>Báo cáo nội dung không phù hợp (Bước 4.6)</span>
           </button>
         )}
-
-        <button
-          onClick={onClose}
-          className={`${
-            book.isEmptyPlaceholder ? 'w-full' : ''
-          } py-3 px-4 rounded-2xl bg-tod-card hover:bg-tod-surface border border-tod-border font-bold text-xs text-tod-text transition-all cursor-pointer hover:scale-105 active:scale-95`}
-        >
-          Đóng
-        </button>
       </div>
+
+      {/* Content Report Modal (Step 4.6) */}
+      <ContentReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        storyId={Number(book.id) || 1}
+        storyTitle={book.title}
+      />
     </div>
   );
 };

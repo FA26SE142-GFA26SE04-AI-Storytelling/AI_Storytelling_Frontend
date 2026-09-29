@@ -9,7 +9,6 @@ import {
   Bot,
   Layers,
   Wand2,
-  FileText,
   BookOpen,
   CheckCircle2,
   Palette,

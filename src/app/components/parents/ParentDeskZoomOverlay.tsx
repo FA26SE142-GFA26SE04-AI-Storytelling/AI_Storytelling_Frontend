@@ -54,7 +54,7 @@ export const ParentDeskZoomOverlay: React.FC<ParentDeskZoomOverlayProps> = ({
   // Live Backend Data States
   const [activeChild, setActiveChild] = useState<ChildProfile | null>(null);
   const [learningProfile, setLearningProfile] = useState<LearningProfile | null>(null);
-  const [safetyPolicy, setSafetyPolicy] = useState<SafetyPolicy | null>(null);
+  const [_safetyPolicy, setSafetyPolicy] = useState<SafetyPolicy | null>(null);
   const [tokenQuota, setTokenQuota] = useState<TokenQuotaStatus | null>(null);
   const [recentStories, setRecentStories] = useState<StoryDto[]>([]);
 

@@ -12,7 +12,6 @@ import {
   Clock,
   ShieldCheck,
   AlertCircle,
-  Sparkles,
 } from 'lucide-react';
 import { SupervisionInvitation } from '../../../types/childProfile';
 import { QRCodeModal } from './QRCodeModal';

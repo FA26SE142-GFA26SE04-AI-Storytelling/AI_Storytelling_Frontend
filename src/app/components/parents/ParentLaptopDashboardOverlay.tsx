@@ -9,34 +9,30 @@ import {
   animateStaggerList,
 } from '../../utils/gsapAnimations';
 
-import {
-  Users,
-  ShieldCheck,
-  Sparkles,
-  User,
-} from 'lucide-react';
+import { Users } from 'lucide-react';
 import { TimeOfDay } from '../three/RoomCanvas';
 import { useAuth } from '../../context/AuthContext';
 import { useChildSession } from '../../context/ChildSessionContext';
 import { ChildProfile } from '../../types/childProfile';
-import { childAccessCredentialService } from '../../services/childAccessCredentialService';
+import { flow4Service } from '../../services/flow4Service';
+import { Flow4NotificationType } from '../../types/flow4Types';
 
-// Domain Subcomponents
-import { DashboardTopNav } from './common/DashboardTopNav';
+// Navigation & Common Subcomponents
+import { DashboardTopNav, LaptopDashboardTab } from './common/DashboardTopNav';
+import { LaptopDashboardTabNav } from './tabs/LaptopDashboardTabNav';
 import { ChildProfilesSidebar } from './profiles/ChildProfilesSidebar';
+import { useParentLaptopData } from './hooks/useParentLaptopData';
+import { LaptopModalsContainer } from './modals/LaptopModalsContainer';
+import { NotificationDrawer } from './notifications/NotificationDrawer';
+
+// Domain Subcomponents & Tabs
 import { ParentAnalyticsTab } from './tabs/ParentAnalyticsTab';
 import { SafetyPolicyControls } from './safety/SafetyPolicyControls';
 import { SupervisionManager } from './supervision/SupervisionManager';
 import { CreativeControlsTab } from './creative/CreativeControlsTab';
-import { useParentLaptopData } from './hooks/useParentLaptopData';
-
-// Modal Dialogs
-import { AddChildModal } from './modals/AddChildModal';
-import { SupervisionPermissionsModal } from './modals/SupervisionPermissionsModal';
-import { TransferOwnershipModal } from './modals/TransferOwnershipModal';
-import { AcceptInvitationModal } from './modals/AcceptInvitationModal';
-import { SetupChildPinModal } from './modals/SetupChildPinModal';
-import { EasyLoginCardModal } from './modals/EasyLoginCardModal';
+import { AssignmentManagerTab } from './assignments/AssignmentManagerTab';
+import { CommunitySharingTab } from './community/CommunitySharingTab';
+import { InterventionHoldModeSection } from './intervention/InterventionHoldModeSection';
 
 gsap.registerPlugin(useGSAP);
 
@@ -59,11 +55,44 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
 }) => {
   const { user } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [activeTab, setActiveTab] = useState<'analytics' | 'controls' | 'supervision' | 'prompts'>('analytics');
+  const [activeTab, setActiveTab] = useState<LaptopDashboardTab>('analytics');
   const [isUiVisible, setIsUiVisible] = useState<boolean>(false);
-  const { startChildSession } = useChildSession();
+  const [isNotificationDrawerOpen, setIsNotificationDrawerOpen] = useState<boolean>(false);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
 
+  const { startChildSession } = useChildSession();
   const laptopData = useParentLaptopData();
+
+  const updateUnreadCount = () => {
+    const list = flow4Service.getNotifications();
+    setUnreadCount(list.filter((n) => !n.isRead).length);
+  };
+
+  useEffect(() => {
+    updateUnreadCount();
+
+    // Fetch live notifications from backend API on mount
+    flow4Service.fetchNotificationsFromApi().then(() => {
+      updateUnreadCount();
+    });
+
+    const handleNotificationsUpdated = () => {
+      updateUnreadCount();
+    };
+
+    window.addEventListener('flow4:notifications-updated', handleNotificationsUpdated);
+
+    const interval = setInterval(() => {
+      flow4Service.fetchNotificationsFromApi().then(() => {
+        updateUnreadCount();
+      });
+    }, 15000);
+
+    return () => {
+      window.removeEventListener('flow4:notifications-updated', handleNotificationsUpdated);
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleStartChildSession = (child: ChildProfile) => {
     startChildSession(child, 'SupervisorLaunched');
@@ -91,6 +120,18 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
     animateStaggerList('.laptop-tab-content-row', { stagger: 0.04, duration: 0.3 });
   }, { scope: containerRef, dependencies: [activeTab, isUiVisible] });
 
+  const handleNotificationAction = (type: Flow4NotificationType) => {
+    setIsNotificationDrawerOpen(false);
+    updateUnreadCount();
+    if (type === Flow4NotificationType.AssignmentCancelled || type === Flow4NotificationType.TeacherInteractionScore) {
+      setActiveTab('assignments');
+    } else if (type === Flow4NotificationType.HoldModeAlert) {
+      setActiveTab('interventions');
+    } else if (type === Flow4NotificationType.StoryShared) {
+      setActiveTab('community');
+    }
+  };
+
   if (!isUiVisible) {
     return null;
   }
@@ -115,15 +156,20 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
           laptopData.setAcceptCodeInput('');
           laptopData.setShowAcceptInviteModal(true);
         }}
+        onOpenNotificationDrawer={() => {
+          setIsNotificationDrawerOpen(true);
+          updateUnreadCount();
+        }}
+        unreadNotificationsCount={unreadCount}
         user={user}
       />
 
       {/* 2. MAIN DASHBOARD CONTENT AREA - UNIFIED SINGLE PANEL */}
       <div className="flex-1 w-full max-w-7xl mx-auto flex items-center justify-center my-auto px-1 sm:px-2 py-1 overflow-hidden pointer-events-none">
-        <div className="laptop-unified-card pointer-events-auto w-full h-[80vh] max-h-[860px] min-h-[580px] flex flex-col lg:flex-row rounded-3xl bg-tod-surface backdrop-blur-3xl border border-tod-border shadow-[0_25px_60px_rgba(0,0,0,0.85)] text-tod-text overflow-hidden transition-colors duration-500">
+        <div className="laptop-unified-card pointer-events-auto w-full h-[82vh] max-h-[880px] min-h-[580px] flex flex-col lg:flex-row rounded-3xl bg-tod-surface backdrop-blur-3xl border border-tod-border shadow-[0_25px_60px_rgba(0,0,0,0.85)] text-tod-text overflow-hidden transition-colors duration-500">
           
           {/* CỘT TRÁI: DANH SÁCH HỒ SƠ CÁC BÉ */}
-          <div className="w-full lg:w-[350px] xl:w-[370px] shrink-0 border-b lg:border-b-0 lg:border-r border-tod-border bg-tod-card flex flex-col h-full overflow-hidden transition-colors duration-500">
+          <div className="w-full lg:w-[340px] xl:w-[360px] shrink-0 border-b lg:border-b-0 lg:border-r border-tod-border bg-tod-card flex flex-col h-full overflow-hidden transition-colors duration-500">
             <ChildProfilesSidebar
               childProfiles={laptopData.childProfiles}
               selectedChildId={laptopData.selectedChildId}
@@ -144,52 +190,7 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
           {/* CỘT PHẢI: NỘI DUNG CHÍNH (CÁC TAB ĐIỀU KHIỂN & QUẢN LÝ) */}
           <div className="flex-1 flex flex-col h-full overflow-hidden min-w-0 bg-tod-surface/30">
             {/* Navigation Tabs Header */}
-            <div className="p-2.5 sm:p-3 bg-tod-card/80 border-b border-tod-border flex items-center gap-1.5 sm:gap-2 overflow-x-auto scrollbar-none shrink-0 transition-colors duration-500">
-              <button
-                onClick={() => setActiveTab('analytics')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
-                  activeTab === 'analytics'
-                    ? 'bg-sky-500 text-white font-black shadow-md shadow-sky-500/20'
-                    : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
-                }`}
-              >
-                <User className="w-3.5 h-3.5" />
-                <span>Hồ Sơ & Học Tập</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('controls')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
-                  activeTab === 'controls'
-                    ? 'bg-purple-600 text-white font-black shadow-md shadow-purple-500/20'
-                    : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
-                }`}
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Kiểm Soát An Toàn</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('supervision')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
-                  activeTab === 'supervision'
-                    ? 'bg-emerald-600 text-white font-black shadow-md shadow-emerald-500/20'
-                    : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
-                }`}
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>Người Giám Sát</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('prompts')}
-                className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
-                  activeTab === 'prompts'
-                    ? 'bg-amber-500 text-zinc-950 font-black shadow-md shadow-amber-500/20'
-                    : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-surface'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Gợi Ý Trò Chuyện</span>
-              </button>
-            </div>
+            <LaptopDashboardTabNav activeTab={activeTab} setActiveTab={setActiveTab} />
 
             {/* Tab Content Container */}
             <div className="flex-1 p-4 overflow-y-auto dashboard-scrollbar space-y-3.5">
@@ -246,7 +247,22 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
                 />
               )}
 
-              {/* TAB 2: SAFETY POLICY CONTROLS */}
+              {/* TAB 2: ASSIGNMENT MANAGEMENT (LUỒNG 4.1 & 4.1b & 4.4) */}
+              {activeTab === 'assignments' && (
+                <AssignmentManagerTab />
+              )}
+
+              {/* TAB 3: COMMUNITY SHARING & CLASS GATEKEEPING (LUỒNG 4.2) */}
+              {activeTab === 'community' && (
+                <CommunitySharingTab />
+              )}
+
+              {/* TAB 4: PEDAGOGICAL INTERVENTION & HOLD MODE (LUỒNG 4.5) */}
+              {activeTab === 'interventions' && (
+                <InterventionHoldModeSection />
+              )}
+
+              {/* TAB 5: SAFETY POLICY CONTROLS */}
               {activeTab === 'controls' && laptopData.selectedChild && (
                 <SafetyPolicyControls
                   selectedChildNickname={laptopData.selectedChild.nickname}
@@ -271,7 +287,7 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
                 />
               )}
 
-              {/* TAB 3: SUPERVISION MANAGEMENT */}
+              {/* TAB 6: SUPERVISION MANAGEMENT */}
               {activeTab === 'supervision' && (
                 laptopData.selectedChild ? (
                   <SupervisionManager
@@ -341,7 +357,7 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
                 )
               )}
 
-              {/* TAB 4: CONVERSATION STARTERS & CREATIVE CONTROLS */}
+              {/* TAB 7: CONVERSATION STARTERS & CREATIVE CONTROLS */}
               {activeTab === 'prompts' && (
                 <CreativeControlsTab
                   selectedChild={laptopData.selectedChild}
@@ -356,82 +372,14 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
         </div>
       </div>
 
-      {/* MODAL 1: ADD NEW CHILD PROFILE */}
-      <AddChildModal
-        isOpen={laptopData.showAddChildModal}
-        onClose={() => laptopData.setShowAddChildModal(false)}
-        newChildNickname={laptopData.newChildNickname}
-        setNewChildNickname={laptopData.setNewChildNickname}
-        newChildAgeBand={laptopData.newChildAgeBand}
-        setNewChildAgeBand={laptopData.setNewChildAgeBand}
-        newChildLanguage={laptopData.newChildLanguage}
-        setNewChildLanguage={laptopData.setNewChildLanguage}
-        newChildScope={laptopData.newChildScope}
-        setNewChildScope={laptopData.setNewChildScope}
-        newChildOrgId={laptopData.newChildOrgId}
-        setNewChildOrgId={laptopData.setNewChildOrgId}
-        newChildClassGroupId={laptopData.newChildClassGroupId}
-        setNewChildClassGroupId={laptopData.setNewChildClassGroupId}
-        availableOrgs={laptopData.availableOrgs}
-        availableClasses={laptopData.availableClasses}
-        isLoadingOrgsAndClasses={laptopData.isLoadingOrgsAndClasses}
-        loadOrgsAndClasses={laptopData.loadOrgsAndClasses}
-        isCreatingChild={laptopData.isCreatingChild}
-        createChildModalError={laptopData.createChildModalError}
-        handleCreateChildSubmit={laptopData.handleCreateChildSubmit}
-      />
+      {/* ALL MODAL DIALOGS EXTRACTED CONTAINER */}
+      <LaptopModalsContainer laptopData={laptopData} />
 
-      {/* MODAL 2: SUPERVISOR PERMISSIONS MANAGEMENT */}
-      <SupervisionPermissionsModal
-        targetSupervisor={laptopData.permissionTargetSupervisor}
-        childNickname={laptopData.selectedChild?.nickname || ''}
-        childScope={laptopData.selectedChild?.scope}
-        onClose={() => laptopData.setPermissionTargetSupervisor(null)}
-        supervisorPermissions={laptopData.supervisorPermissions}
-        isLoadingPermissions={laptopData.isLoadingPermissions}
-        permissionModalError={laptopData.permissionModalError}
-        togglingPermissionKey={laptopData.togglingPermissionKey}
-        handleTogglePermission={laptopData.handleTogglePermission}
-      />
-
-      {/* MODAL 3: TRANSFER OWNERSHIP MODAL */}
-      <TransferOwnershipModal
-        targetSupervisor={laptopData.transferTargetSupervisor}
-        childNickname={laptopData.selectedChild?.nickname || ''}
-        onClose={() => laptopData.setTransferTargetSupervisor(null)}
-        isTransferringOwnership={laptopData.isTransferringOwnership}
-        transferError={laptopData.transferError}
-        onConfirmTransfer={laptopData.handleTransferOwnershipSubmit}
-      />
-
-      {/* MODAL 4: ACCEPT INVITATION MODAL */}
-      <AcceptInvitationModal
-        isOpen={laptopData.showAcceptInviteModal}
-        onClose={() => laptopData.setShowAcceptInviteModal(false)}
-        acceptCodeInput={laptopData.acceptCodeInput}
-        setAcceptCodeInput={laptopData.setAcceptCodeInput}
-        isAcceptingInvite={laptopData.isAcceptingInvite}
-        acceptInviteError={laptopData.acceptInviteError}
-        onAcceptSubmit={laptopData.handleAcceptInvitationSubmit}
-        onRejectSubmit={laptopData.handleRejectInvitationSubmit}
-      />
-
-      {/* MODAL 5: SETUP CHILD PIN & AVATAR MODAL */}
-      <SetupChildPinModal
-        isOpen={laptopData.showSetupPinModal}
-        onClose={() => laptopData.setShowSetupPinModal(false)}
-        child={laptopData.selectedChild}
-        onCredentialUpdated={() => {
-          laptopData.setCredentialVersion((prev) => prev + 1);
-        }}
-      />
-
-      {/* MODAL 6: EASY LOGIN CARD & BADGE MODAL */}
-      <EasyLoginCardModal
-        isOpen={laptopData.showEasyLoginBadgeModal}
-        onClose={() => laptopData.setShowEasyLoginBadgeModal(false)}
-        child={laptopData.selectedChild}
-        credential={laptopData.selectedChild ? childAccessCredentialService.getCredential(laptopData.selectedChild.id) : null}
+      {/* NOTIFICATION DRAWER (LUỒNG 4 NOTIFICATIONS) */}
+      <NotificationDrawer
+        isOpen={isNotificationDrawerOpen}
+        onClose={() => setIsNotificationDrawerOpen(false)}
+        onSelectAction={handleNotificationAction}
       />
     </div>
   );

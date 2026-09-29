@@ -12,6 +12,18 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+const applyTheme = (newTheme: Theme) => {
+  if (typeof document === 'undefined') return;
+  const root = document.documentElement;
+  if (newTheme === 'dark') {
+    root.classList.add('dark');
+    root.setAttribute('data-theme', 'dark');
+  } else {
+    root.classList.remove('dark');
+    root.setAttribute('data-theme', 'light');
+  }
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<Theme>('light');
   const [mounted, setMounted] = useState(false);
@@ -28,17 +40,6 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       applyTheme('light');
     }
   }, []);
-
-  const applyTheme = (newTheme: Theme) => {
-    const root = document.documentElement;
-    if (newTheme === 'dark') {
-      root.classList.add('dark');
-      root.setAttribute('data-theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      root.setAttribute('data-theme', 'light');
-    }
-  };
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);

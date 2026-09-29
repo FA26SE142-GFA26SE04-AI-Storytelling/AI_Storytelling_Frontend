@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Sparkles, X, Check, ArrowRight, Loader2 } from 'lucide-react';
+import { Sparkles, X, Check, Loader2 } from 'lucide-react';
 
 export interface PartialAiEditModalProps {
   isOpen: boolean;

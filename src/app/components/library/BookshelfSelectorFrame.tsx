@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useState, useCallback, useMemo } from 'react';
-import { ChevronLeft, ChevronRight, Sparkles, BookOpen, Layers, X, Info, BookX, Wand2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Sparkles, BookOpen, Layers, X, Info, BookX, BookmarkCheck, Share2 } from 'lucide-react';
 import {
   WorkingVolumeBook,
   mapStoryDtoToWorkingVolumeBook,
@@ -11,6 +11,7 @@ import { ThreeDShowcaseCarousel } from './ThreeDShowcaseCarousel';
 import { BookDetailSidePopup } from './BookDetailSidePopup';
 import { storyService } from '../../services/storyService';
 import { StoryDto } from '../../types/story';
+import { flow4Service } from '../../services/flow4Service';
 
 export interface BookshelfSelectorFrameProps {
   selectedBookId: string | null;
@@ -27,7 +28,8 @@ export const BookshelfSelectorFrame: React.FC<BookshelfSelectorFrameProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [backendStories, setBackendStories] = useState<StoryDto[]>([]);
-  const [isLoadingApiStories, setIsLoadingApiStories] = useState<boolean>(true);
+  const [_isLoadingApiStories, setIsLoadingApiStories] = useState<boolean>(true);
+  const [shelfFilter, setShelfFilter] = useState<'all' | 'assigned' | 'community'>('all');
 
   // Fetch published stories exclusively from Backend API
   useEffect(() => {
@@ -54,13 +56,32 @@ export const BookshelfSelectorFrame: React.FC<BookshelfSelectorFrameProps> = ({
     };
   }, []);
 
-  // Chỉ lấy truyện từ Backend API. Nếu API không có truyện hoặc rỗng -> hiện 1 quyển sách trống không tiêu đề
+  // Lọc theo kệ sách: Tất cả / Được giao (Assignments) / Lớp học chia sẻ (Community)
   const allBooks: WorkingVolumeBook[] = useMemo(() => {
-    if (backendStories.length > 0) {
-      return backendStories.map((s, idx) => mapStoryDtoToWorkingVolumeBook(s, idx));
+    if (backendStories.length === 0) return [EMPTY_BLANK_BOOK];
+
+    const mapped = backendStories.map((s, idx) => mapStoryDtoToWorkingVolumeBook(s, idx));
+
+    if (shelfFilter === 'all') {
+      return mapped;
     }
-    return [EMPTY_BLANK_BOOK];
-  }, [backendStories]);
+
+    if (shelfFilter === 'assigned') {
+      const assignments = flow4Service.getAssignments();
+      const assignedStoryIds = new Set(assignments.map((a) => a.storyId.toString()));
+      const filtered = mapped.filter((b) => assignedStoryIds.has(b.id) || assignments.some((a) => b.title.includes(a.storyTitle)));
+      return filtered.length > 0 ? filtered : [EMPTY_BLANK_BOOK];
+    }
+
+    if (shelfFilter === 'community') {
+      const shared = flow4Service.getSharedStories();
+      const sharedStoryIds = new Set(shared.map((s) => s.storyId.toString()));
+      const filtered = mapped.filter((b) => sharedStoryIds.has(b.id) || shared.some((s) => b.title.includes(s.storyTitle)));
+      return filtered.length > 0 ? filtered : [EMPTY_BLANK_BOOK];
+    }
+
+    return mapped;
+  }, [backendStories, shelfFilter]);
 
   const initialIndex = Math.max(
     0,
@@ -179,6 +200,54 @@ export const BookshelfSelectorFrame: React.FC<BookshelfSelectorFrameProps> = ({
             <span>Đọc Truyện</span>
           </button>
         )}
+      </div>
+
+      {/* 1b. Shelf Filter Selector (Tất Cả / Được Giao / Lớp Học) */}
+      <div className="headline-control absolute top-16 sm:top-20 left-1/2 -translate-x-1/2 z-40 pointer-events-auto flex items-center gap-1.5 p-1 rounded-2xl bg-tod-surface/85 backdrop-blur-xl border border-tod-border shadow-md font-sans">
+        <button
+          type="button"
+          onClick={() => {
+            setShelfFilter('all');
+            setActiveIndex(0);
+          }}
+          className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+            shelfFilter === 'all'
+              ? 'bg-amber-500 text-zinc-950 font-black shadow-sm'
+              : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-card'
+          }`}
+        >
+          Tất Cả Kệ Sách
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setShelfFilter('assigned');
+            setActiveIndex(0);
+          }}
+          className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+            shelfFilter === 'assigned'
+              ? 'bg-indigo-600 text-white font-black shadow-sm'
+              : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-card'
+          }`}
+        >
+          <BookmarkCheck className="w-3 h-3" />
+          <span>Bài Giao</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setShelfFilter('community');
+            setActiveIndex(0);
+          }}
+          className={`px-3 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer flex items-center gap-1 ${
+            shelfFilter === 'community'
+              ? 'bg-purple-600 text-white font-black shadow-sm'
+              : 'text-tod-text-muted hover:text-tod-text hover:bg-tod-card'
+          }`}
+        >
+          <Share2 className="w-3 h-3" />
+          <span>Lớp Học</span>
+        </button>
       </div>
 
       {/* 2. Nút lùi / tiến sách (Chỉ hiện khi có từ 2 quyển trở lên) */}

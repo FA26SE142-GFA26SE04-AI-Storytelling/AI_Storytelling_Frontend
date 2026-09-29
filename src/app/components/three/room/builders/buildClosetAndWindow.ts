@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { TimeOfDay } from '../stages';
 import { buildLaptop } from './buildLaptop';
 
 export interface ClosetAndWindowBuildResult {

@@ -6,7 +6,6 @@ import * as THREE from 'three';
 import { STAGES, CameraStage, TimeOfDay, getVietnamTimeOfDay } from './room/stages';
 import { buildBackpack } from './room/builders/buildBackpack';
 import { useAuth } from '../../context/AuthContext';
-import { buildInteractiveNotebook } from './room/builders/buildInteractiveNotebook';
 import { buildInteractiveStoryBook } from './room/builders/buildInteractiveStoryBook';
 import { WORKING_VOLUMES_BOOKS, mapStoryDtoToWorkingVolumeBook } from './room/textures/workingVolumesBooks';
 import { storyService } from '../../services/storyService';
@@ -29,12 +28,17 @@ import {
 export { STAGES };
 export type { CameraStage, TimeOfDay };
 
+function getAudioContextClass(): typeof AudioContext | undefined {
+  if (typeof window === 'undefined') return undefined;
+  return window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+}
+
 /**
  * Hiệu ứng âm thanh cơ học click-clack chân thực khi bấm công tắc điện (Web Audio API)
  */
 function playLightSwitchSound(isOn: boolean) {
   try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioCtx = getAudioContextClass();
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
     const osc = ctx.createOscillator();
@@ -62,7 +66,7 @@ function playLightSwitchSound(isOn: boolean) {
  */
 function playBookPageSound(isOpen: boolean) {
   try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioCtx = getAudioContextClass();
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
 
@@ -99,7 +103,7 @@ function playBookPageSound(isOpen: boolean) {
  */
 function playLaptopSound(isOpen: boolean) {
   try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioCtx = getAudioContextClass();
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
     const now = ctx.currentTime;
@@ -178,7 +182,7 @@ function playLaptopSound(isOpen: boolean) {
  */
 function playClosetDoorSound(isOpen: boolean) {
   try {
-    const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+    const AudioCtx = getAudioContextClass();
     if (!AudioCtx) return;
     const ctx = new AudioCtx();
     const now = ctx.currentTime;
@@ -218,6 +222,65 @@ function playClosetDoorSound(isOpen: boolean) {
   }
 }
 
+/**
+ * Hiệu ứng âm thanh kéo ngăn kéo tủ gỗ bàn học mượt mà (Web Audio API)
+ */
+function playDrawerSlideSound(isOpen: boolean) {
+  try {
+    const AudioCtx = getAudioContextClass();
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const now = ctx.currentTime;
+    const duration = 0.38;
+    const bufferSize = Math.floor(ctx.sampleRate * duration);
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+
+    for (let i = 0; i < bufferSize; i++) {
+      const t = i / (ctx.sampleRate * duration);
+      const env = Math.sin(t * Math.PI) * Math.exp(-t * 0.8);
+      data[i] = (Math.random() * 2 - 1) * env * 0.35;
+    }
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.setValueAtTime(isOpen ? 480 : 380, now);
+    filter.frequency.exponentialRampToValueAtTime(isOpen ? 280 : 420, now + duration);
+    filter.Q.setValueAtTime(2.2, now);
+
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.linearRampToValueAtTime(0.12, now + 0.05);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    noise.start(now);
+
+    setTimeout(() => {
+      try {
+        const osc = ctx.createOscillator();
+        const clickGain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(120, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.05);
+        clickGain.gain.setValueAtTime(0.08, ctx.currentTime);
+        clickGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.05);
+        osc.connect(clickGain);
+        clickGain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.05);
+      } catch {}
+    }, 280);
+  } catch {
+    // Ignore audio error
+  }
+}
 
 export interface RoomCanvasProps {
   currentStageIndex: number;
@@ -233,7 +296,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
   currentStageIndex = 0,
   onStageChange,
   timeOfDay = getVietnamTimeOfDay(),
-  onTimeOfDayChange,
+  onTimeOfDayChange: _onTimeOfDayChange,
   className = '',
   selectedBookId = null,
   onSelectBook,
@@ -270,7 +333,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
   }, [onStageChange]);
 
   // Atmosphere mode state
-  const [timeMode, setTimeMode] = useState<TimeOfDay>(timeOfDay);
+  const [_timeMode, setTimeMode] = useState<TimeOfDay>(timeOfDay);
   const timeModeRef = useRef<TimeOfDay>(timeOfDay);
 
   useEffect(() => {
@@ -279,14 +342,14 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
   }, [timeOfDay]);
 
   // Live debug state for current camera coordinates
-  const [debugCam, setDebugCam] = useState<{ cam: string; target: string }>({
+  const [_debugCam, _setDebugCam] = useState<{ cam: string; target: string }>({
     cam: '4.2, 3.2, 4.8',
     target: '-0.3, 0.9, -0.5',
   });
-  const [copied, setCopied] = useState(false);
+  const [_copied, _setCopied] = useState(false);
 
   // Ceiling light switch states
-  const [isCeilingLightOn, setIsCeilingLightOn] = useState<boolean>(true);
+  const [_isCeilingLightOn, setIsCeilingLightOn] = useState<boolean>(true);
   const [switchHint, setSwitchHint] = useState<string | null>(null);
   const hintTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -311,8 +374,12 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       } else if (prevStage === 3) {
         // Tự động đóng cánh cửa tủ khi zoom out / rời khỏi tủ trượt
         playClosetDoorSound(false);
+      } else if (currentStageIndex === 1) {
+        // Tự động đẩy ngăn kéo dưới cùng ra khi zoom vào bàn học
+        setTimeout(() => playDrawerSlideSound(true), 180);
       } else if (prevStage === 1) {
-        // Tự động đóng sách nếu rời khỏi bàn học
+        // Tự động đóng ngăn kéo lại & đóng sách nếu rời khỏi bàn học
+        playDrawerSlideSound(false);
         window.dispatchEvent(new CustomEvent('room:close-desk-book'));
       }
       prevStageRef.current = currentStageIndex;
@@ -451,7 +518,6 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     const matChrome = new THREE.MeshStandardMaterial({ color: 0x94a3b8, roughness: 0.15, metalness: 0.90 });
     const matSwitchRed = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.3 });
     const matCupYellow = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.5 });
-    const matPencilYellow = new THREE.MeshStandardMaterial({ color: 0xeab308, roughness: 0.6 });
     const matGlobeOcean = new THREE.MeshStandardMaterial({ map: texGlobe, roughness: 0.25, metalness: 0.1 });
     const matAlarmRed = new THREE.MeshStandardMaterial({ color: 0xdc2626, roughness: 0.25, metalness: 0.15 });
     const matChairWheel = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.75 });
@@ -568,7 +634,15 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     roomGroup.add(bookshelfClickMesh);
     roomGroup.add(wallPosterGroup);
 
-    const { deskGroup, chairGroup, deskClickMesh } = buildDeskAndChair(
+    const {
+      deskGroup,
+      chairGroup,
+      deskClickMesh,
+      drawerClickMesh,
+      bottomDrawerGroup,
+      drawerLight,
+      drawerPortalRing,
+    } = buildDeskAndChair(
       roomW,
       matWoodAmber,
       matWoodDark,
@@ -591,6 +665,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
     roomGroup.add(deskGroup);
     roomGroup.add(chairGroup);
     roomGroup.add(deskClickMesh);
+    roomGroup.add(drawerClickMesh);
 
     // 3D Story Book đặt trên mặt bàn học
     const initialStory = (selectedBookId && WORKING_VOLUMES_BOOKS.find((b) => b.id === selectedBookId)) || WORKING_VOLUMES_BOOKS[2];
@@ -811,7 +886,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
       windowRimLight.intensity = THREE.MathUtils.lerp(windowRimLight.intensity, targetWindowRimIntensity, lightLerpSpeed);
 
-      (skyMat as any).color.lerp(targetSkyColor, lightLerpSpeed);
+      (skyMat as THREE.MeshBasicMaterial).color.lerp(targetSkyColor, lightLerpSpeed);
       sunGroup.position.lerp(targetSunPos, lightLerpSpeed);
 
       sunCoreMat.opacity = THREE.MathUtils.lerp(sunCoreMat.opacity, targetSunOpacity, lightLerpSpeed);
@@ -823,7 +898,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
 
       starMat.opacity = THREE.MathUtils.lerp(starMat.opacity, targetStarOpacity, lightLerpSpeed);
 
-      (cloudMat as any).color.lerp(targetCloudColor, lightLerpSpeed);
+      (cloudMat as THREE.MeshBasicMaterial).color.lerp(targetCloudColor, lightLerpSpeed);
       cloudMat.opacity = THREE.MathUtils.lerp(cloudMat.opacity, targetCloudOpacity, lightLerpSpeed);
 
       // Smooth 3D Globe Rotation
@@ -889,6 +964,19 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       fDoorLeft.position.x = THREE.MathUtils.lerp(fDoorLeft.position.x, targetDoorLeftX, 0.04);
       fDoorRight.position.x = THREE.MathUtils.lerp(fDoorRight.position.x, 0.51, 0.04);
 
+      // Ngăn kéo dưới cùng bàn học: tự động đẩy trượt ra khi zoom vào Bàn Học (Stage 1) và đóng lại khi zoom out
+      const isDeskStage = currentStageIndexRef.current === 1;
+      const targetDrawerX = isDeskStage ? -0.32 : 0;
+      bottomDrawerGroup.position.x = THREE.MathUtils.lerp(bottomDrawerGroup.position.x, targetDrawerX, 0.04);
+
+      if (drawerLight) {
+        const targetDrawerLight = isDeskStage ? 1.6 : 0;
+        drawerLight.intensity = THREE.MathUtils.lerp(drawerLight.intensity, targetDrawerLight, 0.05);
+      }
+      if (drawerPortalRing) {
+        drawerPortalRing.rotation.z += 0.025;
+      }
+
       // Smooth 3D Showcase Books hover elevation animation (nhấc nhẹ sách 3D lên khi rê chuột)
       showcaseBooks.forEach((sb) => {
         const isHovered = hoveredBookStoryId === sb.storyId;
@@ -899,13 +987,13 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       // Robot Đồ Chơi: Đèn trên ngực nhấp nháy sinh động (Blinking Chest Indicators & Pulsing Energy Meter)
       const robotTime = Date.now() * 0.005;
       const isRedBlink = Math.sin(robotTime * 3.5) > 0.0;
-      (robotBtnRedMat as any).color.setHex(isRedBlink ? 0xef4444 : 0x3f0a0a);
+      (robotBtnRedMat as THREE.MeshStandardMaterial).color.setHex(isRedBlink ? 0xef4444 : 0x3f0a0a);
 
       const isYellowBlink = Math.sin(robotTime * 2.2 + 1.2) > -0.1;
-      (robotBtnYellowMat as any).color.setHex(isYellowBlink ? 0xfbbf24 : 0x452205);
+      (robotBtnYellowMat as THREE.MeshStandardMaterial).color.setHex(isYellowBlink ? 0xfbbf24 : 0x452205);
 
       const meterGlow = 0.55 + 0.45 * Math.sin(robotTime * 4.0);
-      (robotMeterMat as any).color.setRGB(0.06 * meterGlow, 0.95 * meterGlow, 0.55 * meterGlow);
+      (robotMeterMat as THREE.MeshStandardMaterial).color.setRGB(0.06 * meterGlow, 0.95 * meterGlow, 0.55 * meterGlow);
 
       // Robot Đồ Chơi: Cử động giật khấc cơ học đặc trưng của Robot / Động cơ Servo (Stepped Robotic / Servo-Motor Head Movement)
       if (robotHeadGroup) {
@@ -1067,8 +1155,16 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       }
 
       const intersectsDesk = raycaster.intersectObject(deskClickMesh, true);
-      if (intersectsDesk.length > 0) {
-        // Không vào bàn học trực tiếp khi bấm vào bàn học nữa - chỉ vào bàn học khi chọn truyện từ Kệ Sách để đọc
+      const intersectsDrawer = raycaster.intersectObject(drawerClickMesh, true);
+      if (intersectsDrawer.length > 0 || intersectsDesk.length > 0) {
+        if (currentStageIndexRef.current !== 1) {
+          if (onStageChangeRef.current) {
+            onStageChangeRef.current(1); // Zoom góc vào Bàn Học & Tủ Ngăn Kéo
+          }
+        } else if (intersectsDrawer.length > 0) {
+          // Re-trigger slide sound khi tương tác trực tiếp với ngăn kéo ở Stage 1
+          playDrawerSlideSound(true);
+        }
         return;
       }
 
@@ -1109,6 +1205,8 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       const intersectsDoorLeft = raycaster.intersectObject(doorLeftClickMesh, true);
       const intersectsDoorRight = raycaster.intersectObject(doorRightClickMesh, true);
       const intersectsNotebook = raycaster.intersectObject(notebookClickMesh, true);
+      const intersectsDesk = raycaster.intersectObject(deskClickMesh, true);
+      const intersectsDrawer = raycaster.intersectObject(drawerClickMesh, true);
       const intersectsBag = raycaster.intersectObject(backpackClickMesh, true);
       const intersectsBookshelf = raycaster.intersectObject(bookshelfClickMesh, true);
       const intersectsLaptop = raycaster.intersectObject(laptopClickMesh, true);
@@ -1117,6 +1215,9 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       const isClosetHoverable = currentStageIndexRef.current !== 3 && (intersectsDoorLeft.length > 0 || intersectsDoorRight.length > 0);
       const isNotebookHoverable = currentStageIndexRef.current === 1 && intersectsNotebook.length > 0;
       const isLaptopHoverable = currentStageIndexRef.current !== 6 && intersectsLaptop.length > 0;
+      const isDeskHoverable =
+        (currentStageIndexRef.current !== 1 && (intersectsDesk.length > 0 || intersectsDrawer.length > 0)) ||
+        (currentStageIndexRef.current === 1 && intersectsDrawer.length > 0);
 
       if (
         matchedBookId !== null ||
@@ -1124,6 +1225,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
         isClosetHoverable ||
         isNotebookHoverable ||
         isLaptopHoverable ||
+        isDeskHoverable ||
         intersectsBag.length > 0 ||
         intersectsBookshelf.length > 0
       ) {
@@ -1187,6 +1289,7 @@ export const RoomCanvas: React.FC<RoomCanvasProps> = ({
       }
       renderer.dispose();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

@@ -120,7 +120,7 @@ export const childProfileService = {
    */
   async createChildProfile(data: CreateChildProfileRequest): Promise<ApiResponse<ChildProfile>> {
     try {
-      const payload: Record<string, any> = {
+      const payload: Record<string, unknown> = {
         nickname: data.nickname.trim(),
         ageBand: data.ageBand,
         language: data.language?.trim() || 'vi',
@@ -436,14 +436,14 @@ export const childProfileService = {
       return result ?? {
         success: false,
         message: 'Không thể lấy quy tắc an toàn của bé.',
-        data: null as any,
+        data: null as unknown as import('../types/childProfile').SafetyPolicy,
       };
     } catch (error) {
       console.error('Get safety policy error:', error);
       return {
         success: false,
         message: 'Không thể lấy quy tắc an toàn của bé.',
-        data: null as any,
+        data: null as unknown as import('../types/childProfile').SafetyPolicy,
         errors: [(error as Error).message || 'Network error'],
       };
     }

@@ -60,9 +60,9 @@ export const STAGES: CameraStage[] = [
   },
   {
     id: 'desk',
-    name: '2. Góc Bàn Học & Ghế Xoay (Right Wall)',
-    camPos: [1, 2, -0.6],
-    targetPos: [1.7, 0.9, -0.6],
+    name: '2. Góc Bàn Học & Ngăn Kéo (Right Wall)',
+    camPos: [0.30, 0.78, 0.50],
+    targetPos: [1.45, 0.45, -0.12],
   },
   {
     id: 'bookshelf',

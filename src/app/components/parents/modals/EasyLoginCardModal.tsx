@@ -4,7 +4,7 @@ import React, { useRef } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { animateModalPop } from '../../../utils/gsapAnimations';
-import { X, QrCode, Printer, Download, Sparkles, BookOpen, ShieldCheck } from 'lucide-react';
+import { X, QrCode, Printer, BookOpen } from 'lucide-react';
 import { ChildProfile } from '../../../types/childProfile';
 import { CHILD_AVATAR_LIST, ChildAccessCredential } from '../../../types/childCredential';
 

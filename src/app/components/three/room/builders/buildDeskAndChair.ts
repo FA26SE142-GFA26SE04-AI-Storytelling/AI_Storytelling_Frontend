@@ -1,9 +1,14 @@
 import * as THREE from 'three';
+import { buildDeskDrawerCabinet } from './buildDeskDrawerCabinet';
 
 export interface DeskAndChairBuildResult {
   deskGroup: THREE.Group;
   chairGroup: THREE.Group;
   deskClickMesh: THREE.Mesh;
+  drawerClickMesh: THREE.Mesh;
+  bottomDrawerGroup: THREE.Group;
+  drawerLight: THREE.PointLight;
+  drawerPortalRing: THREE.Mesh;
 }
 
 export function buildDeskAndChair(
@@ -35,16 +40,20 @@ export function buildDeskAndChair(
   deskTop.receiveShadow = true;
   deskGroup.add(deskTop);
 
-  const drawerBlock = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.84, 0.52), matWoodAmber);
-  drawerBlock.position.set(0, 0.46, 0.5);
-  drawerBlock.castShadow = true;
-  deskGroup.add(drawerBlock);
-
-  for (let dr = 0.2; dr <= 0.72; dr += 0.25) {
-    const dHandle = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.03, 0.15), matWoodDark);
-    dHandle.position.set(-0.46, dr, 0.5);
-    deskGroup.add(dHandle);
-  }
+  // 3-Drawer Realistic Cabinet with animated bottom drawer & Time Machine portal
+  const {
+    drawerCarcassGroup,
+    bottomDrawerGroup,
+    drawerClickMesh,
+    drawerLight,
+    drawerPortalRing,
+  } = buildDeskDrawerCabinet(
+    matWoodAmber,
+    matWoodDark,
+    matBrass,
+    matChrome
+  );
+  deskGroup.add(drawerCarcassGroup);
 
   const legLeft1 = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.92, 0.08), matWoodDark);
   legLeft1.position.set(0.4, 0.46, -0.7);
@@ -394,10 +403,18 @@ export function buildDeskAndChair(
   });
 
   const deskClickMesh = new THREE.Mesh(
-    new THREE.BoxGeometry(1.2, 1.2, 1.2),
+    new THREE.BoxGeometry(1.4, 1.2, 1.6),
     new THREE.MeshBasicMaterial({ visible: false })
   );
   deskClickMesh.position.set(roomW / 2 - 0.65, 0.6, -0.6);
 
-  return { deskGroup, chairGroup, deskClickMesh };
+  return {
+    deskGroup,
+    chairGroup,
+    deskClickMesh,
+    drawerClickMesh,
+    bottomDrawerGroup,
+    drawerLight,
+    drawerPortalRing,
+  };
 }

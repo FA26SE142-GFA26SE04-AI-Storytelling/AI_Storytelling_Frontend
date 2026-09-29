@@ -7,15 +7,20 @@ import {
   Sun,
   Moon,
   Laptop,
-  Users,
-  Sliders,
-  Sparkles,
-  ShieldCheck,
-  UserPlus,
   Grid,
   QrCode,
+  Bell,
 } from 'lucide-react';
 import { TimeOfDay } from '../../three/RoomCanvas';
+
+export type LaptopDashboardTab =
+  | 'analytics'
+  | 'controls'
+  | 'supervision'
+  | 'prompts'
+  | 'assignments'
+  | 'community'
+  | 'interventions';
 
 export interface DashboardTopNavProps {
   onStageChange?: (stageIndex: number) => void;
@@ -23,9 +28,11 @@ export interface DashboardTopNavProps {
   onTimeOfDayChange: (time: TimeOfDay, e?: React.MouseEvent) => void;
   onToggleViewMode?: () => void;
   is2DViewAvailable?: boolean;
-  activeTab?: 'analytics' | 'controls' | 'supervision' | 'prompts';
-  setActiveTab?: (tab: 'analytics' | 'controls' | 'supervision' | 'prompts') => void;
+  activeTab?: LaptopDashboardTab;
+  setActiveTab?: (tab: LaptopDashboardTab) => void;
   onOpenAcceptInviteModal?: () => void;
+  onOpenNotificationDrawer?: () => void;
+  unreadNotificationsCount?: number;
   user?: {
     fullName?: string;
     username?: string;
@@ -40,9 +47,11 @@ export const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
   onTimeOfDayChange,
   onToggleViewMode,
   is2DViewAvailable = false,
-  activeTab,
-  setActiveTab,
+  activeTab: _activeTab,
+  setActiveTab: _setActiveTab,
   onOpenAcceptInviteModal,
+  onOpenNotificationDrawer,
+  unreadNotificationsCount,
   user,
 }) => {
   return (
@@ -83,6 +92,22 @@ export const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
 
       {/* Right Controls: Nhập Mã Mời, User Profile Pill, TimeOfDay, 2D View Switcher */}
       <div className="flex items-center gap-2 shrink-0 flex-wrap sm:flex-nowrap justify-end">
+        {onOpenNotificationDrawer && (
+          <button
+            type="button"
+            onClick={onOpenNotificationDrawer}
+            className="relative p-2 rounded-xl bg-tod-card hover:bg-tod-surface border border-tod-border text-tod-text transition-all cursor-pointer hover:border-indigo-500/40"
+            title="Xem thông báo"
+          >
+            <Bell className="w-4 h-4 text-indigo-400" />
+            {unreadNotificationsCount !== undefined && unreadNotificationsCount > 0 && (
+              <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-rose-500 text-white text-[9px] font-black shadow-sm">
+                {unreadNotificationsCount}
+              </span>
+            )}
+          </button>
+        )}
+
         {onOpenAcceptInviteModal && (
           <button
             type="button"
