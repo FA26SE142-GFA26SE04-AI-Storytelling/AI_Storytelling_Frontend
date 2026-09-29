@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { User, AlertCircle, RefreshCw, Zap, Users } from 'lucide-react';
+import { User, AlertCircle, RefreshCw, Zap, Users, LogIn } from 'lucide-react';
 import {
   ChildProfile,
   LearningProfile,
@@ -66,6 +66,8 @@ export interface ParentAnalyticsTabProps {
   contentCategories: ContentCategory[];
   tokenQuota: TokenQuotaStatus | null;
   handleOpenAddChildModal: () => void;
+  isLoggedIn?: boolean;
+  onLogin?: () => void;
 }
 
 export const ParentAnalyticsTab: React.FC<ParentAnalyticsTabProps> = ({
@@ -116,8 +118,32 @@ export const ParentAnalyticsTab: React.FC<ParentAnalyticsTabProps> = ({
   contentCategories,
   tokenQuota,
   handleOpenAddChildModal,
+  isLoggedIn = true,
+  onLogin,
 }) => {
   if (!selectedChild) {
+    if (!isLoggedIn) {
+      return (
+        <div className="py-16 px-6 rounded-3xl bg-tod-card border border-tod-border text-center flex flex-col items-center justify-center gap-3 shadow-sm">
+          <div className="w-12 h-12 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500">
+            <LogIn className="w-6 h-6" />
+          </div>
+          <span className="text-sm font-bold text-tod-text">Chưa Đăng Nhập Tài Khoản</span>
+          <p className="text-xs text-tod-text-muted max-w-xs leading-relaxed">
+            Vui lòng đăng nhập để xem thông tin chi tiết, lịch sử học tập, giao bài và thiết lập an toàn cho bé.
+          </p>
+          <button
+            type="button"
+            onClick={onLogin}
+            className="mt-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-sky-500/25 cursor-pointer flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
+          >
+            <LogIn className="w-4 h-4" />
+            <span>Đăng Nhập Ngay</span>
+          </button>
+        </div>
+      );
+    }
+
     return (
       <div className="py-12 px-6 rounded-3xl bg-tod-card border border-tod-border text-center flex flex-col items-center justify-center gap-3 shadow-sm">
         <User className="w-10 h-10 text-tod-text-muted opacity-40" />

@@ -9,7 +9,7 @@ import {
   animateStaggerList,
 } from '../../utils/gsapAnimations';
 
-import { Users } from 'lucide-react';
+import { Users, LogIn } from 'lucide-react';
 import { TimeOfDay } from '../three/RoomCanvas';
 import { useAuth } from '../../context/AuthContext';
 import { useChildSession } from '../../context/ChildSessionContext';
@@ -53,7 +53,7 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
   onToggleViewMode,
   is2DViewAvailable = false,
 }) => {
-  const { user } = useAuth();
+  const { user, isLoggedIn } = useAuth();
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<LaptopDashboardTab>('analytics');
   const [isUiVisible, setIsUiVisible] = useState<boolean>(false);
@@ -184,6 +184,8 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
               onActivateChild={laptopData.handleActivateChild}
               activatingChildId={laptopData.activatingChildId}
               onRefresh={laptopData.fetchChildProfiles}
+              isLoggedIn={isLoggedIn}
+              onLogin={() => onStageChange(4)}
             />
           </div>
 
@@ -244,6 +246,8 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
                   contentCategories={laptopData.contentCategories}
                   tokenQuota={laptopData.tokenQuota}
                   handleOpenAddChildModal={laptopData.handleOpenAddChildModal}
+                  isLoggedIn={isLoggedIn}
+                  onLogin={() => onStageChange(4)}
                 />
               )}
 
@@ -326,32 +330,51 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
                   />
                 ) : (
                   <div className="text-center py-12 px-4 rounded-3xl bg-tod-card border border-tod-border space-y-3 shadow-sm text-tod-text">
-                    <Users className="w-10 h-10 text-indigo-500 mx-auto" />
+                    <div className="w-12 h-12 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-500 mx-auto">
+                      {isLoggedIn ? <Users className="w-6 h-6" /> : <LogIn className="w-6 h-6" />}
+                    </div>
                     <div className="space-y-1">
-                      <h3 className="text-sm font-bold text-tod-text">Chưa chọn hồ sơ bé</h3>
+                      <h3 className="text-sm font-bold text-tod-text">
+                        {isLoggedIn ? 'Chưa chọn hồ sơ bé' : 'Chưa Đăng Nhập'}
+                      </h3>
                       <p className="text-xs text-tod-text-muted max-w-sm mx-auto">
-                        Vui lòng chọn một hồ sơ bé từ danh sách bên trái hoặc nhập mã mời giám sát bạn nhận được.
+                        {isLoggedIn
+                          ? 'Vui lòng chọn một hồ sơ bé từ danh sách bên trái hoặc nhập mã mời giám sát bạn nhận được.'
+                          : 'Vui lòng đăng nhập tài khoản Phụ huynh hoặc Giáo viên để xem thông tin giám sát và quản lý học sinh.'}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          laptopData.setAcceptInviteError(null);
-                          laptopData.setAcceptCodeInput('');
-                          laptopData.setShowAcceptInviteModal(true);
-                        }}
-                        className="btn-dashboard-primary text-xs px-4 py-2"
-                      >
-                        Nhập Mã Mời Giám Sát
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => laptopData.setShowAddChildModal(true)}
-                        className="px-4 py-2 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text text-xs font-bold transition-colors cursor-pointer"
-                      >
-                        + Tạo Hồ Sơ Bé Mới
-                      </button>
+                      {isLoggedIn ? (
+                        <>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              laptopData.setAcceptInviteError(null);
+                              laptopData.setAcceptCodeInput('');
+                              laptopData.setShowAcceptInviteModal(true);
+                            }}
+                            className="btn-dashboard-primary text-xs px-4 py-2"
+                          >
+                            Nhập Mã Mời Giám Sát
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => laptopData.setShowAddChildModal(true)}
+                            className="px-4 py-2 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text text-xs font-bold transition-colors cursor-pointer"
+                          >
+                            + Tạo Hồ Sơ Bé Mới
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => onStageChange(4)}
+                          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-sky-500/25 cursor-pointer flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
+                        >
+                          <LogIn className="w-3.5 h-3.5" />
+                          <span>Đăng Nhập Ngay</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 )

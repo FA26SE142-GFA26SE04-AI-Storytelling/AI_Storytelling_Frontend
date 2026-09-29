@@ -10,6 +10,7 @@ import {
   Grid,
   QrCode,
   Bell,
+  LogIn,
 } from 'lucide-react';
 import { TimeOfDay } from '../../three/RoomCanvas';
 
@@ -78,10 +79,16 @@ export const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
               <h1 className="font-black text-sm sm:text-base tracking-tight text-tod-text flex items-center gap-2">
                 <span>Bảng Điều Khiển Của Phụ Huynh</span>
               </h1>
-              <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-extrabold text-emerald-600 dark:text-emerald-300 flex items-center gap-1 shrink-0">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Trực Tuyến
-              </span>
+              {user ? (
+                <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-[10px] font-extrabold text-emerald-600 dark:text-emerald-300 flex items-center gap-1 shrink-0">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  Trực Tuyến
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-[10px] font-extrabold text-amber-600 dark:text-amber-300 flex items-center gap-1 shrink-0">
+                  Chưa Đăng Nhập
+                </span>
+              )}
             </div>
             <p className="text-[11px] text-tod-text-muted font-medium hidden sm:block">
               Theo dõi tiến trình đọc, cảm xúc EQ và thiết lập bảo vệ bé thời gian thực
@@ -120,7 +127,7 @@ export const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
           </button>
         )}
 
-        {user && (
+        {user ? (
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-tod-card rounded-xl border border-tod-border text-xs transition-colors duration-500">
             <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-emerald-500 to-teal-500 flex items-center justify-center font-black text-[11px] text-white">
               {user.fullName ? user.fullName.charAt(0).toUpperCase() : user.username ? user.username.charAt(0).toUpperCase() : 'P'}
@@ -134,6 +141,16 @@ export const DashboardTopNav: React.FC<DashboardTopNavProps> = ({
               </span>
             </div>
           </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => onStageChange?.(4)}
+            className="py-1.5 px-3 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-extrabold text-xs flex items-center gap-1.5 shadow-md shadow-sky-500/25 transition-all cursor-pointer hover:scale-105 active:scale-95"
+            title="Đăng nhập tài khoản"
+          >
+            <LogIn className="w-3.5 h-3.5 text-white" />
+            <span>Đăng Nhập</span>
+          </button>
         )}
 
         {/* Time of Day Switcher */}

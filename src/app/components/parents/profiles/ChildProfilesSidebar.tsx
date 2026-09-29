@@ -10,6 +10,7 @@ import {
   Building2,
   GraduationCap,
   QrCode,
+  LogIn,
 } from 'lucide-react';
 import { ChildProfile } from '../../../types/childProfile';
 import { DashboardStatusBadge } from '../common/DashboardStatusBadge';
@@ -24,6 +25,8 @@ export interface ChildProfilesSidebarProps {
   onActivateChild: (childId: number, nickname: string, ageBand: string) => void;
   activatingChildId: number | null;
   onRefresh: () => void;
+  isLoggedIn?: boolean;
+  onLogin?: () => void;
 }
 
 export const ChildProfilesSidebar: React.FC<ChildProfilesSidebarProps> = ({
@@ -36,6 +39,8 @@ export const ChildProfilesSidebar: React.FC<ChildProfilesSidebarProps> = ({
   onActivateChild,
   activatingChildId,
   onRefresh,
+  isLoggedIn = true,
+  onLogin,
 }) => {
   const formatAgeBand = (ageBand: string) => {
     switch (ageBand) {
@@ -87,14 +92,26 @@ export const ChildProfilesSidebar: React.FC<ChildProfilesSidebarProps> = ({
               <span>Nhập Mã</span>
             </button>
           )}
-          <button
-            type="button"
-            onClick={onOpenAddChildModal}
-            className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-md shadow-sky-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            <span>Thêm Bé</span>
-          </button>
+          {isLoggedIn ? (
+            <button
+              type="button"
+              onClick={onOpenAddChildModal}
+              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-md shadow-sky-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 hover:scale-105 active:scale-95"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Thêm Bé</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onLogin}
+              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-[11px] flex items-center gap-1.5 shadow-md shadow-sky-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 hover:scale-105 active:scale-95"
+              title="Đăng nhập tài khoản"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Đăng Nhập</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -106,21 +123,41 @@ export const ChildProfilesSidebar: React.FC<ChildProfilesSidebarProps> = ({
             <span>Đang tải danh sách hồ sơ bé...</span>
           </div>
         ) : childProfiles.length === 0 ? (
-          <div className="py-10 px-4 rounded-xl bg-tod-card border border-tod-border text-center flex flex-col items-center gap-2 text-tod-text-muted text-xs">
-            <User className="w-8 h-8 text-tod-text-muted opacity-50" />
-            <span className="font-semibold text-tod-text">Chưa có hồ sơ bé nào</span>
-            <p className="text-[11px] text-tod-text-muted">
-              Hãy tạo hồ sơ bé đầu tiên để cá nhân hóa lộ trình học tập và an toàn AI.
-            </p>
-            <button
-              type="button"
-              onClick={onOpenAddChildModal}
-              className="mt-2 px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-sky-500/20 whitespace-nowrap"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              <span>Tạo hồ sơ bé ngay</span>
-            </button>
-          </div>
+          !isLoggedIn ? (
+            <div className="py-10 px-4 rounded-xl bg-tod-card border border-tod-border text-center flex flex-col items-center gap-2.5 text-tod-text-muted text-xs">
+              <div className="w-10 h-10 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-center justify-center text-sky-500">
+                <LogIn className="w-5 h-5" />
+              </div>
+              <span className="font-semibold text-tod-text text-sm">Chưa đăng nhập tài khoản</span>
+              <p className="text-[11px] text-tod-text-muted leading-relaxed">
+                Vui lòng đăng nhập tài khoản Phụ huynh hoặc Giáo viên để xem và quản lý hồ sơ của các bé.
+              </p>
+              <button
+                type="button"
+                onClick={onLogin}
+                className="mt-1 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-sky-500/20 whitespace-nowrap hover:scale-105 active:scale-95"
+              >
+                <LogIn className="w-3.5 h-3.5" />
+                <span>Đăng nhập ngay</span>
+              </button>
+            </div>
+          ) : (
+            <div className="py-10 px-4 rounded-xl bg-tod-card border border-tod-border text-center flex flex-col items-center gap-2 text-tod-text-muted text-xs">
+              <User className="w-8 h-8 text-tod-text-muted opacity-50" />
+              <span className="font-semibold text-tod-text">Chưa có hồ sơ bé nào</span>
+              <p className="text-[11px] text-tod-text-muted">
+                Hãy tạo hồ sơ bé đầu tiên để cá nhân hóa lộ trình học tập và an toàn AI.
+              </p>
+              <button
+                type="button"
+                onClick={onOpenAddChildModal}
+                className="mt-2 px-3 py-1.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-sky-500/20 whitespace-nowrap"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Tạo hồ sơ bé ngay</span>
+              </button>
+            </div>
+          )
         ) : (
           childProfiles.map((child) => {
             const isSelected = selectedChildId === child.id;
