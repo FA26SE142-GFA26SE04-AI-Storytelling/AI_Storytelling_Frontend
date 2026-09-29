@@ -119,7 +119,7 @@ export const ParentAnalyticsTab: React.FC<ParentAnalyticsTabProps> = ({
   tokenQuota,
   handleOpenAddChildModal,
   isLoggedIn = true,
-  onLogin,
+  onLogin: _onLogin,
 }) => {
   if (!selectedChild) {
     if (!isLoggedIn) {
@@ -130,16 +130,8 @@ export const ParentAnalyticsTab: React.FC<ParentAnalyticsTabProps> = ({
           </div>
           <span className="text-sm font-bold text-tod-text">Chưa Đăng Nhập Tài Khoản</span>
           <p className="text-xs text-tod-text-muted max-w-xs leading-relaxed">
-            Vui lòng đăng nhập để xem thông tin chi tiết, lịch sử học tập, giao bài và thiết lập an toàn cho bé.
+            Vui lòng đăng nhập tài khoản ở góc trên bên phải để xem thông tin chi tiết, lịch sử học tập, giao bài và thiết lập an toàn cho bé.
           </p>
-          <button
-            type="button"
-            onClick={onLogin}
-            className="mt-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-sky-500/25 cursor-pointer flex items-center gap-2 transition-all hover:scale-105 active:scale-95"
-          >
-            <LogIn className="w-4 h-4" />
-            <span>Đăng Nhập Ngay</span>
-          </button>
         </div>
       );
     }

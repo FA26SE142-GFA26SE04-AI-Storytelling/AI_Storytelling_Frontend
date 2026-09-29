@@ -340,42 +340,31 @@ export const ParentLaptopDashboardOverlay: React.FC<ParentLaptopDashboardOverlay
                       <p className="text-xs text-tod-text-muted max-w-sm mx-auto">
                         {isLoggedIn
                           ? 'Vui lòng chọn một hồ sơ bé từ danh sách bên trái hoặc nhập mã mời giám sát bạn nhận được.'
-                          : 'Vui lòng đăng nhập tài khoản Phụ huynh hoặc Giáo viên để xem thông tin giám sát và quản lý học sinh.'}
+                          : 'Vui lòng đăng nhập tài khoản ở góc trên bên phải để xem thông tin giám sát và quản lý học sinh.'}
                       </p>
                     </div>
-                    <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
-                      {isLoggedIn ? (
-                        <>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              laptopData.setAcceptInviteError(null);
-                              laptopData.setAcceptCodeInput('');
-                              laptopData.setShowAcceptInviteModal(true);
-                            }}
-                            className="btn-dashboard-primary text-xs px-4 py-2"
-                          >
-                            Nhập Mã Mời Giám Sát
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => laptopData.setShowAddChildModal(true)}
-                            className="px-4 py-2 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text text-xs font-bold transition-colors cursor-pointer"
-                          >
-                            + Tạo Hồ Sơ Bé Mới
-                          </button>
-                        </>
-                      ) : (
+                    {isLoggedIn && (
+                      <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
                         <button
                           type="button"
-                          onClick={() => onStageChange(4)}
-                          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs shadow-lg shadow-sky-500/25 cursor-pointer flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
+                          onClick={() => {
+                            laptopData.setAcceptInviteError(null);
+                            laptopData.setAcceptCodeInput('');
+                            laptopData.setShowAcceptInviteModal(true);
+                          }}
+                          className="btn-dashboard-primary text-xs px-4 py-2"
                         >
-                          <LogIn className="w-3.5 h-3.5" />
-                          <span>Đăng Nhập Ngay</span>
+                          Nhập Mã Mời Giám Sát
                         </button>
-                      )}
-                    </div>
+                        <button
+                          type="button"
+                          onClick={() => laptopData.setShowAddChildModal(true)}
+                          className="px-4 py-2 rounded-xl bg-tod-surface hover:bg-tod-card border border-tod-border text-tod-text text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          + Tạo Hồ Sơ Bé Mới
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )
               )}

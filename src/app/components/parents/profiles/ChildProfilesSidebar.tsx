@@ -40,7 +40,7 @@ export const ChildProfilesSidebar: React.FC<ChildProfilesSidebarProps> = ({
   activatingChildId,
   onRefresh,
   isLoggedIn = true,
-  onLogin,
+  onLogin: _onLogin,
 }) => {
   const formatAgeBand = (ageBand: string) => {
     switch (ageBand) {
@@ -72,49 +72,37 @@ export const ChildProfilesSidebar: React.FC<ChildProfilesSidebarProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0">
-          {isLoggedIn ? (
-            <>
-              <button
-                type="button"
-                onClick={onRefresh}
-                title="Tải lại danh sách bé"
-                className="p-1.5 rounded-lg bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text transition-colors cursor-pointer shrink-0"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${isLoadingChildren ? 'animate-spin text-sky-500' : ''}`} />
-              </button>
-              {onOpenAcceptInviteModal && (
-                <button
-                  type="button"
-                  onClick={onOpenAcceptInviteModal}
-                  title="Nhập mã mời hoặc quét QR để nhận giám sát"
-                  className="px-2 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
-                >
-                  <QrCode className="w-3.5 h-3.5" />
-                  <span>Nhập Mã</span>
-                </button>
-              )}
-              <button
-                type="button"
-                onClick={onOpenAddChildModal}
-                className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-md shadow-sky-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 hover:scale-105 active:scale-95"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Thêm Bé</span>
-              </button>
-            </>
-          ) : (
+        {isLoggedIn && (
+          <div className="flex items-center gap-1 shrink-0">
             <button
               type="button"
-              onClick={onLogin}
-              className="px-3 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-sky-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 hover:scale-105 active:scale-95"
-              title="Đăng nhập tài khoản"
+              onClick={onRefresh}
+              title="Tải lại danh sách bé"
+              className="p-1.5 rounded-lg bg-tod-card border border-tod-border text-tod-text-muted hover:text-tod-text transition-colors cursor-pointer shrink-0"
             >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>Đăng Nhập</span>
+              <RefreshCw className={`w-3.5 h-3.5 ${isLoadingChildren ? 'animate-spin text-sky-500' : ''}`} />
             </button>
-          )}
-        </div>
+            {onOpenAcceptInviteModal && (
+              <button
+                type="button"
+                onClick={onOpenAcceptInviteModal}
+                title="Nhập mã mời hoặc quét QR để nhận giám sát"
+                className="px-2 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-sm transition-all cursor-pointer whitespace-nowrap shrink-0"
+              >
+                <QrCode className="w-3.5 h-3.5" />
+                <span>Nhập Mã</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onOpenAddChildModal}
+              className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-[11px] flex items-center gap-1 shadow-md shadow-sky-500/20 transition-all cursor-pointer whitespace-nowrap shrink-0 hover:scale-105 active:scale-95"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Thêm Bé</span>
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Profiles List */}
@@ -132,16 +120,8 @@ export const ChildProfilesSidebar: React.FC<ChildProfilesSidebarProps> = ({
               </div>
               <span className="font-semibold text-tod-text text-sm">Chưa đăng nhập tài khoản</span>
               <p className="text-[11px] text-tod-text-muted leading-relaxed">
-                Vui lòng đăng nhập tài khoản Phụ huynh hoặc Giáo viên để xem và quản lý hồ sơ của các bé.
+                Vui lòng đăng nhập tài khoản ở góc trên bên phải để xem và quản lý hồ sơ các bé.
               </p>
-              <button
-                type="button"
-                onClick={onLogin}
-                className="mt-1 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer shadow-md shadow-sky-500/20 whitespace-nowrap hover:scale-105 active:scale-95"
-              >
-                <LogIn className="w-3.5 h-3.5" />
-                <span>Đăng nhập ngay</span>
-              </button>
             </div>
           ) : (
             <div className="py-10 px-4 rounded-xl bg-tod-card border border-tod-border text-center flex flex-col items-center gap-2 text-tod-text-muted text-xs">
