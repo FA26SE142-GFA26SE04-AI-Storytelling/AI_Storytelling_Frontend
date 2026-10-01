@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Sparkles,
   Play,
@@ -15,9 +15,8 @@ import {
   Compass,
 } from 'lucide-react';
 import { ChildProfile } from '../../../types/childProfile';
-import { aiStoryCreationService } from '../../../services/aiStoryCreationService';
+import { useCreativeStoryInput } from './useCreativeStoryInput';
 import { existingStoryService } from '../../../services/existingStoryService';
-import { AIStoryInputContextDto, AIStoryInputProgressDto, OutlineProgressDto } from '../../../types/aiStory';
 
 export interface CreativeControlsTabProps {
   selectedChild?: ChildProfile | null;
@@ -27,7 +26,7 @@ export interface CreativeControlsTabProps {
   setFeedbackRating: (val: 'like' | 'dislike' | null) => void;
 }
 
-export const CreativeControlsTab: React.FC<CreativeControlsTabProps> = ({
+const CreativeControlsContent: React.FC<CreativeControlsTabProps> = ({
   selectedChild,
   isPlayingAudio,
   setIsPlayingAudio,
@@ -36,84 +35,14 @@ export const CreativeControlsTab: React.FC<CreativeControlsTabProps> = ({
 }) => {
   const [activeSubTab, setActiveSubTab] = useState<'create' | 'import' | 'starters'>('create');
 
-  // Creation State
-  const [creationContext, setCreationContext] = useState<AIStoryInputContextDto | null>(null);
-  const [promptInput, setPromptInput] = useState<string>('');
-  const [genreInput, setGenreInput] = useState<string>('Thám hiểm & Phép thuật');
-  const [lessonInput, setLessonInput] = useState<string>('Lòng dũng cảm & Tinh thần sẻ chia');
-  const [isSubmittingPrompt, setIsSubmittingPrompt] = useState<boolean>(false);
-  const [_createdProgress, setCreatedProgress] = useState<AIStoryInputProgressDto | null>(null);
-  const [outlineProgress, setOutlineProgress] = useState<OutlineProgressDto | null>(null);
-  const [creationFeedback, setCreationFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const { creationContext, promptInput, genreInput, lessonInput, isSubmittingPrompt, outlineProgress, creationFeedback,
+    handleSubmitPrompt, setPromptInput, setGenreInput, setLessonInput } = useCreativeStoryInput(selectedChild?.id ?? null);
 
   // Import State
   const [importTitle, setImportTitle] = useState<string>('');
   const [importContent, setImportContent] = useState<string>('');
   const [isImporting, setIsImporting] = useState<boolean>(false);
   const [importFeedback, setImportFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
-
-  // Load Creation Context when selected child changes
-  useEffect(() => {
-    if (selectedChild) {
-      aiStoryCreationService.getCreationContext(selectedChild.id).then((res) => {
-        if (res.success && res.data) {
-          setCreationContext(res.data);
-        }
-      });
-    } else {
-      setCreationContext(null);
-    }
-  }, [selectedChild]);
-
-  // Handle Submit AI Story Prompt
-  const handleSubmitPrompt = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedChild) {
-      setCreationFeedback({ type: 'error', message: 'Vui lòng chọn một hồ sơ bé trước khi tạo truyện.' });
-      return;
-    }
-    if (!promptInput.trim()) {
-      setCreationFeedback({ type: 'error', message: 'Vui lòng nhập ý tưởng hoặc chủ đề truyện.' });
-      return;
-    }
-
-    setIsSubmittingPrompt(true);
-    setCreationFeedback(null);
-
-    try {
-      const res = await aiStoryCreationService.submitInput({
-        childProfileId: selectedChild.id,
-        prompt: promptInput.trim(),
-        genre: genreInput,
-        targetLesson: lessonInput,
-      });
-
-      if (res.success && res.data) {
-        setCreatedProgress(res.data);
-        setCreationFeedback({
-          type: 'success',
-          message: 'Ý tưởng đã được tiếp nhận và kiểm duyệt an toàn thành công!',
-        });
-
-        // Fetch outline for the created story
-        if (res.data.storyId) {
-          const outlineRes = await aiStoryCreationService.getOutline(res.data.storyId);
-          if (outlineRes.success && outlineRes.data) {
-            setOutlineProgress(outlineRes.data);
-          }
-        }
-      } else {
-        setCreationFeedback({
-          type: 'error',
-          message: res.message || 'Không thể tạo truyện. Vui lòng kiểm tra lại nội dung.',
-        });
-      }
-    } catch {
-      setCreationFeedback({ type: 'error', message: 'Lỗi kết nối khi gửi ý tưởng truyện.' });
-    } finally {
-      setIsSubmittingPrompt(false);
-    }
-  };
 
   // Handle Import Story
   const handleImportStory = async (e: React.FormEvent) => {
@@ -217,7 +146,7 @@ export const CreativeControlsTab: React.FC<CreativeControlsTabProps> = ({
 
               {creationContext && (
                 <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-[10px] font-extrabold text-amber-500">
-                  ⚡ {creationContext.tokenBalance} Tokens
+                  Tối đa {creationContext.maximumLength.toLocaleString()} từ
                 </span>
               )}
             </div>
@@ -227,7 +156,9 @@ export const CreativeControlsTab: React.FC<CreativeControlsTabProps> = ({
               <textarea
                 rows={2}
                 value={promptInput}
-                onChange={(e) => setPromptInput(e.target.value)}
+                onChange={(e) => {
+                  setPromptInput(e.target.value);
+                }}
                 placeholder="VD: Một chú gấu trúc nhỏ muốn học lái tàu vũ trụ bay đến hành tinh kẹo bông gòn..."
                 className="dashboard-input text-xs w-full resize-none"
               />
@@ -279,7 +210,7 @@ export const CreativeControlsTab: React.FC<CreativeControlsTabProps> = ({
             <div className="flex justify-end pt-1">
               <button
                 type="submit"
-                disabled={isSubmittingPrompt || !selectedChild}
+                disabled={isSubmittingPrompt || !creationContext}
                 className="btn-dashboard-primary text-xs px-5 py-2 flex items-center gap-1.5 disabled:opacity-50"
               >
                 {isSubmittingPrompt ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
@@ -297,11 +228,11 @@ export const CreativeControlsTab: React.FC<CreativeControlsTabProps> = ({
                   <span>Dàn Ý: {outlineProgress.currentVersion.title}</span>
                 </h4>
                 <span className="px-2 py-0.5 rounded-full bg-sky-500/20 text-sky-400 text-[10px] font-extrabold">
-                  {outlineProgress.currentVersion.status}
+                  {outlineProgress.currentVersion.outlineApprovedAt ? 'Đã duyệt' : 'Dàn ý'}
                 </span>
               </div>
               <p className="text-xs text-tod-text-muted leading-relaxed">
-                {outlineProgress.currentVersion.synopsis}
+                {outlineProgress.currentVersion.opening}
               </p>
             </div>
           )}
@@ -436,3 +367,7 @@ export const CreativeControlsTab: React.FC<CreativeControlsTabProps> = ({
     </div>
   );
 };
+
+export function CreativeControlsTab(props: CreativeControlsTabProps) {
+  return <CreativeControlsContent key={props.selectedChild?.id ?? 'no-child'} {...props} />;
+}

@@ -23,17 +23,11 @@ export const ThreeActsOutlineView: React.FC<ThreeActsOutlineViewProps> = ({
   editValues,
 }) => {
   const currentVersion = outlineProgress.currentVersion;
-  const nodes = currentVersion?.nodes || [];
 
-  // Fallback map nodes or defaults if outline has 3 chapters/nodes
-  const openingNode = nodes.find((n) => n.chapterNumber === 1);
-  const devNode = nodes.find((n) => n.chapterNumber === 2);
-  const endingNode = nodes.find((n) => n.chapterNumber === 3);
-
-  const displayTitle = editValues?.title ?? currentVersion?.title ?? 'Câu chuyện kỳ thú';
-  const openingText = editValues?.opening ?? openingNode?.summary ?? openingNode?.title ?? '';
-  const devText = editValues?.development ?? devNode?.summary ?? devNode?.title ?? '';
-  const endingText = editValues?.ending ?? endingNode?.summary ?? endingNode?.title ?? '';
+  const displayTitle = editValues?.title ?? currentVersion?.title ?? 'Chưa có tiêu đề';
+  const openingText = editValues?.opening ?? currentVersion?.opening ?? '';
+  const devText = editValues?.development ?? currentVersion?.development ?? '';
+  const endingText = editValues?.ending ?? currentVersion?.ending ?? '';
 
   return (
     <div className="space-y-4">
@@ -61,7 +55,7 @@ export const ThreeActsOutlineView: React.FC<ThreeActsOutlineViewProps> = ({
           )}
         </div>
         <span className="px-2.5 py-1 rounded-full text-[10px] font-extrabold bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30">
-          Phiên bản {currentVersion?.versionNumber ?? 1}
+          Phiên bản {currentVersion?.versionNo ?? '—'}
         </span>
       </div>
 
@@ -88,7 +82,7 @@ export const ThreeActsOutlineView: React.FC<ThreeActsOutlineViewProps> = ({
               />
             ) : (
               <p className="text-xs leading-relaxed text-tod-text-muted">
-                {openingText || 'Nhân vật chính xuất hiện trong khung cảnh yên bình và bắt đầu khám phá thế giới xung quanh.'}
+                {openingText || 'Chưa có nội dung mở đầu.'}
               </p>
             )}
           </div>
@@ -118,7 +112,7 @@ export const ThreeActsOutlineView: React.FC<ThreeActsOutlineViewProps> = ({
               />
             ) : (
               <p className="text-xs leading-relaxed text-tod-text-muted">
-                {devText || 'Một thử thách bất ngờ xuất hiện, nhân vật cùng bạn bè đồng lòng tìm cách giải quyết bằng sự dũng cảm.'}
+                {devText || 'Chưa có nội dung diễn biến.'}
               </p>
             )}
           </div>
@@ -148,7 +142,7 @@ export const ThreeActsOutlineView: React.FC<ThreeActsOutlineViewProps> = ({
               />
             ) : (
               <p className="text-xs leading-relaxed text-tod-text-muted">
-                {endingText || 'Mọi thử thách được hóa giải trọn vẹn, để lại bài học yêu thương và niềm vui ấm áp.'}
+                {endingText || 'Chưa có nội dung kết thúc.'}
               </p>
             )}
           </div>

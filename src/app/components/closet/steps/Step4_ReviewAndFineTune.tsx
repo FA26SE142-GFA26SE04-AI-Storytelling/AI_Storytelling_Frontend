@@ -1,352 +1,139 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import {
-  BookOpen,
-  Sparkles,
-  Edit3,
-  Check,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-  ArrowRight,
-} from 'lucide-react';
-import { aiStoryCreationService } from '../../../services/aiStoryCreationService';
-import { ReviewPackageDto, VocabularyItemDto, QuizQuestionDto, DiscussionPromptDto } from '../../../types/aiStory';
-import { PartialAiEditModal } from '../subcomponents/PartialAiEditModal';
+import React, { useEffect, useRef, useState } from 'react';
+import { aiStoryCreationService as api } from '../../../services/aiStoryCreationService';
+import { DiscussionPromptDto, QuizQuestionDto, ReviewArtifact, StoryReviewDto, VocabularyItemDto } from '../../../types/aiStory';
+import { useStoryReview } from '../hooks/useStoryReview';
+import { isMediaStage } from '../hooks/storyGenerationFlow';
+import { AIStoryProposalPreview } from '../subcomponents/AIStoryProposalPreview';
+import { hasMissingLearning } from '../hooks/storyReviewLearning';
 
 export interface Step4_ReviewAndFineTuneProps {
   storyId: number;
   onProceedToMedia: (storyId: number) => void;
   onBack: () => void;
 }
+const names: Record<ReviewArtifact, string> = { story: 'Câu chuyện', vocabulary: 'Từ vựng', quiz: 'Câu đố', discussion: 'Trò chuyện' };
 
-export const Step4_ReviewAndFineTune: React.FC<Step4_ReviewAndFineTuneProps> = ({
-  storyId,
-  onProceedToMedia,
-  onBack,
-}) => {
-  const [_reviewPackage, setReviewPackage] = useState<ReviewPackageDto | null>(null);
-  const [activeTab, setActiveTab] = useState<'vocab' | 'quiz' | 'discussion'>('vocab');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [isApproving, setIsApproving] = useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  // Partial AI Edit Modal
-  const [isPartialModalOpen, setIsPartialModalOpen] = useState<boolean>(false);
-  const [highlightedText, setHighlightedText] = useState<string>('');
-
-  // Editable Story State
-  const [storyTitle, setStoryTitle] = useState<string>('');
-  const [storyContent, setStoryContent] = useState<string>('');
-  const [isEditingStory, setIsEditingStory] = useState<boolean>(false);
-
-  // Editable Artifacts State
-  const [vocabItems, setVocabItems] = useState<VocabularyItemDto[]>([]);
-  const [quizQuestions, setQuizQuestions] = useState<QuizQuestionDto[]>([]);
-  const [discussionPrompts, setDiscussionPrompts] = useState<DiscussionPromptDto[]>([]);
-
+export const Step4_ReviewAndFineTune: React.FC<Step4_ReviewAndFineTuneProps> = ({ storyId, onProceedToMedia, onBack }) => {
+  const flow = useStoryReview(storyId);
+  const [tab, setTab] = useState<ReviewArtifact>('story');
+  const [story, setStory] = useState<StoryReviewDto | null>(null);
+  const [vocabulary, setVocabulary] = useState<VocabularyItemDto[]>([]);
+  const [quiz, setQuiz] = useState<QuizQuestionDto[]>([]);
+  const [discussion, setDiscussion] = useState<DiscussionPromptDto[]>([]);
+  const [dirty, setDirty] = useState<Set<ReviewArtifact>>(new Set());
+  const [instruction, setInstruction] = useState('');
+  const [selection, setSelection] = useState<{ start: number; endExclusive: number; text: string } | null>(null);
+  const contentRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
-    aiStoryCreationService
-      .getReviewPackage(storyId)
-      .then((res) => {
-        if (res.success && res.data) {
-          setReviewPackage(res.data);
-          setStoryTitle(res.data.story?.title || res.data.title || 'Câu chuyện mới');
-          setStoryContent(res.data.story?.content || '');
-          setVocabItems(res.data.vocabulary?.items || []);
-          setQuizQuestions(res.data.quiz?.questions || []);
-          setDiscussionPrompts(res.data.discussion?.prompts || []);
-        } else {
-          // Fallback mock if data is still generating
-          setStoryTitle('Sóc Bông và Những Quả Hạt Dẻ Vàng');
-          setStoryContent(
-            'Một buổi sáng mùa thu trời trong vắt và se se lạnh, chú Sóc Bông khoác chiếc áo len nhỏ đi vào rừng dẻ. Dưới gốc cây cổ thụ, Sóc Bông tìm thấy những quả hạt dẻ vàng thơm ngon. Nhớ đến bạn Thỏ đang đói bụng, Sóc Bông hào phóng chia sẻ một nửa túi hạt dẻ. Hai bạn cùng nhau ngắm mặt trời lên, cảm thấy niềm vui ấm áp lan tỏa khắp khu rừng.'
-          );
-          setVocabItems([
-            { word: 'Gió heo may', definition: 'Làn gió mát nhẹ, se se lạnh đặc trưng của mùa thu.' },
-            { word: 'Cổ thụ', definition: 'Cây thân gỗ to lớn, đã sống qua rất nhiều năm.' },
-          ]);
-          setQuizQuestions([
-            {
-              questionText: 'Sóc Bông đã tìm thấy món quà gì dưới gốc cây cổ thụ?',
-              options: ['Những quả hạt dẻ vàng', 'Những bông hoa cúc dại', 'Một giỏ nấm hương'],
-              correctOptionIndex: 0,
-            },
-          ]);
-          setDiscussionPrompts([
-            { promptText: 'Vì sao Sóc Bông lại muốn chia sẻ hạt dẻ cho bạn Thỏ thay vì giữ ăn một mình?' },
-          ]);
-        }
-      })
-      .catch((e) => {
-        console.error(e);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-  }, [storyId]);
-
-  // Handle Text Selection for AI Partial Rewrite
-  const handleTextSelect = () => {
-    const sel = window.getSelection();
-    if (sel && sel.toString().trim().length > 10) {
-      setHighlightedText(sel.toString().trim());
-    }
+    if (!flow.bundle) return;
+    setStory(flow.bundle.story); setVocabulary(flow.bundle.vocabulary.items);
+    setQuiz(flow.bundle.quiz.items); setDiscussion(flow.bundle.discussion.items);
+    setDirty(new Set()); setSelection(null);
+  }, [flow.bundle]);
+  useEffect(() => {
+    if (flow.bundle && isMediaStage(flow.bundle.summary.storyStatus)) onProceedToMedia(storyId);
+  }, [flow.bundle, storyId, onProceedToMedia]);
+  const markDirty = (artifact: ReviewArtifact) => setDirty(current => new Set(current).add(artifact));
+  const canEdit = flow.bundle?.summary.canEdit === true && !flow.busy && !flow.proposal;
+  const patchStory = (field: 'title' | 'content' | 'lesson', value: string) => {
+    setStory(s => s ? { ...s, [field]: value } : s); markDirty('story'); setSelection(null);
+  };
+  const save = () => flow.run(async signal => {
+    if (!flow.bundle || !story) return;
+    const versionId = flow.bundle.summary.storyVersionId;
+    const result = tab === 'story'
+      ? await api.updateStoryReview(storyId, { versionId, title: story.title, content: story.content, lesson: story.lesson }, signal)
+      : tab === 'vocabulary'
+        ? await api.updateVocabularyReview(storyId, { versionId, items: vocabulary }, signal)
+        : tab === 'quiz'
+          ? await api.updateQuizReview(storyId, { versionId, items: quiz }, signal)
+          : await api.updateDiscussionReview(storyId, { versionId, items: discussion }, signal);
+    if (signal.aborted) return;
+    flow.requireData<unknown>(result);
+    await flow.load(signal);
+  });
+  const propose = () => flow.run(async signal => {
+    if (!story || dirty.size) return;
+    const result = tab === 'story'
+      ? await api.partialEditStory(storyId, { versionId: story.versionId, selection: selection!, instruction: instruction.trim() }, signal)
+      : await api.regenerateReviewArtifact(storyId, tab, signal);
+    await flow.createProposal(result, signal);
+  });
+  const archive = () => flow.run(async signal => {
+    const result = flow.requireData(await api.archiveStory(storyId, { reason: 'Lưu trữ từ xưởng sáng tác' }, signal));
+    if (!signal.aborted && result.success) onBack();
+  });
+  const inputClass = 'dashboard-input w-full p-3 text-sm';
+  const changeVocabulary = (index: number, field: 'term' | 'definition', value: string) => {
+    setVocabulary(items => items.map((item, i) => i === index ? { ...item, [field]: value } : item)); markDirty('vocabulary');
+  };
+  const changeQuiz = (index: number, patch: Partial<QuizQuestionDto>) => {
+    setQuiz(items => items.map((item, i) => i === index ? { ...item, ...patch } : item)); markDirty('quiz');
+  };
+  const changeDiscussion = (index: number, patch: Partial<DiscussionPromptDto>) => {
+    setDiscussion(items => items.map((item, i) => i === index ? { ...item, ...patch } : item)); markDirty('discussion');
   };
 
-  // Partial AI rewrite call
-  const handleAiRewriteSnippet = async (_prompt: string, _text: string): Promise<string | null> => {
-    // Simulated quick snippet adjustment
-    await new Promise((r) => setTimeout(r, 1200));
-    return `Chú Sóc Bông tươi cười, cẩn thận nhường những quả hạt dẻ thơm ngon nhất cho bạn Thỏ trắng.`;
-  };
-
-  // Apply rewritten snippet to story content
-  const handleApplySnippet = (newSnippet: string) => {
-    if (highlightedText && storyContent.includes(highlightedText)) {
-      setStoryContent(storyContent.replace(highlightedText, newSnippet));
-      setHighlightedText('');
-    }
-  };
-
-  // Approve Story and proceed to Media Generation (Phase 5)
-  const handleApproveStory = async () => {
-    setIsApproving(true);
-    setErrorMessage(null);
-    try {
-      // Step C4: Validate & Approve
-      const res = await aiStoryCreationService.approveStory(storyId);
-      if (res.success || res.data) {
-        onProceedToMedia(storyId);
-      } else {
-        // Fallback proceed if already approved
-        onProceedToMedia(storyId);
-      }
-    } catch (err) {
-      console.error(err);
-      onProceedToMedia(storyId);
-    } finally {
-      setIsApproving(false);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="p-12 text-center text-tod-text-muted space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin mx-auto text-sky-500" />
-        <p className="text-xs font-bold">Đang tải toàn bộ gói học liệu...</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      {errorMessage && (
-        <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-300 flex items-center gap-2">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-500 dark:text-rose-400" />
-          <span>{errorMessage}</span>
-        </div>
-      )}
-
-      {/* Split View: Left (Story Text) vs Right (Artifacts: Vocab, Quiz, Discussion) */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-        {/* CỘT TRÁI: BẢN THẢO TRUYỆN (7 CỘT) */}
-        <div className="lg:col-span-7 p-4 rounded-3xl bg-tod-card border border-tod-border flex flex-col justify-between shadow-xl transition-colors duration-500">
-          <div>
-            <div className="flex items-center justify-between pb-3 border-b border-tod-border mb-3">
-              <div className="flex items-center gap-2 text-xs font-black text-tod-text">
-                <BookOpen className="w-4 h-4 text-sky-500" /> Bản thảo câu chuyện
-              </div>
-              <div className="flex items-center gap-2">
-                {highlightedText && (
-                  <button
-                    type="button"
-                    onClick={() => setIsPartialModalOpen(true)}
-                    className="px-2.5 py-1 rounded-xl bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-sky-500/40 hover:bg-sky-500/30 text-[11px] font-black flex items-center gap-1.5 transition-colors animate-pulse cursor-pointer"
-                  >
-                    <Sparkles className="w-3.5 h-3.5" /> AI Sửa Đoạn Này
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setIsEditingStory(!isEditingStory)}
-                  className="px-2.5 py-1 rounded-xl bg-tod-surface hover:bg-tod-card text-tod-text border border-tod-border text-[11px] font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Edit3 className="w-3 h-3" /> {isEditingStory ? 'Xong' : 'Sửa chữ'}
-                </button>
-              </div>
-            </div>
-
-            {isEditingStory ? (
-              <div className="space-y-2">
-                <input
-                  type="text"
-                  value={storyTitle}
-                  onChange={(e) => setStoryTitle(e.target.value)}
-                  className="w-full text-sm font-extrabold text-tod-text bg-tod-surface/90 border border-tod-border rounded-xl px-3 py-1.5 transition-colors"
-                />
-                <textarea
-                  value={storyContent}
-                  onChange={(e) => setStoryContent(e.target.value)}
-                  rows={9}
-                  className="w-full text-xs text-tod-text bg-tod-surface/90 border border-tod-border rounded-xl p-3 leading-relaxed transition-colors"
-                />
-              </div>
-            ) : (
-              <div onMouseUp={handleTextSelect} className="space-y-2.5">
-                <h3 className="text-base font-black text-tod-text">{storyTitle}</h3>
-                <p className="text-xs text-tod-text-muted leading-relaxed max-h-56 overflow-y-auto pr-1 select-text">
-                  {storyContent}
-                </p>
-                <p className="text-[10px] text-tod-text-muted/80 italic">
-                  💡 Mẹo: Bôi đen một câu bất kỳ để nhờ trợ lý AI viết lại theo ý bạn!
-                </p>
-              </div>
-            )}
-          </div>
-
-          <div className="mt-4 pt-3 border-t border-tod-border flex items-center justify-between text-[11px] text-tod-text-muted">
-            <span>Độ dài: ~{storyContent.split(' ').length} từ</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Chuẩn lứa tuổi tiểu học
-            </span>
-          </div>
-        </div>
-
-        {/* CỘT PHẢI: BỘ HỌC LIỆU DẠNG TABS (5 CỘT) */}
-        <div className="lg:col-span-5 p-4 rounded-3xl bg-tod-card border border-tod-border flex flex-col justify-between shadow-xl transition-colors duration-500">
-          <div>
-            {/* Tabs Selector */}
-            <div className="flex items-center gap-1 p-1 rounded-xl bg-tod-surface/90 border border-tod-border mb-3">
-              <button
-                type="button"
-                onClick={() => setActiveTab('vocab')}
-                className={`flex-1 py-1.5 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
-                  activeTab === 'vocab'
-                    ? 'bg-sky-500/20 text-sky-600 dark:text-sky-300 border border-sky-500/30'
-                    : 'text-tod-text-muted hover:text-tod-text'
-                }`}
-              >
-                Từ Vựng ({vocabItems.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('quiz')}
-                className={`flex-1 py-1.5 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
-                  activeTab === 'quiz'
-                    ? 'bg-amber-500/20 text-amber-600 dark:text-amber-300 border border-amber-500/30'
-                    : 'text-tod-text-muted hover:text-tod-text'
-                }`}
-              >
-                Câu Đố ({quizQuestions.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setActiveTab('discussion')}
-                className={`flex-1 py-1.5 rounded-lg text-[11px] font-black transition-all cursor-pointer ${
-                  activeTab === 'discussion'
-                    ? 'bg-purple-500/20 text-purple-600 dark:text-purple-300 border border-purple-500/30'
-                    : 'text-tod-text-muted hover:text-tod-text'
-                }`}
-              >
-                Thảo Luận
-              </button>
-            </div>
-
-            {/* Tab 1: Từ vựng */}
-            {activeTab === 'vocab' && (
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                {vocabItems.map((v, i) => (
-                  <div key={i} className="p-2.5 rounded-xl bg-tod-surface/80 border border-tod-border text-xs">
-                    <span className="font-extrabold text-sky-600 dark:text-sky-400 block">{v.word}</span>
-                    <span className="text-[11px] text-tod-text-muted leading-snug">{v.definition}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Tab 2: Câu đố trắc nghiệm */}
-            {activeTab === 'quiz' && (
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                {quizQuestions.map((q, i) => (
-                  <div key={i} className="p-2.5 rounded-xl bg-tod-surface/80 border border-tod-border text-xs space-y-1.5">
-                    <span className="font-bold text-amber-600 dark:text-amber-400 block">Câu {i + 1}: {q.questionText}</span>
-                    <div className="space-y-1 pl-1">
-                      {q.options.map((opt, idx) => (
-                        <div
-                          key={idx}
-                          className={`text-[11px] px-2 py-0.5 rounded-md ${
-                            idx === q.correctOptionIndex
-                              ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 font-bold'
-                              : 'text-tod-text-muted'
-                          }`}
-                        >
-                          {String.fromCharCode(65 + idx)}. {opt}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Tab 3: Thảo luận cùng bé */}
-            {activeTab === 'discussion' && (
-              <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
-                {discussionPrompts.map((d, i) => (
-                  <div key={i} className="p-2.5 rounded-xl bg-tod-surface/80 border border-tod-border text-xs">
-                    <span className="font-bold text-purple-600 dark:text-purple-400 block">Gợi ý {i + 1}:</span>
-                    <span className="text-[11px] text-tod-text-muted leading-snug">{d.promptText}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div className="pt-3 border-t border-tod-border text-[10px] text-tod-text-muted flex items-center justify-between">
-            <span>Sẵn sàng phê duyệt để vẽ tranh</span>
-            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400" />
-          </div>
-        </div>
-      </div>
-
-      {/* Action Footer */}
-      <div className="flex items-center justify-between pt-2">
-        <button
-          type="button"
-          onClick={onBack}
-          className="px-4 py-2 rounded-xl text-xs font-bold text-tod-text-muted hover:text-tod-text transition-colors cursor-pointer"
-        >
-          Quay lại dàn ý
-        </button>
-        <button
-          type="button"
-          disabled={isApproving}
-          onClick={handleApproveStory}
-          className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white text-xs font-black flex items-center gap-2 shadow-xl shadow-emerald-950/20 transition-all cursor-pointer hover:scale-[1.02] disabled:opacity-50"
-        >
-          {isApproving ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" /> Đang phê duyệt...
-            </>
-          ) : (
-            <>
-              <Check className="w-4 h-4" /> Phê Duyệt & Xuất Bản Sách Đa Phương Tiện
-              <ArrowRight className="w-3.5 h-3.5" />
-            </>
-          )}
-        </button>
-      </div>
-
-      {/* Partial AI Rewrite Modal */}
-      <PartialAiEditModal
-        isOpen={isPartialModalOpen}
-        onClose={() => setIsPartialModalOpen(false)}
-        selectedText={highlightedText}
-        onApply={handleApplySnippet}
-        onAiRewrite={handleAiRewriteSnippet}
-      />
+  if (!flow.bundle || !story) return <section className="dashboard-glass-panel p-6 space-y-3">
+    <p>{flow.busy ? 'Đang tải bản thảo và học liệu...' : 'Chưa thể tải gói kiểm duyệt.'}</p>
+    {flow.error && <p role="alert" className="text-rose-500">{flow.error}</p>}
+    <button type="button" disabled={flow.busy} onClick={flow.refresh}>Kiểm tra lại</button>
+    <button type="button" onClick={onBack}>Quay lại phòng</button>
+  </section>;
+  return <section className="dashboard-glass-panel p-5 space-y-4">
+    <h3 className="text-lg font-black">Xem và tinh chỉnh câu chuyện</h3>
+    {flow.error && <p role="alert" className="text-sm text-rose-500">{flow.error}</p>}
+    {hasMissingLearning(flow.bundle) && <div className="dashboard-card p-4 space-y-3">
+      <p role="status">Bản thảo hiện tại chưa có đủ học liệu. Sau khi sửa nội dung truyện, hãy tạo học liệu cho bản mới rồi xem lại trước khi phê duyệt.</p>
+      <button type="button" disabled={!canEdit || dirty.size > 0} onClick={() => void flow.generateMissingLearning()} className="btn-dashboard-primary px-4 py-2 disabled:opacity-50">{flow.busy ? 'Đang xử lý...' : 'Tạo học liệu còn thiếu'}</button>
+    </div>}
+    <div className="flex gap-2 flex-wrap">
+      {(Object.keys(names) as ReviewArtifact[]).map(artifact => <button type="button" key={artifact} disabled={flow.busy || (dirty.size > 0 && tab !== artifact)} onClick={() => setTab(artifact)} className={tab === artifact ? 'btn-dashboard-primary px-4 py-2' : 'dashboard-card px-4 py-2'}>{names[artifact]}{dirty.has(artifact) ? ' *' : ''}</button>)}
     </div>
-  );
+    {tab === 'story' && <div className="space-y-3">
+      <label className="block">Tiêu đề<input disabled={!canEdit} className={inputClass} value={story.title} onChange={e => patchStory('title', e.target.value)} /></label>
+      <label className="block">Nội dung<textarea ref={contentRef} readOnly={!canEdit} className={inputClass} rows={12} value={story.content}
+        onChange={e => patchStory('content', e.target.value)}
+        onSelect={e => {
+          const node = e.currentTarget; const start = node.selectionStart; const endExclusive = node.selectionEnd;
+          setSelection(endExclusive > start ? { start, endExclusive, text: story.content.slice(start, endExclusive) } : null);
+        }} /></label>
+      <label className="block">Bài học<textarea disabled={!canEdit} className={inputClass} value={story.lesson} onChange={e => patchStory('lesson', e.target.value)} /></label>
+      <label className="block">Yêu cầu AI viết lại đoạn đã chọn<input disabled={!canEdit} className={inputClass} value={instruction} onChange={e => setInstruction(e.target.value)} /></label>
+      {selection && <p className="text-xs">Đã chọn {selection.text.length} ký tự để đề xuất viết lại.</p>}
+    </div>}
+    {tab === 'vocabulary' && <div className="space-y-3">{vocabulary.map((item, i) => <div key={item.id ?? i} className="dashboard-card p-3 space-y-2">
+      <label>Từ<input disabled={!canEdit} className={inputClass} value={item.term} onChange={e => changeVocabulary(i, 'term', e.target.value)} /></label>
+      <label>Giải nghĩa<textarea disabled={!canEdit} className={inputClass} value={item.definition} onChange={e => changeVocabulary(i, 'definition', e.target.value)} /></label>
+    </div>)}</div>}
+    {tab === 'quiz' && <div className="space-y-3">{quiz.map((item, i) => <div key={item.id ?? i} className="dashboard-card p-3 space-y-2">
+      <label>Câu hỏi<textarea disabled={!canEdit} className={inputClass} value={item.question} onChange={e => changeQuiz(i, { question: e.target.value })} /></label>
+      {(item.choices ?? []).map((choice, j) => <label key={j} className="block">Lựa chọn {j + 1}<input disabled={!canEdit} className={inputClass} value={choice} onChange={e => changeQuiz(i, { choices: item.choices!.map((v, k) => j === k ? e.target.value : v) })} /></label>)}
+      <label>Đáp án<input disabled={!canEdit} className={inputClass} value={item.correctAnswer ?? ''} onChange={e => changeQuiz(i, { correctAnswer: e.target.value })} /></label>
+    </div>)}</div>}
+    {tab === 'discussion' && <div className="space-y-3">{discussion.map((item, i) => <div key={item.id ?? i} className="dashboard-card p-3 space-y-2">
+      <label>Gợi ý trò chuyện<textarea disabled={!canEdit} className={inputClass} value={item.question} onChange={e => changeDiscussion(i, { question: e.target.value })} /></label>
+      <label><input disabled={!canEdit} type="checkbox" checked={item.isMoralLesson} onChange={e => changeDiscussion(i, { isMoralLesson: e.target.checked })} /> Gắn với bài học của câu chuyện</label>
+    </div>)}</div>}
+    <div className="flex gap-3 flex-wrap">
+      <button type="button" disabled={!canEdit || !dirty.has(tab) || dirty.size > 1} onClick={() => void save()} className="btn-dashboard-primary px-4 py-2 disabled:opacity-50">Lưu {names[tab].toLowerCase()}</button>
+      <button type="button" disabled={!canEdit || dirty.size > 0 || (tab === 'story' && (!selection || !instruction.trim()))} onClick={() => void propose()} className="dashboard-card px-4 py-2 disabled:opacity-50">Đề xuất AI</button>
+    </div>
+    {dirty.size > 1 && <p>Hãy lưu từng phần trước khi chuyển sang chỉnh sửa phần khác. Kiểm tra lại để tải bản đã lưu sẽ bỏ thay đổi chưa lưu.</p>}
+    {flow.proposal && <div className="dashboard-card p-4 space-y-3">
+      <h4 className="font-bold">Xem trước đề xuất AI</h4>
+      <div className="max-h-60 overflow-auto"><AIStoryProposalPreview proposal={flow.proposal} /></div>
+      <button type="button" disabled={flow.busy} className="btn-dashboard-primary px-4 py-2" onClick={() => void flow.decideProposal(true)}>Áp dụng</button>
+      <button type="button" disabled={flow.busy} className="dashboard-card px-4 py-2" onClick={() => void flow.decideProposal(false)}>Bỏ qua</button>
+    </div>}
+    {flow.validation && !flow.validation.canApprove && <ul className="text-sm">{flow.validation.issues.map((issue, i) => <li key={i}>{issue}</li>)}</ul>}
+    <div className="flex gap-3 flex-wrap">
+      <button type="button" disabled={flow.busy} onClick={onBack} className="dashboard-card px-4 py-2">Quay lại phòng</button>
+      <button type="button" disabled={flow.busy || dirty.size > 0 || !!flow.proposal} onClick={flow.refresh} className="dashboard-card px-4 py-2">Kiểm tra lại</button>
+      <button type="button" disabled={!flow.bundle.summary.canApprove || hasMissingLearning(flow.bundle) || flow.busy || dirty.size > 0 || !!flow.proposal} onClick={() => void flow.approve(() => onProceedToMedia(storyId))} className="btn-dashboard-primary px-4 py-2 disabled:opacity-50">Đã xem các phần — kiểm tra và phê duyệt</button>
+      {flow.bundle.summary.canArchive && <button type="button" disabled={flow.busy || dirty.size > 0 || !!flow.proposal} onClick={() => { if (window.confirm('Lưu trữ câu chuyện và dừng sáng tác?')) void archive(); }} className="dashboard-card px-4 py-2">Lưu trữ</button>}
+    </div>
+  </section>;
 };
