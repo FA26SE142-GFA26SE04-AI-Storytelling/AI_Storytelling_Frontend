@@ -27,8 +27,8 @@ import { AIStoryOutlineHistory } from './subcomponents/AIStoryOutlineHistory';
 import { Step1_ChooseCreationMethod } from './steps/Step1_ChooseCreationMethod';
 import { Step2A_AiPromptAndOutline } from './steps/Step2A_AiPromptAndOutline';
 import { Step2B_ExistingStoryImport } from './steps/Step2B_ExistingStoryImport';
-import { Step3_MaterialGenProgress } from './steps/Step3_MaterialGenProgress';
-import { Step4_ReviewAndFineTune } from './steps/Step4_ReviewAndFineTune';
+import { Step3_ReviewStoryContent } from './steps/Step3_ReviewStoryContent';
+import { Step4_ReviewQuizLearning } from './steps/Step4_ReviewQuizLearning';
 import { Step5_MediaProductionProgress } from './steps/Step5_MediaProductionProgress';
 
 gsap.registerPlugin(useGSAP);
@@ -131,18 +131,19 @@ export const ClosetStoryStudioOverlay: React.FC<ClosetStoryStudioOverlayProps> =
     );
   }, { scope: containerRef, dependencies: [isUiVisible] });
 
-  // Handle switching to convergence step 3
-  const handleProceedToConvergence = (storyId: number) => {
+  // Handle switching to step 3 (Check Content)
+  const handleProceedToContentReview = (storyId: number) => {
     setActiveStoryId(storyId);
     setCurrentStep(3);
   };
 
-  // Handle switching to review step 4
-  const handleProceedToReview = () => {
+  // Handle switching to step 4 (Check Quiz & Học liệu)
+  const handleProceedToQuizReview = (storyId: number) => {
+    setActiveStoryId(storyId);
     setCurrentStep(4);
   };
 
-  // Handle switching to media step 5
+  // Handle switching to media step 5 (Check Media)
   const handleProceedToMedia = (storyId: number) => {
     setActiveStoryId(storyId);
     setCurrentStep(5);
@@ -193,7 +194,7 @@ export const ClosetStoryStudioOverlay: React.FC<ClosetStoryStudioOverlayProps> =
       {/* 2. MAIN STUDIO GLASS PANEL CONTAINER (PUSHED TO THE RIGHT & ENLARGED) */}
       <div className="w-full lg:w-[68%] xl:w-[64%] 2xl:w-[60%] ml-auto my-auto py-1 pr-0 lg:pr-4">
         <div className="closet-studio-card p-5 sm:p-7 rounded-3xl bg-tod-surface border border-tod-border shadow-2xl backdrop-blur-3xl text-tod-text flex flex-col max-h-[88vh] overflow-y-auto dashboard-scrollbar transition-colors duration-500">
-          {/* STEPPER HEADER (5 BƯỚC) */}
+          {/* STEPPER HEADER (5 BƯỚC TUẦN TỰ) */}
           <div className="pb-4 mb-4 border-b border-tod-border flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="p-2.5 rounded-2xl bg-amber-500/20 text-amber-500 border border-amber-500/30">
@@ -204,7 +205,7 @@ export const ClosetStoryStudioOverlay: React.FC<ClosetStoryStudioOverlayProps> =
                   Xưởng Sáng Tác Truyện Thần Kỳ
                 </h2>
                 <p className="text-xs text-tod-text-muted mt-0.5">
-                  Cùng chú Robot trên đệm tạo nên những câu chuyện kỳ thú cho bé
+                  Quy trình 3 bước duyệt: Nội dung ➔ Câu đố ➔ Tranh & Giọng đọc
                 </p>
               </div>
             </div>
@@ -214,9 +215,9 @@ export const ClosetStoryStudioOverlay: React.FC<ClosetStoryStudioOverlayProps> =
               {[
                 { step: 1, label: 'Khởi nguồn', icon: Layers },
                 { step: 2, label: 'Cốt truyện', icon: Wand2 },
-                { step: 3, label: 'Truyện & học liệu', icon: BookOpen },
-                { step: 4, label: 'Tinh chỉnh', icon: CheckCircle2 },
-                { step: 5, label: 'Xuất bản', icon: Palette },
+                { step: 3, label: 'Duyệt truyện', icon: BookOpen },
+                { step: 4, label: 'Duyệt câu đố', icon: CheckCircle2 },
+                { step: 5, label: 'Tranh & Audio', icon: Palette },
               ].map((s) => {
                 const isPassed = currentStep > s.step;
                 const isCurrent = currentStep === s.step;
@@ -264,7 +265,7 @@ export const ClosetStoryStudioOverlay: React.FC<ClosetStoryStudioOverlayProps> =
               />
             )}
 
-            {/* BƯỚC 2A: BÚT THẦN AI SÁNG TÁC */}
+            {/* BƯỚC 2A: BÚT THẦN AI SÁNG TÁC (NHẬP FORM & DUYỆT DÀN Ý) */}
             {!restoring && !restoreError && currentStep === 2 && creationMethod === 'ai_prompt' && (
               <Step2A_AiPromptAndOutline
                 key={`${user?.id}:${childId}`}
@@ -272,7 +273,7 @@ export const ClosetStoryStudioOverlay: React.FC<ClosetStoryStudioOverlayProps> =
                 resumedStoryId={restored?.storyId}
                 resumedRequestId={restored?.requestId}
                 onInputProgress={recordInput}
-                onProceedToConvergence={handleProceedToConvergence}
+                onProceedToConvergence={handleProceedToContentReview}
                 onBack={() => setCurrentStep(1)}
               />
             )}
@@ -281,35 +282,36 @@ export const ClosetStoryStudioOverlay: React.FC<ClosetStoryStudioOverlayProps> =
             {!restoring && !restoreError && currentStep === 2 && creationMethod === 'existing_import' && (
               <Step2B_ExistingStoryImport
                 selectedChild={selectedChild}
-                onProceedToConvergence={handleProceedToConvergence}
+                onProceedToConvergence={handleProceedToContentReview}
                 onBack={() => setCurrentStep(1)}
               />
             )}
 
-            {/* BƯỚC 3: PHÒNG THÍ NGHIỆM HỌC LIỆU NGẦM */}
+            {/* BƯỚC 3: CHECK 1 - KIỂM TRA & DUYỆT NỘI DUNG TRUYỆN */}
             {!restoring && !restoreError && currentStep === 3 && activeStoryId && (
-              <Step3_MaterialGenProgress
+              <Step3_ReviewStoryContent
                 storyId={activeStoryId}
-                onProceedToReview={handleProceedToReview}
-                onProceedToMedia={handleProceedToMedia}
+                onProceedToQuiz={handleProceedToQuizReview}
+                onBackToOutline={() => setCurrentStep(2)}
               />
             )}
 
-            {/* BƯỚC 4: XEM & TINH CHỈNH GÓI HỌC LIỆU */}
+            {/* BƯỚC 4: CHECK 2 - KIỂM TRA & DUYỆT CÂU ĐỐ TRẮC NGHIỆM + TỪ VỰNG */}
             {!restoring && !restoreError && currentStep === 4 && activeStoryId && (
-              <Step4_ReviewAndFineTune
+              <Step4_ReviewQuizLearning
                 storyId={activeStoryId}
                 onProceedToMedia={handleProceedToMedia}
-                onBack={() => onStageChange(0)}
+                onBackToContent={() => setCurrentStep(3)}
               />
             )}
 
-            {/* BƯỚC 5: XƯỞNG TRANH & LỒNG TIẾNG TTS */}
+            {/* BƯỚC 5: CHECK 3 - XƯỞNG TRANH & LỒNG TIẾNG TTS (XEM TRƯỚC TRANH & NGHE THỬ AUDIO) */}
             {!restoring && !restoreError && currentStep === 5 && activeStoryId && (
               <Step5_MediaProductionProgress
                 storyId={activeStoryId}
                 onReadStory={handleReadStory}
                 onReturnToRoom={() => onStageChange(0)}
+                onBackToQuiz={() => setCurrentStep(4)}
               />
             )}
           </div>

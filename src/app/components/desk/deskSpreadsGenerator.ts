@@ -7,6 +7,76 @@ export interface PageSpread {
 }
 
 /**
+ * Hàm hỗ trợ ngắt dòng và vẽ văn bản trên Canvas chuẩn xác
+ */
+function renderWrappedText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  startY: number,
+  maxW: number,
+  lineH: number,
+  maxLines: number = 16
+): number {
+  if (!text) return startY;
+  const words = text.split(/\s+/);
+  let line = '';
+  let curY = startY;
+  let count = 0;
+
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line ? `${line} ${words[i]}` : words[i];
+    if (ctx.measureText(testLine).width > maxW && line) {
+      ctx.fillText(line, x, curY);
+      line = words[i];
+      curY += lineH;
+      count++;
+      if (count >= maxLines - 1 && i < words.length - 1) {
+        line = line + '...';
+        break;
+      }
+    } else {
+      line = testLine;
+    }
+  }
+  if (line) {
+    ctx.fillText(line, x, curY);
+    curY += lineH;
+  }
+  return curY;
+}
+
+/**
+ * Tách nội dung toàn văn câu chuyện thành 3 hồi (Mở đầu, Diễn biến, Kết thúc)
+ */
+function splitStoryContent(fullText: string): { act1: string; act2: string; act3: string } {
+  const clean = fullText.replace(/\r\n/g, '\n').trim();
+  const paragraphs = clean.split(/\n\s*\n/).map((p) => p.trim()).filter((p) => p.length > 0);
+
+  if (paragraphs.length >= 3) {
+    const act1 = paragraphs[0];
+    const act2 = paragraphs.slice(1, paragraphs.length - 1).join('\n\n');
+    const act3 = paragraphs[paragraphs.length - 1];
+    return { act1, act2, act3 };
+  } else if (paragraphs.length === 2) {
+    return { act1: paragraphs[0], act2: paragraphs[1], act3: '' };
+  }
+
+  const sentences = clean.match(/[^.!?]+[.!?]+(\s|$)/g) || [clean];
+  if (sentences.length >= 3) {
+    const third = Math.ceil(sentences.length / 3);
+    const act1 = sentences.slice(0, third).join('').trim();
+    const act2 = sentences.slice(third, third * 2).join('').trim();
+    const act3 = sentences.slice(third * 2).join('').trim();
+    return { act1, act2, act3 };
+  } else if (sentences.length === 2) {
+    return { act1: sentences[0].trim(), act2: sentences[1].trim(), act3: '' };
+  }
+
+  return { act1: clean, act2: '', act3: '' };
+}
+
+/**
  * Tạo canvas 2 trang đôi toàn màn hình chuẩn 16:9 (Spread 1920x1080)
  */
 export function generateSpreads(book: WorkingVolumeBook, coverImage?: HTMLImageElement | null): PageSpread[] {
@@ -305,48 +375,85 @@ export function generateSpreads(book: WorkingVolumeBook, coverImage?: HTMLImageE
 
     // Right Page: Mở đầu câu chuyện
     ctx.textAlign = 'left';
-    ctx.fillStyle = book.color;
-    ctx.font = 'bold 26px sans-serif';
-    ctx.fillText(`TẬP ${book.volume} · ${book.discipline.toUpperCase()}`, halfW + 90, 140);
+    ctx.fillStyle = book.color || '#2563eb';
+    ctx.font = 'bold 24px sans-serif';
+    ctx.fillText(`TẬP ${book.volume} · ${(book.discipline || book.genre || 'TRUYỆN THIẾU NHI').toUpperCase()}`, halfW + 90, 135);
 
+    // Tiêu đề truyện tự động xuống dòng nếu dài
     ctx.fillStyle = '#09090b';
-    ctx.font = 'bold 64px sans-serif';
-    ctx.fillText(book.title, halfW + 90, 220);
-
-    // Deck synopsis
-    ctx.fillStyle = '#1e293b';
-    ctx.font = '28px sans-serif';
-    const words = book.deck.split(' ');
-    let line = '';
-    let y = 300;
-    for (let i = 0; i < words.length; i++) {
-      const testLine = line + words[i] + ' ';
-      if (ctx.measureText(testLine).width > halfW - 180 && i > 0) {
-        ctx.fillText(line, halfW + 90, y);
-        line = words[i] + ' ';
-        y += 44;
+    ctx.font = 'bold 50px sans-serif';
+    const titleWords = book.title.split(' ');
+    let titleLine = '';
+    let titleY = 205;
+    for (let i = 0; i < titleWords.length; i++) {
+      const test = titleLine ? `${titleLine} ${titleWords[i]}` : titleWords[i];
+      if (ctx.measureText(test).width > halfW - 180 && titleLine) {
+        ctx.fillText(titleLine, halfW + 90, titleY);
+        titleLine = titleWords[i];
+        titleY += 56;
       } else {
-        line = testLine;
+        titleLine = test;
       }
     }
-    ctx.fillText(line, halfW + 90, y);
+    if (titleLine) {
+      ctx.fillText(titleLine, halfW + 90, titleY);
+      titleY += 56;
+    }
 
-    // Quote box
-    y += 45;
-    ctx.fillStyle = `${book.color}15`;
-    ctx.beginPath();
-    ctx.roundRect(halfW + 80, y, halfW - 160, 110, 14);
-    ctx.fill();
-    ctx.strokeStyle = book.color;
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(halfW + 80, y + 10);
-    ctx.lineTo(halfW + 80, y + 100);
-    ctx.stroke();
+    const fullStoryText = book.content || book.deck || '';
+    const acts = splitStoryContent(fullStoryText);
 
-    ctx.fillStyle = '#09090b';
-    ctx.font = 'italic bold 22px sans-serif';
-    ctx.fillText(`"${book.note}"`, halfW + 110, y + 62);
+    if (book.isCustomStory || book.content) {
+      ctx.fillStyle = book.color || '#2563eb';
+      ctx.font = 'bold 20px sans-serif';
+      ctx.fillText('✦ HỒI 1 · MỞ ĐẦU HÀNH TRÌNH ✦', halfW + 90, titleY + 15);
+      titleY += 45;
+
+      ctx.fillStyle = '#1e293b';
+      ctx.font = '23px sans-serif';
+      const act1EndY = renderWrappedText(ctx, acts.act1, halfW + 90, titleY, halfW - 180, 38, 9);
+
+      // Quote box trích dẫn bài học / cảm xúc
+      if (book.note) {
+        const quoteY = Math.min(Math.max(act1EndY + 25, H - 230), H - 170);
+        ctx.fillStyle = `${book.color}15`;
+        ctx.beginPath();
+        ctx.roundRect(halfW + 80, quoteY, halfW - 160, 95, 14);
+        ctx.fill();
+        ctx.strokeStyle = book.color || '#f59e0b';
+        ctx.lineWidth = 4;
+        ctx.beginPath();
+        ctx.moveTo(halfW + 80, quoteY + 10);
+        ctx.lineTo(halfW + 80, quoteY + 85);
+        ctx.stroke();
+
+        ctx.fillStyle = '#09090b';
+        ctx.font = 'italic bold 20px sans-serif';
+        renderWrappedText(ctx, `"${book.note}"`, halfW + 105, quoteY + 40, halfW - 210, 28, 2);
+      }
+    } else {
+      // Preset volumes logic
+      ctx.fillStyle = '#1e293b';
+      ctx.font = '28px sans-serif';
+      renderWrappedText(ctx, book.deck, halfW + 90, titleY + 20, halfW - 180, 44, 6);
+
+      // Quote box
+      const quoteY = H - 240;
+      ctx.fillStyle = `${book.color}15`;
+      ctx.beginPath();
+      ctx.roundRect(halfW + 80, quoteY, halfW - 160, 110, 14);
+      ctx.fill();
+      ctx.strokeStyle = book.color;
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.moveTo(halfW + 80, quoteY + 10);
+      ctx.lineTo(halfW + 80, quoteY + 100);
+      ctx.stroke();
+
+      ctx.fillStyle = '#09090b';
+      ctx.font = 'italic bold 22px sans-serif';
+      ctx.fillText(`"${book.note}"`, halfW + 110, quoteY + 62);
+    }
 
     // Page numbers
     ctx.textAlign = 'center';
@@ -361,7 +468,7 @@ export function generateSpreads(book: WorkingVolumeBook, coverImage?: HTMLImageE
     });
   }
 
-  // --- Spread 2: Nội dung chương 1 & Thử thách khám phá ---
+  // --- Spread 2: Nội dung diễn biến & Kết thúc + Bài học ---
   {
     const canvas = document.createElement('canvas');
     canvas.width = W;
@@ -378,76 +485,154 @@ export function generateSpreads(book: WorkingVolumeBook, coverImage?: HTMLImageE
     ctx.fillStyle = spineShadow;
     ctx.fillRect(halfW - 80, 0, 160, H);
 
-    // Left Page: Minh họa & Bối cảnh
-    ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 36px sans-serif';
-    ctx.textAlign = 'left';
-    ctx.fillText('Chương I: Khởi Nguồn Sáng Tạo', 90, 140);
+    const fullStoryText = book.content || book.deck || '';
+    const acts = splitStoryContent(fullStoryText);
 
-    ctx.fillStyle = '#334155';
-    ctx.font = '24px sans-serif';
-    ctx.fillText('Mỗi câu chuyện đều bắt đầu từ một ý niệm nhỏ bé.', 90, 200);
-    ctx.fillText('Khi bàn tay chạm vào trang giấy, trí tưởng tượng', 90, 245);
-    ctx.fillText('mở ra vô vàn những thế giới diệu kỳ đang chờ đón.', 90, 290);
+    if (book.isCustomStory || book.content) {
+      // === CUSTOM AI STORY SPREAD 2 ===
+      // Left Page: Hồi 2 - Diễn Biến & Thử Thách
+      ctx.textAlign = 'left';
+      ctx.fillStyle = book.color || '#2563eb';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText('✦ HỒI 2 · THỬ THÁCH & PHIÊU LƯU ✦', 90, 130);
 
-    // Minh họa thẻ màu
-    ctx.fillStyle = book.color;
-    ctx.beginPath();
-    ctx.roundRect(90, 350, halfW - 180, 220, 20);
-    ctx.fill();
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillText('Diễn Biến Câu Chuyện', 90, 185);
 
-    ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 32px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(book.motif, 90 + (halfW - 180) / 2, 450);
-    ctx.font = 'bold 20px sans-serif';
-    ctx.fillText(`Chủ đề: ${book.theme}`, 90 + (halfW - 180) / 2, 500);
+      ctx.fillStyle = '#334155';
+      ctx.font = '23px sans-serif';
+      const devText = acts.act2 || acts.act1;
+      const act2EndY = renderWrappedText(ctx, devText, 90, 240, halfW - 180, 38, 9);
 
-    // Right Page: Thử thách & Câu hỏi tương tác
-    ctx.textAlign = 'left';
-    ctx.fillStyle = '#0f172a';
-    ctx.font = 'bold 36px sans-serif';
-    ctx.fillText('Câu Hỏi Suy Ngẫm Cho Bé', halfW + 90, 140);
+      // Thẻ chủ đề / bối cảnh phía dưới
+      const badgeCardY = Math.max(act2EndY + 30, H - 350);
+      ctx.fillStyle = book.color || '#2563eb';
+      ctx.beginPath();
+      ctx.roundRect(90, badgeCardY, halfW - 180, 180, 20);
+      ctx.fill();
 
-    const questions = [
-      '1. Bé thích chi tiết nào nhất trong hành trình vừa qua?',
-      '2. Nếu là nhân vật chính, bé sẽ lựa chọn giải pháp nào?',
-      '3. Cùng chia sẻ cảm xúc của bé với ba mẹ nhé!',
-    ];
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`✦ ${book.motif || book.discipline || 'Phiêu Lưu'} ✦`, 90 + (halfW - 180) / 2, badgeCardY + 68);
+      ctx.font = 'bold 20px sans-serif';
+      ctx.fillText(`Chủ đề: ${book.theme || 'Khám phá thế giới diệu kỳ'}`, 90 + (halfW - 180) / 2, badgeCardY + 115);
 
-    let y = 210;
-    ctx.fillStyle = '#1e293b';
-    ctx.font = '24px sans-serif';
-    questions.forEach((q) => {
-      ctx.fillText(q, halfW + 90, y);
-      y += 65;
-    });
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText('— Trang 02 —', halfW / 2, H - 55);
 
-    // Box bài học
-    y += 35;
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.roundRect(halfW + 80, y, halfW - 160, 140, 16);
-    ctx.fill();
-    ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+      // Right Page: Hồi 3 - Cái Kết & Bài Học Ý Nghĩa
+      ctx.textAlign = 'left';
+      ctx.fillStyle = book.color || '#2563eb';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText('✦ HỒI 3 · KẾT THÚC CÂU CHUYỆN ✦', halfW + 90, 130);
 
-    ctx.fillStyle = book.color;
-    ctx.font = 'bold 22px sans-serif';
-    ctx.fillText('✦ BÀI HỌC Ý NGHĨA ✦', halfW + 110, y + 40);
-    ctx.fillStyle = '#334155';
-    ctx.font = 'italic 20px sans-serif';
-    ctx.fillText('Kiên trì và sáng tạo sẽ mở ra những cánh cửa bất ngờ.', halfW + 110, y + 80);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillText('Cái Kết & Lắng Nghe', halfW + 90, 185);
 
-    ctx.textAlign = 'center';
-    ctx.fillStyle = '#94a3b8';
-    ctx.font = 'bold 18px sans-serif';
-    ctx.fillText('— Trang 02 —', halfW + halfW / 2, H - 55);
+      ctx.fillStyle = '#1e293b';
+      ctx.font = '23px sans-serif';
+      const endText = acts.act3 || 'Hành trình khép lại trong niềm vui và nụ cười rạng rỡ của những người bạn nhỏ.';
+      const act3EndY = renderWrappedText(ctx, endText, halfW + 90, 240, halfW - 180, 38, 7);
+
+      // Khung Bài Học Đạo Đức Ý Nghĩa (Lấy chính xác moralLesson của AI)
+      const moralText = book.moralLesson || book.note || 'Biết yêu thương, sẻ chia và giúp đỡ bạn bè xung quanh.';
+      const boxY = Math.max(act3EndY + 30, H - 350);
+      const boxH = Math.min(230, H - 100 - boxY);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(halfW + 80, boxY, halfW - 160, boxH, 18);
+      ctx.fill();
+      ctx.strokeStyle = book.color || '#f59e0b';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      ctx.fillStyle = book.color || '#d97706';
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText('✦ BÀI HỌC ĐẠO ĐỨC Ý NGHĨA ✦', halfW + 110, boxY + 45);
+
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'italic bold 21px sans-serif';
+      renderWrappedText(ctx, `"${moralText}"`, halfW + 110, boxY + 90, halfW - 220, 34, 4);
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText('— Trang 03 —', halfW + halfW / 2, H - 55);
+    } else {
+      // === PRESET VOLUMES SPREAD 2 (giữ nguyên cho các quyển sách mẫu mặc định) ===
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('Chương I: Khởi Nguồn Sáng Tạo', 90, 140);
+
+      ctx.fillStyle = '#334155';
+      ctx.font = '24px sans-serif';
+      ctx.fillText('Mỗi câu chuyện đều bắt đầu từ một ý niệm nhỏ bé.', 90, 200);
+      ctx.fillText('Khi bàn tay chạm vào trang giấy, trí tưởng tượng', 90, 245);
+      ctx.fillText('mở ra vô vàn những thế giới diệu kỳ đang chờ đón.', 90, 290);
+
+      ctx.fillStyle = book.color;
+      ctx.beginPath();
+      ctx.roundRect(90, 350, halfW - 180, 220, 20);
+      ctx.fill();
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 32px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(book.motif, 90 + (halfW - 180) / 2, 450);
+      ctx.font = 'bold 20px sans-serif';
+      ctx.fillText(`Chủ đề: ${book.theme}`, 90 + (halfW - 180) / 2, 500);
+
+      ctx.textAlign = 'left';
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 36px sans-serif';
+      ctx.fillText('Câu Hỏi Suy Ngẫm Cho Bé', halfW + 90, 140);
+
+      const questions = [
+        '1. Bé thích chi tiết nào nhất trong hành trình vừa qua?',
+        '2. Nếu là nhân vật chính, bé sẽ lựa chọn giải pháp nào?',
+        '3. Cùng chia sẻ cảm xúc của bé với ba mẹ nhé!',
+      ];
+
+      let y = 210;
+      ctx.fillStyle = '#1e293b';
+      ctx.font = '24px sans-serif';
+      questions.forEach((q) => {
+        ctx.fillText(q, halfW + 90, y);
+        y += 65;
+      });
+
+      y += 35;
+      ctx.fillStyle = '#ffffff';
+      ctx.beginPath();
+      ctx.roundRect(halfW + 80, y, halfW - 160, 140, 16);
+      ctx.fill();
+      ctx.strokeStyle = '#e2e8f0';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = book.color;
+      ctx.font = 'bold 22px sans-serif';
+      ctx.fillText('✦ BÀI HỌC Ý NGHĨA ✦', halfW + 110, y + 40);
+      ctx.fillStyle = '#334155';
+      ctx.font = 'italic 20px sans-serif';
+      ctx.fillText('Kiên trì và sáng tạo sẽ mở ra những cánh cửa bất ngờ.', halfW + 110, y + 80);
+
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = 'bold 18px sans-serif';
+      ctx.fillText('— Trang 02 —', halfW + halfW / 2, H - 55);
+    }
 
     spreads.push({
-      title: `${book.title} — Chương I & Bài Học`,
-      subtitle: `Tập ${book.volume} · Trang 02`,
+      title: `${book.title} — Diễn Biến & Bài Học`,
+      subtitle: `Tập ${book.volume} · Trang 02 & 03`,
       dataUrl: canvas.toDataURL('image/jpeg', 0.92),
     });
   }

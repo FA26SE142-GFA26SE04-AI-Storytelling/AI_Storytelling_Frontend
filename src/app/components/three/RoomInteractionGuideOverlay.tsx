@@ -76,10 +76,10 @@ export function RoomInteractionGuideOverlay({
     },
     {
       id: 'desk',
-      title: 'Bàn Học & Ngăn Kéo (Giấy tờ & Bài tập)',
+      title: 'Bàn Học Thần Kỳ - Đọc truyện & Học tập',
       icon: Sparkles,
       colorScheme: 'yellow',
-      position: { top: '53%', left: '77%' },
+      position: { top: '50%', left: '76%' },
       onClick: () => onStageChange(1),
     },
   ];

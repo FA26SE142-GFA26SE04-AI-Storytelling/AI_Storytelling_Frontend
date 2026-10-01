@@ -179,14 +179,26 @@ export const DeskReadingViewOverlay: React.FC<DeskReadingViewOverlayProps> = ({
 
       {/* 2. TOP-CENTER MINIMAL BOOK PILL */}
       {readingStage === 'closed' && (
-        <div className="desk-reading-control absolute top-3 sm:top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-auto hidden md:flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-tod-surface/90 backdrop-blur-2xl border border-tod-border text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
-          <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
-          <span className="font-extrabold text-xs sm:text-sm text-tod-text">
-            {selectedBookId ? activeBook.title : 'Bàn Học & Ngăn Kéo Tài Liệu'}
-          </span>
-          <span className="text-[10px] font-bold text-tod-text-muted px-2 py-0.5 rounded-full bg-tod-card border border-tod-border">
-            {selectedBookId ? `Tập ${activeBook.volume} · ${activeBook.discipline}` : 'Giấy Tờ & Vở Bài Tập · Nobita'}
-          </span>
+        <div className="desk-reading-control absolute top-3 sm:top-5 left-1/2 -translate-x-1/2 z-50 pointer-events-auto flex items-center gap-2.5 px-4 py-2 rounded-2xl bg-tod-surface/90 backdrop-blur-2xl border border-tod-border text-tod-text shadow-[0_8px_30px_rgba(0,0,0,0.3)]">
+          <Sparkles className="w-4 h-4 text-amber-500 animate-pulse shrink-0" />
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+            <span className="font-extrabold text-xs sm:text-sm text-tod-text truncate max-w-[180px] sm:max-w-[300px]">
+              {selectedBookId ? activeBook.title : 'Bàn Học Đọc Sách'}
+            </span>
+            <span className="text-[10px] font-bold text-tod-text-muted px-2 py-0.5 rounded-full bg-tod-card border border-tod-border whitespace-nowrap hidden sm:inline">
+              {selectedBookId ? `Tập ${activeBook.volume} · ${activeBook.discipline}` : 'Không Gian Đọc Truyện · Nobita'}
+            </span>
+          </div>
+          {selectedBookId && (
+            <button
+              onClick={() => window.dispatchEvent(new CustomEvent('room:trigger-open-desk-book'))}
+              className="ml-1 sm:ml-2 px-3 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-zinc-950 font-black text-xs hover:scale-105 active:scale-95 transition-all shadow-md flex items-center gap-1.5 cursor-pointer shrink-0"
+              title="Mở sách trên bàn học để đọc"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Mở Sách Đọc</span>
+            </button>
+          )}
         </div>
       )}
 

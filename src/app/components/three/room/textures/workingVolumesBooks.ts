@@ -755,7 +755,7 @@ export function mapStoryDtoToWorkingVolumeBook(story: StoryMappingInput, index: 
     volume: volNum,
     discipline: genre,
     note: moralLesson || description || 'Bài học nuôi dưỡng tâm hồn và trí tưởng tượng cho bé.',
-    deck: description || fullContent,
+    deck: fullContent,
     binding: p.binding,
     format: '150 × 220 mm · Ấn bản phép màu',
     theme: `${genre} · ${ageText || 'Dành cho bé'}`,
