@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { UserProfile, LoginRequest, RegisterRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse } from '../types/auth';
 import { authService } from '../services/authService';
+import { clearStorySessions } from '../components/closet/hooks/storyStudioSession';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -172,6 +173,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async (): Promise<void> => {
     setIsLoading(true);
+    clearStorySessions();
     await authService.logout();
     setAccessToken(null);
     setUser(null);
