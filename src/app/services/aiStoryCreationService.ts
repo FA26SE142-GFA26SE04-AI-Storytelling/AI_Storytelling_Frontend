@@ -1,7 +1,7 @@
-import { USE_MOCK } from '../mocks/config';
-import { mockAiStory } from '../mocks/mockAiStory';
-import { ApiResponse } from '../types/auth';
-import * as D from '../types/aiStory';
+import { USE_MOCK } from '@/app/mocks/config';
+import { mockAiStory } from '@/app/mocks/mockAiStory';
+import { ApiResponse } from '@/app/types/auth';
+import * as D from '@/app/types/aiStory';
 import { authService } from './authService';
 import { API_BASE_URL } from './apiConfig';
 import { validStoryPayload } from './aiStoryContractValidation';

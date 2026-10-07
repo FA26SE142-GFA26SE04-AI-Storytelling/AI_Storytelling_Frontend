@@ -2,8 +2,8 @@
 
 import { useEffect, useRef } from "react";
 import { animate, stagger } from "animejs";
-import { useTheme } from "../../context/ThemeContext";
-import { prefersReducedMotion } from "../../utils/motion";
+import { useTheme } from "@/app/context/ThemeContext";
+import { prefersReducedMotion } from "@/app/lib/motion";
 import Lotus from "./Lotus";
 
 const PADS = [

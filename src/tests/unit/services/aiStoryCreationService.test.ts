@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { authService } from '../../../app/services/authService';
-import { aiStoryCreationService } from '../../../app/services/aiStoryCreationService';
-import { AIStoryInputProgressDto, SubmitAIStoryInputRequestDto } from '../../../app/types/aiStory';
+import { authService } from '@/app/services/authService';
+import { aiStoryCreationService } from '@/app/services/aiStoryCreationService';
+import { AIStoryInputProgressDto, SubmitAIStoryInputRequestDto } from '@/app/types/aiStory';
 
 const acceptedProgress: AIStoryInputProgressDto = {
   storyId: 10,

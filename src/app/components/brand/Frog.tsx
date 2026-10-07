@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { animate } from "animejs";
-import { prefersReducedMotion } from "../../utils/motion";
+import { prefersReducedMotion } from "@/app/lib/motion";
 
 export type FrogMood = "idle" | "happy" | "think";
 

@@ -1,0 +1,31 @@
+/* Studio tạo truyện */
+.create { grid-template-columns: 250px 1fr 290px; grid-template-rows: 1fr; gap: 12px; }
+
+.center { display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; background: color-mix(in srgb, var(--bg) 60%, var(--panel)); }
+.tools { height: 38px; flex: none; display: flex; align-items: center; gap: 2px; padding: 0 8px; border-bottom: 1px solid var(--line); }
+.board { flex: 1; position: relative; overflow: auto; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 36px 28px 92px; background-image: radial-gradient(var(--line-2) 1px, transparent 1px); background-size: 20px 20px; }
+
+/* Khung cảnh truyện và hộp chữ */
+.artwrap { position: relative; transform-origin: center; transition: transform .25s; }
+.artlabel { position: absolute; top: -22px; left: 0; font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; width: 100%; }
+.artlabel em { font-style: normal; margin-left: auto; color: var(--faint); }
+.art { width: min(720px, 52vw); aspect-ratio: 16/10; border-radius: 16px; position: relative; overflow: hidden; box-shadow: 0 30px 60px -24px color-mix(in srgb, var(--shadow) 45%, transparent); outline: 1px solid var(--line-2); transition: background .4s; }
+.tbox { position: absolute; left: 4%; bottom: 7%; width: 52%; background: rgba(14, 34, 24, .6); backdrop-filter: blur(10px); border-radius: 14px; padding: 12px 16px; cursor: text; outline: 1.5px solid var(--primary); outline-offset: 4px; }
+.tbox .txt { font-family: var(--font-display); font-weight: 700; line-height: 1.35; outline: 0; }
+
+/* Thẻ tiến trình */
+.pipe-inline { height: 100%; display: grid; place-items: center; padding: 20px; }
+.pipe-card { width: min(400px, 90%); background: var(--panel); border: 1px solid var(--line-2); border-radius: 18px; padding: 18px; box-shadow: 0 30px 60px -20px color-mix(in srgb, var(--shadow) 40%, transparent); }
+.pipe-card h3 { margin: 0 0 3px; font-size: 18px; }
+
+/* Danh sách cảnh, học liệu, thanh minh hoạ */
+.scene-list { display: flex; flex-direction: column; gap: 6px; }
+.scene-list button { text-align: left; padding: 8px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); font-size: 12.5px; }
+.scene-list button.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 8%, transparent); }
+.scene-list small { display: block; color: var(--faint); font-size: 11px; }
+.voc-i { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 8px 10px; font-size: 12.5px; }
+.voc-i b { color: var(--warn-ink); }
+.voc-i span { display: block; color: var(--muted); font-size: 12px; }
+.media-bar { padding: 10px 14px; border-top: 1px solid var(--line); background: var(--panel); font-size: 12.5px; display: flex; align-items: center; gap: 12px; }
+
+@media (max-width: 1100px) { .create { grid-template-columns: 220px 1fr 260px; } }

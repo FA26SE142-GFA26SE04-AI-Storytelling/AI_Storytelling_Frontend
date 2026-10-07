@@ -1,6 +1,6 @@
-import type { ChildProfile, ContentCategory, SafetyPolicy } from '../types/childProfile';
-import type { DiscussionPromptDto, OutlineVersionDto, QuizQuestionDto, VocabularyItemDto } from '../types/aiStory';
-import type { UserProfile } from '../types/auth';
+import type { ChildProfile, ContentCategory, SafetyPolicy } from '@/app/types/childProfile';
+import type { DiscussionPromptDto, OutlineVersionDto, QuizQuestionDto, VocabularyItemDto } from '@/app/types/aiStory';
+import type { UserProfile } from '@/app/types/auth';
 
 export const MOCK_USER: UserProfile = {
   id: 1, username: 'thuha', email: 'thuha@taletale.site', fullName: 'Nguyễn Thu Hà', role: 'Parent', status: 'Active',

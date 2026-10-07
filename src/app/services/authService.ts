@@ -1,6 +1,6 @@
-import { USE_MOCK } from '../mocks/config';
-import { authMockOverrides } from '../mocks/mockServices';
-import { LoginRequest, RegisterRequest, VerifyEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse, UserProfile } from '../types/auth';
+import { USE_MOCK } from '@/app/mocks/config';
+import { authMockOverrides } from '@/app/mocks/mockServices';
+import { LoginRequest, RegisterRequest, VerifyEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse, UserProfile } from '@/app/types/auth';
 import { API_BASE_URL } from './apiConfig';
 
 /**
@@ -16,9 +16,21 @@ async function safeJsonParse<T>(response: Response): Promise<T | null> {
   }
 }
 
-export const TOKEN_STORAGE_KEY = 'magictales_access_token';
-export const REFRESH_TOKEN_STORAGE_KEY = 'magictales_refresh_token';
-export const USER_STORAGE_KEY = 'magictales_user_profile';
+export const TOKEN_STORAGE_KEY = 'taletale_access_token';
+export const REFRESH_TOKEN_STORAGE_KEY = 'taletale_refresh_token';
+export const USER_STORAGE_KEY = 'taletale_user_profile';
+
+// Chuyển phiên đăng nhập lưu dưới tên cũ (MagicTales) sang khoá mới để người dùng không bị đăng xuất.
+if (typeof window !== 'undefined') {
+  try {
+    for (const key of [TOKEN_STORAGE_KEY, REFRESH_TOKEN_STORAGE_KEY, USER_STORAGE_KEY]) {
+      const legacy = key.replace('taletale_', 'magictales_');
+      const value = localStorage.getItem(legacy);
+      if (value !== null && localStorage.getItem(key) === null) localStorage.setItem(key, value);
+      localStorage.removeItem(legacy);
+    }
+  } catch { /* localStorage có thể bị chặn */ }
+}
 
 type AuthStateListener = (user: UserProfile | null, token: string | null) => void;
 const authListeners: Set<AuthStateListener> = new Set();

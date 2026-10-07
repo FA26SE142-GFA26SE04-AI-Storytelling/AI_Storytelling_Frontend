@@ -1,9 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { mockAiStory } from '../../../app/mocks/mockAiStory';
-import { resetMockDb } from '../../../app/mocks/mockDb';
-import { snapshotStage } from '../../../app/components/workspaces/studio/useStoryPipeline';
+import { mockAiStory } from '@/app/mocks/mockAiStory';
+import { resetMockDb } from '@/app/mocks/mockDb';
+import { snapshotStage } from '@/app/features/studio/useStoryPipeline';
 
-vi.mock('../../../app/mocks/config', async (orig) => ({ ...(await orig<typeof import('../../../app/mocks/config')>()), delay: () => Promise.resolve() }));
+vi.mock('@/app/mocks/config', async (orig) => ({ ...(await orig<typeof import('@/app/mocks/config')>()), delay: () => Promise.resolve() }));
 
 const input = { childProfileId: 1, topic: 'Rùa con học bơi', characters: ['Rùa Con'], characterMode: 'specified' as const, settingMode: 'ai_suggested' as const, lesson: 'kiên trì', vocabularyLevel: 'level_2' as const, targetLength: 400, idempotencyKey: 'k1' };
 

@@ -10,6 +10,8 @@ interface ThemeContextType {
   setTheme: (theme: Theme) => void;
 }
 
+export const THEME_STORAGE_KEY = 'taletale-theme';
+
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 const applyTheme = (newTheme: Theme) => {
@@ -30,7 +32,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     setMounted(true);
-    const savedTheme = localStorage.getItem('magictales-theme') as Theme | null;
+    const savedTheme = (localStorage.getItem(THEME_STORAGE_KEY) ?? localStorage.getItem('magictales-theme')) as Theme | null;
     if (savedTheme === 'dark' || savedTheme === 'light') {
       setThemeState(savedTheme);
       applyTheme(savedTheme);
@@ -43,7 +45,8 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   const setTheme = (newTheme: Theme) => {
     setThemeState(newTheme);
-    localStorage.setItem('magictales-theme', newTheme);
+    localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    localStorage.removeItem('magictales-theme');
     applyTheme(newTheme);
   };
 

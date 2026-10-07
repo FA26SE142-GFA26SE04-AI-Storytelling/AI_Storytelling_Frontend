@@ -1,0 +1,59 @@
+/* Khung ứng dụng: thanh trên, thanh bên, vùng làm việc, thanh trạng thái và các panel nổi trên mặt nước. */
+
+.shell { position: relative; display: grid; grid-template-columns: 62px 1fr; grid-template-rows: 54px 1fr 20px; gap: 10px; padding: 10px; height: 100%; }
+.shell > :not(.pond) { position: relative; z-index: 1; }
+
+/* Thanh trên và thanh bên: kính mờ trên nền nước */
+.top, .rail { border: 1px solid var(--line); background: color-mix(in srgb, var(--chrome) 86%, transparent); backdrop-filter: blur(12px); box-shadow: 0 10px 26px -18px color-mix(in srgb, var(--shadow) 45%, transparent); }
+.top { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 0 14px 0 0; border-radius: 24px; }
+.logo { width: 58px; height: 44px; display: grid; place-items: center; }
+.doc { margin: 0 auto; display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
+.doc .c { color: var(--faint); white-space: nowrap; }
+.child-pick { width: auto; min-width: 190px; font-weight: 700; }
+.av { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 11px; flex: none; background: var(--primary); color: #fff; }
+
+.rail { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 0; border-radius: 28px; }
+.rail button { width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); position: relative; transition: background .15s, color .15s; }
+.rail button svg { width: 19px; height: 19px; }
+.rail button:hover { background: var(--surface); color: var(--text); }
+.rail button:disabled { opacity: .45; cursor: not-allowed; }
+/* Mục đang chọn có hình chiếc lá sen */
+.rail button.on { width: 46px; border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%; background: var(--primary-strong); color: #fff; box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--primary) 80%, transparent); }
+.rail button[data-tip]:hover::after { content: attr(data-tip); position: absolute; left: 50px; top: 50%; transform: translateY(-50%); background: var(--tooltip); color: var(--bg); font-size: 11.5px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 50; pointer-events: none; }
+.rail .sep { width: 24px; height: 1px; background: var(--line-2); margin: 4px 0; }
+.rail .badge { position: absolute; top: 3px; right: 3px; min-width: 15px; height: 15px; border-radius: 99px; background: var(--rose); color: #fff; font-size: 9.5px; font-weight: 800; display: grid; place-items: center; padding: 0 3px; }
+.rail .bottom { margin-top: auto; color: var(--warn-ink); background: color-mix(in srgb, var(--primary) 14%, transparent); }
+
+.stage { position: relative; min-width: 0; min-height: 0; }
+.ws { position: absolute; inset: 0; display: grid; animation: wsin .25s ease-out; }
+.dock { gap: 12px; }
+
+.status { grid-column: 1 / -1; display: flex; align-items: center; font-size: 11px; color: var(--faint); padding: 0 14px; }
+.status span { padding: 0 10px; border-right: 1px solid var(--line); display: flex; align-items: center; gap: 6px; height: 14px; }
+.status span:last-child { border: 0; }
+.status .r { margin-left: auto; display: flex; }
+.status .live { color: var(--ok-ink); }
+.status .live i { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+
+/* ===== Panel nổi ===== */
+/* Các vùng lớn của mỗi không gian dùng chung một kiểu khung bo tròn. */
+.pane, .center, .review-doc, .setbody { border: 1px solid var(--line); border-radius: 26px; overflow: hidden; box-shadow: 0 14px 34px -24px color-mix(in srgb, var(--shadow) 50%, transparent); }
+.pane { display: flex; flex-direction: column; min-height: 0; min-width: 0; background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(8px); }
+
+.ph { height: 42px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 18px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 700; }
+/* Chấm hình cánh hoa sen trước tiêu đề */
+.ph::before { content: ""; width: 9px; height: 9px; border-radius: 50% 50% 50% 0; background: var(--lotus); transform: rotate(-45deg); flex: none; }
+.ph .act { margin-left: auto; display: flex; gap: 2px; align-items: center; }
+
+.tabs { display: flex; height: 34px; flex: none; border-bottom: 1px solid var(--line); padding: 0 10px; }
+.tabs button { padding: 0 8px; font-size: 12px; white-space: nowrap; color: var(--muted); font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button.on { color: var(--text); border-color: var(--primary); }
+
+.pb { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.sec { display: flex; flex-direction: column; gap: 9px; }
+.sec + .sec { border-top: 1px solid var(--line); padding-top: 14px; }
+.sec-h { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+
+@media (max-width: 900px) {
+  .doc .c { display: none; }
+}

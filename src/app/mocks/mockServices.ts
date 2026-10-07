@@ -1,6 +1,6 @@
-import type { ApiResponse, AuthResponseData, LoginRequest, UserProfile } from '../types/auth';
-import type { ChildProfile, ContentCategory, SafetyPolicy, SetSafetyPolicyRequest } from '../types/childProfile';
-import type { PagedResult, StoryDto, StoryFilterRequest } from '../types/story';
+import type { ApiResponse, AuthResponseData, LoginRequest, UserProfile } from '@/app/types/auth';
+import type { ChildProfile, ContentCategory, SafetyPolicy, SetSafetyPolicyRequest } from '@/app/types/childProfile';
+import type { PagedResult, StoryDto, StoryFilterRequest } from '@/app/types/story';
 import { delay, fail, ok } from './config';
 import { db, MOCK_CATEGORIES, MOCK_CHILDREN, MOCK_USER, persist, type MockStory } from './mockDb';
 import { mockStoryStatus } from './mockAiStory';
@@ -29,6 +29,7 @@ export function authMockOverrides(notify: (user: UserProfile | null, token: stri
     },
     async register() { await delay(); return ok(null, 'Đăng ký thành công (dữ liệu mẫu).'); },
     async forgotPassword() { await delay(); return ok(null, 'Đã gửi (dữ liệu mẫu).'); },
+    async resetPassword() { await delay(); return ok(null, 'Đã đổi mật khẩu (dữ liệu mẫu).'); },
     async logout(): Promise<ApiResponse<object | null>> {
       setLoggedOut(true);
       notify(null, null);

@@ -1,3 +1,8 @@
+> **Ghi chú (07/10/2026):** đây là kế hoạch triển khai lịch sử, viết cho giao diện phòng 3D cũ.
+> Các file `components/closet/steps/*`, `components/parents/*` nhắc bên dưới đã được thay bằng giao diện mới.
+> Logic tương ứng hiện nằm ở `app/features/story-workflow/` (hook, hàm thuần) và `app/features/studio/`, `app/features/review/` (giao diện).
+> Phần mô tả luồng trạng thái backend và contract API vẫn còn đúng.
+
 # Kế hoạch kết nối API luồng AI Story Generation – Phase 1–5
 
 Ngày cập nhật: 01/10/2026.

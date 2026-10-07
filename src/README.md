@@ -4,7 +4,7 @@
 
 🌐 **Live Demo Website**: [https://ai-storytelling-frontend.vercel.app/](https://ai-storytelling-frontend.vercel.app/)
 
-Frontend application for the AI Storytelling platform, built with **Next.js 16**, **React 19**, **TypeScript**, and **TailwindCSS 4**.
+Frontend application for the AI Storytelling platform, built with **Next.js 16**, **React 19**, **TypeScript** and **animejs**.
 
 ## Tech Stack
 
@@ -15,96 +15,45 @@ Frontend application for the AI Storytelling platform, built with **Next.js 16**
 | TypeScript    | 5.x     |
 | TailwindCSS   | 4.x     |
 
-## Color Palette & Design System (Light Mode)
+## Thiết kế
 
-Hệ thống bảng màu và quy chuẩn thiết kế dành cho **Chế độ sáng (Light Mode)** của nền tảng kể chuyện AI cho bé:
+Chủ đề **đầm sen** với linh vật ếch, có theme sáng và tối. Màu và quy ước giao diện nằm trong `app/styles/tokens.css`; quy tắc kiến trúc chi tiết xem `AGENTS.md`.
 
-### 1. Bảng màu (Color Palette)
-
-| Loại màu | Mã Hex | Tên & Mô tả công dụng |
+| Vai trò | Sáng | Tối |
 | :--- | :--- | :--- |
-| **Primary** | `#FF6B6B` | **Coral Pink / Warm Red** - Màu chủ đạo cho nút CTA chính (`Tạo truyện AI`, `Đọc & Nghe`), điểm nhấn thương hiệu |
-| **Secondary** | `#FFD166` | **Warm Gold / Soft Yellow** - Màu phụ cho huy hiệu xu thưởng, điểm đánh giá ⭐, phần nổi bật |
-| **Tertiary** | `#06D6A0` | **Vibrant Mint / Emerald Green** - Màu bổ trợ cho tính năng phát âm thanh, chứng nhận an toàn `KID-SAFE` |
-| **Neutral Canvas** | `#F0ECE5` | **Soft Warm Gray / Beige** - Màu nền tổng thể toàn trang (App Canvas), tạo độ tương phản dịu với các card |
-| **Neutral Card** | `#FFFDF7` | **Warm Cream / Off-White** - Màu nền cho các khung container/card giúp nội dung nổi bật và ấm áp |
-| **Neutral Text** | `#2B2B2B` | **Dark Charcoal** - Màu chữ văn bản chính giúp đạt độ tương phản cao, dễ đọc |
+| Chính (xanh lá) | `#2FA866` / nút `#1F8A55` | `#3DD68C` |
+| Vàng mật (chờ duyệt) | `#FFD166` | `#FFD166` |
+| Teal (an toàn, đã duyệt) | `#14B8A6` | `#2DD4BF` |
+| Hoa sen (trang trí) | `#F6A9C4` | `#E98AAF` |
 
-### 2. Phông chữ (Typography)
-
-- **Headline (Tiêu đề chính):** `Comfortaa` *(Phông bo tròn mềm mại, tạo cảm giác thân thiện, diệu kỳ)*
-- **Body & Label (Văn bản & Thẻ):** `Nunito Sans` *(Phông chữ rõ ràng, hiện đại, tối ưu trải nghiệm đọc cho bé và phụ huynh)*
-
-### 3. Quy chuẩn Component (UI Guidelines)
-
-- **Primary Button:** Nền `#FF6B6B`, chữ trắng, bo tròn pill (`rounded-full`), hiệu ứng shadow dịu.
-- **Secondary / Option Pills:** Nền vàng ấm `#FFD166` hoặc mảng màu mềm mại, viền nhẹ.
-- **Inverted / Dark Buttons:** Nền `#2B2B2B`, chữ trắng dành cho các chế độ ban đêm hoặc ru ngủ.
-- **Search Bar / Inputs:** Thanh tìm kiếm dạng pill bo góc mềm với nền `#F0ECE1`.
-
----
+Phông chữ: **Baloo 2** cho tiêu đề, **Nunito** cho nội dung. Chuyển động dùng **animejs**.
 
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── assets/
-│   │   ├── icons/              # SVG, PNG icon files
-│   │   └── images/             # Static image assets
-│   ├── components/
-│   │   ├── home/               # Home page specific components (Hero, Categories, Audio...)
-│   │   ├── layout/             # Layout components (Header, Footer, Sidebar, Navbar)
-│   │   └── ui/                 # Reusable UI components (Button, Input, Card, Badge...)
-│   ├── constants/              # Constants, enums, configuration values
-│   ├── context/                # React Context providers (Auth, Theme, etc.)
-│   ├── hooks/                  # Custom React hooks (useAuth, useFetch, etc.)
-│   ├── lib/                    # Utility & helper functions (format, validation...)
-│   ├── services/               # API service functions (backend API calls)
-│   ├── styles/                 # CSS modules & additional style files
-│   ├── types/                  # TypeScript interfaces & type definitions
-│   ├── globals.css             # Global styles
-│   ├── layout.tsx              # Root layout
-│   ├── page.tsx                # Home page
-│   └── favicon.ico
-├── public/                     # Static files served directly (images, fonts, etc.)
-├── package.json
-├── tsconfig.json
-├── next.config.ts
-├── postcss.config.mjs
-└── eslint.config.mjs
+│   ├── styles/          # tokens.css, base.css, shell.css
+│   ├── components/      # brand/ (ếch, đầm sen), shell/ (khung app, đăng nhập)
+│   ├── features/        # home, studio, library, review, report, safety, kid, story-workflow
+│   ├── context/         # Auth, Theme, WorkspaceData…
+│   ├── services/        # Gọi API backend
+│   ├── mocks/           # Dữ liệu mẫu
+│   ├── lib/             # motion.ts, storyView.ts
+│   ├── types/           # Kiểu DTO
+│   ├── page.tsx         # Route duy nhất "/"
+│   └── layout.tsx
+├── tests/unit/
+└── vitest.config.ts
 ```
 
-### Folder Descriptions
+## Dữ liệu mẫu và backend
 
-| Folder               | Purpose                                                       |
-| -------------------- | ------------------------------------------------------------- |
-| `components/ui/`     | Atomic, reusable UI components (Button, Input, Card, Badge…)  |
-| `components/layout/` | Page-level layout components (Header, Footer, Sidebar)        |
-| `components/home/`   | Home page section components (Hero, Categories, Audio...)     |
-| `hooks/`             | Custom React hooks for shared logic                           |
-| `lib/`               | Utility functions, helpers, formatters                        |
-| `services/`          | API service layer — functions that call the backend           |
-| `types/`             | TypeScript type definitions & interfaces                      |
-| `constants/`         | App-wide constants, enums, and config values                  |
-| `context/`           | React Context providers for global state management           |
-| `assets/`            | Static assets (images, icons) imported in components          |
-| `styles/`            | CSS modules and additional style files                        |
-
-### Adding New Pages
-
-This project uses the **Next.js App Router**. To add a new page, create a folder inside `app/` with a `page.tsx` file:
+Mặc định app chạy bằng dữ liệu mẫu, không cần backend. Để gọi backend thật, đặt trong `.env.local`:
 
 ```
-app/
-├── login/
-│   └── page.tsx          →  /login
-├── dashboard/
-│   └── page.tsx          →  /dashboard
-├── stories/
-│   ├── page.tsx          →  /stories
-│   └── [id]/
-│       └── page.tsx      →  /stories/:id
+NEXT_PUBLIC_USE_MOCK=false
+NEXT_PUBLIC_API_URL=http://localhost:5259
 ```
 
 ## Getting Started
@@ -137,10 +86,11 @@ npm run build
 npm run start
 ```
 
-### Linting
+### Linting & Test
 
 ```bash
 npm run lint
+npm test
 ```
 
 ## Learn More

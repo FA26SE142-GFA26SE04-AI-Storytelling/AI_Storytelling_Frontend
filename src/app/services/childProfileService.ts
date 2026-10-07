@@ -1,12 +1,12 @@
-import { USE_MOCK } from '../mocks/config';
-import { childProfileMockOverrides } from '../mocks/mockServices';
-import { ApiResponse } from '../types/auth';
+import { USE_MOCK } from '@/app/mocks/config';
+import { childProfileMockOverrides } from '@/app/mocks/mockServices';
+import { ApiResponse } from '@/app/types/auth';
 import {
   ChildProfile,
   CreateChildProfileRequest,
   OrganizationSummary,
   ClassGroupSummary,
-} from '../types/childProfile';
+} from '@/app/types/childProfile';
 import { authService } from './authService';
 import { API_BASE_URL } from './apiConfig';
 
@@ -163,7 +163,7 @@ export const childProfileService = {
    */
   async setLearningProfile(
     childProfileId: number,
-    data?: Partial<import('../types/childProfile').SetLearningProfileRequest>
+    data?: Partial<import('@/app/types/childProfile').SetLearningProfileRequest>
   ): Promise<ApiResponse<unknown>> {
     try {
       const payload = {
@@ -203,7 +203,7 @@ export const childProfileService = {
    */
   async setSafetyPolicy(
     childProfileId: number,
-    data?: Partial<import('../types/childProfile').SetSafetyPolicyRequest>
+    data?: Partial<import('@/app/types/childProfile').SetSafetyPolicyRequest>
   ): Promise<ApiResponse<unknown>> {
     try {
       const payload = {
@@ -350,7 +350,7 @@ export const childProfileService = {
    */
   async updateChildProfile(
     id: number,
-    data: import('../types/childProfile').UpdateChildProfileRequest
+    data: import('@/app/types/childProfile').UpdateChildProfileRequest
   ): Promise<ApiResponse<ChildProfile>> {
     try {
       const response = await authService.authenticatedFetch(`${API_BASE_URL}/ChildProfile/${id}`, {
@@ -401,7 +401,7 @@ export const childProfileService = {
    */
   async getLearningProfile(
     childProfileId: number
-  ): Promise<ApiResponse<import('../types/childProfile').LearningProfile>> {
+  ): Promise<ApiResponse<import('@/app/types/childProfile').LearningProfile>> {
     try {
       const response = await authService.authenticatedFetch(
         `${API_BASE_URL}/LearningProfile/${childProfileId}`,
@@ -426,7 +426,7 @@ export const childProfileService = {
    */
   async getSafetyPolicy(
     childProfileId: number
-  ): Promise<ApiResponse<import('../types/childProfile').SafetyPolicy>> {
+  ): Promise<ApiResponse<import('@/app/types/childProfile').SafetyPolicy>> {
     try {
       const response = await authService.authenticatedFetch(
         `${API_BASE_URL}/SafetyPolicy/${childProfileId}`,
@@ -434,18 +434,18 @@ export const childProfileService = {
           method: 'GET',
         }
       );
-      const result = await parseJsonResponse<ApiResponse<import('../types/childProfile').SafetyPolicy>>(response);
+      const result = await parseJsonResponse<ApiResponse<import('@/app/types/childProfile').SafetyPolicy>>(response);
       return result ?? {
         success: false,
         message: 'Không thể lấy quy tắc an toàn của bé.',
-        data: null as unknown as import('../types/childProfile').SafetyPolicy,
+        data: null as unknown as import('@/app/types/childProfile').SafetyPolicy,
       };
     } catch (error) {
       console.error('Get safety policy error:', error);
       return {
         success: false,
         message: 'Không thể lấy quy tắc an toàn của bé.',
-        data: null as unknown as import('../types/childProfile').SafetyPolicy,
+        data: null as unknown as import('@/app/types/childProfile').SafetyPolicy,
         errors: [(error as Error).message || 'Network error'],
       };
     }
@@ -454,7 +454,7 @@ export const childProfileService = {
   /**
    * Lấy danh sách toàn bộ danh mục nội dung an toàn (GET /api/v1/ContentCategory)
    */
-  async getContentCategories(): Promise<ApiResponse<import('../types/childProfile').ContentCategory[]>> {
+  async getContentCategories(): Promise<ApiResponse<import('@/app/types/childProfile').ContentCategory[]>> {
     try {
       const response = await authService.authenticatedFetch(`${API_BASE_URL}/ContentCategory`, {
         method: 'GET',
@@ -462,7 +462,7 @@ export const childProfileService = {
       if (!response.ok) {
         return { success: false, message: 'Không thể tải danh mục nội dung.', data: [] };
       }
-      const data = await parseJsonResponse<ApiResponse<import('../types/childProfile').ContentCategory[]>>(response);
+      const data = await parseJsonResponse<ApiResponse<import('@/app/types/childProfile').ContentCategory[]>>(response);
       return data ?? { success: true, message: '', data: [] };
     } catch (error) {
       console.error('Get content categories error:', error);
@@ -475,7 +475,7 @@ export const childProfileService = {
    */
   async getTokenQuotaForChild(
     childProfileId: number
-  ): Promise<ApiResponse<import('../types/childProfile').TokenQuotaStatus>> {
+  ): Promise<ApiResponse<import('@/app/types/childProfile').TokenQuotaStatus>> {
     try {
       const response = await authService.authenticatedFetch(
         `${API_BASE_URL}/TokenQuota/child/${childProfileId}`,

@@ -1,9 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { UserProfile, LoginRequest, RegisterRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse } from '../types/auth';
-import { authService } from '../services/authService';
-import { clearStorySessions } from '../components/closet/hooks/storyStudioSession';
+import { UserProfile, LoginRequest, RegisterRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse } from '@/app/types/auth';
+import { authService } from '@/app/services/authService';
+import { clearStorySessions } from '@/app/features/story-workflow/storyStudioSession';
 
 interface AuthContextType {
   user: UserProfile | null;

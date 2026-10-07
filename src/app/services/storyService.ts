@@ -1,13 +1,13 @@
-import { USE_MOCK } from '../mocks/config';
-import { storyMockOverrides } from '../mocks/mockServices';
-import { ApiResponse } from '../types/auth';
+import { USE_MOCK } from '@/app/mocks/config';
+import { storyMockOverrides } from '@/app/mocks/mockServices';
+import { ApiResponse } from '@/app/types/auth';
 import {
   StoryDto,
   StoryFilterRequest,
   PagedResult,
   CreateStoryRequest,
   UpdateStoryRequest,
-} from '../types/story';
+} from '@/app/types/story';
 import { authService } from './authService';
 import { API_BASE_URL } from './apiConfig';
 

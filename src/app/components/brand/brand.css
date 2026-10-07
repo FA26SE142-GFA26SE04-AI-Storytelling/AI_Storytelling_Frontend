@@ -1,0 +1,47 @@
+/* Trang trí đầm sen: nền ao, ếch nhảy qua lá sen, ếch ngồi đầu trang, gợn nước khi bấm. */
+
+/* ===== Nền ao (PondBackdrop) ===== */
+.pond { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+.pond .pad { position: absolute; display: block; }
+.pond .pad-flower { position: absolute; left: 50%; top: -34%; transform: translateX(-50%); }
+.pond .ripple-ring { position: absolute; width: 90px; height: 90px; margin: -45px 0 0 -45px; border-radius: 50%; border: 2px solid var(--primary); opacity: 0; }
+.pond .firefly { position: absolute; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); box-shadow: 0 0 10px 3px color-mix(in srgb, var(--gold) 70%, transparent); opacity: .15; }
+.pond .reed { position: absolute; bottom: 32px; transform-origin: 50% 100%; }
+.pond .reed-l { left: 74px; }
+.pond .reed-r { right: 16px; }
+.pond .dragonfly-wrap { position: absolute; top: 16%; left: 0; display: block; }
+.pond .dragonfly { display: block; }
+
+/* Vùng chứa nền ao: nội dung nằm trên lớp trang trí */
+.board-wrap { position: relative; width: 100%; height: 100%; }
+.board-wrap > :not(.pond) { position: relative; z-index: 1; }
+
+/* Gợn nước tại điểm bấm (useClickRipple) */
+.click-ripple { position: fixed; z-index: 999; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; border: 2px solid var(--primary); pointer-events: none; opacity: 0; }
+
+/* ===== Các bước là lá sen, ếch nhảy qua (LilyStepper) ===== */
+.lily-wrap { position: relative; width: 100%; padding-top: 52px; }
+.lily-frog { position: absolute; top: 0; left: 0; will-change: transform; }
+.lily-frog > div { width: 64px; }
+.lily-row { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
+.lily { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; min-width: 0; }
+.lily-pad { width: 46px; height: 32px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; display: grid; place-items: center; font-weight: 800; font-size: 13px; color: var(--muted); background: var(--surface-2); border: 2px solid var(--line-2); transition: background .3s, color .3s, border-color .3s; }
+.lily-pad svg { width: 14px; height: 14px; stroke-width: 3; }
+.lily.done .lily-pad { background: var(--primary); border-color: var(--primary-strong); color: #fff; }
+.lily.run .lily-pad { border-color: var(--primary); color: var(--text); animation: padbob 1.6s ease-in-out infinite; }
+.lily-label { font-size: 11.5px; color: var(--faint); line-height: 1.25; }
+.lily.done .lily-label, .lily.run .lily-label { color: var(--text); font-weight: 700; }
+@keyframes padbob { 50% { transform: translateY(3px); } }
+
+/* ===== Ếch ngồi trên lá sen ở đầu trang (HeroPond) ===== */
+.hero-pond { position: relative; width: 232px; height: 142px; flex: none; }
+.hero-pad { position: absolute; left: 20px; bottom: 0; }
+.hero-frog { position: absolute; left: 62px; bottom: 20px; }
+.hero-lotus { position: absolute; right: 22px; bottom: 14px; }
+.hero-ring { position: absolute; border-radius: 50%; border: 2px solid var(--primary); }
+.hero-ring.r1 { left: 18px; bottom: -4px; width: 194px; height: 40px; opacity: .28; }
+.hero-ring.r2 { left: 2px; bottom: -12px; width: 226px; height: 48px; opacity: .14; }
+
+@media (max-width: 900px) {
+  .hero-pond, .pond .reed { display: none; }
+}

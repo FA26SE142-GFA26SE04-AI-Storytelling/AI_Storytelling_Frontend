@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { animate } from "animejs";
 import { Check } from "lucide-react";
-import { prefersReducedMotion } from "../../utils/motion";
+import { prefersReducedMotion } from "@/app/lib/motion";
 import Frog, { type FrogMood } from "./Frog";
 
 type Props = { steps: string[]; current: number; mood?: FrogMood; waiting?: boolean };

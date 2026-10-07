@@ -1,5 +1,5 @@
-import type * as D from '../types/aiStory';
-import type { ApiResponse } from '../types/auth';
+import type * as D from '@/app/types/aiStory';
+import type { ApiResponse } from '@/app/types/auth';
 import { composeStory, db, makeOutlineVersion, persist, MOCK_CHILDREN, MOCK_INTERESTS, type MockStory } from './mockDb';
 import { delay, fail, ok } from './config';
 

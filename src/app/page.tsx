@@ -1,23 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAuth } from "./context/AuthContext";
-import AppShell from "./components/shell/AppShell";
-import LoginScreen from "./components/shell/LoginScreen";
-import { WorkspaceDataProvider, useWorkspaceData } from "./components/shell/WorkspaceData";
-import { WORKSPACES, type WorkspaceId } from "./components/shell/nav";
-import HomeWorkspace from "./components/workspaces/HomeWorkspace";
-import StudioWorkspace from "./components/workspaces/studio/StudioWorkspace";
-import LibraryWorkspace from "./components/workspaces/LibraryWorkspace";
-import ReviewWorkspace from "./components/workspaces/ReviewWorkspace";
-import ReportWorkspace from "./components/workspaces/ReportWorkspace";
-import SafetyWorkspace from "./components/workspaces/SafetyWorkspace";
-import KidMode from "./components/workspaces/KidMode";
+import { useEffect, useState, type ComponentType } from "react";
+import { useAuth } from "@/app/context/AuthContext";
+import AppShell from "@/app/components/shell/AppShell";
+import LoginScreen from "@/app/components/shell/LoginScreen";
+import { WorkspaceDataProvider, useWorkspaceData } from "@/app/context/WorkspaceDataContext";
+import { WORKSPACES, type WorkspaceId, type WorkspaceProps } from "@/app/components/shell/nav";
+import HomeWorkspace from "@/app/features/home/HomeWorkspace";
+import StudioWorkspace from "@/app/features/studio/StudioWorkspace";
+import LibraryWorkspace from "@/app/features/library/LibraryWorkspace";
+import ReviewWorkspace from "@/app/features/review/ReviewWorkspace";
+import ReportWorkspace from "@/app/features/report/ReportWorkspace";
+import SafetyWorkspace from "@/app/features/safety/SafetyWorkspace";
+import KidMode from "@/app/features/kid/KidMode";
+
+// Mỗi không gian một component. Thêm không gian mới: khai báo trong nav.ts rồi thêm vào đây.
+const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
+  home: HomeWorkspace,
+  studio: StudioWorkspace,
+  library: LibraryWorkspace,
+  review: ReviewWorkspace,
+  report: ReportWorkspace,
+  safety: SafetyWorkspace,
+};
 
 function Workspaces() {
   const { child, childrenLoading } = useWorkspaceData();
   const [ws, setWs] = useState<WorkspaceId>("home");
   const [kid, setKid] = useState(false);
+  const View = VIEWS[ws];
 
   // Cho phép mở thẳng một không gian bằng #home, #lib, #review...
   useEffect(() => {
@@ -28,16 +39,9 @@ function Workspaces() {
   return (
     <>
       <AppShell ws={ws} onWs={setWs} onKid={() => setKid(true)}>
-        {childrenLoading ? <div className="splash">Đang tải hồ sơ bé…</div> : (
-          <>
-            {ws === "home" && <HomeWorkspace go={setWs} onKid={() => setKid(true)} />}
-            {ws === "create" && <StudioWorkspace go={setWs} />}
-            {ws === "lib" && <LibraryWorkspace go={setWs} />}
-            {ws === "review" && <ReviewWorkspace go={setWs} />}
-            {ws === "report" && <ReportWorkspace />}
-            {ws === "safe" && <SafetyWorkspace />}
-          </>
-        )}
+        {childrenLoading
+          ? <div className="splash">Đang tải hồ sơ bé…</div>
+          : <View go={setWs} onKid={() => setKid(true)} />}
       </AppShell>
       {kid && child && <KidMode onExit={() => setKid(false)} />}
     </>
