@@ -1,3 +1,5 @@
+import { USE_MOCK } from '../mocks/config';
+import { childProfileMockOverrides } from '../mocks/mockServices';
 import { ApiResponse } from '../types/auth';
 import {
   ChildProfile,
@@ -493,3 +495,5 @@ export const childProfileService = {
     }
   },
 };
+
+if (USE_MOCK) Object.assign(childProfileService, childProfileMockOverrides);

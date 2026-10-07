@@ -1,3 +1,5 @@
+import { USE_MOCK } from '../mocks/config';
+import { storyMockOverrides } from '../mocks/mockServices';
 import { ApiResponse } from '../types/auth';
 import {
   StoryDto,
@@ -37,12 +39,7 @@ export const storyService = {
       if (filter?.pageSize) params.append('pageSize', filter.pageSize.toString());
 
       const url = `${API_BASE_URL}/Story${params.toString() ? `?${params.toString()}` : ''}`;
-      const response = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      const response = await authService.authenticatedFetch(url, { method: 'GET' });
 
       if (!response.ok) {
         return {
@@ -237,3 +234,5 @@ export const storyService = {
     }
   },
 };
+
+if (USE_MOCK) Object.assign(storyService, storyMockOverrides);

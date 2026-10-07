@@ -1,889 +1,216 @@
 @import "tailwindcss";
 
-/* Cấu hình variant 'dark' cho Tailwind CSS v4 chỉ kích hoạt khi có class .dark hoặc data-theme="dark" */
-@custom-variant dark (&:where(.dark, .dark *, [data-theme="dark"], [data-theme="dark"] *));
-
-/* ==========================================================================
-   VIEW TRANSITIONS API - CIRCULAR REVEAL CONFIGURATION
-   ========================================================================== */
-::view-transition-old(root),
-::view-transition-new(root) {
-  animation: none;
-  mix-blend-mode: normal;
-}
-::view-transition-old(root) {
-  z-index: 1;
-}
-::view-transition-new(root) {
-  z-index: 999999;
-}
-
-/* ==========================================================================
-   WonderSpun (CHẾ ĐỘ SÁNG TƯƠI SÁNG - VIBRANT LIGHT THEME) - MẶC ĐỊNH :root
-   ========================================================================== */
+/* ===== Taletale design tokens: xanh lá / vàng mật / teal ===== */
 :root {
-  /* --- MÀU NỀN & BỀ MẶT (Surfaces & Canvas - Fresh & Bright) --- */
-  --surface: #fff7e6;
-  /* Nền bề mặt tươi sáng */
-  --surface-dim: #f2e3c9;
-  /* Nền tối nhẹ khi disabled */
-  --surface-bright: #ffffff;
-  /* Nền sáng rực rỡ */
-  --surface-container-lowest: #FFEFD3;
-  /* Nền trắng sạch thuần khiết, làm các Card & Header vô cùng nổi bật */
-  --surface-container-low: #FFDF9B;
-  /* Nền khung container cấp thấp kem nắng tươi nhạt */
-  --surface-container: #EDC157;
-  /* Nền khung container chuẩn tươi tắn (Dùng cho thanh Menu Nav, ô Input) */
-  --surface-container-high: #CFA53F;
-  /* Nền khung container cấp cao */
-  --surface-container-highest: #B28B26;
-  /* Nền khung container cấp cao nhất */
-  --surface-variant: #967207;
-  /* Biến thể nền bề mặt */
-
-  /* --- MÀU CHỮ & VĂN BẢN (Typography & Text) --- */
-  --on-surface: #1e1b18;
-  /* MÀU CHỮ CHÍNH: Tiêu đề H1-H6, tên câu chuyện (Đen đậm rõ nét) */
-  --on-surface-variant: #4e4438;
-  /* MÀU CHỮ PHỤ: Đoạn văn mô tả, thông tin phụ */
-  --inverse-surface: #322d26;
-  /* Bề mặt tương phản đảo ngược màu */
-  --inverse-on-surface: #fff8f0;
-  /* Màu chữ hiển thị trên bề mặt đảo ngược */
-  --background: #fff6e5;
-  /* MÀU NỀN TOÀN TRANG (App Canvas) - Kem nắng ấm áp, tươi tắn, dịu mắt */
-  --on-background: #1e1b18;
-  /* MÀU CHỮ TRÊN NỀN TOÀN TRANG */
-
-  /* --- VIỀN & ĐIỂM NHẤN (Outlines & Tints) --- */
-  --outline: #9e866b;
-  /* Viền viền nét chuẩn */
-  --outline-variant: #f3dfc6;
-  /* Viền mỏng nhạt tươi sáng (Viền Card, viền Header, viền ô nhập) */
-  --surface-tint: #ff5a5a;
-  /* Tông màu phủ điểm nhấn */
-
-  /* --- MÀU CHỦ ĐẠO (Primary Colors - Vibrant Coral) --- */
-  --primary: #e63946;
-  /* Màu chủ đạo đỏ tươi rực rỡ */
-  --on-primary: #ffffff;
-  /* Màu chữ nằm trên nút Primary */
-  --primary-container: #ff5a5a;
-  /* MÀU NÚT CHÍNH (Vibrant Playful Coral): Nút 'Tạo truyện AI', 'Đọc & Nghe' tươi rực */
-  --on-primary-container: #ffffff;
-  /* Màu chữ hiển thị trên nút Primary Container */
-  --inverse-primary: #ffb3b0;
-  /* Màu primary đảo ngược */
-
-  /* --- MÀU PHỤ (Secondary Colors - Sunny Honey) --- */
-  --secondary: #d97706;
-  /* Màu phụ vàng mật tươi */
-  --on-secondary: #ffffff;
-  /* Màu chữ trên nền secondary */
-  --secondary-container: #ffc736;
-  /* MÀU NỔI BẬT (Sunny Honey): Huy hiệu xu 💰, điểm đánh giá ⭐ rực rỡ */
-  --on-secondary-container: #5c3000;
-  /* Màu chữ trên huy hiệu màu phụ */
-
-  /* --- MÀU BỔ TRỢ (Tertiary Colors - Magic Mint) --- */
-  --tertiary: #059669;
-  /* Màu bổ trợ xanh tươi */
-  --on-tertiary: #ffffff;
-  /* Màu chữ trên nền tertiary */
-  --tertiary-container: #00d696;
-  /* MÀU XANH MINT TƯƠI (Vibrant Magic Mint): Nút 'Nghe ngay', huy hiệu KID-SAFE */
-  --on-tertiary-container: #ffffff;
-  /* Màu chữ trên container bổ trợ */
-
-  /* --- MÀU LỖI & CẢNH BÁO (Errors) --- */
-  --error: #dc2626;
-  /* Màu thông báo lỗi tươi */
-  --on-error: #ffffff;
-  /* Màu chữ trên nền lỗi */
-  --error-container: #fee2e2;
-  /* Khung chứa thông báo lỗi */
-  --on-error-container: #991b1b;
-  /* Màu chữ trong khung lỗi */
-
-  /* --- BẢNG MÀU CỐ ĐỊNH (Fixed Variations) --- */
-  --primary-fixed: #ffdad8;
-  --primary-fixed-dim: #ffb3b0;
-  --on-primary-fixed: #410006;
-  --on-primary-fixed-variant: #8c1520;
-
-  --secondary-fixed: #ffdf9b;
-  --secondary-fixed-dim: #edc157;
-  --on-secondary-fixed: #251a00;
-  --on-secondary-fixed-variant: #5b4300;
-
-  --tertiary-fixed: #54fdc4;
-  --tertiary-fixed-dim: #27e0a9;
-  --on-tertiary-fixed: #002116;
-  --on-tertiary-fixed-variant: #00513b;
-
-  /* --- BẢNG MÀU THƯƠNG HIỆU TƯƠI SÁNG (Custom Vibrant Brand Accents) --- */
-  --playful-coral: #ff5a5a;
-  /* Hồng san hô tươi rực */
-  --sunlit-honey: #ffc736;
-  /* Vàng nắng tươi rực */
-  --magic-mint: #00d696;
-  /* Xanh mint tươi mát */
-  --dream-sky: #38bdf8;
-  /* Xanh da trời tươi rực */
-  --fairy-dusk: #c084fc;
-  /* Tím mộng mơ tươi */
-  --warm-cream: #fff7e6;
-  /* Kem nắng tươi dịu mắt */
-  --deep-sea-ink: #1e293b;
-  /* Xanh đậm mực biển */
-
-  /* --- MÀU GRADIENT KHUNG TRUST BADGES (WonderSpun Light Theme) --- */
-  --badge-gradient-1: #06D6A0;
-  /* Màu xanh mint tươi sáng */
-  --badge-gradient-2: #FFD166;
-  /* Màu hồng san hô tươi sáng */
-  --badge-gradient-3: #FF6B6B;
-  /* Màu vàng nắng tươi sáng */
-}
-
-/* ==========================================================================
-   Enchanted Midnight (CHẾ ĐỘ BAN ĐÊM - DARK THEME)
-   ========================================================================== */
-[data-theme="dark"],
-.dark {
-  /* --- MÀU NỀN & BỀ MẶT ĐÊM (Night Surfaces & Canvas) --- */
-  --surface: #0f131c;
-  /* Nền bề mặt đêm chính */
-  --surface-dim: #0f131c;
-  /* Nền đêm tối sâu */
-  --surface-bright: #353943;
-  /* Nền đêm nổi bật */
-  --surface-container-lowest: #181B25;
-  /* Nền Obsidian sẫm cho Card, Header, Footer khi ở Ban đêm */
-  --surface-container-low: #2C303A;
-  /* Nền khung container đêm nhạt */
-  --surface-container: #434751;
-  /* Nền khung container đêm chuẩn (Menu Nav, Input đêm) */
-  --surface-container-high: #5A5E69;
-  /* Nền khung container đêm nổi bật */
-  --surface-container-highest: #737782;
-  /* Nền khung container đêm cấp cao nhất */
-  --surface-variant: #8D909C;
-  /* Biến thể nền đêm */
-
-  /* --- MÀU CHỮ ĐÊM (Night Typography & Text) --- */
-  --on-surface: #dfe2ef;
-  /* MÀU CHỮ CHÍNH BAN ĐÊM: Sáng ánh bạc moonlit, rõ nét không chói */
-  --on-surface-variant: #d6c4b0;
-  /* MÀU CHỮ PHỤ BAN ĐÊM: Màu cát dịu êm cho đêm */
-  --inverse-surface: #dfe2ef;
-  /* Bề mặt tương phản ban đêm */
-  --inverse-on-surface: #A8ABB7;
-  /* Màu chữ trên bề mặt tương phản ban đêm */
-  --background: #0f131c;
-  /* MÀU NỀN TOÀN TRANG BAN ĐÊM (Midnight Canvas) */
-  --on-background: #dfe2ef;
-  /* MÀU CHỮ NỀN BAN ĐÊM */
-
-  /* --- VIỀN & ĐIỂM NHẤN ĐÊM (Night Outlines) --- */
-  --outline: #9e8e7c;
-  /* Viền ban đêm */
-  --outline-variant: #283556;
-  /* Viền xanh vũ trụ (Cosmic Border) mỏng dịu */
-  --surface-tint: #ffb951;
-  /* Điểm nhấn ánh sao phủ bề mặt */
-
-  /* --- MÀU CHỦ ĐẠO BAN ĐÊM (Night Primary) --- */
-  --primary: #ffdcb0;
-  /* Màu chủ đạo ban đêm (Hổ phách ấm) */
-  --on-primary: #452b00;
-  /* Màu chữ trên nút primary đêm */
-  --primary-container: #ffb84d;
-  /* MÀU NÚT CHÍNH ĐÊM (Starlight Amber): Nút nổi bật ánh sao */
-  --on-primary-container: #714a00;
-  /* Màu chữ trên nút primary container đêm */
-  --inverse-primary: #825500;
-  /* Màu primary đảo ngược đêm */
-
-  /* --- MÀU PHỤ BAN ĐÊM (Night Secondary) --- */
-  --secondary: #44f3d6;
-  /* Màu phụ ban đêm (Xanh huỳnh quang) */
-  --on-secondary: #00382f;
-  /* Màu chữ trên nền secondary đêm */
-  --secondary-container: #00A38E;
-  /* MÀU NỔI BẬT ĐÊM (Bioluminescent Teal): Phát sáng dạ quang dịu */
-  --on-secondary-container: #50fbdf;
-  /* Màu chữ sáng trên huy hiệu secondary ban đêm (Xanh ngọc phát sáng) */
-
-  /* --- MÀU BỔ TRỢ BAN ĐÊM (Night Tertiary) --- */
-  --tertiary: #ebdbff;
-  /* Màu bổ trợ ban đêm (Tím thạch anh) */
-  --on-tertiary: #410a84;
-  /* Màu chữ trên nền tertiary đêm */
-  --tertiary-container: #d4b9ff;
-  /* MÀU TÍM ÁNH SAO (Astral Amethyst): Chế độ ru ngủ, hẹn giờ ban đêm */
-  --on-tertiary-container: #6339a7;
-  /* Màu chữ trên container bổ trợ đêm */
-
-  /* --- MÀU LỖI BAN ĐÊM (Night Errors) --- */
-  --error: #ffb4ab;
-  --on-error: #690005;
-  --error-container: #93000a;
-  --on-error-container: #ffdad6;
-
-  /* --- BẢNG MÀU ĐÊM CỐ ĐỊNH --- */
-  --primary-fixed: #ffddb3;
-  --primary-fixed-dim: #ffb951;
-  --on-primary-fixed: #291800;
-  --on-primary-fixed-variant: #633f00;
-
-  --secondary-fixed: #50fbdf;
-  --secondary-fixed-dim: #1cdec3;
-  --on-secondary-fixed: #00201b;
-  --on-secondary-fixed-variant: #005045;
-
-  --tertiary-fixed: #ecdcff;
-  --tertiary-fixed-dim: #d5baff;
-  --on-tertiary-fixed: #270057;
-  --on-tertiary-fixed-variant: #582c9b;
-
-  /* --- MÀU ĐẶC THÙ VŨ TRỤ BAN ĐÊM (Midnight Custom Accents) --- */
-  --midnight-canvas: #090d16;
-  /* Nền canvas vũ trụ đêm huyền bí */
-  --obsidian-surface: #0f1626;
-  /* Bề mặt đá Obsidian sẫm */
-  --indigo-elevated: #172038;
-  /* Khung nổi màu Indigo đêm */
-  --cosmic-border: #283556;
-  /* Viền xanh vũ trụ */
-  --starlight-amber: #ffb84d;
-  /* Hổ phách ánh sao */
-  --amber-glow: #ffa114;
-  /* Ánh hào quang vàng */
-  --bioluminescent-teal: #2ee6ca;
-  /* Xanh phát quang dạ học */
-  --astral-amethyst: #b78cff;
-  /* Tím chòm sao */
-  --celestial-sky: #5ce1e6;
-  /* Xanh da trời đêm */
-  --nebula-rose: #ff7597;
-  /* Hồng tinh vân */
-  --stardust-white: #f0f4fc;
-  /* Trắng bụi sao */
-  --moonlit-silver: #b2bdd4;
-  /* Bạc ánh trăng */
-  --night-whisper: #6e7e9e;
-  /* Xám thì xầm ban đêm */
-
-  /* --- MÀU GRADIENT KHUNG TRUST BADGES BAN ĐÊM (Enchanted Midnight Dark Theme - 3 màu tối trầm dịu mắt) --- */
-  --badge-gradient-1: #B78CFF;
-  /* Màu xanh mint/emerald sẫm dịu mắt đêm */
-  --badge-gradient-2: #2EE6CA;
-  /* Màu đỏ san hô/rose sẫm dịu mắt đêm */
-  --badge-gradient-3: #FFB84D;
-  /* Màu vàng hổ phách/amber sẫm dịu mắt đêm */
-}
-
-/* ==========================================================================
-   BẢNG MÀU UI 3 THỜI ĐIỂM TRONG NGÀY (SÁNG - CHIỀU - TỐI)
-   Tách biệt rõ rệt: Sáng (Light Theme), Chiều (Sunset Warm), Tối (Pure Dark)
-   ========================================================================== */
-
-/* 1. BUỔI SÁNG (Morning: Chế độ SÁNG TƯƠI SÁNG - Trắng sữa, trời xanh, chữ đen rõ nét) */
-[data-time-of-day="morning"],
-[data-theme="morning"],
-.theme-morning {
-  --tod-bg: #f0f7ff;
-  --tod-surface: rgba(255, 255, 255, 0.95);
-  --tod-card: rgba(241, 246, 254, 0.97);
-  --tod-border: rgba(14, 165, 233, 0.32);
-  --tod-text: #0f172a;
-  --tod-text-muted: #475569;
-  --tod-primary: #0284c7;
-  --tod-accent: #d97706;
-  --tod-glow: rgba(14, 165, 233, 0.25);
-  --on-surface: #0f172a;
-  --on-surface-variant: #475569;
-  --on-background: #0f172a;
+  --bg: #f4fbf6;
+  --chrome: #ffffff;
+  --panel: #ffffff;
+  --surface: #ebf7f0;
+  --surface-2: #dcf0e5;
+  --line: #dcebe1;
+  --line-2: #c3dccc;
+  --text: #1f2f27;
+  --muted: #547062;
+  --faint: #8fa89b;
+  --primary: #2fa866;
+  --primary-strong: #1f8a55;
+  --link: #17754a;
+  --gold: #ffd166;
+  --gold-deep: #d97706;
+  --rose: #ff8fa3;
+  --mint: #14b8a6;
+  --sky: #38b2f5;
+  --danger: #b42318;
+  --ok-ink: #0f766e;
+  --warn-ink: #8f5200;
+  --paper: #fcfffc;
+  --ink-warm: #1f3a2d;
+  --shadow: #1f3a2d;
+  --tooltip: #1f2f27;
+  --lotus: #f6a9c4;
+  --lotus-deep: #ee86ab;
+  --lotus-light: #fcd3e1;
+  --water: radial-gradient(ellipse at 12% 0%, #d8f4e4 0, transparent 55%), radial-gradient(ellipse at 92% 100%, #d3eef6 0, transparent 50%), #eaf7ef;
+  --kid-bg: linear-gradient(180deg, #c9ecff 0%, #f3fbd9 60%, #bdebcf 100%);
+  --login-bg: radial-gradient(circle at 20% 10%, #d4f3e0 0, transparent 40%), radial-gradient(circle at 85% 90%, #fff0c2 0, transparent 45%), #f4fbf6;
+  --font-ui: var(--font-nunito), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-display: var(--font-baloo), var(--font-nunito), system-ui, sans-serif;
   color-scheme: light;
 }
 
-/* 2. BUỔI CHIỀU / HOÀNG HÔN (Afternoon: Chế độ HOÀNG HÔN ẤM - Vàng cam hổ phách, ráng chiều ấm cúng) */
-[data-time-of-day="afternoon"],
-[data-theme="afternoon"],
-.theme-afternoon {
-  --tod-bg: #1f1108;
-  --tod-surface: rgba(45, 24, 12, 0.94);
-  --tod-card: rgba(62, 33, 16, 0.88);
-  --tod-border: rgba(245, 158, 11, 0.38);
-  --tod-text: #fffbeb;
-  --tod-text-muted: #fde68a;
-  --tod-primary: #f97316;
-  --tod-accent: #fb7185;
-  --tod-glow: rgba(249, 115, 22, 0.35);
-  --on-surface: #fffbeb;
-  --on-surface-variant: #fde68a;
-  --on-background: #fffbeb;
+:root[data-theme="dark"] {
+  --bg: #0f1713;
+  --chrome: #141e19;
+  --panel: #17231d;
+  --surface: #1d2b24;
+  --surface-2: #263830;
+  --line: #26372e;
+  --line-2: #365044;
+  --text: #e8f4ec;
+  --muted: #a3bdb0;
+  --faint: #6f8a7c;
+  --primary: #3dd68c;
+  --primary-strong: #1f8a55;
+  --link: #6ee7a8;
+  --gold: #ffd166;
+  --gold-deep: #f59e0b;
+  --rose: #ff8fa3;
+  --mint: #2dd4bf;
+  --danger: #ff8a80;
+  --ok-ink: #5eead4;
+  --warn-ink: #ffc857;
+  --paper: #1a271f;
+  --ink-warm: #e3f2e9;
+  --shadow: #000000;
+  --tooltip: #e8f4ec;
+  --lotus: #e98aaf;
+  --lotus-deep: #c96a92;
+  --lotus-light: #f5b7cf;
+  --water: radial-gradient(ellipse at 12% 0%, #12301f 0, transparent 55%), radial-gradient(ellipse at 92% 100%, #0e2b34 0, transparent 50%), #0b1410;
+  --kid-bg: linear-gradient(180deg, #14283a 0%, #1f2a1f 60%, #123024 100%);
+  --login-bg: radial-gradient(circle at 20% 10%, #123325 0, transparent 40%), radial-gradient(circle at 85% 90%, #33290f 0, transparent 45%), #0f1713;
   color-scheme: dark;
 }
 
-/* 3. Mặc định & BUỔI TỐI / BAN ĐÊM (Night: Chế độ BAN ĐÊM TỐI HUYỀN BÍ - Đen vũ trụ, tím neon, chữ ánh bạc) */
-:root,
-[data-time-of-day="night"],
-[data-theme="night"],
-.theme-night {
-  --tod-bg: #050811;
-  --tod-surface: rgba(10, 14, 26, 0.96);
-  --tod-card: rgba(16, 21, 38, 0.92);
-  --tod-border: rgba(99, 102, 241, 0.35);
-  --tod-text: #f8fafc;
-  --tod-text-muted: #94a3b8;
-  --tod-primary: #6366f1;
-  --tod-accent: #c084fc;
-  --tod-glow: rgba(99, 102, 241, 0.45);
-  --on-surface: #f8fafc;
-  --on-surface-variant: #94a3b8;
-  --on-background: #f8fafc;
-  color-scheme: dark;
-}
-
-/* ==========================================================================
-   ÁNH XẠ MÀU TAILWIND CSS (Tailwind CSS Theme Utility Tokens)
-   ========================================================================== */
-@theme inline {
-  --color-tod-bg: var(--tod-bg);
-  --color-tod-surface: var(--tod-surface);
-  --color-tod-card: var(--tod-card);
-  --color-tod-border: var(--tod-border);
-  --color-tod-text: var(--tod-text);
-  --color-tod-text-muted: var(--tod-text-muted);
-  --color-tod-muted: var(--tod-text-muted);
-  --color-tod-primary: var(--tod-primary);
-  --color-tod-accent: var(--tod-accent);
-
-  --color-background: var(--background);
-  --color-on-background: var(--on-background);
-  --color-surface: var(--surface);
-  --color-surface-dim: var(--surface-dim);
-  --color-surface-bright: var(--surface-bright);
-  --color-surface-container-lowest: var(--surface-container-lowest);
-  --color-surface-container-low: var(--surface-container-low);
-  --color-surface-container: var(--surface-container);
-  --color-surface-container-high: var(--surface-container-high);
-  --color-surface-container-highest: var(--surface-container-highest);
-  --color-surface-variant: var(--surface-variant);
-  --color-on-surface: var(--on-surface);
-  --color-on-surface-variant: var(--on-surface-variant);
-  --color-outline: var(--outline);
-  --color-outline-variant: var(--outline-variant);
-
-  --color-primary: var(--primary);
-  --color-on-primary: var(--on-primary);
-  --color-primary-container: var(--primary-container);
-  --color-on-primary-container: var(--on-primary-container);
-
-  --color-secondary: var(--secondary);
-  --color-on-secondary: var(--on-secondary);
-  --color-secondary-container: var(--secondary-container);
-  --color-on-secondary-container: var(--on-secondary-container);
-
-  --color-tertiary: var(--tertiary);
-  --color-on-tertiary: var(--on-tertiary);
-  --color-tertiary-container: var(--tertiary-container);
-  --color-on-tertiary-container: var(--on-tertiary-container);
-
-  --font-sans: var(--font-nunito-sans), system-ui, sans-serif;
-  --font-heading: var(--font-comfortaa), cursive, sans-serif;
-}
-
-/* ==========================================================================
-   QUY TẮC PHÔNG CHỮ & NỀN MẶC ĐỊNH
-   ========================================================================== */
-html,
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
 body {
-  overflow-x: hidden;
-  max-width: 100vw;
-  background-color: var(--background);
-  color: var(--on-background);
-  font-family: var(--font-nunito-sans), system-ui, sans-serif;
+  margin: 0;
+  background: var(--water) fixed;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; border: 0; background: none; }
+:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; border-radius: 5px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
 
-/* ==========================================================================
-   HỆ THỐNG PHÔNG CHỮ & TIÊU ĐỀ TRUNG TÂM (CENTRAL TYPOGRAPHY & HEADING SYSTEM)
-   ========================================================================== */
+/* ===== primitives ===== */
+.ic { width: 16px; height: 16px; flex: none; }
+.btn { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px; border-radius: 8px; font-weight: 600; font-size: 12.5px; white-space: nowrap; transition: transform .12s, background .15s, box-shadow .15s, border-color .15s; }
+.btn:active { transform: scale(.97); }
+.btn-p { background: var(--primary-strong); color: #fff; box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--primary) 80%, transparent); }
+.btn-p:hover { background: #8c6ff5; }
+.btn-s { background: var(--surface-2); border: 1px solid var(--line-2); }
+.btn-s:hover { border-color: var(--primary); }
+.btn-g { color: var(--muted); }
+.btn-g:hover { color: var(--text); background: var(--surface); }
+.btn-ok { background: color-mix(in srgb, var(--mint) 14%, transparent); color: var(--ok-ink); border: 1px solid color-mix(in srgb, var(--mint) 35%, transparent); }
+.btn-no { background: color-mix(in srgb, var(--danger) 10%, transparent); color: var(--danger); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); }
+.btn-k { background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 20%, transparent), color-mix(in srgb, var(--primary) 16%, transparent)); border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent); color: var(--warn-ink); }
+.btn-k:hover { border-color: var(--warn-ink); }
+.btn-c { justify-content: center; }
 
-/* 1. Thiết lập mặc định cho tất cả các thẻ Tiêu đề HTML */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: var(--font-comfortaa), cursive, sans-serif;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: inherit;
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; border-radius: 999px; padding: 1px 8px; line-height: 18px; white-space: nowrap; }
+.pill.ok { background: color-mix(in srgb, var(--mint) 12%, transparent); color: var(--ok-ink); }
+.pill.wait { background: color-mix(in srgb, var(--gold) 14%, transparent); color: var(--warn-ink); }
+.pill.draft { background: var(--surface-2); color: var(--muted); }
+.pill.flag { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
+.pill.ai { background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary); }
+
+.chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); font-size: 12px; font-weight: 600; color: var(--muted); transition: all .15s; }
+.chip:hover { color: var(--text); border-color: var(--faint); }
+.chip.on { background: color-mix(in srgb, var(--primary) 16%, transparent); border-color: var(--primary); color: var(--text); }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; }
+
+.seg { display: flex; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 2px; gap: 2px; }
+.seg button { flex: 1; padding: 4px 6px; border-radius: 6px; color: var(--muted); font-weight: 600; font-size: 12px; transition: all .15s; }
+.seg button.on { background: var(--surface-2); color: var(--text); box-shadow: 0 1px 4px color-mix(in srgb, var(--shadow) 15%, transparent); }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.lbl { font-size: 11.5px; font-weight: 700; color: var(--muted); }
+.inp { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 9px; outline: 0; width: 100%; transition: border-color .15s; }
+.inp:focus { border-color: var(--primary); }
+select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239A96B2' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; padding-right: 26px; }
+.range { width: 100%; accent-color: var(--primary); }
+.tog { width: 32px; height: 18px; border-radius: 999px; background: var(--line-2); position: relative; transition: background .2s; flex: none; }
+.tog::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform .2s cubic-bezier(.3, 1.5, .5, 1); }
+.tog.on { background: var(--primary-strong); }
+.tog.on::after { transform: translateX(14px); }
+.row { display: flex; align-items: center; gap: 8px; }
+.grow { flex: 1; min-width: 0; }
+.sub { color: var(--muted); font-size: 12px; margin: 0; }
+.display { font-family: var(--font-display); }
+kbd { font-family: var(--font-ui); font-size: 10.5px; border: 1px solid var(--line-2); border-radius: 4px; padding: 0 5px; color: var(--faint); }
+
+/* ===== shell ===== */
+.shell { display: grid; grid-template-columns: 52px 1fr; grid-template-rows: 44px 1fr 24px; height: 100%; }
+.top { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 0 10px 0 0; background: var(--chrome); border-bottom: 1px solid var(--line); }
+.logo { width: 52px; height: 44px; display: grid; place-items: center; border-right: 1px solid var(--line); }
+.logo { color: #fff; }
+.doc { margin: 0 auto; display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
+.doc b { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc .c { color: var(--faint); white-space: nowrap; }
+.saved { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ok-ink); background: color-mix(in srgb, var(--mint) 10%, transparent); padding: 1px 8px; border-radius: 99px; }
+.saved i { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+.avs { display: flex; }
+.av { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 11px; color: #1a1530; border: 2px solid var(--chrome); margin-left: -7px; flex: none; }
+.cmdk { display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; color: var(--faint); font-size: 12px; width: 190px; white-space: nowrap; }
+.cmdk:hover { border-color: var(--line-2); color: var(--muted); }
+
+.rail { background: var(--chrome); border-right: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 0; }
+.rail button { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; color: var(--muted); position: relative; transition: background .15s, color .15s; }
+.rail button svg { width: 19px; height: 19px; }
+.rail button:hover { background: var(--surface); color: var(--text); }
+.rail button.on { background: var(--primary-strong); color: #fff; box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--primary) 80%, transparent); }
+.rail button[data-tip]:hover::after { content: attr(data-tip); position: absolute; left: 46px; top: 50%; transform: translateY(-50%); background: var(--tooltip); color: var(--bg); font-size: 11.5px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 50; pointer-events: none; }
+.rail .sep { width: 24px; height: 1px; background: var(--line-2); margin: 4px 0; }
+.rail .badge { position: absolute; top: 3px; right: 3px; min-width: 15px; height: 15px; border-radius: 99px; background: var(--rose); color: #fff; font-size: 9.5px; font-weight: 800; display: grid; place-items: center; padding: 0 3px; }
+.rail .bottom { margin-top: auto; color: var(--warn-ink); }
+
+.stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.ws { position: absolute; inset: 0; display: grid; animation: wsin .25s ease-out; }
+@keyframes wsin { from { opacity: 0; } }
+.status { grid-column: 1 / -1; display: flex; align-items: center; background: var(--chrome); border-top: 1px solid var(--line); font-size: 11px; color: var(--faint); padding: 0 8px; }
+.status span { padding: 0 10px; border-right: 1px solid var(--line); display: flex; align-items: center; gap: 6px; height: 14px; }
+.status span:last-child { border: 0; }
+.status .r { margin-left: auto; display: flex; }
+.status .live { color: var(--ok-ink); }
+.status .live i { width: 6px; height: 6px; border-radius: 50%; background: var(--mint); }
+
+/* ===== docked panels ===== */
+.dock { gap: 1px; background: var(--line); }
+.pane { background: var(--panel); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.ph { height: 34px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 12px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 700; }
+.ph .act { margin-left: auto; display: flex; gap: 2px; align-items: center; }
+.tabs { display: flex; height: 34px; flex: none; border-bottom: 1px solid var(--line); padding: 0 6px; }
+.tabs button { padding: 0 8px; font-size: 12px; white-space: nowrap; color: var(--muted); font-weight: 600; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.tabs button.on { color: var(--text); border-color: var(--primary); }
+.pb { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 14px; min-height: 0; }
+.sec { display: flex; flex-direction: column; gap: 9px; }
+.sec + .sec { border-top: 1px solid var(--line); padding-top: 14px; }
+.sec-h { display: flex; align-items: center; justify-content: space-between; font-size: 11.5px; font-weight: 700; color: var(--muted); }
+
+.q { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px; font-size: 12.5px; }
+.q .kind { font-size: 10.5px; color: var(--primary); font-weight: 700; }
+.q p { margin: 3px 0 6px; }
+.q ul { margin: 0; padding-left: 16px; color: var(--muted); }
+.q li.right { color: var(--ok-ink); }
+.kv { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.kv div { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; }
+.kv small { display: block; color: var(--muted); font-size: 10.5px; }
+.kv b { font-size: 13px; }
+.prog { height: 5px; border-radius: 99px; background: var(--surface-2); margin-top: 5px; overflow: hidden; }
+.prog i { display: block; height: 100%; border-radius: 99px; background: var(--mint); }
+
+/* art placeholder: gradient cover with moon + hill */
+.cover { position: relative; overflow: hidden; }
+.cover::before { content: ""; position: absolute; width: 14%; aspect-ratio: 1; border-radius: 50%; background: #ffe7b8; right: 10%; top: 9%; box-shadow: 0 0 10px #ffe7b8; }
+.cover::after { content: ""; position: absolute; left: -20%; right: -20%; bottom: -22%; height: 40%; border-radius: 50%; background: rgba(0, 0, 0, .2); }
+
+@media (max-width: 900px) {
+  .cmdk, .avs, .doc .c { display: none; }
 }
 
-/* 2. Tiêu đề Trang chính / Hero (Headline 1) */
-.heading-hero,
-.heading-1 {
-  font-family: var(--font-comfortaa), cursive, sans-serif;
-  font-size: clamp(2rem, 4.5vw, 3.25rem);
-  font-weight: 900;
-  line-height: 1.25;
-  letter-spacing: -0.025em;
-  color: var(--on-surface);
-}
-
-/* 3. Tiêu đề Mục lớn / Section (Headline 2) */
-.heading-section,
-.heading-2 {
-  font-family: var(--font-comfortaa), cursive, sans-serif;
-  font-size: clamp(1.25rem, 2.5vw, 1.75rem);
-  font-weight: 800;
-  line-height: 1.3;
-  letter-spacing: -0.015em;
-  color: var(--on-surface);
-}
-
-/* 4. Tiêu đề Thẻ / Card / Modal (Headline 3) */
-.heading-card,
-.heading-3 {
-  font-family: var(--font-comfortaa), cursive, sans-serif;
-  font-size: clamp(1rem, 1.8vw, 1.25rem);
-  font-weight: 800;
-  line-height: 1.35;
-  color: var(--on-surface);
-}
-
-/* 5. Tiêu đề Nhỏ / Sub-heading (Headline 4) */
-.heading-sm,
-.heading-4 {
-  font-family: var(--font-comfortaa), cursive, sans-serif;
-  font-size: 0.875rem;
-  font-weight: 700;
-  line-height: 1.4;
-  color: var(--on-surface);
-}
-
-/* 6. Đoạn văn mô tả phụ tiêu đề (Subtitle / Lead Description) */
-.text-subtitle {
-  font-family: var(--font-nunito-sans), system-ui, sans-serif;
-  font-size: clamp(0.875rem, 1.2vw, 1rem);
-  font-weight: 500;
-  line-height: 1.6;
-  color: var(--on-surface-variant);
-  opacity: 0.9;
-}
-
-/* 7. Nhãn dán / Thẻ phân loại trên tiêu đề (Eyebrow Label) */
-.badge-eyebrow-label {
-  font-family: var(--font-nunito-sans), system-ui, sans-serif;
-  font-size: 0.75rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-/* 8. Chữ dải màu nổi bật (Gradient Highlight Text) */
-.text-gradient-primary {
-  background: linear-gradient(135deg, var(--badge-gradient-1), var(--badge-gradient-2));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: inline-block;
-}
-
-/* ==========================================================================
-   HỆ THỐNG HIỆU ỨNG TRUNG TÂM (CENTRAL ANIMATION & EFFECT REGISTRY)
-   ========================================================================== */
-
-/* 1. Hiệu ứng Hào quang Tỏa sáng Xung quanh (Radiant Glow Aura) */
-.radiant-glow-aura {
-  position: absolute;
-  inset: -0.5rem;
-  border-radius: 2.2rem;
-  background: linear-gradient(135deg, var(--badge-gradient-1), var(--badge-gradient-2), var(--badge-gradient-3));
-  filter: blur(16px);
-  opacity: 0.45;
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  pointer-events: none;
-  transition: all 0.5s ease;
-}
-
-[data-theme="dark"] .radiant-glow-aura,
-.dark .radiant-glow-aura {
-  opacity: 0.40;
-}
-
-.group:hover .radiant-glow-aura {
-  opacity: 0.75;
-  filter: blur(24px);
-}
-
-/* 2. Hiệu ứng Khung dải màu 3 sắc (3-Color Badge Gradient Pill) */
-.badge-gradient-pill {
-  background: linear-gradient(
-    90deg,
-    var(--badge-gradient-1) 0%,
-    var(--badge-gradient-1) 30%,
-    var(--badge-gradient-2) 38%,
-    var(--badge-gradient-2) 62%,
-    var(--badge-gradient-3) 70%,
-    var(--badge-gradient-3) 100%
-  );
-}
-
-/* 3. Hiệu ứng Nền Container Dòng chảy (Animated Container Gradient Flow) */
-.hero-animated-bg {
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--badge-gradient-1) 20%, var(--background)) 0%,
-    color-mix(in srgb, var(--badge-gradient-2) 20%, var(--background)) 50%,
-    color-mix(in srgb, var(--badge-gradient-3) 20%, var(--background)) 100%
-  );
-  background-size: 200% 200%;
-  animation: gradient-flow 5.5s ease infinite;
-}
-
-/* 4. Hiệu ứng Ánh sáng vụt qua nút bấm (Button Shimmer Animation) */
-@keyframes button-shimmer {
-  0% {
-    transform: translateX(-160%) skewX(-25deg);
-  }
-  45%, 100% {
-    transform: translateX(360%) skewX(-25deg);
-  }
-}
-
-.animate-btn-shimmer {
-  animation: button-shimmer 5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-}
-
-/* 5. Hiệu ứng Dải màu nền dòng chảy (Gradient Flow) */
-@keyframes gradient-flow {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.animate-gradient-flow {
-  background-size: 200% 200%;
-  animation: gradient-flow 5.5s ease infinite;
-}
-
-/* 6. Hiệu ứng Quả cầu dải màu bồng bềnh (Floating Blobs) */
-@keyframes float-blob-1 {
-  0%, 100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(35px, -45px) scale(1.12);
-  }
-  66% {
-    transform: translate(-25px, 25px) scale(0.92);
-  }
-}
-
-@keyframes float-blob-2 {
-  0%, 100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(-45px, 35px) scale(1.08);
-  }
-  66% {
-    transform: translate(30px, -35px) scale(0.94);
-  }
-}
-
-.animate-float-blob-1 {
-  animation: float-blob-1 5s ease-in-out infinite;
-}
-
-.animate-float-blob-2 {
-  animation: float-blob-2 6s ease-in-out infinite;
-}
-
-/* 7. Hiệu ứng Ngôi sao phép thuật lấp lánh (Twinkling Stardust) */
-@keyframes twinkle {
-  0%, 100% {
-    opacity: 0.25;
-    transform: scale(0.85) rotate(0deg);
-  }
-  50% {
-    opacity: 0.95;
-    transform: scale(1.3) rotate(20deg);
-  }
-}
-
-.animate-twinkle-1 {
-  animation: twinkle 2.6s ease-in-out infinite;
-}
-
-.animate-twinkle-2 {
-  animation: twinkle 3.4s ease-in-out 0.7s infinite;
-}
-
-.animate-twinkle-3 {
-  animation: twinkle 4.1s ease-in-out 1.4s infinite;
-}
-
-/* 8. Hiệu ứng Nút bấm nhấp nhô bồng bềnh nhẹ (Subtle Floating Buttons) */
-@keyframes float-subtle {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-}
-
-.animate-float-subtle-1 {
-  animation: float-subtle 4s ease-in-out infinite;
-}
-
-.animate-float-subtle-2 {
-  animation: float-subtle 4s ease-in-out 1.3s infinite;
-}
-
-.animate-float-subtle-3 {
-  animation: float-subtle 4s ease-in-out 2.6s infinite;
-}
-
-/* 9. Utility ẩn thanh cuộn (Scrollbar None) */
-.scrollbar-none {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-  width: 0;
-  height: 0;
-}
-
-/* ==========================================================================
-   WONDERSPUN DASHBOARD DESIGN SYSTEM (Parent Dashboard Base Tokens & Utilities)
-   ========================================================================== */
-
-/* 1. Glassmorphism Panels - Synchronized with Theme */
-.dashboard-glass-panel {
-  background: var(--tod-card, rgba(15, 19, 28, 0.85));
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--tod-border, rgba(255, 255, 255, 0.08));
-  color: var(--tod-text, inherit);
-}
-
-/* 2. Standard Dashboard Cards - Synchronized with Theme */
-.dashboard-card {
-  border-radius: 1rem;
-  background-color: var(--tod-card, rgba(24, 27, 37, 0.75));
-  border: 1px solid var(--tod-border, rgba(255, 255, 255, 0.06));
-  color: var(--tod-text, inherit);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.dashboard-card-interactive {
-  border-radius: 1rem;
-  background-color: var(--tod-card, rgba(24, 27, 37, 0.75));
-  border: 1px solid var(--tod-border, rgba(255, 255, 255, 0.06));
-  color: var(--tod-text, inherit);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  cursor: pointer;
-}
-
-.dashboard-card-interactive:hover {
-  border-color: var(--tod-primary, rgba(56, 189, 248, 0.4));
-  background-color: var(--tod-surface, rgba(30, 35, 48, 0.85));
-  transform: translateY(-1px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
-}
-
-/* 3. Inputs & Selects - Synchronized with Theme */
-.dashboard-input {
-  width: 100%;
-  padding: 0.625rem 0.875rem;
-  border-radius: 0.75rem;
-  background-color: var(--tod-surface, rgba(15, 19, 28, 0.8));
-  border: 1px solid var(--tod-border, rgba(255, 255, 255, 0.12));
-  color: var(--tod-text, #f0f4fc);
-  font-size: 0.75rem;
-  line-height: 1rem;
-  outline: none;
-  transition: all 0.2s ease;
-}
-
-.dashboard-input:focus {
-  border-color: var(--tod-primary, #38bdf8);
-  box-shadow: 0 0 0 2px var(--tod-glow, rgba(56, 189, 248, 0.2));
-}
-
-.dashboard-input::placeholder {
-  color: var(--tod-text-muted, #71717a);
-  opacity: 0.7;
-}
-
-/* 4. Elegant Custom Scrollbar */
-.dashboard-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-.dashboard-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.dashboard-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 9999px;
-}
-
-.dashboard-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.3);
-}
-
-/* 5. Reusable Status Badges */
-.badge-safety-configured {
-  background-color: rgba(6, 78, 59, 0.8);
-  border: 1px solid rgba(16, 185, 129, 0.5);
-  color: #6ee7b7;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);
-}
-
-/* 6. Buttons */
-.btn-dashboard-primary {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0.625rem 1rem;
-  border-radius: 0.75rem;
-  background: linear-gradient(135deg, #0ea5e9, #6366f1);
-  color: #ffffff;
-  font-weight: 700;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 4px 14px rgba(14, 165, 233, 0.25);
-}
-
-.btn-dashboard-primary:hover {
-  background: linear-gradient(135deg, #38bdf8, #818cf8);
-  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.35);
-  transform: translateY(-1px);
-}
-
-.btn-dashboard-primary:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* 7. Time-Of-Day (Sáng - Chiều - Tối) UI Helper Utilities */
-.tod-bg {
-  background-color: var(--tod-bg);
-}
-
-.tod-surface {
-  background-color: var(--tod-surface);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-}
-
-.tod-card {
-  background-color: var(--tod-card);
-  border: 1px solid var(--tod-border);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-
-.tod-border {
-  border-color: var(--tod-border);
-}
-
-.tod-text {
-  color: var(--tod-text);
-}
-
-.tod-text-muted {
-  color: var(--tod-text-muted);
-}
-
-.tod-glow {
-  box-shadow: 0 0 25px var(--tod-glow);
-}
-
-/* ==========================================================================
-   THEME ADAPTORS CHO CÁC KHUNG OVERLAY (SÁNG / CHIỀU / TỐI)
-   ========================================================================== */
-
-/* Khi ở BUỔI SÁNG (Morning Light UI): Chuyển chữ và các ô nhập liệu sang Chế độ Sáng rõ nét */
-.theme-morning,
-[data-time-of-day="morning"] {
-  color: var(--tod-text);
-}
-
-.theme-morning .laptop-unified-card,
-.theme-morning .desk-left-drawer,
-.theme-morning .desk-right-drawer,
-.theme-morning .bookshelf-left-drawer,
-.theme-morning .bookshelf-right-drawer,
-.theme-morning .auth-modal-card {
-  box-shadow: 0 20px 50px rgba(14, 165, 233, 0.15), 0 4px 15px rgba(0, 0, 0, 0.05);
-}
-
-.theme-morning .dashboard-input {
-  background-color: #ffffff;
-  border-color: rgba(14, 165, 233, 0.35);
-  color: #0f172a;
-}
-
-.theme-morning .dashboard-input:focus {
-  border-color: #0284c7;
-  box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
-}
-
-.theme-morning .dashboard-input::placeholder {
-  color: #94a3b8;
-}
-
-/* Khi ở BUỔI CHIỀU (Afternoon Sunset UI): Tông cam ấm cúng và ánh vàng hoàng hôn */
-.theme-afternoon,
-[data-time-of-day="afternoon"] {
-  color: var(--tod-text);
-}
-
-.theme-afternoon .laptop-unified-card,
-.theme-afternoon .desk-left-drawer,
-.theme-afternoon .desk-right-drawer,
-.theme-afternoon .bookshelf-left-drawer,
-.theme-afternoon .bookshelf-right-drawer,
-.theme-afternoon .auth-modal-card {
-  box-shadow: 0 25px 60px rgba(31, 17, 8, 0.85), 0 0 30px rgba(245, 158, 11, 0.2);
-}
-
-/* Khi ở BUỔI TỐI (Night Pure Dark UI): Tông đen huyền bí và neon tím vũ trụ */
-.theme-night,
-[data-time-of-day="night"] {
-  color: var(--tod-text);
-}
-
-.theme-night .laptop-unified-card,
-.theme-night .desk-left-drawer,
-.theme-night .desk-right-drawer,
-.theme-night .bookshelf-left-drawer,
-.theme-night .bookshelf-right-drawer,
-.theme-night .auth-modal-card {
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 35px rgba(99, 102, 241, 0.25);
-}
+/* Hiệu ứng đổi theme: ảnh mới phủ lên ảnh cũ, vòng tròn được cắt bằng clip-path (xem circleReveal). */
+::view-transition-old(root),
+::view-transition-new(root) { animation: none; mix-blend-mode: normal; }
+::view-transition-old(root) { z-index: 0; }
+::view-transition-new(root) { z-index: 1; }

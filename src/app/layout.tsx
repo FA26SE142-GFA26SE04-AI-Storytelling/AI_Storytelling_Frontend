@@ -1,27 +1,31 @@
 import type { Metadata } from "next";
-import { Comfortaa, Nunito_Sans } from "next/font/google";
+import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
+import "./components/workspaces/workspaces.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import { AuthProvider } from "./context/AuthContext";
 import { ChildSessionProvider } from "./context/ChildSessionContext";
 
-const comfortaa = Comfortaa({
-  variable: "--font-comfortaa",
+const baloo = Baloo_2({
+  variable: "--font-baloo",
   subsets: ["latin", "vietnamese"],
-  weight: ["400", "600", "700"],
+  weight: ["600", "700", "800"],
 });
 
-const nunitoSans = Nunito_Sans({
-  variable: "--font-nunito-sans",
+const nunito = Nunito({
+  variable: "--font-nunito",
   subsets: ["latin", "vietnamese"],
   weight: ["400", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
-  title: "Taletale - Nền tảng Kể chuyện AI 3D cho Bé",
-  description: "Biến trí tưởng tượng phong phú của con thành không gian 3D tương tác sống động và hấp dẫn.",
+  title: "Taletale – Nền tảng kể chuyện AI cho trẻ em",
+  description: "Tạo, duyệt và giao truyện AI an toàn cho bé, có phụ huynh đồng hành.",
 };
+
+// Đặt theme trước khi vẽ để không bị nháy sáng/tối khi tải trang.
+const themeInit = `try{var t=localStorage.getItem("magictales-theme");if(t!=="dark"&&t!=="light"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.setAttribute("data-theme",t);if(t==="dark")document.documentElement.classList.add("dark")}catch(e){}`;
 
 export default function RootLayout({
   children,
@@ -32,15 +36,18 @@ export default function RootLayout({
     <html
       lang="vi"
       data-theme="light"
-      className={`${comfortaa.variable} ${nunitoSans.variable} h-full antialiased`}
+      className={`${baloo.variable} ${nunito.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col bg-background text-on-background font-sans transition-colors duration-300 overflow-hidden">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInit }} />
+      </head>
+      <body className="h-full">
         <AuthProvider>
           <LanguageProvider>
             <ThemeProvider>
               <ChildSessionProvider>
-                <main className="flex-1 w-full h-full">
+                <main className="h-full w-full">
                   {children}
                 </main>
               </ChildSessionProvider>
