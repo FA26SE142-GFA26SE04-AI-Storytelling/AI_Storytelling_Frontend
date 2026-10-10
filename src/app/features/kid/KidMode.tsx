@@ -1,13 +1,14 @@
 "use client";
 
 import "./kid.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import { aiStoryCreationService } from "@/app/services/aiStoryCreationService";
 import { storyService } from "@/app/services/storyService";
 import type { QuizQuestionDto } from "@/app/types/aiStory";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
+import Frog, { type FrogMood } from "@/app/components/brand/Frog";
 import { splitScenes } from "@/app/lib/storyView";
 import { useRiseIn, useSwap, shake, bounce } from "@/app/lib/motion";
 
@@ -23,6 +24,17 @@ export default function KidMode({ onExit }: { onExit: () => void }) {
   const [qi, setQi] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [stars, setStars] = useState(0);
+  // Ếch bạn đồng hành: vui khi bé lật trang hoặc trả lời đúng, ngẫm nghĩ khi trả lời sai.
+  const [buddyMood, setBuddyMood] = useState<FrogMood>("idle");
+  const buddyRef = useRef<HTMLDivElement>(null);
+  const moodTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const react = (kind: "hello" | "angry") => {
+    setBuddyMood(kind === "hello" ? "happy" : "think");
+    if (kind === "hello") bounce(buddyRef.current); else shake(buddyRef.current);
+    if (moodTimer.current) clearTimeout(moodTimer.current);
+    moodTimer.current = setTimeout(() => setBuddyMood("idle"), 1800);
+  };
+  useEffect(() => () => { if (moodTimer.current) clearTimeout(moodTimer.current); }, []);
 
   const open = async (id: number) => {
     setStoryId(id);
@@ -53,12 +65,13 @@ export default function KidMode({ onExit }: { onExit: () => void }) {
   const answer = (c: string, el: HTMLElement) => {
     if (picked !== null || !question) return;
     setPicked(c);
-    if (c === question.correctAnswer) { setStars((s) => s + 5); bounce(el); } else shake(el);
+    if (c === question.correctAnswer) { setStars((s) => s + 5); bounce(el); react("hello"); } else { shake(el); react("angry"); }
   };
 
   return (
     <div className="kid" role="dialog" aria-label="Chế độ của bé">
       <PondBackdrop />
+      <div ref={buddyRef} className="kid-buddy"><Frog size={120} mood={buddyMood} /></div>
       <div className="ktop">
         <button className="btn btn-s" onClick={onExit}><ArrowLeft className="ic" />Về khu người lớn</button>
         <div className="ktabs" role="tablist">
@@ -92,9 +105,9 @@ export default function KidMode({ onExit }: { onExit: () => void }) {
               <small className="sub">{cur?.title}{pages.length > 0 && ` · Trang ${page + 1} trên ${pages.length}`}</small>
               <p ref={textRef} className="display ktext">{loading ? "Đang mở truyện…" : pages[page] ?? "Truyện này chưa có nội dung."}</p>
               <div className="row" style={{ marginTop: "auto" }}>
-                <button className="kbtn" onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0} aria-label="Trang trước"><ChevronLeft /></button>
+                <button className="kbtn" onClick={() => { setPage((p) => Math.max(0, p - 1)); react("hello"); }} disabled={page === 0} aria-label="Trang trước"><ChevronLeft /></button>
                 <span className="grow" />
-                <button className="kbtn" onClick={() => { if (page < pages.length - 1) setPage(page + 1); else if (quiz.length) setTab("quiz"); }} disabled={page >= pages.length - 1 && quiz.length === 0} aria-label="Trang sau"><ChevronRight /></button>
+                <button className="kbtn" onClick={() => { react("hello"); if (page < pages.length - 1) setPage(page + 1); else if (quiz.length) setTab("quiz"); }} disabled={page >= pages.length - 1 && quiz.length === 0} aria-label="Trang sau"><ChevronRight /></button>
               </div>
             </div>
           </div>

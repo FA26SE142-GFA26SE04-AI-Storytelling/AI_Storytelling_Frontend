@@ -36,3 +36,7 @@
 .kopt.wrong { border-color: var(--rose); background: color-mix(in srgb, var(--danger) 12%, transparent); }
 
 @media (max-width: 820px) { .book { grid-template-columns: 1fr; } }
+
+/* Ếch đứng cạnh sách, phản ứng khi bé lật trang hoặc trả lời câu đố */
+.kid > .kid-buddy { position: absolute; right: 26px; bottom: 14px; z-index: 2; pointer-events: none; filter: drop-shadow(0 12px 14px color-mix(in srgb, var(--shadow) 30%, transparent)); }
+@media (max-width: 820px) { .kid > .kid-buddy { display: none; } }
