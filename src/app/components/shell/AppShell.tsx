@@ -31,7 +31,7 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
     <div className="shell">
       <PondBackdrop rich />
       <header className="top">
-        <div className="logo" aria-label="Taletale"><Frog variant="face" size={34} /></div>
+        <div className="logo" aria-label="Taletale"><Frog variant="face" size={46} /></div>
         <b className="display" style={{ fontSize: 17, fontWeight: 800 }}>Taletale</b>
 
         <div className="doc">
@@ -58,7 +58,7 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
             </button>
           </div>
         ))}
-        <button className="bottom" data-tip="Chế độ của bé" aria-label="Chế độ của bé" onClick={onKid} disabled={!child}><Frog variant="face" size={34} animated={false} /></button>
+        <button className="bottom" data-tip="Chế độ của bé" aria-label="Chế độ của bé" onClick={onKid} disabled={!child}><Frog variant="face" size={38} animated={false} /></button>
       </nav>
 
       <main className="stage">{children}</main>

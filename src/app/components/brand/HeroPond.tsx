@@ -25,7 +25,7 @@ export default function HeroPond({ mood = "happy" }: { mood?: FrogMood }) {
         <ellipse cx="95" cy="32" rx="84" ry="22" fill="var(--primary)" opacity=".55" />
         <path d="M95 32 L176 16" stroke="var(--primary-strong)" strokeWidth="2" opacity=".5" />
       </svg>
-      <div ref={frogRef} className="hero-frog"><Frog size={118} mood={mood} /></div>
+      <div ref={frogRef} className="hero-frog"><Frog size={104} mood={mood} /></div>
       <span className="hero-lotus"><Lotus size={64} /></span>
     </div>
   );

@@ -40,7 +40,7 @@ export default function StageProgress({ stage, snapshot, message, errorCode, tim
   if (stage === "brief") {
     return (
       <div ref={emptyRef} className="empty">
-        <Frog size={130} />
+        <Frog size={120} />
         <b className="display">Bắt đầu một câu chuyện mới</b>
         <span>Nhập ý tưởng ở cột bên trái. AI sẽ kiểm tra an toàn, viết dàn ý cho bạn duyệt, rồi mới viết truyện.</span>
       </div>

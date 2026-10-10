@@ -3,6 +3,6 @@
 .login-wrap > :not(.pond) { position: relative; z-index: 1; }
 .login-card { width: min(400px, 100%); margin-top: 60px; background: var(--panel); border: 1px solid var(--line-2); border-radius: 32px; padding: 28px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 30px 70px -30px color-mix(in srgb, var(--shadow) 40%, transparent); }
 .login-card h1 { margin: 4px 0 0; font-size: 26px; line-height: 1.15; }
-.login-frog { display: block; margin: -82px auto -4px; }
+.login-frog { display: block; margin: -92px auto -4px; }
 .login-links { display: flex; justify-content: space-between; font-size: 12.5px; }
 .login-links button { color: var(--link); font-weight: 700; }
