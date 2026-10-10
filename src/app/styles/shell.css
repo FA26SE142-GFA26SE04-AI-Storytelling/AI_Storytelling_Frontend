@@ -4,7 +4,7 @@
 .shell > :not(.pond) { position: relative; z-index: 1; }
 
 /* Thanh trên và thanh bên: kính mờ trên nền nước */
-.top, .rail { border: 1px solid var(--line); background: color-mix(in srgb, var(--chrome) 86%, transparent); backdrop-filter: blur(12px); box-shadow: 0 10px 26px -18px color-mix(in srgb, var(--shadow) 45%, transparent); }
+.top, .rail { border: 1px solid var(--line); background: color-mix(in srgb, var(--chrome) 55%, transparent); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 10px 26px -18px color-mix(in srgb, var(--shadow) 45%, transparent); }
 .top { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; padding: 0 14px 0 0; border-radius: 24px; }
 .logo { width: 58px; height: 44px; display: grid; place-items: center; }
 .doc { margin: 0 auto; display: flex; align-items: center; gap: 8px; font-size: 12.5px; min-width: 0; }
@@ -38,7 +38,7 @@
 /* ===== Panel nổi ===== */
 /* Các vùng lớn của mỗi không gian dùng chung một kiểu khung bo tròn. */
 .pane, .center, .review-doc, .setbody { border: 1px solid var(--line); border-radius: 26px; overflow: hidden; box-shadow: 0 14px 34px -24px color-mix(in srgb, var(--shadow) 50%, transparent); }
-.pane { display: flex; flex-direction: column; min-height: 0; min-width: 0; background: color-mix(in srgb, var(--panel) 92%, transparent); backdrop-filter: blur(8px); }
+.pane { display: flex; flex-direction: column; min-height: 0; min-width: 0; background: color-mix(in srgb, var(--panel) 55%, transparent); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); }
 
 .ph { height: 42px; flex: none; display: flex; align-items: center; gap: 8px; padding: 0 18px; border-bottom: 1px solid var(--line); font-size: 12px; font-weight: 700; }
 /* Chấm hình cánh hoa sen trước tiêu đề */

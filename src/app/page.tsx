@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type ComponentType } from "react";
+import { useCallback, useEffect, useState, type ComponentType } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import AppShell from "@/app/components/shell/AppShell";
 import LoginScreen from "@/app/components/shell/LoginScreen";
@@ -13,6 +13,7 @@ import ReviewWorkspace from "@/app/features/review/ReviewWorkspace";
 import ReportWorkspace from "@/app/features/report/ReportWorkspace";
 import SafetyWorkspace from "@/app/features/safety/SafetyWorkspace";
 import KidMode from "@/app/features/kid/KidMode";
+import { transitionWorkspace } from "@/app/lib/motion";
 
 // Mỗi không gian một component. Thêm không gian mới: khai báo trong nav.ts rồi thêm vào đây.
 const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
@@ -29,6 +30,7 @@ function Workspaces() {
   const [ws, setWs] = useState<WorkspaceId>("home");
   const [kid, setKid] = useState(false);
   const View = VIEWS[ws];
+  const go = useCallback((id: WorkspaceId) => transitionWorkspace(() => setWs(id)), []);
 
   // Cho phép mở thẳng một không gian bằng #home, #lib, #review...
   useEffect(() => {
@@ -38,10 +40,10 @@ function Workspaces() {
 
   return (
     <>
-      <AppShell ws={ws} onWs={setWs} onKid={() => setKid(true)}>
+      <AppShell ws={ws} onWs={go} onKid={() => setKid(true)}>
         {childrenLoading
           ? <div className="splash">Đang tải hồ sơ bé…</div>
-          : <View go={setWs} onKid={() => setKid(true)} />}
+          : <View go={go} onKid={() => setKid(true)} />}
       </AppShell>
       {kid && child && <KidMode onExit={() => setKid(false)} />}
     </>
