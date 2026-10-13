@@ -1,40 +1,120 @@
 "use client";
 
-import { Sparkles } from "lucide-react";
+import { Lock, ShieldAlert } from "lucide-react";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
-import { clampTargetLength } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
+import {
+  clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, vocabularyTone,
+  type AIStoryInputFormValues, type LengthPreset,
+} from "@/app/features/story-workflow/aiStoryInputFlowUtils";
+import { detectPii, piiMessage } from "@/app/features/story-workflow/piiHints";
+import { useRegisterApprove } from "@/app/features/story-workflow/approveSlot";
 import { useRiseIn } from "@/app/lib/motion";
 
 const GENRES = ["Thám hiểm & Phép thuật", "Cổ tích", "Khoa học", "Đời sống", "Động vật"];
+const LESSONS = ["Trung thực", "Biết chia sẻ", "Dũng cảm", "Kiên trì", "Lễ phép", "Yêu thương gia đình"];
+const LENGTHS: [LengthPreset, string][] = [["short", "Ngắn"], ["medium", "Vừa"], ["long", "Dài"]];
+const TONE_LABEL = { familiar: "Quen thuộc", default: "Theo trình độ", extended: "Mở rộng" } as const;
+const TONE_HINT = {
+  familiar: "dùng từ bé đã quen, không thêm từ mới.",
+  default: "thêm vài từ mới vừa sức bé.",
+  extended: "thêm nhiều từ mới hơn, có giải nghĩa trong phần từ vựng.",
+} as const;
 
+type TextKey = "charactersText" | "setting" | "lesson";
+
+/** Form ý tưởng hai cột: bên trái là nội dung truyện, bên phải là độ dài và từ vựng. */
 export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowResult; locked: boolean }) {
   const { values, context, updateValues, submit, isBusy, errorMessage } = flow;
+  // Nút "Viết dàn ý" nằm trên thanh tiến trình (cùng chỗ với các nút duyệt ở những bước sau).
+  const loaded = !!values && !!context;
+  const missingText = !values?.topic.trim() || !values?.lesson.trim();
+  useRegisterApprove(!locked ? {
+    label: "Viết dàn ý",
+    icon: "sparkles",
+    disabled: !loaded || isBusy || missingText,
+    reason: !loaded ? "Đang tải cấu hình của bé…" : missingText ? "Hãy nhập ý tưởng và bài học trước." : null,
+    run: () => void submit(),
+  } : null);
   const formRef = useRiseIn<HTMLFormElement>(".kv, .field, button[type=submit], .btn-p", [!!values && !!context], { delay: 50 });
 
   if (!values || !context) {
     return <div className="pb"><p className="sub">{errorMessage ?? "Đang tải cấu hình tạo truyện của bé…"}</p></div>;
   }
   const max = Math.min(context.maximumLength, 5000);
+  const presets = lengthPresets(max);
+  const preset = LENGTHS.find(([k]) => presets[k] === values.targetLength)?.[0] ?? null;
+  const pii = piiMessage(detectPii([values.topic, values.charactersText, values.setting, values.lesson].join("\n"), context.childNickname));
+  const tone = vocabularyTone(values.vocabularyLevel, context.defaultVocabularyLevel);
+
+  const text = (k: TextKey, label: string, placeholder: string, required = false) => (
+    <label className="field">
+      <span className="lbl row" style={{ justifyContent: "space-between" }}>{label}<em className="count">{values[k].length}/{FREE_TEXT_MAX}</em></span>
+      <input className="inp" disabled={locked} required={required} maxLength={FREE_TEXT_MAX} value={values[k]} placeholder={placeholder}
+        onChange={(e) => updateValues({ [k]: e.target.value } as Partial<AIStoryInputFormValues>)} />
+    </label>
+  );
 
   return (
-    <form ref={formRef} className="pb" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
-      <p className="sub">AI chỉ viết trong khuôn khổ chính sách an toàn của {context.childNickname}, và không trò chuyện tự do với bé.</p>
-      <div className="kv">
-        <div><small>Độ tuổi</small><b>{context.ageBand.replace("Age_", "").replace("_", "–")}</b></div>
-        <div><small>Mức đọc</small><b>Mức {context.readingLevel}</b></div>
+    <form ref={formRef} className="pb brief" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
+      <div className="brief-head">
+        <div className="grow">
+          <h3 className="display">{locked ? "Yêu cầu đã gửi" : `Truyện mới cho ${context.childNickname}`}</h3>
+          <p className="sub">AI chỉ viết trong khuôn khổ chính sách an toàn của {context.childNickname}, và không trò chuyện tự do với bé.</p>
+        </div>
+        <div className="kv locked" title="Lấy từ hồ sơ của bé, đổi trong Cài đặt an toàn">
+          <div><small><Lock /> Độ tuổi</small><b>{context.ageBand.replace("Age_", "").replace("_", "–")}</b></div>
+          <div><small><Lock /> Mức đọc</small><b>Mức {context.readingLevel}</b></div>
+        </div>
       </div>
-      <label className="field"><span className="lbl">Ý tưởng câu chuyện</span>
-        <textarea className="inp" rows={3} disabled={locked} required value={values.topic} onChange={(e) => updateValues({ topic: e.target.value })} placeholder="Ví dụ: Rùa Bông mang đèn lồng đến hội Trung thu" /></label>
-      <div className="field"><span className="lbl">Thể loại</span>
-        <div className="chips">{GENRES.map((g) => <button type="button" key={g} disabled={locked} className={`chip${values.genre === g ? " on" : ""}`} onClick={() => updateValues({ genre: g })}>{g}</button>)}</div></div>
-      <label className="field"><span className="lbl">Nhân vật (cách nhau bằng dấu phẩy, để trống nếu muốn AI gợi ý)</span>
-        <input className="inp" disabled={locked} value={values.charactersText} onChange={(e) => updateValues({ charactersText: e.target.value })} /></label>
-      <label className="field"><span className="lbl">Bài học</span>
-        <input className="inp" disabled={locked} required value={values.lesson} onChange={(e) => updateValues({ lesson: e.target.value })} /></label>
-      <label className="field"><span className="lbl row" style={{ justifyContent: "space-between" }}>Độ dài mục tiêu <b style={{ color: "var(--text)" }}>{values.targetLength} từ</b></span>
-        <input type="range" className="range" disabled={locked} min={100} max={max} step={50} value={clampTargetLength(values.targetLength, max)} onChange={(e) => updateValues({ targetLength: +e.target.value })} aria-label="Độ dài mục tiêu" /></label>
+
+      <div className="brief-grid">
+        <div className="brief-col">
+          <label className="field"><span className="lbl">Ý tưởng câu chuyện</span>
+            <textarea className="inp" rows={3} disabled={locked} required value={values.topic} onChange={(e) => updateValues({ topic: e.target.value })} placeholder="Ví dụ: Rùa Bông mang đèn lồng đến hội Trung thu" /></label>
+
+          <div className="field"><span className="lbl">Thể loại</span>
+            <div className="chips">{GENRES.map((g) => <button type="button" key={g} disabled={locked} className={`chip${values.genre === g ? " on" : ""}`} onClick={() => updateValues({ genre: g })}>{g}</button>)}</div></div>
+
+          {text("charactersText", "Nhân vật (cách nhau bằng dấu phẩy; để trống để AI gợi ý)", "Sóc Bông, Thỏ Trắng")}
+          {text("setting", "Bối cảnh (để trống để AI gợi ý)", "Khu rừng tre ven hồ sen")}
+        </div>
+
+        <div className="brief-col">
+          <div className="field">
+            {text("lesson", "Bài học", "Biết chia sẻ cùng bạn bè", true)}
+            <div className="chips">{LESSONS.map((l) => <button type="button" key={l} disabled={locked} className={`chip sm${values.lesson === l ? " on" : ""}`} onClick={() => updateValues({ lesson: l })}>{l}</button>)}</div>
+          </div>
+
+          <div className="field">
+            <span className="lbl row" style={{ justifyContent: "space-between" }}>Độ dài<b style={{ color: "var(--text)" }}>~{values.targetLength} từ</b></span>
+            <div className="seg">{LENGTHS.map(([k, label]) => (
+              <button type="button" key={k} disabled={locked} className={preset === k ? "on" : ""} onClick={() => updateValues({ targetLength: presets[k] })}>{label}<small>{presets[k]}</small></button>
+            ))}</div>
+            <input type="range" className="range" disabled={locked} min={MIN_TARGET_LENGTH} max={max} step={50} value={clampTargetLength(values.targetLength, max)} onChange={(e) => updateValues({ targetLength: +e.target.value })} aria-label="Độ dài mục tiêu" />
+            <small className="hint">Tối đa {max} từ theo cài đặt an toàn của bé.</small>
+          </div>
+
+          {context.availableVocabularyLevels.length > 1 && (
+            <div className="field"><span className="lbl">Từ vựng</span>
+              <div className="seg">{context.availableVocabularyLevels.map((v) => (
+                <button type="button" key={v} disabled={locked} className={values.vocabularyLevel === v ? "on" : ""} onClick={() => updateValues({ vocabularyLevel: v })}
+                  title={TONE_LABEL[vocabularyTone(v, context.defaultVocabularyLevel)]}>
+                  {v.replace("level_", "Mức ")}{v === context.defaultVocabularyLevel && <small>hồ sơ</small>}
+                </button>
+              ))}</div>
+              <small className="hint">{TONE_LABEL[tone]}: {TONE_HINT[tone]}</small>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {pii && <div className="notice warn" role="status"><ShieldAlert className="ic" />{pii}</div>}
       {errorMessage && <div className="notice err" role="alert">{errorMessage}</div>}
-      <button className="btn btn-p btn-c" style={{ padding: 9 }} disabled={locked || isBusy}><Sparkles className="ic" />{isBusy ? "Đang gửi…" : "Tạo truyện"}</button>
+      {!locked && (
+        <div className="brief-foot">
+          <small className="hint">{isBusy ? "Đang gửi ý tưởng…" : "Điền xong thì bấm ✨ trên thanh tiến trình: AI viết dàn ý trước để bạn duyệt, rồi mới viết truyện."}</small>
+        </div>
+      )}
     </form>
   );
 }

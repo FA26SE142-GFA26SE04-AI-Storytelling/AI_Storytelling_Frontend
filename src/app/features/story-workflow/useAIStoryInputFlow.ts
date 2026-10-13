@@ -12,7 +12,7 @@ import {
   AIStoryInputFormValues,
   buildCreativeInput,
   buildSubmitRequest,
-  createDefaultFormValues,
+  restoreFormValues,
   phaseFromProgress,
   shouldPollInput,
 } from './aiStoryInputFlowUtils';
@@ -35,6 +35,8 @@ export interface UseAIStoryInputFlowResult {
   errorMessage: string | null;
   isPollingTimedOut: boolean;
   isBusy: boolean;
+  /** true khi biết chắc ý tưởng đang hiển thị là ý tưởng đã gửi (gửi trong phiên này hoặc được điền lại khi làm lại). */
+  valuesKnown: boolean;
   canRetryInput: boolean;
   updateValues: (updates: Partial<AIStoryInputFormValues>) => void;
   submit: () => Promise<void>;
@@ -44,7 +46,12 @@ export interface UseAIStoryInputFlowResult {
   markWaitingForOutline: () => void;
 }
 
-export function useAIStoryInputFlow(childProfileId: number | null, resumedStoryId?: number | null, resumedRequestId?: number | null): UseAIStoryInputFlowResult {
+export function useAIStoryInputFlow(
+  childProfileId: number | null,
+  resumedStoryId?: number | null,
+  resumedRequestId?: number | null,
+  initialValues?: AIStoryInputFormValues | null
+): UseAIStoryInputFlowResult {
   const [phase, setPhase] = useState<AIStoryInputFlowPhase>('loading_context');
   const [context, setContext] = useState<AIStoryInputContextDto | null>(null);
   const [values, setValues] = useState<AIStoryInputFormValues | null>(null);
@@ -63,6 +70,8 @@ export function useAIStoryInputFlow(childProfileId: number | null, resumedStoryI
   const idempotencyKeyRef = useRef<string | null>(null);
   const retryKeyRef = useRef<string | null>(null);
   const lastCreativeInputRef = useRef<AIStoryCreativeInputDto | null>(null);
+  // Ý tưởng điền sẵn khi làm lại; giữ cố định suốt vòng đời hook để form không bị nạp lại khi cha render.
+  const [initial] = useState(initialValues ?? null);
 
   const clearPolling = useCallback(() => {
     if (pollTimerRef.current) {
@@ -112,7 +121,7 @@ export function useAIStoryInputFlow(childProfileId: number | null, resumedStoryI
       if (!mountedRef.current || flowVersion !== flowVersionRef.current || controller.signal.aborted) return;
       if (response.success && response.data) {
         setContext(response.data);
-        setValues(createDefaultFormValues(response.data));
+        setValues(restoreFormValues(initial, response.data));
         setPhase('editing_input');
         if (resumedStoryId && resumedRequestId) {
           const restored = await aiStoryCreationService.getInputProgress(resumedStoryId, resumedRequestId, controller.signal);
@@ -135,7 +144,7 @@ export function useAIStoryInputFlow(childProfileId: number | null, resumedStoryI
     });
 
     return () => controller.abort();
-  }, [childProfileId, clearPolling, resumedStoryId, resumedRequestId]);
+  }, [childProfileId, clearPolling, resumedStoryId, resumedRequestId, initial]);
 
   const handleProgress = useCallback((nextProgress: AIStoryInputProgressDto) => {
     clearPolling();
@@ -318,6 +327,7 @@ export function useAIStoryInputFlow(childProfileId: number | null, resumedStoryI
     errorMessage,
     isPollingTimedOut,
     isBusy: phase === 'loading_context' || phase === 'submitting',
+    valuesKnown: hasCreativeInput || !!initial,
     canRetryInput: hasCreativeInput && !!progress?.canRetry,
     updateValues,
     submit,

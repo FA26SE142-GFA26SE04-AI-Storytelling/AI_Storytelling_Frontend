@@ -123,13 +123,13 @@ export function circleReveal(x: number, y: number, update: () => void) {
   }).catch(() => {});
 }
 
-/** Gợn nước lan ra tại điểm bấm nút (gắn một lần ở cấp cao nhất). */
+/** Gợn nước lan ra tại mọi điểm bấm trên màn hình (gắn một lần ở cấp cao nhất). */
 export function useClickRipple() {
   useEffect(() => {
     if (prefersReducedMotion()) return;
     const onClick = (e: MouseEvent) => {
-      const target = e.target as Element | null;
-      if (!target?.closest("button:not(:disabled), a.btn")) return;
+      // detail = 0: click do bàn phím hoặc mã gọi, không có điểm bấm thật.
+      if (e.detail === 0) return;
       const ring = document.createElement("span");
       ring.className = "click-ripple";
       ring.style.left = `${e.clientX}px`;
