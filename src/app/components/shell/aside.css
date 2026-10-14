@@ -1,0 +1,32 @@
+/* Khung bên phải thu gọn được (AsidePane). Cột lưới co giãn do từng màn khai báo: features/studio/studio.css, features/library/library.css. */
+.aside { position: relative; }
+/* Nội dung giữ bề rộng cố định để không bị bóp lại trong lúc khung co; khung cha cắt phần thừa. */
+/* Bề rộng cột phải do màn quyết định qua --aside-w (Studio 300px, Thư viện 290px); trừ 2px viền. */
+.aside.collapsible .aside-body { width: calc(var(--aside-w, 300px) - 2px); transition: opacity .25s ease, transform .38s cubic-bezier(.65, 0, .25, 1), visibility 0s; }
+.aside.collapsed .aside-body { opacity: 0; transform: translateX(24px); visibility: hidden; transition: opacity .2s ease, transform .38s cubic-bezier(.65, 0, .25, 1), visibility 0s .38s; }
+.aside .ph { transition: padding .38s cubic-bezier(.65, 0, .25, 1), gap .38s cubic-bezier(.65, 0, .25, 1); }
+/* Tiêu đề phải co bề ngang về 0 (không chỉ mờ đi), nếu không nó chiếm chỗ và đẩy nút mũi tên ra ngoài thanh 52px. */
+.aside-title { white-space: nowrap; overflow: hidden; max-width: 220px; transition: opacity .2s ease .12s, max-width .38s cubic-bezier(.65, 0, .25, 1); }
+.aside.collapsed .aside-title { opacity: 0; max-width: 0; transition-delay: 0s; }
+.aside.collapsed .ph { padding: 0; gap: 0; justify-content: center; }
+.aside.collapsed .ph::before { display: none; }
+.aside.collapsed .ph .act { margin-left: 0; }
+.aside-toggle { width: 34px; height: 34px; padding: 0; justify-content: center; border-radius: 50%; }
+.aside-toggle .ic { width: 18px; height: 18px; transition: transform .38s cubic-bezier(.65, 0, .25, 1); }
+.aside.collapsed .aside-toggle .ic { transform: rotate(180deg); }
+/* Thanh dọc khi thu gọn: biểu tượng của khung + chữ xoay dọc, hiện sau khi khung đã co */
+.aside-rail { position: absolute; left: 0; right: 0; top: 42px; bottom: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; padding-top: 16px; color: var(--muted); font-weight: 700; font-size: 12px; opacity: 0; visibility: hidden; transition: opacity .2s ease, visibility 0s .2s; }
+.aside-rail span { writing-mode: vertical-rl; letter-spacing: .04em; white-space: nowrap; }
+.aside-rail .ic { color: var(--primary); width: 18px; height: 18px; }
+.aside-rail:hover { color: var(--text); background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.aside.collapsed .aside-rail { opacity: 1; visibility: visible; transition: opacity .25s ease .25s, visibility 0s .25s; }
+@media (max-width: 720px) {
+  /* Điện thoại: khung xếp dọc nên thu gọn chỉ gập phần nội dung, giữ nguyên chiều ngang */
+  .aside.collapsible .aside-body { width: auto; }
+  .aside.collapsed .aside-body { display: none; }
+  .aside.collapsed .aside-title { opacity: 1; max-width: none; }
+  .aside.collapsed .ph { padding: 0 18px; gap: 8px; justify-content: flex-start; }
+  .aside.collapsed .ph::before { display: block; }
+  .aside.collapsed .ph .act { margin-left: auto; }
+  .aside-rail { display: none; }
+}

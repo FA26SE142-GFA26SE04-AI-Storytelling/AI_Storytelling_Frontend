@@ -1,8 +1,9 @@
 "use client";
 
 import "./library.css";
-import { useMemo, useState } from "react";
-import { BookOpen, Folder, Search, Sparkles, Tag, WandSparkles } from "lucide-react";
+import { useCallback, useMemo, useState } from "react";
+import { BookOpen, Folder, Info, Search, Sparkles, Tag, WandSparkles } from "lucide-react";
+import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { ageLabel, type StoryCard } from "@/app/lib/storyView";
 import type { WorkspaceId } from "@/app/components/shell/nav";
@@ -16,6 +17,10 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
   const [q, setQ] = useState("");
   const [age, setAge] = useState("all");
   const [selected, setSelected] = useState<number | null>(null);
+  // Khung "Chi tiết" bên phải thu gọn được; cột lưới co theo bằng CSS (library.css).
+  const [asideCollapsed, setAsideCollapsed] = useState(false);
+  const toggleAside = useCallback(() => setAsideCollapsed((v) => !v), []);
+  const aside = useMemo(() => ({ collapsed: asideCollapsed, toggle: toggleAside }), [asideCollapsed, toggleAside]);
 
   const filters = useMemo<Filter[]>(() => {
     const topics = [...new Set(stories.map((s) => s.topic))];
@@ -37,7 +42,8 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
   const sel = stories.find((s) => s.id === selected) ?? list[0];
 
   return (
-    <section className="ws dock" style={{ gridTemplateColumns: "210px 1fr 290px" }}>
+    <AsideContext.Provider value={aside}>
+    <section className="ws dock lib" data-aside={asideCollapsed ? "collapsed" : undefined}>
       <div className="pane">
         <div className="ph"><span>Thư viện</span></div>
         <div className="pb" style={{ gap: 0 }}>
@@ -85,9 +91,7 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
         </div>
       </div>
 
-      <div className="pane">
-        <div className="ph"><span>Chi tiết</span></div>
-        <div className="pb">
+      <AsidePane title="Chi tiết" icon={Info}>
           {sel ? (
             <>
               <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: sel.gradient }} />
@@ -104,8 +108,8 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
               {sel.statusLabel === "Chờ duyệt" && <button className="btn btn-p btn-c" onClick={() => go("review")}><WandSparkles className="ic" />Mở để duyệt</button>}
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
-        </div>
-      </div>
+      </AsidePane>
     </section>
+    </AsideContext.Provider>
   );
 }

@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { ShieldCheck } from "lucide-react";
+import AsidePane from "@/app/components/shell/AsidePane";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
 import BriefForm from "./BriefForm";
 import OutlinePanel from "./OutlinePanel";
 import StageProgress from "./StageProgress";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import type { Stage, StatusSnapshot } from "./useStoryPipeline";
+import { useSwap } from "@/app/lib/motion";
 
 type Props = {
   flow: UseAIStoryInputFlowResult;
@@ -18,49 +21,69 @@ type Props = {
   statusError: string | null;
   refresh: () => void;
   onOutlineApproved: () => void;
-  onNew: () => void;
 };
 
-export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, refresh, onOutlineApproved, onNew }: Props) {
-  const [tab, setTab] = useState<"brief" | "outline">("brief");
-  const hasOutline = !!snapshot?.outline?.currentVersion;
-  // Khi dàn ý sẵn sàng chờ duyệt, tự chuyển sang tab Dàn ý.
-  const shown = hasOutline && (stage === "outline" || tab === "outline") ? "outline" : "brief";
+type View = "brief" | "outline" | "status";
+const VIEW_ORDER: Record<View, number> = { brief: 0, status: 1, outline: 2 };
+
+/** Ô lớn mặc định hiện thứ cần làm ở bước hiện tại: form ý tưởng, dàn ý chờ duyệt, hoặc thẻ AI đang làm. */
+function autoView(stage: Stage): View {
+  if (stage === "brief") return "brief";
+  if (stage === "outline") return "outline";
+  return "status";
+}
+
+export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, refresh, onOutlineApproved }: Props) {
+  // Lựa chọn tab chỉ có hiệu lực trong bước đã chọn; sang bước mới thì quay về view mặc định.
+  const [choice, setChoice] = useState<{ stage: Stage; view: View } | null>(null);
+  const hasOutline = !!snapshot?.outline?.currentVersion && storyId !== null;
+  const auto = autoView(stage);
+  let view = choice?.stage === stage ? choice.view : auto;
+  if (view === "outline" && !hasOutline) view = auto === "outline" ? "status" : auto;
+  const pick = (v: View) => setChoice({ stage, view: v });
+  // Nội dung ô lớn trượt theo hướng của bước: tiến tới thì trượt từ phải, quay lại thì từ trái.
+  const viewRef = useSwap<HTMLDivElement>(view, VIEW_ORDER[view] >= VIEW_ORDER[auto] ? 1 : -1);
   const blocked = stage === "blocked";
+  const statusLabel = blocked ? "Ý tưởng bị chặn" : stage === "stopped" ? "Đã dừng" : "AI đang làm";
 
   return (
-    <section className="ws create">
-      <div className="pane">
-        <div className="tabs">
-          <button className={shown === "brief" ? "on" : ""} onClick={() => setTab("brief")}>Yêu cầu</button>
-          <button className={shown === "outline" ? "on" : ""} disabled={!hasOutline} onClick={() => setTab("outline")}>Dàn ý</button>
-          {stage !== "brief" && <button style={{ marginLeft: "auto", color: "var(--link)" }} onClick={onNew}>Làm truyện mới</button>}
+    <>
+      <div className="center plan-center">
+        <div className="tabs plan-tabs" role="tablist">
+          <button role="tab" aria-selected={view === "brief"} className={view === "brief" ? "on" : ""} onClick={() => pick("brief")}>Yêu cầu</button>
+          <button role="tab" aria-selected={view === "outline"} className={view === "outline" ? "on" : ""} disabled={!hasOutline} onClick={() => pick("outline")}>
+            Dàn ý{stage === "outline" && <i className="tab-dot" aria-label="chờ bạn duyệt" />}
+          </button>
+          {auto === "status" && (
+            <button role="tab" aria-selected={view === "status"} className={view === "status" ? "on" : ""} onClick={() => pick("status")}>{statusLabel}</button>
+          )}
         </div>
-        {shown === "brief"
-          ? <BriefForm flow={flow} locked={stage !== "brief"} />
-          : storyId !== null && <OutlinePanel storyId={storyId} version={snapshot?.outline?.currentVersion ?? null} editable={stage === "outline"} onApproved={onOutlineApproved} onChanged={refresh} />}
-      </div>
-
-      <div className="center">
-        <div className="board" style={{ padding: 0 }}>
-          <div className="board-wrap">
-            <PondBackdrop />
-            <StageProgress
-              stage={stage}
-              snapshot={snapshot}
-              message={blocked ? flow.errorMessage : statusError}
-              errorCode={errorCode}
-              timedOut={timedOut || flow.isPollingTimedOut}
-              onRetry={blocked && flow.canRetryInput ? () => void flow.retry() : flow.isPollingTimedOut ? () => void flow.checkStatus() : refresh}
-              onEdit={blocked ? flow.editInput : undefined}
-            />
+        <div className="plan-stage">
+          <PondBackdrop />
+          <div ref={viewRef} className="plan-view">
+            {view === "brief" && <div className="plan-scroll"><BriefForm flow={flow} locked={stage !== "brief"} /></div>}
+            {/* Luôn dựng khi đã có dàn ý (ẩn khi xem tab khác) để nút duyệt trên thanh tiến trình còn đó. */}
+            {hasOutline && storyId !== null && (
+              <div className="plan-scroll" hidden={view !== "outline"}>
+                <OutlinePanel storyId={storyId} version={snapshot?.outline?.currentVersion ?? null} editable={stage === "outline"} visible={view === "outline"} onReveal={() => pick("outline")} onApproved={onOutlineApproved} onChanged={refresh} />
+              </div>
+            )}
+            {view === "status" && (
+              <StageProgress
+                stage={stage}
+                snapshot={snapshot}
+                message={blocked ? flow.errorMessage : statusError}
+                errorCode={errorCode}
+                timedOut={timedOut || flow.isPollingTimedOut}
+                onRetry={blocked && flow.canRetryInput ? () => void flow.retry() : flow.isPollingTimedOut ? () => void flow.checkStatus() : refresh}
+                onEdit={blocked ? flow.editInput : undefined}
+              />
+            )}
           </div>
         </div>
       </div>
 
-      <div className="pane">
-        <div className="ph"><span>Quy tắc an toàn</span></div>
-        <div className="pb">
+      <AsidePane title="Quy tắc an toàn" icon={ShieldCheck}>
           {flow.context ? (
             <>
               <div className="kv">
@@ -73,8 +96,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
               {flow.context.blockedCategoryCodes.length > 0 && <div className="sec"><div className="sec-h">Chủ đề bị chặn</div><div className="chips">{flow.context.blockedCategoryCodes.map((i) => <span key={i} className="chip block">{i}</span>)}</div></div>}
             </>
           ) : <p className="sub">Đang tải…</p>}
-        </div>
-      </div>
-    </section>
+      </AsidePane>
+    </>
   );
 }

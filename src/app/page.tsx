@@ -13,7 +13,7 @@ import ReviewWorkspace from "@/app/features/review/ReviewWorkspace";
 import ReportWorkspace from "@/app/features/report/ReportWorkspace";
 import SafetyWorkspace from "@/app/features/safety/SafetyWorkspace";
 import KidMode from "@/app/features/kid/KidMode";
-import { transitionWorkspace } from "@/app/lib/motion";
+import { transitionWorkspace, useClickRipple } from "@/app/lib/motion";
 
 // Mỗi không gian một component. Thêm không gian mới: khai báo trong nav.ts rồi thêm vào đây.
 const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
@@ -51,6 +51,7 @@ function Workspaces() {
 }
 
 export default function HomePage() {
+  useClickRipple(); // gợn nước tại mọi điểm bấm, kể cả màn đăng nhập và Chế độ bé
   const { user, isLoading } = useAuth();
   const [booted, setBooted] = useState(false);
 
