@@ -1,0 +1,9 @@
+version: 2
+
+secret:
+  # Dữ liệu giả dùng cho mock API và unit test — không phải credential thật.
+  ignored_paths:
+    - "src/app/mocks/**"
+    - "src/tests/**"
+    - "**/*.test.ts"
+    - "**/*.test.tsx"
