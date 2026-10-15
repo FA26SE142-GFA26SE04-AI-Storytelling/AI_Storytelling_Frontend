@@ -40,7 +40,7 @@ export default function ReviewWorkspace({ go }: { go: (id: WorkspaceId) => void 
       </div>
 
       {active ? (
-        <ReviewGate key={active.id} storyId={active.id}
+        <ReviewGate key={active.id} storyId={active.id} ageBand={active.ageBand}
           onApproved={() => done("Đã duyệt, hệ thống đang tạo minh hoạ và giọng đọc")}
           onArchived={() => done("Đã lưu trữ truyện")} />
       ) : (

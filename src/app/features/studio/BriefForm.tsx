@@ -1,7 +1,12 @@
 "use client";
 
-import { Lock, ShieldAlert } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { CircleAlert, Lock, ShieldAlert } from "lucide-react";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
+import { childProfileService } from "@/app/services/childProfileService";
+import type { TokenQuotaStatus } from "@/app/types/childProfile";
+import { copyrightHits, SAMPLE_CHARACTERS, SAMPLE_SETTINGS } from "@/app/lib/storyRules";
+import { STUDIO_PREFILL_KEY } from "@/app/features/home/WishItem";
 import {
   clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, vocabularyTone,
   type AIStoryInputFormValues, type LengthPreset,
@@ -25,14 +30,41 @@ type TextKey = "charactersText" | "setting" | "lesson";
 /** Form ý tưởng hai cột: bên trái là nội dung truyện, bên phải là độ dài và từ vựng. */
 export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowResult; locked: boolean }) {
   const { values, context, updateValues, submit, isBusy, errorMessage } = flow;
+  const [quota, setQuota] = useState<TokenQuotaStatus | null>(null);
+
+  useEffect(() => {
+    if (!context) return;
+    void childProfileService.getTokenQuotaForChild(context.childProfileId).then((r) => setQuota(r.success ? r.data : null));
+  }, [context]);
+
+  // Phụ huynh chọn "Tạo truyện mới" cho điều ước của bé (Luồng 2 mục 3.5): điền sẵn từ các thẻ bé đã chọn.
+  const [fromWish, setFromWish] = useState(false);
+  useEffect(() => {
+    if (!context || locked) return;
+    try {
+      const raw = sessionStorage.getItem(STUDIO_PREFILL_KEY);
+      const p = raw ? JSON.parse(raw) : null;
+      if (!p || p.childId !== context.childProfileId) return;
+      sessionStorage.removeItem(STUDIO_PREFILL_KEY);
+      updateValues({ topic: p.topic, charactersText: p.charactersText, setting: p.setting ?? "", ...(p.lesson ? { lesson: p.lesson } : {}) });
+      setFromWish(true);
+    } catch { /* bỏ qua */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [context]);
+
   // Nút "Viết dàn ý" nằm trên thanh tiến trình (cùng chỗ với các nút duyệt ở những bước sau).
   const loaded = !!values && !!context;
   const missingText = !values?.topic.trim() || !values?.lesson.trim();
+  const topicTooLong = (values?.topic.length ?? 0) > FREE_TEXT_MAX;
+  const outOfQuota = !!quota && !quota.isUnlimited && (quota.remaining ?? 1) <= 0;
   useRegisterApprove(!locked ? {
     label: "Viết dàn ý",
     icon: "sparkles",
-    disabled: !loaded || isBusy || missingText,
-    reason: !loaded ? "Đang tải cấu hình của bé…" : missingText ? "Hãy nhập ý tưởng và bài học trước." : null,
+    disabled: !loaded || isBusy || missingText || topicTooLong || outOfQuota,
+    reason: !loaded ? "Đang tải cấu hình của bé…"
+      : outOfQuota ? "Bạn đã dùng hết lượt tạo truyện của kỳ này."
+      : missingText ? "Hãy nhập ý tưởng và bài học trước."
+      : topicTooLong ? `Ý tưởng tối đa ${FREE_TEXT_MAX} ký tự.` : null,
     run: () => void submit(),
   } : null);
   const formRef = useRiseIn<HTMLFormElement>(".kv, .field, button[type=submit], .btn-p", [!!values && !!context], { delay: 50 });
@@ -45,17 +77,21 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   const preset = LENGTHS.find(([k]) => presets[k] === values.targetLength)?.[0] ?? null;
   const pii = piiMessage(detectPii([values.topic, values.charactersText, values.setting, values.lesson].join("\n"), context.childNickname));
   const tone = vocabularyTone(values.vocabularyLevel, context.defaultVocabularyLevel);
+  const copyright = copyrightHits([values.topic, values.charactersText, values.setting, values.lesson].join("\n"));
+  const chars = values.charactersText.split(",").map((c) => c.trim()).filter(Boolean);
+  const addChar = (c: string) => !chars.includes(c) && updateValues({ charactersText: [...chars, c].join(", ") });
 
-  const text = (k: TextKey, label: string, placeholder: string, required = false) => (
-    <label className="field">
+  const text = (k: TextKey, label: string, placeholder: string, required = false, samples?: ReactNode) => (
+    <div className="field">
       <span className="lbl row" style={{ justifyContent: "space-between" }}>{label}<em className="count">{values[k].length}/{FREE_TEXT_MAX}</em></span>
-      <input className="inp" disabled={locked} required={required} maxLength={FREE_TEXT_MAX} value={values[k]} placeholder={placeholder}
+      <input className="inp" aria-label={label} disabled={locked} required={required} maxLength={FREE_TEXT_MAX} value={values[k]} placeholder={placeholder}
         onChange={(e) => updateValues({ [k]: e.target.value } as Partial<AIStoryInputFormValues>)} />
-    </label>
+      {!locked && samples}
+    </div>
   );
 
   return (
-    <form ref={formRef} className="pb brief" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
+    <form ref={formRef} className="pb brief" onSubmit={(e) => { e.preventDefault(); if (!topicTooLong && !outOfQuota) void submit(); }}>
       <div className="brief-head">
         <div className="grow">
           <h3 className="display">{locked ? "Yêu cầu đã gửi" : `Truyện mới cho ${context.childNickname}`}</h3>
@@ -67,16 +103,20 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
         </div>
       </div>
 
+      {fromWish && <div className="notice ok">Đã điền sẵn từ điều ước của {context.childNickname}. Bạn có thể chỉnh trước khi tạo.</div>}
+
       <div className="brief-grid">
         <div className="brief-col">
-          <label className="field"><span className="lbl">Ý tưởng câu chuyện</span>
+          <label className="field"><span className="lbl row" style={{ justifyContent: "space-between" }}>Ý tưởng câu chuyện<em className={`count${topicTooLong ? " warn" : ""}`}>{values.topic.length}/{FREE_TEXT_MAX}</em></span>
             <textarea className="inp" rows={3} disabled={locked} required value={values.topic} onChange={(e) => updateValues({ topic: e.target.value })} placeholder="Ví dụ: Rùa Bông mang đèn lồng đến hội Trung thu" /></label>
 
           <div className="field"><span className="lbl">Thể loại</span>
             <div className="chips">{GENRES.map((g) => <button type="button" key={g} disabled={locked} className={`chip${values.genre === g ? " on" : ""}`} onClick={() => updateValues({ genre: g })}>{g}</button>)}</div></div>
 
-          {text("charactersText", "Nhân vật (cách nhau bằng dấu phẩy; để trống để AI gợi ý)", "Sóc Bông, Thỏ Trắng")}
-          {text("setting", "Bối cảnh (để trống để AI gợi ý)", "Khu rừng tre ven hồ sen")}
+          {text("charactersText", "Nhân vật (cách nhau bằng dấu phẩy; để trống để AI gợi ý)", "Sóc Bông, Thỏ Trắng", false,
+            <div className="chips">{SAMPLE_CHARACTERS.filter((c) => !chars.includes(c)).slice(0, 6).map((c) => <button type="button" key={c} className="chip sm" onClick={() => addChar(c)}>+ {c}</button>)}</div>)}
+          {text("setting", "Bối cảnh (để trống để AI gợi ý)", "Khu rừng tre ven hồ sen", false,
+            !values.setting && <div className="chips">{SAMPLE_SETTINGS.map((v) => <button type="button" key={v} className="chip sm" onClick={() => updateValues({ setting: v })}>{v}</button>)}</div>)}
         </div>
 
         <div className="brief-col">
@@ -108,8 +148,16 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
         </div>
       </div>
 
+      {copyright.length > 0 && (
+        <div className="notice err" role="status"><CircleAlert className="ic" /> “{copyright.join(", ")}” là nhân vật có bản quyền. AI sẽ không tái tạo nhân vật này — hãy dùng nhân vật của riêng bạn, ví dụ “chú mèo máy” thay cho tên cụ thể.</div>
+      )}
       {pii && <div className="notice warn" role="status"><ShieldAlert className="ic" />{pii}</div>}
+      {topicTooLong && <div className="notice err" role="alert">Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
       {errorMessage && <div className="notice err" role="alert">{errorMessage}</div>}
+      {quota && !quota.isUnlimited && (
+        <p className="sub">Còn <b>{quota.remaining ?? 0}</b>/{quota.quotaLimit ?? "?"} lượt tạo truyện. Mỗi truyện mới dùng 1 lượt; mỗi truyện có 3 lần sửa bằng AI miễn phí.</p>
+      )}
+      {outOfQuota && <div className="notice err" role="alert">Bạn đã dùng hết lượt tạo truyện của kỳ này.</div>}
       {!locked && (
         <div className="brief-foot">
           <small className="hint">{isBusy ? "Đang gửi ý tưởng…" : "Điền xong thì bấm ✨ trên thanh tiến trình: AI viết dàn ý trước để bạn duyệt, rồi mới viết truyện."}</small>

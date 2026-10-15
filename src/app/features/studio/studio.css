@@ -32,6 +32,15 @@
 .voc-i span { display: block; color: var(--muted); font-size: 12px; }
 .media-bar { padding: 10px 14px; border-top: 1px solid var(--line); background: var(--panel); font-size: 12.5px; display: flex; align-items: center; gap: 12px; }
 
+
+/* Form yêu cầu: đếm ký tự */
+.brief .count { font-weight: 600; color: var(--faint); }
+.count.warn { color: var(--danger); }
+
+/* Nhập truyện có sẵn */
+.import-body { flex: 1; overflow-y: auto; padding: 22px 28px 48px; display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
+.choice { display: flex; flex-direction: column; gap: 7px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
+.choice b { display: flex; align-items: center; gap: 6px; font-size: 13px; }
 /* Form ý tưởng */
 .kv.locked small { display: flex; align-items: center; gap: 4px; }
 .kv.locked small svg { width: 10px; height: 10px; }

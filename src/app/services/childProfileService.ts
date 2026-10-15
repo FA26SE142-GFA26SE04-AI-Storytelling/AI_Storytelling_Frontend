@@ -168,11 +168,8 @@ export const childProfileService = {
     try {
       const payload = {
         readingLevel: data?.readingLevel ?? 2,
-        comprehensionGoal: data?.comprehensionGoal || 'Phát triển từ vựng và tư duy logic qua truyện kể',
-        topics: data?.topics || [
-          { topic: 'Khám phá thế giới & Thiên nhiên', relation: 'FavoriteTopic' },
-          { topic: 'Khoa học & Vũ trụ', relation: 'FavoriteTopic' },
-        ],
+        comprehensionGoal: data?.comprehensionGoal?.trim() || null,
+        topics: data?.topics ?? [],
       };
 
       const response = await authService.authenticatedFetch(
@@ -186,7 +183,12 @@ export const childProfileService = {
         }
       );
 
-      return await response.json();
+      const result = await parseJsonResponse<ApiResponse<unknown>>(response);
+      return result ?? {
+        success: response.ok,
+        message: response.ok ? '' : 'Không thể thiết lập hồ sơ học tập.',
+        data: null,
+      };
     } catch (error) {
       console.error('Set learning profile error:', error);
       return {
@@ -210,7 +212,12 @@ export const childProfileService = {
         maxStoryLength: data?.maxStoryLength ?? 2000,
         requiredApprovalMode: data?.requiredApprovalMode || 'AlwaysManual',
         parentalGateEnabled: data?.parentalGateEnabled ?? true,
-        consentRecorded: data?.consentRecorded ?? true,
+        consentRecorded: data?.consentRecorded ?? false,
+        consentPolicyVersion: data?.consentPolicyVersion ?? 1,
+        safetyScoreThreshold: data?.safetyScoreThreshold ?? null,
+        readabilityScoreThreshold: data?.readabilityScoreThreshold ?? null,
+        comprehensionThresholdPercent: data?.comprehensionThresholdPercent ?? 70,
+        comprehensionWindowSize: data?.comprehensionWindowSize ?? 3,
         categories: data?.categories || [],
       };
 
@@ -265,62 +272,6 @@ export const childProfileService = {
         message: 'Không thể kích hoạt hồ sơ trẻ.',
         data: null,
         errors: [(error as Error).message || 'Network error'],
-      };
-    }
-  },
-
-  /**
-   * Quy trình toàn diện 1 chạm: Thiết lập Learning Profile + Safety Policy + Kích hoạt sang Active
-   */
-  async setupAndActivateChild(
-    childProfileId: number,
-    nickname?: string,
-    ageBand?: string
-  ): Promise<ApiResponse<ChildProfile>> {
-    try {
-      let readingLevel = 2;
-      if (ageBand === 'Age_3_5' || ageBand === 'Age3To5') readingLevel = 1;
-      if (ageBand === 'Age_9_12' || ageBand === 'Age9To12') readingLevel = 3;
-
-      // 1. Tạo hoặc cập nhật Learning Profile
-      const lpRes = await this.setLearningProfile(childProfileId, {
-        readingLevel,
-        comprehensionGoal: `Phát triển tư duy nhận thức và thói quen đọc sách cho bé ${nickname || ''}`.trim(),
-      });
-      if (!lpRes.success) {
-        return {
-          success: false,
-          message: lpRes.message || 'Lỗi thiết lập Learning Profile.',
-          data: null,
-          errors: lpRes.errors,
-        };
-      }
-
-      // 2. Tạo hoặc cập nhật Safety Policy
-      const spRes = await this.setSafetyPolicy(childProfileId, {
-        maxStoryLength: 2500,
-        requiredApprovalMode: 'AlwaysManual',
-        parentalGateEnabled: true,
-        consentRecorded: true,
-      });
-      if (!spRes.success) {
-        return {
-          success: false,
-          message: spRes.message || 'Lỗi thiết lập Safety Policy.',
-          data: null,
-          errors: spRes.errors,
-        };
-      }
-
-      // 3. Gọi Activate
-      return await this.activateChildProfile(childProfileId);
-    } catch (error) {
-      console.error('Setup and activate child error:', error);
-      return {
-        success: false,
-        message: 'Có lỗi trong quá trình kích hoạt hồ sơ trẻ.',
-        data: null,
-        errors: [(error as Error).message || 'Execution failed'],
       };
     }
   },

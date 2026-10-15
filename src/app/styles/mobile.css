@@ -1,0 +1,119 @@
+/*
+ * Giao diện điện thoại (<= 720px), nạp cuối cùng nên ghi đè các file khác.
+ * - Thanh bên dọc thành thanh tab cố định ở đáy, thanh trạng thái ẩn.
+ * - Mọi không gian làm việc xếp một cột và cuộn dọc (!important để thắng gridTemplateColumns viết inline trong TSX).
+ * - Vùng chạm tối thiểu 40px, ô nhập 16px để iOS không tự phóng to.
+ */
+
+@media (max-width: 720px) {
+  body { font-size: 14px; }
+  .shell { height: 100dvh; grid-template-columns: 1fr; grid-template-rows: 50px minmax(0, 1fr) auto; gap: 8px; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); }
+  .status { display: none; }
+
+  /* Thanh trên gọn: bỏ tên app, chữ "Xem như bé" chỉ còn biểu tượng */
+  .top { border-radius: 20px; gap: 4px; padding-right: 8px; }
+  .top > b.display { display: none; }
+  .logo { width: 46px; }
+  .doc { flex: 1; min-width: 0; margin: 0; }
+  .child-pick { min-width: 0; width: 100%; }
+  .top .btn-kid { padding: 0; width: 40px; height: 40px; justify-content: center; font-size: 0; gap: 0; }
+  .top .btn-kid .ic { width: 18px; height: 18px; }
+  .top .btn-g { width: 40px; height: 40px; padding: 0; justify-content: center; }
+  .top .av { display: none; }
+
+  /* Thanh tab đáy thay cho thanh bên */
+  .rail { grid-row: 3; flex-direction: row; justify-content: space-between; gap: 2px; padding: 6px 8px; border-radius: 24px; overflow-x: auto; scrollbar-width: none; }
+  .rail::-webkit-scrollbar { display: none; }
+  .rail button { width: 44px; height: 44px; flex: none; }
+  .rail button.on { width: 48px; }
+  .rail button[data-tip]:hover::after { display: none; }
+  .rail .sep { width: 1px; height: 24px; margin: 0 2px; flex: none; }
+  .rail .bottom { margin-top: 0; margin-left: 0; }
+
+  /* Không gian làm việc: một cột, cuộn dọc */
+  .ws { overflow-y: auto; overflow-x: hidden; grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: none !important; grid-auto-rows: min-content; align-content: start; gap: 10px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .pane, .center, .review-doc, .setbody { border-radius: 22px; }
+  .pane { overflow: visible; }
+  .pb { overflow: visible; flex: none; }
+  .center { min-height: 62dvh; }
+  .review-doc { overflow: visible; padding: 16px; }
+  .sheet { padding: 20px 18px; }
+
+  /* Ô nhập và nút dễ bấm */
+  .inp, select.inp, textarea.inp { font-size: 16px; padding: 10px 12px; border-radius: 14px; }
+  .btn { padding: 10px 14px; min-height: 40px; font-size: 13.5px; }
+  .chip { padding: 7px 12px; font-size: 13px; }
+  .seg { min-width: 0 !important; }
+  .seg button { padding: 8px 6px; font-size: 13px; }
+  .tabs { height: 42px; overflow-x: auto; scrollbar-width: none; }
+  .tabs button { padding: 0 12px; font-size: 13px; }
+  .tog { width: 44px; height: 26px; }
+  .tog::after { width: 20px; height: 20px; top: 3px; left: 3px; }
+  .tog.on::after { transform: translateX(18px); }
+
+  /* Tổng quan */
+  .home-body { padding: 18px 14px 24px; gap: 22px; overflow: visible; flex: none; }
+  .hero { flex-direction: column; align-items: flex-start; }
+  .home-h1 { font-size: 26px; }
+  .continue { grid-template-columns: 1fr; }
+  .cont .thumb { width: 84px; }
+  .stats3 b { font-size: 24px; }
+  .stats3 div { padding: 12px 0 12px 12px; }
+  .bars { gap: 6px; height: 130px; }
+
+  /* Thư viện */
+  .lbar { height: auto; flex-wrap: wrap; padding: 8px 12px; }
+  .lgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 10px; overflow: visible; }
+  .card h4 { font-size: 14px; }
+
+  /* Báo cáo */
+  .report { overflow-y: auto; }
+  .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .kpi b { font-size: 22px; }
+  .report .pane { overflow-x: auto; }
+  .report table { min-width: 460px; }
+
+  /* Studio */
+  .art { width: min(100%, 92vw); }
+  .board { padding: 28px 12px 72px; }
+  .tools { overflow-x: auto; scrollbar-width: none; }
+  .lily-pad { width: 38px; height: 28px; }
+  .lily-label { font-size: 10.5px; }
+
+  /* Cài đặt an toàn */
+  .setbody { overflow: visible; padding: 20px 16px 32px; gap: 26px; }
+  .trow { flex-wrap: wrap; gap: 10px; }
+  .trow .seg { width: 100%; }
+  .setnav button:not(.btn) { padding: 11px 10px; font-size: 14px; }
+
+  /* Màn đăng nhập */
+  .login-card { padding: 22px 18px; border-radius: 26px; }
+
+  /* Chế độ của bé */
+  .ktop { flex-wrap: wrap; gap: 8px; padding: 10px 12px; }
+  .ktabs { order: 3; width: 100%; margin: 0; }
+  .ktabs button { flex: 1; padding: 9px 8px; font-size: 15px; }
+  .kshelf { padding: 0 12px 6px; }
+  .kcover { width: 104px; }
+  .kpane { place-items: start center; padding: 8px 12px calc(24px + env(safe-area-inset-bottom)); }
+  .book { border-radius: 28px; min-height: 0; }
+  .book .illus { min-height: 200px; aspect-ratio: 16 / 10; }
+  .kpage { padding: 22px 20px 20px; }
+  .ktext { font-size: 20px; }
+  .kbtn { height: 52px; min-width: 52px; }
+  .kcard { padding: 22px 18px; border-radius: 26px; }
+  .kcard h2 { font-size: 22px; }
+  .kopt { padding: 14px 16px; font-size: 16px; }
+}
+
+/* Điện thoại rất nhỏ */
+@media (max-width: 380px) {
+  .lgrid { grid-template-columns: 1fr; }
+  .rail button { width: 40px; }
+  .kpi-row { grid-template-columns: 1fr; }
+}
+
+/* Màn hình cảm ứng: bỏ hiệu ứng nhấc thẻ khi hover (không có hover thật) */
+@media (hover: none) {
+  .card:hover, .cont:hover, .kbtn:hover:not(:disabled) { transform: none; }
+}

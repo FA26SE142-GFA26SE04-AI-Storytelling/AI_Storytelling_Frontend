@@ -43,6 +43,8 @@ export function studioProgress(
       return generationDisplayPhase(snapshot?.generation ?? null) === "learning"
         ? at(4, "run", "AI đang soạn học liệu")
         : at(3, "run", "AI đang viết truyện");
+    // Luồng 2 mục 3.4: truyện vùng xám chờ kiểm duyệt viên (thường trong 24 giờ) trước khi tới lượt bạn duyệt.
+    case "moderation": return at(5, "run", "Đang chờ kiểm duyệt an toàn");
     case "review": return at(5, "you", "Chờ bạn duyệt truyện");
     case "media":
       if (media?.isReady) return { current: 7, mode: "done", caption: "Truyện đã sẵn sàng" };
@@ -76,6 +78,7 @@ export function studioActions(stage: Stage): StudioActions {
     case "checking":
     case "outline_wait":
     case "generating": return { ...none, waitReason: "AI đang làm bước này, chờ xong mới quay lại hoặc huỷ được." };
+    case "moderation": return { ...none, waitReason: "Truyện đang chờ kiểm duyệt viên, chờ xong mới quay lại hoặc huỷ được." };
     case "blocked": return { ...none, editInPlace: true, cancelWith: "archive" };
     case "outline": return { ...none, cancelWith: "reject_outline" };
     case "review": return { ...none, cancelWith: "archive" };

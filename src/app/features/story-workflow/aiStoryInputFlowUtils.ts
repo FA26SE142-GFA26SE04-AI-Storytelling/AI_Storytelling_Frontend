@@ -5,6 +5,7 @@ import {
   SubmitAIStoryInputRequestDto,
   VocabularyLevel,
 } from '@/app/types/aiStory';
+import { lengthTarget } from '@/app/lib/storyRules';
 
 export interface AIStoryInputFormValues {
   topic: string;
@@ -62,7 +63,8 @@ export function createDefaultFormValues(context: AIStoryInputContextDto): AIStor
     charactersText: 'Sóc Bông, Thỏ Trắng',
     setting: '',
     vocabularyLevel: context.defaultVocabularyLevel,
-    targetLength: clampTargetLength(DEFAULT_TARGET_LENGTH, context.maximumLength),
+    // Mặc định độ dài "vừa" theo mức đọc của bé (Luồng 2 mục 5.3b).
+    targetLength: clampTargetLength(lengthTarget('medium', context.readingLevel || 2, context.maximumLength), context.maximumLength),
   };
 }
 

@@ -1,4 +1,5 @@
-import type { ChildProfile, ContentCategory, SafetyPolicy } from '@/app/types/childProfile';
+import type { ChildProfile, ContentCategory, LearningProfile, SafetyPolicy } from '@/app/types/childProfile';
+import type { Invitation, OwnershipTransfer, PermissionRequest, SupervisionRelationship } from '@/app/types/supervision';
 import type { DiscussionPromptDto, OutlineVersionDto, QuizQuestionDto, VocabularyItemDto } from '@/app/types/aiStory';
 import type { UserProfile } from '@/app/types/auth';
 
@@ -44,15 +45,30 @@ export interface MockStory {
   discussion: DiscussionPromptDto[];
   mediaStartedAt: number | null;
   archived: boolean;
+  /** Truyện nhập sẵn (Luồng 2 mục 3.2); mặc định là truyện AI. */
+  source?: 'ai' | 'manual';
+  /** Truyện nhập sẵn đang chờ phụ huynh quyết định sau khi đánh giá. */
+  pendingDecision?: boolean;
+  adaptCount?: number;
 }
 
 export interface MockState {
   nextStoryId: number;
   stories: MockStory[];
   policies: Record<number, SafetyPolicy>;
+  // Luồng 1
+  nextId: number;
+  children: ChildProfile[];
+  learning: Record<number, LearningProfile>;
+  relationships: SupervisionRelationship[];
+  invitations: (Invitation & { inviteeEmail: string })[];
+  permissions: Record<number, string[]>;
+  permissionRequests: PermissionRequest[];
+  transfers: OwnershipTransfer[];
+  credentials: Record<number, { avatarId: string; pin: string }>;
 }
 
-const DB_KEY = 'taletale-mock-db:v1';
+const DB_KEY = 'taletale-mock-db:v2';
 const OLD = 1; // mốc thời gian rất cũ, coi như đã hoàn tất mọi bước
 
 export function composeStory(topic: string, characters: string[], lesson: string) {
@@ -116,6 +132,24 @@ function seedState(): MockState {
       seedStory(5, 2, 'Hệ Mặt Trời có mấy anh em', 'tò mò khám phá', ['Tiến Sĩ Sao', 'Bé Mai'], 'ready'),
     ],
     policies: {},
+    nextId: 1000,
+    children: MOCK_CHILDREN.map((c) => ({ ...c })),
+    learning: {
+      1: { id: 1, childProfileId: 1, readingLevel: 1, comprehensionGoal: 'Hiểu ý chính và nhớ tên nhân vật', topics: [{ topic: 'động vật', relation: 'FavoriteTopic' }, { topic: 'rừng xanh', relation: 'FavoriteTopic' }, { topic: 'Phát triển từ vựng', relation: 'PriorityFocusArea' }] },
+      2: { id: 2, childProfileId: 2, readingLevel: 3, comprehensionGoal: 'Suy luận nguyên nhân – kết quả', topics: [{ topic: 'robot', relation: 'FavoriteTopic' }, { topic: 'vũ trụ', relation: 'FavoriteTopic' }, { topic: 'Suy luận', relation: 'PriorityFocusArea' }] },
+    },
+    relationships: [
+      { id: 1, childProfileId: 1, supervisorUserId: MOCK_USER.id, supervisorRole: 'Owner' },
+      { id: 2, childProfileId: 2, supervisorUserId: MOCK_USER.id, supervisorRole: 'Owner' },
+      { id: 3, childProfileId: 1, supervisorUserId: 7, supervisorRole: 'AdditionalSupervisor' },
+    ],
+    invitations: [],
+    permissions: { 3: ['ViewProgress', 'ViewResults', 'ReceiveReport', 'ApproveStory'] },
+    permissionRequests: [
+      { id: 1, supervisionRelationshipId: 3, requesterUserId: 7, status: 'Pending', permissions: ['AssignActivity'], createdAt: new Date(Date.now() - 86_400_000).toISOString() },
+    ],
+    transfers: [],
+    credentials: { 1: { avatarId: 'frog', pin: '1234' } },
   };
 }
 

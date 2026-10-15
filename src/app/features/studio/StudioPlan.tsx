@@ -21,6 +21,7 @@ type Props = {
   statusError: string | null;
   refresh: () => void;
   onOutlineApproved: () => void;
+  onImport: () => void;
 };
 
 type View = "brief" | "outline" | "status";
@@ -33,7 +34,7 @@ function autoView(stage: Stage): View {
   return "status";
 }
 
-export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, refresh, onOutlineApproved }: Props) {
+export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, refresh, onOutlineApproved, onImport }: Props) {
   // Lựa chọn tab chỉ có hiệu lực trong bước đã chọn; sang bước mới thì quay về view mặc định.
   const [choice, setChoice] = useState<{ stage: Stage; view: View } | null>(null);
   const hasOutline = !!snapshot?.outline?.currentVersion && storyId !== null;
@@ -57,6 +58,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
           {auto === "status" && (
             <button role="tab" aria-selected={view === "status"} className={view === "status" ? "on" : ""} onClick={() => pick("status")}>{statusLabel}</button>
           )}
+          {stage === "brief" && <button style={{ marginLeft: "auto", color: "var(--link)" }} onClick={onImport}>Nhập truyện có sẵn</button>}
         </div>
         <div className="plan-stage">
           <PondBackdrop />
@@ -87,10 +89,10 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
           {flow.context ? (
             <>
               <div className="kv">
-                <div><small>Độ dài tối đa</small><b>{flow.context.maximumLength} từ</b></div>
+                <div><small>Độ dài tối đa</small><b>{flow.context.maximumLength.toLocaleString("vi-VN")} tiếng</b></div>
                 <div><small>Từ vựng</small><b>{flow.context.defaultVocabularyLevel.replace("level_", "Mức ")}</b></div>
                 <div><small>Chế độ duyệt</small><b>{/auto/i.test(flow.context.requiredApprovalMode) ? "Tự duyệt" : "Duyệt tay"}</b></div>
-                <div><small>Ngôn ngữ</small><b>{flow.context.defaultLanguage}</b></div>
+                <div><small>Ngôn ngữ</small><b>Tiếng Việt</b></div>
               </div>
               {flow.context.interests.length > 0 && <div className="sec"><div className="sec-h">Sở thích của bé</div><div className="chips">{flow.context.interests.map((i) => <span key={i} className="chip">{i}</span>)}</div></div>}
               {flow.context.blockedCategoryCodes.length > 0 && <div className="sec"><div className="sec-h">Chủ đề bị chặn</div><div className="chips">{flow.context.blockedCategoryCodes.map((i) => <span key={i} className="chip block">{i}</span>)}</div></div>}

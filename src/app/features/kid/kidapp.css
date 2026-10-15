@@ -1,0 +1,99 @@
+/* Chế độ của bé — Luồng 3 */
+.kscroll { flex: 1; min-height: 0; overflow-y: auto; }
+.khome { display: flex; flex-direction: column; gap: 18px; padding: 4px 20px 40px; max-width: 1100px; margin: 0 auto; width: 100%; }
+.ksection { background: color-mix(in srgb, var(--paper) 88%, transparent); border-radius: 28px; padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 18px 40px -28px color-mix(in srgb, var(--shadow) 45%, transparent); }
+.ksection h3 { margin: 0; font-size: 22px; color: var(--ink-warm); }
+.ksection h3 small { font-size: 15px; color: var(--muted); margin-left: 6px; }
+.ksection.hold { border: 2px dashed var(--gold-deep); }
+
+.kshelf { padding: 0; }
+.kcover.big { width: 150px; }
+.kcover.big .cover { position: relative; aspect-ratio: 4/3; }
+.kcover.big b { font-size: 15px; }
+.kcover.locked { opacity: .55; cursor: not-allowed; }
+.kcover .lock { position: absolute; inset: 0; margin: auto; width: 32px; height: 32px; color: #fff; }
+.kcover em.kpill { position: absolute; left: 6px; bottom: 6px; }
+.kpill { display: inline-flex; align-items: center; gap: 4px; font-style: normal; font-size: 12px; font-weight: 800; padding: 3px 10px; border-radius: 999px; background: var(--panel); color: var(--ink-warm); box-shadow: 0 2px 6px -2px color-mix(in srgb, var(--shadow) 40%, transparent); margin-left: 8px; }
+.kcover em.kpill { margin: 0; }
+.kgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.kgrid .kcover.big { width: auto; }
+
+.kfilters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.ksearch { display: flex; align-items: center; gap: 6px; background: var(--panel); border-radius: 999px; padding: 6px 14px; border: 2px solid var(--line); }
+.ksearch input { border: 0; background: none; outline: 0; font-size: 16px; width: 160px; }
+.ksearch svg { width: 18px; height: 18px; color: var(--muted); }
+.kchip { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 999px; background: var(--panel); border: 2px solid var(--line); font-weight: 800; font-size: 14px; color: var(--muted); }
+.kchip.on { border-color: var(--primary); color: var(--text); background: color-mix(in srgb, var(--primary) 14%, var(--panel)); }
+
+.kwish { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; border-radius: 24px; font-family: var(--font-display); font-size: 22px; font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--lotus-deep), var(--primary-strong)); box-shadow: 0 12px 24px -14px var(--lotus-deep); }
+.kwish svg { width: 26px; height: 26px; }
+.kwish-item { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 18px; background: var(--panel); font-size: 15px; }
+.kwish-cards { font-size: 24px; letter-spacing: 2px; }
+.kwish-cards.big { font-size: 44px; display: flex; gap: 10px; justify-content: center; }
+.ksugg { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.ksugg small { font-size: 14px; color: var(--muted); font-weight: 700; }
+.knote { margin: 0; font-size: 16px; font-weight: 700; color: var(--ink-warm); }
+
+/* Đọc truyện */
+.reader { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 10px; padding: 12px 20px 24px; overflow-y: auto; align-items: center; }
+.reader-top { display: flex; align-items: center; gap: 10px; width: min(980px, 100%); }
+.reader-title { display: block; font-size: 20px; color: var(--ink-warm); margin-bottom: 6px; }
+.kprogress { height: 10px; border-radius: 999px; background: color-mix(in srgb, var(--panel) 80%, transparent); overflow: hidden; }
+.kprogress i { display: block; height: 100%; background: linear-gradient(90deg, var(--mint), var(--primary)); border-radius: inherit; transition: width .3s; }
+.kprogress.wide { width: min(360px, 100%); }
+.book.reading .illus { position: relative; display: grid; place-items: center; }
+.book.reading .illus-frog { opacity: .9; }
+.book.reading.big { grid-template-columns: 1.1fr 1fr; }
+.book.reading.big .ktext { font-size: 30px; line-height: 1.6; }
+.book.reading:not(.big) .ktext { font-size: 22px; line-height: 1.6; }
+.kword { border-radius: 6px; cursor: pointer; transition: background .12s; }
+.kword.vocab { text-decoration: underline dotted; text-decoration-thickness: 3px; text-underline-offset: 6px; text-decoration-color: var(--primary); color: inherit; font: inherit; }
+.kword.hl { background: color-mix(in srgb, var(--gold) 55%, transparent); }
+.kbtn.on { background: color-mix(in srgb, var(--primary) 20%, var(--surface-2)); color: var(--primary-strong); }
+.kbtn.small { height: 44px; min-width: 44px; font-size: 14px; padding: 0 14px; }
+.kbtn.primary { background: var(--primary-strong); color: #fff; }
+
+.kpop-backdrop { position: fixed; inset: 0; z-index: 110; display: grid; place-items: end center; padding: 16px; background: color-mix(in srgb, #000 30%, transparent); }
+.kpop { width: min(520px, 100%); background: var(--paper); border-radius: 28px; padding: 20px; display: flex; flex-direction: column; gap: 12px; color: var(--ink-warm); animation: wsin .2s; }
+.ktoast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 120; background: var(--ink-warm); color: var(--paper); padding: 12px 20px; border-radius: 999px; font-weight: 800; font-size: 16px; }
+
+/* Sau khi đọc */
+.reactions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
+.reaction { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 6px; border-radius: 22px; background: var(--panel); border: 2px solid var(--line); font-weight: 800; font-size: 15px; }
+.reaction span { font-size: 44px; line-height: 1; }
+.reaction:hover { border-color: var(--primary); transform: translateY(-2px); }
+.kexp { margin: 0; font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--gold-deep); }
+.kinput { font-size: 18px; padding: 12px 16px; border-radius: 16px; }
+.seq-order { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 6px; }
+.seq-order li { display: flex; gap: 10px; align-items: center; padding: 10px 14px; border-radius: 16px; background: color-mix(in srgb, var(--mint) 14%, var(--panel)); font-weight: 700; font-size: 16px; }
+.seq-order b { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--mint); color: #fff; flex: none; }
+.tree-emoji { font-size: 84px; line-height: 1; }
+.kbadge { margin: 0; font-weight: 800; font-size: 17px; color: var(--ink-warm); }
+
+/* Bé ước */
+.wish-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+.wish-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px 8px; border-radius: 22px; background: var(--panel); border: 3px solid var(--line); font-weight: 800; font-size: 15px; color: var(--ink-warm); }
+.wish-card span { font-size: 46px; line-height: 1; }
+.wish-card.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, var(--panel)); transform: scale(1.03); }
+
+/* Sổ tay & Cây */
+.tree-card { flex-direction: row; align-items: center; gap: 18px; }
+.tree-steps { display: flex; gap: 8px; font-size: 26px; margin-top: 6px; }
+.tree-steps span { opacity: .3; filter: grayscale(1); }
+.tree-steps span.on { opacity: 1; filter: none; }
+.badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.badge-card { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; padding: 12px; border-radius: 20px; background: var(--panel); opacity: .5; filter: grayscale(.8); }
+.badge-card.on { opacity: 1; filter: none; border: 2px solid var(--gold); }
+.badge-card span { font-size: 38px; }
+.badge-card small { color: var(--muted); font-size: 12px; }
+.words { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.word-card { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 20px; background: var(--panel); font-size: 15px; color: var(--ink-warm); }
+
+@media (max-width: 820px) {
+  .book.reading.big { grid-template-columns: 1fr; }
+  .book.reading .illus { min-height: 200px; }
+  .book.reading.big .ktext { font-size: 24px; }
+  .reactions { grid-template-columns: repeat(2, 1fr); }
+  .tree-card { flex-direction: column; text-align: center; }
+  .ktop { flex-wrap: wrap; }
+}

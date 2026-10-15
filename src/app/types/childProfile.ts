@@ -39,23 +39,33 @@ export interface ClassGroupSummary {
 }
 
 
+export type TopicRelation = 'FavoriteTopic' | 'PriorityFocusArea';
+
 export interface SetLearningProfileRequest {
   readingLevel: number; // 1 to 5
   comprehensionGoal?: string;
   topics?: Array<{
     topic: string;
-    relation: 'FavoriteTopic' | 'Interested' | 'Avoid';
+    relation: TopicRelation;
   }>;
 }
+
+/** Đặc tả (Luồng 1 v31) chỉ còn Cho phép / Chặn; backend vẫn nhận Restricted cho dữ liệu cũ. */
+export type PolicyRule = 'Allowed' | 'Blocked';
 
 export interface SetSafetyPolicyRequest {
   maxStoryLength: number; // 100 to 20000
   requiredApprovalMode: 'AlwaysManual' | 'AutoPublishOnThreshold';
   parentalGateEnabled: boolean;
   consentRecorded: boolean;
+  consentPolicyVersion?: number;
+  safetyScoreThreshold?: number | null;
+  readabilityScoreThreshold?: number | null;
+  comprehensionThresholdPercent?: number;
+  comprehensionWindowSize?: number;
   categories?: Array<{
     contentCategoryId: number;
-    rule: 'Allowed' | 'Restricted' | 'Blocked';
+    rule: PolicyRule;
   }>;
 }
 
@@ -91,6 +101,12 @@ export interface SafetyPolicy {
   requiredApprovalMode: string;
   parentalGateEnabled: boolean;
   consentRecorded: boolean;
+  consentRecordedAt?: string | null;
+  consentPolicyVersion?: number;
+  safetyScoreThreshold?: number | null;
+  readabilityScoreThreshold?: number | null;
+  comprehensionThresholdPercent?: number;
+  comprehensionWindowSize?: number;
   categories: SafetyPolicyCategory[];
 }
 

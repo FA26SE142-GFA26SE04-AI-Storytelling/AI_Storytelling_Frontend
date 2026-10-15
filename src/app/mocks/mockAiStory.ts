@@ -33,6 +33,7 @@ function tick(s: MockStory) {
 export function storyStatus(s: MockStory): string {
   tick(s);
   if (s.archived) return 'archived';
+  if (s.pendingDecision) return 'draft';
   if (s.mediaStartedAt !== null) return now() - s.mediaStartedAt >= T_MEDIA ? 'ready' : 'media_processing';
   if (s.outlineApprovedAt !== null) return now() - s.outlineApprovedAt >= T_REVIEW ? 'content_review' : 'outline_review';
   return now() - s.acceptedAt >= T_OUTLINE ? 'outline_review' : 'input_accepted';
@@ -114,15 +115,19 @@ function mockRewrite(text: string, instruction: string): string {
 export const mockAiStory = {
   async getCreationContext(childId: number): R<D.AIStoryInputContextDto> {
     await delay();
-    const c = MOCK_CHILDREN.find((x) => x.id === childId);
+    const c = db().children.find((x) => x.id === childId) ?? MOCK_CHILDREN.find((x) => x.id === childId);
     if (!c) return fail('Không tìm thấy hồ sơ bé.');
+    if (c.status !== 'Active') return fail(`Hồ sơ của ${c.nickname} chưa được kích hoạt. Hãy hoàn tất ở mục Hồ sơ bé.`);
     const older = c.ageBand === 'Age_9_12';
+    const lp = db().learning[c.id];
+    const level = lp?.readingLevel ?? (older ? 3 : 2);
+    const favorites = lp?.topics.filter((t) => t.relation === 'FavoriteTopic').map((t) => t.topic);
     return ok({
-      childProfileId: c.id, childNickname: c.nickname, ageBand: c.ageBand, readingLevel: older ? 3 : 2,
-      defaultVocabularyLevel: older ? 'level_3' : 'level_2', availableVocabularyLevels: ['level_1', 'level_2', 'level_3', 'level_4', 'level_5'],
-      defaultLanguage: 'vi', availableLanguages: ['vi', 'en'], maximumLength: older ? 1200 : 800, requiredApprovalMode: 'AlwaysManual',
-      parentalGateEnabled: true, safetyScoreThreshold: 0.8, readabilityScoreThreshold: null, comprehensionGoal: null,
-      comprehensionThresholdPercent: null, comprehensionWindowSize: 5, interests: MOCK_INTERESTS[c.id] ?? [],
+      childProfileId: c.id, childNickname: c.nickname, ageBand: c.ageBand, readingLevel: level,
+      defaultVocabularyLevel: `level_${level}` as D.VocabularyLevel, availableVocabularyLevels: ['level_1', 'level_2', 'level_3', 'level_4', 'level_5'],
+      defaultLanguage: 'vi', availableLanguages: ['vi'], maximumLength: db().policies[c.id]?.maxStoryLength ?? (older ? 1200 : 800), requiredApprovalMode: 'AlwaysManual',
+      parentalGateEnabled: true, safetyScoreThreshold: 0.8, readabilityScoreThreshold: null, comprehensionGoal: lp?.comprehensionGoal ?? null,
+      comprehensionThresholdPercent: null, comprehensionWindowSize: 5, interests: favorites?.length ? favorites : MOCK_INTERESTS[c.id] ?? [],
       allowedCategoryCodes: ['animals', 'adventure', 'science', 'fairytale'], restrictedCategoryCodes: [], blockedCategoryCodes: ['horror', 'violence'],
       characterModes: ['specified', 'ai_suggested'], settingModes: ['specified', 'ai_suggested'],
     });

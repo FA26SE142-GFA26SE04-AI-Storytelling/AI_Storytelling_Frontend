@@ -11,7 +11,7 @@ import type { AIStoryInputFormValues } from "@/app/features/story-workflow/aiSto
 import { studioActions } from "./studioProgress";
 import { useStoryProgressPolling } from "@/app/features/story-workflow/useStoryProgressPolling";
 
-export type Stage = "brief" | "checking" | "blocked" | "outline_wait" | "outline" | "generating" | "review" | "media" | "stopped";
+export type Stage = "brief" | "checking" | "blocked" | "outline_wait" | "outline" | "generating" | "moderation" | "review" | "media" | "stopped";
 
 export type StatusSnapshot = { outline: OutlineProgressDto | null; generation: ContentGenerationProgressDto | null };
 
@@ -25,7 +25,9 @@ async function loadSnapshot(id: number, signal: AbortSignal): Promise<ApiRespons
 export function snapshotStage(snap: StatusSnapshot | null, approvedLocally: boolean): Stage {
   if (!snap) return "outline_wait";
   const status = normalizeStoryStatus(snap.outline?.storyStatus ?? snap.generation?.storyStatus ?? "");
-  if (["rejected", "archived"].includes(status)) return "stopped";
+  if (["rejected", "archived", "blocked"].includes(status)) return "stopped";
+  // Luồng 2 mục 3.4 — truyện vùng xám chờ Moderator, thường trong 24 giờ.
+  if (status === "moderation_review") return "moderation";
   if (status === "content_review") return "review";
   if (["approved", "media_processing", "ready"].includes(status)) return "media";
   if (status === "outline_review") {

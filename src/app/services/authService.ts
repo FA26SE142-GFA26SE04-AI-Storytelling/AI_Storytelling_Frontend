@@ -75,6 +75,11 @@ export const authService = {
 
       const data = await safeJsonParse<ApiResponse<AuthResponseData>>(response);
 
+      // Tài khoản vận hành: chưa có token cho tới khi nhập mã TOTP (Luồng 5 Bước 5.1).
+      if (response.ok && data?.success && (data.data?.mfaRequired || data.data?.mfaSetupRequired)) {
+        return data;
+      }
+
       if (response.ok && data?.success && data.data) {
         this.setStoredAuth(data.data);
         this.notifyAuthStateChange(data.data.user, data.data.accessToken);
@@ -100,6 +105,28 @@ export const authService = {
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
+    }
+  },
+
+  /**
+   * Bước thứ hai khi đăng nhập tài khoản vận hành: gửi mã TOTP (/Auth/mfa/verify).
+   */
+  async verifyMfa(challengeToken: string, code: string): Promise<ApiResponse<AuthResponseData>> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/Auth/mfa/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challengeToken, code }),
+      });
+      const data = await safeJsonParse<ApiResponse<AuthResponseData>>(response);
+      if (response.ok && data?.success && data.data?.accessToken) {
+        this.setStoredAuth(data.data);
+        this.notifyAuthStateChange(data.data.user, data.data.accessToken);
+        return data;
+      }
+      return data || { success: false, message: 'Mã xác thực không đúng hoặc đã hết hạn.', data: null };
+    } catch (error) {
+      return { success: false, message: 'Không thể kết nối đến máy chủ.', data: null, errors: [(error as Error).message] };
     }
   },
 

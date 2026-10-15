@@ -15,7 +15,18 @@ export interface AuthResponseData {
   tokenType: string;
   expiresInSeconds: number;
   user: UserProfile;
+  /** Tài khoản vận hành đã bật TOTP: cần nhập mã trước khi có token (Luồng 5 Bước 5.1). */
+  mfaRequired?: boolean;
+  /** Lần đăng nhập đầu: phải thiết lập TOTP bằng mã QR. */
+  mfaSetupRequired?: boolean;
+  mfaChallengeToken?: string | null;
+  mfaProvisioningUri?: string | null;
 }
+
+/** Vai trò vận hành (Luồng 5) — tách khỏi Parent. */
+export const STAFF_ROLES = ['Administrator', 'Moderator', 'ContentCreator'] as const;
+export type StaffRole = (typeof STAFF_ROLES)[number];
+export const isStaffRole = (role?: string | null): role is StaffRole => !!role && (STAFF_ROLES as readonly string[]).includes(role);
 
 export interface ApiResponse<T> {
   success: boolean;

@@ -10,6 +10,7 @@ import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import type { WorkspaceId } from "@/app/components/shell/nav";
 import StudioPlan from "./StudioPlan";
 import StudioMedia from "./StudioMedia";
+import ImportStoryPanel from "./ImportStoryPanel";
 import ReviewGate from "@/app/features/review/ReviewGate";
 import StudioSteps from "./StudioSteps";
 import StudioControls from "./StudioControls";
@@ -34,10 +35,11 @@ type PipelineProps = {
   onToggleAside: () => void;
   onNew: (prefill?: Prefill) => void;
   go: (id: WorkspaceId) => void;
+  onImport: () => void;
 };
 
-function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, go }: PipelineProps) {
-  const { reload } = useWorkspaceData();
+function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, go, onImport }: PipelineProps) {
+  const { child, reload } = useWorkspaceData();
   const [approved, setApproved] = useState(false);
   // Nút duyệt nằm trên thanh tiến trình; màn duyệt truyện đăng ký hành động duyệt của nó vào đây.
   const [approve, setApprove] = useState<ApproveAction | null>(null);
@@ -72,6 +74,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
         <ReviewGate
           key={p.storyId}
           storyId={p.storyId}
+          ageBand={child?.ageBand ?? ""}
           onApproved={() => { p.refresh(); void reload(); }}
           onArchived={() => { void reload(); onNew(); }}
         />
@@ -88,6 +91,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           statusError={p.statusError}
           refresh={p.refresh}
           onOutlineApproved={() => { setApproved(true); p.refresh(); }}
+          onImport={onImport}
         />
       )}
       </ApproveSlot.Provider>
@@ -98,8 +102,9 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
 
 export default function StudioWorkspace({ go }: { go: (id: WorkspaceId) => void }) {
   const { user } = useAuth();
-  const { child } = useWorkspaceData();
+  const { child, reload } = useWorkspaceData();
   const [run, setRun] = useState(0);
+  const [importing, setImporting] = useState(false);
   // Ý tưởng điền lại khi "Quay lại ý tưởng"; chỉ giữ trong bộ nhớ, không lưu vào trình duyệt.
   const [prefill, setPrefill] = useState<Prefill>(null);
   // Giữ qua các truyện trong phiên làm việc: thu gọn một lần là đủ.
@@ -113,6 +118,19 @@ export default function StudioWorkspace({ go }: { go: (id: WorkspaceId) => void 
       </section>
     );
   }
+  if (importing) {
+    return (
+      <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
+        <div className="pane" style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
+          <div className="tabs">
+            <button onClick={() => setImporting(false)}>Tạo bằng AI</button>
+            <button className="on">Nhập truyện có sẵn</button>
+          </div>
+          <ImportStoryPanel key={`${child.id}:${run}`} child={child} go={go} onDone={() => { void reload(); setRun((n) => n + 1); }} />
+        </div>
+      </section>
+    );
+  }
   const reset = (next: Prefill = null) => { removeStorySession(user.id, child.id); setPrefill(next); setRun((n) => n + 1); };
-  return <Pipeline key={`${child.id}:${run}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} go={go} />;
+  return <Pipeline key={`${child.id}:${run}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} go={go} onImport={() => setImporting(true)} />;
 }

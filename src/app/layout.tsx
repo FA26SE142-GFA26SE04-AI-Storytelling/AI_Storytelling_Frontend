@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
 import "./styles/tokens.css";
@@ -24,6 +24,8 @@ export const metadata: Metadata = {
   title: "Taletale – Nền tảng kể chuyện AI cho trẻ em",
   description: "Tạo, duyệt và giao truyện AI an toàn cho bé, có phụ huynh đồng hành.",
 };
+
+export const viewport: Viewport = { width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 // Đặt theme trước khi vẽ để không bị nháy sáng/tối khi tải trang.
 const themeInit = `try{var t=localStorage.getItem("taletale-theme")||localStorage.getItem("magictales-theme");if(t!=="dark"&&t!=="light"){t=matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"}document.documentElement.setAttribute("data-theme",t);if(t==="dark")document.documentElement.classList.add("dark")}catch(e){}`;
