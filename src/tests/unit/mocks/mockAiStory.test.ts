@@ -58,4 +58,24 @@ describe('mock AI story pipeline', () => {
     await wait(2300);
     expect((await mockAiStory.getOutline(id)).data!.currentVersion!.versionNo).toBe(2);
   });
+
+  it('đề xuất sửa một đoạn chỉ thay đúng đoạn đã chọn khi áp dụng', async () => {
+    const id = (await mockAiStory.submitInput(input)).data!.storyId;
+    await wait(2600);
+    await mockAiStory.approveOutline(id);
+    await wait(5200);
+    const before = (await mockAiStory.getStoryReview(id)).data!;
+    const start = before.content.indexOf(' ') + 1;
+    const end = start + 20;
+    const selection = { start, endExclusive: end, text: before.content.slice(start, end) };
+    const proposalPromise = mockAiStory.partialEditStory(id, { versionId: before.versionId, selection, instruction: 'Rút ngắn' });
+    await wait(1500);
+    const proposalId = (await proposalPromise).data!.proposalId;
+    const suggested = ((await mockAiStory.getProposal(id, proposalId)).data!.suggestedContent as { content: string }).content;
+
+    await mockAiStory.applyProposal(id, proposalId);
+    const after = (await mockAiStory.getStoryReview(id)).data!.content;
+    expect(after).toBe(before.content.slice(0, start) + suggested + before.content.slice(end));
+    expect((await mockAiStory.getProposal(id, proposalId)).success).toBe(false);
+  });
 });

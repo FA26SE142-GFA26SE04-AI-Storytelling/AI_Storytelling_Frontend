@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationService';
 import { ApiResponse } from '@/app/types/auth';
-import { AIProposalDto, DiscussionReviewDto, QuizReviewDto, ReviewPackageDto, StoryReviewDto, ValidationResultDto, VocabularyReviewDto } from '@/app/types/aiStory';
+import { AIProposalDto, DiscussionReviewDto, PartialEditRequestDto, QuizReviewDto, ReviewArtifact, ReviewPackageDto, StoryReviewDto, ValidationResultDto, VocabularyReviewDto } from '@/app/types/aiStory';
 import { hasMissingLearning, missingLearning } from './storyReviewLearning';
 
 function requireData<T>(result: ApiResponse<T>): T {
@@ -24,6 +24,7 @@ export function useStoryReview(storyId: number) {
   const [proposal, setProposal] = useState<AIProposalDto | null>(null);
   const [validation, setValidation] = useState<ValidationResultDto | null>(null);
   const [busy, setBusy] = useState(true);
+  const [aiTask, setAiTask] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const lock = useRef(false);
   const controller = useRef<AbortController | null>(null);
@@ -89,6 +90,34 @@ export function useStoryReview(storyId: number) {
     else if (!signal.aborted) throw new Error('Máy chủ chưa xác nhận phê duyệt.');
   });
 
+  /** Gọi AI tạo đề xuất; aiTask là nhãn hiển thị trong lúc chờ (AI có thể mất vài giây). */
+  const askAi = (label: string, call: (signal: AbortSignal) => Promise<ApiResponse<{ proposalId: string }>>) => run(async signal => {
+    if (!bundle || proposal) return;
+    setAiTask(label);
+    try { await createProposal(await call(signal), signal); }
+    finally { if (!signal.aborted) setAiTask(null); }
+  });
+
+  const reviseStory = (selection: PartialEditRequestDto['selection'], instruction: string) =>
+    askAi('AI đang viết lại đoạn đã chọn…', signal => api.partialEditStory(storyId, { versionId: bundle!.story.versionId, selection, instruction }, signal));
+
+  const regenerateArtifact = (artifact: Exclude<ReviewArtifact, 'story'>) =>
+    askAi('AI đang soạn lại học liệu…', signal => api.regenerateReviewArtifact(storyId, artifact, signal));
+
+  const saveStory = (draft: { title: string; content: string; lesson: string }, onSaved?: () => void) => run(async signal => {
+    if (!bundle) return;
+    requireData(await api.updateStoryReview(storyId, { versionId: bundle.story.versionId, ...draft }, signal));
+    if (signal.aborted) return;
+    await load(signal);
+    onSaved?.();
+  });
+
+  const archive = (onArchived: () => void) => run(async signal => {
+    // Backend hiện chưa lưu lý do; mặc định là phụ huynh không muốn dùng nữa (không ngắt phiên đọc).
+    const result = requireData(await api.archiveStory(storyId, { reason: 'supervisor_preference' }, signal));
+    if (!signal.aborted && result.success) onArchived();
+  });
+
   const generateMissingLearning = () => run(async signal => {
     if (!bundle || proposal || !bundle.summary.canEdit) return;
     const result = requireData(await api.generateArtifacts(storyId, missingLearning(bundle), signal));
@@ -97,6 +126,7 @@ export function useStoryReview(storyId: number) {
     if (!result.success) throw new Error(result.message || 'Chưa thể tạo đủ học liệu.');
   });
 
-  return { bundle, proposal, validation, busy, error, run, load, requireData, createProposal, decideProposal, approve, generateMissingLearning,
+  return { bundle, proposal, validation, busy, aiTask, error, run, load, requireData, createProposal, decideProposal, approve, generateMissingLearning,
+    reviseStory, regenerateArtifact, saveStory, archive,
     refresh: () => run(load), clearProposal: () => setProposal(null) };
 }

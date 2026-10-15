@@ -13,6 +13,7 @@ const T_CONTENT = 1800;     // nội dung ổn định
 const T_LEARNING = 4000;    // học liệu xong
 const T_REVIEW = 5000;      // chuyển sang chờ duyệt
 const T_MEDIA = 6000;       // tranh + giọng đọc
+const T_AI_EDIT = 1400;     // AI viết lại một đoạn / sinh lại học liệu
 
 const now = () => Date.now();
 const find = (id: number) => db().stories.find((s) => s.id === id) ?? null;
@@ -90,25 +91,25 @@ function mediaProgress(s: MockStory): D.MediaProgressDto {
 
 const reviewable = (s: MockStory) => storyStatus(s) === 'content_review';
 
-// ---------- Đề xuất AI (proposal) ----------
+/** Đề xuất AI chỉ sống trong bộ nhớ, giống cache 1 giờ của backend. */
 const proposals = new Map<string, D.AIProposalDto>();
-function saveProposal(s: MockStory, artifactType: string, operationType: string, originalContent: unknown, suggestedContent: unknown): string {
-  const proposalId = crypto.randomUUID();
+
+function createProposal(s: MockStory, artifactType: string, operationType: string, originalContent: unknown, suggestedContent: unknown): D.CreateProposalResponseDto {
+  const proposalId = `mock-${s.id}-${proposals.size + 1}-${now()}`;
   proposals.set(proposalId, {
-    proposalId, requestedByUserId: 1, storyId: s.id, storyVersionId: s.reviewVersionId, artifactType, operationType, originalContent, suggestedContent,
-    status: 'pending', createdAt: new Date().toISOString(), expiresAt: new Date(now() + 3_600_000).toISOString(),
+    proposalId, requestedByUserId: 1, storyId: s.id, storyVersionId: s.reviewVersionId, artifactType, operationType,
+    originalContent, suggestedContent, status: 'pending', createdAt: new Date().toISOString(), expiresAt: new Date(now() + 3_600_000).toISOString(),
   });
-  return proposalId;
+  return { proposalId, message: 'Đề xuất đã sẵn sàng.' };
 }
 
-/** Mô phỏng AI sửa đoạn văn theo chỉ dẫn (rút gọn, thêm thoại…). */
-function mockRevise(text: string, instruction: string): string {
-  const sentences = text.match(/[^.!?…]+[.!?…]+["”']?\s*|[^.!?…]+$/g)?.map((x) => x.trim()) ?? [text];
-  if (/rút ngắn|đơn giản/i.test(instruction)) return sentences.slice(0, Math.max(1, Math.ceil(sentences.length * 0.7))).join(' ');
-  if (/lời thoại|hội thoại/i.test(instruction)) return `${text.trim()} “Mình cùng cố gắng nhé!” — các bạn nói với nhau.`;
-  if (/sợ|căng thẳng/i.test(instruction)) return text.replace(/lo lắng|sợ hãi|tối om/gi, 'hơi bối rối');
-  if (/bài học/i.test(instruction)) return `${text.trim()} Từ hôm đó, ai cũng nhớ rằng biết giúp đỡ nhau thì việc gì cũng dễ hơn.`;
-  return `${text.trim()} Gió nhẹ thổi qua, nắng vàng trải khắp lối đi.`;
+/** "AI" giả: rút gọn khi được yêu cầu ngắn/đơn giản, còn lại thêm một câu thoại nhỏ. */
+function mockRewrite(text: string, instruction: string): string {
+  if (/rút ngắn|đơn giản|bớt/i.test(instruction)) {
+    const words = text.trim().split(/\s+/);
+    return words.slice(0, Math.max(3, Math.ceil(words.length * 0.7))).join(' ').replace(/[,;:]?$/, '.');
+  }
+  return `${text.trim()} “Mình cùng cố gắng nhé!”, cả nhóm bạn nói.`;
 }
 
 export const mockAiStory = {
@@ -339,44 +340,50 @@ export const mockAiStory = {
   },
 
   async partialEditStory(id: number, input: D.PartialEditRequestDto): R<D.CreateProposalResponseDto> {
-    await delay(900);
+    await delay(T_AI_EDIT);
     const s = find(id);
     if (!s) return missing();
     const { start, endExclusive } = input.selection;
-    const selected = s.content.slice(start, endExclusive);
-    const suggested = mockRevise(selected, input.instruction);
-    return ok({ proposalId: saveProposal(s, 'story', 'partial_edit', { content: s.content, start, endExclusive, selectedText: selected }, { content: suggested }), message: '' });
+    if (!reviewable(s) || start < 0 || endExclusive <= start || endExclusive > s.content.length) return fail('Đoạn đã chọn không còn khớp với bản thảo.');
+    const selectedText = s.content.slice(start, endExclusive);
+    return ok(createProposal(s, 'story', 'partial_edit', { content: s.content, start, endExclusive, selectedText }, { content: mockRewrite(selectedText, input.instruction) }));
   },
+
   async regenerateReviewArtifact(id: number, artifact: Exclude<D.ReviewArtifact, 'story'>): R<D.CreateProposalResponseDto> {
-    await delay(900);
+    await delay(T_AI_EDIT);
     const s = find(id);
-    if (!s) return missing();
-    const fresh = composeStory(`${s.title} (bản mới)`, s.characters, s.lesson || 'biết chia sẻ');
-    const items = artifact === 'vocabulary' ? fresh.vocabulary.slice().reverse() : artifact === 'quiz' ? fresh.quiz.slice().reverse() : fresh.discussion.slice().reverse();
-    return ok({ proposalId: saveProposal(s, artifact, 'regenerate', { items: s[artifact] }, { items }), message: '' });
+    if (!s || !reviewable(s)) return missing();
+    const items = s[artifact] as unknown[];
+    // Như backend: chỉ đề xuất từ vựng mới gửi kèm danh sách cũ.
+    return ok(createProposal(s, artifact, 'regenerate', artifact === 'vocabulary' ? { items } : {}, { items: [...items].reverse() }));
   },
-  async getProposal(_id: number, proposalId: string): R<D.AIProposalDto> {
+
+  async getProposal(id: number, proposalId: string): R<D.AIProposalDto> {
     const p = proposals.get(proposalId);
-    return p ? ok(p) : fail('Đề xuất đã hết hạn.');
+    return p && p.storyId === id ? ok(p) : fail('Đề xuất đã hết hạn.');
   },
+
   async applyProposal(id: number, proposalId: string): R<D.ApplyDiscardResponseDto> {
     await delay();
     const s = find(id);
     const p = proposals.get(proposalId);
-    if (!s || !p) return fail('Đề xuất đã hết hạn.');
-    const sug = p.suggestedContent as { content?: string; items?: never[] };
-    if (p.artifactType === 'story') {
-      const o = p.originalContent as { start: number; endExclusive: number };
-      s.content = s.content.slice(0, o.start) + (sug.content ?? '') + s.content.slice(o.endExclusive);
-      s.reviewVersionId += 1; // bản mới → học liệu phải tạo lại cho bản này
-    } else if (p.artifactType === 'vocabulary' || p.artifactType === 'quiz' || p.artifactType === 'discussion') {
-      s[p.artifactType] = sug.items ?? [];
-    }
+    if (!s || !p || p.storyId !== id) return fail('Đề xuất đã hết hạn.');
+    const original = p.originalContent as { start?: number; endExclusive?: number };
+    const suggested = p.suggestedContent as { content?: string; items?: unknown[] };
+    if (p.artifactType === 'story' && original.start !== undefined && original.endExclusive !== undefined) {
+      s.content = s.content.slice(0, original.start) + (suggested.content ?? '') + s.content.slice(original.endExclusive);
+    } else if (p.artifactType === 'vocabulary') s.vocabulary = suggested.items as D.VocabularyItemDto[];
+    else if (p.artifactType === 'quiz') s.quiz = suggested.items as D.QuizQuestionDto[];
+    else if (p.artifactType === 'discussion') s.discussion = suggested.items as D.DiscussionPromptDto[];
     proposals.delete(proposalId);
     persist();
     return ok({ success: true, message: 'Đã áp dụng đề xuất.' });
   },
-  async discardProposal(_id: number, proposalId: string): R<D.ApplyDiscardResponseDto> { proposals.delete(proposalId); return ok({ success: true, message: '' }); },
+
+  async discardProposal(_id: number, proposalId: string): R<D.ApplyDiscardResponseDto> {
+    proposals.delete(proposalId);
+    return ok({ success: true, message: '' });
+  },
 
   async getMediaProgress(id: number): R<D.MediaProgressDto> {
     await delay(120);

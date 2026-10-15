@@ -15,3 +15,77 @@
 
 .done-state { height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px; text-align: center; color: var(--muted); }
 .done-state b { font-size: 22px; color: var(--text); }
+
+/* ===== Cổng duyệt (ReviewGate) ===== */
+.review-doc.gate { padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+.gate-tabs { flex: none; display: flex; gap: 4px; padding: 8px 14px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 70%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.gate-tabs button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; font-size: 12.5px; font-weight: 700; color: var(--muted); transition: background .15s, color .15s; }
+.gate-tabs button:hover { color: var(--text); background: var(--surface); }
+.gate-tabs button.on { color: var(--text); background: color-mix(in srgb, var(--primary) 14%, transparent); }
+.gate-tabs .pill { padding: 0 6px; line-height: 16px; }
+.gate-body { flex: 1; min-height: 0; overflow-y: auto; padding: 22px 28px 40px; display: flex; flex-direction: column; gap: 16px; }
+.gate-body > * { width: 100%; max-width: 660px; margin: 0 auto; }
+.sheet .row .pill { flex: none; }
+
+/* Bản thảo có thể chọn đoạn */
+.story-text p { border-radius: 10px; padding: 2px 6px; margin: 10px -6px; transition: background .15s; }
+.story-text.selectable p { cursor: pointer; }
+.story-text.selectable p:hover { background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.story-text p.picked { background: color-mix(in srgb, var(--gold) 10%, transparent); }
+.story-text mark { background: color-mix(in srgb, var(--gold) 45%, transparent); color: inherit; border-radius: 4px; padding: 0 1px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+.story-editor { display: flex; flex-direction: column; gap: 12px; margin-top: 14px; }
+.story-editor textarea { font-size: 14px; line-height: 1.7; }
+
+/* AI đang làm việc */
+.ai-wait { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 18px; background: var(--panel); border: 1px dashed var(--primary); color: var(--muted); font-weight: 700; animation: wsin .2s; }
+.ai-wait > :first-child { width: 44px; flex: none; }
+
+/* Đề xuất của AI */
+.proposal { background: var(--panel); border: 1.5px solid var(--primary); border-radius: 22px 22px 22px 8px; padding: 14px 16px; box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--primary) 70%, transparent); display: flex; flex-direction: column; gap: 12px; }
+.proposal-h { display: flex; align-items: center; gap: 8px; color: var(--primary); flex-wrap: wrap; }
+.proposal-h b { color: var(--text); font-size: 13.5px; }
+.proposal-h .hint { margin-left: auto; }
+.proposal-body { display: flex; flex-direction: column; gap: 8px; max-height: 340px; overflow-y: auto; }
+.proposal-act { justify-content: flex-end; }
+.diff { display: grid; grid-template-columns: 1fr auto 1fr; gap: 10px; align-items: stretch; }
+.diff > div { border-radius: 14px; padding: 9px 12px; font-size: 13.5px; line-height: 1.65; }
+.diff small { display: block; font-size: 10.5px; font-weight: 700; margin-bottom: 4px; }
+.diff p { margin: 0; color: var(--ink-warm); }
+.diff .del { background: color-mix(in srgb, var(--danger) 7%, transparent); }
+.diff .del small { color: var(--danger); }
+.diff .del p { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--danger) 45%, transparent); }
+.diff .ins { background: color-mix(in srgb, var(--mint) 12%, transparent); }
+.diff .ins small { color: var(--ok-ink); }
+.diff-arrow { align-self: center; color: var(--faint); }
+
+/* Học liệu */
+.art-list { display: flex; flex-direction: column; gap: 8px; margin: 12px 0 0; padding: 0; list-style: none; }
+.art-list .voc-i { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 8px 12px; font-size: 13px; }
+.art-list .voc-i b { color: var(--warn-ink); }
+.art-list .voc-i span { display: block; color: var(--muted); font-size: 12.5px; }
+.quiz-list { counter-reset: q; }
+.quiz-list > li, .disc-list > li { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 10px 12px; font-size: 13.5px; color: var(--ink-warm); display: flex; flex-direction: column; gap: 6px; }
+.quiz-list > li { counter-increment: q; }
+.quiz-list > li > .row b::before { content: counter(q) ". "; color: var(--faint); }
+.disc-list > li { flex-direction: row; align-items: center; justify-content: space-between; gap: 10px; }
+.disc-list .pill svg { width: 10px; height: 10px; }
+.choices { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.choices li { display: flex; align-items: center; gap: 5px; padding: 4px 9px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); font-size: 12.5px; }
+.choices li.right { border-color: color-mix(in srgb, var(--mint) 55%, transparent); background: color-mix(in srgb, var(--mint) 12%, transparent); color: var(--ok-ink); font-weight: 700; }
+.choices li svg { width: 12px; height: 12px; stroke-width: 3; }
+
+/* Cột quyết định */
+.ck-link { width: 100%; text-align: left; border-radius: 10px; padding: 5px 6px; transition: background .15s; }
+.ck-link:hover { background: var(--surface); }
+.ck .st svg { width: 10px; height: 10px; }
+.revise .excerpt { margin: 0; padding: 7px 10px; border-left: 3px solid var(--gold); background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 0 10px 10px 0; font-size: 12px; color: var(--ink-warm); }
+.intents { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+.intent { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px; border-radius: 14px; border: 1px solid var(--line); background: var(--surface); font-size: 11px; font-weight: 700; color: var(--muted); text-align: center; line-height: 1.2; transition: all .15s; }
+.intent svg { width: 16px; height: 16px; }
+.intent:hover:not(:disabled) { color: var(--text); border-color: var(--line-2); }
+.intent.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); color: var(--text); }
+.intent.on svg { color: var(--primary); }
+.intent:disabled { opacity: .5; cursor: not-allowed; }
+.notice.confirm { display: flex; flex-direction: column; gap: 8px; }
+
+@media (max-width: 1100px) { .diff { grid-template-columns: 1fr; } .diff-arrow { transform: rotate(90deg); justify-self: center; } }

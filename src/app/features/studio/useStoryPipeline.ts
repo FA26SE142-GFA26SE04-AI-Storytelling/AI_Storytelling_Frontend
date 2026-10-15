@@ -7,6 +7,8 @@ import type { ApiResponse } from "@/app/types/auth";
 import { normalizeStoryStatus, outlineReady } from "@/app/features/story-workflow/storyGenerationFlow";
 import { readStorySession, writeStorySession } from "@/app/features/story-workflow/storyStudioSession";
 import { useAIStoryInputFlow } from "@/app/features/story-workflow/useAIStoryInputFlow";
+import type { AIStoryInputFormValues } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
+import { studioActions } from "./studioProgress";
 import { useStoryProgressPolling } from "@/app/features/story-workflow/useStoryProgressPolling";
 
 export type Stage = "brief" | "checking" | "blocked" | "outline_wait" | "outline" | "generating" | "moderation" | "review" | "media" | "stopped";
@@ -37,9 +39,9 @@ export function snapshotStage(snap: StatusSnapshot | null, approvedLocally: bool
 
 const keepPolling = (stage: Stage) => stage === "outline_wait" || stage === "generating";
 
-export function useStoryPipeline(userId: number, childId: number | null, approvedLocally: boolean) {
+export function useStoryPipeline(userId: number, childId: number | null, approvedLocally: boolean, initialValues?: AIStoryInputFormValues | null) {
   const resumed = childId !== null ? readStorySession(userId, childId) : null;
-  const flow = useAIStoryInputFlow(childId, resumed?.storyId, resumed?.requestId);
+  const flow = useAIStoryInputFlow(childId, resumed?.storyId, resumed?.requestId, initialValues);
   const storyId = flow.progress?.storyId ?? null;
   const accepted = flow.phase === "input_accepted" && storyId !== null;
 
@@ -56,7 +58,19 @@ export function useStoryPipeline(userId: number, childId: number | null, approve
   else if (accepted) stage = snapshotStage(status.data, approvedLocally);
 
   const errorCode = status.data?.generation?.lastErrorCode ?? status.data?.outline?.lastErrorCode ?? null;
-  return { flow, storyId, stage, snapshot: status.data, statusError: status.error, timedOut: status.timedOut, errorCode, refresh: status.refresh };
+  /** Huỷ truyện hiện tại trên backend (từ chối dàn ý hoặc lưu trữ) trước khi làm lại. */
+  const cancel = async (): Promise<ApiResponse<unknown>> => {
+    const how = studioActions(stage).cancelWith;
+    if (storyId === null || !how) return { success: false, data: null, message: "Chưa thể huỷ ở bước này." };
+    if (how === "reject_outline") {
+      const version = status.data?.outline?.currentVersion?.versionNo;
+      if (!version) return { success: false, data: null, message: "Chưa tải được dàn ý để huỷ." };
+      return api.rejectOutline(storyId, version, { reason: "Phụ huynh huỷ để làm lại từ ý tưởng" });
+    }
+    return api.archiveStory(storyId, { reason: "supervisor_preference" });
+  };
+
+  return { cancel, flow, storyId, stage, snapshot: status.data, statusError: status.error, timedOut: status.timedOut, errorCode, refresh: status.refresh };
 }
 
 const mediaContinue = (m: MediaProgressDto) => !m.isReady && !m.errorCode;

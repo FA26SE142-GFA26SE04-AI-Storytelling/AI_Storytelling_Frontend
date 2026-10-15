@@ -1,46 +1,102 @@
 "use client";
 
 import "./studio.css";
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { AsideContext } from "@/app/components/shell/AsidePane";
+import { ApproveSlot, type ApproveAction } from "@/app/features/story-workflow/approveSlot";
 import { useAuth } from "@/app/context/AuthContext";
 import { removeStorySession } from "@/app/features/story-workflow/storyStudioSession";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import type { WorkspaceId } from "@/app/components/shell/nav";
 import StudioPlan from "./StudioPlan";
-import StudioReview from "./StudioReview";
-import { useStoryPipeline } from "./useStoryPipeline";
+import StudioMedia from "./StudioMedia";
 import ImportStoryPanel from "./ImportStoryPanel";
+import ReviewGate from "@/app/features/review/ReviewGate";
+import StudioSteps from "./StudioSteps";
+import StudioControls from "./StudioControls";
+import type { AIStoryInputFormValues } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
+import { studioProgress } from "./studioProgress";
+import { useSteppedProgress } from "./useSteppedProgress";
+import { useMediaProgress, useStoryPipeline, type Stage } from "./useStoryPipeline";
+import { useRiseIn } from "@/app/lib/motion";
 
-function Pipeline({ userId, childId, onNew, go, onImport }: { userId: number; childId: number; onNew: () => void; go: (id: WorkspaceId) => void; onImport: () => void }) {
-  const { reload } = useWorkspaceData();
+type Prefill = AIStoryInputFormValues | null;
+
+/** Mỗi section là một bố cục khác nhau của phần thân Studio; thanh tiến trình ở trên không đổi. */
+type Section = "plan" | "review" | "media";
+const sectionOf = (stage: Stage, storyId: number | null): Section =>
+  storyId === null ? "plan" : stage === "review" ? "review" : stage === "media" ? "media" : "plan";
+
+type PipelineProps = {
+  userId: number;
+  childId: number;
+  prefill: Prefill;
+  asideCollapsed: boolean;
+  onToggleAside: () => void;
+  onNew: (prefill?: Prefill) => void;
+  go: (id: WorkspaceId) => void;
+  onImport: () => void;
+};
+
+function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, go, onImport }: PipelineProps) {
+  const { child, reload } = useWorkspaceData();
   const [approved, setApproved] = useState(false);
-  const p = useStoryPipeline(userId, childId, approved);
+  // Nút duyệt nằm trên thanh tiến trình; màn duyệt truyện đăng ký hành động duyệt của nó vào đây.
+  const [approve, setApprove] = useState<ApproveAction | null>(null);
+  const p = useStoryPipeline(userId, childId, approved, prefill);
+  const media = useMediaProgress(p.stage === "media" ? p.storyId : null);
+  const section = sectionOf(p.stage, p.storyId);
+  // Chỉ phần thân (các khung mới vào) hiện dần khi đổi bố cục; thanh tiến trình đứng yên nên không nháy.
+  const bodyRef = useRiseIn<HTMLElement>(":scope > :not(.studio-steps)", [section], { delay: 60, distance: 10 });
 
-  if ((p.stage === "review" || p.stage === "media") && p.storyId !== null) {
-    return (
-      <StudioReview
-        key={p.storyId}
-        storyId={p.storyId}
-        mediaStage={p.stage === "media"}
-        onApproved={() => { p.refresh(); void reload(); }}
-        onFinish={() => { void reload(); onNew(); go("library"); }}
-      />
-    );
-  }
+  const restart = async (keepIdea: boolean) => {
+    // Lấy ý tưởng trước khi huỷ; chỉ điền lại khi chắc đó là ý tưởng đã gửi.
+    const idea = keepIdea && p.flow.valuesKnown ? p.flow.values : null;
+    const result = await p.cancel();
+    if (!result.success) return result.message || "Chưa huỷ được truyện. Bạn thử lại nhé.";
+    void reload();
+    onNew(idea);
+    return null;
+  };
+  // Lỗi cũ của bước viết truyện không áp cho bước media.
+  const progress = useSteppedProgress(studioProgress(p.stage, p.snapshot, media.data, p.stage === "media" ? null : p.errorCode));
+
+  // Cột phải thu gọn ở mọi state; cột lưới co giãn mượt bằng CSS (studio.css) và khung bên trong là AsidePane.
+  const aside = useMemo(() => ({ collapsed: asideCollapsed, toggle: onToggleAside }), [asideCollapsed, onToggleAside]);
   return (
-    <StudioPlan
-      flow={p.flow}
-      stage={p.stage}
-      storyId={p.storyId}
-      snapshot={p.snapshot}
-      errorCode={p.errorCode}
-      timedOut={p.timedOut}
-      statusError={p.statusError}
-      refresh={p.refresh}
-      onOutlineApproved={() => { setApproved(true); p.refresh(); }}
-      onNew={onNew}
-      onImport={onImport}
-    />
+    <section ref={bodyRef} className="ws with-steps" data-aside={asideCollapsed ? "collapsed" : undefined}>
+      <StudioSteps progress={progress}>
+        <StudioControls key={p.stage} stage={p.stage} valuesKnown={p.flow.valuesKnown} onEditIdea={p.flow.editInput} onRestart={restart} onStartNew={() => onNew()} approve={approve} />
+      </StudioSteps>
+      <AsideContext.Provider value={aside}>
+      <ApproveSlot.Provider value={setApprove}>
+      {section === "review" && p.storyId !== null ? (
+        <ReviewGate
+          key={p.storyId}
+          storyId={p.storyId}
+          ageBand={child?.ageBand ?? ""}
+          onApproved={() => { p.refresh(); void reload(); }}
+          onArchived={() => { void reload(); onNew(); }}
+        />
+      ) : section === "media" && p.storyId !== null ? (
+        <StudioMedia key={p.storyId} storyId={p.storyId} media={media} onFinish={() => { void reload(); onNew(); go("library"); }} />
+      ) : (
+        <StudioPlan
+          flow={p.flow}
+          stage={p.stage}
+          storyId={p.storyId}
+          snapshot={p.snapshot}
+          errorCode={p.errorCode}
+          timedOut={p.timedOut}
+          statusError={p.statusError}
+          refresh={p.refresh}
+          onOutlineApproved={() => { setApproved(true); p.refresh(); }}
+          onImport={onImport}
+        />
+      )}
+      </ApproveSlot.Provider>
+      </AsideContext.Provider>
+    </section>
   );
 }
 
@@ -49,6 +105,11 @@ export default function StudioWorkspace({ go }: { go: (id: WorkspaceId) => void 
   const { child, reload } = useWorkspaceData();
   const [run, setRun] = useState(0);
   const [importing, setImporting] = useState(false);
+  // Ý tưởng điền lại khi "Quay lại ý tưởng"; chỉ giữ trong bộ nhớ, không lưu vào trình duyệt.
+  const [prefill, setPrefill] = useState<Prefill>(null);
+  // Giữ qua các truyện trong phiên làm việc: thu gọn một lần là đủ.
+  const [asideCollapsed, setAsideCollapsed] = useState(false);
+  const toggleAside = useCallback(() => setAsideCollapsed((v) => !v), []);
 
   if (!user || !child) {
     return (
@@ -70,6 +131,6 @@ export default function StudioWorkspace({ go }: { go: (id: WorkspaceId) => void 
       </section>
     );
   }
-  const reset = () => { removeStorySession(user.id, child.id); setRun((n) => n + 1); };
-  return <Pipeline key={`${child.id}:${run}`} userId={user.id} childId={child.id} onNew={reset} go={go} onImport={() => setImporting(true)} />;
+  const reset = (next: Prefill = null) => { removeStorySession(user.id, child.id); setPrefill(next); setRun((n) => n + 1); };
+  return <Pipeline key={`${child.id}:${run}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} go={go} onImport={() => setImporting(true)} />;
 }

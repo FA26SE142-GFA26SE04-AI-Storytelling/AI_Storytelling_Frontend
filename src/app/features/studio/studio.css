@@ -1,5 +1,9 @@
 /* Studio tạo truyện */
-.create { grid-template-columns: 250px 1fr 290px; grid-template-rows: 1fr; gap: 12px; }
+/* Mọi bố cục của Studio (lập kế hoạch, duyệt, tạo tranh) dùng cùng một khung: vùng chính + cột phải 300px,
+   nên đổi state thì các khung viền giữ nguyên kích thước, chỉ nội dung bên trong đổi. */
+.ws.with-steps { grid-template-columns: minmax(0, 1fr) 300px; grid-template-rows: auto minmax(0, 1fr); gap: 12px; }
+/* Thanh tiêu đề đầu mỗi khung cao bằng nhau (khớp .ph của cột phải) để các đường kẻ ngang thẳng hàng giữa các state. */
+.ws.with-steps .tools, .ws.with-steps .plan-tabs, .ws.with-steps .gate-tabs { height: 42px; flex: none; box-sizing: border-box; align-items: center; padding-top: 0; padding-bottom: 0; }
 
 .center { display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; background: color-mix(in srgb, var(--bg) 60%, var(--panel)); }
 .tools { height: 38px; flex: none; display: flex; align-items: center; gap: 2px; padding: 0 8px; border-bottom: 1px solid var(--line); }
@@ -28,13 +32,128 @@
 .voc-i span { display: block; color: var(--muted); font-size: 12px; }
 .media-bar { padding: 10px 14px; border-top: 1px solid var(--line); background: var(--panel); font-size: 12.5px; display: flex; align-items: center; gap: 12px; }
 
-@media (max-width: 1100px) { .create { grid-template-columns: 220px 1fr 260px; } }
 
 /* Form yêu cầu: đếm ký tự */
 .brief .count { font-weight: 600; color: var(--faint); }
-.brief .count.warn { color: var(--danger); }
+.count.warn { color: var(--danger); }
 
 /* Nhập truyện có sẵn */
 .import-body { flex: 1; overflow-y: auto; padding: 22px 28px 48px; display: flex; flex-direction: column; gap: 14px; max-width: 760px; }
 .choice { display: flex; flex-direction: column; gap: 7px; padding: 12px 14px; border: 1px solid var(--line); border-radius: 18px; background: var(--surface); }
 .choice b { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+/* Form ý tưởng */
+.kv.locked small { display: flex; align-items: center; gap: 4px; }
+.kv.locked small svg { width: 10px; height: 10px; }
+.count { font-style: normal; font-weight: 600; color: var(--faint); font-size: 10.5px; }
+.chip.sm { padding: 2px 8px; font-size: 11px; }
+.seg button small { display: block; font-size: 10px; color: var(--faint); font-weight: 600; }
+
+/* Dàn ý: các thẻ mốc truyện nối với nhau như chuỗi lá sen */
+.beats { display: flex; flex-direction: column; gap: 10px; position: relative; }
+.beats::before { content: ""; position: absolute; left: 13px; top: 18px; bottom: 18px; width: 2px; background: var(--line-2); border-radius: 2px; }
+.beat { display: grid; grid-template-columns: 28px 1fr; gap: 8px; position: relative; }
+.beat .dot { width: 28px; height: 28px; border-radius: 50% 50% 50% 8px; display: grid; place-items: center; font-weight: 800; font-size: 12px; background: var(--surface-2); border: 1px solid var(--line-2); color: var(--primary); z-index: 1; }
+.beat .dot svg { width: 14px; height: 14px; }
+.beat.end .dot { background: color-mix(in srgb, var(--lotus) 30%, var(--surface)); color: var(--lotus-deep); }
+.beat .lbl small { font-weight: 600; color: var(--faint); margin-left: 6px; }
+
+
+/* ===== Thanh tiến trình luôn hiện ở đầu Studio (StudioSteps) ===== */
+.studio-steps { grid-column: 1 / -1; display: flex; align-items: center; gap: 14px; padding: 8px 14px; border: 1px solid var(--line); border-radius: 22px; background: color-mix(in srgb, var(--panel) 55%, transparent); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); box-shadow: 0 14px 34px -24px color-mix(in srgb, var(--shadow) 50%, transparent); min-width: 0; }
+.studio-steps ol { list-style: none; margin: 0; padding: 0; display: flex; flex: 1; min-width: 0; }
+.ss { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; gap: 3px; position: relative; text-align: center; }
+/* Đường nối giữa các lá */
+.ss + .ss::before { content: ""; position: absolute; top: 11px; right: calc(50% + 15px); width: calc(100% - 30px); height: 2px; border-radius: 2px; background: linear-gradient(var(--primary), var(--primary)) left / 0% 100% no-repeat, var(--line-2); transition: background-size .42s linear; }
+/* Bước trước xong thì đường nối chạy màu từ trái sang phải */
+.ss.done + .ss::before { background-size: 100% 100%, auto; }
+.ss-pad { width: 26px; height: 22px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; display: grid; place-items: center; font-size: 10.5px; font-weight: 800; color: var(--faint); background: var(--surface-2); border: 1.5px solid var(--line-2); transition: background .3s, color .3s, border-color .3s, scale .3s; }
+.ss-pad svg { width: 12px; height: 12px; stroke-width: 3; }
+.ss-label { font-size: 10.5px; color: var(--faint); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.ss.done .ss-pad { background: var(--primary); border-color: var(--primary-strong); color: #fff; }
+.ss.done .ss-label { color: var(--muted); }
+.ss.run .ss-pad, .ss.you .ss-pad, .ss.error .ss-pad { scale: 1.18; }
+/* Lá kế tiếp sáng lên khi đường nối gần chạy tới (thanh fill dần từng bước) */
+.ss.run .ss-pad, .ss.you .ss-pad, .ss.error .ss-pad, .ss.done:last-child .ss-pad { transition-delay: .3s; }
+.ss.run .ss-pad { border-color: var(--primary); color: var(--text); background: color-mix(in srgb, var(--primary) 14%, var(--surface)); }
+.ss.you .ss-pad { border-color: var(--gold-deep); color: var(--warn-ink); background: color-mix(in srgb, var(--gold) 35%, var(--surface)); }
+.ss.error .ss-pad { border-color: var(--danger); color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, var(--surface)); }
+.ss.run .ss-label, .ss.you .ss-label, .ss.error .ss-label { color: var(--text); font-weight: 800; }
+
+.ss-caption { transition: background .3s, border-color .3s, color .3s; flex: none; width: 250px; display: flex; align-items: center; gap: 9px; padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 700; line-height: 1.3; border: 1px solid var(--line); background: var(--surface); }
+.ss-caption > span { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ss-caption small { display: block; font-size: 10px; font-weight: 700; color: var(--faint); text-transform: uppercase; letter-spacing: .04em; }
+.ss-caption.run { color: var(--primary); }
+.ss-caption.run span { color: var(--text); }
+.ss-caption.you { background: color-mix(in srgb, var(--gold) 16%, transparent); border-color: color-mix(in srgb, var(--gold-deep) 35%, transparent); color: var(--warn-ink); }
+.ss-caption.error { background: color-mix(in srgb, var(--danger) 9%, transparent); border-color: color-mix(in srgb, var(--danger) 30%, transparent); color: var(--danger); }
+.ss-caption.done { background: color-mix(in srgb, var(--mint) 14%, transparent); border-color: color-mix(in srgb, var(--mint) 35%, transparent); color: var(--ok-ink); }
+.spin { animation: spin 1.2s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation: none; } }
+
+@media (max-width: 1250px) { .ss-label { display: none; } .ss.run .ss-label, .ss.you .ss-label, .ss.error .ss-label { display: block; } .ss + .ss::before { top: 11px; } }
+@media (max-width: 720px) {
+  .studio-steps { flex-direction: column; align-items: stretch; gap: 8px; padding: 10px; }
+  .ss-caption { width: auto; }
+  .ss-label { display: none !important; }
+}
+
+/* Thẻ giữa khi AI đang làm: ếch + bước hiện tại (thanh đầy đủ nằm ở đầu Studio) */
+.pipe-now { width: min(440px, 100%); display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; padding: 22px; }
+.pipe-now > :first-child { width: 96px; }
+.pipe-text { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.pipe-text h3 { margin: 0; }
+
+/* Nút quay lại / huỷ trên thanh tiến trình */
+.studio-steps { position: relative; z-index: 5; }
+.ss-actions { flex: none; display: flex; align-items: center; gap: 4px; position: relative; }
+/* Chỉ biểu tượng: nút tròn cùng cỡ, chữ nằm ở tooltip */
+.ss-icon { width: 34px; height: 34px; padding: 0; justify-content: center; border-radius: 50%; }
+.ss-icon .ic { width: 18px; height: 18px; }
+/* Nút duyệt sáng lên khi duyệt được; bước khác thì mờ như hai nút còn lại */
+.ss-approve { background: var(--primary-strong); color: #fff; border-color: transparent; box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--primary) 80%, transparent); }
+.ss-approve:hover { background: color-mix(in srgb, var(--primary-strong) 85%, #000); }
+.ss-actions .ss-cancel:not(:disabled):hover { color: var(--danger); background: color-mix(in srgb, var(--danger) 10%, transparent); }
+.ss-confirm { position: absolute; top: calc(100% + 12px); right: 0; width: 300px; z-index: 40; background: var(--panel); border: 1px solid var(--line-2); border-radius: 20px 6px 20px 20px; padding: 14px; box-shadow: 0 24px 50px -18px color-mix(in srgb, var(--shadow) 55%, transparent); display: flex; flex-direction: column; gap: 8px; }
+.ss-confirm b { font-size: 13.5px; }
+.ss-confirm p { margin: 0; color: var(--muted); font-size: 12.5px; line-height: 1.5; }
+@media (max-width: 720px) {
+  .ss-actions { justify-content: flex-end; }
+  .ss-confirm { width: min(300px, calc(100vw - 48px)); }
+}
+
+/* ===== Lập kế hoạch: form ý tưởng / dàn ý nằm trong ô lớn ở giữa ===== */
+.plan-tabs { padding: 0 16px; }
+.plan-tabs button { display: inline-flex; align-items: center; gap: 6px; padding: 0 12px; }
+.plan-tabs button:disabled { opacity: .45; cursor: not-allowed; }
+.tab-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--gold-deep); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 35%, transparent); }
+.plan-stage { position: relative; flex: 1; min-height: 0; background-image: radial-gradient(var(--line-2) 1px, transparent 1px); background-size: 20px 20px; }
+.plan-stage > :not(.pond) { position: relative; z-index: 1; }
+.plan-view { height: 100%; }
+.plan-view > .pipe-inline, .plan-view > .empty { height: 100%; }
+.plan-scroll { height: 100%; overflow-y: auto; padding: 22px 26px 36px; }
+/* Form/dàn ý là một tờ giấy đặt trên mặt ao */
+.plan-scroll > .pb { overflow: visible; flex: none; max-width: 900px; margin: 0 auto; padding: 22px 24px; gap: 16px; background: color-mix(in srgb, var(--paper) 92%, transparent); border: 1px solid var(--line-2); border-radius: 26px 26px 26px 10px; box-shadow: 0 24px 50px -28px color-mix(in srgb, var(--shadow) 40%, transparent); }
+.brief-head { display: flex; align-items: flex-start; gap: 16px; }
+.brief-head h3 { margin: 0 0 2px; font-size: 20px; color: var(--ink-warm); }
+.brief-head .kv { flex: none; width: 230px; }
+.brief-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px 26px; }
+.brief-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.brief-grid textarea.inp { min-height: 96px; }
+.brief-foot { display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+@media (max-width: 1000px) {
+  .brief-grid { grid-template-columns: 1fr; }
+  .brief-head { flex-direction: column; }
+  .brief-head .kv { width: 100%; }
+}
+@media (max-width: 720px) {
+  .plan-stage { min-height: 62dvh; }
+  .plan-scroll { padding: 12px; height: auto; overflow: visible; }
+  .plan-scroll > .pb { padding: 16px; }
+  .brief-foot { flex-direction: column-reverse; align-items: stretch; }
+}
+
+/* ===== Thu gọn cột phải (mọi state của Studio) ===== */
+/* Cột lưới co giãn mượt: hai bên đều là độ dài cố định nên trình duyệt nội suy được. */
+.ws.with-steps { transition: grid-template-columns .38s cubic-bezier(.65, 0, .25, 1); }
+.ws.with-steps[data-aside="collapsed"] { grid-template-columns: minmax(0, 1fr) 52px; }

@@ -1,8 +1,9 @@
 "use client";
 
 import "./library.css";
-import { useEffect, useMemo, useState } from "react";
-import { Archive, BookOpen, ChevronLeft, ChevronRight, Eye, Flag, Folder, Route, Search, Send, Sparkles, Tag, WandSparkles, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Archive, BookOpen, ChevronLeft, ChevronRight, Eye, Flag, Folder, Info, Route, Search, Send, Sparkles, Tag, WandSparkles, X } from "lucide-react";
+import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { storyService } from "@/app/services/storyService";
 import { ageLabel, splitScenes, statusKey, type StoryCard } from "@/app/lib/storyView";
@@ -72,6 +73,10 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
   const [mod, setMod] = useState<{ reports: ContentReport[]; submission: CommunitySubmission | null } | null>(null);
   const role = useMyRole(child);
   const [toast, setToast] = useState("");
+  // Khung "Chi tiết" bên phải thu gọn được; cột lưới co theo bằng CSS (library.css).
+  const [asideCollapsed, setAsideCollapsed] = useState(false);
+  const toggleAside = useCallback(() => setAsideCollapsed((v) => !v), []);
+  const aside = useMemo(() => ({ collapsed: asideCollapsed, toggle: toggleAside }), [asideCollapsed, toggleAside]);
 
   const filters = useMemo<Filter[]>(() => {
     const topics = [...new Set(stories.map((s) => s.topic))];
@@ -102,7 +107,8 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
   }, [sel]);
 
   return (
-    <section className="ws dock" style={{ gridTemplateColumns: "210px 1fr 290px" }}>
+    <AsideContext.Provider value={aside}>
+    <section className="ws dock lib" data-aside={asideCollapsed ? "collapsed" : undefined}>
       <div className="pane">
         <div className="ph"><span>Truyện của {child?.nickname ?? "bé"}</span></div>
         <div className="pb" style={{ gap: 0 }}>
@@ -150,9 +156,7 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
         </div>
       </div>
 
-      <div className="pane">
-        <div className="ph"><span>Chi tiết</span></div>
-        <div className="pb">
+      <AsidePane title="Chi tiết" icon={Info}>
           {sel ? (
             <>
               <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: sel.gradient }} />
@@ -184,8 +188,7 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
               {selStatus !== "archived" && <button className="btn btn-no btn-c" onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ</button>}
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
-        </div>
-      </div>
+      </AsidePane>
       {sel && dialog === "preview" && <Preview story={sel} onClose={() => setDialog(null)} />}
       {sel && dialog === "roadmap" && <AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} onClose={() => setDialog(null)} />}
       {sel && dialog === "report" && <ReportDialog story={sel} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
@@ -193,5 +196,6 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
       {sel && dialog === "archive" && <ArchiveDialog storyId={sel.id} onClose={() => setDialog(null)} onDone={(msg) => { setDialog(null); setToast(msg); void reload(); setTimeout(() => setToast(""), 3000); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </section>
+    </AsideContext.Provider>
   );
 }

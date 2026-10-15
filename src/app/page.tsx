@@ -19,7 +19,7 @@ import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import RoadmapWorkspace from "@/app/features/roadmap/RoadmapWorkspace";
 import StaffApp from "@/app/features/staff/StaffApp";
 import { isStaffRole } from "@/app/types/auth";
-import { transitionWorkspace } from "@/app/lib/motion";
+import { transitionWorkspace, useClickRipple } from "@/app/lib/motion";
 // Nạp sau cùng để ghi đè CSS của các màn trên điện thoại.
 import "@/app/styles/mobile.css";
 
@@ -62,6 +62,7 @@ function Workspaces() {
 }
 
 export default function HomePage() {
+  useClickRipple(); // gợn nước tại mọi điểm bấm, kể cả màn đăng nhập và Chế độ bé
   const { user, isLoading } = useAuth();
   const [booted, setBooted] = useState(false);
   // Bé quét mã QR Easy Login: link có dạng /?kid=<mã>, không cần tài khoản người lớn.

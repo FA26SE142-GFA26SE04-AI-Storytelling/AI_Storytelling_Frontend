@@ -1,7 +1,7 @@
 import type { StoryDto } from "@/app/types/story";
 import { normalizeStoryStatus } from "@/app/features/story-workflow/storyGenerationFlow";
 
-export type StoryTone = "ok" | "wait" | "draft";
+export type StoryTone = "ok" | "wait" | "draft" | "flag";
 
 export type StoryCard = {
   id: number;
@@ -36,10 +36,11 @@ const STATUS: Record<string, [StoryTone, string]> = {
   media_processing: ["wait", "Đang tạo minh hoạ"],
   content_review: ["wait", "Chờ duyệt"],
   outline_review: ["wait", "Chờ duyệt dàn ý"],
-  input_accepted: ["wait", "Đang sinh"],
-  generating: ["wait", "Đang sinh"],
+  input_accepted: ["wait", "Đang xử lý"],
+  generating: ["wait", "Đang viết truyện"],
+  // Phụ huynh chỉ thấy "đang kiểm duyệt", không thấy điểm rủi ro hay lý do (Luồng 2 mục 3.4).
   moderation_review: ["wait", "Đang kiểm duyệt an toàn"],
-  blocked: ["draft", "Bị chặn"],
+  blocked: ["flag", "Bị chặn"],
   rejected: ["draft", "Bị từ chối"],
   archived: ["draft", "Lưu trữ"],
   draft: ["draft", "Bản nháp"],
@@ -47,6 +48,11 @@ const STATUS: Record<string, [StoryTone, string]> = {
 
 export function statusKey(story: Pick<StoryDto, "status" | "isPublished">): string {
   return story.isPublished ? "published" : normalizeStoryStatus(story.status || "draft");
+}
+
+/** Màu và nhãn tiếng Việt của một trạng thái truyện (dùng cho .pill). */
+export function statusBadge(status: string): [StoryTone, string] {
+  return STATUS[normalizeStoryStatus(status || "draft")] ?? ["draft", status || "Bản nháp"];
 }
 
 export function toCard(s: StoryDto): StoryCard {

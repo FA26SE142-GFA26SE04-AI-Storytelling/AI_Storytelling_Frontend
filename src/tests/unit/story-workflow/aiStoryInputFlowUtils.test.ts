@@ -3,8 +3,11 @@ import { AIStoryInputContextDto, AIStoryInputProgressDto } from '@/app/types/aiS
 import {
   buildSubmitRequest,
   createDefaultFormValues,
+  lengthPresets,
   phaseFromProgress,
+  restoreFormValues,
   shouldPollInput,
+  vocabularyTone,
 } from '@/app/features/story-workflow/aiStoryInputFlowUtils';
 
 const context: AIStoryInputContextDto = {
@@ -66,6 +69,8 @@ describe('AI Story Input Phase 1 contract', () => {
         genre: 'Kỳ ảo',
         lesson: '  Biết chia sẻ  ',
         charactersText: 'Sóc Bông, Thỏ Trắng',
+        setting: '  ',
+        vocabularyLevel: 'level_2',
         targetLength: 900,
       },
       context,
@@ -99,6 +104,42 @@ describe('AI Story Input Phase 1 contract', () => {
     );
     expect(request.characterMode).toBe('ai_suggested');
     expect(request.characters).toEqual([]);
+  });
+
+  it('sends a specified setting and an allowed vocabulary level', () => {
+    const request = buildSubmitRequest(
+      7,
+      { ...createDefaultFormValues(context), setting: ' Khu rừng tre ', vocabularyLevel: 'level_1' },
+      context,
+      'k'
+    );
+    expect(request.settingMode).toBe('specified');
+    expect(request.setting).toBe('Khu rừng tre');
+    expect(request.vocabularyLevel).toBe('level_1');
+  });
+
+  it('falls back to the profile vocabulary level when the chosen one is not allowed', () => {
+    const request = buildSubmitRequest(7, { ...createDefaultFormValues(context), vocabularyLevel: 'level_5' }, context, 'k');
+    expect(request.vocabularyLevel).toBe('level_2');
+  });
+
+  it('splits the allowed length range into short / medium / long presets', () => {
+    expect(lengthPresets(700)).toEqual({ short: 200, medium: 400, long: 600 });
+    const tiny = lengthPresets(120);
+    expect(Math.max(tiny.short, tiny.medium, tiny.long)).toBeLessThanOrEqual(120);
+  });
+
+  it('labels vocabulary levels relative to the profile level', () => {
+    expect(vocabularyTone('level_1', 'level_2')).toBe('familiar');
+    expect(vocabularyTone('level_2', 'level_2')).toBe('default');
+    expect(vocabularyTone('level_3', 'level_2')).toBe('extended');
+  });
+
+  it('restores a previous idea within the current safety limits', () => {
+    const restored = restoreFormValues({ topic: 'Rùa học bơi', setting: 'Hồ sen', targetLength: 900, vocabularyLevel: 'level_5' }, context);
+    expect(restored).toMatchObject({ topic: 'Rùa học bơi', setting: 'Hồ sen', targetLength: 500, vocabularyLevel: 'level_2' });
+    expect(restored.lesson).toBe(createDefaultFormValues(context).lesson);
+    expect(restoreFormValues(null, context)).toEqual(createDefaultFormValues(context));
   });
 
   it('polls only pending/checking and advances only accepted', () => {

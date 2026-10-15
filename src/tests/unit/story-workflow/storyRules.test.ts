@@ -61,10 +61,10 @@ describe('revisionInstruction', () => {
 });
 
 describe('form yêu cầu', () => {
-  const context = { childProfileId: 1, childNickname: 'Na', ageBand: 'Age_6_8', readingLevel: 2, defaultVocabularyLevel: 'level_2', maximumLength: 2000, defaultLanguage: 'vi', interests: [] } as unknown as AIStoryInputContextDto;
+  const context = { childProfileId: 1, childNickname: 'Na', ageBand: 'Age_6_8', readingLevel: 2, defaultVocabularyLevel: 'level_2', availableVocabularyLevels: ['level_1', 'level_2', 'level_3'], maximumLength: 2000, defaultLanguage: 'vi', interests: [] } as unknown as AIStoryInputContextDto;
 
   it('gửi bối cảnh khi phụ huynh nhập, và mức từ vựng theo lựa chọn', () => {
-    const input = buildCreativeInput({ ...createDefaultFormValues(context), topic: 'Ếch đi chợ', lesson: 'Biết chia sẻ', setting: 'Đầm sen', vocabularyChoice: 'extended' }, context);
+    const input = buildCreativeInput({ ...createDefaultFormValues(context), topic: 'Ếch đi chợ', lesson: 'Biết chia sẻ', setting: 'Đầm sen', vocabularyLevel: 'level_3' }, context);
     expect(input.settingMode).toBe('specified');
     expect(input.setting).toBe('Đầm sen');
     expect(input.vocabularyLevel).toBe('level_3');

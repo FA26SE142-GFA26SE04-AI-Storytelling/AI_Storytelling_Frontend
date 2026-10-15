@@ -2,96 +2,12 @@
 
 import "./review.css";
 import { useState } from "react";
-import { Archive, Check, CircleAlert, PencilLine, RefreshCw } from "lucide-react";
-import { ArchiveDialog, LearningEditor, ProposalCard, RevisePanel } from "./ReviewTools";
-import { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
-import { hasMissingLearning } from "@/app/features/story-workflow/storyReviewLearning";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import Frog from "@/app/components/brand/Frog";
 import { ageLabel } from "@/app/lib/storyView";
 import type { WorkspaceId } from "@/app/components/shell/nav";
-import { useRiseIn, usePop, useSwap } from "@/app/lib/motion";
-
-function ReviewDetail({ storyId, ageBand, onDone }: { storyId: number; ageBand: string; onDone: (msg: string) => void }) {
-  const r = useStoryReview(storyId);
-  const sheetRef = useSwap<HTMLDivElement>(storyId);
-  const sideRef = useRiseIn<HTMLDivElement>(".ck, .sec, .kv", [r.bundle?.summary.storyVersionId]);
-  const { bundle, busy, error, validation } = r;
-  const [dialog, setDialog] = useState<"learning" | "archive" | null>(null);
-
-  if (!bundle) {
-    return (
-      <>
-        <div className="review-doc"><div className="empty">{error ? <><CircleAlert style={{ color: "var(--danger)" }} /><b className="display">Không tải được bản thảo</b><span>{error}</span><button className="btn btn-s" onClick={() => void r.refresh()}>Thử lại</button></> : <span>Đang tải bản thảo…</span>}</div></div>
-        <div className="pane" />
-      </>
-    );
-  }
-
-  const { summary, story, vocabulary, quiz, discussion } = bundle;
-  const missing = hasMissingLearning(bundle);
-  const rows = [
-    { label: "Từ vựng", n: vocabulary.items.length },
-    { label: "Câu hỏi đọc hiểu", n: quiz.items.length },
-    { label: "Gợi ý thảo luận", n: discussion.items.length },
-  ];
-
-  return (
-    <>
-      <div className="review-doc">
-        <article ref={sheetRef as React.RefObject<HTMLElement>} className="sheet">
-          <span className="pill ai">Do AI tạo</span>
-          <h2 className="display">{story.title}</h2>
-          <p className="sub">Bài học: {story.lesson || "—"}{summary.readabilityFkgl !== null && ` · Độ khó FKGL ${summary.readabilityFkgl.toFixed(1)}`}</p>
-          {story.content.split(/\n+/).filter(Boolean).map((p, i) => <p key={i}>{p}</p>)}
-          {vocabulary.items.length > 0 && (
-            <>
-              <h3 className="display" style={{ marginTop: 24 }}>Từ vựng</h3>
-              {vocabulary.items.map((v) => <p key={v.term} style={{ margin: "4px 0", fontSize: 14 }}><b>{v.term}</b>: {v.definition}</p>)}
-            </>
-          )}
-          {quiz.items.length > 0 && (
-            <>
-              <h3 className="display" style={{ marginTop: 24 }}>Câu hỏi đọc hiểu</h3>
-              {quiz.items.map((q, i) => <p key={q.id ?? i} style={{ margin: "4px 0", fontSize: 14 }}>{i + 1}. {q.question}{q.correctAnswer && <span className="sub"> (Đáp án: {q.correctAnswer})</span>}</p>)}
-            </>
-          )}
-        </article>
-      </div>
-
-      <div className="pane">
-        <div className="ph"><span>Kiểm duyệt</span></div>
-        <div ref={sideRef} className="pb">
-          <div>
-            {rows.map((c) => (
-              <div key={c.label} className="ck">
-                <span className={`st ${c.n > 0 ? "ok" : "warn"}`}>{c.n > 0 ? <Check /> : <CircleAlert />}</span>{c.label}<small>{c.n > 0 ? `${c.n} mục` : "Chưa có"}</small>
-              </div>
-            ))}
-            {validation?.checks.map((c) => (
-              <div key={c.name} className="ck"><span className={`st ${c.passed ? "ok" : "warn"}`}>{c.passed ? <Check /> : <CircleAlert />}</span>{c.name}<small>{c.message ?? ""}</small></div>
-            ))}
-          </div>
-          {error && !dialog && <div className="notice err" role="alert">{error}</div>}
-          <ProposalCard r={r} />
-          {summary.canEdit && !r.proposal && <RevisePanel r={r} />}
-          <div className="sec">
-            <div className="sec-h">Quyết định</div>
-            {missing && <button className="btn btn-s btn-c" disabled={busy || !summary.canEdit} onClick={() => void r.generateMissingLearning()}><RefreshCw className="ic" />Tạo học liệu còn thiếu</button>}
-            {summary.canEdit && <button className="btn btn-s btn-c" disabled={busy || !!r.proposal} onClick={() => setDialog("learning")}><PencilLine className="ic" />Sửa học liệu</button>}
-            <button className="btn btn-ok btn-c" disabled={busy || !summary.canApprove || missing || !!r.proposal} onClick={() => void r.approve(() => onDone("Đã duyệt, hệ thống đang tạo minh hoạ và giọng đọc"))}><Check className="ic" />Duyệt truyện</button>
-            <div className="row">
-              <button className="btn btn-no grow btn-c" disabled={busy || !summary.canArchive} onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ</button>
-            </div>
-            {r.proposal && <p className="sub">Hãy áp dụng hoặc bỏ qua đề xuất của AI trước khi duyệt.</p>}
-          </div>
-          {dialog === "learning" && <LearningEditor r={r} ageBand={ageBand} onClose={() => setDialog(null)} />}
-          {dialog === "archive" && <ArchiveDialog storyId={storyId} onClose={() => setDialog(null)} onDone={onDone} />}
-        </div>
-      </div>
-    </>
-  );
-}
+import { useRiseIn, usePop } from "@/app/lib/motion";
+import ReviewGate from "./ReviewGate";
 
 export default function ReviewWorkspace({ go }: { go: (id: WorkspaceId) => void }) {
   const { reviewQueue, reload, storiesLoading } = useWorkspaceData();
@@ -109,7 +25,7 @@ export default function ReviewWorkspace({ go }: { go: (id: WorkspaceId) => void 
   };
 
   return (
-    <section className="ws dock" style={{ gridTemplateColumns: "270px 1fr 290px" }}>
+    <section className="ws dock" style={{ gridTemplateColumns: "250px 1fr 300px" }}>
       <div className="pane">
         <div className="ph"><span>Hàng chờ duyệt</span><div className="act"><span className="pill wait">{reviewQueue.length} truyện</span></div></div>
         <div ref={queueRef} className="pb" style={{ gap: 7 }}>
@@ -123,7 +39,11 @@ export default function ReviewWorkspace({ go }: { go: (id: WorkspaceId) => void 
         </div>
       </div>
 
-      {active ? <ReviewDetail key={active.id} storyId={active.id} ageBand={active.ageBand} onDone={done} /> : (
+      {active ? (
+        <ReviewGate key={active.id} storyId={active.id} ageBand={active.ageBand}
+          onApproved={() => done("Đã duyệt, hệ thống đang tạo minh hoạ và giọng đọc")}
+          onArchived={() => done("Đã lưu trữ truyện")} />
+      ) : (
         <>
           <div className="review-doc">
             <div className="done-state">

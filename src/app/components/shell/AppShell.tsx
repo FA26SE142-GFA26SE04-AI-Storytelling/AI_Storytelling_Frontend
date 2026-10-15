@@ -7,7 +7,7 @@ import { WORKSPACES, type WorkspaceId } from "./nav";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { ageLabel } from "@/app/lib/storyView";
 import { USE_MOCK } from "@/app/mocks/config";
-import { circleReveal, useClickRipple, useRiseIn } from "@/app/lib/motion";
+import { circleReveal, useRiseIn } from "@/app/lib/motion";
 import Frog from "@/app/components/brand/Frog";
 import NotificationBell from "./NotificationBell";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
@@ -20,7 +20,6 @@ type Props = {
 };
 
 export default function AppShell({ ws, onWs, onKid, children }: Props) {
-  useClickRipple();
   const railRef = useRiseIn<HTMLElement>("button", [], { delay: 40, distance: 10 });
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();

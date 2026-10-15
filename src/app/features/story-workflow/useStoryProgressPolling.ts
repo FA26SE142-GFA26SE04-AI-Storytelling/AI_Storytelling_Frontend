@@ -3,6 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiResponse } from '@/app/types/auth';
 
+export interface PollingResult<T> { scope: number | null; data: T | null; error: string | null; timedOut: boolean }
+
+/**
+ * Trạng thái khi một lần theo dõi bắt đầu. Cùng một truyện (refresh, đổi điều kiện dừng) thì giữ dữ liệu cũ trong lúc tải lại:
+ * xoá về null sẽ làm giao diện tạm rơi về bước đầu rồi mới nhảy lại, nhìn như nháy cả màn hình.
+ */
+export function startPolling<T>(current: PollingResult<T>, scope: number | null): PollingResult<T> {
+  return current.scope === scope ? { ...current, error: null, timedOut: false } : { scope, data: null, error: null, timedOut: false };
+}
+
 /** One in-flight request per run; replacing a run invalidates even non-abortable responses. */
 export function useStoryProgressPolling<T>(
   scope: number | null,
@@ -10,7 +20,7 @@ export function useStoryProgressPolling<T>(
   shouldContinue: (data: T) => boolean,
   timeoutMs = 180_000,
 ) {
-  const [result, setResult] = useState<{ scope: number | null; data: T | null; error: string | null; timedOut: boolean }>({
+  const [result, setResult] = useState<PollingResult<T>>({
     scope, data: null, error: null, timedOut: false,
   });
   const [run, setRun] = useState(0);
@@ -28,7 +38,8 @@ export function useStoryProgressPolling<T>(
     const started = Date.now();
     const cancel = () => { alive = false; clearTimeout(timer); controller?.abort(); };
     cancelRef.current = cancel;
-    setResult({ scope, data: null, error: null, timedOut: false });
+    // Cùng một truyện (refresh, đổi điều kiện dừng): giữ dữ liệu cũ trong lúc tải lại, để giao diện không nháy về trạng thái rỗng.
+    setResult(current => startPolling(current, scope));
     const poll = async () => {
       controller = new AbortController();
       const response = await load(scope, controller.signal);
