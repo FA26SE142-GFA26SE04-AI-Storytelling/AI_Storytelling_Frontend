@@ -484,7 +484,8 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 - [ ] (Optional) Mua thêm gói qua SePay
 - [x] Kiểm tra quyền giám sát ở giao diện (ẩn hoặc vô hiệu nút theo quyền, kiểm tra lại mỗi lần đổi bé): Hồ sơ bé, Cài đặt an toàn, Thư viện (lộ trình, nộp cộng đồng, lưu trữ), Lộ trình, các khối Dashboard, Hold Mode. Studio không cần quyền riêng; nút Duyệt dựa vào `canApprove` backend trả về
 - [ ] Dọn các hàm gọi API Organization và ClassGroup (dành cho vai trò Teacher, đặc tả đã bỏ)
-- [ ] Dọn code không dùng: `RevisePanel` và `ProposalCard` trong `features/review/ReviewTools.tsx` (màn duyệt dùng `RevisionPanel.tsx` và `ProposalCard.tsx`)
+- [x] Dọn code không dùng: `RevisePanel` và `ProposalCard` trong `features/review/ReviewTools.tsx` cùng CSS `.proposal` / `.diff` trùng tên trong `review-tools.css`
+- [x] Sửa trùng tên class CSS `.gate`: hộp "Dành cho bố mẹ" (`ParentalGate`) đè lên cột đọc của màn Duyệt nội dung làm cột co còn 380px; đổi thành `.parental-gate`. Lưu ý: CSS trong Next.js dùng chung toàn app, đặt tên class có tiền tố theo màn
 
 ## Thứ tự nên làm
 

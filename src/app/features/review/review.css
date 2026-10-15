@@ -24,7 +24,9 @@
 .gate-tabs button.on { color: var(--text); background: color-mix(in srgb, var(--primary) 14%, transparent); }
 .gate-tabs .pill { padding: 0 6px; line-height: 16px; }
 .gate-body { flex: 1; min-height: 0; overflow-y: auto; padding: 22px 28px 40px; display: flex; flex-direction: column; gap: 16px; }
-.gate-body > * { width: 100%; max-width: 660px; margin: 0 auto; }
+/* Trang truyện, đề xuất AI và học liệu trải hết bề ngang cột đọc. */
+.gate-body > * { width: 100%; max-width: none; margin: 0; }
+.review-doc.gate .sheet { max-width: none; }
 .sheet .row .pill { flex: none; }
 
 /* Bản thảo có thể chọn đoạn */

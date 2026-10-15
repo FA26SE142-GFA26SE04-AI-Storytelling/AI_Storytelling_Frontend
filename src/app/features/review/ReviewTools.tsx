@@ -2,12 +2,12 @@
 
 import "./review-tools.css";
 import { useState } from "react";
-import { Archive, Check, Plus, RefreshCw, Sparkles, Trash2, X } from "lucide-react";
+import { Archive, Check, Plus, RefreshCw, Trash2, X } from "lucide-react";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import type { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
 import type { DiscussionPromptDto, QuizQuestionDto, VocabularyItemDto } from "@/app/types/aiStory";
 import type { ApiResponse } from "@/app/types/auth";
-import { ARCHIVE_REASONS, FREE_TEXT_MAX, REVISION_INTENTS, quizTypesFor, revisionInstruction, type ArchiveReason, type RevisionIntent } from "@/app/lib/storyRules";
+import { ARCHIVE_REASONS, quizTypesFor, type ArchiveReason } from "@/app/lib/storyRules";
 
 type Review = ReturnType<typeof useStoryReview>;
 type Artifact = "vocabulary" | "quiz" | "discussion";
@@ -21,77 +21,6 @@ function Dialog({ title, onClose, children, wide }: { title: string; onClose: ()
         <div className="row"><b className="display grow" style={{ fontSize: 18 }}>{title}</b><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
         {children}
       </div>
-    </div>
-  );
-}
-
-const itemText = (artifact: string, item: Record<string, unknown>) =>
-  artifact === "vocabulary" ? `${item.term}: ${item.definition}` : artifact === "quiz" ? `${item.question}${item.correctAnswer ? ` → ${item.correctAnswer}` : ""}` : String(item.question ?? "");
-
-/** Đề xuất AI đang chờ: xem trước rồi Áp dụng hoặc Bỏ qua (Luồng 2 mục 6.2–6.4). */
-export function ProposalCard({ r }: { r: Review }) {
-  const p = r.proposal;
-  if (!p) return null;
-  const orig = p.originalContent as { selectedText?: string; items?: Record<string, unknown>[] } | null;
-  const sug = p.suggestedContent as { content?: string; items?: Record<string, unknown>[] } | null;
-  const isStory = p.artifactType === "story";
-  return (
-    <div className="proposal">
-      <b className="row"><Sparkles className="ic" style={{ color: "var(--primary)" }} />Đề xuất của AI — {isStory ? "nội dung truyện" : ARTIFACT_LABEL[p.artifactType as Artifact] ?? p.artifactType}</b>
-      {isStory ? (
-        <div className="diff">
-          <div><small>Bản hiện tại</small><p className="del">{orig?.selectedText}</p></div>
-          <div><small>Bản AI đề xuất</small><p className="add">{sug?.content}</p></div>
-        </div>
-      ) : (
-        <div className="diff">
-          {(orig?.items?.length ?? 0) > 0 && <div><small>Hiện tại</small><ul>{orig!.items!.map((it, i) => <li key={i} className="del">{itemText(p.artifactType, it)}</li>)}</ul></div>}
-          <div><small>AI đề xuất</small><ul>{(sug?.items ?? []).map((it, i) => <li key={i} className="add">{itemText(p.artifactType, it)}</li>)}</ul></div>
-        </div>
-      )}
-      <p className="sub">{isStory ? "Áp dụng sẽ tạo bản truyện mới; học liệu của bản cũ cần tạo lại." : "Áp dụng sẽ thay toàn bộ danh sách hiện tại."}</p>
-      <div className="row">
-        <button className="btn btn-ok" disabled={r.busy} onClick={() => void r.decideProposal(true)}><Check className="ic" />Áp dụng</button>
-        <button className="btn btn-s" disabled={r.busy} onClick={() => void r.decideProposal(false)}>Bỏ qua</button>
-      </div>
-    </div>
-  );
-}
-
-/** Chỉnh sửa theo chủ đích (Luồng 2 mục 5.8): chọn mục đích + phạm vi, AI đề xuất bản sửa để xem trước. */
-export function RevisePanel({ r, scene }: { r: Review; scene?: { index: number; text: string } }) {
-  const [intent, setIntent] = useState<RevisionIntent>("simplify");
-  const [note, setNote] = useState("");
-  const [scope, setScope] = useState<"whole" | "scene">("whole");
-  const content = r.bundle?.story.content ?? "";
-  const canUseScene = !!scene && content.includes(scene.text);
-
-  const submit = () => r.run(async (signal) => {
-    if (!r.bundle) return;
-    const start = scope === "scene" && canUseScene ? content.indexOf(scene!.text) : 0;
-    const end = scope === "scene" && canUseScene ? start + scene!.text.length : content.length;
-    const instruction = revisionInstruction(intent, note);
-    if (!instruction) throw new Error("Hãy ghi rõ bạn muốn AI sửa gì.");
-    await r.createProposal(await api.partialEditStory(r.bundle.summary.storyId, {
-      versionId: r.bundle.summary.storyVersionId, selection: { start, endExclusive: end, text: content.slice(start, end) }, instruction,
-    }, signal), signal);
-  });
-
-  return (
-    <div className="sec" style={{ gap: 8 }}>
-      <div className="sec-h">Nhờ AI sửa</div>
-      <div className="chips">
-        {REVISION_INTENTS.map((i) => <button key={i.id} type="button" className={`chip${intent === i.id ? " on" : ""}`} onClick={() => setIntent(i.id)}>{i.label}</button>)}
-      </div>
-      {scene && (
-        <div className="seg">
-          <button type="button" className={scope === "whole" ? "on" : ""} onClick={() => setScope("whole")}>Cả truyện</button>
-          <button type="button" className={scope === "scene" ? "on" : ""} disabled={!canUseScene} onClick={() => setScope("scene")}>Cảnh {scene.index + 1}</button>
-        </div>
-      )}
-      <input className="inp" maxLength={FREE_TEXT_MAX} value={note} onChange={(e) => setNote(e.target.value)} placeholder={intent === "custom" ? "Bạn muốn AI sửa gì? (bắt buộc)" : "Ghi chú thêm (không bắt buộc)"} aria-label="Ghi chú cho AI" />
-      <button className="btn btn-s btn-c" disabled={r.busy || !!r.proposal || !r.bundle?.summary.canEdit || (intent === "custom" && !note.trim())} onClick={() => void submit()}><Sparkles className="ic" />Xem đề xuất</button>
-      <p className="sub">Mỗi truyện có 3 lần sửa bằng AI miễn phí (gồm sửa nội dung và tạo lại học liệu).</p>
     </div>
   );
 }

@@ -22,8 +22,8 @@ export default function ParentalGate({ email, onPass, onCancel }: { email: strin
   };
 
   return (
-    <div className="gate-backdrop" role="dialog" aria-modal="true" aria-label="Xác nhận người lớn">
-      <form className="gate" onSubmit={submit}>
+    <div className="parental-gate-backdrop" role="dialog" aria-modal="true" aria-label="Xác nhận người lớn">
+      <form className="parental-gate" onSubmit={submit}>
         <b className="display row" style={{ fontSize: 18 }}><Lock className="ic" />Dành cho bố mẹ</b>
         <p className="sub">Nhập mật khẩu tài khoản {email} để quay về khu người lớn.</p>
         <input className="inp" type="password" autoFocus required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} aria-label="Mật khẩu" />
