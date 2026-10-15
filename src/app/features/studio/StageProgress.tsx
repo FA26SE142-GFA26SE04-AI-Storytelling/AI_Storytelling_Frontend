@@ -46,6 +46,16 @@ export default function StageProgress({ stage, snapshot, message, errorCode, tim
       </div>
     );
   }
+  if (stage === "moderation") {
+    return (
+      <div ref={emptyRef} className="empty">
+        <Frog size={110} mood="think" />
+        <b className="display">Đang được kiểm duyệt an toàn</b>
+        <span>Truyện cần một kiểm duyệt viên xem thêm trước khi tới bước duyệt của bạn, thường trong 24 giờ. Bạn có thể rời trang này, truyện sẽ vào hàng chờ duyệt khi xong.</span>
+        {onRetry && <button className="btn btn-s" onClick={onRetry}>Kiểm tra lại</button>}
+      </div>
+    );
+  }
   if (stage === "blocked" || stage === "stopped") {
     return (
       <div ref={emptyRef} className="empty">

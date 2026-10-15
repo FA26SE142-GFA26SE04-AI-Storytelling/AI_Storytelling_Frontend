@@ -4,6 +4,7 @@ import {
   AIStoryInputProgressDto,
   SubmitAIStoryInputRequestDto,
 } from '@/app/types/aiStory';
+import { lengthTarget, vocabularyLevelFor, type VocabChoice } from '@/app/lib/storyRules';
 
 export interface AIStoryInputFormValues {
   topic: string;
@@ -11,6 +12,9 @@ export interface AIStoryInputFormValues {
   lesson: string;
   charactersText: string;
   targetLength: number;
+  /** Bỏ trống để AI gợi ý bối cảnh. */
+  setting?: string;
+  vocabularyChoice?: VocabChoice;
 }
 
 export type AIStoryInputFlowPhase =
@@ -35,10 +39,12 @@ export function createDefaultFormValues(context: AIStoryInputContextDto): AIStor
   const interest = context.interests[0];
   return {
     topic: interest ? `Chuyến phiêu lưu của những người bạn về chủ đề ${interest}` : '',
-    genre: 'Thám hiểm & Phép thuật',
-    lesson: 'Lòng dũng cảm và sự sẻ chia cùng bạn bè',
-    charactersText: 'Sóc Bông, Thỏ Trắng',
-    targetLength: clampTargetLength(DEFAULT_TARGET_LENGTH, context.maximumLength),
+    genre: 'Phiêu lưu',
+    lesson: '',
+    charactersText: '',
+    setting: '',
+    vocabularyChoice: 'default',
+    targetLength: clampTargetLength(lengthTarget('medium', context.readingLevel || 2, context.maximumLength), context.maximumLength),
   };
 }
 
@@ -56,10 +62,10 @@ export function buildCreativeInput(
     genre: values.genre.trim() || undefined,
     characterMode: characters.length > 0 ? 'specified' : 'ai_suggested',
     characters,
-    settingMode: 'ai_suggested',
-    setting: undefined,
+    settingMode: values.setting?.trim() ? 'specified' : 'ai_suggested',
+    setting: values.setting?.trim() || undefined,
     lesson: values.lesson.trim(),
-    vocabularyLevel: context.defaultVocabularyLevel,
+    vocabularyLevel: vocabularyLevelFor(values.vocabularyChoice, context.defaultVocabularyLevel, context.readingLevel),
     language: context.defaultLanguage || undefined,
     targetLength: clampTargetLength(values.targetLength, context.maximumLength),
   };

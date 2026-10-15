@@ -11,6 +11,8 @@ type DataState = {
   childrenLoading: boolean;
   child: ChildProfile | null;
   selectChild: (id: number) => void;
+  /** Tải lại danh sách bé (sau khi tạo, sửa, kích hoạt, nhận lời mời). */
+  reloadChildren: (selectId?: number) => Promise<void>;
   stories: StoryCard[];
   storiesLoading: boolean;
   error: string | null;
@@ -34,18 +36,18 @@ export function WorkspaceDataProvider({ children: node }: { children: React.Reac
   const [storiesLoading, setStoriesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let alive = true;
-    void childProfileService.getMyChildProfiles().then((res) => {
-      if (!alive) return;
-      const list = (res.data ?? []).filter((c) => !/archived/i.test(c.status));
-      setKids(list);
-      setChildId((cur) => cur ?? list.find((c) => /active/i.test(c.status))?.id ?? list[0]?.id ?? null);
-      if (!res.success) setError(res.message);
-      setKidsLoading(false);
-    });
-    return () => { alive = false; };
+  const reloadChildren = useCallback(async (selectId?: number) => {
+    const res = await childProfileService.getMyChildProfiles();
+    const list = (res.data ?? []).filter((c) => !/archived/i.test(c.status));
+    setKids(list);
+    setChildId((cur) => selectId ?? (cur !== null && list.some((c) => c.id === cur) ? cur : list.find((c) => /active/i.test(c.status))?.id ?? list[0]?.id ?? null));
+    if (!res.success) setError(res.message);
+    setKidsLoading(false);
   }, []);
+
+  useEffect(() => {
+    void reloadChildren();
+  }, [reloadChildren]);
 
   const reload = useCallback(async () => {
     if (childId === null) { setStories([]); return; }
@@ -65,12 +67,13 @@ export function WorkspaceDataProvider({ children: node }: { children: React.Reac
     childrenLoading: kidsLoading,
     child: kids.find((c) => c.id === childId) ?? null,
     selectChild: setChildId,
+    reloadChildren,
     stories,
     storiesLoading,
     error,
     reload,
     reviewQueue: stories.filter((s) => statusKey(s.raw) === "content_review"),
-  }), [kids, kidsLoading, childId, stories, storiesLoading, error, reload]);
+  }), [kids, kidsLoading, childId, stories, storiesLoading, error, reload, reloadChildren]);
 
   return <Ctx.Provider value={value}>{node}</Ctx.Provider>;
 }

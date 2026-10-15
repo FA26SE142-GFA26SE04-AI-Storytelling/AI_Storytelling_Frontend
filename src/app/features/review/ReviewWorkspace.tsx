@@ -2,8 +2,8 @@
 
 import "./review.css";
 import { useState } from "react";
-import { Archive, Check, CircleAlert, RefreshCw } from "lucide-react";
-import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
+import { Archive, Check, CircleAlert, PencilLine, RefreshCw } from "lucide-react";
+import { ArchiveDialog, LearningEditor, ProposalCard, RevisePanel } from "./ReviewTools";
 import { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
 import { hasMissingLearning } from "@/app/features/story-workflow/storyReviewLearning";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
@@ -12,16 +12,12 @@ import { ageLabel } from "@/app/lib/storyView";
 import type { WorkspaceId } from "@/app/components/shell/nav";
 import { useRiseIn, usePop, useSwap } from "@/app/lib/motion";
 
-function ReviewDetail({ storyId, onDone }: { storyId: number; onDone: (msg: string) => void }) {
+function ReviewDetail({ storyId, ageBand, onDone }: { storyId: number; ageBand: string; onDone: (msg: string) => void }) {
   const r = useStoryReview(storyId);
   const sheetRef = useSwap<HTMLDivElement>(storyId);
   const sideRef = useRiseIn<HTMLDivElement>(".ck, .sec, .kv", [r.bundle?.summary.storyVersionId]);
-  const { bundle, busy, error, validation, proposal } = r;
-
-  const archive = () => r.run(async (signal) => {
-    const res = r.requireData(await api.archiveStory(storyId, { reason: "Lưu trữ từ Taletale" }, signal));
-    if (!signal.aborted && res.success) onDone("Đã lưu trữ truyện");
-  });
+  const { bundle, busy, error, validation } = r;
+  const [dialog, setDialog] = useState<"learning" | "archive" | null>(null);
 
   if (!bundle) {
     return (
@@ -76,16 +72,21 @@ function ReviewDetail({ storyId, onDone }: { storyId: number; onDone: (msg: stri
               <div key={c.name} className="ck"><span className={`st ${c.passed ? "ok" : "warn"}`}>{c.passed ? <Check /> : <CircleAlert />}</span>{c.name}<small>{c.message ?? ""}</small></div>
             ))}
           </div>
-          {error && <div className="notice err" role="alert">{error}</div>}
-          {proposal && <div className="notice ok">Có đề xuất chỉnh sửa từ AI đang chờ xử lý.</div>}
+          {error && !dialog && <div className="notice err" role="alert">{error}</div>}
+          <ProposalCard r={r} />
+          {summary.canEdit && !r.proposal && <RevisePanel r={r} />}
           <div className="sec">
             <div className="sec-h">Quyết định</div>
             {missing && <button className="btn btn-s btn-c" disabled={busy || !summary.canEdit} onClick={() => void r.generateMissingLearning()}><RefreshCw className="ic" />Tạo học liệu còn thiếu</button>}
-            <button className="btn btn-ok btn-c" disabled={busy || !summary.canApprove || missing} onClick={() => void r.approve(() => onDone("Đã duyệt, hệ thống đang tạo minh hoạ và giọng đọc"))}><Check className="ic" />Duyệt truyện</button>
+            {summary.canEdit && <button className="btn btn-s btn-c" disabled={busy || !!r.proposal} onClick={() => setDialog("learning")}><PencilLine className="ic" />Sửa học liệu</button>}
+            <button className="btn btn-ok btn-c" disabled={busy || !summary.canApprove || missing || !!r.proposal} onClick={() => void r.approve(() => onDone("Đã duyệt, hệ thống đang tạo minh hoạ và giọng đọc"))}><Check className="ic" />Duyệt truyện</button>
             <div className="row">
-              <button className="btn btn-no grow btn-c" disabled={busy || !summary.canArchive} onClick={() => void archive()}><Archive className="ic" />Lưu trữ</button>
+              <button className="btn btn-no grow btn-c" disabled={busy || !summary.canArchive} onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ</button>
             </div>
+            {r.proposal && <p className="sub">Hãy áp dụng hoặc bỏ qua đề xuất của AI trước khi duyệt.</p>}
           </div>
+          {dialog === "learning" && <LearningEditor r={r} ageBand={ageBand} onClose={() => setDialog(null)} />}
+          {dialog === "archive" && <ArchiveDialog storyId={storyId} onClose={() => setDialog(null)} onDone={onDone} />}
         </div>
       </div>
     </>
@@ -122,7 +123,7 @@ export default function ReviewWorkspace({ go }: { go: (id: WorkspaceId) => void 
         </div>
       </div>
 
-      {active ? <ReviewDetail key={active.id} storyId={active.id} onDone={done} /> : (
+      {active ? <ReviewDetail key={active.id} storyId={active.id} ageBand={active.ageBand} onDone={done} /> : (
         <>
           <div className="review-doc">
             <div className="done-state">

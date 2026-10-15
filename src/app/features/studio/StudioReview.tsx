@@ -1,7 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Check, CircleAlert, RefreshCw, Save } from "lucide-react";
+import { Archive, Check, CircleAlert, PencilLine, RefreshCw, Save } from "lucide-react";
+import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
+import { ArchiveDialog, LearningEditor, ProposalCard, RevisePanel } from "@/app/features/review/ReviewTools";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
 import { hasMissingLearning } from "@/app/features/story-workflow/storyReviewLearning";
@@ -14,6 +16,8 @@ type Props = { storyId: number; mediaStage: boolean; onApproved: () => void; onF
 export default function StudioReview({ storyId, mediaStage, onApproved, onFinish }: Props) {
   const r = useStoryReview(storyId);
   const { bundle, busy, error, validation } = r;
+  const { child } = useWorkspaceData();
+  const [dialog, setDialog] = useState<"learning" | "archive" | null>(null);
   const media = useMediaProgress(mediaStage ? storyId : null);
   const [active, setActive] = useState(0);
   const [edits, setEdits] = useState<Record<number, string>>({});
@@ -124,14 +128,21 @@ export default function StudioReview({ storyId, mediaStage, onApproved, onFinish
           <div className="sec"><div className="sec-h">Bài học</div><p className="sub" style={{ fontSize: 12.5 }}>{story.lesson || "—"}</p></div>
           {vocabulary.items.length > 0 && <div className="sec"><div className="sec-h">Từ vựng</div>{vocabulary.items.map((v) => <div key={v.term} className="voc-i"><b>{v.term}</b><span>{v.definition}</span></div>)}</div>}
           {discussion.items.length > 0 && <div className="sec"><div className="sec-h">Gợi ý thảo luận</div>{discussion.items.map((d, i) => <p key={d.id ?? i} className="sub" style={{ fontSize: 12.5 }}>{d.question}</p>)}</div>}
-          {error && <div className="notice err" role="alert">{error}</div>}
+          {error && !dialog && <div className="notice err" role="alert">{error}</div>}
+          {!mediaStage && <ProposalCard r={r} />}
+          {canEdit && !r.proposal && !dirty && <RevisePanel r={r} scene={{ index: active, text: scenes[active] ?? "" }} />}
           {!mediaStage && (
             <div className="sec">
               {missing && <button className="btn btn-s btn-c" disabled={busy || !summary.canEdit} onClick={() => void r.generateMissingLearning()}><RefreshCw className="ic" />Tạo học liệu còn thiếu</button>}
-              <button className="btn btn-ok btn-c" disabled={busy || dirty || !summary.canApprove || missing} onClick={() => void r.approve(onApproved)}><Check className="ic" />Duyệt và tạo minh hoạ</button>
+              {canEdit && <button className="btn btn-s btn-c" disabled={busy || !!r.proposal} onClick={() => setDialog("learning")}><PencilLine className="ic" />Sửa học liệu</button>}
+              <button className="btn btn-ok btn-c" disabled={busy || dirty || !summary.canApprove || missing || !!r.proposal} onClick={() => void r.approve(onApproved)}><Check className="ic" />Duyệt và tạo minh hoạ</button>
+              {summary.canArchive && <button className="btn btn-no btn-c" disabled={busy} onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ</button>}
               {dirty && <p className="sub">Hãy lưu chỉnh sửa trước khi duyệt.</p>}
+              {r.proposal && <p className="sub">Hãy áp dụng hoặc bỏ qua đề xuất của AI trước khi duyệt.</p>}
             </div>
           )}
+          {dialog === "learning" && <LearningEditor r={r} ageBand={child?.ageBand ?? ""} onClose={() => setDialog(null)} />}
+          {dialog === "archive" && <ArchiveDialog storyId={storyId} onClose={() => setDialog(null)} onDone={() => { setDialog(null); onFinish(); }} />}
         </div>
       </div>
     </section>
