@@ -8,6 +8,15 @@ import type { Permission } from "@/app/types/supervision";
 
 export type MyRole = { isOwner: boolean; perms: string[]; can: (p: Permission) => boolean };
 
+/** Đọc vai trò và quyền của người dùng với một bé ngay lúc gọi, không cache (permission LIVE). */
+export async function loadMyRole(child: ChildProfile, meId: number): Promise<MyRole> {
+  const r = await supervisionService.listSupervisors(child.id);
+  const mine = r.data?.find((x) => x.supervisorUserId === meId);
+  const isOwner = mine ? mine.supervisorRole === "Owner" : child.ownerUserId === meId;
+  const perms = mine && !isOwner ? (await supervisionService.listPermissions(mine.id)).data ?? [] : [];
+  return { isOwner, perms, can: (p) => isOwner || perms.includes(p) };
+}
+
 /** Vai trò và quyền của người dùng với một bé — kiểm tra lại mỗi lần đổi bé (permission LIVE). */
 export function useMyRole(child: ChildProfile | null): MyRole | null {
   const { user } = useAuth();
@@ -18,12 +27,7 @@ export function useMyRole(child: ChildProfile | null): MyRole | null {
     if (!child) { setRole(null); return; }
     let alive = true;
     setRole(null);
-    void supervisionService.listSupervisors(child.id).then(async (r) => {
-      const mine = r.data?.find((x) => x.supervisorUserId === meId);
-      const isOwner = mine ? mine.supervisorRole === "Owner" : child.ownerUserId === meId;
-      const perms = mine && !isOwner ? (await supervisionService.listPermissions(mine.id)).data ?? [] : [];
-      if (alive) setRole({ isOwner, perms, can: (p) => isOwner || perms.includes(p) });
-    });
+    void loadMyRole(child, meId).then((r) => { if (alive) setRole(r); });
     return () => { alive = false; };
   }, [child, meId]);
 

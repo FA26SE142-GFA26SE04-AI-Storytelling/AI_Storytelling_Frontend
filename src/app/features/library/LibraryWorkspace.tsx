@@ -185,7 +185,8 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
               {selStatus === "ready" && <button className="btn btn-g btn-c" onClick={() => setDialog("report")}><Flag className="ic" />Báo cáo nội dung</button>}
               {mod?.reports.some((r) => r.status === "pending") && <p className="sub">Đã có báo cáo đang chờ kiểm duyệt viên xử lý.</p>}
               {selStatus !== "archived" && <button className="btn btn-s btn-c" onClick={() => setDialog("preview")}><Eye className="ic" />Xem trước như bé thấy</button>}
-              {selStatus !== "archived" && <button className="btn btn-no btn-c" onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ</button>}
+              {/* Lưu trữ cần quyền duyệt truyện (Luồng 2 mục 2.1, BR-1.10). */}
+              {selStatus !== "archived" && role?.can("ApproveStory") && <button className="btn btn-no btn-c" onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ</button>}
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
       </AsidePane>

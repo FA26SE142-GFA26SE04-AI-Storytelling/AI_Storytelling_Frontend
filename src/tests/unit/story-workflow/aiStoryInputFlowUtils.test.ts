@@ -123,9 +123,11 @@ describe('AI Story Input Phase 1 contract', () => {
     expect(request.vocabularyLevel).toBe('level_2');
   });
 
-  it('splits the allowed length range into short / medium / long presets', () => {
-    expect(lengthPresets(700)).toEqual({ short: 200, medium: 400, long: 600 });
-    const tiny = lengthPresets(120);
+  it('splits the reading-level length range into short / medium / long presets', () => {
+    // Mức 2: 400–700 tiếng (Luồng 2 mục 5.3b).
+    expect(lengthPresets(2000, 2)).toEqual({ short: 450, medium: 550, long: 650 });
+    expect(lengthPresets(500, 2).long).toBe(500);
+    const tiny = lengthPresets(120, 3);
     expect(Math.max(tiny.short, tiny.medium, tiny.long)).toBeLessThanOrEqual(120);
   });
 

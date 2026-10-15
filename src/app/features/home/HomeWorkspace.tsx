@@ -10,6 +10,8 @@ import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { guardianService } from "@/app/services/guardianService";
 import { childProfileService } from "@/app/services/childProfileService";
 import { supervisionService } from "@/app/services/supervisionService";
+import { adaptiveService } from "@/app/services/adaptiveService";
+import type { Recommendation } from "@/app/types/adaptive";
 import type { Dashboard, ProgressReport } from "@/app/types/progress";
 import type { StoryWish } from "@/app/types/reading";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
@@ -24,6 +26,7 @@ import { useMyRole } from "@/app/features/children/useMyRole";
 import { useChildRefs } from "@/app/features/roadmap/AddToRoadmapDialog";
 import HoldPanel from "@/app/features/roadmap/HoldPanel";
 import { useRiseIn } from "@/app/lib/motion";
+import RecommendationCard from "@/app/features/adaptive/RecommendationCard";
 import WishItem from "./WishItem";
 import CompletionCard from "./CompletionCard";
 
@@ -54,17 +57,21 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
   const [reports, setReports] = useState<ProgressReport[]>([]);
   const [quota, setQuota] = useState<TokenQuotaStatus | null>(null);
   const [requests, setRequests] = useState<PermissionRequest[]>([]);
+  const [recs, setRecs] = useState<Recommendation[]>([]);
   const [allRows, setAllRows] = useState<AllRow[]>([]);
   const [openReport, setOpenReport] = useState<number | null>(null);
   const rootRef = useRiseIn<HTMLElement>(".dash-block", [child?.id, tab, dash ? 1 : 0]);
 
   const load = useCallback(async () => {
     if (!child) return;
-    const [d, w, r, q, rels] = await Promise.all([
+    const [d, w, r, q, rels, rc] = await Promise.all([
       guardianService.dashboard(child.id), guardianService.wishes(child.id), guardianService.reports(child.id),
       childProfileService.getTokenQuotaForChild(child.id), supervisionService.listSupervisors(child.id),
+      // Luồng 6 Bước 6.5 — hàng đợi đề xuất chung của bé, tải lại mỗi lần mở Dashboard.
+      child.status === "Active" ? adaptiveService.recommendations(child.id) : Promise.resolve({ data: [] as Recommendation[] }),
     ]);
     setDash(d.data);
+    setRecs(rc.data ?? []);
     setWishes((w.data ?? []).filter((x) => x.status === "pending"));
     setReports(r.data ?? []);
     setQuota(q.success ? q.data : null);
@@ -92,7 +99,10 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
   const lessonOf = (storyId: number) => stories.find((s) => s.id === storyId)?.raw.moralLesson ?? null;
   const maxMin = Math.max(1, ...(dash?.minutesByDay.map((d) => d.minutes) ?? [0]));
   const unseen = dash?.completions.filter((c) => !c.seen) ?? [];
-  const actionCount = (can("ApproveStory") ? reviewQueue.length + wishes.length : 0) + (dash?.holdCase?.needsAttention ? 1 : 0) + (role?.isOwner ? requests.length : 0) + unseen.length;
+  // Đề xuất hiện cho mọi người giám sát hợp lệ; nhãn quyền tính trên thẻ (Bước 6.5). Đề xuất vừa quyết định giữ lại 3 ngày để xem kết quả.
+  const awaitingRecs = recs.filter((r) => r.status === "awaiting_review");
+  const recentRecs = recs.filter((r) => r.status !== "awaiting_review" && r.status !== "stale" && r.decidedAt && Date.now() - Date.parse(r.decidedAt) < 3 * 86_400_000);
+  const actionCount = (can("ApproveStory") ? reviewQueue.length + wishes.length : 0) + (dash?.holdCase?.needsAttention ? 1 : 0) + (role?.isOwner ? requests.length : 0) + unseen.length + awaitingRecs.length;
   const permLabel = (p: string) => PERMISSIONS.find((x) => x.id === p)?.label ?? p;
 
   return (
@@ -155,6 +165,7 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
                   {role?.isOwner && requests.map((q) => (
                     <button key={q.id} className="mini-item" onClick={() => go("children")}><span className="grow" style={{ textAlign: "left" }}><b>Người giám sát #{q.requesterUserId} xin quyền {q.permissions.map(permLabel).join(", ")}</b><small>Mở Hồ sơ bé → Người giám sát để xử lý</small></span></button>
                   ))}
+                  {role && [...awaitingRecs, ...recentRecs].map((r) => <RecommendationCard key={r.id} rec={r} child={child} role={role} go={go} onChanged={() => void load()} />)}
                   {can("ViewProgress") && unseen.length > 0 && <p className="sub">{unseen.length} câu chuyện con vừa đọc xong — xem bên dưới để trò chuyện với con.</p>}
                 </div>
 

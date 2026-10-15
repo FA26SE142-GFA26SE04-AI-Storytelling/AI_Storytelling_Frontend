@@ -10,6 +10,7 @@ import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { useRiseIn } from "@/app/lib/motion";
 import { CONSENT_VERSION, presetBlocked } from "@/app/lib/guardian";
 import { CategoryRules, ConsentBlock, normalizeRule, rulesToRequest } from "@/app/features/children/SafetyBlocks";
+import { useMyRole } from "@/app/features/children/useMyRole";
 
 const MODES: { id: SetSafetyPolicyRequest["requiredApprovalMode"]; b: string; s: string }[] = [
   { id: "AlwaysManual", b: "Luôn cần duyệt", s: "Mọi truyện AI tạo đều vào hàng chờ. Khuyên dùng cho trẻ nhỏ." },
@@ -26,6 +27,9 @@ const NAV = [
 /** Luồng 1 Bước 1.4 — cài đặt an toàn của bé. */
 export default function SafetyWorkspace() {
   const { child, reloadChildren } = useWorkspaceData();
+  // Mặc định chỉ Owner sửa được; người giám sát khác cần quyền "Sửa cài đặt an toàn" (BR-1.8). Kiểm tra lại mỗi lần đổi bé.
+  const role = useMyRole(child);
+  const canEdit = !!role?.can("ManageSafetySettings");
   const [cats, setCats] = useState<ContentCategory[]>([]);
   const [policy, setPolicy] = useState<SafetyPolicy | null>(null);
   const [mode, setMode] = useState<SetSafetyPolicyRequest["requiredApprovalMode"]>("AlwaysManual");
@@ -101,7 +105,7 @@ export default function SafetyWorkspace() {
         <div className="ph"><span>Cài đặt an toàn</span></div>
         <div className="pb setnav" style={{ gap: 2 }}>
           {NAV.map((n) => <button key={n.id} onClick={() => jump(n.id)}><n.icon className="ic" />{n.label}</button>)}
-          <button className="btn btn-p btn-c" style={{ marginTop: 12 }} disabled={saving || loading} onClick={() => void save()}>{saving ? "Đang lưu…" : "Lưu cài đặt"}</button>
+          {canEdit && <button className="btn btn-p btn-c" style={{ marginTop: 12 }} disabled={saving || loading} onClick={() => void save()}>{saving ? "Đang lưu…" : "Lưu cài đặt"}</button>}
           {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
         </div>
       </div>
@@ -109,6 +113,7 @@ export default function SafetyWorkspace() {
       <div ref={bodyRef} className="setbody">
         {loading ? <p className="sub">Đang tải chính sách của {child.nickname}…</p> : (
           <>
+            {role && !canEdit && <div className="notice err">Bạn chỉ xem được cài đặt an toàn của {child.nickname}. Cần quyền “Sửa cài đặt an toàn” — xin quyền ở Hồ sơ bé → Người giám sát.</div>}
             {!policy && <div className="notice err">{child.nickname} chưa có chính sách an toàn. Đã chọn sẵn các chủ đề nên chặn theo tuổi — xem lại rồi bấm Lưu cài đặt.</div>}
             <section id="s-mode">
               <h2 className="display">Chế độ duyệt</h2>
@@ -116,7 +121,7 @@ export default function SafetyWorkspace() {
               <div className="sec" style={{ gap: 7 }}>
                 {MODES.map((m) => (
                   <label key={m.id} className={`opt${mode === m.id ? " on" : ""}`}>
-                    <input type="radio" name="mode" checked={mode === m.id} onChange={() => setMode(m.id)} />
+                    <input type="radio" name="mode" disabled={!canEdit} checked={mode === m.id} onChange={() => setMode(m.id)} />
                     <span><b>{m.b}</b><small>{m.s}</small></span>
                   </label>
                 ))}
@@ -126,18 +131,18 @@ export default function SafetyWorkspace() {
             <section id="s-topic">
               <h2 className="display">Chủ đề</h2>
               <p className="sub" style={{ marginBottom: 10 }}>AI sẽ từ chối chủ đề bị chặn, kể cả khi yêu cầu nhắc tới.</p>
-              <CategoryRules cats={cats} rules={rules} onChange={setRules} />
+              <CategoryRules cats={cats} rules={rules} onChange={setRules} disabled={!canEdit} />
             </section>
 
             <section id="s-limit">
               <h2 className="display">Giới hạn và quyền</h2>
               <div className="field" style={{ margin: "10px 0 2px" }}>
                 <span className="lbl row" style={{ justifyContent: "space-between" }}>Độ dài tối đa của truyện <b style={{ color: "var(--text)" }}>{len.toLocaleString("vi-VN")} tiếng</b></span>
-                <input type="range" className="range" min={200} max={5000} step={100} value={len} onChange={(e) => setLen(+e.target.value)} aria-label="Độ dài tối đa" />
+                <input type="range" className="range" disabled={!canEdit} min={200} max={5000} step={100} value={len} onChange={(e) => setLen(+e.target.value)} aria-label="Độ dài tối đa" />
                 <span className="sub">Đếm theo tiếng (âm tiết). Mức 1 khoảng 200–400 tiếng, mức 5 khoảng 1.600–2.400 tiếng.</span>
               </div>
               <div className="trow"><span>Cổng xác nhận người lớn<small>Hỏi mật khẩu của bạn trước khi rời chế độ của bé</small></span>
-                <button className={`tog${gate ? " on" : ""}`} role="switch" aria-checked={gate} aria-label="Cổng xác nhận người lớn" onClick={() => setGate(!gate)} /></div>
+                <button className={`tog${gate ? " on" : ""}`} disabled={!canEdit} role="switch" aria-checked={gate} aria-label="Cổng xác nhận người lớn" onClick={() => setGate(!gate)} /></div>
             </section>
 
             <section id="s-hold">
@@ -145,12 +150,12 @@ export default function SafetyWorkspace() {
               <p className="sub" style={{ marginBottom: 10 }}>Nếu {child.nickname} làm câu đố dưới ngưỡng nhiều bài liên tiếp, thư viện tạm khóa truyện mới và bạn nhận được thông báo. Bé mở khóa bằng cách đọc lại truyện đó.</p>
               <div className="field">
                 <span className="lbl row" style={{ justifyContent: "space-between" }}>Ngưỡng đọc hiểu <b style={{ color: "var(--text)" }}>{threshold}%</b></span>
-                <input type="range" className="range" min={50} max={90} step={5} value={threshold} onChange={(e) => setThreshold(+e.target.value)} aria-label="Ngưỡng đọc hiểu" />
+                <input type="range" className="range" disabled={!canEdit} min={50} max={90} step={5} value={threshold} onChange={(e) => setThreshold(+e.target.value)} aria-label="Ngưỡng đọc hiểu" />
               </div>
               <div className="field" style={{ marginTop: 10 }}>
                 <span className="lbl">Số bài liên tiếp dưới ngưỡng</span>
                 <div className="seg" style={{ maxWidth: 260 }}>
-                  {[2, 3, 4, 5].map((n) => <button key={n} className={windowSize === n ? "on" : ""} onClick={() => setWindowSize(n)}>{n} bài</button>)}
+                  {[2, 3, 4, 5].map((n) => <button key={n} disabled={!canEdit} className={windowSize === n ? "on" : ""} onClick={() => setWindowSize(n)}>{n} bài</button>)}
                 </div>
               </div>
             </section>
@@ -158,7 +163,7 @@ export default function SafetyWorkspace() {
             <section id="s-consent">
               <h2 className="display">Đồng ý của phụ huynh</h2>
               <p className="sub" style={{ marginBottom: 10 }}>Bắt buộc để kích hoạt hồ sơ và tạo truyện mới cho {child.nickname}.</p>
-              <ConsentBlock checked={consent} onChange={setConsent} />
+              <ConsentBlock checked={consent} onChange={setConsent} disabled={!canEdit} />
             </section>
           </>
         )}

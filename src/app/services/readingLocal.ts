@@ -53,13 +53,15 @@ export type State = {
   readLog: ReadLog[];
   completions: ReadCompletion[];
   holds: HoldRecord[];
+  /** Luồng 6 — phiên bé tự thoát giữa chừng (bỏ ngang), không gồm phiên đọc lại để mở khoá. */
+  abandonLog: { storyId: number; at: string }[];
 };
 
 const KEY = (childId: number) => `taletale-reading:v2:${childId}`;
 const fresh = (): State => ({
   nextId: 1, progress: {}, notebook: [], sessions: {}, correctEver: {}, completedStories: [], wishes: [], reactions: {},
   achievements: { expTotal: 0, knowledgeTreeExp: 0, pendingExp: 0, streakDays: 0, lastStreakDate: null, activitiesCompleted: 0, badges: [] },
-  roadmap: [], quizLog: [], readLog: [], completions: [], holds: [],
+  roadmap: [], quizLog: [], readLog: [], completions: [], holds: [], abandonLog: [],
 });
 const memory = new Map<number, State>();
 export function loadChild(childId: number): State { return load(childId); }
@@ -234,7 +236,10 @@ export function createLocalReading(loaders: ContentLoaders) {
     async exit(childId: number, sessionId: number, lastPageRead: number): Promise<ApiResponse<null>> {
       const s = load(childId);
       const sess = s.sessions[sessionId];
-      if (sess && !sess.completed) s.progress[sess.storyId] = { ...(s.progress[sess.storyId] ?? blankProgress(sess.storyId)), lastPageRead };
+      if (sess && !sess.completed) {
+        s.progress[sess.storyId] = { ...(s.progress[sess.storyId] ?? blankProgress(sess.storyId)), lastPageRead };
+        if (!sess.isRetake) s.abandonLog.push({ storyId: sess.storyId, at: new Date().toISOString() });
+      }
       delete s.sessions[sessionId];
       save(childId);
       return ok(null);

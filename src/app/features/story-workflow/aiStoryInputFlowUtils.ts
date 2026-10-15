@@ -40,12 +40,13 @@ export function clampTargetLength(value: number, maximumLength: number): number 
   return Math.min(Math.max(1, Math.round(safeValue)), safeMaximum);
 }
 
-/** Ngắn / vừa / dài = điểm giữa phần ba thấp / giữa / cao của khoảng độ dài cho phép, làm tròn 50 từ. */
-export function lengthPresets(maximumLength: number): Record<LengthPreset, number> {
-  const max = Math.max(MIN_TARGET_LENGTH, maximumLength);
-  const at = (fraction: number) =>
-    clampTargetLength(Math.round((MIN_TARGET_LENGTH + (max - MIN_TARGET_LENGTH) * fraction) / 50) * 50, max);
-  return { short: at(1 / 6), medium: at(1 / 2), long: at(5 / 6) };
+/**
+ * Ngắn / vừa / dài = phần ba thấp / giữa / cao của khoảng độ dài (tiếng) theo mức đọc của bé (Luồng 2 mục 5.3b),
+ * không vượt độ dài tối đa trong cài đặt an toàn.
+ */
+export function lengthPresets(maximumLength: number, readingLevel: number): Record<LengthPreset, number> {
+  const at = (choice: LengthPreset) => clampTargetLength(lengthTarget(choice, readingLevel || 2, maximumLength), maximumLength);
+  return { short: at('short'), medium: at('medium'), long: at('long') };
 }
 
 /** Cấp từ vựng thấp hơn / bằng / cao hơn mức theo hồ sơ bé. */
@@ -58,13 +59,13 @@ export function createDefaultFormValues(context: AIStoryInputContextDto): AIStor
   const interest = context.interests[0];
   return {
     topic: interest ? `Chuyến phiêu lưu của những người bạn về chủ đề ${interest}` : '',
-    genre: 'Thám hiểm & Phép thuật',
+    genre: 'Phiêu lưu',
     lesson: 'Lòng dũng cảm và sự sẻ chia cùng bạn bè',
     charactersText: 'Sóc Bông, Thỏ Trắng',
     setting: '',
     vocabularyLevel: context.defaultVocabularyLevel,
     // Mặc định độ dài "vừa" theo mức đọc của bé (Luồng 2 mục 5.3b).
-    targetLength: clampTargetLength(lengthTarget('medium', context.readingLevel || 2, context.maximumLength), context.maximumLength),
+    targetLength: lengthPresets(context.maximumLength, context.readingLevel).medium,
   };
 }
 

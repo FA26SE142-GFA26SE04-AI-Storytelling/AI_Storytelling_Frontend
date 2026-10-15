@@ -106,7 +106,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived }:
               <div className="row">
                 <span className={`pill ${tone}`}>{statusLabel}</span>
                 <span className="pill ai">Do AI tạo</span>
-                <span className="hint" style={{ marginLeft: "auto" }}>Bản thảo #{summary.storyVersionId} · {countWords(content)} từ</span>
+                <span className="hint" style={{ marginLeft: "auto" }}>Bản thảo #{summary.storyVersionId} · {countWords(content)} tiếng</span>
               </div>
               {editing ? (
                 <StoryEditor story={story} busy={busy} onCancel={() => setEditing(false)}
@@ -140,7 +140,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived }:
           <div className="sec">
             <div className="sec-h">Gói duyệt</div>
             <button className="ck ck-link" onClick={() => setTab("story")}>
-              <span className="st ok"><BookOpenText /></span>Truyện<small>{countWords(content)} từ{summary.readabilityFkgl !== null && ` · FKGL ${summary.readabilityFkgl.toFixed(1)}`}</small>
+              <span className="st ok"><BookOpenText /></span>Truyện<small>{countWords(content)} tiếng{summary.readabilityFkgl !== null && ` · FKGL ${summary.readabilityFkgl.toFixed(1)}`}</small>
             </button>
             {ARTIFACTS.map((k) => (
               <button key={k} className="ck ck-link" onClick={() => setTab(k)}>

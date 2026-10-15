@@ -1,6 +1,6 @@
 # Tiến độ Frontend (web) so với đặc tả nghiệp vụ
 
-Cập nhật: 15/10/2026 (sau khi làm Luồng 1–5). Đối chiếu với bộ tài liệu đặc tả: Luồng 1 v35, Luồng 2 v25, Luồng 3 v27, Luồng 4 v28, Luồng 5 v30, Luồng 6 v21.
+Cập nhật: 15/10/2026 (sau khi làm Luồng 1–5; đối chiếu lại với code và sửa thể loại, độ dài theo mức đọc, kiểm quyền). Đối chiếu với bộ tài liệu đặc tả: Luồng 1 v35, Luồng 2 v25, Luồng 3 v27, Luồng 4 v28, Luồng 5 v30, Luồng 6 v21.
 
 Chỉ tính các chức năng **Core**. Mục Optional ghi `(Optional)`.
 
@@ -18,12 +18,12 @@ Ký hiệu:
 | L3 — Trẻ đọc truyện | ~75% giao diện (dữ liệu đọc chờ backend) |
 | L4 — Lộ trình, theo dõi, Hold Mode | ~80% giao diện (dữ liệu chờ backend) |
 | L5 — Admin / Content Creator / Moderator | ~80% giao diện (phần lớn dữ liệu chờ backend) |
-| L6 — Học tập thích ứng | 0% |
-| **Tổng (có trọng số theo số chức năng)** | **~72%** (chỉ còn L6 chưa làm) |
+| L6 — Học tập thích ứng | Core xong giao diện (dữ liệu chờ backend); Optional chưa làm |
+| **Tổng (có trọng số theo số chức năng)** | **~72%** trước khi làm L6 — chưa tính lại |
 
 ## Việc chặn cần sửa ngay
 
-- [x] Gỡ xung đột merge trong `app/page.tsx`. App đã build được. (Git vẫn báo `UU` cho tới khi chạy `git add app/page.tsx`.)
+- [x] Gỡ xung đột merge trong `app/page.tsx`. Đã xong: type-check sạch, 143 test đều qua.
 
 ## Luồng 1 — Hồ sơ trẻ & giám sát (~85%)
 
@@ -64,6 +64,7 @@ Phần còn lại của Luồng 1 đều **chờ backend** (xem mục "Luồng 1
 - [x] Nội dung đồng ý (a)–(d) kèm ô xác nhận, có phiên bản điều khoản (đổi phiên bản thì phải đồng ý lại)
 - [x] Danh sách chặn mặc định theo nhóm tuổi khi tạo hồ sơ
 - [x] Ngưỡng Hold Mode: % đọc hiểu và số bài liên tiếp
+- [x] Chỉ Owner hoặc người có quyền "Sửa cài đặt an toàn" sửa được; người giám sát khác chỉ xem (BR-1.8)
 - [ ] Bật/tắt "Bé ước một câu chuyện" (`story_wishes_enabled`) — **chờ backend**
 - [ ] Bật/tắt truyện nhiều lựa chọn (`allow_interactive_stories`) — **chờ backend**
 
@@ -84,6 +85,7 @@ Phần còn lại của Luồng 1 đều **chờ backend** (xem mục "Luồng 1
 - [x] Tạo mã QR Easy Login, tạo mã mới (mã cũ hết hiệu lực), thu hồi
 - [x] Bé quét QR → link `/?kid=<mã>` → mở phiên của bé, chào bé bằng biệt danh
 - [ ] Mã QR dùng lâu dài (BR-1.15) — **Một phần:** backend hiện cấp mã 5 phút, dùng 1 lần
+- [ ] Phiên của bé tự hết hạn sau 20 phút không hoạt động (không thao tác và không có telemetry; đang "Nghe cả truyện" vẫn tính là hoạt động) — chưa làm
 
 ### Luồng 1 — cần backend bổ sung
 
@@ -105,8 +107,8 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 
 **Yêu cầu tạo truyện (mục 3.1)** — `Studio → Yêu cầu`
 - [x] Ý tưởng, nhân vật (để trống = AI gợi ý, có nhân vật mẫu), bối cảnh (để trống = AI gợi ý, có gợi ý), bài học (có danh sách gợi ý hoặc tự nhập)
-- [x] 6 thể loại theo đặc tả: Cổ tích, Phiêu lưu, Động vật, Khoa học vui, Đời sống hằng ngày, Ngụ ngôn
-- [x] Độ dài Ngắn / Vừa / Dài theo bảng mức đọc (mục 5.3b), không vượt giới hạn của bé
+- [x] 6 thể loại theo đặc tả: Cổ tích, Phiêu lưu, Động vật, Khoa học vui, Đời sống hằng ngày, Ngụ ngôn (Studio và Content Creator dùng chung `GENRES` trong `lib/storyRules.ts`)
+- [x] Độ dài Ngắn / Vừa / Dài = phần ba thấp / giữa / cao của khoảng độ dài theo mức đọc của bé (mục 5.3b), tính bằng tiếng, không vượt giới hạn của bé
 - [x] Mức từ vựng: Quen thuộc / Theo trình độ / Mở rộng
 - [x] Giới hạn 200 ký tự mỗi ô, có bộ đếm
 - [x] Cảnh báo nhân vật / thương hiệu có bản quyền
@@ -136,8 +138,8 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 - [ ] Dàn ý dạng cây cho truyện nhiều lựa chọn — **chờ backend**
 
 **Nội dung truyện (Phase 3, mục 5.8)**
-- [x] Sửa tay nội dung từng cảnh rồi lưu
-- [x] Chỉnh sửa theo chủ đích: 9 mục đích, phạm vi cả truyện hoặc cảnh đang xem, ghi chú ≤ 200 ký tự, xem trước đề xuất rồi Áp dụng / Bỏ qua
+- [x] Sửa tay nội dung truyện rồi lưu (sửa cả truyện trong một ô; chưa sửa riêng từng cảnh)
+- [x] Chỉnh sửa theo chủ đích: 9 mục đích, phạm vi một đoạn bôi đen hoặc cả truyện, ghi chú ≤ 200 ký tự, xem trước đề xuất rồi Áp dụng / Bỏ qua
 - [ ] Cảnh báo Context Fidelity ("Truyện có thể lệch dàn ý ở đoạn…") — **chờ backend**
 - [ ] Phụ huynh sửa metadata (thể loại / chủ đề / bài học) ở bước duyệt — **chờ backend**
 - [ ] Hiện nhãn nội dung — **chờ backend**
@@ -160,7 +162,7 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 **Phiên bản & quản lý truyện (mục 6.8, 6.9)** — màn `Thư viện truyện`
 - [x] "Truyện của bé": tìm theo tên, lọc theo nguồn / chủ đề / 10 nhóm trạng thái
 - [x] Nút: Xem trước như bé thấy (không tính lượt đọc)
-- [x] Nút: Mở để duyệt / Tiếp tục trong Studio / Lưu trữ
+- [x] Nút: Mở để duyệt / Tiếp tục trong Studio / Lưu trữ (Lưu trữ chỉ hiện với người có quyền "Duyệt truyện")
 - [ ] Lịch sử phiên bản, so sánh 2 bản, khôi phục bản cũ — **chờ backend**
 - [ ] Số phiên bản, số lần con đã đọc — **chờ backend**
 - [x] Nút: Thêm vào lộ trình
@@ -245,7 +247,7 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 - [x] Huy hiệu: Truyện đầu tiên, 7 ngày chăm chỉ, Nhà sưu tầm từ, Đọc hết lộ trình, Điều ước thành thật (+ 2 huy hiệu chờ nội dung tương tác)
 - [x] Cây tri thức 5 mốc (hạt → mầm → cây non → cây lớn → cây ra hoa); "Tưới cây" đầu tư EXP, tổng EXP không giảm
 - [x] Sổ tay từ vựng, nghe lại từng từ
-- [x] Telemetry chạy nền: 16 loại sự kiện trong phiên đọc (bắt đầu/xong phiên, xem/xong trang, TTS, tra/lưu từ, câu đố, phần thưởng, huy hiệu, đánh dấu, yêu thích, buộc thoát, cảm nhận)
+- [ ] Telemetry chạy nền — **Một phần:** giao diện đã gọi đủ 16 loại sự kiện trong phiên đọc (bắt đầu/xong phiên, xem/xong trang, TTS, tra/lưu từ, câu đố, phần thưởng, huy hiệu, đánh dấu, yêu thích, buộc thoát, cảm nhận), nhưng khi backend chưa có API thì `readingService.log` bỏ qua, **chưa sự kiện nào được lưu** (kể cả trên trình duyệt) — **chờ backend**
 - [ ] Telemetry ngoài phiên đọc (`library_searched`, `story_wish_submitted`, `wish_suggestion_opened`) — **chờ backend** có endpoint telemetry theo hồ sơ bé
 - [ ] Telemetry ASR, lựa chọn, dự đoán, hỏi nhân vật — chờ các tính năng tương ứng
 
@@ -285,6 +287,8 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 **Theo dõi & trò chuyện sau đọc (Bước 4.3b, 4.3c)** — màn `Tổng quan` (Dashboard)
 - [x] Tab "Tất cả các con" (tóm tắt mỗi con 1 dòng) và tab riêng từng con
 - [x] Khối "Cần xử lý": truyện chờ duyệt, điều ước chờ xác nhận, Hold Mode cần chú ý, yêu cầu cấp quyền, thẻ chưa xem
+- [ ] Khối "Cần xử lý" hiện thêm lời mời giám sát và đề nghị chuyển quyền Owner (Bước 4.3c) — hiện chỉ xử lý ở Hồ sơ bé → Người giám sát
+- [ ] Màn "Báo cáo" trên thanh bên vẫn là thống kê trạng thái truyện kiểu cũ — nên bỏ hoặc gộp vào báo cáo tuần trên Dashboard
 - [x] "Con vừa đọc xong": bài học, cảm nhận của con, điểm câu đố (khi có quyền xem kết quả), câu hỏi thảo luận, "Nghe tóm tắt", "Đã trò chuyện với con"
 - [x] Tiến độ: phút đọc 7 ngày, truyện tuần này, chuỗi ngày đọc, số hoạt động, huy hiệu mới, tóm tắt lộ trình
 - [x] Kết quả học tập: điểm câu đố 5 lần gần nhất, số từ đã lưu
@@ -424,13 +428,51 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 | Danh sách báo cáo nghiệp vụ cũ | Bước 5.5 | Chỉ có `latest-published` |
 | Hợp đồng đề xuất cho toàn bộ phần trên | — | Xem đầu file `staffService.ts` |
 
-## Luồng 6 — Học tập thích ứng (0%)
+## Luồng 6 — Học tập thích ứng (Core xong giao diện; dữ liệu chờ backend)
 
-- [ ] Xem đề xuất kèm bằng chứng
-- [ ] Đồng ý / Sửa / Từ chối / Theo dõi thêm
-- [ ] Nhãn quyền ("Bạn có thể quyết định cuối" / "Bạn chỉ có thể góp ý")
-- [ ] Nút "Tạo truyện với chủ đề này" (gợi ý chủ đề)
-- [ ] Lịch sử phiên bản hồ sơ học tập
+> **Lưu ý:** backend chưa có API cho Luồng 6. Frontend gọi theo hợp đồng đề xuất trong `app/services/adaptiveService.ts`; khi backend chưa có thì dùng `app/services/adaptiveLocal.ts`, phân tích dữ liệu đọc của bộ máy cục bộ Luồng 3/4 (chỉ có trên cùng trình duyệt). Quy tắc rule-based v1 nằm ở `app/lib/adaptiveRules.ts` (có test). Riêng việc **áp dụng mức đọc mới gọi API thật** `PUT /LearningProfile/{id}`.
+
+**Phân tích & tạo đề xuất (Bước 6.1–6.4)**
+- [x] Ngưỡng 5 phiên đọc xong / 14 ngày; không tính phiên đọc lại để mở khoá; phiên bé tự bỏ ngang tính vào tỷ lệ hoàn thành (`readingLocal` ghi thêm `abandonLog`)
+- [x] Nhánh A — tăng mức đọc: 5 câu đố gần nhất ≥ 85% và hoàn thành ≥ 90% (truyện Thử thách điểm cao được tính là bằng chứng)
+- [x] Nhánh A — giảm mức đọc: ≥ 4/5 câu đố vừa sức dưới ngưỡng Hold Mode và hoàn thành < 80% (điểm thấp ở truyện Thử thách không dùng để giảm)
+- [x] Luôn cần ≥ 2 tín hiệu (BR-6.2, BR-6.3); không tạo đề xuất mức đọc khi đang Hold Mode (BR-6.10)
+- [x] Nhánh B — gợi ý chủ đề: thể loại bé tự chọn ≥ 3/5 phiên gần nhất (không tính phiên bố mẹ chọn), thẻ ước lặp lại; trẻ mới chưa đủ 5 phiên dùng chủ đề yêu thích hoặc thẻ ước, tối đa 1 lần / 7 ngày
+- [x] Không gợi ý chủ đề thuộc danh mục bị chặn; có danh sách Cho phép thì chỉ gợi ý trong đó; không gợi ý lặp chủ đề vừa gợi ý hoặc bị từ chối
+- [x] Mỗi đề xuất có quan sát, trạng thái hiện tại → đề xuất, danh sách bằng chứng
+- [ ] Đối chiếu chủ đề với danh mục nội dung đang so khớp theo tên — **chờ backend** gắn nhãn nội dung cho thể loại / chủ đề
+
+**Hiển thị & quyết định (Bước 6.5–6.6)** — Dashboard → "Cần xử lý"
+- [x] Hàng đợi chung theo bé, hiện cho mọi người giám sát hợp lệ, tải lại mỗi lần mở Dashboard; đếm vào số việc cần xử lý
+- [x] Nhãn "Bạn có thể quyết định cuối" / "Bạn chỉ có thể góp ý" (Nhánh A cần Owner hoặc quyền "Sửa mức đọc"; Nhánh B ai cũng quyết định được)
+- [x] Đồng ý / Sửa (chỉ cùng hướng đề xuất) / Từ chối / Theo dõi thêm, kèm lý do không bắt buộc
+- [x] Kiểm tra lại quyền ngay lúc bấm; quyền đổi thì báo "Quyền của bạn đã thay đổi, vui lòng tải lại"
+- [x] Quyết định cuối đầu tiên khoá đề xuất; review sau đó lưu làm góp ý và báo "Đề xuất đã được [tên] quyết định"; hiện danh sách góp ý trên thẻ
+- [x] Thông báo `recommendation_awaiting_review`; ngày 7 nhắc lại 1 lần; quá 14 ngày → "Đã hết hạn" (stale)
+- [x] Đề xuất vừa quyết định hiện thêm 3 ngày để xem kết quả
+
+**Áp dụng & theo dõi (Bước 6.7–6.8)**
+- [x] Nhánh A: cập nhật mức đọc trên hồ sơ học tập thật, ghi lịch sử phiên bản (bản mới "Đang dùng", bản trước superseded)
+- [x] Nhánh B: chỉ ghi nhận, không đổi hồ sơ; nút "Tạo truyện với chủ đề này" mở sẵn form Studio
+- [x] Theo dõi sau điều chỉnh (mức đơn giản): sau 5 câu đố so với trước → "Đã phù hợp" hoặc "Cần xem lại"
+- [x] Hồ sơ bé → Học tập: lịch sử thay đổi mức đọc (theo đề xuất / sửa thủ công) và các đề xuất đã xử lý
+- [x] Sửa mức đọc thủ công sau khi hồ sơ Active ghi lịch sử nguồn "thủ công" (Luồng 1 Bước 1.3) — cũng là cách hoàn tác đề xuất
+- [ ] Cảnh báo truyện đang chờ trong lộ trình lệch nhiều so với mức đọc mới — **chờ backend** trả `readingLevel` của truyện trong lộ trình
+- [ ] Ghi lịch sử khi đổi chế độ đọc — **chờ backend** (`reading_mode`, xem Luồng 1)
+
+**Optional (chưa làm)**
+- [ ] Nhánh A cho `learning_focus` (trọng tâm kỹ năng)
+- [ ] Nhánh C — đề xuất Hold Mode (`learning_intervention`); Hold Mode tự động của Luồng 4 vẫn chạy
+- [ ] Tín hiệu phát âm (phụ thuộc ASR ở Luồng 3)
+
+### Luồng 6 — cần backend bổ sung
+
+| Việc | Hợp đồng đề xuất (xem đầu file `adaptiveService.ts`) |
+|---|---|
+| Job phân tích định kỳ tạo `learning_insights` / `recommendations`; chuyển stale sau 14 ngày; nhắc ngày 7 | `GET /children/{id}/recommendations` |
+| Review nhiều người: kiểm tra quyền LIVE, `had_final_authority`, khoá lạc quan cho quyết định cuối; áp dụng Nhánh A trong cùng transaction với `child_profile_version_history` | `POST /recommendations/{id}/reviews` |
+| Lịch sử phiên bản hồ sơ học tập; `PUT /LearningProfile` đổi mức đọc thì tự ghi dòng `source='manual'` | `GET /children/{id}/learning-profile/versions` |
+| Dữ liệu đầu vào: telemetry, `reading_sessions` (`is_retake`, `selected_by_supervisor`, `status` abandoned / force_exited), `quiz_attempts`, `story_reactions`, thẻ ước | Phụ thuộc các API Luồng 3 / 4 ở trên |
 
 ## Chung cho mọi luồng
 
@@ -440,8 +482,9 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 - [x] Trung tâm thông báo trong app (đã đọc / chưa đọc)
 - [x] Hiển thị Token Quota đã dùng / còn lại (Studio, Dashboard)
 - [ ] (Optional) Mua thêm gói qua SePay
-- [ ] Kiểm tra quyền giám sát ở giao diện (ẩn hoặc vô hiệu nút theo quyền)
+- [x] Kiểm tra quyền giám sát ở giao diện (ẩn hoặc vô hiệu nút theo quyền, kiểm tra lại mỗi lần đổi bé): Hồ sơ bé, Cài đặt an toàn, Thư viện (lộ trình, nộp cộng đồng, lưu trữ), Lộ trình, các khối Dashboard, Hold Mode. Studio không cần quyền riêng; nút Duyệt dựa vào `canApprove` backend trả về
 - [ ] Dọn các hàm gọi API Organization và ClassGroup (dành cho vai trò Teacher, đặc tả đã bỏ)
+- [ ] Dọn code không dùng: `RevisePanel` và `ProposalCard` trong `features/review/ReviewTools.tsx` (màn duyệt dùng `RevisionPanel.tsx` và `ProposalCard.tsx`)
 
 ## Thứ tự nên làm
 
@@ -451,4 +494,5 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 4. ~~L4: Lộ trình của con và Dashboard.~~ Xong giao diện; backend cần làm API theo bảng "Luồng 4 — cần backend bổ sung".
 5. ~~Các phần còn lại của L2~~ Xong phần frontend; gửi bảng "Luồng 2 — cần backend bổ sung" cho nhóm backend.
 6. ~~L5~~ Xong giao diện; backend cần thêm vai trò Moderator / Content Creator và các API theo bảng "Luồng 5 — cần backend bổ sung".
-7. Tiếp theo: L6.
+7. ~~L6~~ Xong phần Core ở giao diện; backend cần làm API theo bảng "Luồng 6 — cần backend bổ sung".
+8. Tiếp theo: các mục còn `[ ]` không ghi "chờ backend" (phiên của bé hết hạn sau 20 phút, khối "Cần xử lý" thêm lời mời / chuyển quyền Owner, màn "Báo cáo" cũ, dọn code thừa).

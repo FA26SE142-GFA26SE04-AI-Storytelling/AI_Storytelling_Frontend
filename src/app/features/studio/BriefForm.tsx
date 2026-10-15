@@ -5,7 +5,7 @@ import { CircleAlert, Lock, ShieldAlert } from "lucide-react";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
-import { copyrightHits, SAMPLE_CHARACTERS, SAMPLE_SETTINGS } from "@/app/lib/storyRules";
+import { copyrightHits, GENRES, SAMPLE_CHARACTERS, SAMPLE_SETTINGS } from "@/app/lib/storyRules";
 import { STUDIO_PREFILL_KEY } from "@/app/features/home/WishItem";
 import {
   clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, vocabularyTone,
@@ -15,7 +15,6 @@ import { detectPii, piiMessage } from "@/app/features/story-workflow/piiHints";
 import { useRegisterApprove } from "@/app/features/story-workflow/approveSlot";
 import { useRiseIn } from "@/app/lib/motion";
 
-const GENRES = ["Thám hiểm & Phép thuật", "Cổ tích", "Khoa học", "Đời sống", "Động vật"];
 const LESSONS = ["Trung thực", "Biết chia sẻ", "Dũng cảm", "Kiên trì", "Lễ phép", "Yêu thương gia đình"];
 const LENGTHS: [LengthPreset, string][] = [["short", "Ngắn"], ["medium", "Vừa"], ["long", "Dài"]];
 const TONE_LABEL = { familiar: "Quen thuộc", default: "Theo trình độ", extended: "Mở rộng" } as const;
@@ -38,7 +37,8 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   }, [context]);
 
   // Phụ huynh chọn "Tạo truyện mới" cho điều ước của bé (Luồng 2 mục 3.5): điền sẵn từ các thẻ bé đã chọn.
-  const [fromWish, setFromWish] = useState(false);
+  // Nguồn điền sẵn: điều ước của bé (Luồng 2 mục 3.5) hoặc gợi ý chủ đề của Luồng 6 Nhánh B.
+  const [prefilled, setPrefilled] = useState<"wish" | "recommendation" | null>(null);
   useEffect(() => {
     if (!context || locked) return;
     try {
@@ -47,7 +47,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
       if (!p || p.childId !== context.childProfileId) return;
       sessionStorage.removeItem(STUDIO_PREFILL_KEY);
       updateValues({ topic: p.topic, charactersText: p.charactersText, setting: p.setting ?? "", ...(p.lesson ? { lesson: p.lesson } : {}) });
-      setFromWish(true);
+      setPrefilled(p.source === "recommendation" ? "recommendation" : "wish");
     } catch { /* bỏ qua */ }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [context]);
@@ -73,7 +73,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
     return <div className="pb"><p className="sub">{errorMessage ?? "Đang tải cấu hình tạo truyện của bé…"}</p></div>;
   }
   const max = Math.min(context.maximumLength, 5000);
-  const presets = lengthPresets(max);
+  const presets = lengthPresets(max, context.readingLevel);
   const preset = LENGTHS.find(([k]) => presets[k] === values.targetLength)?.[0] ?? null;
   const pii = piiMessage(detectPii([values.topic, values.charactersText, values.setting, values.lesson].join("\n"), context.childNickname));
   const tone = vocabularyTone(values.vocabularyLevel, context.defaultVocabularyLevel);
@@ -103,7 +103,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
         </div>
       </div>
 
-      {fromWish && <div className="notice ok">Đã điền sẵn từ điều ước của {context.childNickname}. Bạn có thể chỉnh trước khi tạo.</div>}
+      {prefilled && <div className="notice ok">{prefilled === "wish" ? `Đã điền sẵn từ điều ước của ${context.childNickname}.` : `Đã điền sẵn chủ đề gợi ý cho ${context.childNickname}.`} Bạn có thể chỉnh trước khi tạo.</div>}
 
       <div className="brief-grid">
         <div className="brief-col">
@@ -126,12 +126,12 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
           </div>
 
           <div className="field">
-            <span className="lbl row" style={{ justifyContent: "space-between" }}>Độ dài<b style={{ color: "var(--text)" }}>~{values.targetLength} từ</b></span>
+            <span className="lbl row" style={{ justifyContent: "space-between" }}>Độ dài<b style={{ color: "var(--text)" }}>~{values.targetLength} tiếng</b></span>
             <div className="seg">{LENGTHS.map(([k, label]) => (
               <button type="button" key={k} disabled={locked} className={preset === k ? "on" : ""} onClick={() => updateValues({ targetLength: presets[k] })}>{label}<small>{presets[k]}</small></button>
             ))}</div>
-            <input type="range" className="range" disabled={locked} min={MIN_TARGET_LENGTH} max={max} step={50} value={clampTargetLength(values.targetLength, max)} onChange={(e) => updateValues({ targetLength: +e.target.value })} aria-label="Độ dài mục tiêu" />
-            <small className="hint">Tối đa {max} từ theo cài đặt an toàn của bé.</small>
+            <input type="range" className="range" disabled={locked} min={MIN_TARGET_LENGTH} max={max} step={10} value={clampTargetLength(values.targetLength, max)} onChange={(e) => updateValues({ targetLength: +e.target.value })} aria-label="Độ dài mục tiêu" />
+            <small className="hint">Ngắn / Vừa / Dài theo mức đọc {context.readingLevel} của bé; tối đa {max} tiếng theo cài đặt an toàn.</small>
           </div>
 
           {context.availableVocabularyLevels.length > 1 && (
