@@ -118,7 +118,7 @@ export const mockAiStory = {
     const c = db().children.find((x) => x.id === childId) ?? MOCK_CHILDREN.find((x) => x.id === childId);
     if (!c) return fail('Không tìm thấy hồ sơ bé.');
     if (c.status !== 'Active') return fail(`Hồ sơ của ${c.nickname} chưa được kích hoạt. Hãy hoàn tất ở mục Hồ sơ bé.`);
-    const older = c.ageBand === 'Age_9_12';
+    const older = c.ageBand === 'Age_9_10';
     const lp = db().learning[c.id];
     const level = lp?.readingLevel ?? (older ? 3 : 2);
     const favorites = lp?.topics.filter((t) => t.relation === 'FavoriteTopic').map((t) => t.topic);

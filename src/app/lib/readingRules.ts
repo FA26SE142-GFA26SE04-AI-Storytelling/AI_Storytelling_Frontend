@@ -3,7 +3,7 @@ import type { ReadingMode, ReadingQuizItem } from "@/app/types/reading";
 /** Quy tắc Luồng 3 — chấm câu đố, EXP, Cây tri thức, chuỗi ngày đọc, huy hiệu. */
 
 /** Bước 3.2 — chế độ đọc mặc định suy ra từ nhóm tuổi. */
-export const readingModeFor = (ageBand: string): ReadingMode => (ageBand === "Age_9_12" ? "read_first" : "listen_first");
+export const readingModeFor = (ageBand: string): ReadingMode => (ageBand === "Age_9_10" ? "read_first" : "listen_first");
 
 /** Bỏ dấu tiếng Việt, chữ thường, gộp khoảng trắng. */
 export function normalizeAnswer(s: string): string {

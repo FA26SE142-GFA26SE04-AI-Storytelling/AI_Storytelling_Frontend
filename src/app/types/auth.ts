@@ -52,13 +52,34 @@ export interface RegisterRequest {
 
 export interface VerifyEmailRequest {
   email: string;
-  token: string;
+  otp: string;
 }
 
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
+  /** Giữ lại phiên đang dùng; backend thu hồi mọi phiên khác. */
+  currentRefreshToken?: string | null;
+}
+
+/** Luồng 1 Bước 1.1b — sửa họ tên, ảnh đại diện. */
+export interface UpdateProfileRequest {
+  fullName: string;
+  avatarUrl?: string | null;
+}
+
+export interface OwnedChildProfileSummary {
+  id: number;
+  nickname: string;
+  status: string;
+}
+
+/** Trước khi xoá tài khoản: hồ sơ bé đang chặn việc xoá và hồ sơ nháp sẽ bị xoá cùng. */
+export interface DeleteAccountPreview {
+  blockingProfiles: OwnedChildProfileSummary[];
+  draftProfiles: OwnedChildProfileSummary[];
+  canDelete: boolean;
 }
 
 export interface ForgotPasswordRequest {

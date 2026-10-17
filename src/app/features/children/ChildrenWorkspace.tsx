@@ -8,7 +8,7 @@ import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { supervisionService } from "@/app/services/supervisionService";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import Frog from "@/app/components/brand/Frog";
-import { childStatus } from "@/app/lib/guardian";
+import { avatarOf, childStatus } from "@/app/lib/guardian";
 import { ageLabel } from "@/app/lib/storyView";
 import { useRiseIn } from "@/app/lib/motion";
 import CreateChildWizard from "./CreateChildWizard";
@@ -16,6 +16,7 @@ import ProfileTab from "./ProfileTab";
 import LearningTab from "./LearningTab";
 import SupervisorsTab from "./SupervisorsTab";
 import AccessTab from "./AccessTab";
+import JoinInvitation from "./JoinInvitation";
 
 type Tab = "profile" | "learning" | "supervisors" | "access";
 const TABS: { id: Tab; label: string }[] = [
@@ -25,33 +26,6 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "access", label: "Bé đăng nhập" },
 ];
 type Role = { isOwner: boolean; perms: string[] };
-
-/** Nhập mã mời để trở thành người giám sát (Bước 1.6). */
-function JoinInvitation({ onJoined, onCancel }: { onJoined: (childId: number) => void; onCancel: () => void }) {
-  const [code, setCode] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const submit = async () => {
-    setBusy(true);
-    setErr(null);
-    const r = await supervisionService.acceptInvitation(code.trim());
-    setBusy(false);
-    if (r.success && r.data) onJoined(r.data.childProfileId);
-    else setErr(r.message || "Mã mời không hợp lệ hoặc đã hết hạn.");
-  };
-  return (
-    <form className="sec" style={{ gap: 12, maxWidth: 460 }} onSubmit={(e) => { e.preventDefault(); void submit(); }}>
-      <h3 className="display" style={{ margin: 0 }}>Nhập mã mời</h3>
-      <p className="sub">Người quản lý chính của bé gửi mã mời qua email. Nhập mã để cùng theo dõi bé. Bạn sẽ nhận 4 quyền cơ bản: xem tiến độ, xem kết quả, nhận báo cáo và duyệt truyện.</p>
-      <input className="inp" autoFocus value={code} onChange={(e) => setCode(e.target.value)} placeholder="Mã mời" aria-label="Mã mời" style={{ letterSpacing: 2, textTransform: "uppercase" }} />
-      {err && <div className="notice err" role="alert">{err}</div>}
-      <div className="row">
-        <button type="button" className="btn btn-g" onClick={onCancel}>Hủy</button>
-        <button className="btn btn-p" disabled={busy || !code.trim()}>{busy ? "Đang kiểm tra…" : "Tham gia giám sát"}</button>
-      </div>
-    </form>
-  );
-}
 
 /** Luồng 1 — khu quản lý hồ sơ bé ("Con của tôi", Bước 1.9). */
 export default function ChildrenWorkspace({ go }: WorkspaceProps) {
@@ -95,7 +69,7 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
             const st = childStatus(k.status);
             return (
               <button key={k.id} className={`kid-item${mode === "view" && child?.id === k.id ? " on" : ""}`} onClick={() => { selectChild(k.id); setMode("view"); }}>
-                <span className="av">{k.nickname.charAt(0).toUpperCase()}</span>
+                <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
                 <span className="grow"><b>{k.nickname}</b><small>{ageLabel(k.ageBand)}</small></span>
                 <span className={`pill ${st.tone}`}>{st.label}</span>
               </button>
@@ -126,7 +100,7 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
             <div className="pb children-body">
               {!role ? <p className="sub">Đang tải…</p> : (
                 <>
-                  {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={role.isOwner} onChanged={() => void reloadChildren(child.id)} onTab={setTab} go={go} />}
+                  {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={role.isOwner} onChanged={() => void reloadChildren(child.id)} onArchived={() => void reloadChildren()} onTab={setTab} go={go} />}
                   {tab === "learning" && <LearningTab key={child.id} child={child} canEdit={canEditLearning} onSaved={() => void reloadChildren(child.id)} />}
                   {tab === "supervisors" && <SupervisorsTab key={child.id} child={child} meId={meId} onLeft={() => void reloadChildren()} />}
                   {tab === "access" && (canManageAccess

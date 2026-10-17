@@ -6,7 +6,6 @@ import { useAuth } from "@/app/context/AuthContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import { adaptiveService } from "@/app/services/adaptiveService";
 import type { ChildProfile } from "@/app/types/childProfile";
-import { defaultReadingLevel } from "@/app/lib/guardian";
 import LearningHistory from "@/app/features/adaptive/LearningHistory";
 import LearningForm, { learningFrom, learningRequest, type LearningValue } from "./LearningForm";
 
@@ -28,7 +27,7 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
       if (!alive) return;
       setExists(r.success && !!r.data);
       setSavedLevel(r.success && r.data ? r.data.readingLevel : null);
-      setValue(learningFrom(r.success ? r.data : null, defaultReadingLevel(child.ageBand)));
+      setValue(learningFrom(r.success ? r.data : null, child.ageBand));
     });
     return () => { alive = false; };
   }, [child.id, child.ageBand]);

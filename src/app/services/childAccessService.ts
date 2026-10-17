@@ -1,7 +1,5 @@
-import { USE_MOCK } from '@/app/mocks/config';
-import { childAccessMockOverrides } from '@/app/mocks/mockSupervision';
 import type { ApiResponse } from '@/app/types/auth';
-import type { ChildAccessCredential, ChildSession, ChildSessionProfile, EasyLoginCode } from '@/app/types/supervision';
+import type { ChildAccessCredential, ChildSession, ChildSessionProfile, EasyLoginSecret } from '@/app/types/supervision';
 import { apiRequest } from './apiClient';
 import { authService } from './authService';
 
@@ -9,23 +7,19 @@ const SESSION_KEY = 'taletale-child-session';
 
 export type StoredChildSession = { childProfileId: number; accessToken: string; expiresAt: number; via: 'profile_switcher' | 'easy_login' };
 
-/** Luồng 1 Bước 1.10, Luồng 3 Bước 3.0: thông tin truy cập của bé, Easy Login, phiên của bé, Parental Gate. */
+/** Luồng 1 Bước 1.10, Luồng 3 Bước 3.0: Easy Login, phiên của bé, Parental Gate. Avatar nằm trong hồ sơ bé. */
 export const childAccessService = {
   getCredential(childId: number): Promise<ApiResponse<ChildAccessCredential>> {
-    return apiRequest(`/ChildAccessCredential/${childId}`, 'Chưa thiết lập truy cập cho bé.');
+    return apiRequest(`/ChildAccessCredential/${childId}`, 'Không tải được thông tin đăng nhập của bé.');
   },
 
-  /** Đặt avatar và mã PIN 4 số cho bé. */
-  setCredential(childId: number, avatarId: string, pin: string): Promise<ApiResponse<null>> {
-    return apiRequest(`/ChildAccessCredential/${childId}`, 'Không lưu được thông tin truy cập.', { method: 'PUT', body: { avatarId, pin } });
-  },
-
+  /** Thu hồi mã QR; phiên của bé đang mở bằng mã này bị đóng ngay. */
   revokeCredential(childId: number): Promise<ApiResponse<null>> {
     return apiRequest(`/ChildAccessCredential/${childId}`, 'Không thu hồi được.', { method: 'DELETE' });
   },
 
-  /** Tạo mã Easy Login mới; mã cũ mất hiệu lực ngay. */
-  generateEasyLogin(childId: number): Promise<ApiResponse<EasyLoginCode>> {
+  /** Tạo mã Easy Login mới (dùng lâu dài); mã cũ mất hiệu lực ngay. Mã chỉ trả về một lần. */
+  generateEasyLogin(childId: number): Promise<ApiResponse<EasyLoginSecret>> {
     return apiRequest(`/ChildAccessCredential/${childId}/easylogin`, 'Không tạo được mã đăng nhập.', { method: 'POST' });
   },
 
@@ -35,8 +29,8 @@ export const childAccessService = {
     return apiRequest(`/ChildAccessCredential/${childId}/handover`, 'Bé chưa vào đọc được lúc này.', { method: 'POST', body: { supervisorRefreshToken } });
   },
 
-  loginWithEasyLogin(code: string): Promise<ApiResponse<ChildSession>> {
-    return apiRequest('/ChildAccessCredential/easylogin/login', 'Mã không đúng hoặc đã hết hạn. Hãy nhờ bố mẹ tạo mã mới nhé!', { method: 'POST', body: { code }, anonymous: true });
+  loginWithEasyLogin(secret: string): Promise<ApiResponse<ChildSession>> {
+    return apiRequest('/ChildAccessCredential/easylogin/login', 'Mã không đúng hoặc đã bị thu hồi. Hãy nhờ bố mẹ tạo mã mới nhé!', { method: 'POST', body: { secret }, anonymous: true });
   },
 
   getSessionProfile(childToken: string): Promise<ApiResponse<ChildSessionProfile>> {
@@ -66,5 +60,3 @@ export const childAccessService = {
     try { sessionStorage.removeItem(SESSION_KEY); } catch { /* bỏ qua */ }
   },
 };
-
-if (USE_MOCK) Object.assign(childAccessService, childAccessMockOverrides);

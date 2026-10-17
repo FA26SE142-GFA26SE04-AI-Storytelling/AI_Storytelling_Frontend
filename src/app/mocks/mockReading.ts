@@ -14,7 +14,7 @@ export const mockReadingLoaders: ContentLoaders = {
     if (!c) return null;
     const policy = db().policies[childId];
     return {
-      nickname: c.nickname, ageBand: c.ageBand, readingLevel: db().learning[childId]?.readingLevel ?? (c.ageBand === 'Age_9_12' ? 3 : 1),
+      nickname: c.nickname, ageBand: c.ageBand, readingLevel: db().learning[childId]?.readingLevel ?? (c.ageBand === 'Age_9_10' ? 3 : 1),
       holdThreshold: policy?.comprehensionThresholdPercent ?? 70, holdWindow: policy?.comprehensionWindowSize ?? 3,
     };
   },
@@ -23,7 +23,7 @@ export const mockReadingLoaders: ContentLoaders = {
     const ageBand = childOf(childId)?.ageBand;
     // Thư viện chung (Public Library): Content Creator tạo, Moderator duyệt; không hiện truyện cho nhóm tuổi lớn hơn.
     const publicStories = staffLocal.publicStories()
-      .filter((p) => ageBand === 'Age_9_12' || p.targetAgeBand === 'Age_6_8')
+      .filter((p) => ageBand === 'Age_9_10' || p.targetAgeBand === 'Age_6_8')
       .map((p): LibraryStory => ({ storyId: p.id, title: p.title, genre: p.genre, lesson: p.moralLesson, coverImageUrl: null, source: 'public_library', lengthCategory: 'short', readingLevel: p.readingLevel, isChallenge: false, createdAt: p.updatedAt }));
     const own = db().stories
       .filter((s) => s.childId === childId && !s.archived && mockStoryStatus(s) === 'ready')

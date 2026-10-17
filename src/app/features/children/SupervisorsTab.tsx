@@ -107,7 +107,7 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
           const extra = r.supervisorRole !== "Owner";
           const perms = data.perms[r.id] ?? [];
           const canManage = isOwner && extra;
-          const transferPending = pendingTransfers.some((t) => t.targetSupervisorUserId === r.supervisorUserId);
+          const transfer = pendingTransfers.find((t) => t.targetSupervisorUserId === r.supervisorUserId);
           return (
             <div key={r.id} className="sup">
               <div className="row">
@@ -130,8 +130,11 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
               )}
               {canManage && (
                 <div className="row" style={{ justifyContent: "flex-end" }}>
-                  <button className="btn btn-s" disabled={busy || transferPending} onClick={() => void act(() => api.requestOwnershipTransfer(child.id, r.supervisorUserId), "Đã gửi đề nghị. Quyền Owner chỉ chuyển khi người kia đồng ý.")}>
-                    <Crown className="ic" />{transferPending ? "Đang chờ nhận quyền" : "Chuyển quyền Owner"}</button>
+                  {transfer
+                    ? <button className="btn btn-s" disabled={busy} onClick={() => void act(() => api.cancelOwnershipTransfer(transfer.id), "Đã huỷ đề nghị chuyển quyền.")}>
+                      <X className="ic" />Huỷ đề nghị chuyển quyền</button>
+                    : <button className="btn btn-s" disabled={busy} onClick={() => void act(() => api.requestOwnershipTransfer(child.id, r.supervisorUserId), "Đã gửi đề nghị. Quyền Owner chỉ chuyển khi người kia đồng ý.")}>
+                      <Crown className="ic" />Chuyển quyền Owner</button>}
                   <button className="btn btn-no" disabled={busy} onClick={() => { if (confirm(`Gỡ ${name(r)} khỏi hồ sơ của ${child.nickname}?`)) void act(() => api.revokeSupervisor(r.id), "Đã gỡ người giám sát. Người này mất quyền ngay."); }}>
                     <UserMinus className="ic" />Gỡ</button>
                 </div>
@@ -189,7 +192,7 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
               onKeyDown={(e) => { if (e.key === "Enter") invite(); }} />
             <button className="btn btn-p" disabled={busy || !email.trim()} onClick={invite}><Mail className="ic" />Gửi lời mời</button>
           </div>
-          <p className="sub">Người được mời đăng nhập tài khoản phụ huynh rồi nhập mã mời ở mục &quot;Nhập mã mời&quot;. Mã chỉ dùng được một lần.</p>
+          <p className="sub">Người được mời đăng nhập tài khoản phụ huynh, nhập mã mời ở mục &quot;Nhập mã mời&quot; rồi xác thực bằng mã gửi tới email được mời. Mã chỉ dùng được một lần.</p>
           {data.invitations.length > 0 && (
             <table className="inv">
               <thead><tr><th>Mã mời</th><th>Trạng thái</th><th>Hết hạn</th><th /></tr></thead>
@@ -206,7 +209,11 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
                           <button className="btn btn-g" aria-label="Sao chép mã" onClick={() => copy(i.invitationCode)}><Copy className="ic" /></button>
                           <button className="btn btn-g" disabled={busy} onClick={() => void act(() => api.cancelInvitation(i.id), "Đã hủy lời mời.")}>Hủy</button>
                         </>}
-                        {(i.status === "Expired" || i.status === "Revoked") && <span className="sub">Gửi lời mời mới để cấp lại mã</span>}
+                        {(i.status === "Pending" || i.status === "Expired") && (
+                          <button className="btn btn-g" disabled={busy} title="Cấp mã mới và gửi lại email; mã cũ hết hiệu lực"
+                            onClick={() => void act(() => api.regenerateInvitation(i.id), "Đã cấp lại mã mời và gửi lại email.")}><RefreshCw className="ic" />Cấp lại mã</button>
+                        )}
+                        {i.status === "Revoked" && <span className="sub">Gửi lời mời mới nếu cần</span>}
                       </td>
                     </tr>
                   );

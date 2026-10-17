@@ -7,11 +7,12 @@ import { useAuth } from "@/app/context/AuthContext";
 import { accountService } from "@/app/services/accountService";
 import type { LoginSession } from "@/app/types/supervision";
 import { fmtDateTime, passwordProblem } from "@/app/lib/guardian";
+import ProfileSection from "./ProfileSection";
+import DeleteAccountSection from "./DeleteAccountSection";
 
-const ROLE: Record<string, string> = { Parent: "Phụ huynh", Administrator: "Quản trị viên", ContentCreator: "Người tạo nội dung", Moderator: "Kiểm duyệt viên" };
 type Note = { ok: boolean; text: string } | null;
 
-/** Luồng 1 Bước 1.1b — quản lý tài khoản cá nhân. */
+/** Luồng 1 Bước 1.1b — quản lý tài khoản cá nhân: thông tin, email, mật khẩu, phiên đăng nhập, xoá tài khoản. */
 export default function AccountWorkspace() {
   const { user, logout } = useAuth();
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
@@ -60,15 +61,7 @@ export default function AccountWorkspace() {
         <div className="ph"><span>Tài khoản</span></div>
         <div className="pb children-body">
           <div className="sec" style={{ gap: 28, maxWidth: 560 }}>
-            <section className="sec" style={{ gap: 10 }}>
-              <h3 className="display" style={{ margin: 0 }}>Thông tin</h3>
-              <div className="kv">
-                <div><small>Họ và tên</small><b>{user?.fullName || "—"}</b></div>
-                <div><small>Tên đăng nhập</small><b>{user?.username || "—"}</b></div>
-                <div><small>Email</small><b>{user?.email || "—"}</b></div>
-                <div><small>Loại tài khoản</small><b>{ROLE[user?.role ?? ""] ?? user?.role}</b></div>
-              </div>
-            </section>
+            <ProfileSection />
 
             <form className="sec" style={{ gap: 10 }} onSubmit={changePassword}>
               <h3 className="display" style={{ margin: 0 }}>Đổi mật khẩu</h3>
@@ -94,6 +87,8 @@ export default function AccountWorkspace() {
               {sNote && <div className={`notice ${sNote.ok ? "ok" : "err"}`} role="status">{sNote.text}</div>}
               <button className="btn btn-no" style={{ width: "fit-content", marginTop: 8 }} onClick={() => void logoutAll()}><LogOut className="ic" />Đăng xuất khỏi mọi thiết bị</button>
             </section>
+
+            {user?.role === "Parent" && <DeleteAccountSection />}
           </div>
         </div>
       </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import type { ContentCategory, PolicyRule } from "@/app/types/childProfile";
+import type { ContentCategory, PolicyRule, SafetyPolicy, SetSafetyPolicyRequest } from "@/app/types/childProfile";
 import { CONSENT_ITEMS } from "@/app/lib/guardian";
 
 const RULES: { id: PolicyRule; label: string }[] = [
@@ -47,6 +47,18 @@ export function CategoryRules({ cats, rules, onChange, disabled }: {
 
 export const rulesToRequest = (cats: ContentCategory[], rules: Record<number, PolicyRule | undefined>) =>
   cats.filter((c) => rules[c.id]).map((c) => ({ contentCategoryId: c.id, rule: rules[c.id] as PolicyRule }));
+
+/**
+ * Backend ghi đè mọi trường khi lưu cài đặt an toàn: gửi lại nguyên giá trị đang lưu của các trường
+ * giao diện chưa sửa (bé tự sáng tác, trả lời bằng giọng nói, ngưỡng điểm) để không bị về mặc định.
+ */
+export const keptPolicyFields = (p: SafetyPolicy | null): Partial<SetSafetyPolicyRequest> => ({
+  safetyScoreThreshold: p?.safetyScoreThreshold ?? null,
+  readabilityScoreThreshold: p?.readabilityScoreThreshold ?? null,
+  childCreationEnabled: p?.childCreationEnabled ?? true,
+  childCreationMode: p?.childCreationMode || "ReviewFirst",
+  voiceAnswersEnabled: p?.voiceAnswersEnabled ?? false,
+});
 
 /** Nội dung đồng ý (a)–(d) kèm ô xác nhận. */
 export function ConsentBlock({ checked, onChange, disabled }: { checked: boolean; onChange: (v: boolean) => void; disabled?: boolean }) {

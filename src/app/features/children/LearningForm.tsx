@@ -2,13 +2,17 @@
 
 import { useState } from "react";
 import { Plus, X } from "lucide-react";
-import type { LearningProfile, SetLearningProfileRequest } from "@/app/types/childProfile";
-import { FOCUS_AREAS, READING_LEVELS, TOPIC_SUGGESTIONS } from "@/app/lib/guardian";
+import type { LearningProfile, ReadingMode, SetLearningProfileRequest } from "@/app/types/childProfile";
+import { FOCUS_AREAS, READING_LEVELS, READING_MODES, TOPIC_SUGGESTIONS, defaultReadingLevel, defaultReadingMode } from "@/app/lib/guardian";
 
-export type LearningValue = { readingLevel: number; comprehensionGoal: string; favorites: string[]; focus: string[] };
+export type LearningValue = { readingLevel: number; readingMode: ReadingMode; comprehensionGoal: string; favorites: string[]; focus: string[] };
 
-export const learningFrom = (lp: LearningProfile | null, fallbackLevel: number): LearningValue => ({
-  readingLevel: lp?.readingLevel ?? fallbackLevel,
+const isMode = (m?: string | null): m is ReadingMode => READING_MODES.some((x) => x.id === m);
+
+/** Hồ sơ học tập đang lưu, hoặc giá trị mặc định theo nhóm tuổi khi bé chưa có hồ sơ học tập. */
+export const learningFrom = (lp: LearningProfile | null, ageBand: string): LearningValue => ({
+  readingLevel: lp?.readingLevel ?? defaultReadingLevel(ageBand),
+  readingMode: isMode(lp?.readingMode) ? (lp?.readingMode as ReadingMode) : defaultReadingMode(ageBand),
   comprehensionGoal: lp?.comprehensionGoal ?? "",
   favorites: lp?.topics.filter((t) => t.relation === "FavoriteTopic").map((t) => t.topic) ?? [],
   focus: lp?.topics.filter((t) => t.relation === "PriorityFocusArea").map((t) => t.topic) ?? [],
@@ -16,6 +20,7 @@ export const learningFrom = (lp: LearningProfile | null, fallbackLevel: number):
 
 export const learningRequest = (v: LearningValue): SetLearningProfileRequest => ({
   readingLevel: v.readingLevel,
+  readingMode: v.readingMode,
   comprehensionGoal: v.comprehensionGoal.trim(),
   topics: [
     ...v.favorites.map((topic) => ({ topic, relation: "FavoriteTopic" as const })),
@@ -23,7 +28,7 @@ export const learningRequest = (v: LearningValue): SetLearningProfileRequest => 
   ],
 });
 
-/** Bước 1.3 — mức đọc, mục tiêu đọc hiểu, chủ đề yêu thích, lĩnh vực ưu tiên. */
+/** Bước 1.3 — mức đọc, chế độ đọc, mục tiêu đọc hiểu, chủ đề yêu thích, lĩnh vực ưu tiên. */
 export default function LearningForm({ value, onChange, disabled }: { value: LearningValue; onChange: (v: LearningValue) => void; disabled?: boolean }) {
   const [topic, setTopic] = useState("");
   const set = (patch: Partial<LearningValue>) => onChange({ ...value, ...patch });
@@ -47,6 +52,18 @@ export default function LearningForm({ value, onChange, disabled }: { value: Lea
           ))}
         </div>
         <span className="sub">AI dùng mức đọc để chỉnh độ dài truyện, độ dài câu và số từ mới.</span>
+      </div>
+
+      <div className="field">
+        <span className="lbl">Chế độ đọc</span>
+        <div className="sec" style={{ gap: 7 }} role="radiogroup" aria-label="Chế độ đọc">
+          {READING_MODES.map((m) => (
+            <label key={m.id} className={`opt${value.readingMode === m.id ? " on" : ""}`}>
+              <input type="radio" name="reading-mode" disabled={disabled} checked={value.readingMode === m.id} onChange={() => set({ readingMode: m.id })} />
+              <span><b>{m.label}</b><small>{m.hint}</small></span>
+            </label>
+          ))}
+        </div>
       </div>
 
       <label className="field"><span className="lbl">Mục tiêu đọc hiểu (không bắt buộc)</span>

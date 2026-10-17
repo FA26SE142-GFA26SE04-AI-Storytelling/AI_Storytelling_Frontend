@@ -45,8 +45,8 @@ const wishLabel = (w: StoryWish) => [w.characterCardId, w.placeCardId, w.challen
 export const SAMPLE_TEMPLATES: RoadmapTemplate[] = [
   { id: 1, title: 'Làm quen với đọc truyện', description: 'Ba truyện ngắn, câu đơn giản, nhiều tranh — hợp với bé mới tập đọc.', targetAgeBand: 'Age_6_8', readingLevelMin: 1, readingLevelMax: 2, topic: 'Tình bạn', defaultDaysPerStep: 3,
     stories: [{ storyId: 2, title: 'Chú gấu và tổ ong ngọt', ageBand: 'Age_6_8', length: 180 }, { storyId: 3, title: 'Con đường lên đỉnh mây', ageBand: 'Age_6_8', length: 180 }] },
-  { id: 2, title: 'Nhà khoa học nhí', description: 'Truyện khoa học vui cho bé thích tìm hiểu vũ trụ.', targetAgeBand: 'Age_9_12', readingLevelMin: 2, readingLevelMax: 4, topic: 'Khoa học', defaultDaysPerStep: 4,
-    stories: [{ storyId: 5, title: 'Hệ Mặt Trời có mấy anh em', ageBand: 'Age_9_12', length: 180 }] },
+  { id: 2, title: 'Nhà khoa học nhí', description: 'Truyện khoa học vui cho bé thích tìm hiểu vũ trụ.', targetAgeBand: 'Age_9_10', readingLevelMin: 2, readingLevelMax: 4, topic: 'Khoa học', defaultDaysPerStep: 4,
+    stories: [{ storyId: 5, title: 'Hệ Mặt Trời có mấy anh em', ageBand: 'Age_9_10', length: 180 }] },
 ];
 
 // Report và nộp thư viện cộng đồng là dữ liệu chung, không theo từng bé.
@@ -81,7 +81,7 @@ export const guardianLocal = {
     const result: RoadmapAddResult = { added: [], skipped: [] };
     for (const c of children) {
       if (c.status !== 'Active') { result.skipped.push({ childProfileId: c.id, nickname: c.nickname, reason: 'Hồ sơ chưa được kích hoạt' }); continue; }
-      if (story.ageBand === 'Age_9_12' && c.ageBand === 'Age_6_8') { result.skipped.push({ childProfileId: c.id, nickname: c.nickname, reason: 'Truyện dành cho bé lớn hơn' }); continue; }
+      if (story.ageBand === 'Age_9_10' && c.ageBand === 'Age_6_8') { result.skipped.push({ childProfileId: c.id, nickname: c.nickname, reason: 'Truyện dành cho bé lớn hơn' }); continue; }
       if (story.length > c.maxStoryLength) { result.skipped.push({ childProfileId: c.id, nickname: c.nickname, reason: `Truyện dài hơn giới hạn ${c.maxStoryLength} tiếng của bé` }); continue; }
       const s = loadChild(c.id);
       const order = liveOrdered(s);

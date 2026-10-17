@@ -49,16 +49,31 @@ export interface OwnershipTransfer {
   respondedAt?: string | null;
 }
 
-export interface ChildAccessCredential {
-  childProfileId: number;
-  avatarId: string;
-  hasPin: boolean;
-  isLocked: boolean;
+/** Bước 1.4 — nhận lời mời: backend gửi OTP tới email được mời. */
+export interface InvitationClaim {
+  maskedEmail: string;
+  otpExpiresAt: string;
 }
 
-export interface EasyLoginCode {
-  code: string;
-  expiresAt: string;
+/** Thông tin hồ sơ được xem sau khi xác thực OTP, trước khi Nhận / Từ chối. */
+export interface InvitationPreview {
+  invitationId: number;
+  inviterName: string;
+  childNickname: string;
+  childAgeBand: string;
+}
+
+/** Easy Login dùng lâu dài (BR-1.15): backend chỉ lưu bản băm nên không xem lại được mã cũ. */
+export interface ChildAccessCredential {
+  childProfileId: number;
+  hasEasyLogin: boolean;
+  easyLoginCreatedAt?: string | null;
+}
+
+/** Mã Easy Login chỉ trả về một lần lúc tạo. */
+export interface EasyLoginSecret {
+  secret: string;
+  createdAt: string;
 }
 
 export interface ChildSession {

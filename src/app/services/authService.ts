@@ -1,5 +1,3 @@
-import { USE_MOCK } from '@/app/mocks/config';
-import { authMockOverrides } from '@/app/mocks/mockServices';
 import { LoginRequest, RegisterRequest, VerifyEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse, UserProfile } from '@/app/types/auth';
 import { API_BASE_URL } from './apiConfig';
 
@@ -567,5 +565,3 @@ export const authService = {
     localStorage.removeItem(USER_STORAGE_KEY);
   },
 };
-
-if (USE_MOCK) Object.assign(authService, authMockOverrides((u, t) => authService.notifyAuthStateChange(u, t)));

@@ -47,7 +47,7 @@ export function CreatorStories() {
           <div className="st-form">
             <label className="field"><span className="lbl">Tên truyện</span><input className="inp" value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
             <label className="field"><span className="lbl">Nhóm tuổi mục tiêu</span>
-              <select className="inp" value={form.targetAgeBand} onChange={(e) => set({ targetAgeBand: e.target.value })}><option value="Age_6_8">6–8 tuổi</option><option value="Age_9_12">9–12 tuổi</option></select></label>
+              <select className="inp" value={form.targetAgeBand} onChange={(e) => set({ targetAgeBand: e.target.value })}><option value="Age_6_8">6–8 tuổi</option><option value="Age_9_10">9–10 tuổi</option></select></label>
             <label className="field"><span className="lbl">Mức đọc mục tiêu</span>
               <select className="inp" value={form.readingLevel} onChange={(e) => set({ readingLevel: +e.target.value })}>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>Mức {n}</option>)}</select></label>
             <label className="field"><span className="lbl">Thể loại</span>
@@ -124,7 +124,7 @@ export function CreatorTemplates() {
           <h3>{form.id ? "Sửa bộ truyện" : "Bộ truyện mới"}</h3>
           <div className="st-form">
             <label className="field"><span className="lbl">Tên bộ</span><input className="inp" value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
-            <label className="field"><span className="lbl">Nhóm tuổi</span><select className="inp" value={form.targetAgeBand} onChange={(e) => set({ targetAgeBand: e.target.value })}><option value="Age_6_8">6–8 tuổi</option><option value="Age_9_12">9–12 tuổi</option></select></label>
+            <label className="field"><span className="lbl">Nhóm tuổi</span><select className="inp" value={form.targetAgeBand} onChange={(e) => set({ targetAgeBand: e.target.value })}><option value="Age_6_8">6–8 tuổi</option><option value="Age_9_10">9–10 tuổi</option></select></label>
             <label className="field"><span className="lbl">Mức đọc từ</span><select className="inp" value={form.readingLevelMin} onChange={(e) => set({ readingLevelMin: +e.target.value })}>{[1, 2, 3, 4, 5].map((n) => <option key={n}>{n}</option>)}</select></label>
             <label className="field"><span className="lbl">đến</span><select className="inp" value={form.readingLevelMax} onChange={(e) => set({ readingLevelMax: +e.target.value })}>{[1, 2, 3, 4, 5].map((n) => <option key={n}>{n}</option>)}</select></label>
             <label className="field"><span className="lbl">Chủ đề</span><input className="inp" value={form.topic} onChange={(e) => set({ topic: e.target.value })} /></label>
@@ -191,7 +191,7 @@ export function PromptsPage({ admin }: { admin?: boolean }) {
           <h3>Thêm test prompt</h3>
           <div className="st-form">
             <label className="field"><span className="lbl">Loại case</span><select className="inp" value={f.caseType} onChange={(e) => setF({ ...f, caseType: e.target.value as EvaluationPrompt["caseType"], expectedOutcome: e.target.value === "adversarial" ? "hard_block" : "pass" })}>{Object.entries(CASE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
-            <label className="field"><span className="lbl">Nhóm tuổi</span><select className="inp" value={f.ageBand} onChange={(e) => setF({ ...f, ageBand: e.target.value })}><option value="Age_6_8">6–8</option><option value="Age_9_12">9–12</option></select></label>
+            <label className="field"><span className="lbl">Nhóm tuổi</span><select className="inp" value={f.ageBand} onChange={(e) => setF({ ...f, ageBand: e.target.value })}><option value="Age_6_8">6–8</option><option value="Age_9_10">9–10</option></select></label>
             <label className="field"><span className="lbl">Mức đọc</span><select className="inp" value={f.readingLevel} onChange={(e) => setF({ ...f, readingLevel: +e.target.value })}>{[1, 2, 3, 4, 5].map((n) => <option key={n}>{n}</option>)}</select></label>
             <label className="field"><span className="lbl">Thể loại</span><select className="inp" value={f.genre} onChange={(e) => setF({ ...f, genre: e.target.value })}>{GENRES.map((g) => <option key={g}>{g}</option>)}</select></label>
             <label className="field"><span className="lbl">Kết quả kỳ vọng</span><select className="inp" value={f.expectedOutcome} onChange={(e) => setF({ ...f, expectedOutcome: e.target.value as EvaluationPrompt["expectedOutcome"] })}>{Object.entries(EXPECT).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>

@@ -1,7 +1,7 @@
-import { USE_MOCK } from '@/app/mocks/config';
-import { supervisionMockOverrides } from '@/app/mocks/mockSupervision';
 import type { ApiResponse } from '@/app/types/auth';
-import type { Invitation, OwnershipTransfer, Permission, PermissionRequest, SupervisionRelationship } from '@/app/types/supervision';
+import type {
+  Invitation, InvitationClaim, InvitationPreview, OwnershipTransfer, Permission, PermissionRequest, SupervisionRelationship,
+} from '@/app/types/supervision';
 import { apiRequest } from './apiClient';
 
 /** Luồng 1 Bước 1.5–1.7b, Mục 3: mời, gỡ, phân quyền người giám sát và chuyển quyền Owner. */
@@ -27,8 +27,29 @@ export const supervisionService = {
     return apiRequest(`/Supervision/invitations/${invitationId}`, 'Không hủy được lời mời.', { method: 'DELETE' });
   },
 
+  /** Owner cấp lại mã cho lời mời đang chờ hoặc đã hết hạn; mã cũ hết hiệu lực. */
+  regenerateInvitation(invitationId: number): Promise<ApiResponse<Invitation>> {
+    return apiRequest(`/Supervision/invitations/${invitationId}/regenerate`, 'Không cấp lại được mã mời.', { method: 'POST' });
+  },
+
+  /** BR-1.4 bước 1 — nhập mã mời, backend gửi OTP tới email được mời. Gọi lại để gửi lại OTP. */
+  claimInvitation(invitationCode: string): Promise<ApiResponse<InvitationClaim>> {
+    return apiRequest('/Supervision/invitations/claim', 'Mã mời không hợp lệ hoặc đã hết hạn.', { method: 'POST', body: { invitationCode } });
+  },
+
+  /** BR-1.4 bước 2 — xác thực OTP, nhận thông tin hồ sơ để quyết định. */
+  verifyInvitationOtp(invitationCode: string, otp: string): Promise<ApiResponse<InvitationPreview>> {
+    return apiRequest('/Supervision/invitations/verify-otp', 'Mã xác thực không đúng hoặc đã hết hạn.', { method: 'POST', body: { invitationCode, otp } });
+  },
+
+  /** Bước 1.6 — nhận lời mời (phải xác thực OTP trước); nhận sẵn preset quyền mặc định. */
   acceptInvitation(invitationCode: string): Promise<ApiResponse<SupervisionRelationship>> {
-    return apiRequest('/Supervision/invitations/accept', 'Mã mời không hợp lệ hoặc đã hết hạn.', { method: 'POST', body: { invitationCode } });
+    return apiRequest('/Supervision/invitations/accept', 'Chưa nhận được lời mời.', { method: 'POST', body: { invitationCode } });
+  },
+
+  /** Từ chối lời mời (sau khi đã xác thực OTP). */
+  rejectInvitation(invitationCode: string): Promise<ApiResponse<null>> {
+    return apiRequest('/Supervision/invitations/reject', 'Chưa từ chối được lời mời.', { method: 'POST', body: { invitationCode } });
   },
 
   listPermissions(relationshipId: number): Promise<ApiResponse<string[]>> {
@@ -68,6 +89,9 @@ export const supervisionService = {
   answerOwnershipTransfer(transferId: number, accept: boolean): Promise<ApiResponse<unknown>> {
     return apiRequest(`/Supervision/ownership-transfers/${transferId}/${accept ? 'accept' : 'reject'}`, 'Không xử lý được đề nghị.', { method: 'POST' });
   },
-};
 
-if (USE_MOCK) Object.assign(supervisionService, supervisionMockOverrides);
+  /** Owner huỷ đề nghị chuyển quyền đang chờ. */
+  cancelOwnershipTransfer(transferId: number): Promise<ApiResponse<OwnershipTransfer>> {
+    return apiRequest(`/Supervision/ownership-transfers/${transferId}/cancel`, 'Không huỷ được đề nghị.', { method: 'POST' });
+  },
+};

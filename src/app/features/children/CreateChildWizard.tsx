@@ -4,9 +4,9 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ContentCategory, PolicyRule } from "@/app/types/childProfile";
-import { AGE_BANDS, CONSENT_VERSION, defaultReadingLevel, presetBlocked } from "@/app/lib/guardian";
-import LearningForm, { learningRequest, type LearningValue } from "./LearningForm";
-import { CategoryRules, ConsentBlock, rulesToRequest } from "./SafetyBlocks";
+import { AGE_BANDS, defaultReadingLevel, defaultReadingMode, presetBlocked } from "@/app/lib/guardian";
+import LearningForm, { learningFrom, learningRequest, type LearningValue } from "./LearningForm";
+import { CategoryRules, ConsentBlock, keptPolicyFields, rulesToRequest } from "./SafetyBlocks";
 
 const STEPS = ["Thông tin bé", "Hồ sơ học tập", "An toàn và đồng ý", "Xác nhận"];
 
@@ -15,7 +15,7 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
   const [step, setStep] = useState(0);
   const [nickname, setNickname] = useState("");
   const [ageBand, setAgeBand] = useState<string>("Age_6_8");
-  const [learning, setLearning] = useState<LearningValue>({ readingLevel: 1, comprehensionGoal: "", favorites: [], focus: [] });
+  const [learning, setLearning] = useState<LearningValue>(() => learningFrom(null, "Age_6_8"));
   const [cats, setCats] = useState<ContentCategory[]>([]);
   const [rules, setRules] = useState<Record<number, PolicyRule | undefined>>({});
   const [gate, setGate] = useState(true);
@@ -31,7 +31,7 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
 
   const pickAge = (id: string) => {
     setAgeBand(id);
-    setLearning((l) => ({ ...l, readingLevel: defaultReadingLevel(id) }));
+    setLearning((l) => ({ ...l, readingLevel: defaultReadingLevel(id), readingMode: defaultReadingMode(id) }));
   };
 
   const goNext = () => {
@@ -57,12 +57,14 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
       }
       const lp = await childProfileService.setLearningProfile(id, learningRequest(learning));
       if (!lp.success) { setErr(lp.message || "Không lưu được hồ sơ học tập."); return; }
-      const sp = await childProfileService.setSafetyPolicy(id, {
-        maxStoryLength: 2000, requiredApprovalMode: "AlwaysManual", parentalGateEnabled: gate,
-        consentRecorded: consent, consentPolicyVersion: CONSENT_VERSION, categories: rulesToRequest(cats, rules),
-      });
-      if (!sp.success) { setErr(sp.message || "Không lưu được cài đặt an toàn."); return; }
+      // Backend chỉ nhận cài đặt an toàn đầu tiên khi đã có đồng ý; chưa đồng ý thì giữ hồ sơ ở trạng thái Nháp.
       if (consent) {
+        const sp = await childProfileService.setSafetyPolicy(id, {
+          ...keptPolicyFields(null),
+          maxStoryLength: 2000, requiredApprovalMode: "AlwaysManual", parentalGateEnabled: gate, consentRecorded: true,
+          storyWishesEnabled: true, allowInteractiveStories: true, applyAgePreset: false, categories: rulesToRequest(cats, rules),
+        });
+        if (!sp.success) { setErr(sp.message || "Không lưu được cài đặt an toàn."); return; }
         const act = await childProfileService.activateChildProfile(id);
         if (!act.success) { setErr(act.message || "Đã lưu hồ sơ nhưng chưa kích hoạt được."); return; }
       }
@@ -124,7 +126,7 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
             </div>
             {consent
               ? <div className="notice ok">Hồ sơ sẽ được kích hoạt ngay để bé bắt đầu đọc.</div>
-              : <div className="notice err">Bạn chưa đồng ý ở bước trước. Hồ sơ sẽ được lưu ở trạng thái Nháp và chưa thể dùng cho đến khi bạn đồng ý.</div>}
+              : <div className="notice err">Bạn chưa đồng ý ở bước trước. Hồ sơ sẽ được lưu ở trạng thái Nháp, chưa có cài đặt an toàn; hãy đồng ý trong Cài đặt an toàn để bé bắt đầu dùng.</div>}
           </div>
         )}
 

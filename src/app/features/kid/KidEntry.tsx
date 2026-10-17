@@ -18,7 +18,7 @@ export default function KidEntry({ code, onDone }: { code: string; onDone: () =>
   const started = useRef(false);
 
   useEffect(() => {
-    // Mã chỉ dùng được một lần: không gọi lại khi React chạy effect hai lần ở chế độ dev.
+    // Không gọi lại khi React chạy effect hai lần ở chế độ dev (mỗi lần đăng nhập mở một phiên mới của bé).
     if (started.current) return;
     started.current = true;
     void (async () => {

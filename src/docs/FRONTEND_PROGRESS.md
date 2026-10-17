@@ -13,7 +13,7 @@ Ký hiệu:
 
 | Luồng | % hoàn thành |
 |---|:-:|
-| L1 — Hồ sơ trẻ & giám sát | ~85% (phần còn lại chờ backend) |
+| L1 — Hồ sơ trẻ & giám sát | ~95% — gọi API thật, không còn mock (còn: tên/email người giám sát, phiên bé tự hết hạn) |
 | L2 — Sinh truyện AI | ~65% (phần lớn còn lại chờ backend) |
 | L3 — Trẻ đọc truyện | ~75% giao diện (dữ liệu đọc chờ backend) |
 | L4 — Lộ trình, theo dõi, Hold Mode | ~80% giao diện (dữ liệu chờ backend) |
@@ -25,9 +25,9 @@ Ký hiệu:
 
 - [x] Gỡ xung đột merge trong `app/page.tsx`. Đã xong: type-check sạch, 143 test đều qua.
 
-## Luồng 1 — Hồ sơ trẻ & giám sát (~85%)
+## Luồng 1 — Hồ sơ trẻ & giám sát (~95%)
 
-Phần còn lại của Luồng 1 đều **chờ backend** (xem mục "Luồng 1 — cần backend bổ sung" ngay bên dưới).
+Cập nhật 17/10/2026: toàn bộ Luồng 1 gọi **API thật**, đã gỡ dữ liệu mẫu (`mocks/mockSupervision.ts`, phần Auth và hồ sơ bé trong `mocks/mockServices.ts`). Kể cả khi `NEXT_PUBLIC_USE_MOCK=true`, đăng nhập và các màn của Luồng 1 vẫn cần backend chạy. Nhóm tuổi thứ hai đổi thành `Age_9_10` (9–10 tuổi) theo backend. Đối chiếu từng endpoint: [BACKEND_API_STATUS.md](BACKEND_API_STATUS.md).
 
 **Tài khoản phụ huynh (Bước 1.1, 1.1b)** — màn `Tài khoản` và màn đăng nhập
 - [x] Đăng nhập
@@ -39,8 +39,9 @@ Phần còn lại của Luồng 1 đều **chờ backend** (xem mục "Luồng 1
 - [x] Đổi mật khẩu
 - [x] Xem và đăng xuất từng phiên đăng nhập
 - [x] Đăng xuất khỏi mọi thiết bị
-- [ ] Sửa họ tên, ảnh đại diện — **chờ backend**
-- [ ] Đổi email bằng OTP gửi tới email mới — **chờ backend**
+- [x] Sửa họ tên, ảnh đại diện (đường dẫn ảnh) — `PUT /Auth/me`
+- [x] Đổi email bằng OTP gửi tới email mới — `POST /Auth/change-email`, `/change-email/confirm`
+- [x] Xoá tài khoản: xem hồ sơ bé đang chặn việc xoá, xác nhận xoá hồ sơ nháp, nhập mật khẩu
 
 **Hồ sơ trẻ (Bước 1.2, 1.3, 1.8, 1.9)** — màn `Hồ sơ bé`
 - [x] Trình tạo hồ sơ 4 bước: thông tin bé → hồ sơ học tập → an toàn & đồng ý → xác nhận
@@ -51,8 +52,10 @@ Phần còn lại của Luồng 1 đều **chờ backend** (xem mục "Luồng 1
 - [x] Kích hoạt hồ sơ, danh sách điều kiện còn thiếu kèm nút đi tới chỗ hoàn tất
 - [x] Danh sách "Con của tôi", chọn bé ở thanh trên cùng
 - [x] Trang Tổng quan khi chưa có bé: nút "Thêm hồ sơ bé"
-- [x] Avatar của bé (chọn ở tab "Bé đăng nhập")
-- [ ] Chế độ đọc "Nghe là chính" / "Tự đọc" — **chờ backend**
+- [x] Avatar của bé (chọn ở tab "Hồ sơ", lưu trong hồ sơ bé; mã `avatar-<tên>`)
+- [x] Chế độ đọc "Nghe là chính" / "Tự đọc" (`readingMode`), mặc định theo nhóm tuổi
+- [x] Đổi nhóm tuổi: nhắc áp lại danh sách chặn (nút "Áp dụng" ở Cài đặt an toàn) và xem lại chế độ đọc
+- [x] Tạm dừng / tiếp tục (đồng ý lại nếu điều khoản đã đổi) / lưu trữ hồ sơ (Owner)
 - [ ] Tab "Tất cả các con" trên Dashboard — để làm cùng Dashboard ở Luồng 4
 
 **Cài đặt an toàn (Bước 1.4)** — màn `Cài đặt an toàn`
@@ -61,45 +64,40 @@ Phần còn lại của Luồng 1 đều **chờ backend** (xem mục "Luồng 1
 - [x] Giải thích ý nghĩa danh sách Cho phép (rỗng = mọi chủ đề không bị chặn đều được phép)
 - [x] Độ dài tối đa tính bằng "tiếng"
 - [x] Bật/tắt cổng xác nhận người lớn
-- [x] Nội dung đồng ý (a)–(d) kèm ô xác nhận, có phiên bản điều khoản (đổi phiên bản thì phải đồng ý lại)
-- [x] Danh sách chặn mặc định theo nhóm tuổi khi tạo hồ sơ
+- [x] Nội dung đồng ý (a)–(d) kèm ô xác nhận; phiên bản điều khoản do backend quản lý (`consentOutdated` → Owner đồng ý lại qua `reconsent`)
+- [x] Lần lưu đầu bắt buộc Owner đồng ý; tạo hồ sơ mà chưa đồng ý thì lưu Nháp, chưa có cài đặt an toàn
+- [x] Danh sách chặn mặc định theo nhóm tuổi khi tạo hồ sơ (theo `defaultBlockedAgeBands` của danh mục)
 - [x] Ngưỡng Hold Mode: % đọc hiểu và số bài liên tiếp
 - [x] Chỉ Owner hoặc người có quyền "Sửa cài đặt an toàn" sửa được; người giám sát khác chỉ xem (BR-1.8)
-- [ ] Bật/tắt "Bé ước một câu chuyện" (`story_wishes_enabled`) — **chờ backend**
-- [ ] Bật/tắt truyện nhiều lựa chọn (`allow_interactive_stories`) — **chờ backend**
+- [x] Bật/tắt "Bé ước một câu chuyện" (`storyWishesEnabled`)
+- [x] Bật/tắt truyện nhiều lựa chọn (`allowInteractiveStories`)
+- [ ] Bé tự sáng tác, trả lời bằng giọng nói (`childCreation*`, `voiceAnswersEnabled`) — backend đã có, chưa có trong đặc tả Luồng 1 nên giao diện chỉ giữ nguyên giá trị khi lưu
 
 **Người giám sát (Bước 1.5–1.7b, Mục 3)** — tab "Người giám sát"
-- [x] Mời người giám sát qua email, xem mã mời, trạng thái, ngày hết hạn, sao chép mã, hủy lời mời
-- [x] Nhập mã mời để tham gia giám sát (nút "Nhập mã mời")
+- [x] Mời người giám sát qua email, xem mã mời, trạng thái, ngày hết hạn, sao chép mã, hủy lời mời, cấp lại mã (lời mời đang chờ / hết hạn)
+- [x] Nhận lời mời (nút "Nhập mã mời"): nhập mã → nhập OTP gửi tới email được mời (gửi lại được) → xem người mời, biệt danh, nhóm tuổi của bé → Nhận / Từ chối (BR-1.4)
 - [x] Gỡ người giám sát; người giám sát tự rời hồ sơ
 - [x] Phân quyền 7 quyền giám sát (bật/tắt từng quyền)
-- [x] Chuyển quyền Owner: Owner đề nghị, người nhận Nhận quyền / Từ chối
+- [x] Chuyển quyền Owner: Owner đề nghị (huỷ được khi đang chờ), người nhận Nhận quyền / Từ chối
 - [x] Xin thêm quyền: người giám sát xin, Owner Đồng ý / Từ chối, người xin Hủy được
-- [ ] Nhập OTP gửi tới email được mời khi nhận lời mời (BR-1.4) — **chờ backend**
 - [ ] Hiện tên/email của người giám sát (hiện chỉ có mã người dùng) — **chờ backend**
 
 **Truy cập của bé (Bước 1.10)** — tab "Bé đăng nhập"
 - [x] "Cho bé đọc" mở phiên riêng của bé (`handover`), bé chưa kích hoạt thì không vào được
 - [x] Rời chế độ của bé phải nhập lại mật khẩu người lớn nếu bật cổng xác nhận
-- [x] Avatar + mã PIN 4 số cho bé
-- [x] Tạo mã QR Easy Login, tạo mã mới (mã cũ hết hiệu lực), thu hồi
+- [x] Tạo mã QR Easy Login, tạo mã mới (mã cũ hết hiệu lực), thu hồi; backend đã bỏ mã PIN
+- [x] Mã QR dùng lâu dài (BR-1.15); chỉ hiện một lần lúc tạo (backend chỉ lưu bản băm), sau đó hiện ngày tạo
 - [x] Bé quét QR → link `/?kid=<mã>` → mở phiên của bé, chào bé bằng biệt danh
-- [ ] Mã QR dùng lâu dài (BR-1.15) — **Một phần:** backend hiện cấp mã 5 phút, dùng 1 lần
 - [ ] Phiên của bé tự hết hạn sau 20 phút không hoạt động (không thao tác và không có telemetry; đang "Nghe cả truyện" vẫn tính là hoạt động) — chưa làm
 
 ### Luồng 1 — cần backend bổ sung
 
+Đã có (17/10/2026): sửa thông tin và đổi email bằng OTP, `readingMode`, `storyWishesEnabled` / `allowInteractiveStories`, OTP khi nhận lời mời, `GET /ChildProfile/mine` trả cả hồ sơ mình là người giám sát, Easy Login lâu dài, avatar thuộc hồ sơ bé, backend từ chối `Restricted`.
+
 | Việc | Đặc tả | Backend hiện tại |
 |---|---|---|
-| Sửa họ tên, ảnh đại diện; đổi email bằng OTP | Bước 1.1b, BR-1.18 | Chưa có API |
-| Chế độ đọc `reading_mode` | Bước 1.3 | `LearningProfile` chưa có trường này |
-| `story_wishes_enabled`, `allow_interactive_stories` | Bước 1.4 | `SafetyPolicy` chưa có 2 trường này |
-| Mức Restricted | Đã bỏ (v31) | Enum `PolicyRule` vẫn còn `Restricted` |
-| OTP khi nhận lời mời | BR-1.4 | `AcceptInvitation` chỉ cần mã mời |
 | Tên/email người giám sát | Mục 3 | `SupervisionRelationshipDto` chỉ có `supervisorUserId` |
-| Additional Supervisor thấy hồ sơ bé | Bước 1.9 | `GET /ChildProfile/mine` chỉ trả hồ sơ mình là Owner |
-| Easy Login lâu dài | BR-1.15 | Mã 5 phút, dùng 1 lần |
-| Avatar thuộc hồ sơ bé, gán mặc định khi tạo | Bước 1.2 | Avatar nằm trong `ChildAccessCredential`, phải đặt kèm PIN |
+| Khôi phục hồ sơ đã lưu trữ | Mục 7 | Có `PATCH /ChildProfile/{id}/restore` nhưng `GET /ChildProfile/mine` không trả hồ sơ đã lưu trữ, nên giao diện không có chỗ chọn |
 
 ## Luồng 2 — Sinh truyện AI (~65%)
 
@@ -340,7 +338,7 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 
 > **Lưu ý:** backend chỉ có 3 vai trò `Parent`, `Teacher`, `Administrator` — **chưa có Moderator và Content Creator**. Phần dùng **API thật**: đăng nhập MFA (TOTP), danh mục nội dung, Token Quota, Data Request, báo cáo nghiệp vụ, đối soát thanh toán, cấp/thu hồi Administrator. Phần còn lại gọi hợp đồng đề xuất trong `app/services/staffService.ts`, khi backend chưa có thì dùng `app/services/staffLocal.ts`. Bộ máy này nối với Luồng 3/4: báo cáo nội dung và bài nộp cộng đồng của phụ huynh vào hàng đợi Moderator; truyện mẫu được duyệt hiện trong thư viện của bé; bộ truyện mẫu đã công khai hiện trong kho của phụ huynh.
 >
-> Thử ở chế độ dữ liệu mẫu: đăng nhập bằng tên có chữ `admin`, `mod` hoặc `creator` (mật khẩu bất kỳ, mã TOTP bất kỳ 6 số).
+> Đăng nhập luôn qua backend thật (đã gỡ mock đăng nhập cùng Luồng 1): dùng tài khoản vận hành trong dữ liệu seed của backend (mật khẩu demo `Demo@123`, cần thiết lập TOTP lần đầu).
 
 **Đăng nhập & tài khoản (Bước 5.1, 5.1b, 5.1d)**
 - [x] Bước nhập mã TOTP sau mật khẩu; lần đầu hiện mã QR để thiết lập (API thật `Auth/mfa/verify`)
@@ -478,12 +476,12 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 
 - [x] Giao diện sáng / tối
 - [x] Báo trạng thái kết nối backend
-- [x] Chế độ dữ liệu mẫu (mock)
+- [x] Chế độ dữ liệu mẫu (mock) — chỉ còn cho Luồng 2–6; đăng nhập và Luồng 1 luôn gọi backend thật, nên không còn tài khoản mẫu `admin` / `mod` / `creator` (dùng tài khoản seed của backend)
 - [x] Trung tâm thông báo trong app (đã đọc / chưa đọc)
 - [x] Hiển thị Token Quota đã dùng / còn lại (Studio, Dashboard)
 - [ ] (Optional) Mua thêm gói qua SePay
 - [x] Kiểm tra quyền giám sát ở giao diện (ẩn hoặc vô hiệu nút theo quyền, kiểm tra lại mỗi lần đổi bé): Hồ sơ bé, Cài đặt an toàn, Thư viện (lộ trình, nộp cộng đồng, lưu trữ), Lộ trình, các khối Dashboard, Hold Mode. Studio không cần quyền riêng; nút Duyệt dựa vào `canApprove` backend trả về
-- [ ] Dọn các hàm gọi API Organization và ClassGroup (dành cho vai trò Teacher, đặc tả đã bỏ)
+- [x] Dọn các hàm gọi API Organization và ClassGroup (dành cho vai trò Teacher, đặc tả đã bỏ)
 - [x] Dọn code không dùng: `RevisePanel` và `ProposalCard` trong `features/review/ReviewTools.tsx` cùng CSS `.proposal` / `.diff` trùng tên trong `review-tools.css`
 - [x] Sửa trùng tên class CSS `.gate`: hộp "Dành cho bố mẹ" (`ParentalGate`) đè lên cột đọc của màn Duyệt nội dung làm cột co còn 380px; đổi thành `.parental-gate`. Lưu ý: CSS trong Next.js dùng chung toàn app, đặt tên class có tiền tố theo màn
 

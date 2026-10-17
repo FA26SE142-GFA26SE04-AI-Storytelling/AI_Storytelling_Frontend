@@ -1,7 +1,7 @@
 import { USE_MOCK } from '@/app/mocks/config';
 import type { ApiResponse } from '@/app/types/auth';
 import type { ProfileVersion, Recommendation, ReviewInput, ReviewResult } from '@/app/types/adaptive';
-import type { TopicRelation } from '@/app/types/childProfile';
+import type { ReadingMode, TopicRelation } from '@/app/types/childProfile';
 import { apiRequest } from './apiClient';
 import { childProfileService } from './childProfileService';
 import { adaptiveLocal, type AdaptiveContext, type ApplyLevel, type Reviewer } from './adaptiveLocal';
@@ -51,6 +51,7 @@ const applyLevel = (childId: number): ApplyLevel => async (level) => {
   if (!lp.success || !lp.data) return { ok: false, message: lp.message || 'Không đọc được hồ sơ học tập.', previous: level };
   const r = await childProfileService.setLearningProfile(childId, {
     readingLevel: level,
+    readingMode: (lp.data.readingMode as ReadingMode | undefined) || undefined,
     comprehensionGoal: lp.data.comprehensionGoal ?? undefined,
     topics: lp.data.topics.map((t) => ({ topic: t.topic, relation: t.relation as TopicRelation })),
   });

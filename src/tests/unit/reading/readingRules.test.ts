@@ -62,7 +62,7 @@ describe('huy hiệu', () => {
 describe('khác', () => {
   it('chế độ đọc mặc định theo tuổi', () => {
     expect(readingModeFor('Age_6_8')).toBe('listen_first');
-    expect(readingModeFor('Age_9_12')).toBe('read_first');
+    expect(readingModeFor('Age_9_10')).toBe('read_first');
   });
 
   it('trò chơi sắp xếp lấy câu theo đúng thứ tự trong truyện', () => {

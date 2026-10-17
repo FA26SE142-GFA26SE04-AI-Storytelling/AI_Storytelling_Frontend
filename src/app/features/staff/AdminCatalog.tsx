@@ -78,7 +78,7 @@ export default function AdminCatalog() {
             <select className="inp" style={{ width: "auto" }} value={newEntry.group} onChange={(e) => setNewEntry({ ...newEntry, group: e.target.value })} aria-label="Nhóm">{Object.entries(WISH_GROUP).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
           </>}
           <input className="inp" value={newEntry.label} onChange={(e) => setNewEntry({ ...newEntry, label: e.target.value })} placeholder="Tên" aria-label="Tên" />
-          <button className="btn btn-p" disabled={busy || !newEntry.label.trim()} onClick={() => void run(() => staffService.saveCatalog({ kind, label: newEntry.label.trim(), emoji: kind === "wish_card" ? newEntry.emoji || null : null, group: kind === "wish_card" ? newEntry.group : null, ageBands: ["Age_6_8", "Age_9_12"], isActive: true })).then((ok) => ok && setNewEntry({ ...newEntry, label: "", emoji: "" }))}><Plus className="ic" />Thêm</button>
+          <button className="btn btn-p" disabled={busy || !newEntry.label.trim()} onClick={() => void run(() => staffService.saveCatalog({ kind, label: newEntry.label.trim(), emoji: kind === "wish_card" ? newEntry.emoji || null : null, group: kind === "wish_card" ? newEntry.group : null, ageBands: ["Age_6_8", "Age_9_10"], isActive: true })).then((ok) => ok && setNewEntry({ ...newEntry, label: "", emoji: "" }))}><Plus className="ic" />Thêm</button>
         </div>
       </div>
 

@@ -14,8 +14,18 @@ const CATS = [
 ];
 
 describe('presetBlocked', () => {
+  it('ưu tiên danh sách chặn mặc định do backend gắn cho từng danh mục', () => {
+    const fromApi: ContentCategory[] = [
+      { ...cat(1, 'ANIMALS', 'Động vật'), defaultBlockedAgeBands: [] },
+      { ...cat(4, 'MILD_FEAR', 'Gây sợ hãi nhẹ'), defaultBlockedAgeBands: ['Age_6_8'] },
+      { ...cat(5, 'RELIGION', 'Tôn giáo'), defaultBlockedAgeBands: ['Age_6_8', 'Age_9_10'] },
+    ];
+    expect(presetBlocked(fromApi, 'Age_6_8')).toEqual([4, 5]);
+    expect(presetBlocked(fromApi, 'Age_9_10')).toEqual([5]);
+  });
+
   it('chặn nội dung nhạy cảm cho mọi nhóm tuổi', () => {
-    expect(presetBlocked(CATS, 'Age_9_12')).toEqual([2, 3, 5]);
+    expect(presetBlocked(CATS, 'Age_9_10')).toEqual([2, 3, 5]);
   });
 
   it('nhóm 6–8 tuổi chặn thêm nội dung gây sợ hãi nhẹ', () => {

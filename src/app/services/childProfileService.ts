@@ -1,450 +1,108 @@
-import { USE_MOCK } from '@/app/mocks/config';
-import { childProfileMockOverrides } from '@/app/mocks/mockServices';
-import { ApiResponse } from '@/app/types/auth';
-import {
+import type { ApiResponse } from '@/app/types/auth';
+import type {
   ChildProfile,
+  ContentCategory,
   CreateChildProfileRequest,
-  OrganizationSummary,
-  ClassGroupSummary,
+  LearningProfile,
+  SafetyPolicy,
+  SetLearningProfileRequest,
+  SetSafetyPolicyRequest,
+  TokenQuotaStatus,
+  UpdateChildProfileRequest,
 } from '@/app/types/childProfile';
-import { authService } from './authService';
-import { API_BASE_URL } from './apiConfig';
+import { apiRequest } from './apiClient';
 
-/**
- * Trợ giúp phân tích JSON an toàn tránh lỗi 'Unexpected end of JSON input'
- */
-async function parseJsonResponse<T>(response: Response): Promise<T | null> {
-  try {
-    const text = await response.text();
-    if (!text || !text.trim()) return null;
-    return JSON.parse(text) as T;
-  } catch {
-    return null;
-  }
-}
-
+/** Luồng 1 Bước 1.2–1.4, 1.8, Mục 7: hồ sơ bé, hồ sơ học tập, cài đặt an toàn và vòng đời hồ sơ. */
 export const childProfileService = {
-  /**
-   * Lấy danh sách hồ sơ trẻ em của người dùng hiện tại (GET /api/v1/ChildProfile/mine)
-   */
-  async getMyChildProfiles(): Promise<ApiResponse<ChildProfile[]>> {
-    try {
-      const response = await authService.authenticatedFetch(`${API_BASE_URL}/ChildProfile/mine`, {
-        method: 'GET',
-      });
+  /** Mọi hồ sơ mình đang giám sát (Owner hoặc Additional Supervisor), trừ hồ sơ đã lưu trữ. */
+  getMyChildProfiles(): Promise<ApiResponse<ChildProfile[]>> {
+    return apiRequest('/ChildProfile/mine', 'Không tải được danh sách hồ sơ bé.');
+  },
 
-      if (!response.ok) {
-        return {
-          success: false,
-          message: 'Không thể tải danh sách hồ sơ trẻ.',
-          data: [],
-        };
-      }
+  getChildProfileById(id: number): Promise<ApiResponse<ChildProfile>> {
+    return apiRequest(`/ChildProfile/${id}`, 'Không tải được hồ sơ bé.');
+  },
 
-      const data = await parseJsonResponse<ApiResponse<ChildProfile[]>>(response);
-      return data ?? { success: true, message: '', data: [] };
-    } catch (error) {
-      console.error('Get my child profiles error:', error);
-      return {
-        success: false,
-        message: 'Không thể tải danh sách hồ sơ trẻ từ Backend.',
-        data: [],
-        errors: [(error as Error).message || 'Network connection failed'],
-      };
-    }
+  /** Hồ sơ mới ở trạng thái Nháp; người tạo là Owner. */
+  createChildProfile(data: CreateChildProfileRequest): Promise<ApiResponse<ChildProfile>> {
+    return apiRequest('/ChildProfile', 'Không tạo được hồ sơ bé.', {
+      method: 'POST',
+      body: { nickname: data.nickname.trim(), ageBand: data.ageBand, language: data.language?.trim() || 'vi' },
+    });
+  },
+
+  /** Chỉ Owner. Đổi nhóm tuổi thì backend trả gợi ý áp lại danh sách chặn và chế độ đọc. */
+  updateChildProfile(id: number, data: UpdateChildProfileRequest): Promise<ApiResponse<ChildProfile>> {
+    return apiRequest(`/ChildProfile/${id}`, 'Không lưu được hồ sơ bé.', {
+      method: 'PUT',
+      body: { nickname: data.nickname.trim(), ageBand: data.ageBand, language: data.language?.trim() || 'vi', avatarId: data.avatarId },
+    });
+  },
+
+  /** Bước 1.8 — cần hồ sơ học tập, cài đặt an toàn và đồng ý theo điều khoản hiện tại. */
+  activateChildProfile(id: number): Promise<ApiResponse<ChildProfile>> {
+    return apiRequest(`/ChildProfile/${id}/activate`, 'Chưa kích hoạt được hồ sơ.', { method: 'PATCH' });
+  },
+
+  /** Mục 7 — tạm dừng hồ sơ đang hoạt động; phiên của bé và mã QR bị thu hồi. */
+  suspendChildProfile(id: number): Promise<ApiResponse<ChildProfile>> {
+    return apiRequest(`/ChildProfile/${id}/suspend`, 'Không tạm dừng được hồ sơ.', { method: 'PATCH' });
+  },
+
+  /** Mục 7 — tiếp tục hồ sơ đang tạm dừng; điều khoản đã đổi thì phải đồng ý bản mới. */
+  resumeChildProfile(id: number, acceptCurrentConsent = false): Promise<ApiResponse<ChildProfile>> {
+    return apiRequest(`/ChildProfile/${id}/resume`, 'Không tiếp tục được hồ sơ.', { method: 'PATCH', body: { acceptCurrentConsent } });
+  },
+
+  /** Bước 1.8b — lưu trữ hồ sơ đang hoạt động hoặc tạm dừng. */
+  archiveChildProfile(id: number): Promise<ApiResponse<null>> {
+    return apiRequest(`/ChildProfile/${id}`, 'Không lưu trữ được hồ sơ.', { method: 'DELETE' });
+  },
+
+  getLearningProfile(childProfileId: number): Promise<ApiResponse<LearningProfile>> {
+    return apiRequest(`/LearningProfile/${childProfileId}`, 'Bé chưa có hồ sơ học tập.');
+  },
+
+  /** Tạo hoặc cập nhật hồ sơ học tập (Owner hoặc quyền "Sửa mức đọc"). */
+  setLearningProfile(childProfileId: number, data: SetLearningProfileRequest): Promise<ApiResponse<LearningProfile>> {
+    return apiRequest(`/LearningProfile/${childProfileId}`, 'Không lưu được hồ sơ học tập.', {
+      method: 'PUT',
+      body: {
+        readingLevel: data.readingLevel,
+        readingMode: data.readingMode,
+        comprehensionGoal: data.comprehensionGoal?.trim() || null,
+        topics: data.topics ?? [],
+      },
+    });
+  },
+
+  getSafetyPolicy(childProfileId: number): Promise<ApiResponse<SafetyPolicy>> {
+    return apiRequest(`/SafetyPolicy/${childProfileId}`, 'Bé chưa có cài đặt an toàn.');
   },
 
   /**
-   * Lấy danh sách tổ chức mà tài khoản có tham gia (GET /api/v1/Organization/mine)
+   * Tạo hoặc cập nhật cài đặt an toàn. Lần lưu đầu bắt buộc Owner đồng ý điều khoản.
+   * Backend ghi đè mọi trường, nên trường không gửi sẽ về giá trị mặc định.
    */
-  async getMyOrganizations(): Promise<ApiResponse<OrganizationSummary[]>> {
-    try {
-      const response = await authService.authenticatedFetch(`${API_BASE_URL}/Organization/mine`, {
-        method: 'GET',
-      });
-
-      if (!response.ok) {
-        return {
-          success: false,
-          message: 'Không thể tải danh sách tổ chức.',
-          data: [],
-        };
-      }
-
-      const data = await parseJsonResponse<ApiResponse<OrganizationSummary[]>>(response);
-      return data ?? { success: true, message: '', data: [] };
-    } catch (error) {
-      console.error('Get my organizations error:', error);
-      return {
-        success: false,
-        message: 'Không thể tải danh sách tổ chức.',
-        data: [],
-        errors: [(error as Error).message || 'Network error'],
-      };
-    }
+  setSafetyPolicy(childProfileId: number, data: SetSafetyPolicyRequest): Promise<ApiResponse<SafetyPolicy>> {
+    return apiRequest(`/SafetyPolicy/${childProfileId}`, 'Không lưu được cài đặt an toàn.', { method: 'PUT', body: data });
   },
 
-  /**
-   * Lấy danh sách nhóm lớp học của giáo viên (GET /api/v1/ClassGroup/mine)
-   */
-  async getMyClassGroups(): Promise<ApiResponse<ClassGroupSummary[]>> {
-    try {
-      const response = await authService.authenticatedFetch(`${API_BASE_URL}/ClassGroup/mine`, {
-        method: 'GET',
-      });
-
-      if (!response.ok) {
-        return {
-          success: false,
-          message: 'Không thể tải danh sách lớp học.',
-          data: [],
-        };
-      }
-
-      const data = await parseJsonResponse<ApiResponse<ClassGroupSummary[]>>(response);
-      return data ?? { success: true, message: '', data: [] };
-    } catch (error) {
-      console.error('Get my class groups error:', error);
-      return {
-        success: false,
-        message: 'Không thể tải danh sách lớp học.',
-        data: [],
-        errors: [(error as Error).message || 'Network error'],
-      };
-    }
+  /** Owner đồng ý lại khi điều khoản đổi phiên bản. */
+  reconsent(childProfileId: number): Promise<ApiResponse<SafetyPolicy>> {
+    return apiRequest(`/SafetyPolicy/${childProfileId}/reconsent`, 'Chưa ghi nhận được đồng ý.', { method: 'POST' });
   },
 
-  /**
-   * Tạo hồ sơ trẻ mới độc lập (POST /ChildProfile)
-   * Trạng thái sau xử lý: Draft.
-   * Nếu scope=Personal: organizationId và classGroupId để null.
-   * Nếu scope=Organization: bắt buộc organizationId và classGroupId.
-   */
-  async createChildProfile(data: CreateChildProfileRequest): Promise<ApiResponse<ChildProfile>> {
-    try {
-      const payload: Record<string, unknown> = {
-        nickname: data.nickname.trim(),
-        ageBand: data.ageBand,
-        language: data.language?.trim() || 'vi',
-        scope: data.scope || 'Personal',
-      };
-
-      if (data.scope === 'Organization') {
-        payload.organizationId = data.organizationId;
-        payload.classGroupId = data.classGroupId;
-      }
-
-      const response = await authService.authenticatedFetch(`${API_BASE_URL}/ChildProfile`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const result = await parseJsonResponse<ApiResponse<ChildProfile>>(response);
-      return result ?? {
-        success: response.ok,
-        message: response.ok ? 'Tạo hồ sơ thành công' : 'Không thể tạo hồ sơ trẻ.',
-        data: null,
-      };
-    } catch (error) {
-      console.error('Create child profile error:', error);
-      return {
-        success: false,
-        message: 'Không thể tạo hồ sơ trẻ.',
-        data: null,
-        errors: [(error as Error).message || 'Network connection failed'],
-      };
-    }
-  },
-  /**
-   * Tạo/cập nhật Learning Profile của bé (PUT /api/v1/LearningProfile/{childProfileId})
-   */
-  async setLearningProfile(
-    childProfileId: number,
-    data?: Partial<import('@/app/types/childProfile').SetLearningProfileRequest>
-  ): Promise<ApiResponse<unknown>> {
-    try {
-      const payload = {
-        readingLevel: data?.readingLevel ?? 2,
-        comprehensionGoal: data?.comprehensionGoal?.trim() || null,
-        topics: data?.topics ?? [],
-      };
-
-      const response = await authService.authenticatedFetch(
-        `${API_BASE_URL}/LearningProfile/${childProfileId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      const result = await parseJsonResponse<ApiResponse<unknown>>(response);
-      return result ?? {
-        success: response.ok,
-        message: response.ok ? '' : 'Không thể thiết lập hồ sơ học tập.',
-        data: null,
-      };
-    } catch (error) {
-      console.error('Set learning profile error:', error);
-      return {
-        success: false,
-        message: 'Không thể thiết lập hồ sơ học tập.',
-        data: null,
-        errors: [(error as Error).message || 'Network error'],
-      };
-    }
+  /** Áp lại danh sách chặn mặc định theo nhóm tuổi hiện tại (sau khi đổi nhóm tuổi). */
+  applyAgePreset(childProfileId: number): Promise<ApiResponse<SafetyPolicy>> {
+    return apiRequest(`/SafetyPolicy/${childProfileId}/age-preset/apply`, 'Không áp dụng được danh sách chặn mặc định.', { method: 'POST' });
   },
 
-  /**
-   * Tạo/cập nhật Safety Policy của bé (PUT /api/v1/SafetyPolicy/{childProfileId})
-   */
-  async setSafetyPolicy(
-    childProfileId: number,
-    data?: Partial<import('@/app/types/childProfile').SetSafetyPolicyRequest>
-  ): Promise<ApiResponse<unknown>> {
-    try {
-      const payload = {
-        maxStoryLength: data?.maxStoryLength ?? 2000,
-        requiredApprovalMode: data?.requiredApprovalMode || 'AlwaysManual',
-        parentalGateEnabled: data?.parentalGateEnabled ?? true,
-        consentRecorded: data?.consentRecorded ?? false,
-        consentPolicyVersion: data?.consentPolicyVersion ?? 1,
-        safetyScoreThreshold: data?.safetyScoreThreshold ?? null,
-        readabilityScoreThreshold: data?.readabilityScoreThreshold ?? null,
-        comprehensionThresholdPercent: data?.comprehensionThresholdPercent ?? 70,
-        comprehensionWindowSize: data?.comprehensionWindowSize ?? 3,
-        categories: data?.categories || [],
-      };
-
-      const response = await authService.authenticatedFetch(
-        `${API_BASE_URL}/SafetyPolicy/${childProfileId}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        }
-      );
-
-      const result = await parseJsonResponse<ApiResponse<unknown>>(response);
-      return result ?? {
-        success: response.ok,
-        message: response.ok ? 'Đã lưu quy tắc an toàn thành công.' : 'Không thể thiết lập quy tắc an toàn.',
-        data: null,
-      };
-    } catch (error) {
-      console.error('Set safety policy error:', error);
-      return {
-        success: false,
-        message: 'Không thể thiết lập quy tắc an toàn.',
-        data: null,
-        errors: [(error as Error).message || 'Network error'],
-      };
-    }
+  getContentCategories(): Promise<ApiResponse<ContentCategory[]>> {
+    return apiRequest('/ContentCategory', 'Không tải được danh mục nội dung.');
   },
 
-  /**
-   * Kích hoạt hồ sơ trẻ (PATCH /api/v1/ChildProfile/{childProfileId}/activate)
-   */
-  async activateChildProfile(childProfileId: number): Promise<ApiResponse<ChildProfile>> {
-    try {
-      const response = await authService.authenticatedFetch(
-        `${API_BASE_URL}/ChildProfile/${childProfileId}/activate`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      return await response.json();
-    } catch (error) {
-      console.error('Activate child profile error:', error);
-      return {
-        success: false,
-        message: 'Không thể kích hoạt hồ sơ trẻ.',
-        data: null,
-        errors: [(error as Error).message || 'Network error'],
-      };
-    }
-  },
-
-  /**
-   * Lấy chi tiết hồ sơ trẻ theo ID (GET /ChildProfile/{id})
-   */
-  async getChildProfileById(id: number): Promise<ApiResponse<ChildProfile>> {
-    try {
-      const response = await authService.authenticatedFetch(`${API_BASE_URL}/ChildProfile/${id}`, {
-        method: 'GET',
-      });
-      return await response.json();
-    } catch (error) {
-      console.error('Get child profile by id error:', error);
-      return {
-        success: false,
-        message: 'Không thể lấy chi tiết hồ sơ trẻ.',
-        data: null,
-        errors: [(error as Error).message || 'Network error'],
-      };
-    }
-  },
-
-  /**
-   * Cập nhật thông tin hồ sơ trẻ (PUT /ChildProfile/{id})
-   */
-  async updateChildProfile(
-    id: number,
-    data: import('@/app/types/childProfile').UpdateChildProfileRequest
-  ): Promise<ApiResponse<ChildProfile>> {
-    try {
-      const response = await authService.authenticatedFetch(`${API_BASE_URL}/ChildProfile/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          nickname: data.nickname,
-          ageBand: data.ageBand,
-          language: data.language || 'vi',
-        }),
-      });
-      return await response.json();
-    } catch (error) {
-      console.error('Update child profile error:', error);
-      return {
-        success: false,
-        message: 'Không thể cập nhật hồ sơ trẻ.',
-        data: null,
-        errors: [(error as Error).message || 'Network error'],
-      };
-    }
-  },
-
-  /**
-   * Xóa/Lưu trữ hồ sơ trẻ (DELETE /ChildProfile/{id})
-   */
-  async deleteChildProfile(id: number): Promise<ApiResponse<null>> {
-    try {
-      const response = await authService.authenticatedFetch(`${API_BASE_URL}/ChildProfile/${id}`, {
-        method: 'DELETE',
-      });
-      return await response.json();
-    } catch (error) {
-      console.error('Delete child profile error:', error);
-      return {
-        success: false,
-        message: 'Không thể xóa hồ sơ trẻ.',
-        data: null,
-        errors: [(error as Error).message || 'Network error'],
-      };
-    }
-  },
-
-  /**
-   * Lấy Learning Profile của trẻ (GET /LearningProfile/{childProfileId})
-   */
-  async getLearningProfile(
-    childProfileId: number
-  ): Promise<ApiResponse<import('@/app/types/childProfile').LearningProfile>> {
-    try {
-      const response = await authService.authenticatedFetch(
-        `${API_BASE_URL}/LearningProfile/${childProfileId}`,
-        {
-          method: 'GET',
-        }
-      );
-      return await response.json();
-    } catch (error) {
-      console.error('Get learning profile error:', error);
-      return {
-        success: false,
-        message: 'Không thể lấy thông tin Learning Profile của bé.',
-        data: null,
-        errors: [(error as Error).message || 'Network error'],
-      };
-    }
-  },
-
-  /**
-   * Lấy Safety Policy của trẻ (GET /SafetyPolicy/{childProfileId})
-   */
-  async getSafetyPolicy(
-    childProfileId: number
-  ): Promise<ApiResponse<import('@/app/types/childProfile').SafetyPolicy>> {
-    try {
-      const response = await authService.authenticatedFetch(
-        `${API_BASE_URL}/SafetyPolicy/${childProfileId}`,
-        {
-          method: 'GET',
-        }
-      );
-      const result = await parseJsonResponse<ApiResponse<import('@/app/types/childProfile').SafetyPolicy>>(response);
-      return result ?? {
-        success: false,
-        message: 'Không thể lấy quy tắc an toàn của bé.',
-        data: null as unknown as import('@/app/types/childProfile').SafetyPolicy,
-      };
-    } catch (error) {
-      console.error('Get safety policy error:', error);
-      return {
-        success: false,
-        message: 'Không thể lấy quy tắc an toàn của bé.',
-        data: null as unknown as import('@/app/types/childProfile').SafetyPolicy,
-        errors: [(error as Error).message || 'Network error'],
-      };
-    }
-  },
-
-  /**
-   * Lấy danh sách toàn bộ danh mục nội dung an toàn (GET /api/v1/ContentCategory)
-   */
-  async getContentCategories(): Promise<ApiResponse<import('@/app/types/childProfile').ContentCategory[]>> {
-    try {
-      const response = await authService.authenticatedFetch(`${API_BASE_URL}/ContentCategory`, {
-        method: 'GET',
-      });
-      if (!response.ok) {
-        return { success: false, message: 'Không thể tải danh mục nội dung.', data: [] };
-      }
-      const data = await parseJsonResponse<ApiResponse<import('@/app/types/childProfile').ContentCategory[]>>(response);
-      return data ?? { success: true, message: '', data: [] };
-    } catch (error) {
-      console.error('Get content categories error:', error);
-      return { success: false, message: 'Lỗi tải danh mục nội dung.', data: [] };
-    }
-  },
-
-  /**
-   * Lấy hạn mức Token Quota AI của trẻ (GET /TokenQuota/child/{childProfileId})
-   */
-  async getTokenQuotaForChild(
-    childProfileId: number
-  ): Promise<ApiResponse<import('@/app/types/childProfile').TokenQuotaStatus>> {
-    try {
-      const response = await authService.authenticatedFetch(
-        `${API_BASE_URL}/TokenQuota/child/${childProfileId}`,
-        {
-          method: 'GET',
-        }
-      );
-      return await response.json();
-    } catch (error) {
-      console.error('Get token quota for child error:', error);
-      return {
-        success: false,
-        message: 'Không thể lấy hạn mức Token Quota của bé.',
-        data: null,
-        errors: [(error as Error).message || 'Network error'],
-      };
-    }
+  getTokenQuotaForChild(childProfileId: number): Promise<ApiResponse<TokenQuotaStatus>> {
+    return apiRequest(`/TokenQuota/child/${childProfileId}`, 'Không lấy được số lượt tạo truyện của bé.');
   },
 };
-
-if (USE_MOCK) Object.assign(childProfileService, childProfileMockOverrides);

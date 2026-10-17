@@ -36,7 +36,7 @@ describe('Lộ trình của con', () => {
   });
 
   it('truyện dành cho bé lớn hơn bị bỏ qua', () => {
-    expect(guardianLocal.addToRoadmap([kid], story(1, 'Age_9_12'), 'end').data!.skipped).toHaveLength(1);
+    expect(guardianLocal.addToRoadmap([kid], story(1, 'Age_9_10'), 'end').data!.skipped).toHaveLength(1);
   });
 
   it('truyện đầu tiên mở ngay, truyện sau chờ; "Đọc tiếp theo" chen lên ngay sau truyện đang mở', () => {
