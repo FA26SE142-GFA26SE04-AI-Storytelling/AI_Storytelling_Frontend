@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Frog from "@/app/components/brand/Frog";
 import type { Stage, StatusSnapshot } from "./useStoryPipeline";
 import { STUDIO_STEPS, studioProgress } from "./studioProgress";
@@ -12,11 +13,23 @@ type Props = {
   errorCode?: string | null;
   timedOut?: boolean;
   onRetry?: () => void;
+  /** Gọi API thử lại của backend cho bước AI vừa lỗi. */
+  onRetryFailed?: () => Promise<{ success: boolean; message: string }>;
   onEdit?: () => void;
 };
 
-export default function StageProgress({ stage, snapshot, message, errorCode, timedOut, onRetry, onEdit }: Props) {
+export default function StageProgress({ stage, snapshot, message, errorCode, timedOut, onRetry, onRetryFailed, onEdit }: Props) {
   const emptyRef = useRiseIn<HTMLDivElement>(":scope > *", [stage], { delay: 70 });
+  const [retrying, setRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
+  const retry = async () => {
+    if (!onRetryFailed) return;
+    setRetrying(true);
+    setRetryError(null);
+    const r = await onRetryFailed();
+    setRetrying(false);
+    if (!r.success) setRetryError(r.message || "Chưa thử lại được.");
+  };
   const progress = studioProgress(stage, snapshot, null, errorCode ?? null);
   // Khung thẻ và chú ếch đứng yên; chỉ phần chữ đổi theo bước mới hiện dần, nên không nháy cả thẻ.
   const textRef = useRiseIn<HTMLDivElement>(".pipe-text > *", [progress.current, progress.mode], { delay: 40, distance: 8 });
@@ -61,7 +74,13 @@ export default function StageProgress({ stage, snapshot, message, errorCode, tim
           <h3 className="display">{waitingUser ? "Dàn ý đã sẵn sàng" : progress.caption}</h3>
           <p className="sub">{waitingUser ? "Mở tab Dàn ý để xem và duyệt, rồi AI sẽ viết truyện." : "Mỗi bước đều có quy tắc an toàn đi kèm. Bạn có thể rời màn hình này, AI vẫn tiếp tục làm."}</p>
         </div>
-        {errorCode && <div className="notice err" role="alert">Mã lỗi: {errorCode}. Bạn có thể thử lại.</div>}
+        {errorCode && (
+          <div className="notice err row" role="alert" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
+            <span>Bước này bị lỗi (mã {errorCode}).</span>
+            {onRetryFailed && <button className="btn btn-s" disabled={retrying} onClick={() => void retry()}>{retrying ? "Đang thử lại…" : "Thử lại"}</button>}
+          </div>
+        )}
+        {retryError && <div className="notice err" role="alert">{retryError}</div>}
         {timedOut && <div className="notice err">Việc xử lý lâu hơn dự kiến. <button className="link-btn" onClick={onRetry}>Kiểm tra lại</button></div>}
       </div>
     </div>

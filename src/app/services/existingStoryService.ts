@@ -1,13 +1,35 @@
-import { USE_MOCK } from '@/app/mocks/config';
-import { existingStoryMockOverrides } from '@/app/mocks/mockExistingStory';
 import type { ApiResponse } from '@/app/types/auth';
 import type { ExistingStoryEvaluation, ImportStoryRequest, ImportStoryResponse, VersionMutationResponse } from '@/app/types/existingStory';
+import type { StoryOutputMode } from '@/app/types/story';
 import { apiRequest } from './apiClient';
+import { API_BASE_URL } from './apiConfig';
+import { authService } from './authService';
 
 /** Luồng 2 nhánh Existing Story: nhập → đánh giá → AI Adapt / sửa tay / giữ bản gốc / lưu trữ. */
 export const existingStoryService = {
   importStory(input: ImportStoryRequest): Promise<ApiResponse<ImportStoryResponse>> {
-    return apiRequest('/stories/import', 'Không nhập được truyện.', { method: 'POST', body: { ...input, language: 'vi' } });
+    return apiRequest('/stories/import', 'Không nhập được truyện.', { method: 'POST', body: { outputMode: 'learning', ...input, language: 'vi' } });
+  },
+
+  /** Nhập từ tệp .txt / .docx (tối đa 5 MB), gửi multipart/form-data. */
+  async importFile(input: { file: File; title?: string; childProfileId: number; outputMode: StoryOutputMode; idempotencyKey: string }): Promise<ApiResponse<ImportStoryResponse>> {
+    const form = new FormData();
+    form.append('file', input.file);
+    if (input.title) form.append('title', input.title);
+    form.append('childProfileId', String(input.childProfileId));
+    form.append('language', 'vi');
+    form.append('outputMode', input.outputMode);
+    form.append('idempotencyKey', input.idempotencyKey);
+    const fallback = 'Không nhập được tệp truyện.';
+    try {
+      const res = await authService.authenticatedFetch(`${API_BASE_URL}/stories/import-file`, { method: 'POST', body: form });
+      const text = await res.text();
+      const parsed = text.trim() ? (JSON.parse(text) as Partial<ApiResponse<ImportStoryResponse>>) : null;
+      if (parsed && typeof parsed.success === 'boolean') return { success: parsed.success && res.ok, message: parsed.message || (res.ok ? '' : fallback), data: parsed.data ?? null };
+      return { success: false, message: fallback, data: null };
+    } catch {
+      return { success: false, message: fallback, data: null };
+    }
   },
 
   evaluate(storyId: number, storyVersionId: number): Promise<ApiResponse<ExistingStoryEvaluation>> {
@@ -33,4 +55,3 @@ export const existingStoryService = {
   },
 };
 
-if (USE_MOCK) Object.assign(existingStoryService, existingStoryMockOverrides);

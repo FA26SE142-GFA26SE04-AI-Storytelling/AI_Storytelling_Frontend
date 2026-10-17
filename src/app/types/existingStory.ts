@@ -1,3 +1,5 @@
+import type { StoryOutputMode } from './story';
+
 /** Luồng 2 mục 3.2, 5.2–5.5 — nhập truyện có sẵn và đánh giá mức phù hợp với hồ sơ bé. */
 
 export interface ImportStoryRequest {
@@ -7,6 +9,7 @@ export interface ImportStoryRequest {
   title?: string;
   childProfileId: number;
   language?: string;
+  outputMode?: StoryOutputMode;
   idempotencyKey: string;
 }
 

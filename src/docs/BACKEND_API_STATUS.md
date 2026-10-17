@@ -15,14 +15,14 @@ Ký hiệu:
 | Luồng | Controller backend | Số API | ✅ | 🔌 | ⚠️ | ⬜ |
 |---|---|:-:|:-:|:-:|:-:|:-:|
 | L1 — Hồ sơ trẻ & giám sát | Auth (phần phụ huynh), ChildProfile, LearningProfile, SafetyPolicy, ChildAccessCredential (phần phụ huynh), Supervision, Permission | 71 | 58 | 1 | 0 | 12 |
-| L2 — Sinh truyện AI | AIStoryInput, Outline, ContentGeneration, Review, MediaGeneration, ExistingStories, Story, TokenQuota (phần của bé) | 59 | 46 | 9 | 0 | 4 |
+| L2 — Sinh truyện AI | AIStoryInput, Outline, ContentGeneration, Review, MediaGeneration, ExistingStories, Story, TokenQuota (phần của bé) | 59 | 50 | 3 | 0 | 6 |
 | L3 — Trẻ đọc truyện | ChildAccessCredential (phần của bé), ParentalGate | 3 | 3 | 0 | 0 | 0 |
 | L4 — Lộ trình, theo dõi, Hold Mode | Notification | 5 | 3 | 0 | 0 | 2 |
 | L5 — Admin / Content Creator / Moderator | Auth (phần vận hành), AdminAccount, ModeratorAccount, TokenQuota (cấu hình), ContentCategory, DataRequest, BusinessReport, Payment, ModerationQueue, CreatorAuthoring, CreatorAssistance | 55 | 17 | 0 | 4 | 33 (+ webhook) |
 | L6 — Học tập thích ứng | (dùng `PUT /LearningProfile` của L1) | 0 | — | — | — | — |
-| **Tổng Core API** | | **193** | **127** | **10** | **4** | **51 (+ webhook)** |
+| **Tổng Core API** | | **193** | **131** | **4** | **4** | **53 (+ webhook)** |
 
-Luồng 1 đã gắn API thật và gỡ dữ liệu mẫu (17/10/2026). Các endpoint L1 còn ⬜ là API trùng chức năng, không cần cho giao diện, hoặc chưa có trong đặc tả.
+Luồng 1 và Luồng 2 đã gắn API thật và gỡ dữ liệu mẫu (17/10/2026). Các endpoint còn ⬜ của 2 luồng này là API trùng chức năng, API cũ không còn dùng, hoặc chưa có trong đặc tả.
 
 L3, L4, L6 có rất ít API thật. Phần lớn chức năng của các luồng này đang gọi **API đề xuất** mà backend chưa làm, và tự chuyển sang dữ liệu cục bộ (xem bảng "API đề xuất" ở cuối mỗi luồng).
 
@@ -32,8 +32,8 @@ AI API (`api/ai/*`, port 5260) chỉ dùng nội bộ: Core API gọi sang, fron
 
 1. ~~**(L1) `PUT /ChildAccessCredential/{childProfileId}` không còn tồn tại.**~~ Đã sửa: bỏ mã PIN, avatar lưu qua `PUT /ChildProfile/{id}` (`avatarId`) ở tab Hồ sơ.
 2. **(L5) `staffService` có thể bị kẹt giữa API thật và dữ liệu cục bộ.** Hàm `call()` dùng một cờ `backendReady` chung cho cả service. Lần gọi đầu thành công thì mọi lời gọi sau đều đi API thật, không quay về `staffLocal` nữa. Backend hiện **có** `GET /creator/stories`, nên khi Creator mở màn này trước, các API đề xuất chưa có (`/admin/staff`, `/moderation/queue`, `/evaluation/...`) sẽ trả 404 thay vì dùng dữ liệu cục bộ. Ngoài ra dữ liệu trả về của `GET /creator/stories` chưa chắc khớp kiểu `PublicStory`.
-3. **Backend đã có nhiều API mà [FRONTEND_PROGRESS.md](FRONTEND_PROGRESS.md) vẫn ghi "chờ backend"** (các mục L1 đã gắn xong):
-   - L2 — Tải tệp .txt / .docx khi nhập truyện: `POST /stories/import-file`.
+3. **(L2) `GET /Story` chưa lọc được theo bé và lộ truyện của mọi phụ huynh** — xem ghi chú dưới bảng Story (Luồng 2). Cần backend sửa.
+4. **Backend đã có nhiều API mà [FRONTEND_PROGRESS.md](FRONTEND_PROGRESS.md) vẫn ghi "chờ backend"** (các mục L1, L2 đã gắn xong):
    - L5 — Vai trò `Moderator`, `ContentCreator` đã có trong enum `UserRole` (enum chỉ còn `Parent`, `Moderator`, `Administrator`, `ContentCreator`; `Teacher` đã bỏ).
    - L5 — Trang kích hoạt tài khoản vận hành: `POST /Auth/staff-activation`.
    - L5 — Mời / vô hiệu hoá Moderator: `ModeratorAccount/*`.
@@ -181,7 +181,7 @@ Màn hình: `Studio → Yêu cầu` — [BriefForm.tsx](../app/features/studio/B
 | Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
 | `GET children/{childProfileId}/context` | ✅ | `getCreationContext` | Nạp giới hạn độ dài, sở thích, lượt còn lại |
-| `POST requests` | ✅ | `submitInput` | Gửi yêu cầu tạo truyện |
+| `POST requests` | ✅ | `submitInput` | Gửi yêu cầu tạo truyện, kèm kiểu truyện `outputMode` (`learning` / `reading_media_only`) |
 | `GET stories/{storyId}/requests/{requestId}` | ✅ | `getInputProgress` | Theo dõi guardrail / trạng thái |
 | `POST stories/{storyId}/requests/{requestId}/retry` | ✅ | `retryInput` | Sửa ý tưởng / thử lại khi bị chặn |
 
@@ -198,7 +198,7 @@ Màn hình: `Studio → Nhập truyện có sẵn` — [ImportStoryPanel.tsx](..
 | Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
 | `POST import` | ✅ | `existingStoryService.importStory` | Dán truyện |
-| `POST import-file` | ⬜ | — | (Optional) Tải tệp .txt / .docx |
+| `POST import-file` | ✅ | `existingStoryService.importFile` | Tải tệp .txt / .docx (multipart, tối đa 5 MB) |
 | `POST {storyId}/existing/evaluate` | ✅ | `evaluate` | Đánh giá Phù hợp / Nên điều chỉnh / Bị chặn |
 | `GET {storyId}/existing/evaluation` | ⬜ | — | Lấy lại kết quả đánh giá gần nhất (khi mở lại truyện) |
 | `POST {storyId}/existing/adapt` | ✅ | `adapt` | AI điều chỉnh |
@@ -217,7 +217,7 @@ Màn hình: [OutlinePanel.tsx](../app/features/studio/OutlinePanel.tsx), [useSto
 | `GET versions/{versionNo}` | 🔌 | `getOutlineVersion` | Có hàm, chưa màn nào gọi |
 | `PUT versions/{versionNo}` | ✅ | `editOutline` | Sửa dàn ý |
 | `POST versions/{versionNo}/regenerate` | ✅ | `regenerateOutline` | Viết lại dàn ý |
-| `POST retry` | ⬜ | (`retryOutline` chỉ có trong mock) | Thử lại khi tạo dàn ý lần đầu bị lỗi |
+| `POST retry` | ✅ | `retryOutline` | Nút "Thử lại" khi tạo dàn ý lần đầu bị lỗi ([StageProgress.tsx](../app/features/studio/StageProgress.tsx)) |
 | `POST versions/{versionNo}/approve` | ✅ | `approveOutline` | Duyệt dàn ý |
 | `POST versions/{versionNo}/reject` | ✅ | `rejectOutline` | Từ chối dàn ý |
 
@@ -228,7 +228,7 @@ Theo L2 "Nội dung truyện (Phase 3)".
 | Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
 | `GET progress` | ✅ | `getGenerationProgress` | Tiến độ viết truyện — [useStoryPipeline.ts](../app/features/studio/useStoryPipeline.ts) |
-| `POST retry` | 🔌 | `retryGeneration` | Có hàm, chưa có nút "Thử lại" khi viết truyện lỗi |
+| `POST retry` | ✅ | `retryGeneration` | Nút "Thử lại" khi viết truyện / học liệu bị lỗi |
 
 ### Review — `/stories/{storyId}/review`
 
@@ -264,6 +264,8 @@ Màn hình: `Duyệt nội dung` — [ReviewWorkspace.tsx](../app/features/revie
 | *(chưa có)* `reject` | — | — | Từ chối kèm lý do — vẫn **chờ backend** |
 
 > Bảng có 25 dòng nhưng tổng quan tính 26, vì `artifacts/generate` có 2 route.
+>
+> Truyện `reading_media_only`: backend trả 409 `LEARNING_ARTIFACT_NOT_ENABLED` cho mọi API học liệu, nên frontend không gọi `vocabulary` / `quiz` / `discussion` và chỉ `story/complete` trước khi duyệt.
 
 ### MediaGeneration — `/stories/{storyId}/media`
 
@@ -272,7 +274,7 @@ Màn hình: [StudioMedia.tsx](../app/features/studio/StudioMedia.tsx), [useStory
 | Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
 | `GET progress` | ✅ | `getMediaProgress` | Tiến độ tạo ảnh và giọng đọc |
-| `GET package` | 🔌 | `getMediaPackage` | Có hàm, chưa dùng. Màn đọc của bé (L3) đang gọi `readingService.getPackage` (API đề xuất); có thể dùng tạm API này để lấy `imageUrl` / audio |
+| `GET package` | ✅ | `getMediaPackage` | Màn đọc của bé (L3) lấy ảnh minh hoạ từng cảnh |
 | `POST illustration-beats/{beatId}/regenerate` | 🔌 | `regenerateIllustration` | (Optional) Vẽ lại một ảnh — chưa có giao diện |
 | `POST retry` | ✅ | `retryMedia` | Thử lại khi lỗi |
 
@@ -282,12 +284,14 @@ Màn hình: [WorkspaceDataContext.tsx](../app/context/WorkspaceDataContext.tsx) 
 
 | Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
-| `GET /` | ✅ | `storyService.getStories` | Thư viện truyện |
+| `GET /` | ✅ | `storyService.getStories` | Thư viện truyện; gửi `authorUserId`, `pageIndex`, `pageSize`, `searchTerm`, `isDescending`. **Chưa lọc được theo bé** — xem ghi chú dưới bảng |
 | `GET {id}` | ✅ | `getStoryById` | Chi tiết truyện, xem trước, báo cáo / nộp cộng đồng |
-| `POST /` | 🔌 | `createStory` | API cũ — truyện mới đi qua `ai-story-input` / `stories/import` |
-| `PUT {id}` | 🔌 | `updateStory` | API cũ |
-| `DELETE {id}` | 🔌 | `deleteStory` | API cũ |
-| `PATCH {id}/publish` | 🔌 | `publishStory` | API cũ — duyệt đi qua `review/approve` |
+| `POST /` | ⬜ | — | API cũ, đã xoá hàm — truyện mới đi qua `ai-story-input` / `stories/import` |
+| `PUT {id}` | ⬜ | — | API cũ, đã xoá hàm |
+| `DELETE {id}` | ⬜ | — | API cũ, đã xoá hàm |
+| `PATCH {id}/publish` | ⬜ | — | API cũ, đã xoá hàm — duyệt đi qua `review/approve` |
+
+> **Chặn — cần backend sửa:** `GET /Story` đang `[AllowAnonymous]` và trả truyện phạm vi phụ huynh của **mọi tài khoản** (ai cũng xem được truyện riêng của trẻ khác). `StoryFilterRequestDto` không có `childProfileId`, `StoryDto` không trả `childProfileId` dù entity `Story` có. Frontend tạm lọc `authorUserId` = mình (màn đọc của bé dùng Owner của bé), nên chưa tách được truyện theo từng bé và người giám sát thêm không thấy truyện do Owner tạo. `StoryDto` cũng không có `pages`: màn xem trước / màn đọc tách trang từ `content`.
 
 ### L2 — API đề xuất backend chưa có
 
@@ -312,7 +316,7 @@ Màn hình: [KidEntry.tsx](../app/features/kid/KidEntry.tsx), [KidMode.tsx](../a
 
 ### L3 — API đề xuất backend chưa có
 
-Mọi chức năng đọc khác của bé đều gọi `readingService` và tự chuyển sang `readingLocal`, nên dữ liệu chỉ lưu trong trình duyệt.
+Mọi chức năng đọc khác của bé đều gọi `readingService` và tự chuyển sang `readingLocal`, nên tiến độ, câu đố, sổ tay chỉ lưu trong trình duyệt. Nội dung truyện thì lấy thật: `GET /Story`, `review/quiz`, `review/vocabulary`, `media/package` (đã bỏ `mockReading`).
 
 | Chức năng | Đường dẫn đề xuất | Màn hình |
 |---|---|---|

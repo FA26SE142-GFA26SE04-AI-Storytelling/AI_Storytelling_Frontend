@@ -1,5 +1,3 @@
-import { USE_MOCK } from '@/app/mocks/config';
-import { mockAiStory } from '@/app/mocks/mockAiStory';
 import { ApiResponse } from '@/app/types/auth';
 import * as D from '@/app/types/aiStory';
 import { authService } from './authService';
@@ -134,4 +132,3 @@ export const aiStoryCreationService = {
   regenerateIllustration: (id: number, beatId: number, signal?: AbortSignal) => request<null>(`${story(id)}/media/illustration-beats/${beatId}/regenerate`, 'POST', undefined, signal, true),
 };
 
-if (USE_MOCK) Object.assign(aiStoryCreationService, mockAiStory);

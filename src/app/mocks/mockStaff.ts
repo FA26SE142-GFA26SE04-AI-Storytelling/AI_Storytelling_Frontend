@@ -2,7 +2,15 @@ import type { ApiResponse } from '@/app/types/auth';
 import type { ContentCategory } from '@/app/types/childProfile';
 import type { AdministratorAccount, BusinessReport, DataRequest, PaymentTransaction, TokenQuotaConfig } from '@/app/types/staff';
 import { delay, fail, ok } from './config';
-import { MOCK_CATEGORIES } from './mockDb';
+
+const MOCK_CATEGORIES: ContentCategory[] = [
+  { id: 1, code: 'animals', displayName: 'Động vật', isActive: true },
+  { id: 2, code: 'adventure', displayName: 'Phiêu lưu', isActive: true },
+  { id: 3, code: 'science', displayName: 'Khoa học', isActive: true },
+  { id: 4, code: 'fairytale', displayName: 'Cổ tích', isActive: true },
+  { id: 5, code: 'horror', displayName: 'Ma quỷ, kinh dị', isActive: true },
+  { id: 6, code: 'violence', displayName: 'Bạo lực', isActive: true },
+];
 
 /** Dữ liệu mẫu cho các API quản trị mà backend ĐÃ có (để thử ở chế độ dữ liệu mẫu). */
 

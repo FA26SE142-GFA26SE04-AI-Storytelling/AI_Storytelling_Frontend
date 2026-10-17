@@ -1,3 +1,7 @@
+import type { StoryOutputMode } from './story';
+
+export type { StoryOutputMode };
+
 export interface AIStoryInputContextDto {
   childProfileId: number;
   childNickname: string;
@@ -7,6 +11,8 @@ export interface AIStoryInputContextDto {
   availableVocabularyLevels: VocabularyLevel[];
   defaultLanguage: string;
   availableLanguages: string[];
+  /** 'learning' (kèm học liệu) và/hoặc 'reading_media_only' (chỉ để đọc). */
+  availableOutputModes?: StoryOutputMode[];
   maximumLength: number;
   requiredApprovalMode: string;
   parentalGateEnabled: boolean;
@@ -41,6 +47,7 @@ export interface AIStoryCreativeInputDto {
 }
 
 export interface SubmitAIStoryInputRequestDto extends AIStoryCreativeInputDto {
+  outputMode: StoryOutputMode;
   childProfileId: number;
   existingStoryId?: number;
   idempotencyKey: string;
@@ -56,6 +63,7 @@ export type AIStoryInputStatus =
 export interface AIStoryInputProgressDto {
   requestId: number;
   storyId: number;
+  outputMode?: StoryOutputMode | string;
   inputStatus: AIStoryInputStatus;
   handoffStatus: string;
   handoffJobId: number | null;
@@ -109,6 +117,7 @@ export interface ContentQualityFailureDto {
 }
 export interface ContentGenerationProgressDto {
   storyId: number;
+  outputMode?: StoryOutputMode | string;
   storyStatus: string;
   currentStep: string;
   content: string;
@@ -122,6 +131,7 @@ export interface ContentGenerationProgressDto {
 }
 export interface StoryReviewDto {
   storyId: number;
+  outputMode?: StoryOutputMode | string;
   versionId: number;
   title: string;
   content: string;
@@ -139,6 +149,8 @@ export interface DiscussionReviewDto { storyId: number; versionId: number; items
 export interface ArtifactStatusDto { state: string; itemCount: number }
 export interface ReviewPackageDto {
   storyId: number;
+  /** 'reading_media_only': truyện chỉ để đọc, không có từ vựng / câu đố / thảo luận. */
+  outputMode?: StoryOutputMode | string;
   storyVersionId: number;
   storyStatus: string;
   title: string;

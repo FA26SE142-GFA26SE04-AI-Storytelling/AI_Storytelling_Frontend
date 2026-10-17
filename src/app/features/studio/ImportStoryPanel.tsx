@@ -1,15 +1,17 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Archive, CircleAlert, ClipboardPaste, Check, PencilLine, ShieldCheck, Wand2 } from "lucide-react";
+import { Archive, CircleAlert, ClipboardPaste, Check, FileUp, PencilLine, ShieldCheck, Wand2 } from "lucide-react";
 import { existingStoryService as api } from "@/app/services/existingStoryService";
 import type { ChildProfile } from "@/app/types/childProfile";
 import type { ExistingStoryEvaluation } from "@/app/types/existingStory";
-import { FREE_TEXT_MAX, detectPii } from "@/app/lib/storyRules";
+import type { StoryOutputMode } from "@/app/types/story";
+import { FREE_TEXT_MAX, OUTPUT_MODE, detectPii, isReadingOnly } from "@/app/lib/storyRules";
 import type { WorkspaceId } from "@/app/components/shell/nav";
 import Frog from "@/app/components/brand/Frog";
 
-type Method = "paste" | "editor";
+type Method = "paste" | "file" | "editor";
+const MAX_FILE_BYTES = 5_000_000;
 type Stage =
   | { kind: "form" }
   | { kind: "decide"; storyId: number; versionId: number; evaluation: ExistingStoryEvaluation }
@@ -27,6 +29,8 @@ export default function ImportStoryPanel({ child, go, onDone }: { child: ChildPr
   const [method, setMethod] = useState<Method>("paste");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [outputMode, setOutputMode] = useState<StoryOutputMode>("learning");
   const [lesson, setLesson] = useState("");
   const [attest, setAttest] = useState(false);
   const [stage, setStage] = useState<Stage>({ kind: "form" });
@@ -52,8 +56,16 @@ export default function ImportStoryPanel({ child, go, onDone }: { child: ChildPr
   };
 
   const submit = () => run(async () => {
-    if (method === "paste" && !attest) { setErr("Hãy xác nhận bạn có quyền dùng nội dung này cho con."); return; }
-    const imported = await api.importStory({ inputMethod: "paste", content, title: title.trim() || undefined, childProfileId: child.id, idempotencyKey: crypto.randomUUID() });
+    if (method !== "editor" && !attest) { setErr("Hãy xác nhận bạn có quyền dùng nội dung này cho con."); return; }
+    const base = { title: title.trim() || undefined, childProfileId: child.id, outputMode, idempotencyKey: crypto.randomUUID() };
+    let imported;
+    if (method === "file") {
+      if (!file) { setErr("Hãy chọn tệp .txt hoặc .docx."); return; }
+      if (file.size > MAX_FILE_BYTES) { setErr("Tệp tối đa 5 MB."); return; }
+      imported = await api.importFile({ ...base, file });
+    } else {
+      imported = await api.importStory({ ...base, inputMethod: "paste", content });
+    }
     if (!imported.success || !imported.data) { setErr(imported.message); return; }
     if (!imported.data.canProceed) { setErr(imported.data.fallbackMessage || "Truyện chưa thể đi tiếp. Hãy sửa lại nội dung."); return; }
     const { storyId, storyVersionId } = imported.data;
@@ -74,7 +86,8 @@ export default function ImportStoryPanel({ child, go, onDone }: { child: ChildPr
       <div className="empty">
         <Frog size={110} mood={stage.kind === "done" ? "happy" : "idle"} />
         <b className="display">{stage.kind === "done" ? "Đã nhận truyện" : "Đã lưu trữ truyện"}</b>
-        <span>{stage.kind === "done" ? "Hệ thống đang tạo từ vựng, câu hỏi và gợi ý thảo luận. Truyện sẽ xuất hiện trong hàng chờ duyệt sau ít phút." : "Truyện không hiện với bé."}</span>
+        <span>{stage.kind === "archived" ? "Truyện không hiện với bé."
+          : isReadingOnly(outputMode) ? "Truyện đã vào hàng chờ duyệt." : "Hệ thống đang tạo từ vựng, câu hỏi và gợi ý thảo luận. Truyện sẽ xuất hiện trong hàng chờ duyệt sau ít phút."}</span>
         <div className="row">
           {stage.kind === "done" && <button className="btn btn-p" onClick={() => go("review")}>Mở hàng chờ duyệt</button>}
           <button className="btn btn-s" onClick={onDone}>Nhập truyện khác</button>
@@ -157,27 +170,45 @@ export default function ImportStoryPanel({ child, go, onDone }: { child: ChildPr
 
   return (
     <form className="import-body" onSubmit={(e) => { e.preventDefault(); void submit(); }}>
-      <div className="seg" style={{ maxWidth: 320 }}>
+      <div className="seg" style={{ maxWidth: 420 }}>
         <button type="button" className={method === "paste" ? "on" : ""} onClick={() => setMethod("paste")}><ClipboardPaste size={13} /> Dán truyện có sẵn</button>
+        <button type="button" className={method === "file" ? "on" : ""} onClick={() => setMethod("file")}><FileUp size={13} /> Tải tệp</button>
         <button type="button" className={method === "editor" ? "on" : ""} onClick={() => setMethod("editor")}><PencilLine size={13} /> Tự viết</button>
       </div>
       <p className="sub">
-        {method === "paste" ? "Dán truyện bạn đã có (sách, báo, truyện sưu tầm). " : "Tự viết truyện cho con. "}
-        Hệ thống kiểm tra an toàn và mức phù hợp với {child.nickname} trước khi tạo câu hỏi và gửi bạn duyệt. Chỉ nhận truyện tiếng Việt.
+        {method === "paste" ? "Dán truyện bạn đã có (sách, báo, truyện sưu tầm). " : method === "file" ? "Chọn tệp .txt hoặc .docx (tối đa 5 MB). " : "Tự viết truyện cho con. "}
+        Hệ thống kiểm tra an toàn và mức phù hợp với {child.nickname} trước khi gửi bạn duyệt. Chỉ nhận truyện tiếng Việt.
       </p>
       <label className="field"><span className="lbl">Tên truyện (không bắt buộc)</span><input className="inp" maxLength={150} value={title} onChange={(e) => setTitle(e.target.value)} /></label>
-      <label className="field"><span className="lbl">Nội dung truyện</span>
-        <textarea className="inp" rows={14} required minLength={50} value={content} onChange={(e) => setContent(e.target.value)} placeholder={method === "paste" ? "Dán nội dung truyện vào đây" : "Ngày xửa ngày xưa…"} /></label>
-      <span className="sub">{content.trim() ? `${content.trim().split(/\s+/).length.toLocaleString("vi-VN")} tiếng` : ""}</span>
-      {pii.length > 0 && <div className="notice err" role="status"><CircleAlert className="ic" /> Truyện có thể chứa thông tin cá nhân ({[...new Set(pii.map((p) => p.kind))].join(", ")}). Nên bỏ trước khi nhập.</div>}
-      {method === "paste" ? (
+      {method === "file" ? (
+        <label className="field"><span className="lbl">Tệp truyện</span>
+          <input className="inp" type="file" accept=".txt,.docx,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            onChange={(e) => setFile(e.target.files?.[0] ?? null)} /></label>
+      ) : (
+        <>
+          <label className="field"><span className="lbl">Nội dung truyện</span>
+            <textarea className="inp" rows={14} required minLength={50} value={content} onChange={(e) => setContent(e.target.value)} placeholder={method === "paste" ? "Dán nội dung truyện vào đây" : "Ngày xửa ngày xưa…"} /></label>
+          <span className="sub">{content.trim() ? `${content.trim().split(/\s+/).length.toLocaleString("vi-VN")} tiếng` : ""}</span>
+          {pii.length > 0 && <div className="notice err" role="status"><CircleAlert className="ic" /> Truyện có thể chứa thông tin cá nhân ({[...new Set(pii.map((p) => p.kind))].join(", ")}). Nên bỏ trước khi nhập.</div>}
+        </>
+      )}
+      <div className="field"><span className="lbl">Kiểu truyện</span>
+        <div className="seg" style={{ maxWidth: 320 }}>
+          {(Object.keys(OUTPUT_MODE) as StoryOutputMode[]).map((m) => (
+            <button type="button" key={m} className={outputMode === m ? "on" : ""} onClick={() => setOutputMode(m)}>{OUTPUT_MODE[m].label}</button>
+          ))}
+        </div>
+        <small className="hint">{OUTPUT_MODE[outputMode].hint}</small>
+      </div>
+      {method !== "editor" ? (
         <label className="row" style={{ alignItems: "flex-start", fontSize: 13 }}>
           <input type="checkbox" checked={attest} onChange={(e) => setAttest(e.target.checked)} style={{ marginTop: 3, accentColor: "var(--primary)" }} />
           <span>Tôi có quyền sử dụng nội dung này cho con tôi. Truyện chỉ dùng trong gia đình.</span>
         </label>
       ) : <p className="sub">Truyện bạn tự viết được ghi nhận là tác phẩm của bạn.</p>}
       {err && <div className="notice err" role="alert">{err}</div>}
-      <button className="btn btn-p" style={{ width: "fit-content" }} disabled={busy || content.trim().length < 50 || (method === "paste" && !attest)}>{busy ? "Đang kiểm tra…" : "Nhập và đánh giá"}</button>
+      <button className="btn btn-p" style={{ width: "fit-content" }}
+        disabled={busy || (method === "file" ? !file : content.trim().length < 50) || (method !== "editor" && !attest)}>{busy ? "Đang kiểm tra…" : "Nhập và đánh giá"}</button>
     </form>
   );
 }

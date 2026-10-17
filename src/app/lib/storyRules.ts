@@ -1,4 +1,4 @@
-import type { VocabularyLevel } from "@/app/types/aiStory";
+import type { StoryOutputMode, VocabularyLevel } from "@/app/types/aiStory";
 
 /** Quy tắc dùng chung cho Luồng 2 (sinh truyện, nhập truyện, duyệt). */
 
@@ -8,6 +8,13 @@ export const GENRES = ["Cổ tích", "Phiêu lưu", "Động vật", "Khoa học
 export const MORAL_LESSONS = ["Biết chia sẻ", "Dũng cảm", "Trung thực", "Kiên nhẫn", "Biết ơn", "Tôn trọng bạn bè", "Yêu thương gia đình", "Giữ gìn thiên nhiên", "Biết xin lỗi", "Tự lập"];
 export const SAMPLE_CHARACTERS = ["Ếch Xanh", "Sóc Bông", "Thỏ Trắng", "Mèo Mướp", "Rùa Con", "Cô bé phi hành gia", "Chú rồng nhỏ", "Robot tí hon"];
 export const SAMPLE_SETTINGS = ["Khu rừng", "Đáy biển", "Trường học", "Ngôi làng", "Vũ trụ", "Đầm sen"];
+
+/** Chế độ đầu ra của truyện (Studio và Nhập truyện có sẵn). */
+export const OUTPUT_MODE: Record<StoryOutputMode, { label: string; hint: string }> = {
+  learning: { label: "Kèm học liệu", hint: "AI tạo thêm từ vựng, câu đố và câu hỏi thảo luận để bé học sau khi đọc." },
+  reading_media_only: { label: "Chỉ để đọc", hint: "Chỉ có truyện, tranh và giọng đọc; không có từ vựng, câu đố hay thảo luận." },
+};
+export const isReadingOnly = (mode?: string | null) => mode === "reading_media_only";
 
 /** Luồng 2 mục 5.3b — độ dài truyện (tiếng) theo mức đọc. */
 export const LEVEL_LENGTH: Record<number, [number, number]> = { 1: [200, 400], 2: [400, 700], 3: [700, 1100], 4: [1100, 1600], 5: [1600, 2400] };

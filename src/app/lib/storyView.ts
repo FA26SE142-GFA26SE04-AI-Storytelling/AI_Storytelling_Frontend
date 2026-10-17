@@ -57,12 +57,12 @@ export function statusBadge(status: string): [StoryTone, string] {
 
 export function toCard(s: StoryDto): StoryCard {
   const [tone, statusLabel] = STATUS[statusKey(s)] ?? ["draft", s.status || "Bản nháp"];
-  const text = s.content ?? s.pages?.map((p) => p.content).join(" ") ?? "";
+  const text = s.content ?? "";
   return {
     id: s.id,
     title: s.title,
     ageBand: s.ageBand,
-    topic: s.categoryName || s.genre || "Khác",
+    topic: s.genre || "Khác",
     fromAi: /ai/i.test(s.source ?? ""),
     words: text.trim() ? text.trim().split(/\s+/).length : 0,
     tone,

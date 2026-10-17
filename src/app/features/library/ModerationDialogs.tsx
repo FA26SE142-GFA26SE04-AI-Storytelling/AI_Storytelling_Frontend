@@ -74,7 +74,7 @@ export function CommunityDialog({ story, nickname, onClose, onDone }: { story: S
 
   useEffect(() => {
     void storyService.getStoryById(story.id).then((r) => {
-      const text = [r.data?.title, r.data?.content, ...(r.data?.pages?.map((p) => p.content) ?? [])].filter(Boolean).join("\n");
+      const text = [r.data?.title, r.data?.description, r.data?.content].filter(Boolean).join("\n");
       setPii([...new Set(detectPii(text, nickname).map((h) => `${h.kind}: “${h.text}”`))]);
     });
   }, [story.id, nickname]);

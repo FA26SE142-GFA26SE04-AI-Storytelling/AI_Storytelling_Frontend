@@ -14,7 +14,7 @@ Ký hiệu:
 | Luồng | % hoàn thành |
 |---|:-:|
 | L1 — Hồ sơ trẻ & giám sát | ~95% — gọi API thật, không còn mock (còn: tên/email người giám sát, phiên bé tự hết hạn) |
-| L2 — Sinh truyện AI | ~65% (phần lớn còn lại chờ backend) |
+| L2 — Sinh truyện AI | ~70% — gọi API thật, không còn mock (phần còn lại chờ backend; danh sách truyện chưa lọc được theo bé) |
 | L3 — Trẻ đọc truyện | ~75% giao diện (dữ liệu đọc chờ backend) |
 | L4 — Lộ trình, theo dõi, Hold Mode | ~80% giao diện (dữ liệu chờ backend) |
 | L5 — Admin / Content Creator / Moderator | ~80% giao diện (phần lớn dữ liệu chờ backend) |
@@ -99,9 +99,11 @@ Cập nhật 17/10/2026: toàn bộ Luồng 1 gọi **API thật**, đã gỡ d�
 | Tên/email người giám sát | Mục 3 | `SupervisionRelationshipDto` chỉ có `supervisorUserId` |
 | Khôi phục hồ sơ đã lưu trữ | Mục 7 | Có `PATCH /ChildProfile/{id}/restore` nhưng `GET /ChildProfile/mine` không trả hồ sơ đã lưu trữ, nên giao diện không có chỗ chọn |
 
-## Luồng 2 — Sinh truyện AI (~65%)
+## Luồng 2 — Sinh truyện AI (~70%)
 
-Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần backend bổ sung" ở cuối phần này).
+Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ dữ liệu mẫu (`mockAiStory`, `mockExistingStory`, mock truyện trong `mockServices`, `mockDb`). Màn đọc của bé (Luồng 3) cũng lấy truyện thật qua `realLoaders` (bỏ `mockReading`); chỉ thư viện chung của Luồng 5 còn là dữ liệu mẫu khi bật `NEXT_PUBLIC_USE_MOCK`. Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần backend bổ sung" ở cuối phần này).
+
+> **Chặn lớn — chờ backend:** `GET /Story` không lọc được theo hồ sơ bé (`StoryDto` không có `childProfileId`) và đang `[AllowAnonymous]`, trả truyện của **mọi phụ huynh** cho bất kỳ ai gọi. Frontend tạm lọc theo người tạo (`authorUserId` = mình; màn đọc của bé dùng Owner của bé), nên Thư viện hiện truyện của **mọi bé** mình tạo, và người giám sát thêm không thấy truyện do Owner tạo.
 
 **Yêu cầu tạo truyện (mục 3.1)** — `Studio → Yêu cầu`
 - [x] Ý tưởng, nhân vật (để trống = AI gợi ý, có nhân vật mẫu), bối cảnh (để trống = AI gợi ý, có gợi ý), bài học (có danh sách gợi ý hoặc tự nhập)
@@ -113,15 +115,16 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 - [x] Cảnh báo thông tin cá nhân trong yêu cầu (số điện thoại, email, địa chỉ, tên trường, biệt danh của bé)
 - [x] Hiện số lượt tạo truyện còn lại, chặn khi hết lượt
 - [x] Bé chưa kích hoạt thì không tạo truyện được
+- [x] Kiểu truyện: "Kèm học liệu" (`learning`) / "Chỉ để đọc" (`reading_media_only`, không tạo từ vựng, câu đố, thảo luận) — theo `availableOutputModes` của backend
 - [ ] Chọn truyện thường / nhiều lựa chọn — **chờ backend**
 
 **Nhập truyện có sẵn (mục 3.2, 5.2–5.4)** — `Studio → Nhập truyện có sẵn`
-- [x] Dán truyện có sẵn / tự viết
-- [x] Tick "Tôi có quyền sử dụng nội dung này cho con tôi" (bắt buộc khi dán)
+- [x] Dán truyện có sẵn / tải tệp .txt, .docx (tối đa 5 MB, `import-file`) / tự viết
+- [x] Chọn kiểu truyện "Kèm học liệu" / "Chỉ để đọc"
+- [x] Tick "Tôi có quyền sử dụng nội dung này cho con tôi" (bắt buộc khi dán hoặc tải tệp)
 - [x] Cảnh báo thông tin cá nhân trong nội dung
 - [x] Đánh giá: Phù hợp → tự chuyển sang tạo học liệu; Nên điều chỉnh / Bị chặn → hiện lý do
 - [x] Lựa chọn: AI điều chỉnh (kèm ghi chú) / Tự sửa / Giữ bản gốc (bắt buộc lý do, khoá khi vượt độ dài) / Lưu trữ
-- [ ] (Optional) Tải lên tệp .txt / .docx — backend đã có `import-file`, chưa làm giao diện
 - [ ] Lưu cam kết bản quyền (`family_use` / `own_work`) — **chờ backend**
 
 **Guardrail & kiểm duyệt (mục 3.3–3.4)**
@@ -132,6 +135,7 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 
 **Dàn ý (Phase 2)**
 - [x] Xem, sửa, viết lại, duyệt dàn ý truyện thường
+- [x] Tạo dàn ý lần đầu bị lỗi → nút "Thử lại" (`outline/retry`); viết truyện / học liệu bị lỗi → "Thử lại" (`generation/retry`)
 - [ ] Dàn ý đủ trường nhân vật, bối cảnh, bài học — **chờ backend** (`OutlineVersionDto` mới có mở đầu / diễn biến / kết thúc)
 - [ ] Dàn ý dạng cây cho truyện nhiều lựa chọn — **chờ backend**
 
@@ -147,6 +151,7 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 - [x] Thêm / sửa / xoá từng mục, kiểm tra trống trước khi lưu
 - [x] Đổi loại câu hỏi: trắc nghiệm / đúng-sai / tự luận ngắn (bé 6–8 tuổi không có tự luận)
 - [x] AI tạo lại → xem trước → Áp dụng / Bỏ qua
+- [x] Truyện "Chỉ để đọc": ẩn toàn bộ học liệu, không gọi API học liệu (backend trả 409), duyệt chỉ cần hoàn tất phần truyện
 - [ ] Điểm dừng tương tác (đoán / cảm xúc / cảm nhận) — **chờ backend**
 - [ ] Thẻ "Hỏi nhân vật" — **chờ backend**
 - [ ] Tóm tắt cho phụ huynh — **chờ backend**
@@ -158,7 +163,7 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 - [ ] Truyện nhiều lựa chọn: phải xem mọi kết thúc trước khi duyệt — **chờ backend**
 
 **Phiên bản & quản lý truyện (mục 6.8, 6.9)** — màn `Thư viện truyện`
-- [x] "Truyện của bé": tìm theo tên, lọc theo nguồn / chủ đề / 10 nhóm trạng thái
+- [ ] "Truyện của bé": tìm theo tên, lọc theo nguồn / chủ đề / 10 nhóm trạng thái — **Một phần:** chưa tách theo từng bé, đang hiện mọi truyện do mình tạo (**chờ backend** lọc `GET /Story` theo bé)
 - [x] Nút: Xem trước như bé thấy (không tính lượt đọc)
 - [x] Nút: Mở để duyệt / Tiếp tục trong Studio / Lưu trữ (Lưu trữ chỉ hiện với người có quyền "Duyệt truyện")
 - [ ] Lịch sử phiên bản, so sánh 2 bản, khôi phục bản cũ — **chờ backend**
@@ -170,6 +175,7 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 **Ảnh & giọng đọc (Phase 5)**
 - [x] Theo dõi tiến độ tạo ảnh và giọng đọc
 - [x] Thử lại khi lỗi
+- [x] Màn đọc của bé lấy ảnh minh hoạ từng cảnh từ `media/package`
 - [ ] (Optional) Vẽ lại một ảnh — đã có hàm `regenerateIllustration`, chưa làm giao diện
 
 **Điều ước của bé — phía phụ huynh (mục 3.5)**
@@ -180,6 +186,7 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 
 | Việc | Đặc tả | Backend hiện tại |
 |---|---|---|
+| **Danh sách truyện theo bé và đúng quyền** | Mục 6.9 | `GET /Story` là `[AllowAnonymous]`, trả truyện của mọi phụ huynh; `StoryFilterRequestDto` không có `childProfileId`, `StoryDto` không trả `childProfileId` (entity `Story` có). Cần: bắt buộc đăng nhập, lọc theo bé mình giám sát, trả `childProfileId` |
 | Truyện nhiều lựa chọn (dàn ý cây, node, lựa chọn, duyệt từng kết thúc) | Mục 4.1, 5.7, BR-2.28/29 | Chưa có |
 | Bé ước một câu chuyện (thẻ ước, gợi ý truyện có sẵn, xử lý của phụ huynh) | Mục 3.5 | Chưa có API `wishes` |
 | Điểm dừng tương tác, Hỏi nhân vật, Tóm tắt cho phụ huynh | Mục 6.4b–6.4d | Chưa có |
@@ -189,7 +196,7 @@ Phần còn lại phần lớn **chờ backend** (xem mục "Luồng 2 — cần
 | Dàn ý có nhân vật, bối cảnh, bài học, `ending_summary` | Mục 4 | `OutlineVersionDto` chỉ có mở đầu / diễn biến / kết thúc |
 | Metadata sửa được, nhãn nội dung, cảnh báo Context Fidelity, `pii_flags` | Mục 3.3b, 5.3c, 5.6 | Chưa trả về trong gói duyệt |
 | Cam kết bản quyền khi nhập truyện | BR-2.39 | `ImportStoryRequestDto` chưa có trường |
-| Nhập bằng trình soạn thảo | Mục 3.2 | `inputMethod` chỉ nhận `paste` / `txt` / `docx` (frontend gửi `paste`) |
+| Nhập bằng trình soạn thảo | Mục 3.2 | `inputMethod` chỉ nhận `paste` / `txt` / `docx` (frontend gửi `paste`; tệp đi qua `import-file`) |
 | Lý do lưu trữ quyết định ngắt phiên đọc | Mục 6.6, BR-2.21 | `ArchiveRequestDto.reason` là chuỗi tự do; cần thống nhất mã `safety_concern` / `supervisor_preference` |
 
 ## Luồng 3 — Trẻ đọc truyện (~75% giao diện; dữ liệu đọc chưa lưu lên máy chủ)

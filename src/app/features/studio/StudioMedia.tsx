@@ -6,6 +6,7 @@ import AsidePane from "@/app/components/shell/AsidePane";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
 import { gradientFor, splitScenes } from "@/app/lib/storyView";
+import { isReadingOnly } from "@/app/lib/storyRules";
 import type { useMediaProgress } from "./useStoryPipeline";
 import { useRiseIn, useSwap } from "@/app/lib/motion";
 
@@ -74,9 +75,15 @@ export default function StudioMedia({ storyId, media, onFinish }: Props) {
             {m?.errorCode && <div className="notice err" role="alert">Có lỗi khi tạo media ({m.errorCode}). Bạn có thể thử lại.</div>}
           </div>
           <div className="kv">
-            <div><small>Từ vựng</small><b>{count(bundle?.vocabulary.items.length)}</b></div>
-            <div><small>Câu hỏi</small><b>{count(bundle?.quiz.items.length)}</b></div>
-            <div><small>Thảo luận</small><b>{count(bundle?.discussion.items.length)}</b></div>
+            {bundle && isReadingOnly(bundle.summary.outputMode) ? (
+              <div><small>Kiểu truyện</small><b>Chỉ để đọc</b></div>
+            ) : (
+              <>
+                <div><small>Từ vựng</small><b>{count(bundle?.vocabulary.items.length)}</b></div>
+                <div><small>Câu hỏi</small><b>{count(bundle?.quiz.items.length)}</b></div>
+                <div><small>Thảo luận</small><b>{count(bundle?.discussion.items.length)}</b></div>
+              </>
+            )}
             <div><small>Bài học</small><b style={{ fontSize: 12 }}>{bundle ? bundle.story.lesson || "—" : "…"}</b></div>
           </div>
           <div className="sec">

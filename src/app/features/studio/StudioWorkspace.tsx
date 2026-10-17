@@ -89,6 +89,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           errorCode={p.errorCode}
           timedOut={p.timedOut}
           statusError={p.statusError}
+          retryFailed={p.retryFailed}
           refresh={p.refresh}
           onOutlineApproved={() => { setApproved(true); p.refresh(); }}
           onImport={onImport}

@@ -70,7 +70,20 @@ export function useStoryPipeline(userId: number, childId: number | null, approve
     return api.archiveStory(storyId, { reason: "supervisor_preference" });
   };
 
-  return { cancel, flow, storyId, stage, snapshot: status.data, statusError: status.error, timedOut: status.timedOut, errorCode, refresh: status.refresh };
+  /**
+   * Thử lại bước AI vừa lỗi: viết truyện / học liệu (`generation/retry`) hoặc tạo dàn ý lần đầu (`outline/retry`).
+   * Lỗi khi viết lại dàn ý đã có thì không có ở đây: phụ huynh bấm "Viết lại" trong tab Dàn ý.
+   */
+  const generationFailed = status.data?.generation?.currentStep?.startsWith("failed_") ?? false;
+  const outlineFailed = !!status.data?.outline?.lastErrorCode && !status.data.outline.currentVersion;
+  const retryFailed = storyId !== null && (generationFailed || outlineFailed) ? async () => {
+    const key = `retry-${storyId}-${crypto.randomUUID()}`;
+    const r = generationFailed ? await api.retryGeneration(storyId, { retryKey: key }) : await api.retryOutline(storyId, { operationKey: key });
+    status.refresh();
+    return r;
+  } : undefined;
+
+  return { cancel, flow, storyId, stage, snapshot: status.data, statusError: status.error, timedOut: status.timedOut, errorCode, retryFailed, refresh: status.refresh };
 }
 
 const mediaContinue = (m: MediaProgressDto) => !m.isReady && !m.errorCode;

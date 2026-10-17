@@ -19,6 +19,8 @@ type Props = {
   errorCode: string | null;
   timedOut: boolean;
   statusError: string | null;
+  /** Có khi bước AI vừa lỗi và backend cho thử lại (viết truyện / học liệu, dàn ý lần đầu). */
+  retryFailed?: () => Promise<{ success: boolean; message: string }>;
   refresh: () => void;
   onOutlineApproved: () => void;
   onImport: () => void;
@@ -34,7 +36,7 @@ function autoView(stage: Stage): View {
   return "status";
 }
 
-export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, refresh, onOutlineApproved, onImport }: Props) {
+export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, retryFailed, refresh, onOutlineApproved, onImport }: Props) {
   // Lựa chọn tab chỉ có hiệu lực trong bước đã chọn; sang bước mới thì quay về view mặc định.
   const [choice, setChoice] = useState<{ stage: Stage; view: View } | null>(null);
   const hasOutline = !!snapshot?.outline?.currentVersion && storyId !== null;
@@ -78,6 +80,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
                 errorCode={errorCode}
                 timedOut={timedOut || flow.isPollingTimedOut}
                 onRetry={blocked && flow.canRetryInput ? () => void flow.retry() : flow.isPollingTimedOut ? () => void flow.checkStatus() : refresh}
+                onRetryFailed={retryFailed}
                 onEdit={blocked ? flow.editInput : undefined}
               />
             )}

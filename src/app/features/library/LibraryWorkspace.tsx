@@ -42,9 +42,7 @@ function Preview({ story, onClose }: { story: StoryCard; onClose: () => void }) 
   const [page, setPage] = useState(0);
   useEffect(() => {
     void storyService.getStoryById(story.id).then((r) => {
-      const dto = r.data;
-      const fromPages = dto?.pages?.slice().sort((a, b) => a.pageNumber - b.pageNumber).map((p) => p.content) ?? [];
-      setPages(fromPages.length ? fromPages : splitScenes(dto?.content ?? story.raw.content ?? ""));
+      setPages(splitScenes(r.data?.content ?? story.raw.content ?? ""));
     });
   }, [story]);
   return (
@@ -161,7 +159,7 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
             <>
               <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: sel.gradient }} />
               <h3 className="display" style={{ fontSize: 20, margin: 0, lineHeight: 1.2 }}>{sel.title}</h3>
-              {sel.raw.synopsis && <p className="sub">{sel.raw.synopsis}</p>}
+              {sel.raw.description && <p className="sub">{sel.raw.description}</p>}
               <div className="meta">
                 <span>Nguồn</span><b>{sel.fromAi ? "Do AI tạo" : "Nhập sẵn / tự viết"}</b>
                 <span>Độ tuổi</span><b>{ageLabel(sel.ageBand)}</b>

@@ -1,5 +1,4 @@
 import { USE_MOCK } from '@/app/mocks/config';
-import { mockReadingLoaders } from '@/app/mocks/mockReading';
 import type { ApiResponse } from '@/app/types/auth';
 import type {
   Achievements, CompleteResult, KidHome, LibraryStory, OpenedFrom, QuizAnswerInput, QuizResult, Reaction, ReadingPackage,
@@ -11,6 +10,7 @@ import { childProfileService } from './childProfileService';
 import { storyService } from './storyService';
 import { aiStoryCreationService } from './aiStoryCreationService';
 import { createLocalReading, type ContentLoaders, type NotebookEntry } from './readingLocal';
+import { PUBLIC_STORY_BASE, staffLocal } from './staffLocal';
 import { normalizeStoryStatus } from '@/app/features/story-workflow/storyGenerationFlow';
 import { splitScenes } from '@/app/lib/storyView';
 
@@ -35,6 +35,17 @@ import { splitScenes } from '@/app/lib/storyView';
  * Mọi lời gọi dùng token phiên của bé (Child Session).
  */
 
+/** Thư viện chung (Public Library) còn là dữ liệu mẫu của Luồng 5: chỉ ghép vào khi bật chế độ dữ liệu mẫu. */
+const mockPublicLibrary = (): LibraryStory[] => (USE_MOCK ? staffLocal.publicStories() : []).map((p) => ({
+  storyId: p.id, title: p.title, genre: p.genre, lesson: p.moralLesson, coverImageUrl: null, source: 'public_library',
+  lengthCategory: 'short', readingLevel: p.readingLevel, isChallenge: false, createdAt: p.updatedAt,
+}));
+const mockPublicStory = (storyId: number): ReadingPackage | null => {
+  if (!USE_MOCK || storyId <= PUBLIC_STORY_BASE) return null;
+  const p = staffLocal.publicStories().find((x) => x.id === storyId);
+  return p ? { storyId, storyVersionId: storyId, title: p.title, lesson: p.moralLesson, pages: splitScenes(p.content).map((text, i) => ({ pageNumber: i + 1, text })), vocabulary: [], quiz: [] } : null;
+};
+
 const realLoaders: ContentLoaders = {
   async child(childId) {
     const [c, lp, sp] = await Promise.all([childProfileService.getChildProfileById(childId), childProfileService.getLearningProfile(childId), childProfileService.getSafetyPolicy(childId)]);
@@ -42,19 +53,27 @@ const realLoaders: ContentLoaders = {
     return { nickname: c.data.nickname, ageBand: c.data.ageBand, readingLevel: lp.data?.readingLevel ?? 2, holdThreshold: sp.data?.comprehensionThresholdPercent, holdWindow: sp.data?.comprehensionWindowSize };
   },
   async library(childId) {
-    const r = await storyService.getStories({ childProfileId: childId, pageSize: 100, sortBy: 'createdAt', sortDescending: true });
-    return (r.data?.items ?? [])
+    // Backend chưa lọc truyện theo hồ sơ bé: lấy truyện do Owner của bé tạo (xem docs/BACKEND_API_STATUS.md, Luồng 2).
+    const owner = (await childProfileService.getChildProfileById(childId)).data?.ownerUserId;
+    const r = owner ? await storyService.getStories({ authorUserId: owner, pageSize: 100, isDescending: true }) : null;
+    const own = (r?.data?.items ?? [])
       .filter((s) => s.isPublished || normalizeStoryStatus(s.status) === 'ready')
-      .map((s): LibraryStory => ({ storyId: s.id, title: s.title, genre: s.genre ?? s.categoryName ?? null, lesson: s.moralLesson ?? null, coverImageUrl: s.coverImageUrl ?? null, source: 'own', lengthCategory: null, readingLevel: null, isChallenge: false, createdAt: s.createdAt }));
+      .map((s): LibraryStory => ({ storyId: s.id, title: s.title, genre: s.genre ?? null, lesson: s.moralLesson ?? null, coverImageUrl: s.coverImageUrl ?? null, source: 'own', lengthCategory: null, readingLevel: null, isChallenge: false, createdAt: s.createdAt }));
+    return [...own, ...mockPublicLibrary()];
   },
   async pack(storyId) {
-    const [st, qz, voc] = await Promise.all([storyService.getStoryById(storyId), aiStoryCreationService.getQuizReview(storyId), aiStoryCreationService.getVocabularyReview(storyId)]);
+    const publicStory = mockPublicStory(storyId);
+    if (publicStory) return publicStory;
+    const [st, qz, voc, media] = await Promise.all([
+      storyService.getStoryById(storyId), aiStoryCreationService.getQuizReview(storyId),
+      aiStoryCreationService.getVocabularyReview(storyId), aiStoryCreationService.getMediaPackage(storyId),
+    ]);
     const dto = st.data;
     if (!dto) return null;
-    const fromPages = dto.pages?.slice().sort((a, b) => a.pageNumber - b.pageNumber) ?? [];
-    const pages = fromPages.length
-      ? fromPages.map((p) => ({ pageNumber: p.pageNumber, text: p.content, imageUrl: p.imageUrl ?? null, audioUrl: p.audioUrl ?? null, wordTimings: null }))
-      : splitScenes(dto.content ?? '').map((text, i) => ({ pageNumber: i + 1, text }));
+    // Ảnh minh hoạ của từng cảnh lấy từ gói media đã duyệt; cảnh nào chưa có ảnh thì màn đọc dùng nền màu.
+    const images = (media.data?.scenes ?? []).slice().sort((a, b) => a.sceneIndex - b.sceneIndex)
+      .map((sc) => sc.illustrations.slice().sort((a, b) => a.beatOrder - b.beatOrder).find((il) => il.url)?.url ?? null);
+    const pages = splitScenes(dto.content ?? '').map((text, i) => ({ pageNumber: i + 1, text, imageUrl: images[i] ?? null }));
     return {
       storyId, storyVersionId: voc.data?.versionId ?? storyId, title: dto.title, lesson: dto.moralLesson ?? null, pages,
       vocabulary: (voc.data?.items ?? []).map((v, i) => ({ id: v.id ?? i + 1, term: v.term, definition: v.definition })),
@@ -65,7 +84,7 @@ const realLoaders: ContentLoaders = {
   },
 };
 
-const local = createLocalReading(USE_MOCK ? mockReadingLoaders : realLoaders);
+const local = createLocalReading(realLoaders);
 /** null = chưa biết; false = backend chưa có API đọc → dùng bộ máy cục bộ. */
 let backendReady: boolean | null = USE_MOCK ? false : null;
 const token = () => childAccessService.readSession()?.accessToken;

@@ -8,9 +8,10 @@ import type { TokenQuotaStatus } from "@/app/types/childProfile";
 import { copyrightHits, GENRES, SAMPLE_CHARACTERS, SAMPLE_SETTINGS } from "@/app/lib/storyRules";
 import { STUDIO_PREFILL_KEY } from "@/app/features/home/WishItem";
 import {
-  clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, vocabularyTone,
+  clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, outputModesOf, vocabularyTone,
   type AIStoryInputFormValues, type LengthPreset,
 } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
+import { OUTPUT_MODE } from "@/app/lib/storyRules";
 import { detectPii, piiMessage } from "@/app/features/story-workflow/piiHints";
 import { useRegisterApprove } from "@/app/features/story-workflow/approveSlot";
 import { useRiseIn } from "@/app/lib/motion";
@@ -80,6 +81,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   const copyright = copyrightHits([values.topic, values.charactersText, values.setting, values.lesson].join("\n"));
   const chars = values.charactersText.split(",").map((c) => c.trim()).filter(Boolean);
   const addChar = (c: string) => !chars.includes(c) && updateValues({ charactersText: [...chars, c].join(", ") });
+  const modes = outputModesOf(context);
 
   const text = (k: TextKey, label: string, placeholder: string, required = false, samples?: ReactNode) => (
     <div className="field">
@@ -143,6 +145,15 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
                 </button>
               ))}</div>
               <small className="hint">{TONE_LABEL[tone]}: {TONE_HINT[tone]}</small>
+            </div>
+          )}
+
+          {modes.length > 1 && (
+            <div className="field"><span className="lbl">Kiểu truyện</span>
+              <div className="seg">{modes.map((m) => (
+                <button type="button" key={m} disabled={locked} className={values.outputMode === m ? "on" : ""} onClick={() => updateValues({ outputMode: m })}>{OUTPUT_MODE[m].label}</button>
+              ))}</div>
+              <small className="hint">{OUTPUT_MODE[values.outputMode].hint}</small>
             </div>
           )}
         </div>

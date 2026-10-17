@@ -10,6 +10,7 @@ import { useRegisterApprove } from "@/app/features/story-workflow/approveSlot";
 import { countWords, normalizeSelection, type StorySelection } from "@/app/features/story-workflow/storySelection";
 import Frog from "@/app/components/brand/Frog";
 import { statusBadge } from "@/app/lib/storyView";
+import { isReadingOnly } from "@/app/lib/storyRules";
 import { useRiseIn, useSwap } from "@/app/lib/motion";
 import { ArtifactItems, ARTIFACT_LABEL, type ArtifactKind } from "./ArtifactList";
 import ProposalCard from "./ProposalCard";
@@ -74,6 +75,9 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived }:
   const { summary, story } = bundle;
   const items: Record<ArtifactKind, unknown[]> = { vocabulary: bundle.vocabulary.items, quiz: bundle.quiz.items, discussion: bundle.discussion.items };
   const missing = hasMissingLearning(bundle);
+  // Truyện "Chỉ để đọc" không có từ vựng / câu đố / thảo luận (backend từ chối mọi thao tác học liệu).
+  const learning = !isReadingOnly(summary.outputMode);
+  const artifacts = learning ? ARTIFACTS : [];
   const canEdit = summary.canEdit && !proposal && !editing;
   const whole = normalizeSelection(content, 0, content.length);
   const wholeStory = !!selection && !!whole && selection.start === whole.start && selection.endExclusive === whole.endExclusive;
@@ -90,7 +94,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived }:
       <div className="review-doc gate">
         <div className="gate-tabs">
           {tabButton("story", "Truyện")}
-          {ARTIFACTS.map((k) => tabButton(k, ARTIFACT_LABEL[k], items[k].length))}
+          {artifacts.map((k) => tabButton(k, ARTIFACT_LABEL[k], items[k].length))}
         </div>
 
         <div ref={docRef} className="gate-body">
@@ -106,6 +110,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived }:
               <div className="row">
                 <span className={`pill ${tone}`}>{statusLabel}</span>
                 <span className="pill ai">Do AI tạo</span>
+                {!learning && <span className="pill draft">Chỉ để đọc</span>}
                 <span className="hint" style={{ marginLeft: "auto" }}>Bản thảo #{summary.storyVersionId} · {countWords(content)} tiếng</span>
               </div>
               {editing ? (
@@ -142,7 +147,8 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived }:
             <button className="ck ck-link" onClick={() => setTab("story")}>
               <span className="st ok"><BookOpenText /></span>Truyện<small>{countWords(content)} tiếng{summary.readabilityFkgl !== null && ` · FKGL ${summary.readabilityFkgl.toFixed(1)}`}</small>
             </button>
-            {ARTIFACTS.map((k) => (
+            {!learning && <p className="hint">Truyện chỉ để đọc: không có từ vựng, câu đố hay câu hỏi thảo luận.</p>}
+            {artifacts.map((k) => (
               <button key={k} className="ck ck-link" onClick={() => setTab(k)}>
                 <span className={`st ${items[k].length > 0 ? "ok" : "warn"}`}>{items[k].length > 0 ? <Check /> : <CircleAlert />}</span>
                 {ARTIFACT_LABEL[k]}<small>{items[k].length > 0 ? `${items[k].length} mục` : "Chưa có"}</small>
@@ -170,7 +176,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived }:
 
           <div className="sec">
             <div className="sec-h">Quyết định</div>
-            {summary.canEdit && <button className="btn btn-s btn-c" disabled={busy || !!proposal || editing} onClick={() => setDialog("learning")}><PencilLine className="ic" />Sửa học liệu</button>}
+            {summary.canEdit && learning && <button className="btn btn-s btn-c" disabled={busy || !!proposal || editing} onClick={() => setDialog("learning")}><PencilLine className="ic" />Sửa học liệu</button>}
             {missing && <button className="btn btn-s btn-c" disabled={busy || !summary.canEdit || !!proposal} onClick={() => void r.generateMissingLearning()}><RefreshCw className="ic" />Tạo học liệu còn thiếu</button>}
             {!approveInBar && (
               <button className="btn btn-ok btn-c" disabled={busy || approveBlock !== null} onClick={() => void r.approve(onApproved)}>

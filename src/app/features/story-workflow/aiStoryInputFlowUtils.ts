@@ -2,6 +2,7 @@ import {
   AIStoryCreativeInputDto,
   AIStoryInputContextDto,
   AIStoryInputProgressDto,
+  StoryOutputMode,
   SubmitAIStoryInputRequestDto,
   VocabularyLevel,
 } from '@/app/types/aiStory';
@@ -15,7 +16,13 @@ export interface AIStoryInputFormValues {
   setting: string;
   vocabularyLevel: VocabularyLevel;
   targetLength: number;
+  /** Kèm học liệu (từ vựng, câu đố, thảo luận) hoặc chỉ để đọc. */
+  outputMode: StoryOutputMode;
 }
+
+/** Chế độ đầu ra backend cho phép với bé này; context cũ chưa có trường thì chỉ có "kèm học liệu". */
+export const outputModesOf = (context: AIStoryInputContextDto): StoryOutputMode[] =>
+  context.availableOutputModes?.length ? context.availableOutputModes : ['learning'];
 
 export type AIStoryInputFlowPhase =
   | 'loading_context'
@@ -66,6 +73,7 @@ export function createDefaultFormValues(context: AIStoryInputContextDto): AIStor
     vocabularyLevel: context.defaultVocabularyLevel,
     // Mặc định độ dài "vừa" theo mức đọc của bé (Luồng 2 mục 5.3b).
     targetLength: lengthPresets(context.maximumLength, context.readingLevel).medium,
+    outputMode: 'learning',
   };
 }
 
@@ -87,6 +95,7 @@ export function restoreFormValues(saved: Partial<AIStoryInputFormValues> | null 
       ? saved.vocabularyLevel
       : defaults.vocabularyLevel,
     targetLength: typeof saved.targetLength === 'number' ? clampTargetLength(saved.targetLength, context.maximumLength) : defaults.targetLength,
+    outputMode: saved.outputMode && outputModesOf(context).includes(saved.outputMode) ? saved.outputMode : defaults.outputMode,
   };
 }
 
@@ -126,6 +135,7 @@ export function buildSubmitRequest(
 ): SubmitAIStoryInputRequestDto {
   return {
     ...buildCreativeInput(values, context),
+    outputMode: outputModesOf(context).includes(values.outputMode) ? values.outputMode : 'learning',
     childProfileId,
     existingStoryId,
     idempotencyKey,

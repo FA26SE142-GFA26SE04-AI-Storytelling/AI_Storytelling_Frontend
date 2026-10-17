@@ -72,6 +72,7 @@ describe('AI Story Input Phase 1 contract', () => {
         setting: '  ',
         vocabularyLevel: 'level_2',
         targetLength: 900,
+        outputMode: 'learning',
       },
       context,
       'ai-story-fixed-key',
@@ -89,10 +90,17 @@ describe('AI Story Input Phase 1 contract', () => {
       vocabularyLevel: 'level_2',
       language: 'vi',
       targetLength: 500,
+      outputMode: 'learning',
       childProfileId: 7,
       existingStoryId: 20,
       idempotencyKey: 'ai-story-fixed-key',
     });
+  });
+
+  it('gửi chế độ "Chỉ để đọc" khi backend cho phép, ngược lại quay về "learning"', () => {
+    const values = { ...createDefaultFormValues(context), outputMode: 'reading_media_only' as const };
+    expect(buildSubmitRequest(7, values, { ...context, availableOutputModes: ['learning', 'reading_media_only'] }, 'ai-story-fixed-key').outputMode).toBe('reading_media_only');
+    expect(buildSubmitRequest(7, values, { ...context, availableOutputModes: ['learning'] }, 'ai-story-fixed-key').outputMode).toBe('learning');
   });
 
   it('uses ai_suggested when no characters are provided', () => {

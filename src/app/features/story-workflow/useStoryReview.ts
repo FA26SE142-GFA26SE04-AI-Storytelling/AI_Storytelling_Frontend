@@ -5,6 +5,7 @@ import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationSer
 import { ApiResponse } from '@/app/types/auth';
 import { AIProposalDto, DiscussionReviewDto, PartialEditRequestDto, QuizReviewDto, ReviewArtifact, ReviewPackageDto, StoryReviewDto, ValidationResultDto, VocabularyReviewDto } from '@/app/types/aiStory';
 import { hasMissingLearning, missingLearning } from './storyReviewLearning';
+import { isReadingOnly } from '@/app/lib/storyRules';
 
 function requireData<T>(result: ApiResponse<T>): T {
   if (!result.success || result.data === null || result.data === undefined) throw new Error(result.message || 'Phản hồi chưa hợp lệ.');
@@ -30,12 +31,18 @@ export function useStoryReview(storyId: number) {
   const controller = useRef<AbortController | null>(null);
 
   const load = useCallback(async (signal: AbortSignal) => {
-    const [p, s, v, q, d] = await Promise.all([
-      api.getReviewPackage(storyId, signal), api.getStoryReview(storyId, signal),
-      api.getVocabularyReview(storyId, signal), api.getQuizReview(storyId, signal), api.getDiscussionReview(storyId, signal),
-    ]);
+    const [p, s] = await Promise.all([api.getReviewPackage(storyId, signal), api.getStoryReview(storyId, signal)]);
     if (signal.aborted) return;
-    const next = { summary: requireData(p), story: requireData(s), vocabulary: requireData(v), quiz: requireData(q), discussion: requireData(d) };
+    const summary = requireData(p);
+    const story = requireData(s);
+    // Truyện "Chỉ để đọc": backend từ chối mọi API học liệu (409), nên không gọi và dùng danh sách rỗng.
+    const empty = { storyId, versionId: summary.storyVersionId, items: [] };
+    const [v, q, d] = isReadingOnly(summary.outputMode)
+      ? [{ ...empty }, { ...empty }, { ...empty }]
+      : await Promise.all([api.getVocabularyReview(storyId, signal), api.getQuizReview(storyId, signal), api.getDiscussionReview(storyId, signal)])
+        .then(([vr, qr, dr]) => [requireData(vr), requireData(qr), requireData(dr)] as const);
+    if (signal.aborted) return;
+    const next = { summary, story, vocabulary: v, quiz: q, discussion: d } as StoryReviewBundle;
     if ([next.story, next.vocabulary, next.quiz, next.discussion].some(item => item.versionId !== next.summary.storyVersionId)) {
       throw new Error('Bản thảo đã thay đổi trong lúc tải. Vui lòng kiểm tra lại.');
     }
@@ -76,7 +83,8 @@ export function useStoryReview(storyId: number) {
 
   const approve = (onApproved: () => void) => run(async signal => {
     if (!bundle || hasMissingLearning(bundle)) throw new Error('Hãy tạo đủ học liệu cho bản thảo hiện tại trước khi phê duyệt.');
-    for (const artifact of ['story', 'vocabulary', 'quiz', 'discussion'] as const) {
+    const artifacts = isReadingOnly(bundle.summary.outputMode) ? (['story'] as const) : (['story', 'vocabulary', 'quiz', 'discussion'] as const);
+    for (const artifact of artifacts) {
       const completed = requireData(await api.completeReview(storyId, artifact, signal));
       if (signal.aborted) return;
       if (!completed) throw new Error('Chưa thể hoàn tất kiểm duyệt học liệu.');

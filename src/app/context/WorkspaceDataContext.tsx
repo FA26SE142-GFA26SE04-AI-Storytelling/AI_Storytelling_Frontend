@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { useAuth } from "@/app/context/AuthContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import { storyService } from "@/app/services/storyService";
 import type { ChildProfile } from "@/app/types/childProfile";
@@ -29,6 +30,7 @@ export function useWorkspaceData(): DataState {
 }
 
 export function WorkspaceDataProvider({ children: node }: { children: React.ReactNode }) {
+  const meId = useAuth().user?.id;
   const [kids, setKids] = useState<ChildProfile[]>([]);
   const [kidsLoading, setKidsLoading] = useState(true);
   const [childId, setChildId] = useState<number | null>(null);
@@ -50,13 +52,14 @@ export function WorkspaceDataProvider({ children: node }: { children: React.Reac
   }, [reloadChildren]);
 
   const reload = useCallback(async () => {
-    if (childId === null) { setStories([]); return; }
+    if (childId === null || !meId) { setStories([]); return; }
     setStoriesLoading(true);
-    const res = await storyService.getStories({ childProfileId: childId, pageSize: 100, sortBy: "createdAt", sortDescending: true });
+    // Backend chưa lọc được theo hồ sơ bé: tạm lấy truyện do mình tạo (gồm truyện của mọi bé mình quản lý).
+    const res = await storyService.getStories({ authorUserId: meId, pageSize: 100, isDescending: true });
     setStories((res.data?.items ?? []).map(toCard));
     setError(res.success ? null : res.message);
     setStoriesLoading(false);
-  }, [childId]);
+  }, [childId, meId]);
 
   useEffect(() => {
     void reload();
