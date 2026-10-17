@@ -13,6 +13,7 @@ import KidReader from "./KidReader";
 import KidAfter from "./KidAfter";
 import KidWish from "./KidWish";
 import KidNotebook from "./KidNotebook";
+import { useKidSession } from "./useKidSession";
 
 type Screen =
   | { kind: "home" }
@@ -30,6 +31,8 @@ export default function KidApp({ childId, onExit }: { childId: number; onExit: (
   const [home, setHome] = useState<Home | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [screen, setScreen] = useState<Screen>({ kind: "home" });
+  // Luồng 1 Bước 1.10 — phiên tự hết hạn sau 20 phút không hoạt động hoặc khi bố mẹ thu hồi quyền vào.
+  const sessionEnd = useKidSession();
 
   const load = useCallback(async () => {
     const r = await readingService.getHome(childId);
@@ -48,6 +51,22 @@ export default function KidApp({ childId, onExit }: { childId: number; onExit: (
   };
 
   const reading = screen.kind === "read";
+
+  if (sessionEnd) {
+    return (
+      <div className="kid" role="dialog" aria-label="Chế độ của bé">
+        <PondBackdrop />
+        <div className="kpane"><div className="kcard" style={{ alignItems: "center", textAlign: "center" }}>
+          <Frog size={120} mood="idle" />
+          <h2 className="display">{sessionEnd === "idle" ? "Em nghỉ lâu quá rồi!" : "Hết giờ đọc rồi!"}</h2>
+          <p className="sub" style={{ fontSize: 15 }}>
+            {sessionEnd === "idle" ? "Ếch con đã cất sách giúp em. " : ""}Em nhờ bố mẹ mở lại để đọc tiếp nhé. Trang em đang đọc dở đã được lưu.
+          </p>
+          <button className="btn btn-p" onClick={onExit}>Về với bố mẹ</button>
+        </div></div>
+      </div>
+    );
+  }
 
   return (
     <div className="kid" role="dialog" aria-label="Chế độ của bé">

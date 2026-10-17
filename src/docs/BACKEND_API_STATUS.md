@@ -311,12 +311,14 @@ Màn hình: [KidEntry.tsx](../app/features/kid/KidEntry.tsx), [KidMode.tsx](../a
 | Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
 | `POST /ChildAccessCredential/easylogin/login` | ✅ | `loginWithEasyLogin` | Bé quét QR (`/?kid=<mã>`); body `{ secret }` |
-| `GET /ChildAccessCredential/me` | ✅ | `getSessionProfile` | Lấy hồ sơ của phiên bé (policy `ChildSession`) |
+| `GET /ChildAccessCredential/me` | ✅ | `getSessionProfile`, `checkSession` | Lấy hồ sơ của phiên bé (policy `ChildSession`); khi bé hoạt động gọi tối đa 1 lần / phút để giữ phiên trên backend (hết hạn sau 20 phút không hoạt động) và phát hiện phiên bị thu hồi (401 / 403) — [useKidSession.ts](../app/features/kid/useKidSession.ts) |
 | `POST /ParentalGate/verify` | ✅ | `childAccessService.verifyParentalGate` | Hộp "Dành cho bố mẹ" khi rời chế độ của bé |
 
 ### L3 — API đề xuất backend chưa có
 
-Mọi chức năng đọc khác của bé đều gọi `readingService` và tự chuyển sang `readingLocal`, nên tiến độ, câu đố, sổ tay chỉ lưu trong trình duyệt. Nội dung truyện thì lấy thật: `GET /Story`, `review/quiz`, `review/vocabulary`, `media/package` (đã bỏ `mockReading`).
+Mọi chức năng đọc khác của bé đều gọi `readingService` và tự chuyển sang `readingLocal`, nên tiến độ, câu đố, sổ tay chỉ lưu trong trình duyệt. Nội dung truyện thì lấy thật: `GET /Story`, `review/quiz`, `review/vocabulary`, `media/package` (đã bỏ `mockReading`). Các API nội dung này cần token người lớn: bé vào bằng QR trên máy không có người lớn đăng nhập thì thư viện trống, không có câu đố / từ vựng (`review/quiz` với token bé trả 403).
+
+Đã kiểm `origin/main` và nhánh `feat/workflow_3` của backend (17/10/2026): chưa có controller nào cho các API dưới đây.
 
 | Chức năng | Đường dẫn đề xuất | Màn hình |
 |---|---|---|

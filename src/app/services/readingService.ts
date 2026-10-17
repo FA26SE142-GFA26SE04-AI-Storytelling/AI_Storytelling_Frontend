@@ -13,6 +13,8 @@ import { createLocalReading, type ContentLoaders, type NotebookEntry } from './r
 import { PUBLIC_STORY_BASE, staffLocal } from './staffLocal';
 import { normalizeStoryStatus } from '@/app/features/story-workflow/storyGenerationFlow';
 import { splitScenes } from '@/app/lib/storyView';
+import { markKidActivity } from '@/app/lib/kidActivity';
+import { defaultReadingLevel } from '@/app/lib/guardian';
 
 /**
  * Luồng 3 — dịch vụ đọc của bé.
@@ -49,8 +51,16 @@ const mockPublicStory = (storyId: number): ReadingPackage | null => {
 const realLoaders: ContentLoaders = {
   async child(childId) {
     const [c, lp, sp] = await Promise.all([childProfileService.getChildProfileById(childId), childProfileService.getLearningProfile(childId), childProfileService.getSafetyPolicy(childId)]);
-    if (!c.success || !c.data) return null;
-    return { nickname: c.data.nickname, ageBand: c.data.ageBand, readingLevel: lp.data?.readingLevel ?? 2, holdThreshold: sp.data?.comprehensionThresholdPercent, holdWindow: sp.data?.comprehensionWindowSize };
+    if (c.success && c.data) {
+      return { nickname: c.data.nickname, ageBand: c.data.ageBand, readingLevel: lp.data?.readingLevel ?? 2, holdThreshold: sp.data?.comprehensionThresholdPercent, holdWindow: sp.data?.comprehensionWindowSize };
+    }
+    // Bé vào bằng mã QR trên máy không có người lớn đăng nhập: các API hồ sơ cần token người lớn,
+    // nên lấy biệt danh và nhóm tuổi từ chính phiên của bé (`GET /ChildAccessCredential/me`).
+    const childToken = token();
+    if (!childToken) return null;
+    const me = await childAccessService.getSessionProfile(childToken);
+    if (!me.success || !me.data || me.data.childProfileId !== childId) return null;
+    return { nickname: me.data.nickname, ageBand: me.data.ageBand, readingLevel: defaultReadingLevel(me.data.ageBand) };
   },
   async library(childId) {
     // Backend chưa lọc truyện theo hồ sơ bé: lấy truyện do Owner của bé tạo (xem docs/BACKEND_API_STATUS.md, Luồng 2).
@@ -145,6 +155,8 @@ export const readingService = {
 
   /** Telemetry chạy nền, không chặn trải nghiệm (Bước 3.4). */
   log(sessionId: number | null, eventType: TelemetryEvent, payload?: Record<string, unknown>) {
+    // Mọi sự kiện telemetry đều tính là bé đang hoạt động (phiên hết hạn sau 20 phút không hoạt động).
+    markKidActivity();
     if (sessionId === null || backendReady === false) return;
     void apiRequest(`/reading/sessions/${sessionId}/telemetry`, '', { method: 'POST', body: { events: [{ eventType, payload: payload ? JSON.stringify(payload) : null, occurredAt: new Date().toISOString() }] }, token: token() });
   },

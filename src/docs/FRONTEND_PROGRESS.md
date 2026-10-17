@@ -15,7 +15,7 @@ Ký hiệu:
 |---|:-:|
 | L1 — Hồ sơ trẻ & giám sát | ~95% — gọi API thật, không còn mock (còn: tên/email người giám sát, phiên bé tự hết hạn) |
 | L2 — Sinh truyện AI | ~70% — gọi API thật, không còn mock (phần còn lại chờ backend; danh sách truyện chưa lọc được theo bé) |
-| L3 — Trẻ đọc truyện | ~75% giao diện (dữ liệu đọc chờ backend) |
+| L3 — Trẻ đọc truyện | ~80% giao diện; nội dung truyện lấy thật, dữ liệu đọc (tiến độ, câu đố, EXP) chờ backend — backend chưa có API nào của Luồng 3 |
 | L4 — Lộ trình, theo dõi, Hold Mode | ~80% giao diện (dữ liệu chờ backend) |
 | L5 — Admin / Content Creator / Moderator | ~80% giao diện (phần lớn dữ liệu chờ backend) |
 | L6 — Học tập thích ứng | Core xong giao diện (dữ liệu chờ backend); Optional chưa làm |
@@ -88,7 +88,7 @@ Cập nhật 17/10/2026: toàn bộ Luồng 1 gọi **API thật**, đã gỡ d�
 - [x] Tạo mã QR Easy Login, tạo mã mới (mã cũ hết hiệu lực), thu hồi; backend đã bỏ mã PIN
 - [x] Mã QR dùng lâu dài (BR-1.15); chỉ hiện một lần lúc tạo (backend chỉ lưu bản băm), sau đó hiện ngày tạo
 - [x] Bé quét QR → link `/?kid=<mã>` → mở phiên của bé, chào bé bằng biệt danh
-- [ ] Phiên của bé tự hết hạn sau 20 phút không hoạt động (không thao tác và không có telemetry; đang "Nghe cả truyện" vẫn tính là hoạt động) — chưa làm
+- [x] Phiên của bé tự hết hạn sau 20 phút không hoạt động (không thao tác, không telemetry, không đang nghe đọc) — `features/kid/useKidSession.ts`; khi bé hoạt động thì báo backend tối đa 1 lần / phút qua `GET /ChildAccessCredential/me` để Child Session trên backend không tự hết hạn giữa chừng
 
 ### Luồng 1 — cần backend bổ sung
 
@@ -199,14 +199,16 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 | Nhập bằng trình soạn thảo | Mục 3.2 | `inputMethod` chỉ nhận `paste` / `txt` / `docx` (frontend gửi `paste`; tệp đi qua `import-file`) |
 | Lý do lưu trữ quyết định ngắt phiên đọc | Mục 6.6, BR-2.21 | `ArchiveRequestDto.reason` là chuỗi tự do; cần thống nhất mã `safety_concern` / `supervisor_preference` |
 
-## Luồng 3 — Trẻ đọc truyện (~75% giao diện; dữ liệu đọc chưa lưu lên máy chủ)
+## Luồng 3 — Trẻ đọc truyện (~80% giao diện; dữ liệu đọc chưa lưu lên máy chủ)
 
-> **Lưu ý quan trọng:** backend mới có bảng dữ liệu (`reading_sessions`, `reading_progress`, `achievements`, `badges`, `quiz_attempts`, `vocabulary_notebook_entries`, `telemetry_logs`) nhưng **chưa có API nào**. Frontend gọi theo hợp đồng API đề xuất trong `app/services/readingService.ts`; khi backend chưa có, tự chuyển sang bộ máy cục bộ (`app/services/readingLocal.ts`) để bé vẫn đọc được. Tiến độ, EXP, sổ tay, điều ước lúc này chỉ lưu trong trình duyệt và **không tới được Luồng 4/6**.
+> **Lưu ý quan trọng:** backend mới có bảng dữ liệu (`reading_sessions`, `reading_progress`, `achievements`, `badges`, `quiz_attempts`, `vocabulary_notebook_entries`, `telemetry_logs`) nhưng **chưa có API nào** (đã kiểm `origin/main` và nhánh `feat/workflow_3` ngày 17/10/2026). Frontend gọi theo hợp đồng API đề xuất trong `app/services/readingService.ts`; khi backend chưa có, tự chuyển sang bộ máy cục bộ (`app/services/readingLocal.ts`) để bé vẫn đọc được. Tiến độ, EXP, sổ tay, điều ước lúc này chỉ lưu trong trình duyệt và **không tới được Luồng 4/6**. Nội dung truyện thì lấy thật (`GET /Story`, `review/quiz`, `review/vocabulary`, `media/package`), không còn dữ liệu mẫu.
 
 **Vào và thoát phiên của bé (Bước 3.0, 3.0b)**
 - [x] Vào qua "Cho bé đọc" (ProfileSwitcher) hoặc quét mã QR (Easy Login), dùng chung một giao diện
 - [x] Nút Thoát luôn hiện; thoát giữa chừng lưu trang đang đọc dở
 - [x] Phiên QR thoát không cần cổng người lớn; phiên "Cho bé đọc" hỏi mật khẩu người lớn nếu bật cổng
+- [x] Phiên hết hạn (20 phút không hoạt động, token hết thời hạn) hoặc bị backend từ chối (bố mẹ thu hồi mã QR, tạm dừng hồ sơ) → màn "Hết giờ đọc rồi!", về với bố mẹ (vẫn qua cổng người lớn nếu bật); mất mạng thì giữ phiên
+- [ ] Bé vào bằng QR trên máy **không có người lớn đăng nhập**: mở được trang chính (biệt danh, nhóm tuổi lấy từ `ChildAccessCredential/me`) nhưng thư viện trống và không có câu đố / từ vựng — **chờ backend** (API hồ sơ, danh sách truyện của bé, câu đố, từ vựng đều chưa nhận token phiên của bé; `review/quiz` trả 403)
 
 **Trang chính — Journey Map (Bước 3.1)** — `features/kid/KidHome.tsx`
 - [x] Mục "Đọc tiếp" (Continue Reading)
@@ -267,7 +269,8 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 | Cảm nhận, câu đố (chấm + EXP), telemetry | `POST /reading/sessions/{id}/reaction`, `/quiz`, `/telemetry` |
 | Sổ tay từ vựng, đầu tư EXP vào cây | `GET/POST /children/{id}/vocabulary-notebook`, `POST /children/{id}/achievements/invest` |
 | Thẻ ước, gửi điều ước kèm gợi ý | `GET /children/{id}/wish-cards`, `POST /children/{id}/wishes` |
-| Các API trên chấp nhận token phiên của bé (policy `ChildSession`) | Hiện chỉ `GET /ChildAccessCredential/me` nhận token này; bé vào bằng QR chưa đọc được truyện thật |
+| Các API trên chấp nhận token phiên của bé (policy `ChildSession`) | Hiện chỉ `GET /ChildAccessCredential/me` nhận token này; bé vào bằng QR trên máy không có người lớn đăng nhập thì thư viện trống, không có câu đố / từ vựng (`review/quiz` với token bé trả 403) |
+| Ảnh và giọng đọc theo trang, `word_timings` | `media/package` chỉ có ảnh theo cảnh (frontend ghép cảnh thứ i vào trang thứ i); chưa có audio / mốc thời gian từng chữ |
 | Bảng thiếu trường so với đặc tả | `reading_progress` thiếu `bookmark_page`, `bookmark_node_id`, `current_node_id`; `achievements` thiếu `knowledge_tree_exp`, `last_streak_date`, `activities_completed`; `reading_sessions` thiếu `opened_from`, `is_retake`, `quiz_completed_at`, `selected_by_supervisor`, `entry_method`; `ReadingSession` còn `AssignmentRecipientId` (đặc tả v26 đổi thành `child_roadmap_item_id`) |
 
 ## Luồng 4 — Lộ trình, theo dõi, Hold Mode (~80% giao diện; dữ liệu chờ backend)
@@ -501,4 +504,4 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 5. ~~Các phần còn lại của L2~~ Xong phần frontend; gửi bảng "Luồng 2 — cần backend bổ sung" cho nhóm backend.
 6. ~~L5~~ Xong giao diện; backend cần thêm vai trò Moderator / Content Creator và các API theo bảng "Luồng 5 — cần backend bổ sung".
 7. ~~L6~~ Xong phần Core ở giao diện; backend cần làm API theo bảng "Luồng 6 — cần backend bổ sung".
-8. Tiếp theo: các mục còn `[ ]` không ghi "chờ backend" (phiên của bé hết hạn sau 20 phút, khối "Cần xử lý" thêm lời mời / chuyển quyền Owner, màn "Báo cáo" cũ, dọn code thừa).
+8. Tiếp theo: các mục còn `[ ]` không ghi "chờ backend" (~~phiên của bé hết hạn sau 20 phút~~ xong, khối "Cần xử lý" thêm lời mời / chuyển quyền Owner, màn "Báo cáo" cũ, dọn code thừa).

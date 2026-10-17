@@ -1,6 +1,7 @@
 import type { ApiResponse } from '@/app/types/auth';
 import type { ChildAccessCredential, ChildSession, ChildSessionProfile, EasyLoginSecret } from '@/app/types/supervision';
 import { apiRequest } from './apiClient';
+import { API_BASE_URL } from './apiConfig';
 import { authService } from './authService';
 
 const SESSION_KEY = 'taletale-child-session';
@@ -35,6 +36,22 @@ export const childAccessService = {
 
   getSessionProfile(childToken: string): Promise<ApiResponse<ChildSessionProfile>> {
     return apiRequest('/ChildAccessCredential/me', 'Phiên của bé đã hết hạn.', { token: childToken });
+  },
+
+  /**
+   * Báo backend là bé vẫn đang dùng (mỗi request bằng token phiên của bé được tính là hoạt động) và kiểm tra phiên còn hiệu lực.
+   * Gọi thẳng `fetch` (không qua `authenticatedFetch`) để lỗi 401 không bị đổi sang làm mới token của người lớn.
+   * - `expired`: backend từ chối (quá 20 phút không hoạt động, mã QR bị thu hồi, hồ sơ tạm dừng…)
+   * - `offline`: không kết nối được, giữ nguyên phiên và thử lại sau.
+   */
+  async checkSession(childToken: string): Promise<'ok' | 'expired' | 'offline'> {
+    try {
+      const res = await fetch(`${API_BASE_URL}/ChildAccessCredential/me`, { headers: { Authorization: `Bearer ${childToken}` }, cache: 'no-store' });
+      if (res.ok) return 'ok';
+      return res.status === 401 || res.status === 403 ? 'expired' : 'offline';
+    } catch {
+      return 'offline';
+    }
   },
 
   /** Parental Gate — nhập lại email + mật khẩu người lớn trước khi rời phiên của bé. */
