@@ -28,6 +28,7 @@ import HoldPanel from "@/app/features/roadmap/HoldPanel";
 import { useRiseIn } from "@/app/lib/motion";
 import RecommendationCard from "@/app/features/adaptive/RecommendationCard";
 import WishItem from "./WishItem";
+import SupervisionTodos, { useSupervisionTodos } from "./SupervisionTodos";
 import CompletionCard from "./CompletionCard";
 
 const DOW = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
@@ -48,7 +49,7 @@ type AllRow = { id: number; nickname: string; status: string; dash: Dashboard | 
 /** Luồng 4 Bước 4.3c — Dashboard tổng quan của phụ huynh, đầu trang là "Con của tôi" (Luồng 1 Bước 1.9). */
 export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
   const { user } = useAuth();
-  const { children: kids, child, selectChild, stories, reviewQueue, error } = useWorkspaceData();
+  const { children: kids, child, selectChild, stories, reviewQueue, error, reloadChildren } = useWorkspaceData();
   const role = useMyRole(child);
   const refs = useChildRefs();
   const [tab, setTab] = useState<"one" | "all">("one");
@@ -59,6 +60,7 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
   const [requests, setRequests] = useState<PermissionRequest[]>([]);
   const [recs, setRecs] = useState<Recommendation[]>([]);
   const [allRows, setAllRows] = useState<AllRow[]>([]);
+  const todos = useSupervisionTodos(child, user?.id ?? -1);
   const [openReport, setOpenReport] = useState<number | null>(null);
   const rootRef = useRiseIn<HTMLElement>(".dash-block", [child?.id, tab, dash ? 1 : 0]);
 
@@ -102,7 +104,7 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
   // Đề xuất hiện cho mọi người giám sát hợp lệ; nhãn quyền tính trên thẻ (Bước 6.5). Đề xuất vừa quyết định giữ lại 3 ngày để xem kết quả.
   const awaitingRecs = recs.filter((r) => r.status === "awaiting_review");
   const recentRecs = recs.filter((r) => r.status !== "awaiting_review" && r.status !== "stale" && r.decidedAt && Date.now() - Date.parse(r.decidedAt) < 3 * 86_400_000);
-  const actionCount = (can("ApproveStory") ? reviewQueue.length + wishes.length : 0) + (dash?.holdCase?.needsAttention ? 1 : 0) + (role?.isOwner ? requests.length : 0) + unseen.length + awaitingRecs.length;
+  const actionCount = (can("ApproveStory") ? reviewQueue.length + wishes.length : 0) + (dash?.holdCase?.needsAttention ? 1 : 0) + (role?.isOwner ? requests.length : 0) + unseen.length + awaitingRecs.length + todos.count;
   const permLabel = (p: string) => PERMISSIONS.find((x) => x.id === p)?.label ?? p;
 
   return (
@@ -165,6 +167,7 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
                   {role?.isOwner && requests.map((q) => (
                     <button key={q.id} className="mini-item" onClick={() => go("children")}><span className="grow" style={{ textAlign: "left" }}><b>Người giám sát #{q.requesterUserId} xin quyền {q.permissions.map(permLabel).join(", ")}</b><small>Mở Hồ sơ bé → Người giám sát để xử lý</small></span></button>
                   ))}
+                  <SupervisionTodos child={child} todos={todos} go={go} onOwnerChanged={() => { void reloadChildren(child.id); void load(); }} />
                   {role && [...awaitingRecs, ...recentRecs].map((r) => <RecommendationCard key={r.id} rec={r} child={child} role={role} go={go} onChanged={() => void load()} />)}
                   {can("ViewProgress") && unseen.length > 0 && <p className="sub">{unseen.length} câu chuyện con vừa đọc xong — xem bên dưới để trò chuyện với con.</p>}
                 </div>

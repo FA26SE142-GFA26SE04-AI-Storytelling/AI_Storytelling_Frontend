@@ -136,7 +136,11 @@ export interface CommunitySubmission {
 
 export interface AppNotification {
   id: number;
+  /** Có ở thông báo từ backend; thông báo của bộ máy cục bộ không có. */
+  childProfileId?: number | null;
   type: string;
+  /** Nhóm của backend: stories / children / supervisors / account / moderation. */
+  group?: string;
   payload: string | null;
   status: string;
   readAt: string | null;

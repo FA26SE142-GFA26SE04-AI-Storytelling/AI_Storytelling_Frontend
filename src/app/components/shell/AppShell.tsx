@@ -43,7 +43,7 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
         </div>
 
         <button className="btn btn-g" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Giao diện sáng" : "Giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
-        <NotificationBell />
+        <NotificationBell onOpen={onWs} />
         <button className="btn btn-kid" onClick={onKid} disabled={!child}><Eye className="ic" />Cho bé đọc</button>
         <span className="av me" title={user?.email}>{initial}</span>
         <button className="btn btn-g" onClick={() => void logout()} aria-label="Đăng xuất"><LogOut className="ic" /></button>

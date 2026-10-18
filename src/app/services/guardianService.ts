@@ -122,4 +122,15 @@ export const guardianService = {
     notificationLocal.markAllRead();
     if (!USE_MOCK) await apiRequest('/Notification/read-all', '', { method: 'PUT' });
   },
+  /** Số thông báo chưa đọc (backend + bộ máy cục bộ), dùng để hỏi định kỳ mà không tải cả danh sách. */
+  async unreadNotificationCount(): Promise<number | null> {
+    const local = notificationLocal.list().filter((n) => n.status !== 'read').length;
+    if (USE_MOCK) return local;
+    const r = await apiRequest<number>('/Notification/unread-count', '');
+    return r.success && typeof r.data === 'number' ? r.data + local : null;
+  },
+  async deleteNotification(n: AppNotification): Promise<ApiResponse<null>> {
+    if (USE_MOCK || notificationLocal.list().includes(n)) { notificationLocal.remove(n.id); return { success: true, message: '', data: null }; }
+    return apiRequest(`/Notification/${n.id}`, 'Không xoá được thông báo.', { method: 'DELETE' });
+  },
 };

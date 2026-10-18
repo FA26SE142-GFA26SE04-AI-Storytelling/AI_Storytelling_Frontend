@@ -67,3 +67,6 @@
 .notif-panel li button:hover { background: var(--surface); }
 .notif-panel li.unread button { background: color-mix(in srgb, var(--primary) 8%, transparent); font-weight: 700; }
 .notif-panel li small { color: var(--muted); font-weight: 400; font-size: 11px; }
+.notif-panel li { display: flex; align-items: center; gap: 2px; }
+.notif-panel li button.notif-del { width: auto; flex: none; padding: 6px; color: var(--muted); background: none; font-weight: 400; }
+.notif-panel li button.notif-del:hover { color: var(--text); background: var(--surface); }
