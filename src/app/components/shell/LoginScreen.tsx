@@ -11,7 +11,7 @@ import { passwordProblem } from "@/app/lib/guardian";
 import { staffService } from "@/app/services/staffService";
 import QrCode from "@/app/components/QrCode";
 
-type Mode = "login" | "register" | "verify" | "forgot" | "reset" | "mfa" | "creator";
+type Mode = "login" | "register" | "verify" | "forgot" | "reset" | "mfa" | "creator" | "activate";
 
 const TITLES: Record<Mode, string> = {
   login: "Chào mừng trở lại",
@@ -21,8 +21,9 @@ const TITLES: Record<Mode, string> = {
   reset: "Đặt mật khẩu mới",
   mfa: "Xác thực hai bước",
   creator: "Đăng ký làm Content Creator",
+  activate: "Kích hoạt tài khoản vận hành",
 };
-const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: "Đăng ký", verify: "Xác thực", forgot: "Gửi hướng dẫn", reset: "Đổi mật khẩu", mfa: "Xác nhận", creator: "Nộp đơn" };
+const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: "Đăng ký", verify: "Xác thực", forgot: "Gửi hướng dẫn", reset: "Đổi mật khẩu", mfa: "Xác nhận", creator: "Nộp đơn", activate: "Kích hoạt" };
 
 /**
  * Link trong email được next.config.ts chuyển về "/" kèm tham số:
@@ -33,6 +34,7 @@ const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: 
 function modeFromUrl(params: URLSearchParams): Mode | null {
   const auth = params.get("auth");
   if (auth === "verify") return "verify";
+  if (auth === "activate") return "activate";
   if (params.get("token") || params.get("resetToken") || auth === "reset") return "reset";
   if (auth === "forgot") return "forgot";
   if (auth === "signup") return "register";
@@ -100,6 +102,12 @@ export default function LoginScreen() {
         const r = await accountService.verifyEmail(f.email.trim(), f.token.trim());
         if (r.success) { go("login"); setF((cur) => ({ ...cur, identifier: cur.email, token: "" })); setMsg({ ok: true, text: "Đã xác thực email. Bạn có thể đăng nhập." }); }
         else setMsg({ ok: false, text: r.message });
+      } else if (mode === "activate") {
+        const problem = passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp." : !cr.commit ? "Hãy xác nhận cam kết trước khi kích hoạt." : null);
+        if (problem) { setMsg({ ok: false, text: problem }); return; }
+        const r = await accountService.activateStaff({ email: f.email.trim(), inviteToken: f.token.trim(), newPassword: f.password, confirmPassword: f.confirm, commitmentAccepted: true });
+        if (r.success) { go("login"); setF((cur) => ({ ...cur, identifier: cur.email, password: "", confirm: "", token: "" })); setMsg({ ok: true, text: "Đã kích hoạt tài khoản. Hãy đăng nhập; lần đầu bạn sẽ thiết lập xác thực hai bước." }); }
+        else setMsg({ ok: false, text: r.message });
       } else if (mode === "forgot") {
         const r = await forgotPassword({ email: f.email.trim() });
         setMsg({ ok: r.success, text: r.success ? "Đã gửi hướng dẫn đặt lại mật khẩu qua email." : r.message });
@@ -125,7 +133,7 @@ export default function LoginScreen() {
   };
 
   const needsPassword = mode !== "forgot" && mode !== "verify" && mode !== "mfa";
-  const needsConfirm = mode === "register" || mode === "reset" || mode === "creator";
+  const needsConfirm = mode === "register" || mode === "reset" || mode === "creator" || mode === "activate";
 
   return (
     <div className="login-wrap">
@@ -163,7 +171,7 @@ export default function LoginScreen() {
           </>
         )}
         {needsPassword && (
-          <label className="field"><span className="lbl">{mode === "reset" ? "Mật khẩu mới" : "Mật khẩu"}</span>
+          <label className="field"><span className="lbl">{mode === "reset" || mode === "activate" ? "Mật khẩu mới" : "Mật khẩu"}</span>
             <input className="inp" type="password" required value={f.password} onChange={set("password")} autoComplete={mode === "login" ? "current-password" : "new-password"} /></label>
         )}
         {needsConfirm && (
@@ -172,6 +180,16 @@ export default function LoginScreen() {
         {needsConfirm && <p className="sub">Ít nhất 8 ký tự, có cả chữ và số.</p>}
         {mode === "verify" && (
           <label className="field"><span className="lbl">Mã xác thực trong email</span><input className="inp" required value={f.token} onChange={set("token")} autoComplete="one-time-code" inputMode="numeric" /></label>
+        )}
+        {mode === "activate" && (
+          <>
+            <label className="field"><span className="lbl">Mã mời trong email</span><input className="inp" required value={f.token} onChange={set("token")} autoComplete="off" spellCheck={false} /></label>
+            <p className="sub">Mã có hiệu lực 72 giờ và chỉ dùng được một lần. Hết hạn thì nhờ Administrator gửi lại lời mời.</p>
+            <label className="row" style={{ alignItems: "flex-start", fontSize: 13 }}>
+              <input type="checkbox" checked={cr.commit} onChange={(e) => setCr({ ...cr, commit: e.target.checked })} style={{ marginTop: 3 }} />
+              <span>Tôi cam kết bảo mật dữ liệu trẻ em và tuân thủ quy tắc kiểm duyệt nội dung của nền tảng.</span>
+            </label>
+          </>
         )}
 
         {mode === "creator" && (
@@ -191,6 +209,7 @@ export default function LoginScreen() {
           {mode === "login" && <button type="button" onClick={() => go("forgot")}>Quên mật khẩu?</button>}
           {mode === "login" && <button type="button" onClick={() => go("verify")}>Xác thực email</button>}
           {mode === "login" && <button type="button" onClick={() => go("creator")}>Đăng ký làm Content Creator</button>}
+          {mode === "login" && <button type="button" onClick={() => go("activate")}>Kích hoạt tài khoản vận hành</button>}
           {mode === "verify" && <button type="button" disabled={busy} onClick={() => void resend()}>Gửi lại mã</button>}
         </div>
       </form>

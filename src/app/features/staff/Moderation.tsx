@@ -1,144 +1,129 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Hand, Undo2 } from "lucide-react";
+import { Hand } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { staffService } from "@/app/services/staffService";
-import { WISH_CARDS } from "@/app/services/readingLocal";
-import type { EvaluationPrompt, EvaluationRun, ModerationDecision, ModerationItem, ModerationItemType } from "@/app/types/staff";
+import { storyService } from "@/app/services/storyService";
+import type { EvaluationPrompt, EvaluationRun, QueueItem, QueueItemDetail } from "@/app/types/staff";
+import type { StoryDto } from "@/app/types/story";
 import { ageLabel } from "@/app/lib/storyView";
 import { Notice, Page, fmt, useAction } from "./ui";
 
-const TYPE: Record<ModerationItemType, string> = {
-  public_story_review: "Duyệt truyện mẫu",
-  roadmap_template_review: "Duyệt bộ truyện mẫu",
-  gray_zone_story: "Rà truyện vùng xám",
-  content_report: "Xử lý báo cáo",
-  community_submission: "Duyệt thư viện cộng đồng",
+const TYPE: Record<string, string> = {
+  PublicStoryReview: "Duyệt truyện mẫu",
+  RoadmapTemplateReview: "Duyệt bộ truyện mẫu",
+  GrayZoneStory: "Rà truyện vùng xám",
+  ContentReport: "Xử lý báo cáo",
+  CommunitySubmission: "Duyệt thư viện cộng đồng",
 };
-const PRIORITY: Record<string, [string, string]> = { high: ["flag", "Ưu tiên cao"], medium: ["wait", "Trung bình"], low: ["draft", "Thấp"] };
-const REPORT_REASON: Record<string, string> = { safety_concern: "Không an toàn", inappropriate: "Không phù hợp", wrong_age_band: "Sai lứa tuổi", copyright: "Bản quyền", cultural: "Văn hoá", other: "Khác" };
-const ACTIONS: Record<ModerationItemType, { id: ModerationDecision; label: string; tone: string }[]> = {
-  public_story_review: [{ id: "approved", label: "Duyệt", tone: "btn-ok" }, { id: "changes_requested", label: "Yêu cầu sửa", tone: "btn-s" }, { id: "rejected", label: "Từ chối", tone: "btn-no" }],
-  roadmap_template_review: [{ id: "approved", label: "Duyệt", tone: "btn-ok" }, { id: "changes_requested", label: "Yêu cầu sửa", tone: "btn-s" }, { id: "rejected", label: "Từ chối", tone: "btn-no" }],
-  gray_zone_story: [{ id: "cleared", label: "Cho qua (an toàn)", tone: "btn-ok" }, { id: "blocked", label: "Chặn", tone: "btn-no" }],
-  content_report: [{ id: "archived", label: "Lưu trữ truyện", tone: "btn-no" }, { id: "dismissed", label: "Bỏ qua (không vi phạm)", tone: "btn-s" }, { id: "escalated", label: "Chuyển lên Administrator", tone: "btn-g" }],
-  community_submission: [{ id: "approved", label: "Duyệt", tone: "btn-ok" }, { id: "rejected", label: "Từ chối", tone: "btn-no" }],
+const PRIORITY: Record<string, [string, string]> = { High: ["flag", "Ưu tiên cao"], Medium: ["wait", "Trung bình"], Low: ["draft", "Thấp"] };
+const STATUS: Record<string, string> = {
+  Pending: "Đang chờ", Claimed: "Đang xử lý", Approved: "Đã duyệt", ChangesRequested: "Yêu cầu sửa", Rejected: "Từ chối", Cleared: "Cho qua",
+  Blocked: "Chặn", Dismissed: "Bỏ qua", Archived: "Lưu trữ", Escalated: "Chuyển lên Admin", Withdrawn: "Đã rút",
 };
-const ADMIN_ACTIONS: { id: ModerationDecision; label: string; tone: string }[] = [{ id: "archived", label: "Lưu trữ truyện", tone: "btn-no" }, { id: "dismissed", label: "Bỏ qua", tone: "btn-s" }];
-const DECISION_LABEL: Record<string, string> = { approved: "Đã duyệt", changes_requested: "Yêu cầu sửa", rejected: "Từ chối", cleared: "Cho qua", blocked: "Chặn", archived: "Lưu trữ", dismissed: "Bỏ qua", escalated: "Chuyển lên Admin" };
+const OPEN = ["Pending", "Claimed", "Escalated"];
 
-/** Luồng 5 Bước 5.7 — một hàng đợi duy nhất, nhận xử lý (pull-based), quyết định kèm lý do. */
+/** Chuỗi JSON (cờ, checklist, tiến độ rà) của mục kiểm duyệt → danh sách dòng dễ đọc. */
+function jsonLines(raw: string | null): string[] {
+  if (!raw) return [];
+  try {
+    const v = JSON.parse(raw) as unknown;
+    if (Array.isArray(v)) return v.map((x) => (typeof x === "string" ? x : JSON.stringify(x)));
+    if (v && typeof v === "object") return Object.entries(v).map(([k, x]) => `${k}: ${typeof x === "string" ? x : JSON.stringify(x)}`);
+    return [String(v)];
+  } catch { return [raw]; }
+}
+
+/**
+ * Luồng 5 Bước 5.7 — một hàng đợi duy nhất (`/ModerationQueue`), nhận xử lý (pull-based, khoá 2 giờ).
+ * Backend chưa có API ra quyết định và trả lại mục, nên phần quyết định đang khoá.
+ */
 export function ModerationQueue({ admin }: { admin?: boolean }) {
   const { user } = useAuth();
   const me = user?.id ?? -1;
-  const [items, setItems] = useState<ModerationItem[]>([]);
-  const [filter, setFilter] = useState<"open" | "mine" | "done">(admin ? "open" : "open");
+  const [items, setItems] = useState<QueueItem[]>([]);
+  const [filter, setFilter] = useState<"open" | "mine" | "done">("open");
   const [selected, setSelected] = useState<number | null>(null);
-  const [reason, setReason] = useState("");
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
-  const [cards, setCards] = useState<number[]>([]);
-  const [noModerator, setNoModerator] = useState(false);
+  const [detail, setDetail] = useState<QueueItemDetail | null>(null);
+  const [story, setStory] = useState<StoryDto | null | undefined>(undefined);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
-    const [q, staff] = await Promise.all([staffService.queue(), staffService.staff()]);
-    setItems(q.data ?? []);
-    setNoModerator(!(staff.data ?? []).some((s) => s.role === "Moderator" && s.status === "active"));
+    const q = await staffService.queue();
+    setItems(q.data?.items ?? []);
+    setLoadError(q.success ? null : q.message);
   }, []);
   useEffect(() => { void load(); }, [load]);
   const { note, busy, run } = useAction(load);
 
-  // Administrator chỉ xử lý ca được chuyển lên, hoặc toàn bộ hàng đợi khi không còn Moderator (BR-5.7c).
+  // Administrator chỉ xem ca được chuyển lên; backend tự cho phép nhận mục khi không còn Moderator hợp lệ (BR-5.7c).
   const visible = useMemo(() => items.filter((i) => {
-    if (admin && !noModerator && i.status !== "escalated" && !(i.status === "resolved" && filter === "done")) return false;
-    if (filter === "open") return i.status === "pending" || i.status === "in_review" || i.status === "escalated";
-    if (filter === "mine") return i.status === "in_review" && i.claimedByUserId === me;
-    return i.status === "resolved";
-  }), [items, filter, admin, noModerator, me]);
+    if (admin && filter === "open") return i.status === "Escalated" || i.status === "Pending";
+    if (filter === "open") return OPEN.includes(i.status);
+    if (filter === "mine") return i.status === "Claimed" && i.claimedByUserId === me;
+    return !OPEN.includes(i.status);
+  }), [items, filter, admin, me]);
   const cur = items.find((i) => i.id === selected) ?? visible[0];
+  const mineNow = cur?.status === "Claimed" && cur.claimedByUserId === me;
 
-  useEffect(() => { setReason(""); setTags(cur?.subject.tags ?? []); setCards(cur?.subject.wishCardIds ?? []); }, [cur?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const mineNow = cur?.status === "in_review" && cur.claimedByUserId === me;
-  const canDecide = mineNow || (admin && cur?.status === "escalated") || (admin && noModerator && mineNow);
-  const hasStory = cur && ["public_story_review", "gray_zone_story", "community_submission"].includes(cur.itemType);
-  const publicStory = cur && ["public_story_review", "community_submission"].includes(cur.itemType);
-  const actions = cur ? (admin && cur.status === "escalated" ? ADMIN_ACTIONS : ACTIONS[cur.itemType]) : [];
+  // Mục mình đang nhận: mở chi tiết (cờ, checklist) và nội dung truyện liên quan.
+  useEffect(() => {
+    setDetail(null);
+    setStory(undefined);
+    if (!cur || !mineNow) return;
+    let alive = true;
+    void staffService.openItem(cur.id).then((r) => { if (alive) setDetail(r.success ? r.data : null); });
+    if (cur.storyId) void storyService.getStoryById(cur.storyId).then((r) => { if (alive) setStory(r.success ? r.data : null); });
+    return () => { alive = false; };
+  }, [cur, mineNow]);
 
   return (
     <Page title={admin ? "Kiểm duyệt — ca chuyển lên" : "Hàng đợi kiểm duyệt"}
-      sub={admin ? (noModerator ? "Hiện không còn Moderator nào hoạt động — Administrator xử lý toàn bộ hàng đợi." : "Chỉ hiện các báo cáo Moderator chuyển lên cần Administrator quyết định cuối.") : "Bấm “Nhận xử lý” trước khi quyết định. Mục nhận quá 2 giờ chưa quyết định sẽ tự trả về hàng đợi. Bạn chỉ thấy nội dung, không thấy biệt danh bé hay người giám sát."}
+      sub={admin ? "Administrator xử lý ca được chuyển lên, và cả hàng đợi khi không còn Moderator hợp lệ." : "Bấm “Nhận xử lý” trước khi xem nội dung. Mục nhận quá 2 giờ chưa quyết định tự trả về hàng đợi. Không nhận được mục do chính mình tạo hoặc nộp."}
       actions={<div className="seg" style={{ minWidth: 300 }}>
         {(["open", "mine", "done"] as const).map((f) => <button key={f} className={filter === f ? "on" : ""} onClick={() => setFilter(f)}>{f === "open" ? "Đang chờ" : f === "mine" ? "Tôi đang xử lý" : "Đã xử lý"}</button>)}
       </div>}>
       <Notice note={note} />
+      {loadError && <div className="notice err">{loadError}</div>}
       <div className="st-split">
         <div className="st-list">
           {visible.length === 0 && <p className="sub">Không có mục nào.</p>}
-          {visible.map((i) => {
-            const overdue = (i.status === "pending" || i.status === "in_review") && Date.parse(i.dueAt) < Date.now();
-            return (
-              <button key={i.id} className={`st-item${cur?.id === i.id ? " on" : ""}`} onClick={() => setSelected(i.id)}>
-                <span className="row"><b className="grow">{i.subject.title}</b><span className={`pill ${PRIORITY[i.priority][0]}`}>{PRIORITY[i.priority][1]}</span></span>
-                <small>{TYPE[i.itemType]} · {i.status === "in_review" ? (i.claimedByUserId === me ? "Bạn đang xử lý" : "Có người đang xử lý") : i.status === "escalated" ? "Đã chuyển lên Admin" : i.status === "resolved" ? DECISION_LABEL[i.decision ?? ""] : "Đang chờ"}</small>
-                <small className={overdue ? "overdue" : ""}>{overdue ? "Quá hạn SLA · " : ""}Hạn {fmt(i.dueAt)}</small>
-              </button>
-            );
-          })}
+          {visible.map((i) => (
+            <button key={i.id} className={`st-item${cur?.id === i.id ? " on" : ""}`} onClick={() => setSelected(i.id)}>
+              <span className="row"><b className="grow">{TYPE[i.itemType] ?? i.itemType} #{i.id}</b><span className={`pill ${PRIORITY[i.priority]?.[0] ?? "draft"}`}>{PRIORITY[i.priority]?.[1] ?? i.priority}</span></span>
+              <small>{i.status === "Claimed" ? (i.claimedByUserId === me ? "Bạn đang xử lý" : "Có người đang xử lý") : STATUS[i.status] ?? i.status}{i.isResubmission ? " · Gửi lại" : ""}</small>
+              <small className={i.isOverdue ? "overdue" : ""}>{i.isOverdue ? "Quá hạn SLA · " : ""}Hạn {fmt(i.slaDueAt)}</small>
+            </button>
+          ))}
         </div>
 
         {cur ? (
           <div className="st-card">
             <div className="row" style={{ flexWrap: "wrap" }}>
-              <h3 className="grow">{cur.subject.title}</h3>
-              <span className="pill ai">{TYPE[cur.itemType]}</span>
-              {cur.subject.targetAgeBand && <span className="pill draft">{ageLabel(cur.subject.targetAgeBand)}</span>}
-              {cur.subject.readingLevel && <span className="pill draft">Mức {cur.subject.readingLevel}</span>}
+              <h3 className="grow">{story?.title || `${TYPE[cur.itemType] ?? cur.itemType} #${cur.id}`}</h3>
+              <span className="pill ai">{TYPE[cur.itemType] ?? cur.itemType}</span>
+              <span className="pill draft">{STATUS[cur.status] ?? cur.status}</span>
+              {story?.ageBand && <span className="pill draft">{ageLabel(story.ageBand)}</span>}
             </div>
-            <small className="sub">Gửi lúc {fmt(cur.submittedAt)} · hạn xử lý {fmt(cur.dueAt)}</small>
-            {cur.itemType === "content_report" && (
-              <div className="notice err">Lý do báo cáo: <b>{REPORT_REASON[cur.subject.reportReason ?? ""] ?? cur.subject.reportReason}</b>{cur.subject.reportDescription ? ` — “${cur.subject.reportDescription}”` : ""}</div>
-            )}
-            {cur.itemType === "gray_zone_story" && cur.subject.modelRiskScore != null && (
-              <div className="notice err">Mô hình kiểm duyệt gắn cờ vùng xám (điểm rủi ro {cur.subject.modelRiskScore.toFixed(2)}). Bạn chỉ trả lời: truyện có an toàn cho trẻ không?</div>
-            )}
-            <div className="st-content">{cur.subject.content}</div>
-            {cur.itemType === "roadmap_template_review" && <p className="sub">Gồm {cur.subject.storyIds?.length ?? 0} truyện Public Library. Kiểm tra thứ tự hợp lý theo độ khó.</p>}
+            <small className="sub">Vào hàng đợi {fmt(cur.createdAt)} · hạn xử lý {fmt(cur.slaDueAt)}{cur.claimExpiresAt && mineNow ? ` · khoá tới ${fmt(cur.claimExpiresAt)}` : ""}</small>
 
-            {hasStory && (
-              <div className="field">
-                <span className="lbl">Nhãn nội dung (sửa nếu AI gắn chưa đúng)</span>
-                <div className="chips">
-                  {tags.map((t) => <button key={t} type="button" className="chip on" disabled={!canDecide} onClick={() => setTags(tags.filter((x) => x !== t))}>{t} ✕</button>)}
-                  {canDecide && <input className="inp" style={{ width: 160 }} value={tagInput} onChange={(e) => setTagInput(e.target.value)} placeholder="Thêm nhãn" aria-label="Thêm nhãn"
-                    onKeyDown={(e) => { if (e.key === "Enter" && tagInput.trim()) { setTags([...new Set([...tags, tagInput.trim()])]); setTagInput(""); } }} />}
-                </div>
-              </div>
-            )}
-            {publicStory && (
-              <div className="field">
-                <span className="lbl">Thẻ ước khớp với truyện (để gợi ý đúng cho điều ước của bé)</span>
-                <div className="chips">
-                  {WISH_CARDS.map((c) => <button key={c.id} type="button" disabled={!canDecide} className={`chip${cards.includes(c.id) ? " on" : ""}`} onClick={() => setCards(cards.includes(c.id) ? cards.filter((x) => x !== c.id) : [...cards, c.id])}>{c.emoji} {c.label}</button>)}
-                </div>
-              </div>
-            )}
-
-            {cur.status === "resolved" ? (
-              <div className="notice ok">Quyết định: <b>{DECISION_LABEL[cur.decision ?? ""]}</b>{cur.decisionReason ? ` — ${cur.decisionReason}` : ""}</div>
-            ) : canDecide ? (
+            {mineNow ? (
               <>
-                <textarea className="inp" rows={2} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Lý do / góp ý (bắt buộc khi từ chối, chặn, lưu trữ, yêu cầu sửa, chuyển lên)" aria-label="Lý do" />
-                <div className="row" style={{ flexWrap: "wrap" }}>
-                  {actions.map((a) => <button key={a.id} className={`btn ${a.tone}`} disabled={busy} onClick={() => void run(() => staffService.decide(cur.id, me, a.id, reason, hasStory ? tags : undefined, publicStory ? cards : undefined))}>{a.label}</button>)}
-                  <span className="grow" />
-                  {mineNow && <button className="btn btn-g" disabled={busy} onClick={() => void run(() => staffService.release(cur.id), "Đã trả mục về hàng đợi.")}><Undo2 className="ic" />Trả lại</button>}
-                </div>
+                {detail && jsonLines(detail.flags).length > 0 && <div className="notice err"><b>Cờ cảnh báo:</b> {jsonLines(detail.flags).join(" · ")}</div>}
+                {detail && jsonLines(detail.checklist).length > 0 && <ul className="sub" style={{ margin: 0 }}>{jsonLines(detail.checklist).map((l) => <li key={l}>{l}</li>)}</ul>}
+                {cur.storyId && (story === undefined
+                  ? <p className="sub">Đang tải nội dung truyện…</p>
+                  : story ? <div className="st-content">{story.content || "Truyện chưa có nội dung."}</div>
+                    : <p className="sub">Chưa xem được nội dung truyện #{cur.storyId} (backend chưa có API đọc nội dung cho kiểm duyệt).</p>)}
+                {cur.contentReportId && <p className="sub">Báo cáo nội dung #{cur.contentReportId}.</p>}
+                {cur.readingRoadmapId && <p className="sub">Bộ truyện mẫu #{cur.readingRoadmapId}.</p>}
+                <div className="notice warn">Backend chưa có API ra quyết định (duyệt / từ chối / chặn / chuyển lên) và trả mục về hàng đợi. Mục sẽ tự trả về sau 2 giờ.</div>
               </>
-            ) : cur.status === "pending" && (!admin || noModerator) ? (
-              <button className="btn btn-p" style={{ width: "fit-content" }} disabled={busy} onClick={() => void run(() => staffService.claim(cur.id, me), "Bạn đã nhận xử lý mục này.")}><Hand className="ic" />Nhận xử lý</button>
-            ) : <p className="sub">Mục này đang có người khác xử lý.</p>}
+            ) : cur.status === "Pending" ? (
+              <button className="btn btn-p" style={{ width: "fit-content" }} disabled={busy} onClick={() => void run(() => staffService.claim(cur.id), "Bạn đã nhận xử lý mục này.")}><Hand className="ic" />Nhận xử lý</button>
+            ) : cur.status === "Claimed" ? <p className="sub">Mục này đang có người khác xử lý.</p>
+              : <p className="sub">Mục đã xử lý: {STATUS[cur.status] ?? cur.status}.</p>}
           </div>
         ) : <div className="st-card"><p className="sub">Chọn một mục để xem.</p></div>}
       </div>

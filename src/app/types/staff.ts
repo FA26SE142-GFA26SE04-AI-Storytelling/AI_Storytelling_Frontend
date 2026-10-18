@@ -178,7 +178,51 @@ export interface EvaluationRun {
 }
 
 // ---------- API backend đã có ----------
-export interface DataRequest { id: number; childProfileId: number; requestType: string; status: string; createdAt: string; resolvedAt: string | null; resolvedByUserId: number | null }
+export interface DataRequest { id: number; childProfileId: number; requestType: string; status: string; rejectionReason?: string | null; createdAt: string; resolvedAt: string | null; resolvedByUserId: number | null }
+
+/** `GET /ModeratorAccount` — `status` là AccountStatus của backend (Active / Suspended / PasswordResetPending…). */
+export interface ModeratorAccountDto {
+  userId: number;
+  email: string;
+  fullName: string;
+  expertise: string | null;
+  status: string;
+  isActivated: boolean;
+  activatedAt: string | null;
+  lastLoginAt: string | null;
+  inviteExpiresAt: string | null;
+}
+
+/** Loại mục và trạng thái trong hàng đợi kiểm duyệt của backend (`ModerationQueue`). */
+export type QueueItemType = 'PublicStoryReview' | 'GrayZoneStory' | 'ContentReport' | 'RoadmapTemplateReview' | 'CommunitySubmission';
+export type QueueItemStatus = 'Pending' | 'Claimed' | 'Approved' | 'ChangesRequested' | 'Rejected' | 'Cleared' | 'Blocked' | 'Dismissed' | 'Archived' | 'Escalated' | 'Withdrawn';
+
+export interface QueueItem {
+  id: number;
+  itemType: QueueItemType | string;
+  status: QueueItemStatus | string;
+  priority: 'High' | 'Medium' | 'Low' | string;
+  storyId: number | null;
+  storyVersionId: number | null;
+  contentReportId: number | null;
+  readingRoadmapId: number | null;
+  isResubmission: boolean;
+  slaDueAt: string | null;
+  isOverdue: boolean;
+  claimedByUserId: number | null;
+  claimedAt: string | null;
+  claimExpiresAt: string | null;
+  createdAt: string;
+}
+
+/** Mục đang nhận: thêm cờ, checklist, tiến độ rà (chuỗi JSON). Nội dung truyện lấy riêng theo `storyId`. */
+export interface QueueItemDetail extends QueueItem {
+  flags: string | null;
+  checklist: string | null;
+  reviewProgress: string | null;
+}
+
+export interface QueueQuery { itemType?: QueueItemType; status?: QueueItemStatus; priority?: 'High' | 'Medium' | 'Low'; onlyOverdue?: boolean; pageIndex?: number; pageSize?: number }
 export interface BusinessReport { id: number; periodStart: string; periodEnd: string; storiesGenerated: number; storiesApproved: number; storiesRejected: number; readingSessionsCompleted: number; status: string; publishedAt: string | null }
 export interface TokenQuotaConfig { id: number; scope: string; organizationId: number | null; childProfileId: number | null; userId: number | null; quotaLimit: number; quotaUsed: number; periodStart: string; periodEnd: string }
 export interface PaymentTransaction { id: number; planId: number; planName: string; amount: number; transactionCode: string; qrCodeUrl: string | null; status: string; expiresAt: string; paidAt: string | null; sepayTransactionId: string | null }

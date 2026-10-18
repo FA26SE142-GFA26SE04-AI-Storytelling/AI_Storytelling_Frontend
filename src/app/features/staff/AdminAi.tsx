@@ -49,7 +49,7 @@ export function AdminOverview() {
           </div>
         </>
       )}
-      {staffService.isLocal() && <p className="sub">Số liệu mẫu (máy chủ chưa có API chỉ số AI).</p>}
+      <p className="sub">Số liệu mẫu (máy chủ chưa có API chỉ số AI và nhật ký sinh truyện).</p>
     </Page>
   );
 }

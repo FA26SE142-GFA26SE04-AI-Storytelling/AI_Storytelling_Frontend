@@ -1,100 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { Copy, Plus, Send, Undo2 } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Copy, Plus, Send } from "lucide-react";
 import { staffService } from "@/app/services/staffService";
 import type { EvaluationPrompt, PublicStory, TemplateDraft } from "@/app/types/staff";
-import { GENRES, MORAL_LESSONS, detectPii } from "@/app/lib/storyRules";
+import { GENRES } from "@/app/lib/storyRules";
 import { ageLabel } from "@/app/lib/storyView";
-import { Notice, Page, fmt, useAction } from "./ui";
-
-const STORY_STATUS: Record<PublicStory["status"], [string, string]> = {
-  draft: ["draft", "Nháp"], pending_moderation: ["wait", "Chờ Moderator duyệt"], changes_requested: ["wait", "Cần sửa"],
-  ready: ["ok", "Đang công khai"], rejected: ["flag", "Bị từ chối"], archived: ["draft", "Đã gỡ"],
-};
-type StoryForm = Omit<PublicStory, "id" | "status" | "feedback" | "versionNo" | "updatedAt"> & { id?: number };
-const blankStory = (): StoryForm => ({ title: "", targetAgeBand: "Age_6_8", readingLevel: 1, genre: GENRES[0], topic: "", moralLesson: "", content: "" });
-
-/** Luồng 5 Bước 5.8 — truyện mẫu cho Thư viện chung; Content Creator không tự công khai, phải gửi Moderator duyệt. */
-export function CreatorStories() {
-  const [list, setList] = useState<PublicStory[]>([]);
-  const [form, setForm] = useState<StoryForm | null>(null);
-  const [attest, setAttest] = useState(false);
-  const load = useCallback(async () => { setList((await staffService.myStories()).data ?? []); }, []);
-  useEffect(() => { void load(); }, [load]);
-  const { note, busy, run } = useAction(load);
-  const pii = useMemo(() => (form ? detectPii(`${form.title}\n${form.content}`) : []), [form]);
-  const set = (p: Partial<StoryForm>) => setForm((f) => (f ? { ...f, ...p } : f));
-
-  const save = async (submit: boolean) => {
-    if (!form) return;
-    const r = await staffService.saveStory(form);
-    if (!r.success || !r.data) { await run(async () => r); return; }
-    if (submit) {
-      if (!attest) { await run(async () => ({ success: false, message: "Hãy xác nhận nội dung là sáng tác của bạn hoặc bạn có quyền phát hành." })); return; }
-      const ok = await run(() => staffService.submitStory(r.data!.id));
-      if (ok) setForm(null);
-    } else { await run(async () => r); setForm({ ...form, id: r.data.id }); }
-  };
-
-  return (
-    <Page title="Truyện mẫu của tôi" sub="Truyện bạn tạo xuất hiện trong Thư viện chung cho mọi bé sau khi Moderator duyệt. Nội dung luôn bằng tiếng Việt và không được chứa thông tin cá nhân của người thật."
-      actions={<button className="btn btn-p" onClick={() => { setForm(blankStory()); setAttest(false); }}><Plus className="ic" />Truyện mới</button>}>
-      <Notice note={note} />
-      {form && (
-        <div className="st-card">
-          <h3>{form.id ? "Sửa truyện" : "Truyện mới"}</h3>
-          <div className="st-form">
-            <label className="field"><span className="lbl">Tên truyện</span><input className="inp" value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
-            <label className="field"><span className="lbl">Nhóm tuổi mục tiêu</span>
-              <select className="inp" value={form.targetAgeBand} onChange={(e) => set({ targetAgeBand: e.target.value })}><option value="Age_6_8">6–8 tuổi</option><option value="Age_9_10">9–10 tuổi</option></select></label>
-            <label className="field"><span className="lbl">Mức đọc mục tiêu</span>
-              <select className="inp" value={form.readingLevel} onChange={(e) => set({ readingLevel: +e.target.value })}>{[1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>Mức {n}</option>)}</select></label>
-            <label className="field"><span className="lbl">Thể loại</span>
-              <select className="inp" value={form.genre} onChange={(e) => set({ genre: e.target.value })}>{GENRES.map((g) => <option key={g}>{g}</option>)}</select></label>
-            <label className="field"><span className="lbl">Chủ đề</span><input className="inp" value={form.topic} onChange={(e) => set({ topic: e.target.value })} /></label>
-            <label className="field"><span className="lbl">Bài học</span>
-              <input className="inp" list="lessons" value={form.moralLesson} onChange={(e) => set({ moralLesson: e.target.value })} />
-              <datalist id="lessons">{MORAL_LESSONS.map((l) => <option key={l} value={l} />)}</datalist></label>
-          </div>
-          <label className="field"><span className="lbl">Nội dung (mỗi đoạn cách nhau một dòng trống)</span>
-            <textarea className="inp" rows={10} value={form.content} onChange={(e) => set({ content: e.target.value })} /></label>
-          {pii.length > 0 && <div className="notice err">Truyện còn thông tin cá nhân ({[...new Set(pii.map((p) => p.kind))].join(", ")}) — sẽ bị chặn khi gửi duyệt.</div>}
-          <label className="row" style={{ fontSize: 13 }}><input type="checkbox" checked={attest} onChange={(e) => setAttest(e.target.checked)} />Nội dung là sáng tác của tôi hoặc tôi có quyền phát hành.</label>
-          <div className="row">
-            <button className="btn btn-g" onClick={() => setForm(null)}>Đóng</button>
-            <span className="grow" />
-            <button className="btn btn-s" disabled={busy} onClick={() => void save(false)}>Lưu nháp</button>
-            <button className="btn btn-p" disabled={busy || pii.length > 0} onClick={() => void save(true)}><Send className="ic" />Lưu và gửi duyệt</button>
-          </div>
-        </div>
-      )}
-      <div className="st-card st-scroll">
-        <table className="st-table">
-          <thead><tr><th>Truyện</th><th>Tuổi / mức</th><th>Trạng thái</th><th>Phản hồi của Moderator</th><th>Cập nhật</th><th /></tr></thead>
-          <tbody>
-            {list.map((s) => (
-              <tr key={s.id}>
-                <td><b>{s.title}</b><br /><small className="sub">{s.genre} · {s.topic} · bản {s.versionNo}</small></td>
-                <td>{ageLabel(s.targetAgeBand)} · mức {s.readingLevel}</td>
-                <td><span className={`pill ${STORY_STATUS[s.status][0]}`}>{STORY_STATUS[s.status][1]}</span></td>
-                <td>{s.feedback ?? "—"}</td>
-                <td>{fmt(s.updatedAt)}</td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  {s.status !== "pending_moderation" && s.status !== "archived" && <button className="btn btn-g" onClick={() => { setForm({ id: s.id, title: s.title, targetAgeBand: s.targetAgeBand, readingLevel: s.readingLevel, genre: s.genre, topic: s.topic, moralLesson: s.moralLesson, content: s.content }); setAttest(false); }}>Sửa</button>}
-                  {s.status === "pending_moderation" && <button className="btn btn-g" disabled={busy} onClick={() => void run(() => staffService.withdrawStory(s.id))}><Undo2 className="ic" />Rút</button>}
-                  {s.status === "ready" && <button className="btn btn-g" disabled={busy} onClick={() => { if (confirm("Gỡ truyện khỏi Thư viện chung?")) void run(() => staffService.archiveStory(s.id)); }}>Gỡ</button>}
-                </td>
-              </tr>
-            ))}
-            {list.length === 0 && <tr><td colSpan={6} className="sub">Chưa có truyện nào.</td></tr>}
-          </tbody>
-        </table>
-      </div>
-      {staffService.isLocal() && <p className="sub">Đang dùng dữ liệu cục bộ (máy chủ chưa có API Content Creator). Truyện tạo ở đây chưa đi qua pipeline sinh/kiểm tra của Luồng 2.</p>}
-    </Page>
-  );
-}
+import { Notice, Page, useAction } from "./ui";
 
 const TEMPLATE_STATUS: Record<TemplateDraft["status"], [string, string]> = { draft: ["draft", "Nháp"], pending_moderation: ["wait", "Chờ duyệt"], published: ["ok", "Đã công khai"], archived: ["draft", "Đã lưu trữ"] };
 type TemplateForm = Omit<TemplateDraft, "id" | "status" | "needsRevision" | "feedback"> & { id?: number };
@@ -105,7 +17,7 @@ export function CreatorTemplates() {
   const [stories, setStories] = useState<PublicStory[]>([]);
   const [form, setForm] = useState<TemplateForm | null>(null);
   const load = useCallback(async () => {
-    const [t, s] = await Promise.all([staffService.myTemplates(), staffService.myStories()]);
+    const [t, s] = await Promise.all([staffService.myTemplates(), staffService.libraryStories()]);
     setList(t.data ?? []);
     setStories(s.data ?? []);
   }, []);

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Archive, Check, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
-import { staffService } from "@/app/services/staffService";
+import DataRequestSection from "./DataRequestSection";
 import type { ChildProfile } from "@/app/types/childProfile";
 import { AGE_BANDS, AVATARS, avatarOf, childStatus, fmtDate } from "@/app/lib/guardian";
 import type { WorkspaceId } from "@/app/components/shell/nav";
@@ -84,13 +84,6 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
     if (await run(() => childProfileService.archiveChildProfile(child.id), "Đã lưu trữ hồ sơ.")) onArchived();
   };
 
-  const requestData = async (type: "export" | "delete") => {
-    setBusy(true);
-    setNote(null);
-    const r = await staffService.createDataRequest(child.id, type);
-    setBusy(false);
-    setNote({ ok: r.success, text: r.message || (r.success ? "Đã gửi yêu cầu." : "Không gửi được yêu cầu.") });
-  };
 
   const ready = checks && checks.learning && checks.policy && checks.consent;
   const rows = checks ? [
@@ -160,16 +153,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
         </section>
       )}
 
-      {isOwner && (
-        <section className="sec" style={{ gap: 8 }}>
-          <h3 className="display" style={{ margin: 0 }}>Dữ liệu của bé</h3>
-          <p className="sub">Bạn có thể yêu cầu xuất toàn bộ dữ liệu của {child.nickname}, hoặc xoá hồ sơ. Xoá sẽ thu hồi mọi quyền truy cập, xoá truyện riêng và dữ liệu học tập; không hoàn tác được. Quản trị viên xử lý trong tối đa 72 giờ.</p>
-          <div className="row">
-            <button className="btn btn-s" disabled={busy} onClick={() => void requestData("export")}>Yêu cầu xuất dữ liệu</button>
-            <button className="btn btn-no" disabled={busy} onClick={() => { if (confirm(`Yêu cầu xoá toàn bộ dữ liệu của ${child.nickname}? Sau khi xử lý không thể khôi phục.`)) void requestData("delete"); }}>Yêu cầu xoá hồ sơ</button>
-          </div>
-        </section>
-      )}
+      {isOwner && <DataRequestSection child={child} />}
 
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
     </div>

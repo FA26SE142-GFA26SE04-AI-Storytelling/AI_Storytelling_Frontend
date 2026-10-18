@@ -16,7 +16,7 @@ export function AdminStaff() {
   const me = user?.id ?? -1;
   const [staff, setStaff] = useState<StaffAccount[]>([]);
   const [apps, setApps] = useState<CreatorApplication[]>([]);
-  const [inv, setInv] = useState({ role: "Moderator" as "Administrator" | "Moderator", email: "", fullName: "", expertise: "" });
+  const [inv, setInv] = useState({ email: "", fullName: "", expertise: "", note: "" });
   const [review, setReview] = useState<Record<number, string>>({});
   const load = useCallback(async () => {
     const [s, a] = await Promise.all([staffService.staff(), staffService.applications()]);
@@ -28,18 +28,18 @@ export function AdminStaff() {
   const pending = apps.filter((a) => a.status === "pending");
 
   return (
-    <Page title="Tài khoản vận hành" sub="Administrator và Moderator được mời qua email (link 72 giờ, dùng 1 lần), tự đặt mật khẩu và thiết lập TOTP. Content Creator tự đăng ký, Administrator duyệt. Mỗi vai trò dùng một email riêng; không đổi vai trò của tài khoản có sẵn.">
+    <Page title="Tài khoản vận hành" sub="Moderator được mời qua email: email chứa mã mời 72 giờ, dùng 1 lần; người được mời mở trang đăng nhập → “Kích hoạt tài khoản vận hành” để đặt mật khẩu, xác nhận cam kết, rồi thiết lập TOTP lần đăng nhập đầu. Administrator được cấp cho một email đã có tài khoản (mục cuối trang). Content Creator tự đăng ký, Administrator duyệt.">
       <Notice note={note} />
       <div className="st-card">
-        <h3>Mời tài khoản mới</h3>
+        <h3>Mời Moderator</h3>
         <div className="st-form">
-          <label className="field"><span className="lbl">Vai trò</span>
-            <select className="inp" value={inv.role} onChange={(e) => setInv({ ...inv, role: e.target.value as "Administrator" | "Moderator" })}><option value="Moderator">Moderator</option><option value="Administrator">Administrator</option></select></label>
           <label className="field"><span className="lbl">Họ tên</span><input className="inp" value={inv.fullName} onChange={(e) => setInv({ ...inv, fullName: e.target.value })} /></label>
           <label className="field"><span className="lbl">Email</span><input className="inp" type="email" value={inv.email} onChange={(e) => setInv({ ...inv, email: e.target.value })} /></label>
-          {inv.role === "Moderator" && <label className="field"><span className="lbl">Chuyên môn</span><input className="inp" value={inv.expertise} onChange={(e) => setInv({ ...inv, expertise: e.target.value })} placeholder="VD: Giáo viên tiểu học" /></label>}
-          <button className="btn btn-p" disabled={busy || !/^\S+@\S+\.\S+$/.test(inv.email) || !inv.fullName.trim()}
-            onClick={() => void run(() => staffService.invite(inv.role, inv.email.trim(), inv.fullName.trim(), inv.expertise.trim())).then((ok) => ok && setInv({ ...inv, email: "", fullName: "", expertise: "" }))}><Mail className="ic" />Gửi lời mời</button>
+          <label className="field"><span className="lbl">Chuyên môn</span><input className="inp" value={inv.expertise} onChange={(e) => setInv({ ...inv, expertise: e.target.value })} placeholder="VD: Giáo viên tiểu học" /></label>
+          <label className="field"><span className="lbl">Ghi chú (không bắt buộc)</span><input className="inp" value={inv.note} onChange={(e) => setInv({ ...inv, note: e.target.value })} /></label>
+          <button className="btn btn-p" disabled={busy || !/^\S+@\S+\.\S+$/.test(inv.email) || !inv.fullName.trim() || !inv.expertise.trim()}
+            onClick={() => void run(() => staffService.inviteModerator(inv.email.trim(), inv.fullName.trim(), inv.expertise.trim(), inv.note.trim()), `Đã gửi mã mời tới ${inv.email.trim()}.`)
+              .then((ok) => ok && setInv({ email: "", fullName: "", expertise: "", note: "" }))}><Mail className="ic" />Gửi lời mời</button>
         </div>
       </div>
 
@@ -65,9 +65,10 @@ export function AdminStaff() {
       </div>
 
       <div className="st-card st-scroll">
-        <h3>Tất cả tài khoản vận hành</h3>
+        <h3>Moderator</h3>
+        <p className="sub">Backend chưa có API liệt kê Administrator; quản lý Administrator ở mục cuối trang.</p>
         <table className="st-table">
-          <thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chuyên môn</th><th>Trạng thái</th><th>Tạo ngày</th><th /></tr></thead>
+          <thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chuyên môn</th><th>Trạng thái</th><th>Kích hoạt / hạn mời</th><th /></tr></thead>
           <tbody>
             {staff.map((s) => (
               <tr key={s.userId}>
@@ -76,11 +77,14 @@ export function AdminStaff() {
                 <td>{ROLE[s.role]}</td>
                 <td>{s.expertise ?? "—"}</td>
                 <td><Pill status={s.status} /></td>
-                <td>{fmtDay(s.createdAt)}</td>
+                <td>{s.status === "invited" ? `Mời hết hạn ${fmtDay(s.createdAt)}` : fmtDay(s.createdAt)}</td>
                 <td style={{ whiteSpace: "nowrap" }}>
-                  {s.status === "invited" && <button className="btn btn-g" disabled={busy} onClick={() => void run(() => staffService.cancelInvite(s.userId))}>Huỷ lời mời</button>}
-                  {s.status === "active" && s.userId !== me && <button className="btn btn-g" disabled={busy} onClick={() => { if (confirm(`Vô hiệu hoá ${s.fullName}? Tài khoản bị đăng xuất khỏi mọi thiết bị.`)) void run(() => staffService.setStaffActive(s.userId, false, me)); }}>Vô hiệu hoá</button>}
-                  {s.status === "deactivated" && <button className="btn btn-g" disabled={busy} onClick={() => void run(() => staffService.setStaffActive(s.userId, true, me))}>Kích hoạt lại</button>}
+                  {s.status === "invited" && <button className="btn btn-g" disabled={busy} onClick={() => void run(() => staffService.resendInvite(s.userId), "Đã gửi lại mã mời (mã cũ hết hiệu lực).")}>Gửi lại lời mời</button>}
+                  {s.status === "active" && s.userId !== me && <button className="btn btn-g" disabled={busy} onClick={() => {
+                    const reason = prompt(`Lý do vô hiệu hoá ${s.fullName} (ít nhất 3 ký tự). Tài khoản bị đăng xuất khỏi mọi thiết bị; mục kiểm duyệt đang nhận trả về hàng đợi.`)?.trim();
+                    if (reason) void run(() => staffService.deactivateModerator(s.userId, reason), "Đã vô hiệu hoá.");
+                  }}>Vô hiệu hoá</button>}
+                  {s.status === "deactivated" && <button className="btn btn-g" disabled={busy} onClick={() => void run(() => staffService.reactivateModerator(s.userId), "Đã kích hoạt lại.")}>Kích hoạt lại</button>}
                 </td>
               </tr>
             ))}

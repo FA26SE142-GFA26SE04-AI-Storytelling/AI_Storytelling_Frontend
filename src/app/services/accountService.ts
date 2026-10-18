@@ -9,6 +9,11 @@ export const accountService = {
     return apiRequest('/Auth/verify-email', 'Mã xác thực không đúng hoặc đã hết hạn.', { method: 'POST', body: { email, otp }, anonymous: true });
   },
 
+  /** Luồng 5 Bước 5.1b — người được mời làm Moderator đặt mật khẩu bằng mã mời trong email. */
+  activateStaff(data: { email: string; inviteToken: string; newPassword: string; confirmPassword: string; commitmentAccepted: boolean }): Promise<ApiResponse<null>> {
+    return apiRequest('/Auth/staff-activation', 'Mã mời không đúng hoặc đã hết hạn.', { method: 'POST', body: data, anonymous: true });
+  },
+
   resendVerificationEmail(email: string): Promise<ApiResponse<null>> {
     return apiRequest('/Auth/resend-verification-email', 'Không gửi lại được mã xác thực.', { method: 'POST', body: { email }, anonymous: true });
   },
