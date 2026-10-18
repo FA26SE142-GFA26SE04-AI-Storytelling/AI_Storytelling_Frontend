@@ -17,10 +17,10 @@ Ký hiệu:
 | L1 — Hồ sơ trẻ & giám sát | Auth (phần phụ huynh), ChildProfile, LearningProfile, SafetyPolicy, ChildAccessCredential (phần phụ huynh), Supervision, Permission | 71 | 58 | 1 | 0 | 12 |
 | L2 — Sinh truyện AI | AIStoryInput, Outline, ContentGeneration, Review, MediaGeneration, ExistingStories, Story, TokenQuota (phần của bé) | 59 | 50 | 3 | 0 | 6 |
 | L3 — Trẻ đọc truyện | ChildAccessCredential (phần của bé), ParentalGate | 3 | 3 | 0 | 0 | 0 |
-| L4 — Lộ trình, theo dõi, Hold Mode | Notification | 5 | 3 | 0 | 0 | 2 |
-| L5 — Admin / Content Creator / Moderator | Auth (phần vận hành), AdminAccount, ModeratorAccount, TokenQuota (cấu hình), ContentCategory, DataRequest, BusinessReport, Payment, ModerationQueue, CreatorAuthoring, CreatorAssistance | 55 | 17 | 0 | 4 | 33 (+ webhook) |
+| L4 — Lộ trình, theo dõi, Hold Mode | Notification | 5 | 5 | 0 | 0 | 0 |
+| L5 — Admin / Content Creator / Moderator | Auth (phần vận hành), AdminAccount, ModeratorAccount, TokenQuota (cấu hình), ContentCategory, DataRequest, BusinessReport, Payment, ModerationQueue, CreatorAuthoring, CreatorAssistance | 55 | 39 | 0 | 0 | 15 (+ webhook) |
 | L6 — Học tập thích ứng | (dùng `PUT /LearningProfile` của L1) | 0 | — | — | — | — |
-| **Tổng Core API** | | **193** | **131** | **4** | **4** | **53 (+ webhook)** |
+| **Tổng Core API** | | **193** | **155** | **4** | **0** | **33 (+ webhook)** |
 
 Luồng 1 và Luồng 2 đã gắn API thật và gỡ dữ liệu mẫu (17/10/2026). Các endpoint còn ⬜ của 2 luồng này là API trùng chức năng, API cũ không còn dùng, hoặc chưa có trong đặc tả.
 
@@ -31,14 +31,9 @@ AI API (`api/ai/*`, port 5260) chỉ dùng nội bộ: Core API gọi sang, fron
 ## Cần sửa ngay
 
 1. ~~**(L1) `PUT /ChildAccessCredential/{childProfileId}` không còn tồn tại.**~~ Đã sửa: bỏ mã PIN, avatar lưu qua `PUT /ChildProfile/{id}` (`avatarId`) ở tab Hồ sơ.
-2. **(L5) `staffService` có thể bị kẹt giữa API thật và dữ liệu cục bộ.** Hàm `call()` dùng một cờ `backendReady` chung cho cả service. Lần gọi đầu thành công thì mọi lời gọi sau đều đi API thật, không quay về `staffLocal` nữa. Backend hiện **có** `GET /creator/stories`, nên khi Creator mở màn này trước, các API đề xuất chưa có (`/admin/staff`, `/moderation/queue`, `/evaluation/...`) sẽ trả 404 thay vì dùng dữ liệu cục bộ. Ngoài ra dữ liệu trả về của `GET /creator/stories` chưa chắc khớp kiểu `PublicStory`.
+2. ~~**(L5) `staffService` có thể bị kẹt giữa API thật và dữ liệu cục bộ.**~~ Đã sửa: bỏ cờ `backendReady` dùng chung; API có thật thì gọi thật, chưa có thì dùng thẳng `staffLocal`.
 3. **(L2) `GET /Story` chưa lọc được theo bé và lộ truyện của mọi phụ huynh** — xem ghi chú dưới bảng Story (Luồng 2). Cần backend sửa.
-4. **Backend đã có nhiều API mà [FRONTEND_PROGRESS.md](FRONTEND_PROGRESS.md) vẫn ghi "chờ backend"** (các mục L1, L2 đã gắn xong):
-   - L5 — Vai trò `Moderator`, `ContentCreator` đã có trong enum `UserRole` (enum chỉ còn `Parent`, `Moderator`, `Administrator`, `ContentCreator`; `Teacher` đã bỏ).
-   - L5 — Trang kích hoạt tài khoản vận hành: `POST /Auth/staff-activation`.
-   - L5 — Mời / vô hiệu hoá Moderator: `ModeratorAccount/*`.
-   - L5 — Hàng đợi kiểm duyệt: `ModerationQueue/*` (mới có danh sách, nhận xử lý, mở mục, cấp quyền xem; **chưa có** trả lại và ra quyết định).
-   - L5 — Truyện của Content Creator, kèm lịch sử phiên bản, khôi phục, nhập tệp: `creator/stories/*`.
+4. ~~**Backend đã có nhiều API mà FRONTEND_PROGRESS vẫn ghi "chờ backend"**~~ — đã gắn xong ở L1, L2, L5 (18/10/2026). Còn lại: trợ lý AI cho Creator (`CreatorAssistance`, để đợt sau).
 
 ---
 
@@ -341,10 +336,12 @@ Màn hình: chuông thông báo — [NotificationBell.tsx](../app/components/she
 | Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
 | `GET /` | ✅ | `guardianService.notifications` | Danh sách thông báo |
-| `GET unread-count` | ⬜ | — | Frontend đang tự đếm từ danh sách |
+| `GET unread-count` | ✅ | `unreadNotificationCount` | Hỏi mỗi phút; số tăng thì tải lại danh sách |
 | `PUT {notificationId}/read` | ✅ | `markNotificationRead` | Đọc một |
 | `PUT read-all` | ✅ | `markAllNotificationsRead` | Đọc hết |
-| `DELETE {notificationId}` | ⬜ | — | Xoá thông báo |
+| `DELETE {notificationId}` | ✅ | `deleteNotification` | Nút ✕ trên từng thông báo |
+
+> Backend trả `type` dạng PascalCase (`SupervisionInvite`), `status` là `Read` / `Unread`, kèm `group` (`stories` / `children` / `supervisors` / `account` / `moderation`) và `childProfileId`. Frontend chuẩn hoá ở [notifications.ts](../app/lib/notifications.ts) (nhãn tiếng Việt, màn cần mở). Backend còn có SignalR hub `/hubs/notifications` (sự kiện `ReceiveNotification`); frontend chưa dùng vì chưa có thư viện `@microsoft/signalr`, đang hỏi `unread-count` mỗi phút.
 
 ### L4 — API đề xuất backend chưa có
 
@@ -363,6 +360,8 @@ Gọi qua `guardianService` và tự chuyển sang `guardianLocal`. Backend đã
 
 ## Luồng 5 — Admin / Content Creator / Moderator
 
+Cập nhật 18/10/2026: mọi API backend đã có của Luồng 5 đều gọi thật; đã gỡ `mocks/mockStaff.ts` và cờ `backendReady` dùng chung của `staffService` (API chưa có thì dùng thẳng `staffLocal`, không thử gọi mạng). Truyện Content Creator đi qua `services/creatorService.ts`.
+
 ### Auth (phần vận hành) — `/Auth`
 
 Theo L5 "Đăng nhập & tài khoản (Bước 5.1, 5.1b, 5.1d)". Đăng nhập dùng chung `POST login` với L1.
@@ -370,26 +369,28 @@ Theo L5 "Đăng nhập & tài khoản (Bước 5.1, 5.1b, 5.1d)". Đăng nhập 
 | Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
 | `POST mfa/verify` | ✅ | `authService.verifyMfa` | Bước nhập mã TOTP sau mật khẩu — [LoginScreen.tsx](../app/components/shell/LoginScreen.tsx) |
-| `POST staff-activation` | ⬜ | — | Trang kích hoạt từ link mời (đặt mật khẩu, cam kết) — đang ghi "chờ backend" |
+| `POST staff-activation` | ✅ | `accountService.activateStaff` | Màn đăng nhập → "Kích hoạt tài khoản vận hành": email, mã mời trong email (72 giờ), mật khẩu mới, cam kết |
 
 ### AdminAccount — `/AdminAccount` (chỉ Administrator)
 
 | Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
-| `POST grant` | ✅ | `staffService.grantAdmin` | Cấp Administrator — [AdminSystem.tsx](../app/features/staff/AdminSystem.tsx) |
+| `POST grant` | ✅ | `staffService.grantAdmin` | Cấp Administrator cho email đã có tài khoản — [AdminSystem.tsx](../app/features/staff/AdminSystem.tsx) |
 | `POST {targetUserId}/revoke` | ✅ | `staffService.revokeAdmin` | Thu hồi Administrator |
 
 ### ModeratorAccount — `/ModeratorAccount` (chỉ Administrator)
 
-Frontend đang gọi API đề xuất `/admin/staff/*` ([AdminPeople.tsx](../app/features/staff/AdminPeople.tsx)); backend đã có controller này nhưng dùng đường dẫn khác. Theo L5 Bước 5.1b.
+Màn hình: [AdminPeople.tsx](../app/features/staff/AdminPeople.tsx). Theo L5 Bước 5.1b.
 
-| Endpoint | Trạng thái | Nên thay cho | Chức năng / màn hình |
+| Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
-| `GET /` | ⬜ | `staffService.staff` → `/admin/staff` | Danh sách tài khoản vận hành |
-| `POST invite` | ⬜ | `staffService.invite` → `/admin/staff/invitations` | Mời Moderator |
-| `POST {userId}/resend-invite` | ⬜ | — | Gửi lại lời mời |
-| `POST {userId}/deactivate` | ⬜ | `setStaffActive(false)` → `/admin/staff/{id}/deactivate` | Vô hiệu hoá |
-| `POST {userId}/reactivate` | ⬜ | `setStaffActive(true)` → `/admin/staff/{id}/reactivate` | Kích hoạt lại |
+| `GET /` | ✅ | `staffService.staff` | Danh sách Moderator (chưa kích hoạt → "Đã mời", `Suspended` → "Vô hiệu hoá") |
+| `POST invite` | ✅ | `inviteModerator` | Mời Moderator (họ tên, email, chuyên môn, ghi chú) |
+| `POST {userId}/resend-invite` | ✅ | `resendInvite` | "Gửi lại lời mời" (mã cũ hết hiệu lực) — backend không có huỷ lời mời |
+| `POST {userId}/deactivate` | ✅ | `deactivateModerator` | Vô hiệu hoá, bắt buộc lý do ≥ 3 ký tự |
+| `POST {userId}/reactivate` | ✅ | `reactivateModerator` | Kích hoạt lại |
+
+> Backend chưa có API liệt kê Administrator và chưa mời Administrator qua email: Administrator chỉ cấp cho email đã có tài khoản (`AdminAccount/grant`).
 
 ### TokenQuota (cấu hình) — `/TokenQuota`
 
@@ -398,7 +399,7 @@ Màn hình: [AdminSystem.tsx](../app/features/staff/AdminSystem.tsx). Theo L5 "T
 | Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
 | `GET config` | ✅ | `staffService.quotaConfigs` | Xem các cấu hình |
-| `POST config` | ✅ | `staffService.setQuota` | Đặt hạn mức mặc định / ghi đè |
+| `POST config` | ✅ | `staffService.setQuota` | Đặt hạn mức: `System` (mặc định), `Personal` (một tài khoản), `Child` (một bé). Trước đây frontend gửi `User` → backend trả 400 |
 
 ### ContentCategory — `/ContentCategory`
 
@@ -409,22 +410,22 @@ Màn hình: Admin → Danh mục ([AdminCatalog.tsx](../app/features/staff/Admin
 | `GET /` | ✅ | `staffService.categories`, `getContentCategories` | Danh mục nội dung; chọn chủ đề ở L1 |
 | `GET {id}` | ⬜ | — | — |
 | `POST /` | ✅ | `staffService.createCategory` | Thêm danh mục |
-| `PUT {id}` | ✅ | `staffService.updateCategory` | Đổi tên, ẩn / hiện |
+| `PUT {id}` | ✅ | `staffService.updateCategory` | Đổi tên, ẩn / hiện, bật / tắt "Chặn mặc định cho" 6–8 / 9–10 tuổi (`defaultBlockedAgeBands`, L1 dùng khi tạo hồ sơ) |
 | `DELETE {id}` | ⬜ | — | Frontend dùng ẩn (`isActive=false`) thay cho xoá |
 
 ### DataRequest — `/DataRequest`
 
-Màn hình: Hồ sơ bé → tab Hồ sơ ([ProfileTab.tsx](../app/features/children/ProfileTab.tsx)); Admin → Hệ thống ([AdminSystem.tsx](../app/features/staff/AdminSystem.tsx)). Theo L5 "Data Request (Bước 5.4)".
+Màn hình: Hồ sơ bé → tab Hồ sơ ([DataRequestSection.tsx](../app/features/children/DataRequestSection.tsx)); Admin → Hệ thống ([AdminSystem.tsx](../app/features/staff/AdminSystem.tsx)). Theo L5 "Data Request (Bước 5.4)".
 
 | Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
-| `POST /` | ✅ | `createDataRequest` | Phụ huynh gửi yêu cầu xuất / xoá dữ liệu |
+| `POST /` | ✅ | `createDataRequest` | Phụ huynh gửi yêu cầu xuất / xoá. Yêu cầu xoá gửi kèm `currentPassword` và `confirmNickname` (backend bắt buộc — trước đây frontend không gửi nên luôn lỗi) |
 | `GET pending` | ✅ | `pendingDataRequests` | Admin xem yêu cầu đang chờ |
-| `GET mine` | ⬜ | — | Phụ huynh xem trạng thái yêu cầu đã gửi |
-| `POST {id}/cancel` | ⬜ | — | Phụ huynh huỷ yêu cầu |
+| `GET mine` | ✅ | `myDataRequests` | Phụ huynh xem trạng thái, lý do từ chối |
+| `POST {id}/cancel` | ✅ | `cancelDataRequest` | Phụ huynh huỷ yêu cầu đang chờ |
 | `POST {id}/resolve-export` | ✅ | `resolveExport` | Admin xuất Excel / CSV |
 | `POST {id}/resolve-delete` | ✅ | `resolveDelete` | Admin xoá dữ liệu |
-| `POST {id}/reject` | ⬜ | — | Admin từ chối yêu cầu |
+| `POST {id}/reject` | ✅ | `rejectDataRequest` | Admin từ chối kèm lý do |
 
 ### BusinessReport — `/BusinessReport`
 
@@ -450,37 +451,41 @@ Màn hình: [AdminSystem.tsx](../app/features/staff/AdminSystem.tsx). Theo L5 "�
 
 ### ModerationQueue — `/ModerationQueue` (Moderator, Administrator)
 
-Frontend đang gọi API đề xuất `/moderation/*` ([Moderation.tsx](../app/features/staff/Moderation.tsx)). Theo L5 "Hàng đợi kiểm duyệt (Bước 5.7)".
+Màn hình: [Moderation.tsx](../app/features/staff/Moderation.tsx). Theo L5 "Hàng đợi kiểm duyệt (Bước 5.7)".
 
-| Endpoint | Trạng thái | Nên thay cho | Chức năng / màn hình |
+| Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
-| `GET /` | ⚠️ | `staffService.queue` → `/moderation/queue` | Hàng đợi kiểm duyệt — khác đường dẫn |
-| `POST {itemId}/claim` | ⚠️ | `staffService.claim` → `/moderation/items/{id}/claim` | "Nhận xử lý" — khác đường dẫn |
-| `GET {itemId}` | ⬜ | — | Mở chi tiết mục |
-| `POST review-views` | ⬜ | — | Cấp quyền xem nội dung để duyệt |
-| *(chưa có)* release, decision | — | `release`, `decide` | "Trả lại", ra quyết định — **chờ backend** |
+| `GET /` | ✅ | `staffService.queue` | Hàng đợi (lọc Đang chờ / Tôi đang xử lý / Đã xử lý), ưu tiên, hạn SLA, quá hạn |
+| `POST {itemId}/claim` | ✅ | `claim` | "Nhận xử lý" (khoá 2 giờ; không nhận được mục do chính mình tạo; Administrator chỉ nhận khi không còn Moderator hợp lệ) |
+| `GET {itemId}` | ✅ | `openItem` | Mở mục đang nhận: cờ cảnh báo, checklist |
+| `POST review-views` | ⬜ | — | Backend ghi nhận quyền xem nhưng chưa API nào dùng tới |
+| *(chưa có)* quyết định, trả lại, nội dung truyện Creator | — | — | Ra quyết định (duyệt / từ chối / chặn / chuyển lên) và trả lại mục — **chờ backend**; phần quyết định đang khoá. Nội dung truyện lấy qua `GET /Story/{id}` (chỉ đọc được truyện phạm vi phụ huynh) |
+
+> Nhánh backend `feat/moderator` (commit `dc60f2d`, 18/10/2026) có `PublicStoryReviewService` cho quy trình duyệt truyện công khai, nhưng chưa có controller và chưa merge vào `main` — khi có API, gắn vào phần quyết định đang khoá ở [Moderation.tsx](../app/features/staff/Moderation.tsx).
 
 ### CreatorAuthoring — `/creator/stories` (Content Creator)
 
-Frontend đang gọi API đề xuất `/creator/stories*` ([Creator.tsx](../app/features/staff/Creator.tsx)), nhưng hợp đồng khác backend. Theo L5 "Content Creator (Bước 5.8, 5.9)".
+Màn hình: [CreatorStories.tsx](../app/features/staff/CreatorStories.tsx), [CreatorEditor.tsx](../app/features/staff/CreatorEditor.tsx), [CreatorImport.tsx](../app/features/staff/CreatorImport.tsx); service [creatorService.ts](../app/services/creatorService.ts). Theo L5 "Content Creator (Bước 5.8)" và docs backend `CONTENT_CREATOR_MANUAL_API_FRONTEND_GUIDE.md`.
 
-| Endpoint | Trạng thái | Hàm frontend hiện tại | Chức năng / màn hình |
+| Endpoint | Trạng thái | Hàm frontend | Chức năng / màn hình |
 |---|:-:|---|---|
-| `GET /` | ⚠️ | `staffService.myStories` | **Trùng đường dẫn** nên đang gọi tới backend thật, nhưng chưa kiểm dữ liệu trả về có khớp `PublicStory` không (xem "Cần sửa ngay" mục 2) |
-| `POST manual` | ⚠️ | `saveStory` gọi `POST /creator/stories` | Backend tạo bằng `POST /creator/stories/manual` |
-| `GET {storyId}` | ⬜ | — | Chi tiết truyện của Creator |
-| `POST {storyId}/manual/versions` | ⬜ | (`saveStory` đang gọi `PUT /creator/stories/{id}`) | Lưu bản mới |
-| `GET {storyId}/content/versions` | ⬜ | — | Lịch sử phiên bản |
-| `GET {storyId}/content/versions/{versionId}` | ⬜ | — | Xem một phiên bản |
-| `POST {storyId}/content/restore` | ⬜ | — | Khôi phục bản cũ |
-| `POST {storyId}/imports/preview` | ⬜ | — | Xem trước khi nhập nội dung dán |
-| `POST {storyId}/imports/preview-file` | ⬜ | — | Xem trước khi nhập tệp |
-| `POST {storyId}/imports/confirm` | ⬜ | — | Xác nhận nhập |
-| *(chưa có)* submit, withdraw, archive, templates | — | `submitStory`, `withdrawStory`, `archiveStory`, `*Template` | Gửi duyệt, rút, gỡ, bộ truyện mẫu — **chờ backend** |
+| `GET /` | ✅ | `creatorService.list` | Danh sách truyện của mình |
+| `POST manual` | ✅ | `create` | Tạo bản nháp (tên, mô tả, nhóm tuổi `6-8` / `9-10`, thể loại, trải nghiệm) |
+| `GET {storyId}` | ✅ | `get` | Mở trình soạn, đồng bộ sau xung đột |
+| `POST {storyId}/manual/versions` | ✅ | `save` | Lưu phiên bản mới (chụp nội dung lúc bấm, `revisionToken` + `baseVersionId`) |
+| `GET {storyId}/content/versions` | ✅ | `versions` | Lịch sử phiên bản |
+| `GET {storyId}/content/versions/{versionId}` | ✅ | `version` | Tải nội dung bản hiện tại / xem bản cũ |
+| `POST {storyId}/content/restore` | ✅ | `restore` | Khôi phục bản cũ thành phiên bản mới |
+| `POST {storyId}/imports/preview` | ✅ | `previewText` | Xem trước nội dung dán |
+| `POST {storyId}/imports/preview-file` | ✅ | `previewFile` | Xem trước tệp .txt / .docx (multipart `File`, `RevisionToken`, `OperationId`) |
+| `POST {storyId}/imports/confirm` | ✅ | `confirmImport` | Xác nhận nhập (bắt buộc nguồn và cam kết bản quyền) |
+| *(chưa có)* gửi duyệt, rút, gỡ, xuất bản, xoá, bộ truyện mẫu | — | — | **Chờ backend**; bộ truyện mẫu vẫn dùng dữ liệu cục bộ |
+
+> Mỗi lệnh ghi có `operationId` riêng. Mất mạng → nút "Thử lại lệnh vừa rồi" gửi lại **cùng** operationId và bản chụp. HTTP 409 (bản nháp / phiên bản nguồn đã đổi) → giữ nguyên nội dung đang sửa, nút "Đồng bộ với máy chủ" lấy revision mới rồi người dùng tự lưu.
 
 ### CreatorAssistance — `/creator/stories/{storyId}/assistance-tasks` (Content Creator)
 
-Frontend **chưa có** hàm và màn hình nào. Đây là trợ lý AI cho Creator ("Tạo truyện mẫu bằng pipeline AI" — L5 Bước 5.8, đang ghi "chờ backend").
+Frontend **chưa có** hàm và màn hình nào (để đợt sau). Đây là trợ lý AI cho Creator, có tài liệu riêng ở backend `CREATOR_ASSISTANCE_API_FRONTEND_GUIDE.md`.
 
 | Endpoint | Trạng thái | Chức năng |
 |---|:-:|---|
@@ -495,25 +500,23 @@ Frontend **chưa có** hàm và màn hình nào. Đây là trợ lý AI cho Crea
 | `POST {taskId}/cancel` | ⬜ | Huỷ |
 | `POST {taskId}/close` | ⬜ | Đóng phiên |
 
-### L5 — API đề xuất backend chưa có
+### L5 — chưa có API ở backend (dữ liệu cục bộ `staffLocal`)
 
-Gọi qua `staffService.call()` và tự chuyển sang `staffLocal` (lưu ý "Cần sửa ngay" mục 2).
-
-| Chức năng | Đường dẫn đề xuất | Màn hình |
-|---|---|---|
-| Đơn Content Creator | `POST /creator-applications`, `/admin/creator-applications/*` | [LoginScreen.tsx](../app/components/shell/LoginScreen.tsx), [AdminPeople.tsx](../app/features/staff/AdminPeople.tsx) |
-| Tài khoản phụ huynh (Bước 5.1e) | `/admin/parents/*` (tìm, tạm khoá, mở khoá, mở khoá đăng nhập) | [AdminPeople.tsx](../app/features/staff/AdminPeople.tsx) |
-| Giám sát AI (Bước 5.2) | `/admin/ai-metrics`, `/admin/generation-jobs` | [AdminAi.tsx](../app/features/staff/AdminAi.tsx) |
-| Thẻ ước, bài học, nhân vật mẫu, Prompt Catalog (Bước 5.3) | `/admin/catalog/*`, `/admin/prompt-catalog/versions/*` | [AdminCatalog.tsx](../app/features/staff/AdminCatalog.tsx) |
-| Bộ dữ liệu & đánh giá AI (Bước 5.10) | `/evaluation/prompts/*`, `/evaluation/runs/*` | [AdminAi.tsx](../app/features/staff/AdminAi.tsx), [Creator.tsx](../app/features/staff/Creator.tsx), [Moderation.tsx](../app/features/staff/Moderation.tsx) |
-| Trả lại / ra quyết định kiểm duyệt | `/moderation/items/{id}/release`, `/decision` | [Moderation.tsx](../app/features/staff/Moderation.tsx) |
-| Gửi duyệt, rút, gỡ truyện mẫu; bộ truyện mẫu | `/creator/stories/{id}/submit` · `/withdraw` · `/archive`, `/creator/templates/*` | [Creator.tsx](../app/features/staff/Creator.tsx) |
+| Chức năng | Màn hình |
+|---|---|
+| Đơn Content Creator (nộp, duyệt / từ chối) | [LoginScreen.tsx](../app/components/shell/LoginScreen.tsx), [AdminPeople.tsx](../app/features/staff/AdminPeople.tsx) |
+| Tài khoản phụ huynh (tìm, tạm khoá, mở khoá) (Bước 5.1e) | [AdminPeople.tsx](../app/features/staff/AdminPeople.tsx) |
+| Giám sát AI: chỉ số, nhật ký sinh truyện (Bước 5.2) | [AdminAi.tsx](../app/features/staff/AdminAi.tsx) |
+| Thẻ ước, bài học, nhân vật mẫu, Prompt Catalog có phiên bản (Bước 5.3) | [AdminCatalog.tsx](../app/features/staff/AdminCatalog.tsx) |
+| Bộ dữ liệu & đánh giá AI (Bước 5.10) | [AdminAi.tsx](../app/features/staff/AdminAi.tsx), [Creator.tsx](../app/features/staff/Creator.tsx), [Moderation.tsx](../app/features/staff/Moderation.tsx) |
+| Ra quyết định / trả lại mục kiểm duyệt | [Moderation.tsx](../app/features/staff/Moderation.tsx) (đang khoá) |
+| Gửi duyệt / rút / gỡ truyện mẫu; bộ truyện mẫu | [CreatorStories.tsx](../app/features/staff/CreatorStories.tsx), [Creator.tsx](../app/features/staff/Creator.tsx) |
 
 ---
 
 ## Luồng 6 — Học tập thích ứng
 
-Backend chưa có controller riêng cho L6. API thật duy nhất là `PUT /LearningProfile/{childProfileId}` (xem L1), dùng khi áp dụng đề xuất mức đọc.
+Backend chưa có controller riêng cho L6 (đã kiểm `origin/main` ngày 18/10/2026). API thật duy nhất là `PUT /LearningProfile/{childProfileId}` (xem L1), dùng khi áp dụng đề xuất mức đọc; khi gọi, backend tự ghi `child_profile_version_history` nhưng chưa có API đọc lại, nên lịch sử (mức đọc và chế độ đọc) vẫn hiện từ bản ghi cục bộ.
 
 ### L6 — API đề xuất backend chưa có
 

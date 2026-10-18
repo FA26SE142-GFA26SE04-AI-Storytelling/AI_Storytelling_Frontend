@@ -1,4 +1,5 @@
-import type { Evidence, RecommendationCategory, RecommendationStatus } from "@/app/types/adaptive";
+import type { Evidence, LearningConfig, RecommendationCategory, RecommendationStatus } from "@/app/types/adaptive";
+import { READING_MODES } from "@/app/lib/guardian";
 
 /**
  * Quy tắc Luồng 6 (rule-based v1) — hàm thuần, không đọc/ghi dữ liệu.
@@ -204,3 +205,14 @@ export const STATUS_LABEL: Record<RecommendationStatus, [tone: string, label: st
   validated: ["ok", "Đã phù hợp"],
   reassessment_required: ["wait", "Cần xem lại"],
 };
+
+const modeLabel = (mode?: string | null) => READING_MODES.find((m) => m.id === mode)?.label ?? null;
+
+/** Bước 6.7 — mô tả một lần đổi cấu hình học tập: mức đọc và / hoặc chế độ đọc. */
+export function configChange(prev: LearningConfig, next: LearningConfig): string {
+  const parts: string[] = [];
+  if (prev.readingLevel !== next.readingLevel) parts.push(`Mức ${prev.readingLevel} → Mức ${next.readingLevel}`);
+  const [a, b] = [modeLabel(prev.readingMode), modeLabel(next.readingMode)];
+  if (a && b && a !== b) parts.push(`${a} → ${b}`);
+  return parts.join(" · ") || `Mức ${next.readingLevel}`;
+}

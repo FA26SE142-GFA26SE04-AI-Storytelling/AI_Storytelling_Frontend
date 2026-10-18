@@ -6,6 +6,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import { adaptiveService } from "@/app/services/adaptiveService";
 import type { ChildProfile } from "@/app/types/childProfile";
+import type { LearningConfig } from "@/app/types/adaptive";
 import LearningHistory from "@/app/features/adaptive/LearningHistory";
 import LearningForm, { learningFrom, learningRequest, type LearningValue } from "./LearningForm";
 
@@ -14,8 +15,8 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
   const { user } = useAuth();
   const [value, setValue] = useState<LearningValue | null>(null);
   const [exists, setExists] = useState(false);
-  // Mức đọc đang lưu — để ghi lịch sử khi phụ huynh sửa thủ công (Bước 1.3).
-  const [savedLevel, setSavedLevel] = useState<number | null>(null);
+  // Mức đọc và chế độ đọc đang lưu — để ghi lịch sử khi phụ huynh sửa thủ công (Bước 1.3).
+  const [saved, setSaved] = useState<LearningConfig | null>(null);
   const [historyKey, setHistoryKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
@@ -26,8 +27,9 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
     void childProfileService.getLearningProfile(child.id).then((r) => {
       if (!alive) return;
       setExists(r.success && !!r.data);
-      setSavedLevel(r.success && r.data ? r.data.readingLevel : null);
-      setValue(learningFrom(r.success ? r.data : null, child.ageBand));
+      const v = learningFrom(r.success ? r.data : null, child.ageBand);
+      setSaved(r.success && r.data ? { readingLevel: v.readingLevel, readingMode: v.readingMode } : null);
+      setValue(v);
     });
     return () => { alive = false; };
   }, [child.id, child.ageBand]);
@@ -40,11 +42,10 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
     setBusy(false);
     setNote({ ok: r.success, text: r.success ? "Đã lưu hồ sơ học tập. Truyện tạo sau sẽ theo cấu hình mới." : r.message || "Không lưu được." });
     if (r.success) {
-      // Sửa mức đọc sau khi hồ sơ Active ghi lịch sử nguồn "thủ công" — cũng là cách hoàn tác một đề xuất đã áp dụng.
-      if (child.status === "Active" && savedLevel !== null && savedLevel !== value.readingLevel) {
-        adaptiveService.recordManualChange(child.id, savedLevel, value.readingLevel, user?.fullName || user?.email || "Bạn");
-      }
-      setSavedLevel(value.readingLevel);
+      // Sửa mức đọc / chế độ đọc sau khi hồ sơ Active ghi lịch sử nguồn "thủ công" — cũng là cách hoàn tác một đề xuất đã áp dụng.
+      const next = { readingLevel: value.readingLevel, readingMode: value.readingMode };
+      if (child.status === "Active" && saved) adaptiveService.recordManualChange(child.id, saved, next, user?.fullName || user?.email || "Bạn");
+      setSaved(next);
       setHistoryKey((k) => k + 1);
       setExists(true);
       onSaved();

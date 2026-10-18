@@ -89,3 +89,12 @@ describe('Luồng 6 — bộ máy cục bộ', () => {
     expect(v.map((x) => x.versionStatus)).toEqual(['active_version', 'superseded']);
   });
 });
+
+describe('lịch sử hồ sơ học tập — chế độ đọc', () => {
+  it('ghi cả lần chỉ đổi chế độ đọc, bỏ qua lần lưu không đổi gì', () => {
+    adaptiveLocal.recordVersion(9301, { readingLevel: 2, readingMode: 'ListenFirst' }, { readingLevel: 2, readingMode: 'ListenFirst' }, 'manual', null, 'Mẹ');
+    expect(adaptiveLocal.versions(9301)).toHaveLength(0);
+    adaptiveLocal.recordVersion(9301, { readingLevel: 2, readingMode: 'ListenFirst' }, { readingLevel: 2, readingMode: 'ReadFirst' }, 'manual', null, 'Mẹ');
+    expect(adaptiveLocal.versions(9301)[0]).toMatchObject({ previousConfig: { readingMode: 'ListenFirst' }, newConfig: { readingMode: 'ReadFirst' }, source: 'manual' });
+  });
+});

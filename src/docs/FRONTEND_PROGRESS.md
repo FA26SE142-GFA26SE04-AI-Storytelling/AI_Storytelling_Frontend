@@ -16,9 +16,9 @@ Ký hiệu:
 | L1 — Hồ sơ trẻ & giám sát | ~95% — gọi API thật, không còn mock (còn: tên/email người giám sát, phiên bé tự hết hạn) |
 | L2 — Sinh truyện AI | ~70% — gọi API thật, không còn mock (phần còn lại chờ backend; danh sách truyện chưa lọc được theo bé) |
 | L3 — Trẻ đọc truyện | ~80% giao diện; nội dung truyện lấy thật, dữ liệu đọc (tiến độ, câu đố, EXP) chờ backend — backend chưa có API nào của Luồng 3 |
-| L4 — Lộ trình, theo dõi, Hold Mode | ~80% giao diện (dữ liệu chờ backend) |
-| L5 — Admin / Content Creator / Moderator | ~80% giao diện (phần lớn dữ liệu chờ backend) |
-| L6 — Học tập thích ứng | Core xong giao diện (dữ liệu chờ backend); Optional chưa làm |
+| L4 — Lộ trình, theo dõi, Hold Mode | ~85% giao diện (dữ liệu chờ backend — backend chỉ có API thông báo) |
+| L5 — Admin / Content Creator / Moderator | ~80% giao diện; mọi API backend đã có đều gọi thật (còn chờ backend: quyết định kiểm duyệt, gửi duyệt truyện Creator, các mục quản trị chưa có API) |
+| L6 — Học tập thích ứng | Core xong giao diện (dữ liệu chờ backend — backend chưa có API nào của Luồng 6); Optional chưa làm |
 | **Tổng (có trọng số theo số chức năng)** | **~72%** trước khi làm L6 — chưa tính lại |
 
 ## Việc chặn cần sửa ngay
@@ -273,9 +273,9 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 | Ảnh và giọng đọc theo trang, `word_timings` | `media/package` chỉ có ảnh theo cảnh (frontend ghép cảnh thứ i vào trang thứ i); chưa có audio / mốc thời gian từng chữ |
 | Bảng thiếu trường so với đặc tả | `reading_progress` thiếu `bookmark_page`, `bookmark_node_id`, `current_node_id`; `achievements` thiếu `knowledge_tree_exp`, `last_streak_date`, `activities_completed`; `reading_sessions` thiếu `opened_from`, `is_retake`, `quiz_completed_at`, `selected_by_supervisor`, `entry_method`; `ReadingSession` còn `AssignmentRecipientId` (đặc tả v26 đổi thành `child_roadmap_item_id`) |
 
-## Luồng 4 — Lộ trình, theo dõi, Hold Mode (~80% giao diện; dữ liệu chờ backend)
+## Luồng 4 — Lộ trình, theo dõi, Hold Mode (~85% giao diện; dữ liệu chờ backend)
 
-> **Lưu ý:** backend chưa có API cho lộ trình, Hold Mode, dashboard, báo cáo tuần, report và thư viện cộng đồng (bảng lộ trình vẫn là `assignments` cũ). Frontend gọi theo hợp đồng đề xuất trong `app/services/guardianService.ts`; khi backend chưa có thì dùng `app/services/guardianLocal.ts`. Bộ máy này dùng chung dữ liệu với phần đọc của bé (Luồng 3), nên trên cùng trình duyệt: bé đọc xong → lộ trình tự mở truyện kế; điểm câu đố thấp → Hold Mode; dashboard lấy số liệu thật từ các lần bé đọc. Dữ liệu chưa lưu lên máy chủ.
+> **Lưu ý:** backend chưa có API cho lộ trình, Hold Mode, dashboard, báo cáo tuần, report và thư viện cộng đồng (bảng lộ trình vẫn là `assignments` cũ; đã kiểm `origin/main` ngày 18/10/2026). API thật duy nhất của luồng này là `Notification`. Frontend gọi theo hợp đồng đề xuất trong `app/services/guardianService.ts`; khi backend chưa có thì dùng `app/services/guardianLocal.ts`. Bộ máy này dùng chung dữ liệu với phần đọc của bé (Luồng 3), nên trên cùng trình duyệt: bé đọc xong → lộ trình tự mở truyện kế; điểm câu đố thấp → Hold Mode; dashboard lấy số liệu thật từ các lần bé đọc. Dữ liệu chưa lưu lên máy chủ.
 
 **Lộ trình của con (Bước 4.1–4.1d)** — màn `Lộ trình của con`
 - [x] Thêm truyện cho một hoặc nhiều con; kiểm tra từng bé (hồ sơ hoạt động, nhóm tuổi, độ dài tối đa), bé không đạt bị bỏ qua và liệt kê lý do
@@ -295,7 +295,7 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 **Theo dõi & trò chuyện sau đọc (Bước 4.3b, 4.3c)** — màn `Tổng quan` (Dashboard)
 - [x] Tab "Tất cả các con" (tóm tắt mỗi con 1 dòng) và tab riêng từng con
 - [x] Khối "Cần xử lý": truyện chờ duyệt, điều ước chờ xác nhận, Hold Mode cần chú ý, yêu cầu cấp quyền, thẻ chưa xem
-- [ ] Khối "Cần xử lý" hiện thêm lời mời giám sát và đề nghị chuyển quyền Owner (Bước 4.3c) — hiện chỉ xử lý ở Hồ sơ bé → Người giám sát
+- [x] Khối "Cần xử lý" hiện thêm đề nghị chuyển quyền Owner gửi tới mình (Nhận quyền / Từ chối ngay tại chỗ) và lời mời giám sát mới (từ thông báo `SupervisionInvite`, mở "Nhập mã mời") (Bước 4.3c) — `features/home/SupervisionTodos.tsx`
 - [ ] Màn "Báo cáo" trên thanh bên vẫn là thống kê trạng thái truyện kiểu cũ — nên bỏ hoặc gộp vào báo cáo tuần trên Dashboard
 - [x] "Con vừa đọc xong": bài học, cảm nhận của con, điểm câu đố (khi có quyền xem kết quả), câu hỏi thảo luận, "Nghe tóm tắt", "Đã trò chuyện với con"
 - [x] Tiến độ: phút đọc 7 ngày, truyện tuần này, chuỗi ngày đọc, số hoạt động, huy hiệu mới, tóm tắt lộ trình
@@ -328,7 +328,9 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 - [x] Rút khi đang chờ / gỡ khi đã duyệt
 
 **Thông báo trong app (Luồng 1 Phụ lục A)**
-- [x] Chuông thông báo: danh sách, số chưa đọc, đọc một / đọc hết (chế độ thật dùng API `Notification` đã có)
+- [x] Chuông thông báo: danh sách, số chưa đọc (`unread-count`, hỏi mỗi phút), đọc một / đọc hết, xoá từng thông báo; bấm thông báo mở màn liên quan
+- [x] Hiện câu tiếng Việt cho mọi loại thông báo backend (backend trả `type` dạng PascalCase như `SupervisionInvite`, trạng thái `Read` / `Unread` — trước đây chuông hiện nguyên tên mã) — `lib/notifications.ts`
+- [ ] Đẩy thông báo tức thời qua SignalR (`/hubs/notifications`, sự kiện `ReceiveNotification`) — backend đã có; frontend chưa có thư viện `@microsoft/signalr` nên đang hỏi định kỳ
 
 ### Luồng 4 — cần backend bổ sung
 
@@ -344,47 +346,49 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 | Report nội dung | `POST /content-reports`, `GET /stories/{id}/moderation-status` |
 | Thư viện cộng đồng | `POST /community-submissions`, `POST /community-submissions/{id}/withdraw` |
 
-## Luồng 5 — Admin / Content Creator / Moderator (~80% giao diện)
+## Luồng 5 — Admin / Content Creator / Moderator (~80% giao diện; phần có API đã gọi thật)
 
-> **Lưu ý:** backend chỉ có 3 vai trò `Parent`, `Teacher`, `Administrator` — **chưa có Moderator và Content Creator**. Phần dùng **API thật**: đăng nhập MFA (TOTP), danh mục nội dung, Token Quota, Data Request, báo cáo nghiệp vụ, đối soát thanh toán, cấp/thu hồi Administrator. Phần còn lại gọi hợp đồng đề xuất trong `app/services/staffService.ts`, khi backend chưa có thì dùng `app/services/staffLocal.ts`. Bộ máy này nối với Luồng 3/4: báo cáo nội dung và bài nộp cộng đồng của phụ huynh vào hàng đợi Moderator; truyện mẫu được duyệt hiện trong thư viện của bé; bộ truyện mẫu đã công khai hiện trong kho của phụ huynh.
+> **Lưu ý (18/10/2026):** backend đã có vai trò `Moderator`, `ContentCreator` (enum `UserRole`: `Parent`, `Moderator`, `Administrator`, `ContentCreator`). Phần dùng **API thật**: đăng nhập MFA (TOTP), kích hoạt tài khoản vận hành, mời / vô hiệu hoá Moderator, cấp / thu hồi Administrator, danh mục nội dung, Token Quota, Data Request, báo cáo nghiệp vụ, đối soát thanh toán, hàng đợi kiểm duyệt (danh sách, nhận xử lý, mở mục), truyện Content Creator soạn thủ công. Đã gỡ `mocks/mockStaff.ts`. Phần backend **chưa có API** dùng thẳng dữ liệu cục bộ `app/services/staffLocal.ts` (không thử gọi mạng nữa): đơn Content Creator, tài khoản Parent, chỉ số AI, thẻ ước / bài học / nhân vật mẫu, Prompt Catalog, bộ đánh giá AI, quyết định kiểm duyệt, bộ truyện mẫu.
 >
-> Đăng nhập luôn qua backend thật (đã gỡ mock đăng nhập cùng Luồng 1): dùng tài khoản vận hành trong dữ liệu seed của backend (mật khẩu demo `Demo@123`, cần thiết lập TOTP lần đầu).
+> Đăng nhập luôn qua backend thật: dùng tài khoản vận hành trong dữ liệu seed của backend (mật khẩu demo `Demo@123`, cần thiết lập TOTP lần đầu).
 
 **Đăng nhập & tài khoản (Bước 5.1, 5.1b, 5.1d)**
 - [x] Bước nhập mã TOTP sau mật khẩu; lần đầu hiện mã QR để thiết lập (API thật `Auth/mfa/verify`)
 - [x] Ba khu tách biệt theo vai trò: Admin Portal, Moderation view, Creator view; Parent không vào được
-- [x] Mời Administrator / Moderator qua email (họ tên, email, chuyên môn); không trùng email với tài khoản khác; huỷ lời mời
-- [x] Vô hiệu hoá / kích hoạt lại; không tự vô hiệu hoá mình; luôn còn ít nhất 1 Administrator; mục kiểm duyệt đang nhận trả về hàng đợi
-- [x] Form "Đăng ký làm Content Creator" ở màn đăng nhập (chuyên môn, số năm, mô tả ≤ 1000 ký tự, portfolio, cam kết)
-- [x] Duyệt / từ chối đơn Content Creator (bắt buộc nhận xét / lý do); cảnh báo đơn chờ quá 7 ngày; mỗi email 1 đơn đang chờ, nộp lại sau 30 ngày
-- [x] Cấp / thu hồi Administrator bằng API hiện có
-- [ ] Trang kích hoạt tài khoản từ link mời (đặt mật khẩu, cam kết, thiết lập TOTP) — **chờ backend**
+- [x] Mời Moderator qua email (họ tên, email, chuyên môn, ghi chú) — `ModeratorAccount/invite`; email chứa **mã mời** 72 giờ
+- [x] Trang kích hoạt tài khoản vận hành (màn đăng nhập → "Kích hoạt tài khoản vận hành"): email, mã mời, mật khẩu mới, cam kết — `Auth/staff-activation`; đăng nhập lần đầu thiết lập TOTP
+- [x] Gửi lại lời mời (mã cũ hết hiệu lực); vô hiệu hoá bắt buộc lý do; kích hoạt lại — `ModeratorAccount/*`
+- [x] Cấp / thu hồi Administrator cho email đã có tài khoản — `AdminAccount/*`
+- [ ] Mời Administrator qua email, danh sách Administrator, huỷ lời mời Moderator — **chờ backend** (chưa có API)
+- [x] Form "Đăng ký làm Content Creator" ở màn đăng nhập (chuyên môn, số năm, mô tả ≤ 1000 ký tự, portfolio, cam kết) — dữ liệu cục bộ
+- [x] Duyệt / từ chối đơn Content Creator (bắt buộc nhận xét / lý do); cảnh báo đơn chờ quá 7 ngày — dữ liệu cục bộ, **chờ backend**
 - [ ] Administrator khác reset TOTP khi mất thiết bị — **chờ backend**
 
-**Tài khoản phụ huynh (Bước 5.1e)**
+**Tài khoản phụ huynh (Bước 5.1e)** — dữ liệu cục bộ, **chờ backend**
 - [x] Tìm theo email / họ tên, lọc trạng thái; xem số liệu đếm (không xem dữ liệu của bé)
 - [x] Tạm khoá (bắt buộc lý do), mở khoá (bắt buộc ghi chú), mở khoá đăng nhập sớm
 
 **Token Quota (Bước 5.1c)** — API thật
-- [x] Xem các cấu hình, đặt hạn mức mặc định hoặc ghi đè cho một tài khoản theo kỳ
+- [x] Xem các cấu hình, đặt hạn mức mặc định (`System`) hoặc ghi đè cho một tài khoản (`Personal`) / một bé (`Child`) theo kỳ — trước đây gửi `User` nên backend trả 400
 - [ ] Quota vận hành riêng cho Content Creator — **chờ backend**
 
-**Giám sát AI (Bước 5.2, 5.2b)**
+**Giám sát AI (Bước 5.2, 5.2b)** — số liệu mẫu, **chờ backend**
 - [x] Chỉ số chất lượng AI: thành công, chặn, vùng xám, tỷ lệ cho qua, refine, Adapt, duyệt, từ chối, sửa nhãn, Context Fidelity F1–F5, mục đích chỉnh sửa, token, thời gian, kiểm duyệt quá hạn
 - [x] Nhật ký sinh truyện: lọc theo nguồn / kết quả kiểm duyệt, chi tiết từng lời gọi AI, xuất CSV, "Điều tra sự cố" bắt buộc lý do
 - [ ] Số liệu thật — **chờ backend** (`ai_governance_metrics`, `llm_call_logs`)
 
 **Danh mục & Prompt Catalog (Bước 5.3)**
-- [x] Danh mục nội dung: thêm, đổi tên, ẩn / hiện (API thật)
-- [x] Thẻ ước, bài học gợi ý, nhân vật mẫu: thêm, ẩn / hiện
-- [x] Phiên bản Prompt Catalog: tạo bản nháp (ngưỡng vùng xám / chặn, ngày hiệu lực, ghi chú), publish, quay lại bản trước
+- [x] Danh mục nội dung: thêm, đổi tên, ẩn / hiện, bật / tắt "Chặn mặc định cho" 6–8 / 9–10 tuổi (API thật; L1 dùng khi tạo hồ sơ bé)
+- [x] Thẻ ước, bài học gợi ý, nhân vật mẫu: thêm, ẩn / hiện — dữ liệu cục bộ
+- [x] Phiên bản Prompt Catalog: tạo bản nháp (ngưỡng vùng xám / chặn, ngày hiệu lực, ghi chú), publish, quay lại bản trước — dữ liệu cục bộ
 - [x] Chặn publish khi chưa chạy đánh giá, còn case tấn công lọt qua, hoặc điểm an toàn thấp hơn bản đang dùng (BR-5.E1)
 - [ ] Soạn nội dung prompt template, bảng mức đọc, khung truyện, rubric, blocklist trong giao diện — **chờ backend**
 - [ ] (Optional) Nhập hàng loạt CSV / JSON
 
 **Data Request (Bước 5.4)** — API thật
-- [x] Phụ huynh (Owner) gửi yêu cầu xuất / xoá dữ liệu ở Hồ sơ bé → tab Hồ sơ
-- [x] Administrator xem yêu cầu đang chờ, SLA 72 giờ (cảnh báo từ 48 giờ), xuất file Excel / CSV, xoá dữ liệu (xác nhận)
+- [x] Phụ huynh (Owner) gửi yêu cầu xuất / xoá dữ liệu ở Hồ sơ bé → tab Hồ sơ; yêu cầu xoá nhập lại mật khẩu và gõ đúng biệt danh của bé (backend bắt buộc — trước đây luôn lỗi)
+- [x] Phụ huynh xem trạng thái các yêu cầu đã gửi, lý do từ chối; huỷ yêu cầu đang chờ
+- [x] Administrator xem yêu cầu đang chờ, SLA 72 giờ (cảnh báo từ 48 giờ), xuất file Excel / CSV, xoá dữ liệu (xác nhận), từ chối kèm lý do
 
 **Báo cáo nghiệp vụ (Bước 5.5)** — API thật
 - [x] Tổng hợp theo kỳ, công bố, xem báo cáo công bố gần nhất
@@ -392,29 +396,28 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 
 **Đối soát thanh toán (Bước 5.6, Optional)** — API thật
 - [x] Danh sách giao dịch lệch số tiền, xác nhận đã thanh toán
-- [ ] Phụ huynh mua gói, mã QR SePay — chưa làm
+- [ ] Phụ huynh mua gói, mã QR SePay — chưa làm (backend có `Payment/plans`, `Payment/transactions`)
 
-**Hàng đợi kiểm duyệt (Bước 5.7)**
-- [x] Một hàng đợi cho 5 loại mục, sắp theo ưu tiên và hạn SLA; báo quá hạn
-- [x] "Nhận xử lý" (khoá lạc quan), tự trả về sau 2 giờ, "Trả lại"
-- [x] Duyệt truyện / bộ truyện mẫu của Creator: Duyệt / Yêu cầu sửa / Từ chối
-- [x] Rà truyện vùng xám: Cho qua / Chặn (thông tin cá nhân hiện dạng che)
-- [x] Xử lý báo cáo: Lưu trữ truyện / Bỏ qua / Chuyển lên Administrator; truyện Public Library bị lưu trữ → báo Creator, bộ truyện mẫu chứa truyện → cần sửa
-- [x] Duyệt thư viện cộng đồng: Duyệt / Từ chối
-- [x] Sửa nhãn nội dung; sửa ánh xạ thẻ ước cho truyện công khai
-- [x] Bắt buộc lý do khi từ chối / chặn / lưu trữ / yêu cầu sửa / chuyển lên
-- [x] Administrator: chỉ xử lý ca được chuyển lên; xử lý cả hàng đợi khi không còn Moderator hoạt động
+**Hàng đợi kiểm duyệt (Bước 5.7)** — API thật một phần
+- [x] Một hàng đợi cho 5 loại mục (`ModerationQueue`), lọc Đang chờ / Tôi đang xử lý / Đã xử lý, mức ưu tiên, hạn SLA, báo quá hạn
+- [x] "Nhận xử lý" (khoá 2 giờ, tự trả về; không nhận được mục do chính mình tạo); mở mục đang nhận xem cờ cảnh báo, checklist và nội dung truyện
+- [x] Administrator: xem ca được chuyển lên; backend chỉ cho nhận mục khi không còn Moderator hợp lệ
+- [ ] Ra quyết định (Duyệt / Yêu cầu sửa / Từ chối / Cho qua / Chặn / Lưu trữ / Bỏ qua / Chuyển lên), bắt buộc lý do, sửa nhãn và thẻ ước, "Trả lại" — **chờ backend** (chưa có API; giao diện đang khoá phần quyết định)
+- [ ] Đọc nội dung truyện Content Creator khi duyệt — **chờ backend** (`GET /Story/{id}` chỉ trả truyện phạm vi phụ huynh)
 - [ ] Truyện nhiều lựa chọn: bắt buộc mở mọi kết thúc trước khi duyệt — **chờ** truyện nhiều lựa chọn
-- [ ] So sánh với bản đã gửi trước khi duyệt lại — **chờ backend** (lịch sử phiên bản)
+- [ ] So sánh với bản đã gửi trước khi duyệt lại — **chờ backend**
 
 **Content Creator (Bước 5.8, 5.9)**
-- [x] Truyện mẫu: soạn (tuổi, mức đọc, thể loại, chủ đề, bài học bắt buộc), lưu nháp, cam kết bản quyền, gửi duyệt, rút yêu cầu, xem phản hồi, gỡ khỏi thư viện
-- [x] Chặn gửi duyệt khi còn thông tin cá nhân
-- [x] Sửa truyện đã công khai tạo bản mới; bản cũ vẫn hiện tới khi bản mới được duyệt
-- [x] Bộ truyện mẫu: chỉ chứa truyện đang công khai; lưu nháp, gửi duyệt, nhân bản bản đã công khai, lưu trữ; cảnh báo cần sửa
-- [ ] Tạo truyện mẫu bằng pipeline AI của Luồng 2 (dàn ý, học liệu, ảnh, giọng đọc) — **chờ backend** cho truyện không gắn hồ sơ bé
+- [x] Truyện mẫu soạn thủ công (API thật `/creator/stories`): tạo bản nháp (tên, mô tả, nhóm tuổi `6-8` / `9-10`, thể loại, trải nghiệm đọc / nghe / cả hai); mỗi lần lưu tạo một phiên bản mới; ghi nguồn nội dung và cam kết bản quyền
+- [x] Lịch sử phiên bản, xem bản cũ, khôi phục bản cũ thành phiên bản mới
+- [x] Nhập văn bản / tệp .txt, .docx: xem trước (không tạo phiên bản) → xác nhận (tạo phiên bản Nhập)
+- [x] Chống ghi đè: gửi `revisionToken` + `baseVersionId`; 409 thì giữ nội dung đang sửa và cho đồng bộ; mất mạng thì thử lại đúng lệnh cũ (cùng `operationId`); phần gõ thêm trong lúc lưu không bị đánh dấu đã lưu
+- [x] Cảnh báo thông tin cá nhân trong truyện
+- [ ] Gửi Moderator duyệt, rút yêu cầu, xem phản hồi, gỡ khỏi Thư viện chung, xoá truyện, sửa nhóm tuổi sau khi tạo — **chờ backend**
+- [x] Bộ truyện mẫu: chỉ chứa truyện đang công khai; lưu nháp, gửi duyệt, nhân bản bản đã công khai, lưu trữ; cảnh báo cần sửa — dữ liệu cục bộ, **chờ backend**
+- [ ] Trợ lý AI cho Creator (`CreatorAssistance`, 10 API backend đã có) — **để đợt sau**
 
-**Bộ dữ liệu & đánh giá AI (Bước 5.10)**
+**Bộ dữ liệu & đánh giá AI (Bước 5.10)** — dữ liệu cục bộ, **chờ backend**
 - [x] Content Creator thêm test prompt (thông thường / biên / tấn công, kết quả kỳ vọng); Administrator duyệt vào bộ chính thức
 - [x] Administrator chạy bộ đánh giá trên một phiên bản; kết quả theo loại case, độ khó, token, điểm chấm
 - [x] Moderator chấm điểm 1–5 cho 4 tiêu chí
@@ -425,20 +428,19 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 
 | Việc | Đặc tả | Backend hiện tại |
 |---|---|---|
-| Vai trò `Moderator`, `ContentCreator` và session scope tương ứng | Mục 1.2, BR-5.7a | Enum `UserRole` chỉ có `Parent`, `Teacher`, `Administrator` |
-| Mời Administrator / Moderator qua email, trang kích hoạt, đơn Content Creator | Bước 5.1b, 5.1d | `AdminAccount/grant` chỉ cấp quyền cho email có sẵn |
+| Mời Administrator qua email, liệt kê Administrator, huỷ lời mời | Bước 5.1b | Chỉ `AdminAccount/grant` cho email có sẵn; `ModeratorAccount` chỉ cho Moderator, có gửi lại nhưng không huỷ |
+| Đơn Content Creator | Bước 5.1d | Chưa có API |
 | Quản lý tài khoản Parent (tạm khoá, mở khoá) | Bước 5.1e | Chưa có API |
 | Chỉ số AI, nhật ký sinh truyện | Bước 5.2, 5.2b | Chưa có API |
 | Thẻ ước, bài học, nhân vật mẫu, Prompt Catalog có phiên bản | Bước 5.3 | Chỉ có `ContentCategory` |
-| Hàng đợi kiểm duyệt (`moderation_items`) và quyết định | Bước 5.7 | Chưa có API |
-| Truyện Public Library, Roadmap Template của Content Creator | Bước 5.8, 5.9 | Chưa có API |
+| Quyết định kiểm duyệt, trả lại mục, đọc nội dung truyện Creator khi duyệt | Bước 5.7 | `ModerationQueue` mới có danh sách, nhận xử lý, mở mục; `review-views` chưa được dùng |
+| Gửi duyệt / rút / gỡ / xoá truyện Creator; Roadmap Template | Bước 5.8, 5.9 | `creator/stories` chỉ có soạn, phiên bản, khôi phục, nhập |
 | Bộ đánh giá AI (prompt, lượt chạy sandbox, điểm chấm) | Bước 5.10 | Chưa có API |
 | Danh sách báo cáo nghiệp vụ cũ | Bước 5.5 | Chỉ có `latest-published` |
-| Hợp đồng đề xuất cho toàn bộ phần trên | — | Xem đầu file `staffService.ts` |
 
 ## Luồng 6 — Học tập thích ứng (Core xong giao diện; dữ liệu chờ backend)
 
-> **Lưu ý:** backend chưa có API cho Luồng 6. Frontend gọi theo hợp đồng đề xuất trong `app/services/adaptiveService.ts`; khi backend chưa có thì dùng `app/services/adaptiveLocal.ts`, phân tích dữ liệu đọc của bộ máy cục bộ Luồng 3/4 (chỉ có trên cùng trình duyệt). Quy tắc rule-based v1 nằm ở `app/lib/adaptiveRules.ts` (có test). Riêng việc **áp dụng mức đọc mới gọi API thật** `PUT /LearningProfile/{id}`.
+> **Lưu ý:** backend chưa có API cho Luồng 6 (đã kiểm `origin/main` ngày 18/10/2026). Frontend gọi theo hợp đồng đề xuất trong `app/services/adaptiveService.ts`; khi backend chưa có thì dùng `app/services/adaptiveLocal.ts`, phân tích dữ liệu đọc của bộ máy cục bộ Luồng 3/4 (chỉ có trên cùng trình duyệt). Quy tắc rule-based v1 nằm ở `app/lib/adaptiveRules.ts` (có test). Riêng việc **áp dụng mức đọc mới gọi API thật** `PUT /LearningProfile/{id}`.
 
 **Phân tích & tạo đề xuất (Bước 6.1–6.4)**
 - [x] Ngưỡng 5 phiên đọc xong / 14 ngày; không tính phiên đọc lại để mở khoá; phiên bé tự bỏ ngang tính vào tỷ lệ hoàn thành (`readingLocal` ghi thêm `abandonLog`)
@@ -466,7 +468,7 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 - [x] Hồ sơ bé → Học tập: lịch sử thay đổi mức đọc (theo đề xuất / sửa thủ công) và các đề xuất đã xử lý
 - [x] Sửa mức đọc thủ công sau khi hồ sơ Active ghi lịch sử nguồn "thủ công" (Luồng 1 Bước 1.3) — cũng là cách hoàn tác đề xuất
 - [ ] Cảnh báo truyện đang chờ trong lộ trình lệch nhiều so với mức đọc mới — **chờ backend** trả `readingLevel` của truyện trong lộ trình
-- [ ] Ghi lịch sử khi đổi chế độ đọc — **chờ backend** (`reading_mode`, xem Luồng 1)
+- [x] Ghi lịch sử khi đổi chế độ đọc (Nghe là chính / Tự đọc), kể cả khi chỉ đổi chế độ mà giữ nguyên mức đọc; hiện "Nghe là chính → Tự đọc" trong lịch sử
 
 **Optional (chưa làm)**
 - [ ] Nhánh A cho `learning_focus` (trọng tâm kỹ năng)
@@ -479,7 +481,7 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 |---|---|
 | Job phân tích định kỳ tạo `learning_insights` / `recommendations`; chuyển stale sau 14 ngày; nhắc ngày 7 | `GET /children/{id}/recommendations` |
 | Review nhiều người: kiểm tra quyền LIVE, `had_final_authority`, khoá lạc quan cho quyết định cuối; áp dụng Nhánh A trong cùng transaction với `child_profile_version_history` | `POST /recommendations/{id}/reviews` |
-| Lịch sử phiên bản hồ sơ học tập; `PUT /LearningProfile` đổi mức đọc thì tự ghi dòng `source='manual'` | `GET /children/{id}/learning-profile/versions` |
+| API đọc lịch sử phiên bản hồ sơ học tập — backend **đã tự ghi** `child_profile_version_history` (nguồn `Manual`, gồm mức đọc và chế độ đọc) khi `PUT /LearningProfile`, nhưng chưa có API đọc nên frontend vẫn ghi bản cục bộ | `GET /children/{id}/learning-profile/versions` |
 | Dữ liệu đầu vào: telemetry, `reading_sessions` (`is_retake`, `selected_by_supervisor`, `status` abandoned / force_exited), `quiz_attempts`, `story_reactions`, thẻ ước | Phụ thuộc các API Luồng 3 / 4 ở trên |
 
 ## Chung cho mọi luồng
@@ -502,6 +504,6 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 3. ~~L3: màn đọc có ảnh, giọng đọc, lưu tiến độ, gửi kết quả câu đố, EXP.~~ Xong giao diện; backend cần làm API theo bảng "Luồng 3 — cần backend bổ sung".
 4. ~~L4: Lộ trình của con và Dashboard.~~ Xong giao diện; backend cần làm API theo bảng "Luồng 4 — cần backend bổ sung".
 5. ~~Các phần còn lại của L2~~ Xong phần frontend; gửi bảng "Luồng 2 — cần backend bổ sung" cho nhóm backend.
-6. ~~L5~~ Xong giao diện; backend cần thêm vai trò Moderator / Content Creator và các API theo bảng "Luồng 5 — cần backend bổ sung".
+6. ~~L5~~ Xong giao diện; đã gắn mọi API backend có (18/10/2026). Còn: trợ lý AI cho Creator, và các API theo bảng "Luồng 5 — cần backend bổ sung".
 7. ~~L6~~ Xong phần Core ở giao diện; backend cần làm API theo bảng "Luồng 6 — cần backend bổ sung".
 8. Tiếp theo: các mục còn `[ ]` không ghi "chờ backend" (~~phiên của bé hết hạn sau 20 phút~~ xong, khối "Cần xử lý" thêm lời mời / chuyển quyền Owner, màn "Báo cáo" cũ, dọn code thừa).

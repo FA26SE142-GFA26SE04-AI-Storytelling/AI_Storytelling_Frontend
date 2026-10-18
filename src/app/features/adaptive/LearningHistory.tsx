@@ -6,7 +6,7 @@ import { History } from "lucide-react";
 import { adaptiveService } from "@/app/services/adaptiveService";
 import type { ProfileVersion, Recommendation } from "@/app/types/adaptive";
 import type { ChildProfile } from "@/app/types/childProfile";
-import { CATEGORY_LABEL, STATUS_LABEL } from "@/app/lib/adaptiveRules";
+import { CATEGORY_LABEL, STATUS_LABEL, configChange } from "@/app/lib/adaptiveRules";
 import { fmtDateTime } from "@/app/lib/guardian";
 
 /**
@@ -29,12 +29,12 @@ export default function LearningHistory({ child, refreshKey }: { child: ChildPro
 
   return (
     <section className="sec" style={{ gap: 8, marginTop: 12 }}>
-      <h3 className="display row" style={{ margin: 0 }}><History className="ic" />Lịch sử thay đổi mức đọc</h3>
+      <h3 className="display row" style={{ margin: 0 }}><History className="ic" />Lịch sử thay đổi mức đọc và chế độ đọc</h3>
       {versions === null && <p className="sub">Đang tải…</p>}
       {versions?.length === 0 && <p className="sub">Chưa có thay đổi nào sau khi hồ sơ được kích hoạt.</p>}
       {versions?.map((v) => (
         <div key={v.id} className="version-row">
-          <b>Mức {v.previousConfig.readingLevel} → Mức {v.newConfig.readingLevel}</b>
+          <b>{configChange(v.previousConfig, v.newConfig)}</b>
           <span className="grow sub">{v.source === "recommendation" ? "Theo đề xuất" : "Sửa thủ công"} · {v.appliedByName} · {fmtDateTime(v.createdAt)}</span>
           {v.versionStatus === "active_version" && <span className="pill ok">Đang dùng</span>}
         </div>

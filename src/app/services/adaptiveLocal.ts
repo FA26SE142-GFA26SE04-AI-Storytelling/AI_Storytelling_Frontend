@@ -1,5 +1,5 @@
 import type { ApiResponse } from '@/app/types/auth';
-import type { ProfileVersion, Recommendation, RecommendationReview, ReviewInput, ReviewResult } from '@/app/types/adaptive';
+import type { LearningConfig, ProfileVersion, Recommendation, RecommendationReview, ReviewInput, ReviewResult } from '@/app/types/adaptive';
 import {
   analyzeDifficulty, analyzePersonalization, completionRate, modifyOptions, monitorOutcome,
   PERSONALIZE_COOLDOWN_DAYS, REMIND_DAY, REVIEW_DAYS, type AnalysisInput, type Proposal,
@@ -193,13 +193,18 @@ export const adaptiveLocal = {
     return load(childId).versions.slice();
   },
 
-  /** Bước 6.7 / Luồng 1 Bước 1.3 — không ghi đè: bản mới active, bản trước superseded. */
-  recordVersion(childId: number, previous: number, next: number, source: ProfileVersion['source'], recommendationId: number | null, byName: string) {
-    if (previous === next) return;
+  /**
+   * Bước 6.7 / Luồng 1 Bước 1.3 — không ghi đè: bản mới active, bản trước superseded.
+   * Nhận mức đọc (đề xuất Nhánh A) hoặc cả cấu hình gồm chế độ đọc (phụ huynh sửa thủ công).
+   */
+  recordVersion(childId: number, previous: number | LearningConfig, next: number | LearningConfig, source: ProfileVersion['source'], recommendationId: number | null, byName: string) {
+    const prev = typeof previous === 'number' ? { readingLevel: previous } : previous;
+    const nxt = typeof next === 'number' ? { readingLevel: next } : next;
+    if (prev.readingLevel === nxt.readingLevel && (prev.readingMode ?? null) === (nxt.readingMode ?? null)) return;
     const store = load(childId);
     for (const v of store.versions) v.versionStatus = 'superseded';
     store.versions.unshift({
-      id: store.nextId++, childProfileId: childId, previousConfig: { readingLevel: previous }, newConfig: { readingLevel: next },
+      id: store.nextId++, childProfileId: childId, previousConfig: prev, newConfig: nxt,
       source, recommendationId, appliedByName: byName, versionStatus: 'active_version', createdAt: new Date().toISOString(),
     });
     save(childId);

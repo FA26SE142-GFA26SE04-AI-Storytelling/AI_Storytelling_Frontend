@@ -109,3 +109,12 @@ describe('Quy tắc khác', () => {
     expect(monitorOutcome([90, 90], [50, 60, 55, 40, 65], 100)?.status).toBe('reassessment_required');
   });
 });
+
+describe('configChange', () => {
+  it('mô tả đổi mức đọc, chế độ đọc hoặc cả hai', async () => {
+    const { configChange } = await import('@/app/lib/adaptiveRules');
+    expect(configChange({ readingLevel: 2 }, { readingLevel: 3 })).toBe('Mức 2 → Mức 3');
+    expect(configChange({ readingLevel: 2, readingMode: 'ListenFirst' }, { readingLevel: 2, readingMode: 'ReadFirst' })).toBe('Nghe là chính → Tự đọc');
+    expect(configChange({ readingLevel: 1, readingMode: 'ReadFirst' }, { readingLevel: 2, readingMode: 'ListenFirst' })).toBe('Mức 1 → Mức 2 · Tự đọc → Nghe là chính');
+  });
+});

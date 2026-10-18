@@ -55,11 +55,14 @@ export interface Recommendation {
 }
 
 /** Bước 6.7 — lịch sử phiên bản hồ sơ học tập; không ghi đè, bản mới active, bản trước superseded. */
+/** Cấu hình học tập được ghi lịch sử (Luồng 6 Bước 6.7). Bản ghi cũ chỉ có `readingLevel`. */
+export interface LearningConfig { readingLevel: number; readingMode?: string | null }
+
 export interface ProfileVersion {
   id: number;
   childProfileId: number;
-  previousConfig: { readingLevel: number };
-  newConfig: { readingLevel: number };
+  previousConfig: LearningConfig;
+  newConfig: LearningConfig;
   source: 'recommendation' | 'manual';
   recommendationId: number | null;
   appliedByName: string;

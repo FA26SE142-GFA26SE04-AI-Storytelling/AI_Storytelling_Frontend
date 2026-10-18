@@ -1,6 +1,6 @@
 import { USE_MOCK } from '@/app/mocks/config';
 import type { ApiResponse } from '@/app/types/auth';
-import type { ProfileVersion, Recommendation, ReviewInput, ReviewResult } from '@/app/types/adaptive';
+import type { LearningConfig, ProfileVersion, Recommendation, ReviewInput, ReviewResult } from '@/app/types/adaptive';
 import type { ReadingMode, TopicRelation } from '@/app/types/childProfile';
 import { apiRequest } from './apiClient';
 import { childProfileService } from './childProfileService';
@@ -73,8 +73,11 @@ export const adaptiveService = {
   versions: (childId: number): Promise<ApiResponse<ProfileVersion[]>> =>
     call(`/children/${childId}/learning-profile/versions`, async () => ({ success: true, message: '', data: adaptiveLocal.versions(childId) })),
 
-  /** Luồng 1 Bước 1.3 — phụ huynh sửa mức đọc thủ công sau khi hồ sơ Active. Backend tự ghi; chỉ bộ máy cục bộ cần gọi. */
-  recordManualChange(childId: number, previous: number, next: number, byName: string) {
+  /**
+   * Luồng 1 Bước 1.3 — phụ huynh sửa mức đọc / chế độ đọc thủ công sau khi hồ sơ Active.
+   * Backend đã tự ghi `child_profile_version_history` khi `PUT /LearningProfile` nhưng chưa có API đọc lại, nên bộ máy cục bộ vẫn ghi để hiện lịch sử.
+   */
+  recordManualChange(childId: number, previous: LearningConfig, next: LearningConfig, byName: string) {
     if (backendReady !== true) adaptiveLocal.recordVersion(childId, previous, next, 'manual', null, byName);
   },
 };
