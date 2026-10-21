@@ -89,7 +89,7 @@ export default function KidHome({ home, onOpen, onWish }: Props) {
           <h3 className="display">Bố mẹ chọn cho em <small>{home.roadmap.done}/{home.roadmap.total}</small></h3>
           {roadmapOpen ? (
             <div className="kshelf">
-              <Cover story={roadmapOpen} onClick={hold ? undefined : () => onOpen(roadmapOpen, "roadmap")} locked={!!hold} />
+              <Cover story={roadmapOpen} onClick={hold || home.roadmap.openLocked ? undefined : () => onOpen(roadmapOpen, "roadmap")} locked={!!hold || !!home.roadmap.openLocked} />
               {home.roadmap.queued.map((s) => <div key={s.storyId} className="kcover big locked"><span className="cover" style={{ background: gradientFor(s.storyId) }}><Lock className="lock" /></span><b className="display">Chưa tới lượt</b></div>)}
             </div>
           ) : <p className="sub" style={{ fontSize: 15 }}>Con đã đọc hết truyện bố mẹ chọn!</p>}

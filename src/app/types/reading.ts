@@ -80,6 +80,8 @@ export interface RoadmapView {
   openStoryId: number | null;
   note: string | null;
   dueAt: string | null;
+  /** Truyện đang mở bị khoá (backend không nêu lý do; ví dụ đang Hold Mode). */
+  openLocked?: boolean;
   done: number;
   total: number;
   queued: { storyId: number; title: string }[];

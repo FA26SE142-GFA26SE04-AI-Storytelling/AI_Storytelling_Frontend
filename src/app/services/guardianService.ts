@@ -2,7 +2,7 @@ import { USE_MOCK } from '@/app/mocks/config';
 import type { ApiResponse } from '@/app/types/auth';
 import type {
   AppNotification, CommunityEligibility, CommunitySubmission, ContentReport, Dashboard, InterventionCase, ProgressReport, ReadCompletion, ReportReason,
-  RoadmapAddResult, RoadmapItem, RoadmapPosition, RoadmapStatus, RoadmapStoryInput, RoadmapTemplate, SkipReason,
+  RoadmapAddResult, RoadmapCopyPreview, RoadmapItem, RoadmapPosition, RoadmapStatus, RoadmapStoryInput, RoadmapTemplate, SkipReason,
 } from '@/app/types/progress';
 import type { StoryWish } from '@/app/types/reading';
 import { apiRequest } from './apiClient';
@@ -72,7 +72,10 @@ interface LibraryItemDto {
   readingLevelMin: number; readingLevelMax: number; defaultDaysPerStory: number; storyCount: number;
 }
 interface LibraryDetailDto extends LibraryItemDto { stories: { storyId: number; title: string | null; ageBand: string; isAvailable: boolean }[] }
-interface CopyPlanDto { children: { childProfileId: number; outcome: string; message: string | null; steps: { action: string }[] }[] }
+interface CopyPlanDto {
+  children: { childProfileId: number; outcome: string; message: string | null; warnings: string[];
+    steps: { storyId: number; title: string | null; action: string; message: string | null }[] }[];
+}
 interface ReportResultDto { reportId: number; storyId: number; reason: string; status: string; createdAt: string }
 interface SubmissionDto { itemId: number; storyId: number; status: string; submittedAt: string; rejectReason: string | null }
 
@@ -86,6 +89,8 @@ const SKIP: Record<string, SkipReason> = {
 const toPascal = (s: string) => s.split('_').map((w) => w[0].toUpperCase() + w.slice(1)).join('');
 const fromPascal = (s: string) => s.replace(/([a-z])([A-Z])/g, '$1_$2').toLowerCase();
 const POSITION: Record<RoadmapPosition, string> = { next: 'NextUp', end: 'End' };
+/** Bộ truyện mẫu trả độ tuổi dạng "6-8" / "9-10"; hồ sơ bé dùng "Age_6_8" / "Age_9_10". */
+const AGE_BAND: Record<string, string> = { '6-8': 'Age_6_8', '9-10': 'Age_9_10' };
 
 const mapItem = (childProfileId: number) => (i: RoadmapItemDto): RoadmapItem => ({
   id: i.id, childProfileId, storyId: i.storyId, title: i.title ?? `Truyện #${i.storyId}`, position: i.position,
@@ -113,7 +118,7 @@ const mapCopy = (children: ChildRef[]) => (d: CopyPlanDto): RoadmapAddResult => 
 });
 
 const mapTemplate = (t: LibraryItemDto): RoadmapTemplate => ({
-  id: t.id, title: t.name, description: t.description ?? '', targetAgeBand: t.ageBand,
+  id: t.id, title: t.name, description: t.description ?? '', targetAgeBand: AGE_BAND[t.ageBand] ?? t.ageBand,
   readingLevelMin: t.readingLevelMin, readingLevelMax: t.readingLevelMax, topic: t.mainCategory?.displayName ?? '',
   defaultDaysPerStep: t.defaultDaysPerStory || null, storyCount: t.storyCount, stories: [],
 });
@@ -167,6 +172,15 @@ export const guardianService = {
 
   template: async (template: RoadmapTemplate): Promise<ApiResponse<RoadmapTemplate>> =>
     USE_MOCK ? { success: true, message: '', data: template } : live(`/RoadmapLibrary/${template.id}`, 'Không mở được bộ truyện mẫu.', mapTemplateDetail),
+
+  /** Xem trước việc chép bộ: bé nào được chép, truyện nào bị bỏ qua và vì sao (không ghi dữ liệu). Chế độ mẫu trả null. */
+  previewTemplate: async (children: ChildRef[], template: RoadmapTemplate, position: RoadmapPosition, daysPerStep: number | null): Promise<ApiResponse<RoadmapCopyPreview[] | null>> =>
+    USE_MOCK ? { success: true, message: '', data: null }
+      : live(`/RoadmapLibrary/${template.id}/preview`, 'Chưa xem trước được.', (d: CopyPlanDto) => d.children.map((c) => ({
+        childProfileId: c.childProfileId, nickname: nicknameOf(children, c.childProfileId), willCopy: c.outcome !== 'Skipped', reason: c.message,
+        warnings: c.warnings.map((w) => (w === 'reading_level_outside_range' ? 'Mức đọc của bé nằm ngoài khoảng của bộ' : w)),
+        steps: c.steps.map((s) => ({ title: s.title ?? `Truyện #${s.storyId}`, copy: s.action === 'Copy', reason: s.message })),
+      })), { method: 'POST', body: { childProfileIds: children.map((c) => c.id), position: POSITION[position], daysPerStory: daysPerStep } }),
 
   applyTemplate: async (children: ChildRef[], template: RoadmapTemplate, position: RoadmapPosition, daysPerStep: number | null): Promise<ApiResponse<RoadmapAddResult>> =>
     USE_MOCK ? guardianLocal.applyTemplate(children, template, position, daysPerStep)

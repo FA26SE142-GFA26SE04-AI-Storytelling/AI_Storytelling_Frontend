@@ -6,7 +6,7 @@ import { Route, X } from "lucide-react";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import { guardianService, type ChildRef } from "@/app/services/guardianService";
-import type { RoadmapAddResult, RoadmapPosition, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
+import type { RoadmapAddResult, RoadmapCopyPreview, RoadmapPosition, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
 import { FREE_TEXT_MAX } from "@/app/lib/storyRules";
 import { ageLabel } from "@/app/lib/storyView";
 
@@ -44,6 +44,9 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<RoadmapAddResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
+  // Bộ truyện mẫu: xem trước bé nào / truyện nào được chép rồi mới chép thật. Đổi lựa chọn thì phải xem lại.
+  const [preview, setPreview] = useState<RoadmapCopyPreview[] | null>(null);
+  useEffect(() => { setPreview(null); }, [picked, position, days]);
   const title = template ? `Thêm bộ “${template.title}”` : `Thêm “${story?.title}” vào lộ trình`;
 
   const submit = async () => {
@@ -51,6 +54,11 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
     if (!chosen.length) { setErr("Hãy chọn ít nhất một bé."); return; }
     setBusy(true);
     setErr(null);
+    if (template && !preview) {
+      const p = await guardianService.previewTemplate(chosen, template, position, days);
+      if (!p.success) { setBusy(false); setErr(p.message); return; }
+      if (p.data) { setBusy(false); setPreview(p.data); return; }
+    }
     const r = template
       ? await guardianService.applyTemplate(chosen, template, position, days)
       : await guardianService.addToRoadmap(chosen, story!, position, days, note.trim() || null);
@@ -111,10 +119,24 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
               <label className="field"><span className="lbl">Lời nhắn cho con (không bắt buộc)</span>
                 <input className="inp" maxLength={FREE_TEXT_MAX} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ví dụ: Truyện này mẹ thích lắm!" /></label>
             )}
+            {preview && (
+              <div className="sec" style={{ gap: 6 }}>
+                <span className="lbl">Xem trước</span>
+                {preview.map((c) => (
+                  <div key={c.childProfileId} className={`notice ${c.willCopy ? "ok" : "err"}`}>
+                    <b>{c.nickname}</b>: {c.willCopy ? `chép ${c.steps.filter((x) => x.copy).length}/${c.steps.length} truyện` : c.reason ?? "không chép được"}
+                    {c.warnings.map((w) => <div key={w}><small>⚠ {w}</small></div>)}
+                    {c.willCopy && c.steps.some((x) => !x.copy) && (
+                      <ul style={{ margin: "4px 0 0", paddingLeft: 18 }}>{c.steps.filter((x) => !x.copy).map((x) => <li key={x.title}><small>Bỏ qua “{x.title}”{x.reason ? `: ${x.reason}` : ""}</small></li>)}</ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
             {err && <div className="notice err" role="alert">{err}</div>}
             <div className="row" style={{ justifyContent: "flex-end" }}>
               <button className="btn btn-g" onClick={onClose}>Hủy</button>
-              <button className="btn btn-p" disabled={busy || !refs.length} onClick={() => void submit()}><Route className="ic" />{busy ? "Đang thêm…" : "Thêm vào lộ trình"}</button>
+              <button className="btn btn-p" disabled={busy || !refs.length || (!!preview && !preview.some((c) => c.willCopy))} onClick={() => void submit()}><Route className="ic" />{busy ? "Đang xử lý…" : template && !preview ? "Xem trước" : "Thêm vào lộ trình"}</button>
             </div>
           </>
         )}

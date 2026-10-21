@@ -39,6 +39,16 @@ export interface RoadmapAddResult {
   skipped: { childProfileId: number; nickname: string; reason: string }[];
 }
 
+/** Xem trước việc chép một bộ truyện mẫu cho từng bé. */
+export interface RoadmapCopyPreview {
+  childProfileId: number;
+  nickname: string;
+  willCopy: boolean;
+  reason: string | null;
+  warnings: string[];
+  steps: { title: string; copy: boolean; reason: string | null }[];
+}
+
 export interface RoadmapTemplate {
   id: number;
   title: string;

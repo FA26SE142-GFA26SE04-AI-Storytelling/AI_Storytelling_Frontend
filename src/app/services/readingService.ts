@@ -107,12 +107,41 @@ async function call<T>(path: string, fallback: () => Promise<ApiResponse<T>>, op
   return r;
 }
 
+interface MyRoadmapDto {
+  open: { storyId: number; title: string | null; coverImageUrl: string | null; note: string | null; expectedBy: string | null; isLocked: boolean } | null;
+  upcoming: { order: number; storyId: number; title: string | null }[];
+  completedCount: number;
+  totalCount: number;
+}
+
+/**
+ * Mục "Bố mẹ chọn cho em" lấy từ API thật `GET /MyRoadmap` (cần token phiên của bé). Không có phiên bé hoặc API lỗi thì giữ
+ * lộ trình của trang chính. Truyện đang mở chưa có trong kệ của bé thì thêm vào để mở được từ lộ trình.
+ */
+async function withMyRoadmap(home: ApiResponse<KidHome>): Promise<ApiResponse<KidHome>> {
+  const childToken = token();
+  if (USE_MOCK || !childToken || !home.data) return home;
+  const r = await apiRequest<MyRoadmapDto>('/MyRoadmap', '', { token: childToken });
+  if (!r.success || !r.data) return home;
+  const d = r.data;
+  const h = home.data;
+  const extra: LibraryStory[] = d.open && !h.library.some((s) => s.storyId === d.open!.storyId)
+    ? [{ storyId: d.open.storyId, title: d.open.title ?? '', genre: null, lesson: null, coverImageUrl: d.open.coverImageUrl, source: 'roadmap', lengthCategory: null, readingLevel: null, isChallenge: false, createdAt: '' }]
+    : [];
+  const roadmap = d.totalCount === 0 ? null : {
+    openStoryId: d.open?.storyId ?? null, note: d.open?.note ?? null, dueAt: d.open?.expectedBy ?? null, openLocked: d.open?.isLocked ?? false,
+    done: d.completedCount, total: d.totalCount,
+    queued: [...d.upcoming].sort((a, b) => a.order - b.order).map((u) => ({ storyId: u.storyId, title: u.title ?? '' })),
+  };
+  return { ...home, data: { ...h, library: [...h.library, ...extra], roadmap } };
+}
+
 export const readingService = {
   /** true khi đang chạy bằng bộ máy cục bộ (tiến độ chưa được lưu lên máy chủ). */
   isLocal: () => backendReady === false,
 
-  getHome: (childId: number): Promise<ApiResponse<KidHome>> =>
-    call(`/children/${childId}/reading/home`, () => local.getHome(childId)),
+  getHome: async (childId: number): Promise<ApiResponse<KidHome>> =>
+    withMyRoadmap(await call(`/children/${childId}/reading/home`, () => local.getHome(childId))),
 
   getPackage: (storyId: number): Promise<ApiResponse<ReadingPackage>> =>
     call(`/reading/stories/${storyId}/package`, () => local.getPackage(storyId)),
