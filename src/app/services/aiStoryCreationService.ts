@@ -129,6 +129,10 @@ export const aiStoryCreationService = {
   getMediaProgress: (id: number, signal?: AbortSignal) => request<D.MediaProgressDto>(`${story(id)}/media/progress`, 'GET', undefined, signal),
   getMediaPackage: (id: number, signal?: AbortSignal) => request<D.StoryMediaPackage>(`${story(id)}/media/package`, 'GET', undefined, signal),
   retryMedia: (id: number, signal?: AbortSignal) => request<D.MediaProgressDto>(`${story(id)}/media/retry`, 'POST', undefined, signal),
+  /** Chế độ tự duyệt theo ngưỡng: đủ điều kiện thì backend duyệt luôn (data khác null), không thì giữ chờ phụ huynh duyệt. */
+  autoPublishCheck: (id: number, signal?: AbortSignal) => request<D.ApproveResponseDto | null>(`${review(id)}/auto-publish-check`, 'POST', undefined, signal, true),
+  /** Content Creator xác nhận phiên bản nội dung để tạo media (thay cho duyệt của phụ huynh). Trả 202, chuyển sang MediaProcessing. */
+  confirmCreatorContent: (id: number, versionId: number, signal?: AbortSignal) => request<{ storyId: number; versionId: number; status: string }>(`/creator/stories/${id}/generation/confirm-content`, 'POST', { versionId }, signal),
   regenerateIllustration: (id: number, beatId: number, signal?: AbortSignal) => request<null>(`${story(id)}/media/illustration-beats/${beatId}/regenerate`, 'POST', undefined, signal, true),
 };
 

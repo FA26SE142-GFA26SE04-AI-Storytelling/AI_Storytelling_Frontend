@@ -6,7 +6,7 @@ import type {
   EvaluationPrompt, EvaluationRun, GenerationJobLog, ModeratorAccountDto, ParentAccount, PaymentTransaction, PromptCatalogVersion,
   ChangePart, ChecklistEntry, CommunityReviewPackage, PublicReviewChecklist, PublicReviewPackage, ReportArchiveReason, ReportReviewPackage, RoadmapReviewPackage,
   QueueItem, QueueItemDetail, QueueQuery, RoadmapCandidateStory, RoadmapTemplateDetail, RoadmapTemplateGroup, RoadmapTemplateInput, RoadmapTemplateListItem,
-  StaffAccount, TokenQuotaConfig,
+  PublishedContentItem, PublishedRoadmap, PublishedSource, PublishedStoryContent, StaffAccount, TokenQuotaConfig, VersionComparison,
 } from '@/app/types/staff';
 import { apiRequest } from './apiClient';
 import { authService } from './authService';
@@ -186,6 +186,28 @@ export const staffService = {
   runEvaluation: async (versionId: number): Promise<ApiResponse<EvaluationRun>> => staffLocal.runEvaluation(versionId),
   runs: async (): Promise<ApiResponse<EvaluationRun[]>> => staffLocal.runs(),
   rate: async (runId: number, promptId: number, rating: NonNullable<EvaluationRun['results'][number]['rating']>): Promise<ApiResponse<null>> => staffLocal.rate(runId, promptId, rating),
+
+  /** So sánh phiên bản đang duyệt với bản trước (`previous`) hoặc bản đang công khai (`public`). */
+  compareVersions: (itemId: number, against: 'previous' | 'public'): Promise<ApiResponse<VersionComparison>> =>
+    apiRequest(`/PublicStoryReview/${itemId}/compare?against=${against}`, 'Không so sánh được phiên bản.'),
+
+  // ---------- Rà soát nội dung đã công khai ----------
+  published: {
+    list: (source: PublishedSource, ageBand?: string): Promise<ApiResponse<PagedResult<PublishedContentItem>>> =>
+      apiRequest(`/PublishedContentReview?source=${source}&pageSize=50${ageBand ? `&ageBand=${ageBand}` : ''}`, 'Không tải được nội dung đã công khai.'),
+    /** "Xem để rà soát": cấp quyền đọc tạm 2 giờ, có ghi audit. Gọi trước khi mở nội dung. */
+    grantView: (target: { storyId: number } | { readingRoadmapId: number }): Promise<ApiResponse<{ expiresAt: string }>> =>
+      apiRequest('/ModerationQueue/review-views', 'Chưa mở được quyền xem.', {
+        method: 'POST', body: 'storyId' in target ? { sourceTab: 'published_content', ...target } : { sourceTab: 'roadmap_templates', ...target },
+      }),
+    story: (storyId: number): Promise<ApiResponse<PublishedStoryContent>> => apiRequest(`/PublishedContentReview/stories/${storyId}`, 'Không mở được truyện.'),
+    roadmap: (roadmapId: number): Promise<ApiResponse<PublishedRoadmap>> => apiRequest(`/PublishedContentReview/roadmaps/${roadmapId}`, 'Không mở được bộ truyện.'),
+    /** Đưa một truyện (có thể trong một bộ mẫu) vào hàng đợi rà soát như một báo cáo. */
+    createReviewItem: (storyId: number, reason: string, description: string, readingRoadmapId?: number): Promise<ApiResponse<unknown>> =>
+      apiRequest('/PublishedContentReview/review-items', 'Chưa tạo được mục rà soát.', {
+        method: 'POST', body: { storyId, readingRoadmapId: readingRoadmapId ?? null, reason, description: description || null },
+      }),
+  },
 
   // ---------- Bộ truyện mẫu (Moderator soạn, Moderator khác duyệt) ----------
   roadmapTemplates: {

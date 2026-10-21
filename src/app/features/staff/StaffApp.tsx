@@ -4,7 +4,7 @@ import "./staff.css";
 import "@/app/features/children/children.css";
 import { useState, type ComponentType } from "react";
 import {
-  Activity, BookOpenText, ChartColumn, Coins, FileClock, FlaskConical, Inbox, LibraryBig, ListChecks, LogOut, Moon, Receipt,
+  Activity, BookOpenText, ChartColumn, Coins, Eye, FileClock, FlaskConical, Inbox, LibraryBig, ListChecks, LogOut, Moon, Receipt,
   ScrollText, Shield, Sun, UserCog, Users, type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
@@ -18,6 +18,7 @@ import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import { ModerationQueue, RatingPage } from "./Moderation";
 import { PromptsPage } from "./Creator";
 import { RoadmapTemplates } from "./RoadmapTemplates";
+import { PublishedContent } from "./PublishedContent";
 import { CreatorStories } from "./CreatorStories";
 import { AdminParents, AdminStaff } from "./AdminPeople";
 import { AdminEvaluation, AdminLogs, AdminOverview } from "./AdminAi";
@@ -47,6 +48,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
   ],
   Moderator: [
     { id: "queue", label: "Hàng đợi kiểm duyệt", icon: Inbox, view: () => <ModerationQueue /> },
+    { id: "published", label: "Nội dung đã công khai", icon: Eye, view: PublishedContent },
     { id: "templates", label: "Bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
     { id: "rating", label: "Đánh giá AI", icon: FlaskConical, view: RatingPage },
     { id: "account", label: "Tài khoản của tôi", icon: UserCog, view: AccountWorkspace, sep: true },

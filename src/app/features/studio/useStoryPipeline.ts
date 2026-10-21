@@ -16,7 +16,7 @@ export type Stage = "brief" | "checking" | "blocked" | "outline_wait" | "outline
 export type StatusSnapshot = { outline: OutlineProgressDto | null; generation: ContentGenerationProgressDto | null };
 
 /** Đọc cả hai endpoint tiến trình; thành công nếu ít nhất một endpoint trả dữ liệu. */
-async function loadSnapshot(id: number, signal: AbortSignal): Promise<ApiResponse<StatusSnapshot>> {
+export async function loadSnapshot(id: number, signal: AbortSignal): Promise<ApiResponse<StatusSnapshot>> {
   const [o, g] = await Promise.all([api.getOutline(id, signal), api.getGenerationProgress(id, signal)]);
   if (!o.data && !g.data) return { success: false, data: null, message: o.message || g.message };
   return { success: true, message: "", data: { outline: o.data, generation: g.data } };

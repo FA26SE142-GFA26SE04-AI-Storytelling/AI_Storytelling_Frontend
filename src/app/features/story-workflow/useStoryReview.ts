@@ -81,7 +81,11 @@ export function useStoryReview(storyId: number) {
     setProposal(null); await load(signal);
   });
 
-  const approve = (onApproved: () => void) => run(async signal => {
+  /**
+   * Hoàn tất kiểm duyệt từng phần rồi kiểm tra điều kiện. Phụ huynh: duyệt (`review/approve`).
+   * Content Creator: xác nhận nội dung (`creator/.../confirm-content`) — Moderator mới là người duyệt công khai.
+   */
+  const approve = (onApproved: () => void, creator = false) => run(async signal => {
     if (!bundle || hasMissingLearning(bundle)) throw new Error('Hãy tạo đủ học liệu cho bản thảo hiện tại trước khi phê duyệt.');
     const artifacts = isReadingOnly(bundle.summary.outputMode) ? (['story'] as const) : (['story', 'vocabulary', 'quiz', 'discussion'] as const);
     for (const artifact of artifacts) {
@@ -92,7 +96,12 @@ export function useStoryReview(storyId: number) {
     const checks = requireData(await api.validateReview(storyId, signal));
     if (signal.aborted) return;
     setValidation(checks);
-    if (!checks.canApprove) throw new Error(checks.issues.join(' • ') || 'Nội dung chưa đủ điều kiện phê duyệt.');
+    if (!(creator ? checks.canConfirmContent : checks.canApprove)) throw new Error(checks.issues.join(' • ') || 'Nội dung chưa đủ điều kiện phê duyệt.');
+    if (creator) {
+      requireData(await api.confirmCreatorContent(storyId, bundle.story.versionId, signal));
+      if (!signal.aborted) onApproved();
+      return;
+    }
     const result = requireData(await api.approveStory(storyId, signal));
     if (!signal.aborted && result.success) onApproved();
     else if (!signal.aborted) throw new Error('Máy chủ chưa xác nhận phê duyệt.');

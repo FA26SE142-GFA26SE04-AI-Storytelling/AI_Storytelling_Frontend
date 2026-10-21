@@ -311,3 +311,28 @@ export interface BusinessReport { id: number; periodStart: string; periodEnd: st
 export interface TokenQuotaConfig { id: number; scope: string; organizationId: number | null; childProfileId: number | null; userId: number | null; quotaLimit: number; quotaUsed: number; periodStart: string; periodEnd: string }
 export interface PaymentTransaction { id: number; planId: number; planName: string; amount: number; transactionCode: string; qrCodeUrl: string | null; status: string; expiresAt: string; paidAt: string | null; sepayTransactionId: string | null }
 export interface AdministratorAccount { userId: number; email: string; fullName: string; role: string; roleBeforeAdmin: string | null }
+
+// ---------- Rà soát nội dung đã công khai (`/PublishedContentReview`) ----------
+
+export type PublishedSource = 'PublicLibrary' | 'RoadmapTemplate';
+export interface PublishedContentItem { source: string; id: number; title: string; ageBand: string; labels: ReviewLabel[]; publishedAt: string | null; storyCount: number | null; needsUpdate: boolean }
+export interface PublishedStoryContent {
+  story: ReviewStory & { isArchived: boolean }; version: ReviewVersion | null; scenes: ReviewScene[];
+  vocabulary: { term: string; definition: string }[]; quizzes: { type: string; question: string; correctAnswer: string | null; choices: string | null }[];
+  discussionQuestions: { question: string; isMoralLesson: boolean }[];
+}
+export interface PublishedRoadmap {
+  roadmapId: number; name: string; description: string | null; ageBand: string; mainCategory: ReviewLabel | null;
+  readingLevelMin: number; readingLevelMax: number; defaultDaysPerStory: number; publishedAt: string | null; needsUpdate: boolean;
+  stories: { storyId: number; position: number; days: number | null; title: string | null; ageBand: string; isArchived: boolean }[];
+}
+
+/** So sánh phiên bản khi duyệt truyện gửi lại (`/PublicStoryReview/{id}/compare`). */
+export interface VersionComparison {
+  against: string; baseVersionNo: number; currentVersionNo: number; isIdentical: boolean;
+  textDiff: { type: string; before: string | null; after: string | null }[];
+  baseMetrics: { wordCount: number; sentenceCount: number }; currentMetrics: { wordCount: number; sentenceCount: number };
+  changedFields: string[];
+  sceneChanges: { sceneIndex: number; change: string; textChanged: boolean; imageChanged: boolean; audioChanged: boolean }[];
+  artifactChanges: { kind: string; change: string; key: string }[];
+}

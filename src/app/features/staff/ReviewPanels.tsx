@@ -7,7 +7,7 @@ import type { ContentCategory } from "@/app/types/childProfile";
 import type { ApiResponse } from "@/app/types/auth";
 import type {
   ChangePart, ChecklistEntry, CommunityReviewPackage, PublicReviewChecklist, QueueItem, QueueItemDetail,
-  ReportArchiveReason, ReportReviewPackage, ReviewBlocker, ReviewScene, ReviewStory, ReviewVersion, RoadmapReviewPackage,
+  ReportArchiveReason, ReportReviewPackage, ReviewBlocker, ReviewScene, ReviewStory, ReviewVersion, RoadmapReviewPackage, VersionComparison,
 } from "@/app/types/staff";
 import { ageLabel } from "@/app/lib/storyView";
 import { Notice, fmt, useAction } from "./ui";
@@ -54,7 +54,7 @@ function Blockers({ list }: { list: ReviewBlocker[] }) {
   );
 }
 
-function StoryHeader({ story, extra }: { story: ReviewStory; extra?: React.ReactNode }) {
+export function StoryHeader({ story, extra }: { story: ReviewStory; extra?: React.ReactNode }) {
   return (
     <div className="sec" style={{ gap: 4 }}>
       <div className="row" style={{ flexWrap: "wrap", gap: 6 }}>
@@ -70,7 +70,7 @@ function StoryHeader({ story, extra }: { story: ReviewStory; extra?: React.React
 }
 
 /** Nội dung truyện, cảnh, từ vựng, câu đố và câu hỏi thảo luận. `sceneActions` thêm nút cho từng cảnh (đánh dấu đã xem…). */
-function StoryContent({ version, scenes, vocabulary, quizzes, discussion, sceneActions, onAudioPlay }: {
+export function StoryContent({ version, scenes, vocabulary, quizzes, discussion, sceneActions, onAudioPlay }: {
   version: ReviewVersion | null;
   scenes: ReviewScene[];
   vocabulary: { term: string; definition: string }[];
@@ -239,6 +239,48 @@ function useReviewAction(reload: () => Promise<void>, onDecided: () => void) {
   return { note, busy, run, decide };
 }
 
+/** So sánh bản gửi lại với bản trước / bản đang công khai: trường đổi, độ dài, cảnh đổi, đoạn chữ đổi. */
+function VersionCompare({ itemId }: { itemId: number }) {
+  const [against, setAgainst] = useState<"previous" | "public" | null>(null);
+  const [data, setData] = useState<VersionComparison | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const load = async (a: "previous" | "public") => {
+    setAgainst(a);
+    setData(null);
+    const r = await staffService.compareVersions(itemId, a);
+    setData(r.data);
+    setError(r.success ? null : r.message);
+  };
+  return (
+    <details>
+      <summary><b>So sánh phiên bản</b></summary>
+      <div className="sec" style={{ gap: 6, marginTop: 6 }}>
+        <div className="seg" style={{ width: "fit-content" }}>
+          <button type="button" className={against === "previous" ? "on" : ""} onClick={() => void load("previous")}>Với bản gửi trước</button>
+          <button type="button" className={against === "public" ? "on" : ""} onClick={() => void load("public")}>Với bản đang công khai</button>
+        </div>
+        {error && <div className="notice err">{error}</div>}
+        {data && (data.isIdentical ? <p className="sub" style={{ margin: 0 }}>Hai bản giống nhau.</p> : (
+          <>
+            <small className="sub">V{data.baseVersionNo} → V{data.currentVersionNo} · {data.baseMetrics.wordCount} → {data.currentMetrics.wordCount} từ
+              {data.changedFields.length ? ` · đổi: ${data.changedFields.join(", ")}` : ""}</small>
+            {data.sceneChanges.filter((c) => c.change !== "unchanged").map((c) => (
+              <small key={c.sceneIndex}>Cảnh {c.sceneIndex}: {c.change === "added" ? "thêm mới" : c.change === "removed" ? "bị bỏ" : [c.textChanged && "lời", c.imageChanged && "tranh", c.audioChanged && "giọng đọc"].filter(Boolean).join(", ") + " thay đổi"}</small>
+            ))}
+            {data.artifactChanges.length > 0 && <small className="sub">Học liệu đổi: {data.artifactChanges.map((a) => `${a.kind} (${a.change})`).join(", ")}</small>}
+            {data.textDiff.filter((d) => d.before !== d.after).map((d, i) => (
+              <div key={i} className="st-content" style={{ whiteSpace: "pre-wrap" }}>
+                {d.before && <div style={{ textDecoration: "line-through", color: "var(--danger)" }}>{d.before}</div>}
+                {d.after && <div style={{ color: "var(--ok-ink)" }}>{d.after}</div>}
+              </div>
+            ))}
+          </>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 // ---------- Truyện Public Library ----------
 
 const PUBLIC_CHECKLIST: [keyof PublicReviewChecklist, string][] = [
@@ -275,6 +317,7 @@ function PublicStoryPanel({ itemId, onDecided }: { itemId: number; onDecided: ()
       <Notice note={note} />
       <h4 style={{ margin: 0 }}>{pkg.version.title || pkg.story.title} <small className="sub">phiên bản {pkg.versionNo}{pkg.isResubmission ? " · gửi lại" : ""}</small></h4>
       <StoryHeader story={pkg.story} />
+      {pkg.isResubmission && <VersionCompare itemId={itemId} />}
       <small className="sub">
         Đã xem {pkg.progress.totalScenes - missing.size}/{pkg.progress.totalScenes} cảnh · đã nghe {pkg.progress.audioHeardCount} đoạn
         {pkg.progress.missingWarningSegmentIds.length > 0 ? ` · còn ${pkg.progress.missingWarningSegmentIds.length} đoạn cần nghe kỹ` : ""}

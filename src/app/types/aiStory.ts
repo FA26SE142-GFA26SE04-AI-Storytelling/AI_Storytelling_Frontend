@@ -165,9 +165,13 @@ export interface ReviewPackageDto {
   canEdit: boolean;
   canApprove: boolean;
   canArchive: boolean;
+  /** Truyện Content Creator đang ContentReview: xác nhận nội dung thay cho duyệt. */
+  canConfirmContent?: boolean;
 }
 export interface ValidationResultDto {
   canApprove: boolean;
+  /** Content Creator: đủ điều kiện xác nhận nội dung (canApprove của Creator luôn false). */
+  canConfirmContent?: boolean;
   checks: { name: string; passed: boolean; message?: string | null }[];
   issues: string[];
 }

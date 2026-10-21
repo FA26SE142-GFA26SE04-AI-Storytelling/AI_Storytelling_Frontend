@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Archive, BookOpenText, Check, CircleAlert, ClipboardCheck, PencilLine, PenLine, RefreshCw, WandSparkles } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
 import { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
+import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import { hasMissingLearning } from "@/app/features/story-workflow/storyReviewLearning";
 import { useRegisterApprove } from "@/app/features/story-workflow/approveSlot";
 import { countWords, normalizeSelection, type StorySelection } from "@/app/features/story-workflow/storySelection";
@@ -27,19 +28,22 @@ type Props = {
   ageBand: string;
   onApproved: () => void;
   onArchived: () => void;
+  /** Content Creator: "Xác nhận nội dung" thay cho duyệt, không có lưu trữ (Moderator duyệt công khai sau). */
+  creator?: boolean;
 };
 
 /**
  * Cổng duyệt (Luồng 2 mục 6.6): đọc bản thảo và học liệu, chỉnh sửa theo chủ đích hoặc sửa tay,
  * sinh lại học liệu có xem trước, rồi Duyệt hoặc Lưu trữ. Trả về 2 cột: vùng đọc và cột quyết định.
  */
-export default function ReviewGate({ storyId, ageBand, onApproved, onArchived }: Props) {
+export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, creator = false }: Props) {
   const r = useStoryReview(storyId);
   const { bundle, busy, aiTask, error, validation, proposal } = r;
   const [tab, setTab] = useState<Tab>("story");
   const [selection, setSelection] = useState<StorySelection | null>(null);
   const [editing, setEditing] = useState(false);
   const [dialog, setDialog] = useState<"learning" | "archive" | null>(null);
+  const [autoNote, setAutoNote] = useState<string | null>(null);
   const docRef = useSwap<HTMLDivElement>(tab);
   const sideRef = useRiseIn<HTMLDivElement>(".sec", [bundle ? 1 : 0], { delay: 35, distance: 10 });
 
@@ -49,14 +53,14 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived }:
     : proposal ? "Hãy áp dụng hoặc bỏ đề xuất của AI trước khi duyệt."
     : editing ? "Hãy lưu hoặc huỷ bản sửa tay trước khi duyệt."
     : hasMissingLearning(bundle) ? "Còn thiếu học liệu cho bản thảo này."
-    : !bundle.summary.canApprove ? "Bạn chưa thể duyệt truyện này."
+    : !(creator ? bundle.summary.canConfirmContent ?? bundle.summary.canEdit : bundle.summary.canApprove) ? "Bạn chưa thể duyệt truyện này."
     : null;
   // Trong Studio, nút duyệt nằm trên thanh tiến trình (cạnh nút huỷ); ở màn "Duyệt nội dung" thì tự vẽ trong cột phải.
   const approveInBar = useRegisterApprove({
-    label: "Duyệt và tạo minh hoạ",
+    label: creator ? "Xác nhận nội dung và tạo minh hoạ" : "Duyệt và tạo minh hoạ",
     disabled: busy || approveBlock !== null,
     reason: approveBlock,
-    run: () => void r.approve(onApproved),
+    run: () => void r.approve(onApproved, creator),
   });
   // Nội dung đổi (áp dụng đề xuất, sửa tay) thì vị trí cũ không còn đúng.
   useEffect(() => { setSelection(null); }, [content]);
@@ -179,14 +183,21 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived }:
             {summary.canEdit && learning && <button className="btn btn-s btn-c" disabled={busy || !!proposal || editing} onClick={() => setDialog("learning")}><PencilLine className="ic" />Sửa học liệu</button>}
             {missing && <button className="btn btn-s btn-c" disabled={busy || !summary.canEdit || !!proposal} onClick={() => void r.generateMissingLearning()}><RefreshCw className="ic" />Tạo học liệu còn thiếu</button>}
             {!approveInBar && (
-              <button className="btn btn-ok btn-c" disabled={busy || approveBlock !== null} onClick={() => void r.approve(onApproved)}>
-                <Check className="ic" />Duyệt và tạo minh hoạ
+              <button className="btn btn-ok btn-c" disabled={busy || approveBlock !== null} onClick={() => void r.approve(onApproved, creator)}>
+                <Check className="ic" />{creator ? "Xác nhận nội dung và tạo minh hoạ" : "Duyệt và tạo minh hoạ"}
               </button>
             )}
             <p className="hint">
-              {approveBlock ?? (approveInBar ? "Bấm dấu ✓ trên thanh tiến trình để duyệt. " : "") + "Sau khi duyệt, hệ thống vẽ tranh và tạo giọng đọc. Bé thấy truyện khi mọi thứ sẵn sàng."}
+              {approveBlock ?? (approveInBar ? "Bấm dấu ✓ trên thanh tiến trình để duyệt. " : "") + (creator ? "Sau khi xác nhận, hệ thống vẽ tranh và tạo giọng đọc; xong thì gửi Moderator duyệt ở nút Phát hành." : "Sau khi duyệt, hệ thống vẽ tranh và tạo giọng đọc. Bé thấy truyện khi mọi thứ sẵn sàng.")}
             </p>
-            <button className="btn btn-g btn-c" disabled={busy || !summary.canArchive} onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ truyện</button>
+            {!creator && summary.canApprove && (
+              <button className="btn btn-g btn-c" disabled={busy} onClick={() => void api.autoPublishCheck(storyId).then((res) => {
+                if (res.success && res.data) onApproved();
+                else setAutoNote(res.success ? "Truyện chưa đủ điều kiện tự duyệt theo cài đặt của bé, bạn duyệt tay nhé." : res.message);
+              })}>Kiểm tra tự duyệt</button>
+            )}
+            {autoNote && <p className="hint">{autoNote}</p>}
+            {!creator && <button className="btn btn-g btn-c" disabled={busy || !summary.canArchive} onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ truyện</button>}
           </div>
           {dialog === "learning" && <LearningEditor r={r} ageBand={ageBand} onClose={() => setDialog(null)} />}
           {/* Lưu trữ bắt buộc chọn lý do (Luồng 2 mục 6.6). */}

@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Check, CircleAlert, Image as ImageIcon, Images, Volume2 } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Check, CircleAlert, Image as ImageIcon, Images, RefreshCw, Volume2 } from "lucide-react";
+import type { StoryMediaPackage } from "@/app/types/aiStory";
 import AsidePane from "@/app/components/shell/AsidePane";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
@@ -23,6 +24,20 @@ export default function StudioMedia({ storyId, media, onFinish }: Props) {
   const textRef = useSwap<HTMLDivElement>(active);
   const sideRef = useRiseIn<HTMLDivElement>(".kv > div, .ck, .scene-list button", [bundle ? 1 : 0], { delay: 35, distance: 10 });
   const scenes = useMemo(() => (bundle ? splitScenes(bundle.story.content) : []), [bundle]);
+  // Tranh thật của từng cảnh; tải lại khi số tranh xong thay đổi.
+  const [pkg, setPkg] = useState<StoryMediaPackage | null>(null);
+  const [redraw, setRedraw] = useState<{ beatId: number; text: string; ok: boolean } | null>(null);
+  const readyCount = media.data?.readyIllustrations;
+  useEffect(() => { void api.getMediaPackage(storyId).then((r) => { if (r.data) setPkg(r.data); }); }, [storyId, readyCount]);
+  const sceneArt = useMemo(() => [...(pkg?.scenes ?? [])].sort((a, b) => a.sceneIndex - b.sceneIndex)[active]?.illustrations.slice().sort((a, b) => a.beatOrder - b.beatOrder) ?? [], [pkg, active]);
+  const artUrl = sceneArt.find((i) => i.url)?.url ?? null;
+  /** Vẽ lại một tranh (một nhịp minh hoạ). Truyện đã gửi duyệt / đã giao thì backend từ chối. */
+  const regenerate = async (beatId: number) => {
+    setRedraw({ beatId, text: "Đang gửi yêu cầu vẽ lại…", ok: true });
+    const r = await api.regenerateIllustration(storyId, beatId);
+    setRedraw({ beatId, text: r.success ? "Đã gửi, tranh mới sẽ hiện khi vẽ xong." : r.message || "Chưa vẽ lại được.", ok: r.success });
+    if (r.success) media.refresh();
+  };
 
   const m = media.data;
   const total = m ? m.requiredIllustrations || m.sceneCount : 0;
@@ -42,7 +57,7 @@ export default function StudioMedia({ storyId, media, onFinish }: Props) {
           <div className="board">
             <div className="artwrap">
               <div className="artlabel"><span>Cảnh {active + 1} / {scenes.length}</span><em>Bé sẽ thấy bản này</em></div>
-              <div ref={textRef} className="art" style={{ background: gradientFor(storyId + active) }}>
+              <div ref={textRef} className="art" style={{ background: artUrl ? `center / cover no-repeat url("${artUrl}")` : gradientFor(storyId + active) }}>
                 <div className="cover" style={{ position: "absolute", inset: 0 }} />
                 <div className="tbox" style={{ width: "86%", left: "7%", outline: "none", cursor: "default" }}>
                   <div className="txt" style={{ fontSize: 19, color: "#fff" }}>{scenes[active]}</div>
@@ -72,6 +87,18 @@ export default function StudioMedia({ storyId, media, onFinish }: Props) {
             {step(true, "Đã duyệt nội dung", "", Check)}
             {step(!!m && total > 0 && m.readyIllustrations >= total, "Tranh minh hoạ", m ? `${m.readyIllustrations}/${total}` : "…", ImageIcon)}
             {step(!!m?.isReady, "Giọng đọc", m ? `${m.readyAudio} đoạn` : "…", Volume2)}
+            {sceneArt.length > 0 && (
+              <div className="sec" style={{ gap: 4 }}>
+                <small className="sub">Tranh của cảnh {active + 1}</small>
+                {sceneArt.map((il) => (
+                  <div key={il.beatId} className="row" style={{ gap: 6 }}>
+                    <small className="grow">{il.visualFocus || `Tranh ${il.beatOrder}`}{il.url ? "" : " · đang vẽ"}</small>
+                    <button className="btn btn-g" aria-label="Vẽ lại tranh này" disabled={redraw?.beatId === il.beatId && redraw.text.startsWith("Đang")} onClick={() => void regenerate(il.beatId)}><RefreshCw className="ic" />Vẽ lại</button>
+                  </div>
+                ))}
+                {redraw && <small className={redraw.ok ? "sub" : ""} style={redraw.ok ? undefined : { color: "var(--danger)" }}>{redraw.text}</small>}
+              </div>
+            )}
             {m?.errorCode && <div className="notice err" role="alert">Có lỗi khi tạo media ({m.errorCode}). Bạn có thể thử lại.</div>}
           </div>
           <div className="kv">

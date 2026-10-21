@@ -1,12 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, WandSparkles } from "lucide-react";
+import CreatorAiStudio from "./CreatorAiStudio";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { CreateDraftInput, CreatorDraft } from "@/app/types/creator";
 import { GENRES } from "@/app/lib/storyRules";
 import { Notice, Page, fmt } from "./ui";
 import CreatorEditor from "./CreatorEditor";
+import { creatorAssistance } from "@/app/services/assistanceService";
 import CreatorPublication from "./CreatorPublication";
 
 /** Trạng thái truyện backend → nhãn. */
@@ -23,6 +25,7 @@ export function CreatorStories() {
   const [list, setList] = useState<CreatorDraft[] | null>(null);
   const [form, setForm] = useState<CreateDraftInput | null>(null);
   const [openId, setOpenId] = useState<number | null>(null);
+  const [ai, setAi] = useState<{ storyId: number | null; ageBand?: string } | null>(null);
   const [pubStory, setPubStory] = useState<CreatorDraft | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
@@ -53,10 +56,19 @@ export function CreatorStories() {
     } else setNote({ ok: false, text: r.status === 0 ? `${r.message}` : r.message });
   };
 
+  // Truyện tạo bằng AI đi qua pipeline dàn ý → nội dung → media, không dùng trình soạn thủ công.
+  if (ai) {
+    return (
+      <Page title="Tạo truyện mẫu bằng AI" sub="AI viết theo nhóm tuổi và mức đọc bạn chọn. Bạn duyệt dàn ý, xem lại nội dung rồi xác nhận để tạo tranh và giọng đọc.">
+        <CreatorAiStudio key={ai.storyId ?? "new"} storyId={ai.storyId} ageBand={ai.ageBand} onBack={() => { setAi(null); void load(); }} />
+      </Page>
+    );
+  }
+
   if (openId !== null) {
     return (
       <Page title="Soạn truyện mẫu" sub="Truyện mẫu dành cho Thư viện chung, bằng tiếng Việt và không chứa thông tin cá nhân của người thật.">
-        <CreatorEditor key={openId} storyId={openId} onBack={() => { setOpenId(null); void load(); }} />
+        <CreatorEditor key={openId} storyId={openId} assistance={creatorAssistance} onBack={() => { setOpenId(null); void load(); }} />
       </Page>
     );
   }
@@ -64,7 +76,10 @@ export function CreatorStories() {
   const set = (p: Partial<CreateDraftInput>) => setForm((f) => (f ? { ...f, ...p } : f));
   return (
     <Page title="Truyện mẫu của tôi" sub="Truyện bạn soạn sẽ vào Thư viện chung sau khi Moderator duyệt. Mỗi lần lưu tạo một phiên bản; có thể xem lại và khôi phục bản cũ."
-      actions={<button className="btn btn-p" onClick={() => { setForm(blank()); setNote(null); }}><Plus className="ic" />Truyện mới</button>}>
+      actions={<div className="row" style={{ gap: 8 }}>
+        <button className="btn btn-s" onClick={() => setAi({ storyId: null })}><WandSparkles className="ic" />Tạo bằng AI</button>
+        <button className="btn btn-p" onClick={() => { setForm(blank()); setNote(null); }}><Plus className="ic" />Truyện mới</button>
+      </div>}>
       <Notice note={note} />
       {pubStory && <CreatorPublication key={pubStory.storyId} story={pubStory} onClose={() => setPubStory(null)} onChanged={() => void load()} />}
       {form && (
@@ -103,7 +118,7 @@ export function CreatorStories() {
                 <td>{s.status ? <span className={`pill ${STORY_STATUS[s.status]?.[0] ?? "draft"}`}>{STORY_STATUS[s.status]?.[1] ?? s.status}</span> : "—"}</td>
                 <td>{fmt(s.updatedAt ?? s.createdAt)}</td>
                 <td style={{ whiteSpace: "nowrap" }}>
-                  <button className="btn btn-g" onClick={() => setOpenId(s.storyId)}>Mở</button>
+                  <button className="btn btn-g" onClick={() => (s.source === "Ai" ? setAi({ storyId: s.storyId, ageBand: s.ageBand }) : setOpenId(s.storyId))}>Mở</button>
                   <button className="btn btn-g" disabled={!s.lastVersionNo} title={s.lastVersionNo ? undefined : "Lưu ít nhất một phiên bản trước"} onClick={() => setPubStory(s)}>Phát hành</button>
                 </td>
               </tr>
