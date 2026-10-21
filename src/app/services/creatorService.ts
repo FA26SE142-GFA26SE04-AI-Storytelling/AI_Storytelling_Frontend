@@ -1,6 +1,6 @@
 import type { PagedResult } from '@/app/types/story';
 import type {
-  ContentSaved, CreateDraftInput, CreatorDraft, CreatorResult, CreatorVersion, ImportPreview, SaveVersionInput,
+  ContentSaved, CreateDraftInput, CreatorDraft, CreatorPublication, CreatorPublicationResult, CreatorResult, CreatorVersion, ImportPreview, SaveVersionInput,
 } from '@/app/types/creator';
 import { API_BASE_URL } from './apiConfig';
 import { authService } from './authService';
@@ -8,8 +8,24 @@ import { authService } from './authService';
 /**
  * Luồng 5 Bước 5.8 — Content Creator soạn truyện thủ công (`/creator/stories`).
  * Mỗi lệnh ghi có `operationId` riêng: khi mất mạng / timeout, thử lại với **cùng** operationId và payload (server có thể đã ghi).
- * Backend chưa có gửi duyệt, rút, gỡ, xuất bản hay xoá truyện Creator.
+ * Phát hành: gửi duyệt / rút (`/PublicStorySubmission`), xem trạng thái, xin gỡ, tạo bản sửa (`/creator/stories/{id}/publication|removal-requests|revisions`).
+ * Backend chưa có xoá truyện Creator.
  */
+
+/** Mã lỗi backend trả trong `message` → câu cho người dùng. */
+const CODE_TEXT: Record<string, string> = {
+  CREATOR_PUBLICATION_LOCKED: 'Phiên bản này đã gửi duyệt nên không sửa được. Hãy tạo bản sửa mới.',
+  SUBMITTED_VERSION_IMMUTABLE_CREATE_REVISION: 'Phiên bản đã gửi duyệt không sửa được. Hãy tạo bản sửa mới.',
+  OPEN_MODERATION_REQUEST: 'Truyện đang có yêu cầu duyệt hoặc gỡ chưa xong.',
+  MODERATOR_REMOVAL_REQUIRED: 'Truyện đang công khai. Cần Moderator đồng ý gỡ trước khi tạo bản sửa.',
+  REVISION_NOT_REQUIRED: 'Phiên bản hiện tại vẫn sửa được, chưa cần tạo bản sửa.',
+  STALE_STORY_VERSION: 'Truyện vừa thay đổi. Tải lại rồi thử lại.',
+  STORY_NOT_PUBLISHED: 'Truyện chưa công khai nên không cần xin gỡ.',
+  PUBLISHED_VERSION_REQUIRED: 'Phiên bản hiện tại chưa phải bản đã duyệt.',
+  CURRENT_UNPUBLISHED_VERSION_REQUIRED: 'Chỉ gửi duyệt được phiên bản mới nhất của truyện chưa công khai.',
+  GENERATION_JOB_ACTIVE: 'Truyện đang được AI xử lý, chờ xong rồi gửi duyệt.',
+  REMOVAL_REQUEST_PENDING: 'Truyện đang có yêu cầu gỡ chưa xong.',
+};
 async function send<T>(path: string, fallback: string, init: { method?: string; body?: unknown; form?: FormData } = {}): Promise<CreatorResult<T>> {
   try {
     const res = await authService.authenticatedFetch(`${API_BASE_URL}${path}`, {
@@ -21,7 +37,7 @@ async function send<T>(path: string, fallback: string, init: { method?: string; 
     try { parsed = text.trim() ? JSON.parse(text) : null; } catch { parsed = null; }
     const ok = res.ok && parsed?.success !== false;
     const message = parsed?.errors?.length ? `${parsed.message ?? fallback} ${parsed.errors.join(' ')}`.trim() : parsed?.message || (ok ? '' : fallback);
-    return { ok, status: res.status, message: res.status === 413 ? 'Tệp hoặc nội dung quá lớn.' : message, data: (parsed?.data ?? null) as T | null };
+    return { ok, status: res.status, message: res.status === 413 ? 'Tệp hoặc nội dung quá lớn.' : CODE_TEXT[message.trim()] ?? message, data: (parsed?.data ?? null) as T | null };
   } catch {
     return { ok: false, status: 0, message: 'Không kết nối được máy chủ. Nội dung đang sửa vẫn còn; bấm thử lại.', data: null };
   }
@@ -69,6 +85,26 @@ export const creatorService = {
       method: 'POST',
       body: { operationId, revisionToken, baseVersionId, previewToken: preview.previewToken, content: preview.content, ...input },
     }),
+
+  // ---------- Phát hành lên Thư viện chung ----------
+  /** Trạng thái phát hành của phiên bản hiện tại và mục duyệt / gỡ đang mở (nếu có). */
+  publication: (storyId: number): Promise<CreatorResult<CreatorPublication>> => send(`${base(storyId)}/publication`, 'Không tải được trạng thái phát hành.'),
+
+  /** Gửi phiên bản hiện tại cho Moderator duyệt. Từ lúc này phiên bản bị khoá; muốn sửa phải tạo bản sửa mới. */
+  submit: (storyId: number, storyVersionId: number): Promise<CreatorResult<{ itemId: number; status: string; isResubmission: boolean }>> =>
+    send('/PublicStorySubmission/submit', 'Chưa gửi duyệt được.', { method: 'POST', body: { storyId, storyVersionId } }),
+
+  /** Rút yêu cầu duyệt khi chưa Moderator nào nhận. */
+  withdraw: (itemId: number): Promise<CreatorResult<unknown>> =>
+    send(`/PublicStorySubmission/${itemId}/withdraw`, 'Chưa rút được yêu cầu.', { method: 'POST' }),
+
+  /** Xin gỡ truyện đang công khai; Moderator quyết định. Lý do 1–2000 ký tự. */
+  requestRemoval: (storyId: number, reason: string): Promise<CreatorResult<CreatorPublicationResult>> =>
+    send(`${base(storyId)}/removal-requests`, 'Chưa gửi được yêu cầu gỡ.', { method: 'POST', body: { reason } }),
+
+  /** Tạo bản sửa mới từ phiên bản hiện tại (sau khi rút, bị trả về, bị từ chối hoặc đã được gỡ). */
+  createRevision: (storyId: number, sourceVersionId: number): Promise<CreatorResult<CreatorPublicationResult>> =>
+    send(`${base(storyId)}/revisions`, 'Chưa tạo được bản sửa.', { method: 'POST', body: { sourceVersionId } }),
 };
 
 export const newOperationId = (kind: string) => `${kind}-${crypto.randomUUID()}`;

@@ -5,7 +5,8 @@ import type {
   AdministratorAccount, AiMetrics, BusinessReport, CatalogEntry, CatalogKind, CreatorApplication, CreatorApplicationInput, DataRequest,
   EvaluationPrompt, EvaluationRun, GenerationJobLog, ModeratorAccountDto, ParentAccount, PaymentTransaction, PromptCatalogVersion,
   ChangePart, ChecklistEntry, CommunityReviewPackage, PublicReviewChecklist, PublicReviewPackage, ReportArchiveReason, ReportReviewPackage, RoadmapReviewPackage,
-  PublicStory, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, TemplateDraft, TokenQuotaConfig,
+  QueueItem, QueueItemDetail, QueueQuery, RoadmapCandidateStory, RoadmapTemplateDetail, RoadmapTemplateGroup, RoadmapTemplateInput, RoadmapTemplateListItem,
+  StaffAccount, TokenQuotaConfig,
 } from '@/app/types/staff';
 import { apiRequest } from './apiClient';
 import { authService } from './authService';
@@ -16,11 +17,12 @@ import { staffLocal } from './staffLocal';
  * Luồng 5 — Admin Portal và Moderation.
  *
  * API backend đã có → luôn gọi thật: ContentCategory, TokenQuota/config, DataRequest, BusinessReport, Payment, AdminAccount,
- * ModeratorAccount, ModerationQueue (danh sách, nhận xử lý, mở mục). Truyện của Content Creator: xem `creatorService.ts`.
+ * ModeratorAccount, ModerationQueue và quyết định theo từng loại mục, bộ truyện mẫu (RoadmapTemplate — chỉ Moderator soạn).
+ * Truyện của Content Creator: xem `creatorService.ts`.
  *
  * Backend CHƯA CÓ → chỉ dùng dữ liệu cục bộ (`staffLocal`), không gọi mạng (xem docs/FRONTEND_PROGRESS.md, "Luồng 5 — cần backend bổ sung"):
  * đơn Content Creator, quản lý tài khoản Parent, chỉ số AI và nhật ký sinh truyện, thẻ ước / bài học / nhân vật mẫu,
- * Prompt Catalog có phiên bản, bộ đánh giá AI, quyết định kiểm duyệt, bộ truyện mẫu.
+ * Prompt Catalog có phiên bản, bộ đánh giá AI.
  */
 
 const toStaff = (m: ModeratorAccountDto): StaffAccount => ({
@@ -185,13 +187,30 @@ export const staffService = {
   runs: async (): Promise<ApiResponse<EvaluationRun[]>> => staffLocal.runs(),
   rate: async (runId: number, promptId: number, rating: NonNullable<EvaluationRun['results'][number]['rating']>): Promise<ApiResponse<null>> => staffLocal.rate(runId, promptId, rating),
 
-  /** Truyện Thư viện chung mẫu (cục bộ) để ghép bộ truyện mẫu — truyện Creator thật chưa có trạng thái công khai. */
-  libraryStories: async (): Promise<ApiResponse<PublicStory[]>> => staffLocal.myStories(),
-  myTemplates: async (): Promise<ApiResponse<TemplateDraft[]>> => staffLocal.myTemplates(),
-  saveTemplate: async (input: Parameters<typeof staffLocal.saveTemplate>[0]): Promise<ApiResponse<TemplateDraft>> => staffLocal.saveTemplate(input),
-  cloneTemplate: async (id: number): Promise<ApiResponse<TemplateDraft>> => staffLocal.cloneTemplate(id),
-  submitTemplate: async (id: number): Promise<ApiResponse<null>> => staffLocal.submitTemplate(id),
-  archiveTemplate: async (id: number): Promise<ApiResponse<null>> => staffLocal.archiveTemplate(id),
+  // ---------- Bộ truyện mẫu (Moderator soạn, Moderator khác duyệt) ----------
+  roadmapTemplates: {
+    list: (group: RoadmapTemplateGroup): Promise<ApiResponse<PagedResult<RoadmapTemplateListItem>>> =>
+      apiRequest(`/RoadmapTemplate?group=${group}&pageIndex=1&pageSize=50`, 'Không tải được danh sách bộ truyện mẫu.'),
+    get: (id: number): Promise<ApiResponse<RoadmapTemplateDetail>> => apiRequest(`/RoadmapTemplate/${id}`, 'Không mở được bộ truyện mẫu.'),
+    /** Truyện Public Library đang công khai, lọc theo tuổi, mức đọc, chủ đề. */
+    candidates: (q: { ageBand?: string; readingLevelMin?: number; readingLevelMax?: number; contentCategoryId?: number }): Promise<ApiResponse<PagedResult<RoadmapCandidateStory>>> => {
+      const params = new URLSearchParams(Object.entries({ ...q, pageSize: 100 }).filter(([, v]) => v !== undefined && v !== '').map(([k, v]) => [k, String(v)]));
+      return apiRequest(`/RoadmapTemplate/candidates?${params}`, 'Không tải được truyện ứng viên.');
+    },
+    create: (input: RoadmapTemplateInput): Promise<ApiResponse<RoadmapTemplateDetail>> =>
+      apiRequest('/RoadmapTemplate', 'Chưa tạo được bộ truyện mẫu.', { method: 'POST', body: input }),
+    update: (id: number, input: RoadmapTemplateInput): Promise<ApiResponse<RoadmapTemplateDetail>> =>
+      apiRequest(`/RoadmapTemplate/${id}`, 'Chưa lưu được bộ truyện mẫu.', { method: 'PUT', body: input }),
+    setItems: (id: number, items: { storyId: number; days: number | null }[]): Promise<ApiResponse<RoadmapTemplateDetail>> =>
+      apiRequest(`/RoadmapTemplate/${id}/items`, 'Chưa lưu được danh sách truyện.', { method: 'PUT', body: { items } }),
+    submit: (id: number): Promise<ApiResponse<unknown>> => apiRequest(`/RoadmapTemplate/${id}/submit`, 'Chưa gửi duyệt được.', { method: 'POST' }),
+    withdraw: (id: number): Promise<ApiResponse<unknown>> => apiRequest(`/RoadmapTemplate/${id}/withdraw`, 'Chưa rút được.', { method: 'POST' }),
+    clone: (id: number): Promise<ApiResponse<{ roadmapId: number; sourceRoadmapId: number; alreadyExisted: boolean }>> =>
+      apiRequest(`/RoadmapTemplate/${id}/clone`, 'Chưa nhân bản được.', { method: 'POST' }),
+    /** Lý do bắt buộc 3–500 ký tự. */
+    archive: (id: number, reason: string): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/RoadmapTemplate/${id}/archive`, 'Chưa lưu trữ được.', { method: 'POST', body: { reason } }),
+  },
 };
 
 /** Tải một Blob về máy. */

@@ -16,7 +16,8 @@ import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import NotificationBell from "@/app/components/shell/NotificationBell";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import { ModerationQueue, RatingPage } from "./Moderation";
-import { CreatorTemplates, PromptsPage } from "./Creator";
+import { PromptsPage } from "./Creator";
+import { RoadmapTemplates } from "./RoadmapTemplates";
 import { CreatorStories } from "./CreatorStories";
 import { AdminParents, AdminStaff } from "./AdminPeople";
 import { AdminEvaluation, AdminLogs, AdminOverview } from "./AdminAi";
@@ -46,12 +47,12 @@ const PAGES: Record<StaffRole, PageDef[]> = {
   ],
   Moderator: [
     { id: "queue", label: "Hàng đợi kiểm duyệt", icon: Inbox, view: () => <ModerationQueue /> },
+    { id: "templates", label: "Bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
     { id: "rating", label: "Đánh giá AI", icon: FlaskConical, view: RatingPage },
     { id: "account", label: "Tài khoản của tôi", icon: UserCog, view: AccountWorkspace, sep: true },
   ],
   ContentCreator: [
     { id: "stories", label: "Truyện mẫu của tôi", icon: BookOpenText, view: CreatorStories },
-    { id: "templates", label: "Bộ truyện mẫu", icon: LibraryBig, view: CreatorTemplates },
     { id: "prompts", label: "Bộ test prompt", icon: FlaskConical, view: () => <PromptsPage /> },
     { id: "account", label: "Tài khoản của tôi", icon: UserCog, view: AccountWorkspace, sep: true },
   ],

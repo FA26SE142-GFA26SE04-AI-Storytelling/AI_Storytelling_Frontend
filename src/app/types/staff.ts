@@ -111,6 +111,36 @@ export interface TemplateDraft {
   feedback: string | null;
 }
 
+// ---------- Bộ truyện mẫu qua API (`/RoadmapTemplate`). Độ tuổi dạng "6-8" / "9-10". ----------
+
+export type RoadmapTemplateGroup = 'Drafts' | 'Pending' | 'Published' | 'Archived' | 'Orphaned';
+export interface RoadmapCategoryRef { id: number; code: string; displayName: string }
+
+export interface RoadmapTemplateListItem {
+  id: number; name: string; ageBand: string; mainCategory: RoadmapCategoryRef | null; storyCount: number; status: string;
+  createdByName: string | null; isMine: boolean; submittedAt: string | null; publishedAt: string | null;
+  openCloneId: number | null; needsUpdate: boolean; retiredStoryCount: number;
+}
+
+export interface RoadmapTemplateDetail {
+  id: number; name: string; description: string | null; ageBand: string; mainCategory: RoadmapCategoryRef | null;
+  readingLevelMin: number; readingLevelMax: number; defaultDaysPerStory: number; status: string;
+  createdByName: string | null; isMine: boolean; clonedFromId: number | null;
+  stories: { storyId: number; position: number; days: number | null; title: string | null; ageBand: string; readingLevel: number | null; isEligible: boolean }[];
+  checks: { code: string; passed: boolean; message: string }[];
+  canSubmit: boolean;
+  lastReview: { decision: string; reviewerName: string | null; generalNote: string | null; reason: string | null; parts: { partType: string; storyId: number | null; action: string | null; note: string }[]; decidedAt: string | null } | null;
+  needsUpdate: boolean;
+  retiredStoryIds: number[];
+}
+
+export interface RoadmapTemplateInput {
+  name: string; description: string | null; ageBand: '6-8' | '9-10'; mainCategoryId: number;
+  readingLevelMin: number; readingLevelMax: number; defaultDaysPerStory: number;
+}
+
+export interface RoadmapCandidateStory { storyId: number; title: string | null; ageBand: string; readingLevel: number | null; labels: RoadmapCategoryRef[] }
+
 export interface AiMetrics {
   period: string;
   generationSuccessRate: number;

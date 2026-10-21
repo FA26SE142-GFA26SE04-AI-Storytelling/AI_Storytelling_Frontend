@@ -17,7 +17,7 @@ Ký hiệu:
 | L2 — Sinh truyện AI | ~70% — gọi API thật, không còn mock (phần còn lại chờ backend; danh sách truyện chưa lọc được theo bé) |
 | L3 — Trẻ đọc truyện | ~80% giao diện; nội dung truyện lấy thật, dữ liệu đọc (tiến độ, câu đố, EXP) chờ backend — backend chưa có API nào của Luồng 3 |
 | L4 — Lộ trình, theo dõi, Hold Mode | ~85% giao diện; lộ trình, kho bộ truyện mẫu, report, nộp cộng đồng và thông báo gọi API thật (21/10/2026); dashboard, Hold Mode, điều ước còn chờ backend |
-| L5 — Admin / Content Creator / Moderator | ~80% giao diện; mọi API backend đã có đều gọi thật (quyết định kiểm duyệt đã nối API 21/10/2026 trừ truyện vùng xám; còn chờ: gửi duyệt truyện Creator, các mục quản trị chưa có API) |
+| L5 — Admin / Content Creator / Moderator | ~80% giao diện; mọi API backend đã có đều gọi thật (quyết định kiểm duyệt đã nối API 21/10/2026 trừ truyện vùng xám; bộ truyện mẫu và phát hành truyện Creator nối API 22/10/2026; còn chờ: các mục quản trị chưa có API) |
 | L6 — Học tập thích ứng | Core xong giao diện (dữ liệu chờ backend — backend chưa có API nào của Luồng 6); Optional chưa làm |
 | **Tổng (có trọng số theo số chức năng)** | **~72%** trước khi làm L6 — chưa tính lại |
 
@@ -292,7 +292,8 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 - [x] Thông báo `roadmap_story_added`, `roadmap_story_removed`, `roadmap_completed`
 - [ ] Kiểm tra chủ đề bị chặn của từng bé khi thêm — **chờ backend** trả nhãn nội dung của truyện
 - [ ] Thêm truyện của anh chị em (BR-4.A2) — giao diện mới chọn được truyện của bé đang xem
-- [ ] Bộ truyện mẫu thật (từ Content Creator) — **chờ Luồng 5**; hiện dùng 2 bộ mẫu
+- [x] Bộ truyện mẫu thật từ `/RoadmapLibrary`, xem trước bé nào / truyện nào được chép (`preview`) rồi mới chép (22/10/2026)
+- [x] Chế độ của bé: mục "Bố mẹ chọn cho em" lấy từ `GET /MyRoadmap` khi có phiên bé (22/10/2026)
 
 **Theo dõi & trò chuyện sau đọc (Bước 4.3b, 4.3c)** — màn `Tổng quan` (Dashboard)
 - [x] Tab "Tất cả các con" (tóm tắt mỗi con 1 dòng) và tab riêng từng con
@@ -417,7 +418,8 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 - [x] Chống ghi đè: gửi `revisionToken` + `baseVersionId`; 409 thì giữ nội dung đang sửa và cho đồng bộ; mất mạng thì thử lại đúng lệnh cũ (cùng `operationId`); phần gõ thêm trong lúc lưu không bị đánh dấu đã lưu
 - [x] Cảnh báo thông tin cá nhân trong truyện
 - [ ] Gửi Moderator duyệt, rút yêu cầu, xem phản hồi, gỡ khỏi Thư viện chung, xoá truyện, sửa nhóm tuổi sau khi tạo — **chờ backend**
-- [x] Bộ truyện mẫu: chỉ chứa truyện đang công khai; lưu nháp, gửi duyệt, nhân bản bản đã công khai, lưu trữ; cảnh báo cần sửa — dữ liệu cục bộ, **chờ backend**
+- [x] Bộ truyện mẫu (`features/staff/RoadmapTemplates.tsx`, API `/RoadmapTemplate`): **backend chỉ cho Moderator soạn** nên màn này chuyển từ Content Creator sang Moderator (22/10/2026). Nháp, chọn truyện ứng viên, sắp thứ tự, kiểm tra, gửi duyệt, rút, nhân bản, lưu trữ, nháp bị bỏ dở
+- [x] Phát hành truyện Creator (`features/staff/CreatorPublication.tsx`): gửi duyệt, rút, xin gỡ, tạo bản sửa (22/10/2026). Truyện soạn thủ công chưa có bước nào lên trạng thái `Ready` nên backend vẫn từ chối gửi duyệt — **chờ backend**
 - [ ] Trợ lý AI cho Creator (`CreatorAssistance`, 10 API backend đã có) — **để đợt sau**
 
 **Bộ dữ liệu & đánh giá AI (Bước 5.10)** — dữ liệu cục bộ, **chờ backend**
@@ -437,7 +439,7 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 | Chỉ số AI, nhật ký sinh truyện | Bước 5.2, 5.2b | Chưa có API |
 | Thẻ ước, bài học, nhân vật mẫu, Prompt Catalog có phiên bản | Bước 5.3 | Chỉ có `ContentCategory` |
 | Quyết định kiểm duyệt, trả lại mục, đọc nội dung truyện Creator khi duyệt | Bước 5.7 | `ModerationQueue` mới có danh sách, nhận xử lý, mở mục; `review-views` chưa được dùng |
-| Gửi duyệt / rút / gỡ / xoá truyện Creator; Roadmap Template | Bước 5.8, 5.9 | `creator/stories` chỉ có soạn, phiên bản, khôi phục, nhập |
+| Đưa truyện Creator soạn thủ công lên `Ready` (tạo media) để gửi duyệt; xoá truyện Creator | Bước 5.8 | Gửi duyệt đòi `Ready` + media xong; manual save không tự tạo media |
 | Bộ đánh giá AI (prompt, lượt chạy sandbox, điểm chấm) | Bước 5.10 | Chưa có API |
 | Danh sách báo cáo nghiệp vụ cũ | Bước 5.5 | Chỉ có `latest-published` |
 

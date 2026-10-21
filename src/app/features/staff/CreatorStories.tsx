@@ -7,6 +7,12 @@ import type { CreateDraftInput, CreatorDraft } from "@/app/types/creator";
 import { GENRES } from "@/app/lib/storyRules";
 import { Notice, Page, fmt } from "./ui";
 import CreatorEditor from "./CreatorEditor";
+import CreatorPublication from "./CreatorPublication";
+
+/** Trạng thái truyện backend → nhãn. */
+const STORY_STATUS: Record<string, [string, string]> = {
+  Draft: ["draft", "Nháp"], ContentReview: ["draft", "Đang soạn"], MediaProcessing: ["wait", "Đang tạo media"], Ready: ["ok", "Sẵn sàng"], Archived: ["draft", "Lưu trữ"],
+};
 
 const AGE: Record<string, string> = { "6-8": "6–8 tuổi", "9-10": "9–10 tuổi" };
 const MODE: Record<string, string> = { reading: "Đọc", listening: "Nghe", combined: "Đọc và nghe" };
@@ -17,6 +23,7 @@ export function CreatorStories() {
   const [list, setList] = useState<CreatorDraft[] | null>(null);
   const [form, setForm] = useState<CreateDraftInput | null>(null);
   const [openId, setOpenId] = useState<number | null>(null);
+  const [pubStory, setPubStory] = useState<CreatorDraft | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
   // Tạo truyện mất mạng thì thử lại đúng thao tác cũ (cùng operationId) để không tạo trùng.
@@ -59,7 +66,7 @@ export function CreatorStories() {
     <Page title="Truyện mẫu của tôi" sub="Truyện bạn soạn sẽ vào Thư viện chung sau khi Moderator duyệt. Mỗi lần lưu tạo một phiên bản; có thể xem lại và khôi phục bản cũ."
       actions={<button className="btn btn-p" onClick={() => { setForm(blank()); setNote(null); }}><Plus className="ic" />Truyện mới</button>}>
       <Notice note={note} />
-      <div className="notice warn">Backend chưa có gửi duyệt, rút yêu cầu, gỡ khỏi Thư viện chung và xoá truyện của Content Creator. Truyện hiện ở trạng thái Nháp.</div>
+      {pubStory && <CreatorPublication key={pubStory.storyId} story={pubStory} onClose={() => setPubStory(null)} onChanged={() => void load()} />}
       {form && (
         <div className="st-card">
           <h3>Truyện mới</h3>
@@ -84,20 +91,24 @@ export function CreatorStories() {
       )}
       <div className="st-card st-scroll">
         <table className="st-table">
-          <thead><tr><th>Truyện</th><th>Tuổi</th><th>Trải nghiệm</th><th>Phiên bản</th><th>Cập nhật</th><th /></tr></thead>
+          <thead><tr><th>Truyện</th><th>Tuổi</th><th>Trải nghiệm</th><th>Phiên bản</th><th>Trạng thái</th><th>Cập nhật</th><th /></tr></thead>
           <tbody>
-            {list === null && <tr><td colSpan={6} className="sub">Đang tải…</td></tr>}
+            {list === null && <tr><td colSpan={7} className="sub">Đang tải…</td></tr>}
             {list?.map((s) => (
               <tr key={s.storyId}>
                 <td><b>{s.title || "Truyện chưa đặt tên"}</b><br /><small className="sub">{s.genre || "—"}{s.description ? ` · ${s.description}` : ""}</small></td>
                 <td>{AGE[s.ageBand] ?? s.ageBand}</td>
                 <td>{MODE[s.experienceMode] ?? s.experienceMode}</td>
                 <td>{s.lastVersionNo ? `V${s.lastVersionNo}` : "Chưa lưu"}</td>
+                <td>{s.status ? <span className={`pill ${STORY_STATUS[s.status]?.[0] ?? "draft"}`}>{STORY_STATUS[s.status]?.[1] ?? s.status}</span> : "—"}</td>
                 <td>{fmt(s.updatedAt ?? s.createdAt)}</td>
-                <td><button className="btn btn-g" onClick={() => setOpenId(s.storyId)}>Mở</button></td>
+                <td style={{ whiteSpace: "nowrap" }}>
+                  <button className="btn btn-g" onClick={() => setOpenId(s.storyId)}>Mở</button>
+                  <button className="btn btn-g" disabled={!s.lastVersionNo} title={s.lastVersionNo ? undefined : "Lưu ít nhất một phiên bản trước"} onClick={() => setPubStory(s)}>Phát hành</button>
+                </td>
               </tr>
             ))}
-            {list?.length === 0 && <tr><td colSpan={6} className="sub">Chưa có truyện nào.</td></tr>}
+            {list?.length === 0 && <tr><td colSpan={7} className="sub">Chưa có truyện nào.</td></tr>}
           </tbody>
         </table>
       </div>

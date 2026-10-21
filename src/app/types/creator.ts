@@ -21,7 +21,26 @@ export interface CreatorDraft {
   lastVersionNo: number;
   createdAt: string;
   updatedAt: string | null;
+  /** "Manual" hoặc "Ai". */
+  source?: string;
+  /** Trạng thái truyện của backend: Draft, ContentReview, MediaProcessing, Ready, Archived… */
+  status?: string;
 }
+
+/** `GET /creator/stories/{id}/publication`. `reviewStatus`: None, Pending, Approved, ChangesRequested, Rejected. */
+export interface CreatorPublication {
+  storyId: number;
+  versionId: number;
+  isPublished: boolean;
+  reviewStatus: string;
+  openItemId: number | null;
+  /** PublicStoryReview (duyệt phát hành) hoặc PublicStoryRemoval (yêu cầu gỡ). */
+  openItemType: string | null;
+  /** Pending hoặc Claimed. */
+  openItemStatus: string | null;
+}
+
+export interface CreatorPublicationResult { storyId: number; versionId: number; itemId: number | null; status: string; revisionToken: string }
 
 export interface CreatorVersion {
   versionId: number;
