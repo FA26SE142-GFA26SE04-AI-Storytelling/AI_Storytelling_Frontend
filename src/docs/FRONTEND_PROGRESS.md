@@ -16,8 +16,8 @@ Ký hiệu:
 | L1 — Hồ sơ trẻ & giám sát | ~95% — gọi API thật, không còn mock (còn: tên/email người giám sát, phiên bé tự hết hạn) |
 | L2 — Sinh truyện AI | ~70% — gọi API thật, không còn mock (phần còn lại chờ backend; danh sách truyện chưa lọc được theo bé) |
 | L3 — Trẻ đọc truyện | ~80% giao diện; nội dung truyện lấy thật, dữ liệu đọc (tiến độ, câu đố, EXP) chờ backend — backend chưa có API nào của Luồng 3 |
-| L4 — Lộ trình, theo dõi, Hold Mode | ~85% giao diện (dữ liệu chờ backend — backend chỉ có API thông báo) |
-| L5 — Admin / Content Creator / Moderator | ~80% giao diện; mọi API backend đã có đều gọi thật (còn chờ backend: quyết định kiểm duyệt, gửi duyệt truyện Creator, các mục quản trị chưa có API) |
+| L4 — Lộ trình, theo dõi, Hold Mode | ~85% giao diện; lộ trình, kho bộ truyện mẫu, report, nộp cộng đồng và thông báo gọi API thật (21/10/2026); dashboard, Hold Mode, điều ước còn chờ backend |
+| L5 — Admin / Content Creator / Moderator | ~80% giao diện; mọi API backend đã có đều gọi thật (quyết định kiểm duyệt đã nối API 21/10/2026 trừ truyện vùng xám; còn chờ: gửi duyệt truyện Creator, các mục quản trị chưa có API) |
 | L6 — Học tập thích ứng | Core xong giao diện (dữ liệu chờ backend — backend chưa có API nào của Luồng 6); Optional chưa làm |
 | **Tổng (có trọng số theo số chức năng)** | **~72%** trước khi làm L6 — chưa tính lại |
 
@@ -275,6 +275,8 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 
 ## Luồng 4 — Lộ trình, theo dõi, Hold Mode (~85% giao diện; dữ liệu chờ backend)
 
+> **Cập nhật 21/10/2026:** đã nối API thật cho lộ trình (`/ChildRoadmap`), kho bộ truyện mẫu (`/RoadmapLibrary`, chép bộ bằng `copy`), report (`/ContentReport`) và nộp cộng đồng (`/CommunitySubmission` — kiểm tra, nộp, rút, gỡ, danh sách của tôi). Mỗi nhóm API đề xuất còn lại (dashboard, Hold Mode, tiến độ, báo cáo tuần, điều ước) tự rơi về dữ liệu cục bộ riêng, không kéo theo nhóm khác. Backend chưa có API liệt kê report của phụ huynh và API dùng truyện có sẵn cho điều ước.
+
 > **Lưu ý:** backend chưa có API cho lộ trình, Hold Mode, dashboard, báo cáo tuần, report và thư viện cộng đồng (bảng lộ trình vẫn là `assignments` cũ; đã kiểm `origin/main` ngày 18/10/2026). API thật duy nhất của luồng này là `Notification`. Frontend gọi theo hợp đồng đề xuất trong `app/services/guardianService.ts`; khi backend chưa có thì dùng `app/services/guardianLocal.ts`. Bộ máy này dùng chung dữ liệu với phần đọc của bé (Luồng 3), nên trên cùng trình duyệt: bé đọc xong → lộ trình tự mở truyện kế; điểm câu đố thấp → Hold Mode; dashboard lấy số liệu thật từ các lần bé đọc. Dữ liệu chưa lưu lên máy chủ.
 
 **Lộ trình của con (Bước 4.1–4.1d)** — màn `Lộ trình của con`
@@ -402,7 +404,8 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 - [x] Một hàng đợi cho 5 loại mục (`ModerationQueue`), lọc Đang chờ / Tôi đang xử lý / Đã xử lý, mức ưu tiên, hạn SLA, báo quá hạn
 - [x] "Nhận xử lý" (khoá 2 giờ, tự trả về; không nhận được mục do chính mình tạo); mở mục đang nhận xem cờ cảnh báo, checklist và nội dung truyện
 - [x] Administrator: xem ca được chuyển lên; backend chỉ cho nhận mục khi không còn Moderator hợp lệ
-- [ ] Ra quyết định (Duyệt / Yêu cầu sửa / Từ chối / Cho qua / Chặn / Lưu trữ / Bỏ qua / Chuyển lên), bắt buộc lý do, sửa nhãn và thẻ ước, "Trả lại" — **chờ backend** (chưa có API; giao diện đang khoá phần quyết định)
+- [x] Ra quyết định theo loại mục (`features/staff/ReviewPanels.tsx`): truyện Public Library (xem cảnh, nghe audio, gỡ cờ, checklist 8 tiêu chí, nhãn, Duyệt / Yêu cầu sửa theo phần / Từ chối), thư viện cộng đồng, bộ truyện mẫu, report (Không vi phạm / Gỡ truyện / Chuyển lên), yêu cầu gỡ truyện của Creator
+- [ ] Truyện vùng xám và "Trả lại" mục — **chờ backend** (chưa có API)
 - [ ] Đọc nội dung truyện Content Creator khi duyệt — **chờ backend** (`GET /Story/{id}` chỉ trả truyện phạm vi phụ huynh)
 - [ ] Truyện nhiều lựa chọn: bắt buộc mở mọi kết thúc trước khi duyệt — **chờ** truyện nhiều lựa chọn
 - [ ] So sánh với bản đã gửi trước khi duyệt lại — **chờ backend**
