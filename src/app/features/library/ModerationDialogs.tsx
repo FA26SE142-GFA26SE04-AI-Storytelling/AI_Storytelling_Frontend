@@ -67,31 +67,50 @@ export function ReportDialog({ story, onClose, onDone }: { story: StoryCard; onC
  */
 export function CommunityDialog({ story, nickname, onClose, onDone }: { story: StoryCard; nickname: string; onClose: () => void; onDone: (msg: string) => void }) {
   const [pii, setPii] = useState<string[] | null>(null);
+  const [blockers, setBlockers] = useState<string[]>([]);
   const [noPii, setNoPii] = useState(false);
   const [ownWork, setOwnWork] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  // Backend kiểm tra cả truyện (cảnh, từ vựng, câu đố…) và các điều kiện khác; chế độ mẫu thì tự dò trong nội dung.
   useEffect(() => {
-    void storyService.getStoryById(story.id).then((r) => {
+    let alive = true;
+    void guardianService.communityCheck(story.id, !story.fromAi).then(async (c) => {
+      if (!alive) return;
+      if (c.data) {
+        setPii(c.data.piiFindings.map((f) => `${f.location}: “${f.excerpt}”`));
+        // Thiếu khai bản quyền được xử lý bằng ô đánh dấu bên dưới, không cần nhắc lại.
+        setBlockers(c.data.blockers.filter((b) => b.code !== "pii_found" && b.code !== "copyright_required").map((b) => b.message));
+        return;
+      }
+      if (!c.success) { setErr(c.message); setPii([]); return; }
+      const r = await storyService.getStoryById(story.id);
       const text = [r.data?.title, r.data?.description, r.data?.content].filter(Boolean).join("\n");
-      setPii([...new Set(detectPii(text, nickname).map((h) => `${h.kind}: “${h.text}”`))]);
+      if (alive) setPii([...new Set(detectPii(text, nickname).map((h) => `${h.kind}: “${h.text}”`))]);
     });
-  }, [story.id, nickname]);
+    return () => { alive = false; };
+  }, [story.id, story.fromAi, nickname]);
 
   const submit = async () => {
     setBusy(true);
-    const r = await guardianService.submitCommunity(story.id);
+    const r = await guardianService.submitCommunity(story.id, !story.fromAi);
     setBusy(false);
     if (r.success) onDone(r.message || "Đã nộp."); else setErr(r.message);
   };
 
-  const blocked = !!pii?.length;
+  const blocked = !!pii?.length || blockers.length > 0;
   return (
     <Shell title="Nộp lên thư viện cộng đồng" onClose={onClose}>
       <p className="sub">Truyện được kiểm duyệt viên duyệt rồi mới hiện cho mọi bé trên nền tảng, với tác giả “Cộng đồng”. Bản được nộp là bản hiện tại; sửa truyện sau đó không đổi bản trong thư viện.</p>
       {pii === null && <p className="sub">Đang kiểm tra thông tin cá nhân…</p>}
-      {blocked && (
+      {blockers.length > 0 && (
+        <div className="notice err" role="alert">
+          <CircleAlert className="ic" /> Truyện chưa nộp được:
+          <ul style={{ margin: "4px 0 0", paddingLeft: 18 }}>{blockers.map((b) => <li key={b}>{b}</li>)}</ul>
+        </div>
+      )}
+      {!!pii?.length && (
         <div className="notice err" role="alert">
           <CircleAlert className="ic" /> Truyện còn thông tin có thể nhận ra bé hoặc gia đình, chưa nộp được. Hãy sửa thành bản mới rồi nộp lại:
           <ul style={{ margin: "4px 0 0", paddingLeft: 18 }}>{pii!.map((p) => <li key={p}>{p}</li>)}</ul>

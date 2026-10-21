@@ -9,6 +9,7 @@ import type { EvaluationPrompt, EvaluationRun, QueueItem, QueueItemDetail } from
 import type { StoryDto } from "@/app/types/story";
 import { ageLabel } from "@/app/lib/storyView";
 import { Notice, Page, fmt, useAction } from "./ui";
+import { DECIDABLE, ReviewPanel } from "./ReviewPanels";
 
 const TYPE: Record<string, string> = {
   PublicStoryReview: "Duyệt truyện mẫu",
@@ -16,6 +17,7 @@ const TYPE: Record<string, string> = {
   GrayZoneStory: "Rà truyện vùng xám",
   ContentReport: "Xử lý báo cáo",
   CommunitySubmission: "Duyệt thư viện cộng đồng",
+  PublicStoryRemoval: "Yêu cầu gỡ truyện",
 };
 const PRIORITY: Record<string, [string, string]> = { High: ["flag", "Ưu tiên cao"], Medium: ["wait", "Trung bình"], Low: ["draft", "Thấp"] };
 const STATUS: Record<string, string> = {
@@ -37,7 +39,7 @@ function jsonLines(raw: string | null): string[] {
 
 /**
  * Luồng 5 Bước 5.7 — một hàng đợi duy nhất (`/ModerationQueue`), nhận xử lý (pull-based, khoá 2 giờ).
- * Backend chưa có API ra quyết định và trả lại mục, nên phần quyết định đang khoá.
+ * Mục đang nhận được mở bằng gói duyệt riêng của từng loại (ReviewPanels). Truyện vùng xám chưa có API quyết định.
  */
 export function ModerationQueue({ admin }: { admin?: boolean }) {
   const { user } = useAuth();
@@ -74,7 +76,7 @@ export function ModerationQueue({ admin }: { admin?: boolean }) {
     if (!cur || !mineNow) return;
     let alive = true;
     void staffService.openItem(cur.id).then((r) => { if (alive) setDetail(r.success ? r.data : null); });
-    if (cur.storyId) void storyService.getStoryById(cur.storyId).then((r) => { if (alive) setStory(r.success ? r.data : null); });
+    if (cur.storyId && !DECIDABLE.includes(cur.itemType)) void storyService.getStoryById(cur.storyId).then((r) => { if (alive) setStory(r.success ? r.data : null); });
     return () => { alive = false; };
   }, [cur, mineNow]);
 
@@ -108,7 +110,9 @@ export function ModerationQueue({ admin }: { admin?: boolean }) {
             </div>
             <small className="sub">Vào hàng đợi {fmt(cur.createdAt)} · hạn xử lý {fmt(cur.slaDueAt)}{cur.claimExpiresAt && mineNow ? ` · khoá tới ${fmt(cur.claimExpiresAt)}` : ""}</small>
 
-            {mineNow ? (
+            {mineNow && DECIDABLE.includes(cur.itemType) ? (
+              <ReviewPanel key={cur.id} item={cur} detail={detail} onDecided={() => { setSelected(null); void load(); }} />
+            ) : mineNow ? (
               <>
                 {detail && jsonLines(detail.flags).length > 0 && <div className="notice err"><b>Cờ cảnh báo:</b> {jsonLines(detail.flags).join(" · ")}</div>}
                 {detail && jsonLines(detail.checklist).length > 0 && <ul className="sub" style={{ margin: 0 }}>{jsonLines(detail.checklist).map((l) => <li key={l}>{l}</li>)}</ul>}
@@ -118,7 +122,7 @@ export function ModerationQueue({ admin }: { admin?: boolean }) {
                     : <p className="sub">Chưa xem được nội dung truyện #{cur.storyId} (backend chưa có API đọc nội dung cho kiểm duyệt).</p>)}
                 {cur.contentReportId && <p className="sub">Báo cáo nội dung #{cur.contentReportId}.</p>}
                 {cur.readingRoadmapId && <p className="sub">Bộ truyện mẫu #{cur.readingRoadmapId}.</p>}
-                <div className="notice warn">Backend chưa có API ra quyết định (duyệt / từ chối / chặn / chuyển lên) và trả mục về hàng đợi. Mục sẽ tự trả về sau 2 giờ.</div>
+                <div className="notice warn">Backend chưa có API ra quyết định cho loại mục này. Mục sẽ tự trả về hàng đợi sau 2 giờ.</div>
               </>
             ) : cur.status === "Pending" ? (
               <button className="btn btn-p" style={{ width: "fit-content" }} disabled={busy} onClick={() => void run(() => staffService.claim(cur.id), "Bạn đã nhận xử lý mục này.")}><Hand className="ic" />Nhận xử lý</button>

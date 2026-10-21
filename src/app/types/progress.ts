@@ -4,7 +4,7 @@
  */
 
 export type RoadmapStatus = 'queued' | 'open' | 'completed' | 'skipped' | 'removed';
-export type SkipReason = 'blocked_category' | 'age_band_mismatch' | 'story_unavailable' | 'source_deleted' | 'data_deletion';
+export type SkipReason = 'blocked_category' | 'age_band_mismatch' | 'too_long' | 'story_unavailable' | 'source_deleted' | 'data_deletion';
 
 export interface RoadmapItem {
   id: number;
@@ -48,6 +48,8 @@ export interface RoadmapTemplate {
   readingLevelMax: number;
   topic: string;
   defaultDaysPerStep: number | null;
+  /** Danh sách từ API chỉ có số truyện; `stories` được nạp khi mở chi tiết bộ. */
+  storyCount?: number;
   stories: { storyId: number; title: string; ageBand: string; length: number }[];
 }
 
@@ -132,6 +134,15 @@ export interface CommunitySubmission {
   storyId: number;
   status: 'pending' | 'approved' | 'rejected' | 'withdrawn' | 'removed';
   createdAt: string;
+  rejectReason?: string | null;
+}
+
+/** Kết quả `POST /CommunitySubmission/check`: lý do chưa nộp được và chỗ nghi chứa thông tin cá nhân. */
+export interface CommunityEligibility {
+  canSubmit: boolean;
+  requiredDeclaration: 'none' | 'own_work';
+  blockers: { code: string; message: string }[];
+  piiFindings: { kind: string; location: string; excerpt: string }[];
 }
 
 export interface AppNotification {

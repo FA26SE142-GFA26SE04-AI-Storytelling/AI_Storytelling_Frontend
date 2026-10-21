@@ -4,6 +4,7 @@ import type { PagedResult } from '@/app/types/story';
 import type {
   AdministratorAccount, AiMetrics, BusinessReport, CatalogEntry, CatalogKind, CreatorApplication, CreatorApplicationInput, DataRequest,
   EvaluationPrompt, EvaluationRun, GenerationJobLog, ModeratorAccountDto, ParentAccount, PaymentTransaction, PromptCatalogVersion,
+  ChangePart, ChecklistEntry, CommunityReviewPackage, PublicReviewChecklist, PublicReviewPackage, ReportArchiveReason, ReportReviewPackage, RoadmapReviewPackage,
   PublicStory, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, TemplateDraft, TokenQuotaConfig,
 } from '@/app/types/staff';
 import { apiRequest } from './apiClient';
@@ -93,7 +94,7 @@ export const staffService = {
   reactivateModerator: (userId: number): Promise<ApiResponse<ModeratorAccountDto>> =>
     apiRequest(`/ModeratorAccount/${userId}/reactivate`, 'Không kích hoạt lại được.', { method: 'POST' }),
 
-  // ---------- Hàng đợi kiểm duyệt (backend chưa có API ra quyết định / trả lại) ----------
+  // ---------- Hàng đợi kiểm duyệt (backend chưa có API trả mục về hàng đợi; mục tự trả sau 2 giờ) ----------
   queue(query: QueueQuery = {}): Promise<ApiResponse<PagedResult<QueueItem>>> {
     const params = new URLSearchParams(Object.entries({ pageSize: 100, ...query }).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)]));
     return apiRequest(`/ModerationQueue?${params}`, 'Không tải được hàng đợi kiểm duyệt.');
@@ -102,6 +103,60 @@ export const staffService = {
   claim: (itemId: number): Promise<ApiResponse<QueueItemDetail>> => apiRequest(`/ModerationQueue/${itemId}/claim`, 'Chưa nhận được mục này.', { method: 'POST' }),
   /** Mở mục mình đang nhận. */
   openItem: (itemId: number): Promise<ApiResponse<QueueItemDetail>> => apiRequest(`/ModerationQueue/${itemId}`, 'Chưa mở được mục này.'),
+
+  // ---------- Ra quyết định theo loại mục (phải đang nhận xử lý mục) ----------
+  /** Duyệt truyện Public Library: xem đủ cảnh, nghe audio, gỡ cờ, đủ 8 tiêu chí và có nhãn thì mới duyệt được. */
+  publicReview: {
+    get: (itemId: number): Promise<ApiResponse<PublicReviewPackage>> => apiRequest(`/PublicStoryReview/${itemId}`, 'Chưa mở được gói duyệt.'),
+    markViewed: (itemId: number, partType: 'scene' | 'audio', partId: number): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/PublicStoryReview/${itemId}/views`, 'Chưa ghi nhận được.', { method: 'POST', body: { partType, partId } }),
+    resolveFlag: (itemId: number, flagId: string, reason: string): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/PublicStoryReview/${itemId}/flags/resolve`, 'Chưa gỡ được cờ.', { method: 'POST', body: { flagId, reason } }),
+    checklist: (itemId: number, checklist: PublicReviewChecklist): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/PublicStoryReview/${itemId}/checklist`, 'Chưa lưu được checklist.', { method: 'PUT', body: checklist }),
+    labels: (itemId: number, contentCategoryIds: number[]): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/PublicStoryReview/${itemId}/labels`, 'Chưa lưu được nhãn.', { method: 'PUT', body: { contentCategoryIds } }),
+    approve: (itemId: number): Promise<ApiResponse<unknown>> => apiRequest(`/PublicStoryReview/${itemId}/approve`, 'Chưa duyệt được.', { method: 'POST' }),
+    requestChanges: (itemId: number, generalNote: string, parts: ChangePart[]): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/PublicStoryReview/${itemId}/request-changes`, 'Chưa gửi được yêu cầu sửa.', { method: 'POST', body: { generalNote, parts } }),
+    reject: (itemId: number, reason: string): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/PublicStoryReview/${itemId}/reject`, 'Chưa từ chối được.', { method: 'POST', body: { reason } }),
+  },
+  /** Duyệt truyện nộp lên thư viện cộng đồng (bản đã ghim lúc nộp). */
+  communityReview: {
+    get: (itemId: number): Promise<ApiResponse<CommunityReviewPackage>> => apiRequest(`/CommunityReview/${itemId}`, 'Chưa mở được gói duyệt.'),
+    checklist: (itemId: number, entries: Pick<ChecklistEntry, 'code' | 'passed' | 'note'>[]): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/CommunityReview/${itemId}/checklist`, 'Chưa lưu được checklist.', { method: 'PUT', body: { entries } }),
+    labels: (itemId: number, contentCategoryIds: number[]): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/CommunityReview/${itemId}/labels`, 'Chưa lưu được nhãn.', { method: 'PUT', body: { contentCategoryIds } }),
+    approve: (itemId: number): Promise<ApiResponse<unknown>> => apiRequest(`/CommunityReview/${itemId}/approve`, 'Chưa duyệt được.', { method: 'POST' }),
+    reject: (itemId: number, reason: string): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/CommunityReview/${itemId}/reject`, 'Chưa từ chối được.', { method: 'POST', body: { reason } }),
+  },
+  /** Duyệt bộ truyện mẫu. */
+  roadmapReview: {
+    get: (itemId: number): Promise<ApiResponse<RoadmapReviewPackage>> => apiRequest(`/RoadmapReview/${itemId}`, 'Chưa mở được gói duyệt.'),
+    checklist: (itemId: number, entries: Pick<ChecklistEntry, 'code' | 'passed' | 'note'>[]): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/RoadmapReview/${itemId}/checklist`, 'Chưa lưu được checklist.', { method: 'PUT', body: { entries } }),
+    approve: (itemId: number): Promise<ApiResponse<unknown>> => apiRequest(`/RoadmapReview/${itemId}/approve`, 'Chưa duyệt được.', { method: 'POST' }),
+    requestChanges: (itemId: number, generalNote: string, parts: ChangePart[]): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/RoadmapReview/${itemId}/request-changes`, 'Chưa gửi được yêu cầu sửa.', { method: 'POST', body: { generalNote, parts } }),
+    reject: (itemId: number, reason: string): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/RoadmapReview/${itemId}/reject`, 'Chưa từ chối được.', { method: 'POST', body: { reason } }),
+  },
+  /** Xử lý báo cáo nội dung của phụ huynh. */
+  reportReview: {
+    get: (itemId: number): Promise<ApiResponse<ReportReviewPackage>> => apiRequest(`/ContentReportReview/${itemId}`, 'Chưa mở được báo cáo.'),
+    dismiss: (itemId: number, reason: string): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/ContentReportReview/${itemId}/dismiss`, 'Chưa bỏ qua được báo cáo.', { method: 'POST', body: { reason } }),
+    archive: (itemId: number, archiveReason: ReportArchiveReason, reason: string): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/ContentReportReview/${itemId}/archive`, 'Chưa gỡ được truyện.', { method: 'POST', body: { archiveReason, reason } }),
+    escalate: (itemId: number, reason: string): Promise<ApiResponse<unknown>> =>
+      apiRequest(`/ContentReportReview/${itemId}/escalate`, 'Chưa chuyển lên được.', { method: 'POST', body: { reason } }),
+  },
+  /** Yêu cầu gỡ truyện đã xuất bản của Content Creator. `rowVersion` lấy từ chi tiết mục trong hàng đợi. */
+  decideRemoval: (itemId: number, approve: boolean, reason: string, rowVersion: number): Promise<ApiResponse<unknown>> =>
+    apiRequest(`/moderation/public-story-removals/${itemId}/decision`, 'Chưa ghi được quyết định.', { method: 'POST', body: { approve, reason, rowVersion } }),
 
   // ---------- Chưa có API: dữ liệu cục bộ ----------
   applyCreator: async (input: CreatorApplicationInput): Promise<ApiResponse<CreatorApplication>> => staffLocal.apply(input),

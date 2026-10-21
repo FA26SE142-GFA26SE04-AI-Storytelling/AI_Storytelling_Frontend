@@ -175,7 +175,7 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
               {selStatus === "ready" && role?.can("AssignActivity") && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình của con</button>}
               {selStatus === "ready" && mod?.submission && <p className="sub">Thư viện cộng đồng: {SUB_STATUS[mod.submission.status] ?? mod.submission.status}</p>}
               {selStatus === "ready" && mod?.submission && (mod.submission.status === "pending" || mod.submission.status === "approved") && role?.can("ApproveStory") && (
-                <button className="btn btn-s btn-c" onClick={() => void guardianService.withdrawCommunity(mod.submission!.id).then((r) => { flash(r.success ? r.message : r.message); void loadMod(); })}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
+                <button className="btn btn-s btn-c" onClick={() => void guardianService.withdrawCommunity(mod.submission!).then((r) => { flash(r.message || (r.success ? "Đã cập nhật." : "Chưa thực hiện được.")); void loadMod(); })}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
               )}
               {selStatus === "ready" && role?.can("ApproveStory") && !(mod?.submission && ["pending", "approved"].includes(mod.submission.status)) && (
                 <button className="btn btn-s btn-c" disabled={!!mod?.reports.some((r) => r.status === "pending")} title={mod?.reports.some((r) => r.status === "pending") ? "Truyện đang có báo cáo chờ xử lý" : undefined} onClick={() => setDialog("community")}><Send className="ic" />Nộp thư viện cộng đồng</button>
