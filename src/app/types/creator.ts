@@ -76,5 +76,8 @@ export interface CreateDraftInput { title: string; description: string; ageBand:
 
 export interface SaveVersionInput { title: string; content: string; sourceDeclaration: string; rightsDeclaration: string }
 
-/** Kết quả một lệnh gọi: `status` 0 = không kết nối được (server có thể đã ghi — thử lại với cùng operationId). */
-export interface CreatorResult<T> { ok: boolean; status: number; message: string; data: T | null }
+/**
+ * Kết quả một lệnh gọi: `status` 0 = không kết nối được (server có thể đã ghi — thử lại với cùng operationId).
+ * `code`: mã lỗi ổn định của backend (errors[0] hoặc message dạng MÃ_LỖI), dùng để quyết định UX thay cho câu chữ.
+ */
+export interface CreatorResult<T> { ok: boolean; status: number; message: string; data: T | null; code?: string }

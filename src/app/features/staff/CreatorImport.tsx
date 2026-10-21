@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { FileUp } from "lucide-react";
-import { creatorService, newOperationId } from "@/app/services/creatorService";
+import { creatorService, newOperationId, type AuthoringApi } from "@/app/services/creatorService";
 import type { ContentSaved, CreatorDraft, ImportPreview } from "@/app/types/creator";
 import { fmt } from "./ui";
 
@@ -13,9 +13,11 @@ const MAX_FILE_BYTES = 5_000_000;
  * Nhập văn bản hoặc tệp .txt / .docx vào truyện Creator: xem trước (không tạo phiên bản) → xác nhận (tạo phiên bản Import).
  * Revision / base được chụp lúc xem trước; có lệnh ghi khác thành công thì bản xem trước cũ không còn dùng được.
  */
-export default function CreatorImport({ draft, defaultTitle, onSaved, onClose }: {
+export default function CreatorImport({ draft, defaultTitle, onSaved, onClose, api = creatorService }: {
   draft: CreatorDraft;
   defaultTitle: string;
+  /** Mặc định API của Content Creator; phụ huynh truyền `parentAuthoringService`. */
+  api?: AuthoringApi;
   onSaved: (r: ContentSaved) => void;
   onClose: () => void;
 }) {
@@ -36,8 +38,8 @@ export default function CreatorImport({ draft, defaultTitle, onSaved, onClose }:
     const snap = { revisionToken: draft.revisionToken, baseVersionId: draft.selectedVersionId };
     const op = newOperationId("preview");
     const r = method === "file" && file
-      ? await creatorService.previewFile(draft.storyId, op, snap.revisionToken, file)
-      : await creatorService.previewText(draft.storyId, op, snap.revisionToken, text);
+      ? await api.previewFile(draft.storyId, op, snap.revisionToken, file)
+      : await api.previewText(draft.storyId, op, snap.revisionToken, text);
     setBusy(false);
     if (r.ok && r.data) setPending({ preview: r.data, ...snap });
     else setErr(r.message);
@@ -47,7 +49,7 @@ export default function CreatorImport({ draft, defaultTitle, onSaved, onClose }:
     if (!pending) return;
     setBusy(true);
     setErr(null);
-    const r = await creatorService.confirmImport(draft.storyId, newOperationId("confirm"), pending.revisionToken, pending.baseVersionId, pending.preview,
+    const r = await api.confirmImport(draft.storyId, newOperationId("confirm"), pending.revisionToken, pending.baseVersionId, pending.preview,
       { title: title.trim(), sourceDeclaration: source.trim(), rightsDeclaration: rights.trim() });
     setBusy(false);
     if (r.ok && r.data) { onSaved(r.data); onClose(); return; }

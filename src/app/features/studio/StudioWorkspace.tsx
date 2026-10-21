@@ -11,6 +11,7 @@ import type { WorkspaceId } from "@/app/components/shell/nav";
 import StudioPlan from "./StudioPlan";
 import StudioMedia from "./StudioMedia";
 import ImportStoryPanel from "./ImportStoryPanel";
+import WriteStoryPanel from "./WriteStoryPanel";
 import ReviewGate from "@/app/features/review/ReviewGate";
 import StudioSteps from "./StudioSteps";
 import StudioControls from "./StudioControls";
@@ -105,7 +106,8 @@ export default function StudioWorkspace({ go }: { go: (id: WorkspaceId) => void 
   const { user } = useAuth();
   const { child, reload } = useWorkspaceData();
   const [run, setRun] = useState(0);
-  const [importing, setImporting] = useState(false);
+  // "ai": tạo bằng AI; "import": nhập truyện có sẵn; "write": phụ huynh tự viết.
+  const [mode, setMode] = useState<"ai" | "import" | "write">("ai");
   // Ý tưởng điền lại khi "Quay lại ý tưởng"; chỉ giữ trong bộ nhớ, không lưu vào trình duyệt.
   const [prefill, setPrefill] = useState<Prefill>(null);
   // Giữ qua các truyện trong phiên làm việc: thu gọn một lần là đủ.
@@ -119,19 +121,22 @@ export default function StudioWorkspace({ go }: { go: (id: WorkspaceId) => void 
       </section>
     );
   }
-  if (importing) {
+  if (mode !== "ai") {
     return (
       <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
         <div className="pane" style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
           <div className="tabs">
-            <button onClick={() => setImporting(false)}>Tạo bằng AI</button>
-            <button className="on">Nhập truyện có sẵn</button>
+            <button onClick={() => setMode("ai")}>Tạo bằng AI</button>
+            <button className={mode === "import" ? "on" : ""} onClick={() => setMode("import")}>Nhập truyện có sẵn</button>
+            <button className={mode === "write" ? "on" : ""} onClick={() => setMode("write")}>Tự viết</button>
           </div>
-          <ImportStoryPanel key={`${child.id}:${run}`} child={child} go={go} onDone={() => { void reload(); setRun((n) => n + 1); }} />
+          {mode === "import"
+            ? <ImportStoryPanel key={`${child.id}:${run}`} child={child} go={go} onDone={() => { void reload(); setRun((n) => n + 1); }} />
+            : <WriteStoryPanel key={child.id} child={child} />}
         </div>
       </section>
     );
   }
   const reset = (next: Prefill = null) => { removeStorySession(user.id, child.id); setPrefill(next); setRun((n) => n + 1); };
-  return <Pipeline key={`${child.id}:${run}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} go={go} onImport={() => setImporting(true)} />;
+  return <Pipeline key={`${child.id}:${run}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} go={go} onImport={() => setMode("import")} />;
 }

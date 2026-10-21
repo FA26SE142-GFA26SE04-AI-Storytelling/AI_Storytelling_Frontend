@@ -2,6 +2,7 @@ import type { PagedResult } from '@/app/types/story';
 import type {
   ContentSaved, CreateDraftInput, CreatorDraft, CreatorPublication, CreatorPublicationResult, CreatorResult, CreatorVersion, ImportPreview, SaveVersionInput,
 } from '@/app/types/creator';
+import type { AssistanceReference } from '@/app/types/assistance';
 import { API_BASE_URL } from './apiConfig';
 import { authService } from './authService';
 
@@ -26,7 +27,7 @@ const CODE_TEXT: Record<string, string> = {
   GENERATION_JOB_ACTIVE: 'Truyện đang được AI xử lý, chờ xong rồi gửi duyệt.',
   REMOVAL_REQUEST_PENDING: 'Truyện đang có yêu cầu gỡ chưa xong.',
 };
-async function send<T>(path: string, fallback: string, init: { method?: string; body?: unknown; form?: FormData } = {}): Promise<CreatorResult<T>> {
+export async function send<T>(path: string, fallback: string, init: { method?: string; body?: unknown; form?: FormData } = {}): Promise<CreatorResult<T>> {
   try {
     const res = await authService.authenticatedFetch(`${API_BASE_URL}${path}`, {
       method: init.method ?? 'GET',
@@ -37,26 +38,26 @@ async function send<T>(path: string, fallback: string, init: { method?: string; 
     try { parsed = text.trim() ? JSON.parse(text) : null; } catch { parsed = null; }
     const ok = res.ok && parsed?.success !== false;
     const message = parsed?.errors?.length ? `${parsed.message ?? fallback} ${parsed.errors.join(' ')}`.trim() : parsed?.message || (ok ? '' : fallback);
-    return { ok, status: res.status, message: res.status === 413 ? 'Tệp hoặc nội dung quá lớn.' : CODE_TEXT[message.trim()] ?? message, data: (parsed?.data ?? null) as T | null };
+    const code = parsed?.errors?.[0] ?? (/^[A-Z][A-Z0-9_:]+$/.test((parsed?.message ?? '').trim()) ? parsed!.message!.trim() : undefined);
+    return { ok, status: res.status, code, message: res.status === 413 ? 'Tệp hoặc nội dung quá lớn.' : CODE_TEXT[message.trim()] ?? message, data: (parsed?.data ?? null) as T | null };
   } catch {
     return { ok: false, status: 0, message: 'Không kết nối được máy chủ. Nội dung đang sửa vẫn còn; bấm thử lại.', data: null };
   }
 }
 
-const base = (id: number) => `/creator/stories/${id}`;
-
-export const creatorService = {
-  list: (pageIndex = 1, pageSize = 50): Promise<CreatorResult<PagedResult<CreatorDraft>>> =>
-    send(`/creator/stories?pageIndex=${pageIndex}&pageSize=${pageSize}`, 'Không tải được danh sách truyện.'),
-
-  get: (storyId: number): Promise<CreatorResult<CreatorDraft>> => send(base(storyId), 'Không mở được truyện.'),
-
-  create: (operationId: string, input: CreateDraftInput): Promise<CreatorResult<CreatorDraft>> =>
-    send('/creator/stories/manual', 'Không tạo được truyện.', { method: 'POST', body: { operationId, language: 'vi', ...input } }),
-
+/**
+ * Phần soạn dùng chung giữa Content Creator (`/creator/stories`) và phụ huynh (`/parent/stories`):
+ * lưu phiên bản, lịch sử, khôi phục, nhập văn bản / tệp. Backend dùng chung một engine cho hai đường dẫn.
+ */
+export function authoringApi(root: '/creator/stories' | '/parent/stories') {
+  const base = (id: number) => `${root}/${id}`;
+  return {
   /** Lưu một phiên bản mới (V+1). Không trim nội dung để giữ nguyên xuống dòng. */
-  save: (storyId: number, operationId: string, revisionToken: string, baseVersionId: number | null, input: SaveVersionInput): Promise<CreatorResult<ContentSaved>> =>
-    send(`${base(storyId)}/manual/versions`, 'Không lưu được phiên bản.', { method: 'POST', body: { operationId, revisionToken, baseVersionId, ...input } }),
+  save: (storyId: number, operationId: string, revisionToken: string, baseVersionId: number | null, input: SaveVersionInput,
+    assistanceReferences: AssistanceReference[] = []): Promise<CreatorResult<ContentSaved>> =>
+    send(`${base(storyId)}/manual/versions`, 'Không lưu được phiên bản.', {
+      method: 'POST', body: { operationId, revisionToken, baseVersionId, ...input, ...(assistanceReferences.length ? { assistanceReferences } : {}) },
+    }),
 
   versions: (storyId: number): Promise<CreatorResult<CreatorVersion[]>> => send(`${base(storyId)}/content/versions`, 'Không tải được lịch sử phiên bản.'),
 
@@ -85,6 +86,24 @@ export const creatorService = {
       method: 'POST',
       body: { operationId, revisionToken, baseVersionId, previewToken: preview.previewToken, content: preview.content, ...input },
     }),
+  };
+}
+
+/** Bộ API mà trình soạn cần: phần dùng chung + cách lấy bản nháp (khác nhau giữa Creator và phụ huynh). */
+export type AuthoringApi = ReturnType<typeof authoringApi> & { get: (storyId: number) => Promise<CreatorResult<CreatorDraft>> };
+
+const base = (id: number) => `/creator/stories/${id}`;
+
+export const creatorService = {
+  ...authoringApi('/creator/stories'),
+
+  list: (pageIndex = 1, pageSize = 50): Promise<CreatorResult<PagedResult<CreatorDraft>>> =>
+    send(`/creator/stories?pageIndex=${pageIndex}&pageSize=${pageSize}`, 'Không tải được danh sách truyện.'),
+
+  get: (storyId: number): Promise<CreatorResult<CreatorDraft>> => send(base(storyId), 'Không mở được truyện.'),
+
+  create: (operationId: string, input: CreateDraftInput): Promise<CreatorResult<CreatorDraft>> =>
+    send('/creator/stories/manual', 'Không tạo được truyện.', { method: 'POST', body: { operationId, language: 'vi', ...input } }),
 
   // ---------- Phát hành lên Thư viện chung ----------
   /** Trạng thái phát hành của phiên bản hiện tại và mục duyệt / gỡ đang mở (nếu có). */

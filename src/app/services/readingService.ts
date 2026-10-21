@@ -6,6 +6,7 @@ import type {
 } from '@/app/types/reading';
 import { apiRequest } from './apiClient';
 import { childAccessService } from './childAccessService';
+import { childManualStoryService } from './parentAuthoringService';
 import { childProfileService } from './childProfileService';
 import { storyService } from './storyService';
 import { aiStoryCreationService } from './aiStoryCreationService';
@@ -136,15 +137,61 @@ async function withMyRoadmap(home: ApiResponse<KidHome>): Promise<ApiResponse<Ki
   return { ...home, data: { ...h, library: [...h.library, ...extra], roadmap } };
 }
 
+/** storyId → lần giao (confirmationId) của truyện bố mẹ tự viết; mở truyện đọc đúng bản đã giao, không lấy bản hiện tại. */
+const familyStories = new Map<number, number>();
+
+/** Truyện bố mẹ tự viết đã giao cho bé (`/child/manual-stories`, cần token phiên bé) đứng đầu kệ. */
+async function withFamilyStories(home: ApiResponse<KidHome>): Promise<ApiResponse<KidHome>> {
+  if (USE_MOCK || !childManualStoryService.available() || !home.data) return home;
+  const r = await childManualStoryService.list();
+  if (!r.success || !r.data?.length) return home;
+  const h = home.data;
+  const packs = await Promise.all(r.data.map((g) => childManualStoryService.package(g.confirmationId)));
+  const extra: LibraryStory[] = [];
+  r.data.forEach((g, i) => {
+    const p = packs[i].data;
+    if (!p) return;
+    familyStories.set(g.storyId, g.confirmationId);
+    if (!h.library.some((s) => s.storyId === g.storyId)) {
+      extra.push({ storyId: g.storyId, title: p.title, genre: null, lesson: null, coverImageUrl: null, source: 'family', lengthCategory: null, readingLevel: null, isChallenge: false, createdAt: g.confirmedAt });
+    }
+  });
+  return { ...home, data: { ...h, library: [...extra, ...h.library] } };
+}
+
+/** Truyện cộng đồng đã duyệt, hợp tuổi bé (`GET /CommunityLibrary`, cần token phiên bé). */
+async function withCommunity(home: ApiResponse<KidHome>): Promise<ApiResponse<KidHome>> {
+  const childToken = token();
+  if (USE_MOCK || !childToken || !home.data) return home;
+  const r = await apiRequest<{ items: { submissionId: number; title: string; description: string | null }[] }>('/CommunityLibrary?pageSize=20', '', { token: childToken });
+  if (!r.success || !r.data?.items.length) return home;
+  return { ...home, data: { ...home.data, community: r.data.items.map((c) => ({ submissionId: c.submissionId, title: c.title, description: c.description })) } };
+}
+
+/** Gói đọc của truyện bố mẹ tự viết: mỗi đoạn backend chia sẵn là một trang; chưa có từ vựng, câu đố. */
+async function familyPackage(storyId: number, confirmationId: number): Promise<ApiResponse<ReadingPackage>> {
+  const r = await childManualStoryService.package(confirmationId);
+  if (!r.success || !r.data) return { success: false, message: r.message || 'Chưa mở được truyện này.', data: null };
+  const p = r.data;
+  return {
+    success: true, message: '',
+    data: { storyId, storyVersionId: p.storyVersionId, title: p.title, lesson: null, vocabulary: [], quiz: [],
+      pages: [...p.segments].sort((a, b) => a.order - b.order).map((s, i) => ({ pageNumber: i + 1, text: s.text.trim() })).filter((pg) => pg.text) },
+  };
+}
+
 export const readingService = {
   /** true khi đang chạy bằng bộ máy cục bộ (tiến độ chưa được lưu lên máy chủ). */
   isLocal: () => backendReady === false,
 
   getHome: async (childId: number): Promise<ApiResponse<KidHome>> =>
-    withMyRoadmap(await call(`/children/${childId}/reading/home`, () => local.getHome(childId))),
+    withCommunity(await withFamilyStories(await withMyRoadmap(await call(`/children/${childId}/reading/home`, () => local.getHome(childId))))),
 
-  getPackage: (storyId: number): Promise<ApiResponse<ReadingPackage>> =>
-    call(`/reading/stories/${storyId}/package`, () => local.getPackage(storyId)),
+  getPackage: (storyId: number): Promise<ApiResponse<ReadingPackage>> => {
+    const confirmationId = familyStories.get(storyId);
+    if (confirmationId !== undefined) return familyPackage(storyId, confirmationId);
+    return call(`/reading/stories/${storyId}/package`, () => local.getPackage(storyId));
+  },
 
   startSession: (childId: number, storyId: number, openedFrom: OpenedFrom, isRetake = false): Promise<ApiResponse<StartSessionResult>> =>
     call('/reading/sessions', () => local.startSession(childId, storyId, openedFrom, isRetake), { method: 'POST', body: { childProfileId: childId, storyId, openedFrom, isRetake } }),

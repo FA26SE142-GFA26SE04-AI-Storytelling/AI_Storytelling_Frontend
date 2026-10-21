@@ -98,6 +98,21 @@ export default function KidHome({ home, onOpen, onWish }: Props) {
         </div>
       )}
 
+      {!!home.community?.length && (
+        <div className="ksection">
+          <h3 className="display">Truyện của các bạn khác</h3>
+          <div className="kshelf">
+            {home.community.map((c) => (
+              <div key={c.submissionId} className="kcover big locked" title={c.description ?? undefined}>
+                <span className="cover" style={{ background: gradientFor(c.submissionId) }}><Lock className="lock" /></span>
+                <b className="display">{c.title}</b>
+              </div>
+            ))}
+          </div>
+          <p className="sub" style={{ fontSize: 15 }}>Sắp đọc được rồi, em chờ nhé!</p>
+        </div>
+      )}
+
       {home.storyWishesEnabled && (
         <div className="ksection">
           <button className="kwish" onClick={onWish}><Sparkles /> Em muốn nghe truyện về…</button>
