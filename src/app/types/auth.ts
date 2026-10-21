@@ -92,3 +92,9 @@ export interface ResetPasswordRequest {
   newPassword: string;
   confirmPassword: string;
 }
+
+/** Một dòng nhật ký hoạt động (`/Auth/me/audit-log`, `/ChildProfile/{id}/audit-log`). */
+export interface AuditLogEntry { id: number; actorUserId: number | null; action: string; entityType: string; entityId: number; occurredAt: string }
+
+/** Gói dịch vụ đang bán (`/Payment/plans`). */
+export interface SubscriptionPlan { id: number; name: string; priceVnd: number; quotaAmount: number }

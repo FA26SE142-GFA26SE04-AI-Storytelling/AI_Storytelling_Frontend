@@ -9,6 +9,8 @@ import type { LoginSession } from "@/app/types/supervision";
 import { fmtDateTime, passwordProblem } from "@/app/lib/guardian";
 import ProfileSection from "./ProfileSection";
 import DeleteAccountSection from "./DeleteAccountSection";
+import PlansSection from "./PlansSection";
+import AuditLogList from "./AuditLogList";
 
 type Note = { ok: boolean; text: string } | null;
 
@@ -87,6 +89,13 @@ export default function AccountWorkspace() {
               {sNote && <div className={`notice ${sNote.ok ? "ok" : "err"}`} role="status">{sNote.text}</div>}
               <button className="btn btn-no" style={{ width: "fit-content", marginTop: 8 }} onClick={() => void logoutAll()}><LogOut className="ic" />Đăng xuất khỏi mọi thiết bị</button>
             </section>
+
+            {user?.role === "Parent" && <PlansSection />}
+
+            <details className="sec">
+              <summary><h3 className="display" style={{ margin: 0, display: "inline" }}>Lịch sử hoạt động</h3></summary>
+              <AuditLogList load={accountService.myAuditLog} />
+            </details>
 
             {user?.role === "Parent" && <DeleteAccountSection />}
           </div>

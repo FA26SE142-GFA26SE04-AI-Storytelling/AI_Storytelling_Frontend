@@ -1,4 +1,5 @@
-import type { ApiResponse } from '@/app/types/auth';
+import type { ApiResponse, AuditLogEntry } from '@/app/types/auth';
+import type { PagedResult } from '@/app/types/story';
 import type {
   ChildProfile,
   ContentCategory,
@@ -57,6 +58,16 @@ export const childProfileService = {
   /** Bước 1.8b — lưu trữ hồ sơ đang hoạt động hoặc tạm dừng. */
   archiveChildProfile(id: number): Promise<ApiResponse<null>> {
     return apiRequest(`/ChildProfile/${id}`, 'Không lưu trữ được hồ sơ.', { method: 'DELETE' });
+  },
+
+  /** Bước 1.8b — khôi phục hồ sơ đã lưu trữ về Active (chỉ Owner). Mã Easy Login cũ không dùng lại được, phải tạo mới. */
+  restoreChildProfile(id: number): Promise<ApiResponse<ChildProfile>> {
+    return apiRequest(`/ChildProfile/${id}/restore`, 'Không khôi phục được hồ sơ.', { method: 'PATCH' });
+  },
+
+  /** Lịch sử thay đổi của hồ sơ bé (chỉ Owner). */
+  getChildAuditLog(id: number, pageIndex = 1): Promise<ApiResponse<PagedResult<AuditLogEntry>>> {
+    return apiRequest(`/ChildProfile/${id}/audit-log?pageIndex=${pageIndex}&pageSize=20&isDescending=true`, 'Không tải được lịch sử thay đổi.');
   },
 
   getLearningProfile(childProfileId: number): Promise<ApiResponse<LearningProfile>> {

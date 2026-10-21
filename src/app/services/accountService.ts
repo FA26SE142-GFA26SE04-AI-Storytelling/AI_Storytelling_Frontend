@@ -1,4 +1,6 @@
-import type { ApiResponse, ChangePasswordRequest, DeleteAccountPreview, UpdateProfileRequest, UserProfile } from '@/app/types/auth';
+import type { ApiResponse, AuditLogEntry, ChangePasswordRequest, DeleteAccountPreview, SubscriptionPlan, UpdateProfileRequest, UserProfile } from '@/app/types/auth';
+import type { PaymentTransaction } from '@/app/types/staff';
+import type { PagedResult } from '@/app/types/story';
 import type { LoginSession } from '@/app/types/supervision';
 import { apiRequest } from './apiClient';
 import { authService } from './authService';
@@ -55,5 +57,20 @@ export const accountService = {
 
   logoutAllDevices(): Promise<ApiResponse<null>> {
     return apiRequest('/Auth/logout-all-devices', 'Không đăng xuất được khỏi mọi thiết bị.', { method: 'POST' });
+  },
+
+  /** Lịch sử hoạt động do chính tài khoản này thực hiện. */
+  myAuditLog(pageIndex = 1): Promise<ApiResponse<PagedResult<AuditLogEntry>>> {
+    return apiRequest(`/Auth/me/audit-log?pageIndex=${pageIndex}&pageSize=20&isDescending=true`, 'Không tải được lịch sử hoạt động.');
+  },
+
+  /** Gói dịch vụ đang bán. */
+  plans(): Promise<ApiResponse<SubscriptionPlan[]>> {
+    return apiRequest('/Payment/plans', 'Không tải được danh sách gói.');
+  },
+
+  /** Tạo giao dịch và mã QR VietQR. Thanh toán xong, hệ thống tự ghi nhận qua ngân hàng. */
+  buyPlan(planId: number): Promise<ApiResponse<PaymentTransaction>> {
+    return apiRequest('/Payment/transactions', 'Chưa tạo được giao dịch.', { method: 'POST', body: { planId } });
   },
 };

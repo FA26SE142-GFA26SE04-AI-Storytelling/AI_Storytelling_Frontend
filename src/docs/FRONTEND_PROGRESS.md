@@ -21,6 +21,24 @@ Ký hiệu:
 | L6 — Học tập thích ứng | Core xong giao diện (dữ liệu chờ backend — backend chưa có API nào của Luồng 6); Optional chưa làm |
 | **Tổng (có trọng số theo số chức năng)** | **~72%** trước khi làm L6 — chưa tính lại |
 
+### Cập nhật 22/10/2026 — nối các API backend chưa có màn
+
+| Phần | Màn / file | API |
+| :--- | :--- | :--- |
+| Phụ huynh tự viết truyện, giao cho con | Studio → tab "Tự viết" (`features/studio/WriteStoryPanel.tsx`, `GiveToChild.tsx`; trình soạn dùng chung `features/staff/CreatorEditor.tsx`) | `/parent/stories/*`: tạo, lưu phiên bản, nhập, khôi phục, kiểm tra → tự xác nhận → chuẩn bị → giao / thu hồi |
+| Bé đọc truyện bố mẹ viết | Kệ của bé (`readingService.getHome`, `getPackage`) | `/child/manual-stories`, `/{confirmationId}/package` (cần phiên bé) |
+| Gợi ý cách viết | Trình soạn của phụ huynh (`features/staff/AuthoringGuides.tsx`) | `/authoring-guides`, `/{id}/render` |
+| Hỏi AI khi soạn | Trình soạn của Creator và phụ huynh (`features/staff/AssistancePanel.tsx`) | `/creator/stories/{id}/assistance-tasks/*` và `/parent/stories/{id}/assistance-tasks/*`; lưu kèm `assistanceReferences` |
+| Creator tạo truyện bằng AI | "Truyện mẫu của tôi" → "Tạo bằng AI" (`features/staff/CreatorAiStudio.tsx`) | `/creator/ai-story-input/*`; dàn ý / nội dung / media dùng chung; `generation/confirm-content` thay cho duyệt |
+| Thư viện cộng đồng | Kệ của bé, mục "Truyện của các bạn khác" | `GET /CommunityLibrary` — **backend chưa có API đọc nội dung**, thẻ đang khoá |
+| Rà soát nội dung đã công khai | Moderator → "Nội dung đã công khai" (`features/staff/PublishedContent.tsx`) | `/PublishedContentReview/*`, `/ModerationQueue/review-views` |
+| So sánh phiên bản khi duyệt lại | Khung duyệt truyện Public Library | `/PublicStoryReview/{id}/compare` |
+| Gói tạo truyện, lịch sử hoạt động | Tài khoản (`features/account/PlansSection.tsx`, `AuditLogList.tsx`) | `/Payment/plans`, `/Payment/transactions`, `/Auth/me/audit-log` |
+| Lịch sử thay đổi, khôi phục hồ sơ bé | Hồ sơ bé | `/ChildProfile/{id}/audit-log`, `PATCH /ChildProfile/{id}/restore` — backend chưa liệt kê hồ sơ đã lưu trữ nên chỉ khôi phục được hồ sơ vừa lưu trữ trên trình duyệt này |
+| Kiểm tra tự duyệt, lịch sử dàn ý, vẽ lại tranh | Màn duyệt, khung dàn ý, bước media | `review/auto-publish-check`, `outline/versions`, `media/illustration-beats/{id}/regenerate` |
+
+Không nối (có phương án khác hoặc là route cũ): `Permission/*` trùng Supervision, bản POST/DELETE của LearningProfile và SafetyPolicy, CRUD `Story` cũ, `ContentCategory/{id}` GET/DELETE, webhook thanh toán.
+
 ## Việc chặn cần sửa ngay
 
 - [x] Gỡ xung đột merge trong `app/page.tsx`. Đã xong: type-check sạch, 143 test đều qua.
