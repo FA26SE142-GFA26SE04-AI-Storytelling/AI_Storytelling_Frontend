@@ -60,7 +60,7 @@ Chưa kiểm thử đăng nhập/quyền, dữ liệu, schema, CORS, thanh toán
 
 Không có API HTTP ghi hoàn thành đọc/quiz trẻ hoặc package đọc CommunityLibrary đầy đủ trong snapshot này, nên frontend không tự tạo progress hoặc giả hoàn thành. Payment chưa có endpoint tra cứu kết quả giao dịch trong catalog; chỉ server/webhook và thông báo xác nhận thanh toán. Không thêm API giả để che các giới hạn này.
 
-Thay đổi chưa commit/push. Backend và các thay đổi đang có của công việc khác được giữ nguyên.
+Phần tích hợp đã commit và push lên nhánh frontend `feat/frontend-core-api-integration`. Backend và các thay đổi đang có của công việc khác được giữ nguyên.
 
 ## Dọn mock khỏi mã nguồn ứng dụng — 22/10/2026
 
@@ -74,3 +74,12 @@ Thay đổi chưa commit/push. Backend và các thay đổi đang có của côn
 - Fixture/network doubles ở `tests/` tiếp tục phục vụ kiểm thử độc lập, không được import vào `app/`. Không xóa dữ liệu backend hoặc dữ liệu người dùng trong trình duyệt.
 
 Kiểm tra lại: TypeScript, lint, production build và 220 test đạt; 7 browser smoke với fixture đạt; audit catalog không mất đường nối nào trong 304 route frontend đã tích hợp. Source coverage vẫn không phải bằng chứng live API/database.
+
+## Hợp nhất main — 22/10/2026
+
+- Hợp nhất `origin/main` tại `d02ee70` vào nhánh tích hợp; các luồng được hai nhánh triển khai song song dùng chung bộ service có DTO và hook hiện tại. Các component/service trùng chức năng không được đưa vào ứng dụng lần thứ hai.
+- Giữ tài liệu từ main, API bổ sung cho tài khoản/hồ sơ, cách nhận diện nguồn và trạng thái truyện. Loại các khai báo trùng sau auto-merge.
+- Giữ danh sách hồ sơ vừa lưu trữ từ main cùng cách khôi phục bằng mã hồ sơ. Danh sách chỉ nhớ thao tác lưu trữ thật trên trình duyệt; khôi phục vẫn phải gọi backend thành công trước khi cập nhật giao diện.
+- Giữ xem tranh theo cảnh từ main, công cụ media hiện có và nút duyệt dàn ý khi không có thanh tiến trình. Creator AI, phát hành, trợ giúp soạn, đối chiếu phiên bản, kiểm duyệt và viết truyện gia đình tiếp tục qua các module đã kết nối.
+- Giữ việc xóa KidHome/readingService cũ và toàn bộ runtime mock. README hiện mô tả chế độ chỉ dùng backend; ghi chép tiến độ cũ được đánh dấu là lịch sử.
+- Sau hợp nhất: 220/220 unit test, TypeScript, lint, production build và 7/7 browser smoke với network doubles đều đạt. Chưa chạy kiểm thử với backend/database thật.

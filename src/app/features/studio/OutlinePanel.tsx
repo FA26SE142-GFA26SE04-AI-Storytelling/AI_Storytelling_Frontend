@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Flag, Flower2, Footprints, RefreshCw, type LucideIcon } from "lucide-react";
+import { Check, Flag, Flower2, Footprints, RefreshCw, type LucideIcon } from "lucide-react";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import { useRegisterApprove } from "@/app/features/story-workflow/approveSlot";
 import type { OutlineVersionDto } from "@/app/types/aiStory";
@@ -63,7 +63,7 @@ export default function OutlinePanel({ storyId, version, editable, visible, onRe
   };
 
   // Nút duyệt nằm trên thanh tiến trình. Đang xem tab khác thì bấm sẽ đưa về tab dàn ý để xem trước khi duyệt.
-  useRegisterApprove(editable && version ? {
+  const approveInBar = useRegisterApprove(editable && version ? {
     label: visible ? "Duyệt dàn ý và viết truyện" : "Xem dàn ý để duyệt",
     disabled: visible ? busy || incomplete : false,
     reason: visible && incomplete ? "Dàn ý cần có tiêu đề và đủ ba phần, kể cả kết thúc." : null,
@@ -98,7 +98,9 @@ export default function OutlinePanel({ storyId, version, editable, visible, onRe
             <button className="btn btn-s grow btn-c" disabled={busy || !dirty} onClick={() => void save()}>Lưu chỉnh sửa</button>
             <button className="btn btn-s grow btn-c" disabled={busy} onClick={() => void regenerate()}><RefreshCw className="ic" />Viết lại</button>
           </div>
-          <p className="hint">Hài lòng với dàn ý thì bấm dấu ✓ trên thanh tiến trình, AI sẽ viết truyện.</p>
+          {approveInBar
+            ? <p className="hint">Hài lòng với dàn ý thì bấm dấu ✓ trên thanh tiến trình, AI sẽ viết truyện.</p>
+            : <button className="btn btn-ok btn-c" disabled={busy || incomplete} onClick={approve}><Check className="ic" />Duyệt dàn ý và viết truyện</button>}
         </>
       )}
     </div>

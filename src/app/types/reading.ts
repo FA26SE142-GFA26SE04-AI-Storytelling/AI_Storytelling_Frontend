@@ -49,7 +49,8 @@ export interface LibraryStory {
   lesson: string | null;
   coverImageUrl: string | null;
   /** Nguồn: truyện riêng của bé / bố mẹ chọn / thư viện chung / cộng đồng. */
-  source: 'own' | 'roadmap' | 'public_library' | 'community';
+  /** family: truyện bố mẹ tự viết đã giao cho bé. */
+  source: 'own' | 'roadmap' | 'public_library' | 'community' | 'family';
   lengthCategory: 'short' | 'medium' | 'long' | null;
   readingLevel: number | null;
   /** Khó hơn mức của bé ≥ 2 bậc (Luồng 3 Bước 3.1). */
@@ -80,6 +81,8 @@ export interface RoadmapView {
   openStoryId: number | null;
   note: string | null;
   dueAt: string | null;
+  /** Truyện đang mở bị khoá (backend không nêu lý do; ví dụ đang Hold Mode). */
+  openLocked?: boolean;
   done: number;
   total: number;
   queued: { storyId: number; title: string }[];
@@ -100,6 +103,8 @@ export interface KidHome {
   roadmap: RoadmapView | null;
   holdMode: HoldModeView | null;
   wishes: StoryWish[];
+  /** Truyện cộng đồng (`/CommunityLibrary`, phiên bé). Backend chưa có API đọc nội dung nên chỉ hiện để biết trước. */
+  community?: { submissionId: number; title: string; description: string | null }[];
 }
 
 export interface StartSessionResult {

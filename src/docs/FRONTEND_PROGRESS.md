@@ -9,6 +9,8 @@ Ký hiệu:
 - `[ ]` chưa làm
 - `[ ]` có ghi **Một phần**: đã làm được một phần, ghi rõ phần còn thiếu
 
+> Cập nhật sau khi hợp nhất 22/10/2026: runtime mock, `*Local.ts` và chế độ đọc mô phỏng đã được xóa. Chức năng chưa có API trả trạng thái chưa hỗ trợ. Những mô tả dữ liệu mẫu bên dưới là ghi chép lịch sử; đối chiếu hiện tại xem [core-api-completion.md](core-api-completion.md) và [backend-api-integration-result.md](backend-api-integration-result.md). Kiểm thử dùng network doubles, chưa xác thực backend/database chạy thật.
+
 ## Tổng quan
 
 | Luồng | % hoàn thành |
@@ -16,10 +18,28 @@ Ký hiệu:
 | L1 — Hồ sơ trẻ & giám sát | ~95% — gọi API thật, không còn mock (còn: tên/email người giám sát, phiên bé tự hết hạn) |
 | L2 — Sinh truyện AI | ~70% — gọi API thật, không còn mock (phần còn lại chờ backend; danh sách truyện chưa lọc được theo bé) |
 | L3 — Trẻ đọc truyện | ~80% giao diện; nội dung truyện lấy thật, dữ liệu đọc (tiến độ, câu đố, EXP) chờ backend — backend chưa có API nào của Luồng 3 |
-| L4 — Lộ trình, theo dõi, Hold Mode | ~85% giao diện (dữ liệu chờ backend — backend chỉ có API thông báo) |
-| L5 — Admin / Content Creator / Moderator | ~80% giao diện; mọi API backend đã có đều gọi thật (còn chờ backend: quyết định kiểm duyệt, gửi duyệt truyện Creator, các mục quản trị chưa có API) |
+| L4 — Lộ trình, theo dõi, Hold Mode | ~85% giao diện; lộ trình, kho bộ truyện mẫu, report, nộp cộng đồng và thông báo gọi API thật (21/10/2026); dashboard, Hold Mode, điều ước còn chờ backend |
+| L5 — Admin / Content Creator / Moderator | ~80% giao diện; mọi API backend đã có đều gọi thật (quyết định kiểm duyệt đã nối API 21/10/2026 trừ truyện vùng xám; bộ truyện mẫu và phát hành truyện Creator nối API 22/10/2026; còn chờ: các mục quản trị chưa có API) |
 | L6 — Học tập thích ứng | Core xong giao diện (dữ liệu chờ backend — backend chưa có API nào của Luồng 6); Optional chưa làm |
 | **Tổng (có trọng số theo số chức năng)** | **~72%** trước khi làm L6 — chưa tính lại |
+
+### Cập nhật 22/10/2026 — nối các API backend chưa có màn
+
+| Phần | Màn / file | API |
+| :--- | :--- | :--- |
+| Phụ huynh tự viết truyện, giao cho con | Studio → tab "Tự viết" (`features/studio/WriteStoryPanel.tsx`, `GiveToChild.tsx`; trình soạn dùng chung `features/staff/CreatorEditor.tsx`) | `/parent/stories/*`: tạo, lưu phiên bản, nhập, khôi phục, kiểm tra → tự xác nhận → chuẩn bị → giao / thu hồi |
+| Bé đọc truyện bố mẹ viết | Kệ của bé (`readingService.getHome`, `getPackage`) | `/child/manual-stories`, `/{confirmationId}/package` (cần phiên bé) |
+| Gợi ý cách viết | Trình soạn của phụ huynh (`features/staff/AuthoringGuides.tsx`) | `/authoring-guides`, `/{id}/render` |
+| Hỏi AI khi soạn | Trình soạn của Creator và phụ huynh (`features/staff/AssistancePanel.tsx`) | `/creator/stories/{id}/assistance-tasks/*` và `/parent/stories/{id}/assistance-tasks/*`; lưu kèm `assistanceReferences` |
+| Creator tạo truyện bằng AI | "Truyện mẫu của tôi" → "Tạo bằng AI" (`features/staff/CreatorAiStudio.tsx`) | `/creator/ai-story-input/*`; dàn ý / nội dung / media dùng chung; `generation/confirm-content` thay cho duyệt |
+| Thư viện cộng đồng | Kệ của bé, mục "Truyện của các bạn khác" | `GET /CommunityLibrary` — **backend chưa có API đọc nội dung**, thẻ đang khoá |
+| Rà soát nội dung đã công khai | Moderator → "Nội dung đã công khai" (`features/staff/PublishedContent.tsx`) | `/PublishedContentReview/*`, `/ModerationQueue/review-views` |
+| So sánh phiên bản khi duyệt lại | Khung duyệt truyện Public Library | `/PublicStoryReview/{id}/compare` |
+| Gói tạo truyện, lịch sử hoạt động | Tài khoản (`features/account/PlansSection.tsx`, `AuditLogList.tsx`) | `/Payment/plans`, `/Payment/transactions`, `/Auth/me/audit-log` |
+| Lịch sử thay đổi, khôi phục hồ sơ bé | Hồ sơ bé | `/ChildProfile/{id}/audit-log`, `PATCH /ChildProfile/{id}/restore` — backend chưa liệt kê hồ sơ đã lưu trữ nên chỉ khôi phục được hồ sơ vừa lưu trữ trên trình duyệt này |
+| Kiểm tra tự duyệt, lịch sử dàn ý, vẽ lại tranh | Màn duyệt, khung dàn ý, bước media | `review/auto-publish-check`, `outline/versions`, `media/illustration-beats/{id}/regenerate` |
+
+Không nối (có phương án khác hoặc là route cũ): `Permission/*` trùng Supervision, bản POST/DELETE của LearningProfile và SafetyPolicy, CRUD `Story` cũ, `ContentCategory/{id}` GET/DELETE, webhook thanh toán.
 
 ## Việc chặn cần sửa ngay
 
@@ -275,6 +295,8 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 
 ## Luồng 4 — Lộ trình, theo dõi, Hold Mode (~85% giao diện; dữ liệu chờ backend)
 
+> **Cập nhật 21/10/2026:** đã nối API thật cho lộ trình (`/ChildRoadmap`), kho bộ truyện mẫu (`/RoadmapLibrary`, chép bộ bằng `copy`), report (`/ContentReport`) và nộp cộng đồng (`/CommunitySubmission` — kiểm tra, nộp, rút, gỡ, danh sách của tôi). Mỗi nhóm API đề xuất còn lại (dashboard, Hold Mode, tiến độ, báo cáo tuần, điều ước) tự rơi về dữ liệu cục bộ riêng, không kéo theo nhóm khác. Backend chưa có API liệt kê report của phụ huynh và API dùng truyện có sẵn cho điều ước.
+
 > **Lưu ý:** backend chưa có API cho lộ trình, Hold Mode, dashboard, báo cáo tuần, report và thư viện cộng đồng (bảng lộ trình vẫn là `assignments` cũ; đã kiểm `origin/main` ngày 18/10/2026). API thật duy nhất của luồng này là `Notification`. Frontend gọi theo hợp đồng đề xuất trong `app/services/guardianService.ts`; khi backend chưa có thì dùng `app/services/guardianLocal.ts`. Bộ máy này dùng chung dữ liệu với phần đọc của bé (Luồng 3), nên trên cùng trình duyệt: bé đọc xong → lộ trình tự mở truyện kế; điểm câu đố thấp → Hold Mode; dashboard lấy số liệu thật từ các lần bé đọc. Dữ liệu chưa lưu lên máy chủ.
 
 **Lộ trình của con (Bước 4.1–4.1d)** — màn `Lộ trình của con`
@@ -290,7 +312,8 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 - [x] Thông báo `roadmap_story_added`, `roadmap_story_removed`, `roadmap_completed`
 - [ ] Kiểm tra chủ đề bị chặn của từng bé khi thêm — **chờ backend** trả nhãn nội dung của truyện
 - [ ] Thêm truyện của anh chị em (BR-4.A2) — giao diện mới chọn được truyện của bé đang xem
-- [ ] Bộ truyện mẫu thật (từ Content Creator) — **chờ Luồng 5**; hiện dùng 2 bộ mẫu
+- [x] Bộ truyện mẫu thật từ `/RoadmapLibrary`, xem trước bé nào / truyện nào được chép (`preview`) rồi mới chép (22/10/2026)
+- [x] Chế độ của bé: mục "Bố mẹ chọn cho em" lấy từ `GET /MyRoadmap` khi có phiên bé (22/10/2026)
 
 **Theo dõi & trò chuyện sau đọc (Bước 4.3b, 4.3c)** — màn `Tổng quan` (Dashboard)
 - [x] Tab "Tất cả các con" (tóm tắt mỗi con 1 dòng) và tab riêng từng con
@@ -402,7 +425,8 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 - [x] Một hàng đợi cho 5 loại mục (`ModerationQueue`), lọc Đang chờ / Tôi đang xử lý / Đã xử lý, mức ưu tiên, hạn SLA, báo quá hạn
 - [x] "Nhận xử lý" (khoá 2 giờ, tự trả về; không nhận được mục do chính mình tạo); mở mục đang nhận xem cờ cảnh báo, checklist và nội dung truyện
 - [x] Administrator: xem ca được chuyển lên; backend chỉ cho nhận mục khi không còn Moderator hợp lệ
-- [ ] Ra quyết định (Duyệt / Yêu cầu sửa / Từ chối / Cho qua / Chặn / Lưu trữ / Bỏ qua / Chuyển lên), bắt buộc lý do, sửa nhãn và thẻ ước, "Trả lại" — **chờ backend** (chưa có API; giao diện đang khoá phần quyết định)
+- [x] Ra quyết định theo loại mục (`features/staff/ReviewPanels.tsx`): truyện Public Library (xem cảnh, nghe audio, gỡ cờ, checklist 8 tiêu chí, nhãn, Duyệt / Yêu cầu sửa theo phần / Từ chối), thư viện cộng đồng, bộ truyện mẫu, report (Không vi phạm / Gỡ truyện / Chuyển lên), yêu cầu gỡ truyện của Creator
+- [ ] Truyện vùng xám và "Trả lại" mục — **chờ backend** (chưa có API)
 - [ ] Đọc nội dung truyện Content Creator khi duyệt — **chờ backend** (`GET /Story/{id}` chỉ trả truyện phạm vi phụ huynh)
 - [ ] Truyện nhiều lựa chọn: bắt buộc mở mọi kết thúc trước khi duyệt — **chờ** truyện nhiều lựa chọn
 - [ ] So sánh với bản đã gửi trước khi duyệt lại — **chờ backend**
@@ -414,7 +438,8 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 - [x] Chống ghi đè: gửi `revisionToken` + `baseVersionId`; 409 thì giữ nội dung đang sửa và cho đồng bộ; mất mạng thì thử lại đúng lệnh cũ (cùng `operationId`); phần gõ thêm trong lúc lưu không bị đánh dấu đã lưu
 - [x] Cảnh báo thông tin cá nhân trong truyện
 - [ ] Gửi Moderator duyệt, rút yêu cầu, xem phản hồi, gỡ khỏi Thư viện chung, xoá truyện, sửa nhóm tuổi sau khi tạo — **chờ backend**
-- [x] Bộ truyện mẫu: chỉ chứa truyện đang công khai; lưu nháp, gửi duyệt, nhân bản bản đã công khai, lưu trữ; cảnh báo cần sửa — dữ liệu cục bộ, **chờ backend**
+- [x] Bộ truyện mẫu (`features/staff/RoadmapTemplates.tsx`, API `/RoadmapTemplate`): **backend chỉ cho Moderator soạn** nên màn này chuyển từ Content Creator sang Moderator (22/10/2026). Nháp, chọn truyện ứng viên, sắp thứ tự, kiểm tra, gửi duyệt, rút, nhân bản, lưu trữ, nháp bị bỏ dở
+- [x] Phát hành truyện Creator (`features/staff/CreatorPublication.tsx`): gửi duyệt, rút, xin gỡ, tạo bản sửa (22/10/2026). Truyện soạn thủ công chưa có bước nào lên trạng thái `Ready` nên backend vẫn từ chối gửi duyệt — **chờ backend**
 - [ ] Trợ lý AI cho Creator (`CreatorAssistance`, 10 API backend đã có) — **để đợt sau**
 
 **Bộ dữ liệu & đánh giá AI (Bước 5.10)** — dữ liệu cục bộ, **chờ backend**
@@ -434,7 +459,7 @@ Cập nhật 17/10/2026: toàn bộ Luồng 2 gọi **API thật**, đã gỡ d�
 | Chỉ số AI, nhật ký sinh truyện | Bước 5.2, 5.2b | Chưa có API |
 | Thẻ ước, bài học, nhân vật mẫu, Prompt Catalog có phiên bản | Bước 5.3 | Chỉ có `ContentCategory` |
 | Quyết định kiểm duyệt, trả lại mục, đọc nội dung truyện Creator khi duyệt | Bước 5.7 | `ModerationQueue` mới có danh sách, nhận xử lý, mở mục; `review-views` chưa được dùng |
-| Gửi duyệt / rút / gỡ / xoá truyện Creator; Roadmap Template | Bước 5.8, 5.9 | `creator/stories` chỉ có soạn, phiên bản, khôi phục, nhập |
+| Đưa truyện Creator soạn thủ công lên `Ready` (tạo media) để gửi duyệt; xoá truyện Creator | Bước 5.8 | Gửi duyệt đòi `Ready` + media xong; manual save không tự tạo media |
 | Bộ đánh giá AI (prompt, lượt chạy sandbox, điểm chấm) | Bước 5.10 | Chưa có API |
 | Danh sách báo cáo nghiệp vụ cũ | Bước 5.5 | Chỉ có `latest-published` |
 

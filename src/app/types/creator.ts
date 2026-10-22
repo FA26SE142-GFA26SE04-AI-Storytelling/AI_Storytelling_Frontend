@@ -5,8 +5,6 @@ export type CreatorAgeBand = '6-8' | '9-10';
 export type ExperienceMode = 'reading' | 'listening' | 'combined';
 
 export interface CreatorDraft {
-  source?: string;
-  status?: string;
   storyId: number;
   authorUserId: number;
   title: string;
@@ -23,7 +21,26 @@ export interface CreatorDraft {
   lastVersionNo: number;
   createdAt: string;
   updatedAt: string | null;
+  /** "Manual" hoặc "Ai". */
+  source?: string;
+  /** Trạng thái truyện của backend: Draft, ContentReview, MediaProcessing, Ready, Archived… */
+  status?: string;
 }
+
+/** `GET /creator/stories/{id}/publication`. `reviewStatus`: None, Pending, Approved, ChangesRequested, Rejected. */
+export interface CreatorPublication {
+  storyId: number;
+  versionId: number;
+  isPublished: boolean;
+  reviewStatus: string;
+  openItemId: number | null;
+  /** PublicStoryReview (duyệt phát hành) hoặc PublicStoryRemoval (yêu cầu gỡ). */
+  openItemType: string | null;
+  /** Pending hoặc Claimed. */
+  openItemStatus: string | null;
+}
+
+export interface CreatorPublicationResult { storyId: number; versionId: number; itemId: number | null; status: string; revisionToken: string }
 
 export interface CreatorVersion {
   versionId: number;
@@ -59,5 +76,8 @@ export interface CreateDraftInput { title: string; description: string; ageBand:
 
 export interface SaveVersionInput { assistanceReferences?: import('@/app/types/backendContracts').AssistanceReference[]; title: string; content: string; sourceDeclaration: string; rightsDeclaration: string }
 
-/** Kết quả một lệnh gọi: `status` 0 = không kết nối được (server có thể đã ghi — thử lại với cùng operationId). */
-export interface CreatorResult<T> { ok: boolean; status: number; message: string; data: T | null }
+/**
+ * Kết quả một lệnh gọi: `status` 0 = không kết nối được (server có thể đã ghi — thử lại với cùng operationId).
+ * `code`: mã lỗi ổn định của backend (errors[0] hoặc message dạng MÃ_LỖI), dùng để quyết định UX thay cho câu chữ.
+ */
+export interface CreatorResult<T> { ok: boolean; status: number; message: string; data: T | null; code?: string }
