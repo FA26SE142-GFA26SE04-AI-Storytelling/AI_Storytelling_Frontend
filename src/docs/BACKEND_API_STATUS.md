@@ -1,5 +1,7 @@
 # Trạng thái gắn API backend vào Frontend
 
+> Bản thống kê bên dưới là lịch sử ngày 17/10/2026. Thay đổi kết nối ngày 21/10/2026 được ghi tại [backend-api-integration-result.md](backend-api-integration-result.md); không dùng số lượng hoặc kết luận thiếu API ở bảng cũ để đánh giá source hiện tại.
+
 Cập nhật: 17/10/2026. Đối chiếu controller của `AI_Storytelling_Backend` (commit `f36ff56`) với code trong `app/services` và màn hình trong `app/features`, xếp theo thứ tự luồng như [FRONTEND_PROGRESS.md](FRONTEND_PROGRESS.md).
 
 Tất cả đường dẫn dưới đây đều có tiền tố `/api/v1` (Core API, `API_BASE_URL`).
