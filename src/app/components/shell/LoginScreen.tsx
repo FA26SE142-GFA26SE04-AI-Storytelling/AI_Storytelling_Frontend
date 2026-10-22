@@ -42,12 +42,13 @@ function modeFromUrl(params: URLSearchParams): Mode | null {
   return null;
 }
 
-export default function LoginScreen() {
+/** `initialMode`: mở thẳng biểu mẫu đăng nhập hoặc đăng ký (từ trang giới thiệu). `onHome`: có thì hiện nút về trang giới thiệu. */
+export default function LoginScreen({ initialMode = "login", onHome }: { initialMode?: "login" | "register"; onHome?: () => void } = {}) {
   const cardRef = useRiseIn<HTMLFormElement>(":scope > *", []);
   const { login, register, forgotPassword, resetPassword, verifyMfa, backendOnline, backendStatusMessage } = useAuth();
   const [mfa, setMfa] = useState<{ challenge: string; uri: string | null } | null>(null);
   const [cr, setCr] = useState({ expertise: "", years: 1, note: "", portfolio: "", commit: false });
-  const [mode, setMode] = useState<Mode>("login");
+  const [mode, setMode] = useState<Mode>(initialMode);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const [f, setF] = useState({ identifier: "", password: "", username: "", email: "", fullName: "", confirm: "", token: "" });
@@ -138,6 +139,7 @@ export default function LoginScreen() {
   return (
     <div className="login-wrap">
       <PondBackdrop />
+      {onHome && <button type="button" className="btn btn-g login-home" onClick={onHome}>← Trang giới thiệu</button>}
       <form ref={cardRef} className="login-card" onSubmit={submit}>
         <span className="login-frog"><Frog size={110} mood="happy" /></span>
         <h1 className="display">{TITLES[mode]}</h1>
@@ -171,8 +173,11 @@ export default function LoginScreen() {
           </>
         )}
         {needsPassword && (
-          <label className="field"><span className="lbl">{mode === "reset" || mode === "activate" ? "Mật khẩu mới" : "Mật khẩu"}</span>
-            <input className="inp" type="password" required value={f.password} onChange={set("password")} autoComplete={mode === "login" ? "current-password" : "new-password"} /></label>
+          <>
+            <label className="field"><span className="lbl">{mode === "reset" || mode === "activate" ? "Mật khẩu mới" : "Mật khẩu"}</span>
+              <input className="inp" type="password" required value={f.password} onChange={set("password")} autoComplete={mode === "login" ? "current-password" : "new-password"} /></label>
+            {mode === "login" && <button type="button" className="login-forgot" onClick={() => go("forgot")}>Quên mật khẩu?</button>}
+          </>
         )}
         {needsConfirm && (
           <label className="field"><span className="lbl">Nhập lại mật khẩu</span><input className="inp" type="password" required value={f.confirm} onChange={set("confirm")} autoComplete="new-password" /></label>
@@ -203,15 +208,25 @@ export default function LoginScreen() {
 
         <button className="btn btn-p btn-c" style={{ padding: 10 }} disabled={busy}>{busy ? "Đang xử lý…" : SUBMIT_LABELS[mode]}</button>
 
-        <div className="login-links">
-          {mode !== "login" && <button type="button" onClick={() => go("login")}>Quay lại đăng nhập</button>}
-          {mode === "login" && <button type="button" onClick={() => go("register")}>Tạo tài khoản</button>}
-          {mode === "login" && <button type="button" onClick={() => go("forgot")}>Quên mật khẩu?</button>}
-          {mode === "login" && <button type="button" onClick={() => go("verify")}>Xác thực email</button>}
-          {mode === "login" && <button type="button" onClick={() => go("creator")}>Đăng ký làm Content Creator</button>}
-          {mode === "login" && <button type="button" onClick={() => go("activate")}>Kích hoạt tài khoản vận hành</button>}
-          {mode === "verify" && <button type="button" disabled={busy} onClick={() => void resend()}>Gửi lại mã</button>}
-        </div>
+        {mode === "login" ? (
+          <>
+            <p className="login-alt">Chưa có tài khoản? <button type="button" onClick={() => go("register")}>Tạo tài khoản</button></p>
+            <p className="login-alt small">Đã đăng ký nhưng chưa nhận mã? <button type="button" onClick={() => go("verify")}>Xác thực email</button></p>
+            {/* Lối vào của đội ngũ: tách riêng, nhỏ hơn, để phụ huynh không bị rối. */}
+            <div className="login-staff">
+              <span>Dành cho đội ngũ nội dung</span>
+              <div>
+                <button type="button" onClick={() => go("creator")}>Đăng ký làm Content Creator</button>
+                <button type="button" onClick={() => go("activate")}>Kích hoạt tài khoản vận hành</button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="login-links">
+            {mode === "verify" && <button type="button" disabled={busy} onClick={() => void resend()}>Gửi lại mã</button>}
+            <button type="button" onClick={() => go("login")}>Quay lại đăng nhập</button>
+          </div>
+        )}
       </form>
     </div>
   );

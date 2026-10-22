@@ -18,6 +18,7 @@ import ChildrenWorkspace from "@/app/features/children/ChildrenWorkspace";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import RoadmapWorkspace from "@/app/features/roadmap/RoadmapWorkspace";
 import StaffApp from "@/app/features/staff/StaffApp";
+import Landing from "@/app/features/landing/Landing";
 import { isStaffRole } from "@/app/types/auth";
 import { transitionWorkspace, useClickRipple } from "@/app/lib/motion";
 // Nạp sau cùng để ghi đè CSS của các màn trên điện thoại.
@@ -67,13 +68,16 @@ export default function HomePage() {
   const [booted, setBooted] = useState(false);
   // Bé quét mã QR Easy Login: link có dạng /?kid=<mã>, không cần tài khoản người lớn.
   const [kidCode, setKidCode] = useState<string | null>(null);
+  const [entry, setEntry] = useState<"login" | "register" | null>(null);
 
   useEffect(() => {
     if (!isLoading) setBooted(true);
   }, [isLoading]);
 
   useEffect(() => {
-    setKidCode(new URLSearchParams(window.location.search).get("kid"));
+    const params = new URLSearchParams(window.location.search);
+    setKidCode(params.get("kid"));
+    if (params.get("auth") || params.get("token") || params.get("resetToken")) setEntry(params.get("auth") === "signup" ? "register" : "login");
   }, []);
 
   const leaveKid = () => {
@@ -83,7 +87,8 @@ export default function HomePage() {
 
   if (kidCode) return <KidEntry code={kidCode} onDone={leaveKid} />;
   if (!booted && !user) return <div className="splash">Đang kiểm tra phiên đăng nhập…</div>;
-  if (!user) return <LoginScreen />;
+  // Chưa đăng nhập: trang giới thiệu. Link trong email (?auth=…, token) mở thẳng biểu mẫu tương ứng.
+  if (!user) return entry ? <LoginScreen key={entry} initialMode={entry} onHome={() => setEntry(null)} /> : <Landing onStart={setEntry} />;
   // Luồng 5 — Administrator, Moderator, Content Creator dùng khu riêng, tách khỏi Parent.
   if (isStaffRole(user.role)) return <StaffApp role={user.role} />;
   return (
