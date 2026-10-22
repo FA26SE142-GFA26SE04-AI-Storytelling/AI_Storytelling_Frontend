@@ -8,7 +8,7 @@ import { authService } from './authService';
 /**
  * Luồng 5 Bước 5.8 — Content Creator soạn truyện thủ công (`/creator/stories`).
  * Mỗi lệnh ghi có `operationId` riêng: khi mất mạng / timeout, thử lại với **cùng** operationId và payload (server có thể đã ghi).
- * Backend chưa có gửi duyệt, rút, gỡ, xuất bản hay xoá truyện Creator.
+ * Phát hành và media được nối riêng trong creatorPublicationService.
  */
 async function send<T>(path: string, fallback: string, init: { method?: string; body?: unknown; form?: FormData } = {}): Promise<CreatorResult<T>> {
   try {

@@ -1,6 +1,8 @@
 import { ApiResponse } from '@/app/types/auth';
 import * as D from '@/app/types/aiStory';
 import { authService } from './authService';
+import type { ConfirmCreatorContentResponseDto } from '@/app/types/backendContracts';
+import { apiRequest } from './apiClient';
 import { API_BASE_URL } from './apiConfig';
 import { validStoryPayload } from './aiStoryContractValidation';
 
@@ -92,6 +94,7 @@ const review = (id: number) => `${story(id)}/review`;
 const outline = (id: number) => `${story(id)}/outline`;
 
 export const aiStoryCreationService = {
+  autoPublishCheck: (id: number) => apiRequest<D.ApproveResponseDto | null>(`/stories/${id}/review/auto-publish-check`, 'Không kiểm tra được điều kiện duyệt tự động.', {method:'POST'}),
   getCreationContext: (id: number, signal?: AbortSignal) => request<D.AIStoryInputContextDto>(`/ai-story-input/children/${id}/context`, 'GET', undefined, signal),
   submitInput: (input: D.SubmitAIStoryInputRequestDto, signal?: AbortSignal) => request<D.AIStoryInputProgressDto>('/ai-story-input/requests', 'POST', input, signal),
   getInputProgress: (id: number, requestId: number, signal?: AbortSignal) => request<D.AIStoryInputProgressDto>(`/ai-story-input/stories/${id}/requests/${requestId}`, 'GET', undefined, signal),
@@ -119,6 +122,7 @@ export const aiStoryCreationService = {
   completeStoryReview: (id: number, signal?: AbortSignal) => request<boolean>(`${review(id)}/story/complete`, 'POST', undefined, signal),
   completeReview: (id: number, artifact: D.ReviewArtifact, signal?: AbortSignal) => request<boolean>(`${review(id)}/${artifact}/complete`, 'POST', undefined, signal),
   validateReview: (id: number, signal?: AbortSignal) => request<D.ValidationResultDto>(`${review(id)}/validation`, 'GET', undefined, signal),
+  confirmCreatorContent: (id: number, versionId: number, signal?: AbortSignal) => apiRequest<ConfirmCreatorContentResponseDto>(`/creator/stories/${id}/generation/confirm-content`, 'Không xác nhận được nội dung.', { method: 'POST', body: { versionId }, signal }),
   approveStory: (id: number, signal?: AbortSignal) => request<D.ApproveResponseDto>(`${review(id)}/approve`, 'POST', undefined, signal),
   archiveStory: (id: number, input: D.ArchiveRequestDto, signal?: AbortSignal) => request<D.ArchiveResponseDto>(`${review(id)}/archive`, 'POST', input, signal),
   partialEditStory: (id: number, input: D.PartialEditRequestDto, signal?: AbortSignal) => request<D.CreateProposalResponseDto>(`${review(id)}/story/ai/partial-edit`, 'POST', input, signal),

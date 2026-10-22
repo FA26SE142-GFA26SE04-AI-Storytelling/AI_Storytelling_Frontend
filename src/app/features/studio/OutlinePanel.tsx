@@ -5,6 +5,7 @@ import { Flag, Flower2, Footprints, RefreshCw, type LucideIcon } from "lucide-re
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import { useRegisterApprove } from "@/app/features/story-workflow/approveSlot";
 import type { OutlineVersionDto } from "@/app/types/aiStory";
+import OutlineHistory from './OutlineHistory';
 
 type BeatKey = "opening" | "development" | "ending";
 const BEATS: [BeatKey, string, string, LucideIcon][] = [
@@ -88,6 +89,7 @@ export default function OutlinePanel({ storyId, version, editable, visible, onRe
           </div>
         ))}
       </div>
+      <OutlineHistory key={storyId} storyId={storyId}/>
       {err && <div className="notice err" role="alert">{err}</div>}
       {editable && incomplete && <div className="notice warn">Dàn ý cần có tiêu đề và đủ ba phần, kể cả kết thúc.</div>}
       {editable && (

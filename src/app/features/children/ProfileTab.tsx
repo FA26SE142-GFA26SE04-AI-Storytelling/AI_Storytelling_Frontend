@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import ActivitySection from '@/app/features/account/ActivitySection';
+import ProfileMaintenance from './ProfileMaintenance';
 import { Archive, Check, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
 import DataRequestSection from "./DataRequestSection";
@@ -154,6 +156,8 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
       )}
 
       {isOwner && <DataRequestSection child={child} />}
+      <ProfileMaintenance key={`maintenance:${child.id}`} child={child} isOwner={isOwner} onChanged={onChanged} />
+      <ActivitySection key={`audit:${child.id}`} childId={child.id} />
 
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
     </div>

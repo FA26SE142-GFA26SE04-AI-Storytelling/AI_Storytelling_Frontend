@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { CircleAlert, Lock, ShieldAlert } from "lucide-react";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
-import { copyrightHits, GENRES, SAMPLE_CHARACTERS, SAMPLE_SETTINGS } from "@/app/lib/storyRules";
+import { copyrightHits, GENRES } from "@/app/lib/storyRules";
 import { STUDIO_PREFILL_KEY } from "@/app/features/home/WishItem";
 import {
   clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, outputModesOf, vocabularyTone,
@@ -79,16 +79,13 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   const pii = piiMessage(detectPii([values.topic, values.charactersText, values.setting, values.lesson].join("\n"), context.childNickname));
   const tone = vocabularyTone(values.vocabularyLevel, context.defaultVocabularyLevel);
   const copyright = copyrightHits([values.topic, values.charactersText, values.setting, values.lesson].join("\n"));
-  const chars = values.charactersText.split(",").map((c) => c.trim()).filter(Boolean);
-  const addChar = (c: string) => !chars.includes(c) && updateValues({ charactersText: [...chars, c].join(", ") });
   const modes = outputModesOf(context);
 
-  const text = (k: TextKey, label: string, placeholder: string, required = false, samples?: ReactNode) => (
+  const text = (k: TextKey, label: string, placeholder: string, required = false) => (
     <div className="field">
       <span className="lbl row" style={{ justifyContent: "space-between" }}>{label}<em className="count">{values[k].length}/{FREE_TEXT_MAX}</em></span>
       <input className="inp" aria-label={label} disabled={locked} required={required} maxLength={FREE_TEXT_MAX} value={values[k]} placeholder={placeholder}
         onChange={(e) => updateValues({ [k]: e.target.value } as Partial<AIStoryInputFormValues>)} />
-      {!locked && samples}
     </div>
   );
 
@@ -115,10 +112,8 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
           <div className="field"><span className="lbl">Thể loại</span>
             <div className="chips">{GENRES.map((g) => <button type="button" key={g} disabled={locked} className={`chip${values.genre === g ? " on" : ""}`} onClick={() => updateValues({ genre: g })}>{g}</button>)}</div></div>
 
-          {text("charactersText", "Nhân vật (cách nhau bằng dấu phẩy; để trống để AI gợi ý)", "Sóc Bông, Thỏ Trắng", false,
-            <div className="chips">{SAMPLE_CHARACTERS.filter((c) => !chars.includes(c)).slice(0, 6).map((c) => <button type="button" key={c} className="chip sm" onClick={() => addChar(c)}>+ {c}</button>)}</div>)}
-          {text("setting", "Bối cảnh (để trống để AI gợi ý)", "Khu rừng tre ven hồ sen", false,
-            !values.setting && <div className="chips">{SAMPLE_SETTINGS.map((v) => <button type="button" key={v} className="chip sm" onClick={() => updateValues({ setting: v })}>{v}</button>)}</div>)}
+          {text("charactersText", "Nhân vật (cách nhau bằng dấu phẩy; để trống để AI gợi ý)", "Sóc Bông, Thỏ Trắng", false)}
+          {text("setting", "Bối cảnh (để trống để AI gợi ý)", "Khu rừng tre ven hồ sen", false)}
         </div>
 
         <div className="brief-col">

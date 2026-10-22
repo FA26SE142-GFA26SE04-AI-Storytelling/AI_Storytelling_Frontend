@@ -39,12 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setBackendOnline(health.isOnline);
     setBackendStatusMessage(health.message);
 
-    // Nếu Backend Offline -> xóa sạch session và out tài khoản
-    if (!health.isOnline) {
-      authService.clearStoredAuth();
-      setUser(null);
-      setAccessToken(null);
-    }
+    // Reachability is informational; a network outage must not revoke stored credentials.
   }, []);
 
   // Đăng ký listener và khởi tạo trạng thái phiên đăng nhập khi tải trang
@@ -62,14 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setBackendOnline(health.isOnline);
       setBackendStatusMessage(health.message);
 
-      // Nếu Server Backend đang Offline: Xóa toàn bộ dữ liệu lưu trữ và out tài khoản
-      if (!health.isOnline) {
-        authService.clearStoredAuth();
-        setUser(null);
-        setAccessToken(null);
-        setIsLoading(false);
-        return;
-      }
+      // Continue checking the actual authenticated endpoint even when Swagger is unavailable.
 
       // 2. Server Online: Đọc Token & User từ LocalStorage
       const token = authService.getStoredAccessToken();
@@ -98,8 +86,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (profileRes.success && profileRes.data) {
         setUser(profileRes.data);
         setAccessToken(authService.getStoredAccessToken());
-      } else {
-        // Xác minh thất bại -> Xóa sạch và out tài khoản
+      } else if (profileRes.status === 401 || profileRes.status === 403) {
+        // Only a definitive authentication rejection clears the adult session.
         authService.clearStoredAuth();
         setUser(null);
         setAccessToken(null);

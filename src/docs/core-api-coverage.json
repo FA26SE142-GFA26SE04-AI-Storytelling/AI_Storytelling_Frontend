@@ -1,0 +1,5616 @@
+[
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/register",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/register",
+        "service": "authService",
+        "operation": "register",
+        "file": "app/services/authService.ts",
+        "line": 260,
+        "callers": [
+          "app/context/AuthContext.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/login",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/login",
+        "service": "authService",
+        "operation": "login",
+        "file": "app/services/authService.ts",
+        "line": 66,
+        "callers": [
+          "app/context/AuthContext.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/mfa/verify",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/mfa/verify",
+        "service": "authService",
+        "operation": "verifyMfa",
+        "file": "app/services/authService.ts",
+        "line": 114,
+        "callers": [
+          "app/context/AuthContext.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/staff-activation",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/staff-activation",
+        "service": "accountService",
+        "operation": "activateStaff",
+        "file": "app/services/accountService.ts",
+        "line": 14,
+        "callers": [
+          "app/components/shell/LoginScreen.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/verify-email",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/verify-email",
+        "service": "accountService",
+        "operation": "verifyEmail",
+        "file": "app/services/accountService.ts",
+        "line": 9,
+        "callers": [
+          "app/components/shell/LoginScreen.tsx"
+        ]
+      },
+      {
+        "key": "POST /api/v1/Auth/verify-email",
+        "service": "authService",
+        "operation": "verifyEmail",
+        "file": "app/services/authService.ts",
+        "line": 286,
+        "callers": []
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/resend-verification-email",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/resend-verification-email",
+        "service": "accountService",
+        "operation": "resendVerificationEmail",
+        "file": "app/services/accountService.ts",
+        "line": 18,
+        "callers": [
+          "app/components/shell/LoginScreen.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/forgot-password",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/forgot-password",
+        "service": "authService",
+        "operation": "forgotPassword",
+        "file": "app/services/authService.ts",
+        "line": 312,
+        "callers": [
+          "app/context/AuthContext.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/reset-password",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/reset-password",
+        "service": "authService",
+        "operation": "resetPassword",
+        "file": "app/services/authService.ts",
+        "line": 338,
+        "callers": [
+          "app/context/AuthContext.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/change-password",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/change-password",
+        "service": "accountService",
+        "operation": "changePassword",
+        "file": "app/services/accountService.ts",
+        "line": 24,
+        "callers": [
+          "app/features/account/AccountWorkspace.tsx"
+        ]
+      },
+      {
+        "key": "POST /api/v1/Auth/change-password",
+        "service": "authService",
+        "operation": "changePassword",
+        "file": "app/services/authService.ts",
+        "line": 419,
+        "callers": [
+          "app/context/AuthContext.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/refresh-token",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/refresh-token",
+        "service": "authService",
+        "operation": "refreshToken",
+        "file": "app/services/authService.ts",
+        "line": 155,
+        "callers": [
+          "app/context/AuthContext.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Auth/me",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Auth/me",
+        "service": "authService",
+        "operation": "getProfile",
+        "file": "app/services/authService.ts",
+        "line": 375,
+        "callers": [
+          "app/context/AuthContext.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/Auth/me",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/Auth/me",
+        "service": "accountService",
+        "operation": "updateProfile",
+        "file": "app/services/accountService.ts",
+        "line": 28,
+        "callers": [
+          "app/features/account/ProfileSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/change-email",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/change-email",
+        "service": "accountService",
+        "operation": "requestEmailChange",
+        "file": "app/services/accountService.ts",
+        "line": 33,
+        "callers": [
+          "app/features/account/ProfileSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/change-email/confirm",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/change-email/confirm",
+        "service": "accountService",
+        "operation": "confirmEmailChange",
+        "file": "app/services/accountService.ts",
+        "line": 37,
+        "callers": [
+          "app/features/account/ProfileSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Auth/me/delete-preview",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Auth/me/delete-preview",
+        "service": "accountService",
+        "operation": "getDeleteAccountPreview",
+        "file": "app/services/accountService.ts",
+        "line": 41,
+        "callers": [
+          "app/features/account/DeleteAccountSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/Auth/me",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/Auth/me",
+        "service": "accountService",
+        "operation": "deleteAccount",
+        "file": "app/services/accountService.ts",
+        "line": 45,
+        "callers": [
+          "app/features/account/DeleteAccountSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/logout",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/logout",
+        "service": "authService",
+        "operation": "logout",
+        "file": "app/services/authService.ts",
+        "line": 450,
+        "callers": [
+          "app/context/AuthContext.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Auth/logout-all-devices",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Auth/logout-all-devices",
+        "service": "accountService",
+        "operation": "logoutAllDevices",
+        "file": "app/services/accountService.ts",
+        "line": 57,
+        "callers": [
+          "app/features/account/AccountWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Auth/sessions",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Auth/sessions",
+        "service": "accountService",
+        "operation": "listSessions",
+        "file": "app/services/accountService.ts",
+        "line": 49,
+        "callers": [
+          "app/features/account/AccountWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/Auth/sessions/{id}",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/Auth/sessions/{}",
+        "service": "accountService",
+        "operation": "revokeSession",
+        "file": "app/services/accountService.ts",
+        "line": 53,
+        "callers": [
+          "app/features/account/AccountWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Auth/me/audit-log",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Auth/me/audit-log",
+        "service": "profileLifecycleService",
+        "operation": "accountAudit",
+        "file": "app/services/profileLifecycleService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/account/ActivitySection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ChildProfile",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ChildProfile",
+        "service": "childProfileService",
+        "operation": "createChildProfile",
+        "file": "app/services/childProfileService.ts",
+        "line": 28,
+        "callers": [
+          "app/features/children/CreateChildWizard.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ChildProfile/mine",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ChildProfile/mine",
+        "service": "childProfileService",
+        "operation": "getMyChildProfiles",
+        "file": "app/services/childProfileService.ts",
+        "line": 19,
+        "callers": [
+          "app/context/WorkspaceDataContext.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ChildProfile/{id}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ChildProfile/{}",
+        "service": "childProfileService",
+        "operation": "getChildProfileById",
+        "file": "app/services/childProfileService.ts",
+        "line": 23,
+        "callers": [
+          "app/features/children/ProfileMaintenance.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ChildProfile/{id}/audit-log",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ChildProfile/{}/audit-log",
+        "service": "profileLifecycleService",
+        "operation": "childAudit",
+        "file": "app/services/profileLifecycleService.ts",
+        "line": 6,
+        "callers": [
+          "app/features/account/ActivitySection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/ChildProfile/{id}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/ChildProfile/{}",
+        "service": "childProfileService",
+        "operation": "updateChildProfile",
+        "file": "app/services/childProfileService.ts",
+        "line": 36,
+        "callers": [
+          "app/features/children/ProfileTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PATCH",
+    "route": "/api/v1/ChildProfile/{id}/activate",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PATCH /api/v1/ChildProfile/{}/activate",
+        "service": "childProfileService",
+        "operation": "activateChildProfile",
+        "file": "app/services/childProfileService.ts",
+        "line": 44,
+        "callers": [
+          "app/features/children/CreateChildWizard.tsx",
+          "app/features/children/ProfileTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PATCH",
+    "route": "/api/v1/ChildProfile/{id}/suspend",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PATCH /api/v1/ChildProfile/{}/suspend",
+        "service": "childProfileService",
+        "operation": "suspendChildProfile",
+        "file": "app/services/childProfileService.ts",
+        "line": 49,
+        "callers": [
+          "app/features/children/ProfileTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PATCH",
+    "route": "/api/v1/ChildProfile/{id}/resume",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PATCH /api/v1/ChildProfile/{}/resume",
+        "service": "childProfileService",
+        "operation": "resumeChildProfile",
+        "file": "app/services/childProfileService.ts",
+        "line": 54,
+        "callers": [
+          "app/features/children/ProfileTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PATCH",
+    "route": "/api/v1/ChildProfile/{id}/restore",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PATCH /api/v1/ChildProfile/{}/restore",
+        "service": "profileLifecycleService",
+        "operation": "restore",
+        "file": "app/services/profileLifecycleService.ts",
+        "line": 7,
+        "callers": [
+          "app/features/children/RestoreArchived.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/ChildProfile/{id}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/ChildProfile/{}",
+        "service": "childProfileService",
+        "operation": "archiveChildProfile",
+        "file": "app/services/childProfileService.ts",
+        "line": 59,
+        "callers": [
+          "app/features/children/ProfileTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/LearningProfile/{childProfileId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/LearningProfile/{}",
+        "service": "childProfileService",
+        "operation": "setLearningProfile",
+        "file": "app/services/childProfileService.ts",
+        "line": 68,
+        "callers": [
+          "app/features/children/CreateChildWizard.tsx",
+          "app/features/children/LearningTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/LearningProfile/{childProfileId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/LearningProfile/{}",
+        "service": "profileLifecycleService",
+        "operation": "createLearning",
+        "file": "app/services/profileLifecycleService.ts",
+        "line": 8,
+        "callers": [
+          "app/features/children/LearningTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/LearningProfile/{childProfileId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/LearningProfile/{}",
+        "service": "childProfileService",
+        "operation": "getLearningProfile",
+        "file": "app/services/childProfileService.ts",
+        "line": 63,
+        "callers": [
+          "app/features/children/LearningTab.tsx",
+          "app/features/children/ProfileTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/LearningProfile/{childProfileId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/LearningProfile/{}",
+        "service": "profileLifecycleService",
+        "operation": "removeLearning",
+        "file": "app/services/profileLifecycleService.ts",
+        "line": 9,
+        "callers": [
+          "app/features/children/ProfileMaintenance.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/SafetyPolicy/{childProfileId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/SafetyPolicy/{}",
+        "service": "childProfileService",
+        "operation": "setSafetyPolicy",
+        "file": "app/services/childProfileService.ts",
+        "line": 88,
+        "callers": [
+          "app/features/children/CreateChildWizard.tsx",
+          "app/features/safety/SafetyWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/SafetyPolicy/{childProfileId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/SafetyPolicy/{}",
+        "service": "profileLifecycleService",
+        "operation": "createSafety",
+        "file": "app/services/profileLifecycleService.ts",
+        "line": 10,
+        "callers": [
+          "app/features/safety/SafetyWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/SafetyPolicy/{childProfileId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/SafetyPolicy/{}",
+        "service": "childProfileService",
+        "operation": "getSafetyPolicy",
+        "file": "app/services/childProfileService.ts",
+        "line": 80,
+        "callers": [
+          "app/features/children/ProfileTab.tsx",
+          "app/features/kid/KidMode.tsx",
+          "app/features/roadmap/AddToRoadmapDialog.tsx",
+          "app/features/safety/SafetyWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/SafetyPolicy/{childProfileId}/reconsent",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/SafetyPolicy/{}/reconsent",
+        "service": "childProfileService",
+        "operation": "reconsent",
+        "file": "app/services/childProfileService.ts",
+        "line": 93,
+        "callers": [
+          "app/features/safety/SafetyWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/SafetyPolicy/{childProfileId}/age-preset",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/SafetyPolicy/{}/age-preset",
+        "service": "profileLifecycleService",
+        "operation": "agePreset",
+        "file": "app/services/profileLifecycleService.ts",
+        "line": 12,
+        "callers": [
+          "app/features/safety/SafetyWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/SafetyPolicy/{childProfileId}/age-preset/apply",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/SafetyPolicy/{}/age-preset/apply",
+        "service": "childProfileService",
+        "operation": "applyAgePreset",
+        "file": "app/services/childProfileService.ts",
+        "line": 98,
+        "callers": [
+          "app/features/safety/SafetyWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/SafetyPolicy/{childProfileId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/SafetyPolicy/{}",
+        "service": "profileLifecycleService",
+        "operation": "removeSafety",
+        "file": "app/services/profileLifecycleService.ts",
+        "line": 11,
+        "callers": [
+          "app/features/children/ProfileMaintenance.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Supervision/{childProfileId}/invitations",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Supervision/{}/invitations",
+        "service": "supervisionService",
+        "operation": "createInvitation",
+        "file": "app/services/supervisionService.ts",
+        "line": 23,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Supervision/{childProfileId}/invitations",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Supervision/{}/invitations",
+        "service": "supervisionService",
+        "operation": "listInvitations",
+        "file": "app/services/supervisionService.ts",
+        "line": 19,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Supervision/invitations/claim",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Supervision/invitations/claim",
+        "service": "supervisionService",
+        "operation": "claimInvitation",
+        "file": "app/services/supervisionService.ts",
+        "line": 37,
+        "callers": [
+          "app/features/children/JoinInvitation.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Supervision/invitations/verify-otp",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Supervision/invitations/verify-otp",
+        "service": "supervisionService",
+        "operation": "verifyInvitationOtp",
+        "file": "app/services/supervisionService.ts",
+        "line": 42,
+        "callers": [
+          "app/features/children/JoinInvitation.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Supervision/invitations/reject",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Supervision/invitations/reject",
+        "service": "supervisionService",
+        "operation": "rejectInvitation",
+        "file": "app/services/supervisionService.ts",
+        "line": 52,
+        "callers": [
+          "app/features/children/JoinInvitation.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Supervision/invitations/accept",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Supervision/invitations/accept",
+        "service": "supervisionService",
+        "operation": "acceptInvitation",
+        "file": "app/services/supervisionService.ts",
+        "line": 47,
+        "callers": [
+          "app/features/children/JoinInvitation.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/Supervision/invitations/{invitationId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/Supervision/invitations/{}",
+        "service": "supervisionService",
+        "operation": "cancelInvitation",
+        "file": "app/services/supervisionService.ts",
+        "line": 27,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Supervision/invitations/{invitationId}/regenerate",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Supervision/invitations/{}/regenerate",
+        "service": "supervisionService",
+        "operation": "regenerateInvitation",
+        "file": "app/services/supervisionService.ts",
+        "line": 32,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Supervision/{childProfileId}/relationships",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Supervision/{}/relationships",
+        "service": "supervisionService",
+        "operation": "listSupervisors",
+        "file": "app/services/supervisionService.ts",
+        "line": 10,
+        "callers": [
+          "app/features/children/ChildrenWorkspace.tsx",
+          "app/features/children/PermissionDirectory.tsx",
+          "app/features/children/SupervisorsTab.tsx",
+          "app/features/children/useMyRole.ts",
+          "app/features/home/HomeWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/Supervision/relationships/{relationshipId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/Supervision/relationships/{}",
+        "service": "supervisionService",
+        "operation": "revokeSupervisor",
+        "file": "app/services/supervisionService.ts",
+        "line": 15,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Supervision/{childProfileId}/transfer-ownership",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Supervision/{}/transfer-ownership",
+        "service": "supervisionService",
+        "operation": "requestOwnershipTransfer",
+        "file": "app/services/supervisionService.ts",
+        "line": 82,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Supervision/{childProfileId}/ownership-transfers",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Supervision/{}/ownership-transfers",
+        "service": "supervisionService",
+        "operation": "listOwnershipTransfers",
+        "file": "app/services/supervisionService.ts",
+        "line": 86,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx",
+          "app/features/home/SupervisionTodos.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Supervision/ownership-transfers/{ownershipTransferRequestId}/accept",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Supervision/ownership-transfers/{}/accept",
+        "service": "supervisionService",
+        "operation": "answerOwnershipTransfer",
+        "file": "app/services/supervisionService.ts",
+        "line": 90,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx",
+          "app/features/home/SupervisionTodos.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Supervision/ownership-transfers/{ownershipTransferRequestId}/reject",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Supervision/ownership-transfers/{}/reject",
+        "service": "supervisionService",
+        "operation": "answerOwnershipTransfer",
+        "file": "app/services/supervisionService.ts",
+        "line": 90,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx",
+          "app/features/home/SupervisionTodos.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Supervision/ownership-transfers/{ownershipTransferRequestId}/cancel",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Supervision/ownership-transfers/{}/cancel",
+        "service": "supervisionService",
+        "operation": "cancelOwnershipTransfer",
+        "file": "app/services/supervisionService.ts",
+        "line": 95,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Supervision/relationships/{relationshipId}/permissions",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Supervision/relationships/{}/permissions",
+        "service": "supervisionService",
+        "operation": "listPermissions",
+        "file": "app/services/supervisionService.ts",
+        "line": 56,
+        "callers": [
+          "app/features/children/ChildrenWorkspace.tsx",
+          "app/features/children/SupervisorsTab.tsx",
+          "app/features/children/useMyRole.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Supervision/relationships/{relationshipId}/permissions/{permission}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Supervision/relationships/{}/permissions/{}",
+        "service": "supervisionService",
+        "operation": "grantPermission",
+        "file": "app/services/supervisionService.ts",
+        "line": 60,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/Supervision/relationships/{relationshipId}/permissions/{permission}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/Supervision/relationships/{}/permissions/{}",
+        "service": "supervisionService",
+        "operation": "revokePermission",
+        "file": "app/services/supervisionService.ts",
+        "line": 64,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Permission",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Permission",
+        "service": "permissionService",
+        "operation": "catalog",
+        "file": "app/services/permissionService.ts",
+        "line": 4,
+        "callers": [
+          "app/features/children/PermissionDirectory.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Permission/relationships/{relationshipId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Permission/relationships/{}",
+        "service": "permissionService",
+        "operation": "list",
+        "file": "app/services/permissionService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/children/PermissionDirectory.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Permission/relationships/{relationshipId}/{permission}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Permission/relationships/{}/{}",
+        "service": "permissionService",
+        "operation": "grant",
+        "file": "app/services/permissionService.ts",
+        "line": 6,
+        "callers": [
+          "app/features/children/PermissionDirectory.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/Permission/relationships/{relationshipId}/{permission}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/Permission/relationships/{}/{}",
+        "service": "permissionService",
+        "operation": "revoke",
+        "file": "app/services/permissionService.ts",
+        "line": 7,
+        "callers": [
+          "app/features/children/PermissionDirectory.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Permission/relationships/{relationshipId}/requests",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Permission/relationships/{}/requests",
+        "service": "supervisionService",
+        "operation": "requestPermission",
+        "file": "app/services/supervisionService.ts",
+        "line": 69,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Permission/relationships/{relationshipId}/requests",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Permission/relationships/{}/requests",
+        "service": "supervisionService",
+        "operation": "listPermissionRequests",
+        "file": "app/services/supervisionService.ts",
+        "line": 73,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx",
+          "app/features/home/HomeWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Permission/requests/{permissionRequestId}/accept",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Permission/requests/{}/accept",
+        "service": "supervisionService",
+        "operation": "answerPermissionRequest",
+        "file": "app/services/supervisionService.ts",
+        "line": 77,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Permission/requests/{permissionRequestId}/reject",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Permission/requests/{}/reject",
+        "service": "supervisionService",
+        "operation": "answerPermissionRequest",
+        "file": "app/services/supervisionService.ts",
+        "line": 77,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Permission/requests/{permissionRequestId}/cancel",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Permission/requests/{}/cancel",
+        "service": "supervisionService",
+        "operation": "answerPermissionRequest",
+        "file": "app/services/supervisionService.ts",
+        "line": 77,
+        "callers": [
+          "app/features/children/SupervisorsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ChildAccessCredential/{childProfileId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ChildAccessCredential/{}",
+        "service": "childAccessService",
+        "operation": "getCredential",
+        "file": "app/services/childAccessService.ts",
+        "line": 14,
+        "callers": [
+          "app/features/children/AccessTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/ChildAccessCredential/{childProfileId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/ChildAccessCredential/{}",
+        "service": "childAccessService",
+        "operation": "revokeCredential",
+        "file": "app/services/childAccessService.ts",
+        "line": 19,
+        "callers": [
+          "app/features/children/AccessTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ChildAccessCredential/{childProfileId}/easylogin",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ChildAccessCredential/{}/easylogin",
+        "service": "childAccessService",
+        "operation": "generateEasyLogin",
+        "file": "app/services/childAccessService.ts",
+        "line": 24,
+        "callers": [
+          "app/features/children/AccessTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ChildAccessCredential/{childProfileId}/handover",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ChildAccessCredential/{}/handover",
+        "service": "childAccessService",
+        "operation": "startSupervisedSession",
+        "file": "app/services/childAccessService.ts",
+        "line": 30,
+        "callers": [
+          "app/features/kid/KidMode.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ChildAccessCredential/easylogin/login",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ChildAccessCredential/easylogin/login",
+        "service": "childAccessService",
+        "operation": "loginWithEasyLogin",
+        "file": "app/services/childAccessService.ts",
+        "line": 34,
+        "callers": [
+          "app/features/kid/KidEntry.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ChildAccessCredential/me",
+    "authorization": "Policy ChildSession; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ChildAccessCredential/me",
+        "service": "childAccessService",
+        "operation": "getSessionProfile",
+        "file": "app/services/childAccessService.ts",
+        "line": 38,
+        "callers": [
+          "app/features/kid/ConnectedKidHome.tsx",
+          "app/features/kid/KidEntry.tsx"
+        ]
+      },
+      {
+        "key": "GET /api/v1/ChildAccessCredential/me",
+        "service": "childAccessService",
+        "operation": "checkSession",
+        "file": "app/services/childAccessService.ts",
+        "line": 49,
+        "callers": [
+          "app/features/kid/useKidSession.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ParentalGate/verify",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ParentalGate/verify",
+        "service": "childAccessService",
+        "operation": "verifyParentalGate",
+        "file": "app/services/childAccessService.ts",
+        "line": 59,
+        "callers": [
+          "app/features/kid/ParentalGate.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ai-story-input/children/{childProfileId}/context",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ai-story-input/children/{}/context",
+        "service": "aiStoryCreationService",
+        "operation": "getCreationContext",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 98,
+        "callers": [
+          "app/features/story-workflow/useAIStoryInputFlow.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ai-story-input/requests",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ai-story-input/requests",
+        "service": "aiStoryCreationService",
+        "operation": "submitInput",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 99,
+        "callers": [
+          "app/features/story-workflow/useAIStoryInputFlow.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ai-story-input/stories/{storyId}/requests/{requestId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ai-story-input/stories/{}/requests/{}",
+        "service": "aiStoryCreationService",
+        "operation": "getInputProgress",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 100,
+        "callers": [
+          "app/features/story-workflow/useAIStoryInputFlow.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ai-story-input/stories/{storyId}/requests/{requestId}/retry",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ai-story-input/stories/{}/requests/{}/retry",
+        "service": "aiStoryCreationService",
+        "operation": "retryInput",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 101,
+        "callers": [
+          "app/features/story-workflow/useAIStoryInputFlow.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/outline",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/outline",
+        "service": "aiStoryCreationService",
+        "operation": "getOutline",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 102,
+        "callers": [
+          "app/features/story-workflow/generationSnapshot.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/outline/versions",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/outline/versions",
+        "service": "aiStoryCreationService",
+        "operation": "getOutlineVersions",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 103,
+        "callers": [
+          "app/features/studio/OutlineHistory.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/outline/versions/{versionNo}",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/outline/versions/{}",
+        "service": "aiStoryCreationService",
+        "operation": "getOutlineVersion",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 104,
+        "callers": [
+          "app/features/studio/OutlineHistory.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/stories/{storyId}/outline/versions/{versionNo}",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/stories/{}/outline/versions/{}",
+        "service": "aiStoryCreationService",
+        "operation": "editOutline",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 105,
+        "callers": [
+          "app/features/studio/OutlinePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/outline/versions/{versionNo}/regenerate",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/outline/versions/{}/regenerate",
+        "service": "aiStoryCreationService",
+        "operation": "regenerateOutline",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 106,
+        "callers": [
+          "app/features/studio/OutlinePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/outline/retry",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/outline/retry",
+        "service": "aiStoryCreationService",
+        "operation": "retryOutline",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 107,
+        "callers": [
+          "app/features/studio/useStoryPipeline.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/outline/versions/{versionNo}/approve",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/outline/versions/{}/approve",
+        "service": "aiStoryCreationService",
+        "operation": "approveOutline",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 108,
+        "callers": [
+          "app/features/studio/OutlinePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/outline/versions/{versionNo}/reject",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/outline/versions/{}/reject",
+        "service": "aiStoryCreationService",
+        "operation": "rejectOutline",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 109,
+        "callers": [
+          "app/features/studio/useStoryPipeline.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/generation/progress",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/generation/progress",
+        "service": "aiStoryCreationService",
+        "operation": "getGenerationProgress",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 110,
+        "callers": [
+          "app/features/story-workflow/generationSnapshot.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/generation/retry",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/generation/retry",
+        "service": "aiStoryCreationService",
+        "operation": "retryGeneration",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 111,
+        "callers": [
+          "app/features/studio/useStoryPipeline.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/review",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/review",
+        "service": "aiStoryCreationService",
+        "operation": "getReviewPackage",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 112,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/artifacts/generate",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/artifacts/generate",
+        "service": "aiStoryCreationService",
+        "operation": "generateArtifacts",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 113,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/artifacts/generate",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [],
+    "disposition": "COMPATIBILITY_ALIAS",
+    "canonical": "/api/v1/stories/{storyId}/review/artifacts/generate"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/review/story",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/review/story",
+        "service": "aiStoryCreationService",
+        "operation": "getStoryReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 114,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/stories/{storyId}/review/story",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/stories/{}/review/story",
+        "service": "aiStoryCreationService",
+        "operation": "updateStoryReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 115,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/story/ai/partial-edit",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/story/ai/partial-edit",
+        "service": "aiStoryCreationService",
+        "operation": "partialEditStory",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 128,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/story/complete",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/story/complete",
+        "service": "aiStoryCreationService",
+        "operation": "completeStoryReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 122,
+        "callers": []
+      },
+      {
+        "key": "POST /api/v1/stories/{}/review/story/complete",
+        "service": "aiStoryCreationService",
+        "operation": "completeReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 123,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/review/vocabulary",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/review/vocabulary",
+        "service": "aiStoryCreationService",
+        "operation": "getVocabularyReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 116,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/stories/{storyId}/review/vocabulary",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/stories/{}/review/vocabulary",
+        "service": "aiStoryCreationService",
+        "operation": "updateVocabularyReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 117,
+        "callers": [
+          "app/features/review/ReviewTools.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/vocabulary/ai/regenerate",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/vocabulary/ai/regenerate",
+        "service": "aiStoryCreationService",
+        "operation": "regenerateReviewArtifact",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 129,
+        "callers": [
+          "app/features/review/ReviewTools.tsx",
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/vocabulary/complete",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/vocabulary/complete",
+        "service": "aiStoryCreationService",
+        "operation": "completeReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 123,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/review/quiz",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/review/quiz",
+        "service": "aiStoryCreationService",
+        "operation": "getQuizReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 118,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/stories/{storyId}/review/quiz",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/stories/{}/review/quiz",
+        "service": "aiStoryCreationService",
+        "operation": "updateQuizReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 119,
+        "callers": [
+          "app/features/review/ReviewTools.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/quiz/ai/regenerate",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/quiz/ai/regenerate",
+        "service": "aiStoryCreationService",
+        "operation": "regenerateReviewArtifact",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 129,
+        "callers": [
+          "app/features/review/ReviewTools.tsx",
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/quiz/complete",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/quiz/complete",
+        "service": "aiStoryCreationService",
+        "operation": "completeReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 123,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/review/discussion",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/review/discussion",
+        "service": "aiStoryCreationService",
+        "operation": "getDiscussionReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 120,
+        "callers": [
+          "app/features/home/CompletionCard.tsx",
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/stories/{storyId}/review/discussion",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/stories/{}/review/discussion",
+        "service": "aiStoryCreationService",
+        "operation": "updateDiscussionReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 121,
+        "callers": [
+          "app/features/review/ReviewTools.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/discussion/ai/regenerate",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/discussion/ai/regenerate",
+        "service": "aiStoryCreationService",
+        "operation": "regenerateReviewArtifact",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 129,
+        "callers": [
+          "app/features/review/ReviewTools.tsx",
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/discussion/complete",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/discussion/complete",
+        "service": "aiStoryCreationService",
+        "operation": "completeReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 123,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/review/validation",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/review/validation",
+        "service": "aiStoryCreationService",
+        "operation": "validateReview",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 124,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/auto-publish-check",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/auto-publish-check",
+        "service": "aiStoryCreationService",
+        "operation": "autoPublishCheck",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 97,
+        "callers": [
+          "app/features/review/AutoPublishAction.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/generation/confirm-content",
+    "authorization": "(ContentCreator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/generation/confirm-content",
+        "service": "aiStoryCreationService",
+        "operation": "confirmCreatorContent",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 125,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/approve",
+    "authorization": "(Parent hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/approve",
+        "service": "aiStoryCreationService",
+        "operation": "approveStory",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 126,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/archive",
+    "authorization": "(Parent hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/archive",
+        "service": "aiStoryCreationService",
+        "operation": "archiveStory",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 127,
+        "callers": [
+          "app/features/review/ReviewTools.tsx",
+          "app/features/story-workflow/useStoryReview.ts",
+          "app/features/studio/useStoryPipeline.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/review/proposals/{proposalId}",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/review/proposals/{}",
+        "service": "aiStoryCreationService",
+        "operation": "getProposal",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 130,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/proposals/{proposalId}/apply",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/proposals/{}/apply",
+        "service": "aiStoryCreationService",
+        "operation": "applyProposal",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 131,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/review/proposals/{proposalId}/discard",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/proposals/{}/discard",
+        "service": "aiStoryCreationService",
+        "operation": "discardProposal",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 132,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/media/progress",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/media/progress",
+        "service": "aiStoryCreationService",
+        "operation": "getMediaProgress",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 133,
+        "callers": [
+          "app/features/staff/CreatorGeneration.tsx",
+          "app/features/staff/CreatorManualMedia.tsx",
+          "app/features/studio/useStoryPipeline.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/media/package",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/media/package",
+        "service": "aiStoryCreationService",
+        "operation": "getMediaPackage",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 134,
+        "callers": [
+          "app/features/staff/CreatorManualMedia.tsx",
+          "app/features/studio/MediaAssets.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/media/illustration-beats/{beatId}/regenerate",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/media/illustration-beats/{}/regenerate",
+        "service": "aiStoryCreationService",
+        "operation": "regenerateIllustration",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 136,
+        "callers": [
+          "app/features/studio/MediaAssets.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/media/retry",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/media/retry",
+        "service": "aiStoryCreationService",
+        "operation": "retryMedia",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 135,
+        "callers": [
+          "app/features/staff/CreatorGeneration.tsx",
+          "app/features/staff/CreatorManualMedia.tsx",
+          "app/features/studio/StudioMedia.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/import",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/import",
+        "service": "existingStoryService",
+        "operation": "importStory",
+        "file": "app/services/existingStoryService.ts",
+        "line": 12,
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/import-file",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/import-file",
+        "service": "existingStoryService",
+        "operation": "importFile",
+        "file": "app/services/existingStoryService.ts",
+        "line": 26,
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/existing/evaluate",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/existing/evaluate",
+        "service": "existingStoryService",
+        "operation": "evaluate",
+        "file": "app/services/existingStoryService.ts",
+        "line": 37,
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/stories/{storyId}/existing/evaluation",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/stories/{}/existing/evaluation",
+        "service": "existingStoryService",
+        "operation": "evaluation",
+        "file": "app/services/existingStoryService.ts",
+        "line": 10,
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/existing/adapt",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/existing/adapt",
+        "service": "existingStoryService",
+        "operation": "adapt",
+        "file": "app/services/existingStoryService.ts",
+        "line": 42,
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/stories/{storyId}/existing/content",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/stories/{}/existing/content",
+        "service": "existingStoryService",
+        "operation": "manualEdit",
+        "file": "app/services/existingStoryService.ts",
+        "line": 46,
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/existing/keep-original",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/existing/keep-original",
+        "service": "existingStoryService",
+        "operation": "keepOriginal",
+        "file": "app/services/existingStoryService.ts",
+        "line": 51,
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/existing/archive",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/existing/archive",
+        "service": "existingStoryService",
+        "operation": "archive",
+        "file": "app/services/existingStoryService.ts",
+        "line": 55,
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/manual",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/manual",
+        "service": "parentAuthoringService",
+        "operation": "create",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 4,
+        "callers": [
+          "app/features/authoring/useParentAuthoring.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/stories",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories",
+        "service": "parentAuthoringService",
+        "operation": "mine",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/authoring/useParentAuthoring.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/stories/{storyId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories/{}",
+        "service": "parentAuthoringService",
+        "operation": "get",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 6,
+        "callers": [
+          "app/features/authoring/useParentAuthoring.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/stories/{storyId}/workflow",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories/{}/workflow",
+        "service": "parentAuthoringService",
+        "operation": "workflow",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 7,
+        "callers": [
+          "app/features/authoring/useParentAuthoring.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PATCH",
+    "route": "/api/v1/parent/stories/{storyId}/setup",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PATCH /api/v1/parent/stories/{}/setup",
+        "service": "parentAuthoringService",
+        "operation": "setup",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 8,
+        "callers": [
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/manual/versions",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/manual/versions",
+        "service": "parentAuthoringService",
+        "operation": "save",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 9,
+        "callers": [
+          "app/features/authoring/useParentAuthoring.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/stories/{storyId}/content/versions",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories/{}/content/versions",
+        "service": "parentAuthoringService",
+        "operation": "versions",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 10,
+        "callers": [
+          "app/features/authoring/useParentAuthoring.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/stories/{storyId}/content/versions/{versionId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories/{}/content/versions/{}",
+        "service": "parentAuthoringService",
+        "operation": "version",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 11,
+        "callers": [
+          "app/features/authoring/ParentAuthoringWorkspace.tsx",
+          "app/features/authoring/useParentAuthoring.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/content/restore",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/content/restore",
+        "service": "parentAuthoringService",
+        "operation": "restore",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 12,
+        "callers": [
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/imports/preview",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/imports/preview",
+        "service": "parentAuthoringService",
+        "operation": "previewImport",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 13,
+        "callers": [
+          "app/features/authoring/ParentImport.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/imports/preview-file",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/imports/preview-file",
+        "service": "parentAuthoringService",
+        "operation": "previewFile",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 14,
+        "callers": [
+          "app/features/authoring/ParentImport.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/imports/confirm",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/imports/confirm",
+        "service": "parentAuthoringService",
+        "operation": "confirmImport",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 15,
+        "callers": [
+          "app/features/authoring/ParentImport.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/content/checks",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/content/checks",
+        "service": "parentAuthoringService",
+        "operation": "check",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 16,
+        "callers": [
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/content/confirm",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/content/confirm",
+        "service": "parentAuthoringService",
+        "operation": "confirmContent",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 17,
+        "callers": [
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/preparations",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/preparations",
+        "service": "parentAuthoringService",
+        "operation": "prepare",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 18,
+        "callers": [
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/stories/{storyId}/preparations/{preparationId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories/{}/preparations/{}",
+        "service": "parentAuthoringService",
+        "operation": "preview",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 19,
+        "callers": [
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/family-confirmations",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/family-confirmations",
+        "service": "parentAuthoringService",
+        "operation": "confirmFamily",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 20,
+        "callers": [
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/family-confirmations/revoke",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/family-confirmations/revoke",
+        "service": "parentAuthoringService",
+        "operation": "revokeFamily",
+        "file": "app/services/parentAuthoringService.ts",
+        "line": 21,
+        "callers": [
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/assistance-tasks",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/assistance-tasks",
+        "service": "parentAssistanceService",
+        "operation": "create",
+        "file": "app/services/parentAssistanceService.ts",
+        "line": 4,
+        "callers": [
+          "app/features/story-workflow/useAssistance.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/stories/{storyId}/assistance-tasks",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories/{}/assistance-tasks",
+        "service": "parentAssistanceService",
+        "operation": "list",
+        "file": "app/services/parentAssistanceService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/story-workflow/useAssistance.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/stories/{storyId}/assistance-tasks/{taskId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories/{}/assistance-tasks/{}",
+        "service": "parentAssistanceService",
+        "operation": "get",
+        "file": "app/services/parentAssistanceService.ts",
+        "line": 6,
+        "callers": [
+          "app/features/story-workflow/useAssistance.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/stories/{storyId}/assistance-tasks/{taskId}/steps",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories/{}/assistance-tasks/{}/steps",
+        "service": "parentAssistanceService",
+        "operation": "steps",
+        "file": "app/services/parentAssistanceService.ts",
+        "line": 7,
+        "callers": [
+          "app/features/story-workflow/useAssistance.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/assistance-tasks/{taskId}/suggestions",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/suggestions",
+        "service": "parentAssistanceService",
+        "operation": "suggestions",
+        "file": "app/services/parentAssistanceService.ts",
+        "line": 8,
+        "callers": [
+          "app/features/authoring/AssistancePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/assistance-tasks/{taskId}/clarification-answer",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/clarification-answer",
+        "service": "parentAssistanceService",
+        "operation": "answer",
+        "file": "app/services/parentAssistanceService.ts",
+        "line": 9,
+        "callers": [
+          "app/features/authoring/AssistancePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/assistance-tasks/{taskId}/direction",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/direction",
+        "service": "parentAssistanceService",
+        "operation": "direction",
+        "file": "app/services/parentAssistanceService.ts",
+        "line": 10,
+        "callers": [
+          "app/features/authoring/AssistancePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/assistance-tasks/{taskId}/trials",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/trials",
+        "service": "parentAssistanceService",
+        "operation": "trial",
+        "file": "app/services/parentAssistanceService.ts",
+        "line": 11,
+        "callers": [
+          "app/features/authoring/AssistancePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/assistance-tasks/{taskId}/cancel",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/cancel",
+        "service": "parentAssistanceService",
+        "operation": "cancel",
+        "file": "app/services/parentAssistanceService.ts",
+        "line": 12,
+        "callers": [
+          "app/features/story-workflow/useAssistance.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/stories/{storyId}/assistance-tasks/{taskId}/close",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/close",
+        "service": "parentAssistanceService",
+        "operation": "close",
+        "file": "app/services/parentAssistanceService.ts",
+        "line": 13,
+        "callers": [
+          "app/features/authoring/AssistancePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/authoring-guides",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/authoring-guides",
+        "service": "authoringGuideService",
+        "operation": "get",
+        "file": "app/services/authoringGuideService.ts",
+        "line": 4,
+        "callers": [
+          "app/features/authoring/AuthoringGuides.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/authoring-guides/{guideId}/render",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/authoring-guides/{}/render",
+        "service": "authoringGuideService",
+        "operation": "render",
+        "file": "app/services/authoringGuideService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/authoring/AuthoringGuides.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/child/manual-stories",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/manual-stories",
+        "service": "childManualService",
+        "operation": "library",
+        "file": "app/services/childManualService.ts",
+        "line": 4,
+        "callers": [
+          "app/features/kid/ConnectedKidHome.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/child/manual-stories/{confirmationId}/package",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/manual-stories/{}/package",
+        "service": "childManualService",
+        "operation": "package",
+        "file": "app/services/childManualService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/kid/ConnectedKidHome.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/manual",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/manual",
+        "service": "creatorService",
+        "operation": "create",
+        "file": "app/services/creatorService.ts",
+        "line": 39,
+        "callers": [
+          "app/features/staff/CreatorStories.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/creator/stories",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/stories",
+        "service": "creatorService",
+        "operation": "list",
+        "file": "app/services/creatorService.ts",
+        "line": 34,
+        "callers": [
+          "app/features/staff/CreatorStories.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/creator/stories/{storyId}",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/stories/{}",
+        "service": "creatorService",
+        "operation": "get",
+        "file": "app/services/creatorService.ts",
+        "line": 36,
+        "callers": [
+          "app/features/staff/CreatorEditor.tsx",
+          "app/features/staff/CreatorGeneration.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/manual/versions",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/manual/versions",
+        "service": "creatorService",
+        "operation": "save",
+        "file": "app/services/creatorService.ts",
+        "line": 43,
+        "callers": [
+          "app/features/staff/CreatorEditor.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/creator/stories/{storyId}/content/versions",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/stories/{}/content/versions",
+        "service": "creatorService",
+        "operation": "versions",
+        "file": "app/services/creatorService.ts",
+        "line": 45,
+        "callers": [
+          "app/features/staff/CreatorEditor.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/creator/stories/{storyId}/content/versions/{versionId}",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/stories/{}/content/versions/{}",
+        "service": "creatorService",
+        "operation": "version",
+        "file": "app/services/creatorService.ts",
+        "line": 48,
+        "callers": [
+          "app/features/staff/CreatorEditor.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/content/restore",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/content/restore",
+        "service": "creatorService",
+        "operation": "restore",
+        "file": "app/services/creatorService.ts",
+        "line": 52,
+        "callers": [
+          "app/features/staff/CreatorEditor.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/imports/preview",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/imports/preview",
+        "service": "creatorService",
+        "operation": "previewText",
+        "file": "app/services/creatorService.ts",
+        "line": 56,
+        "callers": [
+          "app/features/staff/CreatorImport.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/imports/preview-file",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/imports/preview-file",
+        "service": "creatorService",
+        "operation": "previewFile",
+        "file": "app/services/creatorService.ts",
+        "line": 63,
+        "callers": [
+          "app/features/staff/CreatorImport.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/imports/confirm",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/imports/confirm",
+        "service": "creatorService",
+        "operation": "confirmImport",
+        "file": "app/services/creatorService.ts",
+        "line": 68,
+        "callers": [
+          "app/features/staff/CreatorImport.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/assistance-tasks",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/assistance-tasks",
+        "service": "creatorAssistanceService",
+        "operation": "create",
+        "file": "app/services/creatorAssistanceService.ts",
+        "line": 4,
+        "callers": [
+          "app/features/story-workflow/useAssistance.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/creator/stories/{storyId}/assistance-tasks",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/stories/{}/assistance-tasks",
+        "service": "creatorAssistanceService",
+        "operation": "list",
+        "file": "app/services/creatorAssistanceService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/story-workflow/useAssistance.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/creator/stories/{storyId}/assistance-tasks/{taskId}",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/stories/{}/assistance-tasks/{}",
+        "service": "creatorAssistanceService",
+        "operation": "get",
+        "file": "app/services/creatorAssistanceService.ts",
+        "line": 6,
+        "callers": [
+          "app/features/story-workflow/useAssistance.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/creator/stories/{storyId}/assistance-tasks/{taskId}/steps",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/stories/{}/assistance-tasks/{}/steps",
+        "service": "creatorAssistanceService",
+        "operation": "steps",
+        "file": "app/services/creatorAssistanceService.ts",
+        "line": 7,
+        "callers": [
+          "app/features/story-workflow/useAssistance.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/assistance-tasks/{taskId}/suggestions",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/suggestions",
+        "service": "creatorAssistanceService",
+        "operation": "suggestions",
+        "file": "app/services/creatorAssistanceService.ts",
+        "line": 8,
+        "callers": [
+          "app/features/authoring/AssistancePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/assistance-tasks/{taskId}/clarification-answer",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/clarification-answer",
+        "service": "creatorAssistanceService",
+        "operation": "answer",
+        "file": "app/services/creatorAssistanceService.ts",
+        "line": 9,
+        "callers": [
+          "app/features/authoring/AssistancePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/assistance-tasks/{taskId}/direction",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/direction",
+        "service": "creatorAssistanceService",
+        "operation": "direction",
+        "file": "app/services/creatorAssistanceService.ts",
+        "line": 10,
+        "callers": [
+          "app/features/authoring/AssistancePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/assistance-tasks/{taskId}/trials",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/trials",
+        "service": "creatorAssistanceService",
+        "operation": "trial",
+        "file": "app/services/creatorAssistanceService.ts",
+        "line": 11,
+        "callers": [
+          "app/features/authoring/AssistancePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/assistance-tasks/{taskId}/cancel",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/cancel",
+        "service": "creatorAssistanceService",
+        "operation": "cancel",
+        "file": "app/services/creatorAssistanceService.ts",
+        "line": 12,
+        "callers": [
+          "app/features/story-workflow/useAssistance.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/assistance-tasks/{taskId}/close",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/close",
+        "service": "creatorAssistanceService",
+        "operation": "close",
+        "file": "app/services/creatorAssistanceService.ts",
+        "line": 13,
+        "callers": [
+          "app/features/authoring/AssistancePanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/creator/ai-story-input/context",
+    "authorization": "(ContentCreator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/ai-story-input/context",
+        "service": "creatorInputService",
+        "operation": "context",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 14,
+        "callers": [
+          "app/features/staff/CreatorGeneration.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/ai-story-input/requests",
+    "authorization": "(ContentCreator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/ai-story-input/requests",
+        "service": "creatorInputService",
+        "operation": "submit",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 15,
+        "callers": [
+          "app/features/story-workflow/useCreatorGeneration.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/creator/ai-story-input/stories/{storyId}/requests/{requestId}",
+    "authorization": "(ContentCreator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/ai-story-input/stories/{}/requests/{}",
+        "service": "creatorInputService",
+        "operation": "progress",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 16,
+        "callers": [
+          "app/features/story-workflow/useCreatorGeneration.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/ai-story-input/stories/{storyId}/requests/{requestId}/retry",
+    "authorization": "(ContentCreator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/ai-story-input/stories/{}/requests/{}/retry",
+        "service": "creatorInputService",
+        "operation": "retry",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 17,
+        "callers": [
+          "app/features/story-workflow/useCreatorGeneration.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/PublicStorySubmission/submit",
+    "authorization": "(ContentCreator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/PublicStorySubmission/submit",
+        "service": "creatorPublicationService",
+        "operation": "submit",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 8,
+        "callers": [
+          "app/features/staff/CreatorPublication.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/PublicStorySubmission/{itemId}/withdraw",
+    "authorization": "(ContentCreator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/PublicStorySubmission/{}/withdraw",
+        "service": "creatorPublicationService",
+        "operation": "withdraw",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 9,
+        "callers": [
+          "app/features/staff/CreatorPublication.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ModerationQueue/review-views",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ModerationQueue/review-views",
+        "service": "moderationService",
+        "operation": "grantReviewView",
+        "file": "app/services/moderationService.ts",
+        "line": 14,
+        "callers": [
+          "app/features/staff/PublishedReviewWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ModerationQueue",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ModerationQueue",
+        "service": "staffService",
+        "operation": "queue",
+        "file": "app/services/staffService.ts",
+        "line": 91,
+        "callers": [
+          "app/features/staff/ConnectedModerationQueue.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ModerationQueue/{itemId}/claim",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ModerationQueue/{}/claim",
+        "service": "staffService",
+        "operation": "claim",
+        "file": "app/services/staffService.ts",
+        "line": 94,
+        "callers": [
+          "app/features/staff/ConnectedModerationQueue.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ModerationQueue/{itemId}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ModerationQueue/{}",
+        "service": "moderationService",
+        "operation": "package",
+        "file": "app/services/moderationService.ts",
+        "line": 16,
+        "callers": [
+          "app/features/staff/useReviewItem.ts"
+        ]
+      },
+      {
+        "key": "GET /api/v1/ModerationQueue/{}",
+        "service": "staffService",
+        "operation": "openItem",
+        "file": "app/services/staffService.ts",
+        "line": 96,
+        "callers": []
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/PublicStoryReview/{itemId}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/PublicStoryReview/{}",
+        "service": "moderationService",
+        "operation": "package",
+        "file": "app/services/moderationService.ts",
+        "line": 16,
+        "callers": [
+          "app/features/staff/useReviewItem.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/PublicStoryReview/{itemId}/views",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/PublicStoryReview/{}/views",
+        "service": "moderationService",
+        "operation": "view",
+        "file": "app/services/moderationService.ts",
+        "line": 19,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/PublicStoryReview/{itemId}/flags/resolve",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/PublicStoryReview/{}/flags/resolve",
+        "service": "moderationService",
+        "operation": "resolveFlag",
+        "file": "app/services/moderationService.ts",
+        "line": 20,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/PublicStoryReview/{itemId}/checklist",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/PublicStoryReview/{}/checklist",
+        "service": "moderationService",
+        "operation": "publicChecklist",
+        "file": "app/services/moderationService.ts",
+        "line": 21,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/PublicStoryReview/{itemId}/labels",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/PublicStoryReview/{}/labels",
+        "service": "moderationService",
+        "operation": "labels",
+        "file": "app/services/moderationService.ts",
+        "line": 22,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/PublicStoryReview/{itemId}/approve",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/PublicStoryReview/{}/approve",
+        "service": "moderationService",
+        "operation": "approve",
+        "file": "app/services/moderationService.ts",
+        "line": 25,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/PublicStoryReview/{itemId}/request-changes",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/PublicStoryReview/{}/request-changes",
+        "service": "moderationService",
+        "operation": "publicChanges",
+        "file": "app/services/moderationService.ts",
+        "line": 23,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/PublicStoryReview/{itemId}/reject",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/PublicStoryReview/{}/reject",
+        "service": "moderationService",
+        "operation": "reject",
+        "file": "app/services/moderationService.ts",
+        "line": 26,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/PublicStoryReview/{itemId}/compare",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/PublicStoryReview/{}/compare",
+        "service": "moderationService",
+        "operation": "compare",
+        "file": "app/services/moderationService.ts",
+        "line": 24,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ContentReport",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ContentReport",
+        "service": "guardianService",
+        "operation": "reportStory",
+        "file": "app/services/guardianService.ts",
+        "line": 85,
+        "callers": [
+          "app/features/library/ModerationDialogs.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ContentReportReview/{itemId}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ContentReportReview/{}",
+        "service": "moderationService",
+        "operation": "package",
+        "file": "app/services/moderationService.ts",
+        "line": 16,
+        "callers": [
+          "app/features/staff/useReviewItem.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ContentReportReview/{itemId}/dismiss",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ContentReportReview/{}/dismiss",
+        "service": "moderationService",
+        "operation": "reportDecision",
+        "file": "app/services/moderationService.ts",
+        "line": 31,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ContentReportReview/{itemId}/archive",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ContentReportReview/{}/archive",
+        "service": "moderationService",
+        "operation": "reportDecision",
+        "file": "app/services/moderationService.ts",
+        "line": 31,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ContentReportReview/{itemId}/escalate",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ContentReportReview/{}/escalate",
+        "service": "moderationService",
+        "operation": "reportDecision",
+        "file": "app/services/moderationService.ts",
+        "line": 31,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/AdminAccount/grant",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/AdminAccount/grant",
+        "service": "staffService",
+        "operation": "grantAdmin",
+        "file": "app/services/staffService.ts",
+        "line": 70,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/AdminAccount/{targetUserId}/revoke",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/AdminAccount/{}/revoke",
+        "service": "staffService",
+        "operation": "revokeAdmin",
+        "file": "app/services/staffService.ts",
+        "line": 71,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ModeratorAccount",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ModeratorAccount",
+        "service": "staffService",
+        "operation": "staff",
+        "file": "app/services/staffService.ts",
+        "line": 74,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ModeratorAccount/invite",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ModeratorAccount/invite",
+        "service": "staffService",
+        "operation": "inviteModerator",
+        "file": "app/services/staffService.ts",
+        "line": 79,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ModeratorAccount/{userId}/resend-invite",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ModeratorAccount/{}/resend-invite",
+        "service": "staffService",
+        "operation": "resendInvite",
+        "file": "app/services/staffService.ts",
+        "line": 81,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ModeratorAccount/{userId}/deactivate",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ModeratorAccount/{}/deactivate",
+        "service": "staffService",
+        "operation": "deactivateModerator",
+        "file": "app/services/staffService.ts",
+        "line": 84,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ModeratorAccount/{userId}/reactivate",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ModeratorAccount/{}/reactivate",
+        "service": "staffService",
+        "operation": "reactivateModerator",
+        "file": "app/services/staffService.ts",
+        "line": 86,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ContentCategory",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ContentCategory",
+        "service": "staffService",
+        "operation": "createCategory",
+        "file": "app/services/staffService.ts",
+        "line": 30,
+        "callers": [
+          "app/features/staff/AdminCatalog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/ContentCategory/{contentCategoryId}",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/ContentCategory/{}",
+        "service": "staffService",
+        "operation": "updateCategory",
+        "file": "app/services/staffService.ts",
+        "line": 33,
+        "callers": [
+          "app/features/staff/AdminCatalog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/ContentCategory/{contentCategoryId}",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/ContentCategory/{}",
+        "service": "contentCategoryService",
+        "operation": "remove",
+        "file": "app/services/contentCategoryService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/staff/CategoryDetails.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ContentCategory/{contentCategoryId}",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ContentCategory/{}",
+        "service": "contentCategoryService",
+        "operation": "get",
+        "file": "app/services/contentCategoryService.ts",
+        "line": 4,
+        "callers": [
+          "app/features/staff/CategoryDetails.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ContentCategory",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ContentCategory",
+        "service": "childProfileService",
+        "operation": "getContentCategories",
+        "file": "app/services/childProfileService.ts",
+        "line": 102,
+        "callers": [
+          "app/features/children/CreateChildWizard.tsx",
+          "app/features/safety/SafetyWorkspace.tsx"
+        ]
+      },
+      {
+        "key": "GET /api/v1/ContentCategory",
+        "service": "staffService",
+        "operation": "categories",
+        "file": "app/services/staffService.ts",
+        "line": 28,
+        "callers": [
+          "app/features/staff/AdminCatalog.tsx",
+          "app/features/staff/ReviewPanel.tsx",
+          "app/features/staff/RoadmapTemplates.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/TokenQuota/config",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/TokenQuota/config",
+        "service": "staffService",
+        "operation": "setQuota",
+        "file": "app/services/staffService.ts",
+        "line": 38,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/TokenQuota/config",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/TokenQuota/config",
+        "service": "staffService",
+        "operation": "quotaConfigs",
+        "file": "app/services/staffService.ts",
+        "line": 36,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/TokenQuota/child/{childProfileId}",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/TokenQuota/child/{}",
+        "service": "childProfileService",
+        "operation": "getTokenQuotaForChild",
+        "file": "app/services/childProfileService.ts",
+        "line": 106,
+        "callers": [
+          "app/features/home/HomeWorkspace.tsx",
+          "app/features/studio/BriefForm.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/DataRequest",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/DataRequest",
+        "service": "staffService",
+        "operation": "createDataRequest",
+        "file": "app/services/staffService.ts",
+        "line": 43,
+        "callers": [
+          "app/features/children/DataRequestSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/DataRequest/pending",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/DataRequest/pending",
+        "service": "staffService",
+        "operation": "pendingDataRequests",
+        "file": "app/services/staffService.ts",
+        "line": 46,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/DataRequest/mine",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/DataRequest/mine",
+        "service": "staffService",
+        "operation": "myDataRequests",
+        "file": "app/services/staffService.ts",
+        "line": 44,
+        "callers": [
+          "app/features/children/DataRequestSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/DataRequest/{dataRequestId}/cancel",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/DataRequest/{}/cancel",
+        "service": "staffService",
+        "operation": "cancelDataRequest",
+        "file": "app/services/staffService.ts",
+        "line": 45,
+        "callers": [
+          "app/features/children/DataRequestSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/DataRequest/{dataRequestId}/resolve-export",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/DataRequest/{}/resolve-export",
+        "service": "staffService",
+        "operation": "resolveExport",
+        "file": "app/services/staffService.ts",
+        "line": 50,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      },
+      {
+        "key": "POST /api/v1/DataRequest/{}/resolve-export",
+        "service": "staffService",
+        "operation": "resolveExport",
+        "file": "app/services/staffService.ts",
+        "line": 50,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/DataRequest/{dataRequestId}/resolve-delete",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/DataRequest/{}/resolve-delete",
+        "service": "staffService",
+        "operation": "resolveDelete",
+        "file": "app/services/staffService.ts",
+        "line": 56,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/DataRequest/{dataRequestId}/reject",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/DataRequest/{}/reject",
+        "service": "staffService",
+        "operation": "rejectDataRequest",
+        "file": "app/services/staffService.ts",
+        "line": 58,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/BusinessReport/generate",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/BusinessReport/generate",
+        "service": "staffService",
+        "operation": "generateReport",
+        "file": "app/services/staffService.ts",
+        "line": 63,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/BusinessReport/{reportId}/publish",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/BusinessReport/{}/publish",
+        "service": "staffService",
+        "operation": "publishReport",
+        "file": "app/services/staffService.ts",
+        "line": 65,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/BusinessReport/latest-published",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/BusinessReport/latest-published",
+        "service": "staffService",
+        "operation": "latestReport",
+        "file": "app/services/staffService.ts",
+        "line": 61,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Payment/plans",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Payment/plans",
+        "service": "paymentService",
+        "operation": "plans",
+        "file": "app/services/paymentService.ts",
+        "line": 4,
+        "callers": [
+          "app/features/account/PaymentSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Payment/transactions",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Payment/transactions",
+        "service": "paymentService",
+        "operation": "create",
+        "file": "app/services/paymentService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/account/PaymentSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Payment/webhook/sepay",
+    "authorization": "AllowAnonymous",
+    "evidence": [],
+    "disposition": "SERVER_TO_SERVER"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Payment/mismatched",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Payment/mismatched",
+        "service": "staffService",
+        "operation": "mismatchedPayments",
+        "file": "app/services/staffService.ts",
+        "line": 66,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Payment/transactions/{transactionId}/mark-paid",
+    "authorization": "(Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Payment/transactions/{}/mark-paid",
+        "service": "staffService",
+        "operation": "markPaid",
+        "file": "app/services/staffService.ts",
+        "line": 67,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Notification",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Notification",
+        "service": "guardianService",
+        "operation": "notifications",
+        "file": "app/services/guardianService.ts",
+        "line": 108,
+        "callers": [
+          "app/components/shell/NotificationBell.tsx",
+          "app/features/home/SupervisionTodos.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Notification/unread-count",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Notification/unread-count",
+        "service": "guardianService",
+        "operation": "unreadNotificationCount",
+        "file": "app/services/guardianService.ts",
+        "line": 119,
+        "callers": [
+          "app/components/shell/NotificationBell.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/Notification/{notificationId}/read",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/Notification/{}/read",
+        "service": "guardianService",
+        "operation": "markNotificationRead",
+        "file": "app/services/guardianService.ts",
+        "line": 112,
+        "callers": [
+          "app/components/shell/NotificationBell.tsx",
+          "app/features/home/SupervisionTodos.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/Notification/read-all",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/Notification/read-all",
+        "service": "guardianService",
+        "operation": "markAllNotificationsRead",
+        "file": "app/services/guardianService.ts",
+        "line": 115,
+        "callers": [
+          "app/components/shell/NotificationBell.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/Notification/{notificationId}",
+    "authorization": "Authorize người lớn; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/Notification/{}",
+        "service": "guardianService",
+        "operation": "deleteNotification",
+        "file": "app/services/guardianService.ts",
+        "line": 123,
+        "callers": [
+          "app/components/shell/NotificationBell.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Story",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Story",
+        "service": "storyService",
+        "operation": "getStories",
+        "file": "app/services/storyService.ts",
+        "line": 21,
+        "callers": [
+          "app/context/WorkspaceDataContext.tsx"
+        ]
+      },
+      {
+        "key": "GET /api/v1/Story",
+        "service": "storyService",
+        "operation": "getStories",
+        "file": "app/services/storyService.ts",
+        "line": 21,
+        "callers": [
+          "app/context/WorkspaceDataContext.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Story/{id}",
+    "authorization": "AllowAnonymous",
+    "evidence": [
+      {
+        "key": "GET /api/v1/Story/{}",
+        "service": "storyService",
+        "operation": "getStoryById",
+        "file": "app/services/storyService.ts",
+        "line": 25,
+        "callers": [
+          "app/features/library/LibraryWorkspace.tsx",
+          "app/features/library/PersonalStoryEditor.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Story",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/Story",
+        "service": "storyManagementService",
+        "operation": "create",
+        "file": "app/services/storyManagementService.ts",
+        "line": 4,
+        "callers": [
+          "app/features/library/PersonalStoryEditor.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/Story/{id}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/Story/{}",
+        "service": "storyManagementService",
+        "operation": "update",
+        "file": "app/services/storyManagementService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/library/PersonalStoryEditor.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/Story/{id}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/Story/{}",
+        "service": "storyManagementService",
+        "operation": "remove",
+        "file": "app/services/storyManagementService.ts",
+        "line": 6,
+        "callers": [
+          "app/features/library/PersonalStoryEditor.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PATCH",
+    "route": "/api/v1/Story/{id}/publish",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PATCH /api/v1/Story/{}/publish",
+        "service": "storyManagementService",
+        "operation": "publish",
+        "file": "app/services/storyManagementService.ts",
+        "line": 7,
+        "callers": [
+          "app/features/library/PersonalStoryEditor.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ChildRoadmap/stories",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/ChildRoadmap/stories",
+        "service": "roadmapService",
+        "operation": "add",
+        "file": "app/services/roadmapService.ts",
+        "line": 8,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/roadmap/AddToRoadmapDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ChildRoadmap/{childProfileId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/ChildRoadmap/{}",
+        "service": "roadmapService",
+        "operation": "get",
+        "file": "app/services/roadmapService.ts",
+        "line": 7,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/roadmap/RoadmapWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/ChildRoadmap/{childProfileId}/items/{itemId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/ChildRoadmap/{}/items/{}",
+        "service": "roadmapService",
+        "operation": "remove",
+        "file": "app/services/roadmapService.ts",
+        "line": 9,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/roadmap/RoadmapWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/ChildRoadmap/{childProfileId}/order",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/ChildRoadmap/{}/order",
+        "service": "roadmapService",
+        "operation": "reorder",
+        "file": "app/services/roadmapService.ts",
+        "line": 10,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/roadmap/RoadmapWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/ChildRoadmap/{childProfileId}/items",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/ChildRoadmap/{}/items",
+        "service": "roadmapService",
+        "operation": "clear",
+        "file": "app/services/roadmapService.ts",
+        "line": 11,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/roadmap/RoadmapWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/CommunityLibrary",
+    "authorization": "Policy ChildSession; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/CommunityLibrary",
+        "service": "communityService",
+        "operation": "library",
+        "file": "app/services/communityService.ts",
+        "line": 10,
+        "callers": [
+          "app/features/kid/ConnectedKidHome.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/CommunityLibrary/{submissionId}",
+    "authorization": "Policy ChildSession; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/CommunityLibrary/{}",
+        "service": "communityService",
+        "operation": "detail",
+        "file": "app/services/communityService.ts",
+        "line": 11,
+        "callers": [
+          "app/features/kid/ConnectedKidHome.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/CommunityReview/{itemId}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/CommunityReview/{}",
+        "service": "moderationService",
+        "operation": "package",
+        "file": "app/services/moderationService.ts",
+        "line": 16,
+        "callers": [
+          "app/features/staff/useReviewItem.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/CommunityReview/{itemId}/checklist",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/CommunityReview/{}/checklist",
+        "service": "moderationService",
+        "operation": "communityChecklist",
+        "file": "app/services/moderationService.ts",
+        "line": 27,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/CommunityReview/{itemId}/labels",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/CommunityReview/{}/labels",
+        "service": "moderationService",
+        "operation": "labels",
+        "file": "app/services/moderationService.ts",
+        "line": 22,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/CommunityReview/{itemId}/approve",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/CommunityReview/{}/approve",
+        "service": "moderationService",
+        "operation": "approve",
+        "file": "app/services/moderationService.ts",
+        "line": 25,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/CommunityReview/{itemId}/reject",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/CommunityReview/{}/reject",
+        "service": "moderationService",
+        "operation": "reject",
+        "file": "app/services/moderationService.ts",
+        "line": 26,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/CommunitySubmission/check",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/CommunitySubmission/check",
+        "service": "communityService",
+        "operation": "check",
+        "file": "app/services/communityService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/library/ModerationDialogs.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/CommunitySubmission",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/CommunitySubmission",
+        "service": "communityService",
+        "operation": "submit",
+        "file": "app/services/communityService.ts",
+        "line": 6,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/library/ModerationDialogs.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/CommunitySubmission/{itemId}/withdraw",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/CommunitySubmission/{}/withdraw",
+        "service": "communityService",
+        "operation": "withdraw",
+        "file": "app/services/communityService.ts",
+        "line": 8,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/library/LibraryWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/CommunitySubmission/{itemId}/remove",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/CommunitySubmission/{}/remove",
+        "service": "communityService",
+        "operation": "remove",
+        "file": "app/services/communityService.ts",
+        "line": 9,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/library/LibraryWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/CommunitySubmission/mine",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/CommunitySubmission/mine",
+        "service": "communityService",
+        "operation": "mine",
+        "file": "app/services/communityService.ts",
+        "line": 7,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/library/LibraryWorkspace.tsx",
+          "app/features/library/ModerationDialogs.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/content/check",
+    "authorization": "(ContentCreator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/content/check",
+        "service": "creatorPublicationService",
+        "operation": "check",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 7,
+        "callers": [
+          "app/features/staff/CreatorPublication.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/creator/stories/{storyId}/publication",
+    "authorization": "(ContentCreator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/stories/{}/publication",
+        "service": "creatorPublicationService",
+        "operation": "status",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 6,
+        "callers": [
+          "app/features/staff/CreatorManualMedia.tsx",
+          "app/features/staff/CreatorPublication.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/removal-requests",
+    "authorization": "(ContentCreator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/removal-requests",
+        "service": "creatorPublicationService",
+        "operation": "remove",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 10,
+        "callers": [
+          "app/features/staff/CreatorPublication.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/revisions",
+    "authorization": "(ContentCreator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/revisions",
+        "service": "creatorPublicationService",
+        "operation": "revision",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 11,
+        "callers": [
+          "app/features/staff/CreatorPublication.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/moderation/public-story-removals/{itemId}/decision",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/moderation/public-story-removals/{}/decision",
+        "service": "moderationService",
+        "operation": "removalDecision",
+        "file": "app/services/moderationService.ts",
+        "line": 32,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/moderation/gray-zone-stories/{itemId}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/moderation/gray-zone-stories/{}",
+        "service": "moderationService",
+        "operation": "package",
+        "file": "app/services/moderationService.ts",
+        "line": 16,
+        "callers": [
+          "app/features/staff/useReviewItem.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/moderation/gray-zone-stories/{itemId}/decision",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/moderation/gray-zone-stories/{}/decision",
+        "service": "moderationService",
+        "operation": "grayDecision",
+        "file": "app/services/moderationService.ts",
+        "line": 30,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/moderation/rubrics",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/moderation/rubrics",
+        "service": "rubricService",
+        "operation": "list",
+        "file": "app/services/rubricService.ts",
+        "line": 9,
+        "callers": [
+          "app/features/staff/RubricWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/moderation/rubrics/active",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/moderation/rubrics/active",
+        "service": "rubricService",
+        "operation": "active",
+        "file": "app/services/rubricService.ts",
+        "line": 11,
+        "callers": [
+          "app/features/staff/RubricWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/moderation/rubrics/{id}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/moderation/rubrics/{}",
+        "service": "rubricService",
+        "operation": "get",
+        "file": "app/services/rubricService.ts",
+        "line": 10,
+        "callers": [
+          "app/features/staff/RubricWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/moderation/rubrics",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/moderation/rubrics",
+        "service": "rubricService",
+        "operation": "create",
+        "file": "app/services/rubricService.ts",
+        "line": 12,
+        "callers": [
+          "app/features/staff/RubricWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/moderation/rubrics/{id}/clone",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/moderation/rubrics/{}/clone",
+        "service": "rubricService",
+        "operation": "clone",
+        "file": "app/services/rubricService.ts",
+        "line": 14,
+        "callers": [
+          "app/features/staff/RubricWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/moderation/rubrics/{id}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/moderation/rubrics/{}",
+        "service": "rubricService",
+        "operation": "update",
+        "file": "app/services/rubricService.ts",
+        "line": 13,
+        "callers": [
+          "app/features/staff/RubricWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/moderation/rubrics/{id}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/moderation/rubrics/{}",
+        "service": "rubricService",
+        "operation": "remove",
+        "file": "app/services/rubricService.ts",
+        "line": 15,
+        "callers": [
+          "app/features/staff/RubricWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/moderation/rubrics/{id}/validate",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/moderation/rubrics/{}/validate",
+        "service": "rubricService",
+        "operation": "validate",
+        "file": "app/services/rubricService.ts",
+        "line": 16,
+        "callers": [
+          "app/features/staff/RubricWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/moderation/rubrics/{id}/evaluations",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/moderation/rubrics/{}/evaluations",
+        "service": "rubricService",
+        "operation": "evaluate",
+        "file": "app/services/rubricService.ts",
+        "line": 17,
+        "callers": [
+          "app/features/staff/RubricWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/moderation/rubrics/{id}/activate",
+    "authorization": "(Moderator hoặc Administrator) AND (Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/moderation/rubrics/{}/activate",
+        "service": "rubricService",
+        "operation": "activate",
+        "file": "app/services/rubricService.ts",
+        "line": 18,
+        "callers": [
+          "app/features/staff/RubricWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/moderation/rubrics/{id}/audit-logs",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/moderation/rubrics/{}/audit-logs",
+        "service": "rubricService",
+        "operation": "audit",
+        "file": "app/services/rubricService.ts",
+        "line": 19,
+        "callers": [
+          "app/features/staff/RubricWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/MyRoadmap",
+    "authorization": "Policy ChildSession; kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/MyRoadmap",
+        "service": "roadmapService",
+        "operation": "mine",
+        "file": "app/services/roadmapService.ts",
+        "line": 16,
+        "callers": [
+          "app/features/kid/ConnectedKidHome.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/PublishedContentReview",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/PublishedContentReview",
+        "service": "moderationService",
+        "operation": "published",
+        "file": "app/services/moderationService.ts",
+        "line": 33,
+        "callers": [
+          "app/features/staff/PublishedReviewWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/PublishedContentReview/stories/{storyId}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/PublishedContentReview/stories/{}",
+        "service": "moderationService",
+        "operation": "publishedStory",
+        "file": "app/services/moderationService.ts",
+        "line": 34,
+        "callers": [
+          "app/features/staff/PublishedReviewWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/PublishedContentReview/roadmaps/{roadmapId}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/PublishedContentReview/roadmaps/{}",
+        "service": "moderationService",
+        "operation": "publishedRoadmap",
+        "file": "app/services/moderationService.ts",
+        "line": 35,
+        "callers": [
+          "app/features/staff/PublishedReviewWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/PublishedContentReview/review-items",
+    "authorization": "(Moderator hoặc Administrator) AND (Moderator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/PublishedContentReview/review-items",
+        "service": "moderationService",
+        "operation": "createReviewItem",
+        "file": "app/services/moderationService.ts",
+        "line": 36,
+        "callers": [
+          "app/features/staff/PublishedReviewWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/RoadmapLibrary",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/RoadmapLibrary",
+        "service": "roadmapService",
+        "operation": "library",
+        "file": "app/services/roadmapService.ts",
+        "line": 12,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/roadmap/RoadmapWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/RoadmapLibrary/{roadmapId}",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/RoadmapLibrary/{}",
+        "service": "roadmapService",
+        "operation": "detail",
+        "file": "app/services/roadmapService.ts",
+        "line": 13,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/roadmap/RoadmapWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/RoadmapLibrary/{roadmapId}/preview",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/RoadmapLibrary/{}/preview",
+        "service": "roadmapService",
+        "operation": "preview",
+        "file": "app/services/roadmapService.ts",
+        "line": 14,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/roadmap/AddToRoadmapDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/RoadmapLibrary/{roadmapId}/copy",
+    "authorization": "(Parent); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/RoadmapLibrary/{}/copy",
+        "service": "roadmapService",
+        "operation": "copy",
+        "file": "app/services/roadmapService.ts",
+        "line": 15,
+        "callers": [
+          "app/services/guardianService.ts",
+          "app/features/roadmap/AddToRoadmapDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/RoadmapReview/{itemId}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/RoadmapReview/{}",
+        "service": "moderationService",
+        "operation": "package",
+        "file": "app/services/moderationService.ts",
+        "line": 16,
+        "callers": [
+          "app/features/staff/useReviewItem.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/RoadmapReview/{itemId}/checklist",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/RoadmapReview/{}/checklist",
+        "service": "moderationService",
+        "operation": "roadmapChecklist",
+        "file": "app/services/moderationService.ts",
+        "line": 28,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/RoadmapReview/{itemId}/approve",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/RoadmapReview/{}/approve",
+        "service": "moderationService",
+        "operation": "approve",
+        "file": "app/services/moderationService.ts",
+        "line": 25,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/RoadmapReview/{itemId}/request-changes",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/RoadmapReview/{}/request-changes",
+        "service": "moderationService",
+        "operation": "roadmapChanges",
+        "file": "app/services/moderationService.ts",
+        "line": 29,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/RoadmapReview/{itemId}/reject",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/RoadmapReview/{}/reject",
+        "service": "moderationService",
+        "operation": "reject",
+        "file": "app/services/moderationService.ts",
+        "line": 26,
+        "callers": [
+          "app/features/staff/ReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/RoadmapTemplate",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/RoadmapTemplate",
+        "service": "roadmapTemplateService",
+        "operation": "list",
+        "file": "app/services/roadmapTemplateService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/staff/RoadmapTemplates.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/RoadmapTemplate/{id}",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/RoadmapTemplate/{}",
+        "service": "roadmapTemplateService",
+        "operation": "get",
+        "file": "app/services/roadmapTemplateService.ts",
+        "line": 6,
+        "callers": [
+          "app/features/staff/RoadmapTemplates.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/RoadmapTemplate/candidates",
+    "authorization": "(Moderator hoặc Administrator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "GET /api/v1/RoadmapTemplate/candidates",
+        "service": "roadmapTemplateService",
+        "operation": "candidates",
+        "file": "app/services/roadmapTemplateService.ts",
+        "line": 7,
+        "callers": [
+          "app/features/staff/RoadmapTemplates.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/RoadmapTemplate",
+    "authorization": "(Moderator hoặc Administrator) AND (Moderator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/RoadmapTemplate",
+        "service": "roadmapTemplateService",
+        "operation": "create",
+        "file": "app/services/roadmapTemplateService.ts",
+        "line": 8,
+        "callers": [
+          "app/features/staff/RoadmapTemplates.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/RoadmapTemplate/{id}",
+    "authorization": "(Moderator hoặc Administrator) AND (Moderator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/RoadmapTemplate/{}",
+        "service": "roadmapTemplateService",
+        "operation": "update",
+        "file": "app/services/roadmapTemplateService.ts",
+        "line": 9,
+        "callers": [
+          "app/features/staff/RoadmapTemplates.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/RoadmapTemplate/{id}/items",
+    "authorization": "(Moderator hoặc Administrator) AND (Moderator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "PUT /api/v1/RoadmapTemplate/{}/items",
+        "service": "roadmapTemplateService",
+        "operation": "items",
+        "file": "app/services/roadmapTemplateService.ts",
+        "line": 10,
+        "callers": [
+          "app/features/staff/RoadmapTemplates.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/RoadmapTemplate/{id}/submit",
+    "authorization": "(Moderator hoặc Administrator) AND (Moderator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/RoadmapTemplate/{}/submit",
+        "service": "roadmapTemplateService",
+        "operation": "submit",
+        "file": "app/services/roadmapTemplateService.ts",
+        "line": 11,
+        "callers": [
+          "app/features/staff/RoadmapTemplates.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/RoadmapTemplate/{id}/withdraw",
+    "authorization": "(Moderator hoặc Administrator) AND (Moderator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/RoadmapTemplate/{}/withdraw",
+        "service": "roadmapTemplateService",
+        "operation": "withdraw",
+        "file": "app/services/roadmapTemplateService.ts",
+        "line": 12,
+        "callers": [
+          "app/features/staff/RoadmapTemplates.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/RoadmapTemplate/{id}/clone",
+    "authorization": "(Moderator hoặc Administrator) AND (Moderator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/RoadmapTemplate/{}/clone",
+        "service": "roadmapTemplateService",
+        "operation": "clone",
+        "file": "app/services/roadmapTemplateService.ts",
+        "line": 13,
+        "callers": [
+          "app/features/staff/RoadmapTemplates.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/RoadmapTemplate/{id}/archive",
+    "authorization": "(Moderator hoặc Administrator) AND (Moderator); kèm guard nghiệp vụ của nhóm.",
+    "evidence": [
+      {
+        "key": "POST /api/v1/RoadmapTemplate/{}/archive",
+        "service": "roadmapTemplateService",
+        "operation": "archive",
+        "file": "app/services/roadmapTemplateService.ts",
+        "line": 14,
+        "callers": [
+          "app/features/staff/RoadmapTemplates.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/creator/stories/{storyId}/manual/confirm-content",
+    "authorization": "ContentCreator (current local backend extension)",
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/manual/confirm-content",
+        "service": "creatorPublicationService",
+        "operation": "confirmManual",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/staff/CreatorManualMedia.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  }
+]

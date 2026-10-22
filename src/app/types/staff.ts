@@ -194,8 +194,8 @@ export interface ModeratorAccountDto {
 }
 
 /** Loại mục và trạng thái trong hàng đợi kiểm duyệt của backend (`ModerationQueue`). */
-export type QueueItemType = 'PublicStoryReview' | 'GrayZoneStory' | 'ContentReport' | 'RoadmapTemplateReview' | 'CommunitySubmission';
-export type QueueItemStatus = 'Pending' | 'Claimed' | 'Approved' | 'ChangesRequested' | 'Rejected' | 'Cleared' | 'Blocked' | 'Dismissed' | 'Archived' | 'Escalated' | 'Withdrawn';
+export type QueueItemType = 'PublicStoryRemoval' | 'PublicStoryReview' | 'GrayZoneStory' | 'ContentReport' | 'RoadmapTemplateReview' | 'CommunitySubmission';
+export type QueueItemStatus = 'Pending' | 'Claimed' | 'Approved' | 'ChangesRequested' | 'Rejected' | 'Cleared' | 'Blocked' | 'Dismissed' | 'Archived' | 'Escalated' | 'Withdrawn' | 'Removed' | 'Closed';
 
 export interface QueueItem {
   id: number;
@@ -217,6 +217,7 @@ export interface QueueItem {
 
 /** Mục đang nhận: thêm cờ, checklist, tiến độ rà (chuỗi JSON). Nội dung truyện lấy riêng theo `storyId`. */
 export interface QueueItemDetail extends QueueItem {
+  rowVersion: number;
   flags: string | null;
   checklist: string | null;
   reviewProgress: string | null;

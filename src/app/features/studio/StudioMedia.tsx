@@ -9,6 +9,7 @@ import { gradientFor, splitScenes } from "@/app/lib/storyView";
 import { isReadingOnly } from "@/app/lib/storyRules";
 import type { useMediaProgress } from "./useStoryPipeline";
 import { useRiseIn, useSwap } from "@/app/lib/motion";
+import MediaAssets from './MediaAssets';
 
 type Props = { storyId: number; media: ReturnType<typeof useMediaProgress>; onFinish: () => void };
 
@@ -68,6 +69,7 @@ export default function StudioMedia({ storyId, media, onFinish }: Props) {
       </div>
 
       <AsidePane title="Chuẩn bị cho bé" icon={Images} bodyRef={sideRef}>
+          <MediaAssets key={storyId} storyId={storyId} versionId={m?.approvedStoryVersionId} onChanged={media.refresh}/>
           <div className="sec">
             {step(true, "Đã duyệt nội dung", "", Check)}
             {step(!!m && total > 0 && m.readyIllustrations >= total, "Tranh minh hoạ", m ? `${m.readyIllustrations}/${total}` : "…", ImageIcon)}

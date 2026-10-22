@@ -4,7 +4,7 @@
  */
 
 export type RoadmapStatus = 'queued' | 'open' | 'completed' | 'skipped' | 'removed';
-export type SkipReason = 'blocked_category' | 'age_band_mismatch' | 'story_unavailable' | 'source_deleted' | 'data_deletion';
+export type SkipReason = string;
 
 export interface RoadmapItem {
   id: number;
@@ -21,7 +21,8 @@ export interface RoadmapItem {
   openedAt: string | null;
   completedAt: string | null;
   skipReason: SkipReason | null;
-  createdAt: string;
+  createdAt?: string;
+  isStoryAvailable?: boolean;
 }
 
 export type RoadmapPosition = 'next' | 'end';
@@ -31,11 +32,12 @@ export interface RoadmapStoryInput {
   title: string;
   ageBand: string;
   /** Số tiếng của truyện — dùng kiểm tra max_story_length của từng trẻ. */
-  length: number;
+  length: number | null;
 }
 
 export interface RoadmapAddResult {
-  added: { childProfileId: number; itemId: number; moved: boolean }[];
+  warnings?: string[];
+  added: { childProfileId: number; itemId: number | null; moved: boolean }[];
   skipped: { childProfileId: number; nickname: string; reason: string }[];
 }
 
@@ -48,7 +50,7 @@ export interface RoadmapTemplate {
   readingLevelMax: number;
   topic: string;
   defaultDaysPerStep: number | null;
-  stories: { storyId: number; title: string; ageBand: string; length: number }[];
+  stories: { storyId: number; title: string; ageBand: string; length: number | null; isAvailable?: boolean }[];
 }
 
 export interface InterventionCase {
@@ -128,6 +130,9 @@ export interface ContentReport {
 }
 
 export interface CommunitySubmission {
+  canWithdraw?: boolean;
+  canRemove?: boolean;
+  rejectReason?: string | null;
   id: number;
   storyId: number;
   status: 'pending' | 'approved' | 'rejected' | 'withdrawn' | 'removed';
@@ -136,7 +141,7 @@ export interface CommunitySubmission {
 
 export interface AppNotification {
   id: number;
-  /** Có ở thông báo từ backend; thông báo của bộ máy cục bộ không có. */
+  /** Hồ sơ trẻ liên quan đến thông báo, nếu có. */
   childProfileId?: number | null;
   type: string;
   /** Nhóm của backend: stories / children / supervisors / account / moderation. */
@@ -146,3 +151,5 @@ export interface AppNotification {
   readAt: string | null;
   createdAt: string;
 }
+
+export type ChildRef = { id: number; nickname: string; status: string; ageBand: string; maxStoryLength: number };

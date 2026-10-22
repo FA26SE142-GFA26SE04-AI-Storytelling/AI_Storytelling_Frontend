@@ -4,10 +4,12 @@ import "@/app/features/review/review-tools.css";
 import { useEffect, useState } from "react";
 import { CircleAlert, Flag, Send, X } from "lucide-react";
 import { guardianService } from "@/app/services/guardianService";
-import { storyService } from "@/app/services/storyService";
+import { communityService } from '@/app/services/communityService';
+import type { CommunityEligibilityDto } from '@/app/types/backendContracts';
+
 import type { ReportReason } from "@/app/types/progress";
 import type { StoryCard } from "@/app/lib/storyView";
-import { FREE_TEXT_MAX, detectPii } from "@/app/lib/storyRules";
+import { FREE_TEXT_MAX } from "@/app/lib/storyRules";
 
 function Shell({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   return (
@@ -72,16 +74,23 @@ export function CommunityDialog({ story, nickname, onClose, onDone }: { story: S
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
+  const [eligibility, setEligibility] = useState<CommunityEligibilityDto | null>(null);
   useEffect(() => {
-    void storyService.getStoryById(story.id).then((r) => {
-      const text = [r.data?.title, r.data?.description, r.data?.content].filter(Boolean).join("\n");
-      setPii([...new Set(detectPii(text, nickname).map((h) => `${h.kind}: “${h.text}”`))]);
-    });
-  }, [story.id, nickname]);
+    let alive = true;
+    const controller = new AbortController();
+    setPii(null); setEligibility(null); setErr(null);
+
+      void communityService.check({ storyId: story.id, confirmNoPersonalInfo: noPii, copyrightDeclaration: ownWork ? 2 : null }, controller.signal).then(r => {
+        if (!alive) return;
+        if (!r.success || !r.data) { setErr(r.message); setPii([]); return; }
+        setEligibility(r.data); setPii(r.data.piiFindings.map(f => `${f.location}: ${f.excerpt}`));
+      });
+    return () => { alive = false; controller.abort(); };
+  }, [story.id, nickname, ownWork, noPii]);
 
   const submit = async () => {
     setBusy(true);
-    const r = await guardianService.submitCommunity(story.id);
+    const r = await guardianService.submitCommunity(story.id, noPii, ownWork);
     setBusy(false);
     if (r.success) onDone(r.message || "Đã nộp."); else setErr(r.message);
   };
@@ -107,10 +116,11 @@ export function CommunityDialog({ story, nickname, onClose, onDone }: { story: S
         <input type="checkbox" checked={noPii} onChange={(e) => setNoPii(e.target.checked)} style={{ marginTop: 3 }} />
         <span>Tôi xác nhận truyện không chứa thông tin định danh của bé hay gia đình.</span>
       </label>
+      {eligibility && !eligibility.canSubmit && <div className="notice err">{eligibility.blockers.map(b => <p key={b.code}>{b.message}</p>)}</div>}
       {err && <div className="notice err" role="alert">{err}</div>}
       <div className="row" style={{ justifyContent: "flex-end" }}>
         <button className="btn btn-g" onClick={onClose}>Hủy</button>
-        <button className="btn btn-p" disabled={busy || pii === null || blocked || !noPii || (!story.fromAi && !ownWork)} onClick={() => void submit()}><Send className="ic" />Nộp</button>
+        <button className="btn btn-p" disabled={busy || pii === null || blocked || !noPii || (!story.fromAi && !ownWork) || !eligibility?.canSubmit} onClick={() => void submit()}><Send className="ic" />Nộp</button>
       </div>
     </Shell>
   );

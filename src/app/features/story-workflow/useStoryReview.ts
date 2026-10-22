@@ -20,7 +20,7 @@ export interface StoryReviewBundle {
   discussion: DiscussionReviewDto;
 }
 
-export function useStoryReview(storyId: number) {
+export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'parent') {
   const [bundle, setBundle] = useState<StoryReviewBundle | null>(null);
   const [proposal, setProposal] = useState<AIProposalDto | null>(null);
   const [validation, setValidation] = useState<ValidationResultDto | null>(null);
@@ -92,7 +92,12 @@ export function useStoryReview(storyId: number) {
     const checks = requireData(await api.validateReview(storyId, signal));
     if (signal.aborted) return;
     setValidation(checks);
-    if (!checks.canApprove) throw new Error(checks.issues.join(' • ') || 'Nội dung chưa đủ điều kiện phê duyệt.');
+    if (!(actor === 'creator' ? checks.canConfirmContent : checks.canApprove)) throw new Error(checks.issues.join(' • ') || 'Nội dung chưa đủ điều kiện phê duyệt.');
+    if (actor === 'creator') {
+      const result = requireData(await api.confirmCreatorContent(storyId, bundle.summary.storyVersionId, signal));
+      if (!signal.aborted && result.versionId === bundle.summary.storyVersionId) onApproved();
+      return;
+    }
     const result = requireData(await api.approveStory(storyId, signal));
     if (!signal.aborted && result.success) onApproved();
     else if (!signal.aborted) throw new Error('Máy chủ chưa xác nhận phê duyệt.');

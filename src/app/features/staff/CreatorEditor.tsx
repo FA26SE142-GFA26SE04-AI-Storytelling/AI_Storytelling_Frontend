@@ -8,6 +8,11 @@ import { detectPii } from "@/app/lib/storyRules";
 import { fmt } from "./ui";
 import CreatorImport from "./CreatorImport";
 
+import AssistancePanel from "@/app/features/authoring/AssistancePanel";
+import type { AssistanceReference } from "@/app/types/backendContracts";
+import CreatorPublication from "./CreatorPublication";
+import CreatorManualMedia from "./CreatorManualMedia";
+
 const ORIGIN: Record<string, string> = { Write: "Viết", Import: "Nhập", Restore: "Khôi phục" };
 const EMPTY: SaveVersionInput = { title: "", content: "", sourceDeclaration: "", rightsDeclaration: "" };
 const same = (a: SaveVersionInput, b: SaveVersionInput) =>
@@ -24,7 +29,12 @@ type Write = { call: () => Promise<CreatorResult<ContentSaved>>; snapshot: SaveV
  * 409 thì giữ nguyên phần đang sửa và để người dùng đồng bộ.
  */
 export default function CreatorEditor({ storyId, onBack }: { storyId: number; onBack: () => void }) {
+  const [references, setReferences] = useState<AssistanceReference[]>([]);
+  const [publicationLocked, setPublicationLocked] = useState(true);
+  const [mediaLocked, setMediaLocked] = useState(false);
+  const editorLocked = publicationLocked || mediaLocked;
   const [draft, setDraft] = useState<CreatorDraft | null>(null);
+  const mediaState = useCallback((status: string) => setDraft(d => d && d.status !== status ? { ...d, status } : d), []);
   const [form, setForm] = useState<SaveVersionInput>(EMPTY);
   const [saved, setSaved] = useState<SaveVersionInput>(EMPTY);
   const [versions, setVersions] = useState<CreatorVersion[] | null>(null);
@@ -59,6 +69,7 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
 
   const apply = (r: ContentSaved, snapshot: SaveVersionInput) => {
     setDraft(r.story);
+    setReferences([]);
     setSaved(snapshot);
     setConflict(false);
     setViewing(null);
@@ -86,15 +97,15 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
   };
 
   const save = () => {
-    if (!draft) return;
-    const snapshot = { ...form };
+    if (!draft || editorLocked) return;
+    const snapshot = { ...form, assistanceReferences: references };
     const op = newOperationId("save");
     const { revisionToken, selectedVersionId } = draft;
     void runWrite({ call: () => creatorService.save(storyId, op, revisionToken, selectedVersionId, snapshot), snapshot, okText: "Đã lưu", replaceForm: false });
   };
 
   const restore = (v: CreatorVersion) => {
-    if (!draft) return;
+    if (!draft || editorLocked) return;
     if (dirty && !confirm("Bạn có thay đổi chưa lưu. Khôi phục sẽ thay nội dung đang sửa bằng bản cũ. Tiếp tục?")) return;
     const op = newOperationId("restore");
     const { revisionToken, selectedVersionId } = draft;
@@ -122,6 +133,8 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
           {dirty && <span className="pill wait">Chưa lưu</span>}
         </div>
         <small className="sub">{draft.ageBand} tuổi · {draft.genre || "chưa có thể loại"} · cập nhật {fmt(draft.updatedAt ?? draft.createdAt)}</small>
+        {editorLocked && <p className="notice warn">Bản này đang được mở chỉ để xem. Kiểm tra phần phát hành hoặc tạo phiên bản chỉnh sửa mới.</p>}
+        <fieldset disabled={editorLocked || busy} style={{ border: 0, padding: 0 }}>
         <label className="field"><span className="lbl">Tên truyện</span><input className="inp" maxLength={200} value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
         <label className="field"><span className="lbl">Nội dung (mỗi đoạn cách nhau một dòng trống)</span>
           <textarea className="inp" rows={14} maxLength={200_000} value={form.content} onChange={(e) => set({ content: e.target.value })} /></label>
@@ -138,8 +151,13 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
           {hasPending && <button className="btn btn-s" disabled={busy} onClick={retry}>Thử lại lệnh vừa rồi</button>}
           <button className="btn btn-p" disabled={busy || !dirty || conflict} onClick={save}><Save className="ic" />{busy ? "Đang lưu…" : "Lưu phiên bản mới"}</button>
         </div>
-        <p className="sub">Mỗi lần lưu tạo một phiên bản mới; bản cũ được giữ nguyên trong lịch sử. Gửi Moderator duyệt và đưa vào Thư viện chung đang chờ backend.</p>
+        </fieldset>
+        <p className="sub">Mỗi lần lưu tạo một phiên bản mới; bản đã nộp được giữ nguyên trong lịch sử.</p>
       </div>
+      <CreatorManualMedia key={`media:${storyId}:${draft.selectedVersionId}`} draft={draft} disabled={busy || dirty || conflict || hasPending || publicationLocked} onWorkingChange={setMediaLocked} onStatus={mediaState} />
+      <CreatorPublication storyId={storyId} versionId={draft.selectedVersionId} storyStatus={draft.status} onRevision={() => void open()} onLockChange={setPublicationLocked} />
+
+      <AssistancePanel key={`${storyId}:${draft.selectedVersionId}`} actor="creator" story={{ ...draft, source:draft.source ?? 'Manual',status:draft.status ?? 'Draft' }} snapshot={{title:form.title,content:form.content}} disabled={busy || editorLocked || hasPending} onApply={(next,ref) => { setForm(f => ({...f,...next})); setReferences(v => [...v,ref]); }} />
 
       {importing && <CreatorImport draft={draft} defaultTitle={form.title} onClose={() => setImporting(false)}
         onSaved={(r) => { const snap = fromVersion(r.version); setForm(snap); apply(r, snap); setNote({ ok: true, text: `Đã nhập nội dung (phiên bản V${r.version.versionNo}).` }); }} />}
@@ -162,7 +180,7 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
           <>
             <div className="st-content" style={{ maxHeight: 280, overflowY: "auto" }}>{viewing.content || "Phiên bản này chưa có nội dung."}</div>
             {viewing.versionId !== draft.selectedVersionId && (
-              <button className="btn btn-s" style={{ width: "fit-content" }} disabled={busy || conflict} onClick={() => restore(viewing)}><RotateCcw className="ic" />Khôi phục V{viewing.versionNo} thành bản mới</button>
+              <button className="btn btn-s" style={{ width: "fit-content" }} disabled={busy || conflict || editorLocked} onClick={() => restore(viewing)}><RotateCcw className="ic" />Khôi phục V{viewing.versionNo} thành bản mới</button>
             )}
           </>
         )}

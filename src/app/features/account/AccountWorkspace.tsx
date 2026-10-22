@@ -9,6 +9,9 @@ import type { LoginSession } from "@/app/types/supervision";
 import { fmtDateTime, passwordProblem } from "@/app/lib/guardian";
 import ProfileSection from "./ProfileSection";
 import DeleteAccountSection from "./DeleteAccountSection";
+import ActivitySection from './ActivitySection';
+import PaymentSection from './PaymentSection';
+import ConnectionStatus from './ConnectionStatus';
 
 type Note = { ok: boolean; text: string } | null;
 
@@ -62,6 +65,9 @@ export default function AccountWorkspace() {
         <div className="pb children-body">
           <div className="sec" style={{ gap: 28, maxWidth: 560 }}>
             <ProfileSection />
+            <PaymentSection />
+            <ActivitySection />
+            <ConnectionStatus />
 
             <form className="sec" style={{ gap: 10 }} onSubmit={changePassword}>
               <h3 className="display" style={{ margin: 0 }}>Đổi mật khẩu</h3>

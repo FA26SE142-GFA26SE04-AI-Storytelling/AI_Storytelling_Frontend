@@ -17,6 +17,7 @@ import LearningTab from "./LearningTab";
 import SupervisorsTab from "./SupervisorsTab";
 import AccessTab from "./AccessTab";
 import JoinInvitation from "./JoinInvitation";
+import RestoreArchived from './RestoreArchived';
 
 type Tab = "profile" | "learning" | "supervisors" | "access";
 const TABS: { id: Tab; label: string }[] = [
@@ -65,6 +66,7 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
       <div className="pane">
         <div className="ph"><span>Con của tôi</span><div className="act"><span className="pill draft">{kids.length} bé</span></div></div>
         <div ref={listRef} className="pb" style={{ gap: 6 }}>
+          <RestoreArchived onRestored={id=>void open(id)} />
           {kids.map((k) => {
             const st = childStatus(k.status);
             return (

@@ -1,136 +1,125 @@
-import { USE_MOCK } from '@/app/mocks/config';
+import { unavailable } from './unavailable';
 import type { ApiResponse } from '@/app/types/auth';
 import type {
-  AppNotification, CommunitySubmission, ContentReport, Dashboard, InterventionCase, ProgressReport, ReadCompletion, ReportReason,
+  AppNotification, ChildRef, CommunitySubmission, ContentReport, Dashboard, InterventionCase, ProgressReport, ReadCompletion, ReportReason,
   RoadmapAddResult, RoadmapItem, RoadmapPosition, RoadmapStoryInput, RoadmapTemplate,
 } from '@/app/types/progress';
 import type { StoryWish } from '@/app/types/reading';
 import { apiRequest } from './apiClient';
-import { guardianLocal, type ChildRef } from './guardianLocal';
-import { notificationLocal } from './notificationLocal';
-import { staffLocal } from './staffLocal';
+import { roadmapService } from './roadmapService';
+import { roadmapItems, roadmapAddResult, roadmapTemplate, roadmapCopyResult } from './roadmapAdapters';
+import { communityService } from './communityService';
+import type * as B from '@/app/types/backendContracts';
 
-/**
- * Luồng 4 (và phần phụ huynh của Luồng 2 mục 3.5) — dịch vụ phía phụ huynh.
- *
- * HỢP ĐỒNG API ĐỀ XUẤT (backend chưa có — xem docs/FRONTEND_PROGRESS.md, "Luồng 4 — cần backend bổ sung"):
- *   GET    /children/{id}/dashboard                         → Dashboard (khối theo quyền LIVE)
- *   GET    /children/{id}/roadmap                           → RoadmapItem[]
- *   POST   /roadmap/items                                   { childProfileIds, storyId, position, dueDays, note } → RoadmapAddResult
- *   DELETE /roadmap/items/{itemId}
- *   PUT    /children/{id}/roadmap/order                     { itemIds }   (chỉ các truyện đang chờ)
- *   POST   /children/{id}/roadmap/clear
- *   GET    /roadmap-templates                               → RoadmapTemplate[] (đã Published)
- *   POST   /roadmap-templates/{id}/apply                    { childProfileIds, position, daysPerStep } → RoadmapAddResult
- *   GET    /children/{id}/intervention                      → InterventionCase | null
- *   POST   /intervention-cases/{id}/unlock                  { skillGapNotes }
- *   PUT    /intervention-cases/{id}/notes                   { skillGapNotes }
- *   GET    /children/{id}/read-completions                  → ReadCompletion[];  PUT /read-completions/{id}/seen
- *   GET    /children/{id}/progress-reports                  → ProgressReport[]
- *   GET    /children/{id}/wishes                            → StoryWish[]
- *   POST   /wishes/{id}/fulfill-with-existing {storyId} · /accept · /decline   (Luồng 2 mục 11)
- *   POST   /content-reports                                 { storyId, reason, description }
- *   GET    /stories/{id}/moderation-status                  → { reports, submission }
- *   POST   /community-submissions                           { storyId, piiAttested }
- *   POST   /community-submissions/{id}/withdraw
- * Thông báo dùng API đã có: GET /Notification, PUT /Notification/{id}/read, PUT /Notification/read-all.
- */
+/** Parent workspace facade: available operations always use the Core API. */
 
-let backendReady: boolean | null = USE_MOCK ? false : null;
-
-async function call<T>(path: string, fallback: () => ApiResponse<T>, opts: { method?: 'GET' | 'POST' | 'PUT' | 'DELETE'; body?: unknown } = {}): Promise<ApiResponse<T>> {
-  if (backendReady === false) return fallback();
-  const r = await apiRequest<T>(path, 'Không kết nối được.', opts);
-  if (r.success) { backendReady = true; return r; }
-  if (backendReady === null) { backendReady = false; return fallback(); }
-  return r;
-}
+const communityItem = (s: B.CommunitySubmissionDto): CommunitySubmission => ({ id: s.itemId, storyId: s.storyId, status: s.status.toLowerCase() as CommunitySubmission['status'], createdAt: s.submittedAt, canWithdraw: s.canWithdraw, canRemove: s.canRemove, rejectReason: s.rejectReason });
+const positionWire = (p: RoadmapPosition) => p === 'next' ? 'NextUp' as const : 'End' as const;
+const reportReasons = { safety_concern: 'SafetyConcern', inappropriate: 'Inappropriate', wrong_age_band: 'WrongAgeBand', copyright: 'Copyright', cultural: 'Cultural', other: 'Other' } as const;
 
 export type { ChildRef };
 
 export const guardianService = {
-  isLocal: () => backendReady === false,
 
-  dashboard: (childId: number): Promise<ApiResponse<Dashboard>> => call(`/children/${childId}/dashboard`, () => guardianLocal.dashboard(childId)),
+  dashboard: (childId: number): Promise<ApiResponse<Dashboard>> => unavailable('tính năng này', [childId]),
 
-  roadmap: (childId: number): Promise<ApiResponse<RoadmapItem[]>> => call(`/children/${childId}/roadmap`, () => guardianLocal.roadmap(childId)),
+  async roadmap(childId: number): Promise<ApiResponse<RoadmapItem[]> & { counts?: { completed: number; total: number } }> {
+    const r = await roadmapService.get(childId);
+    return { ...r, data: r.data ? roadmapItems(r.data) : null, counts: r.data ? { completed: r.data.completedCount, total: r.data.totalCount } : undefined };
+  },
+  async addToRoadmap(children: ChildRef[], story: RoadmapStoryInput, position: RoadmapPosition, dueDays: number | null, note: string | null): Promise<ApiResponse<RoadmapAddResult>> {
+    const r = await roadmapService.add({ storyId: story.storyId, childProfileIds: children.map(c => c.id), position: positionWire(position), expectedDays: dueDays, note });
+    return { ...r, data: r.data ? roadmapAddResult(r.data, children) : null };
+  },
+  async removeFromRoadmap(childId: number, itemId: number): Promise<ApiResponse<null>> {
+    const r = await roadmapService.remove(childId, itemId); return { ...r, data: null };
+  },
+  async reorderRoadmap(childId: number, itemIds: number[]): Promise<ApiResponse<null>> {
+    const r = await roadmapService.reorder(childId, itemIds); return { ...r, data: null };
+  },
+  async clearRoadmap(childId: number): Promise<ApiResponse<null>> {
+    const r = await roadmapService.clear(childId); return { ...r, data: null };
+  },
+  async templates(): Promise<ApiResponse<RoadmapTemplate[]>> {
+    const items: RoadmapTemplate[] = [];
+    for (let pageIndex = 1; ; pageIndex++) {
+      const r = await roadmapService.library({ pageIndex, pageSize: 20 });
+      if (!r.success || !r.data) return { ...r, data: null };
+      const details = await Promise.all(r.data.items.map(i => roadmapService.detail(i.id)));
+      const failure = details.find(d => !d.success || !d.data);
+      if (failure) return { ...failure, data: null };
+      items.push(...details.flatMap(d => d.data ? [roadmapTemplate(d.data)] : []));
+      if (!r.data.hasNextPage) return { ...r, data: items };
+    }
+  },
+  previewTemplate: (children: ChildRef[], template: RoadmapTemplate, position: RoadmapPosition, daysPerStory: number | null) =>
+    roadmapService.preview(template.id, { childProfileIds: children.map(c => c.id), position: positionWire(position), daysPerStory }),
+  async applyTemplate(children: ChildRef[], template: RoadmapTemplate, position: RoadmapPosition, daysPerStory: number | null): Promise<ApiResponse<RoadmapAddResult>> {
+    const r = await roadmapService.copy(template.id, { childProfileIds: children.map(c => c.id), position: positionWire(position), daysPerStory });
+    return { ...r, data: r.data ? roadmapCopyResult(r.data, children) : null };
+  },
 
-  addToRoadmap: (children: ChildRef[], story: RoadmapStoryInput, position: RoadmapPosition, dueDays: number | null, note: string | null): Promise<ApiResponse<RoadmapAddResult>> =>
-    call('/roadmap/items', () => guardianLocal.addToRoadmap(children, story, position, { dueDays, note }), { method: 'POST', body: { childProfileIds: children.map((c) => c.id), storyId: story.storyId, position, dueDays, note } }),
-
-  removeFromRoadmap: (childId: number, itemId: number): Promise<ApiResponse<null>> =>
-    call(`/roadmap/items/${itemId}`, () => guardianLocal.removeFromRoadmap(childId, itemId), { method: 'DELETE' }),
-
-  reorderRoadmap: (childId: number, queuedIds: number[]): Promise<ApiResponse<null>> =>
-    call(`/children/${childId}/roadmap/order`, () => guardianLocal.reorderRoadmap(childId, queuedIds), { method: 'PUT', body: { itemIds: queuedIds } }),
-
-  clearRoadmap: (childId: number): Promise<ApiResponse<null>> =>
-    call(`/children/${childId}/roadmap/clear`, () => guardianLocal.clearRoadmap(childId), { method: 'POST' }),
-
-  templates: (): Promise<ApiResponse<RoadmapTemplate[]>> =>
-    call('/roadmap-templates', () => ({ ...guardianLocal.templates(), data: [...staffLocal.publishedTemplates(), ...(guardianLocal.templates().data ?? [])] })),
-
-  applyTemplate: (children: ChildRef[], template: RoadmapTemplate, position: RoadmapPosition, daysPerStep: number | null): Promise<ApiResponse<RoadmapAddResult>> =>
-    call(`/roadmap-templates/${template.id}/apply`, () => guardianLocal.applyTemplate(children, template, position, daysPerStep), { method: 'POST', body: { childProfileIds: children.map((c) => c.id), position, daysPerStep } }),
-
-  holdCase: (childId: number): Promise<ApiResponse<InterventionCase | null>> => call(`/children/${childId}/intervention`, () => guardianLocal.holdCase(childId)),
+  holdCase: (childId: number): Promise<ApiResponse<InterventionCase | null>> => unavailable('tính năng này', [childId]),
 
   unlockHold: (childId: number, caseId: number, notes: string): Promise<ApiResponse<null>> =>
-    call(`/intervention-cases/${caseId}/unlock`, () => guardianLocal.unlockHold(childId, notes), { method: 'POST', body: { skillGapNotes: notes || null } }),
+    unavailable('tính năng này', [childId,caseId,notes]),
 
   addHoldNotes: (childId: number, caseId: number, notes: string): Promise<ApiResponse<null>> =>
-    call(`/intervention-cases/${caseId}/notes`, () => guardianLocal.addHoldNotes(childId, notes), { method: 'PUT', body: { skillGapNotes: notes } }),
+    unavailable('tính năng này', [childId,caseId,notes]),
 
-  completions: (childId: number): Promise<ApiResponse<ReadCompletion[]>> => call(`/children/${childId}/read-completions`, () => guardianLocal.completions(childId)),
+  completions: (childId: number): Promise<ApiResponse<ReadCompletion[]>> => unavailable('tính năng này', [childId]),
   markCompletionSeen: (childId: number, id: number): Promise<ApiResponse<null>> =>
-    call(`/read-completions/${id}/seen`, () => guardianLocal.markCompletionSeen(childId, id), { method: 'PUT' }),
+    unavailable('tính năng này', [childId,id]),
 
-  reports: (childId: number): Promise<ApiResponse<ProgressReport[]>> => call(`/children/${childId}/progress-reports`, () => guardianLocal.reports(childId)),
+  reports: (childId: number): Promise<ApiResponse<ProgressReport[]>> => unavailable('tính năng này', [childId]),
 
-  wishes: (childId: number): Promise<ApiResponse<(StoryWish & { label: string })[]>> => call(`/children/${childId}/wishes`, () => guardianLocal.wishes(childId)),
+  wishes: (childId: number): Promise<ApiResponse<(StoryWish & { label: string })[]>> => unavailable('tính năng này', [childId]),
   fulfillWishWithStory: (child: ChildRef, wishId: number, story: RoadmapStoryInput): Promise<ApiResponse<null>> =>
-    call(`/wishes/${wishId}/fulfill-with-existing`, () => guardianLocal.fulfillWishWithStory(child, wishId, story), { method: 'POST', body: { storyId: story.storyId } }),
+    unavailable('tính năng này', [child,wishId,story]),
   acceptWish: (childId: number, wishId: number): Promise<ApiResponse<null>> =>
-    call(`/wishes/${wishId}/accept`, () => guardianLocal.decideWish(childId, wishId, 'accepted'), { method: 'POST' }),
+    unavailable('tính năng này', [childId,wishId]),
   declineWish: (childId: number, wishId: number, note: string): Promise<ApiResponse<null>> =>
-    call(`/wishes/${wishId}/decline`, () => guardianLocal.decideWish(childId, wishId, 'declined'), { method: 'POST', body: { declineNote: note || null } }),
+    unavailable('tính năng này', [childId,wishId,note]),
 
-  reportStory: (storyId: number, reason: ReportReason, description: string): Promise<ApiResponse<ContentReport>> =>
-    call('/content-reports', () => guardianLocal.reportStory(storyId, reason, description), { method: 'POST', body: { storyId, reason, description } }),
-
-  storyModeration: (storyId: number): Promise<ApiResponse<{ reports: ContentReport[]; submission: CommunitySubmission | null }>> =>
-    call(`/stories/${storyId}/moderation-status`, () => guardianLocal.storyModeration(storyId)),
-
-  submitCommunity: (storyId: number): Promise<ApiResponse<CommunitySubmission>> =>
-    call('/community-submissions', () => guardianLocal.submitCommunity(storyId), { method: 'POST', body: { storyId, piiAttested: true } }),
-
-  withdrawCommunity: (submissionId: number): Promise<ApiResponse<null>> =>
-    call(`/community-submissions/${submissionId}/withdraw`, () => guardianLocal.withdrawCommunity(submissionId), { method: 'POST' }),
+  async reportStory(storyId: number, reason: ReportReason, description: string): Promise<ApiResponse<ContentReport>> {
+    const r = await apiRequest<B.ContentReportResultDto>('/ContentReport', 'Không gửi được báo cáo.', { method: 'POST', body: { storyId, reason: reportReasons[reason], description: description || null } });
+    return { ...r, data: r.data ? { id: r.data.reportId, storyId: r.data.storyId, reason, description, status: r.data.status.toLowerCase() as ContentReport['status'], createdAt: r.data.createdAt } : null };
+  },
+  async storyModeration(storyId: number): Promise<ApiResponse<{ reports: ContentReport[]; submission: CommunitySubmission | null }>> {
+    const r = await communityService.mine();
+    return { ...r, data: r.data ? { reports: [], submission: r.data.filter(s => s.storyId === storyId).sort((a,b) => Date.parse(b.submittedAt) - Date.parse(a.submittedAt)).map(communityItem)[0] ?? null } : null };
+  },
+  async submitCommunity(storyId: number, confirmNoPersonalInfo = false, ownWork = false): Promise<ApiResponse<CommunitySubmission>> {
+    const r = await communityService.submit({ storyId, confirmNoPersonalInfo, copyrightDeclaration: ownWork ? 2 : null });
+    if (!r.success || !r.data) return { ...r, data: null };
+    // Fetch server timestamps/permissions instead of manufacturing a submission record.
+    const mine = await communityService.mine();
+    return mine.success && mine.data ? { ...r, data: mine.data.map(communityItem).find(s => s.id === r.data!.itemId) ?? null } : { ...r, data: null };
+  },
+  async withdrawCommunity(itemId: number): Promise<ApiResponse<null>> {
+    const r = await communityService.withdraw(itemId); return { ...r, data: null };
+  },
+  async removeCommunity(itemId: number): Promise<ApiResponse<null>> {
+    const r = await communityService.remove(itemId); return { ...r, data: null };
+  },
 
   // ---------- Thông báo (API đã có ở backend) ----------
   async notifications(): Promise<ApiResponse<AppNotification[]>> {
-    if (USE_MOCK) return { success: true, message: '', data: notificationLocal.list() };
     const r = await apiRequest<AppNotification[]>('/Notification', 'Không tải được thông báo.');
-    // Gộp thêm thông báo từ bộ máy cục bộ khi các luồng khác chưa có backend.
-    return r.success ? { ...r, data: [...notificationLocal.list(), ...(r.data ?? [])] } : r;
+    return r;
   },
   async markNotificationRead(n: AppNotification): Promise<void> {
-    if (USE_MOCK || notificationLocal.list().includes(n)) { notificationLocal.markRead(n.id); return; }
     await apiRequest(`/Notification/${n.id}/read`, '', { method: 'PUT' });
   },
   async markAllNotificationsRead(): Promise<void> {
-    notificationLocal.markAllRead();
-    if (!USE_MOCK) await apiRequest('/Notification/read-all', '', { method: 'PUT' });
+    await apiRequest('/Notification/read-all', '', { method: 'PUT' });
   },
-  /** Số thông báo chưa đọc (backend + bộ máy cục bộ), dùng để hỏi định kỳ mà không tải cả danh sách. */
+  /** Số thông báo chưa đọc từ backend, dùng để hỏi định kỳ. */
   async unreadNotificationCount(): Promise<number | null> {
-    const local = notificationLocal.list().filter((n) => n.status !== 'read').length;
-    if (USE_MOCK) return local;
     const r = await apiRequest<number>('/Notification/unread-count', '');
-    return r.success && typeof r.data === 'number' ? r.data + local : null;
+    return r.success && typeof r.data === 'number' ? r.data : null;
   },
   async deleteNotification(n: AppNotification): Promise<ApiResponse<null>> {
-    if (USE_MOCK || notificationLocal.list().includes(n)) { notificationLocal.remove(n.id); return { success: true, message: '', data: null }; }
     return apiRequest(`/Notification/${n.id}`, 'Không xoá được thông báo.', { method: 'DELETE' });
   },
 };

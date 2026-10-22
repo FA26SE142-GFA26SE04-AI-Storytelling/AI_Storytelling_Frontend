@@ -20,6 +20,9 @@ import { useSteppedProgress } from "./useSteppedProgress";
 import { useMediaProgress, useStoryPipeline, type Stage } from "./useStoryPipeline";
 import { useRiseIn } from "@/app/lib/motion";
 
+import ParentAuthoringWorkspace from "@/app/features/authoring/ParentAuthoringWorkspace";
+import { useMyRole } from "@/app/features/children/useMyRole";
+
 type Prefill = AIStoryInputFormValues | null;
 
 /** Mỗi section là một bố cục khác nhau của phần thân Studio; thanh tiến trình ở trên không đổi. */
@@ -28,6 +31,7 @@ const sectionOf = (stage: Stage, storyId: number | null): Section =>
   storyId === null ? "plan" : stage === "review" ? "review" : stage === "media" ? "media" : "plan";
 
 type PipelineProps = {
+  onManual: () => void;
   userId: number;
   childId: number;
   prefill: Prefill;
@@ -38,7 +42,7 @@ type PipelineProps = {
   onImport: () => void;
 };
 
-function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, go, onImport }: PipelineProps) {
+function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, go, onImport, onManual }: PipelineProps) {
   const { child, reload } = useWorkspaceData();
   const [approved, setApproved] = useState(false);
   // Nút duyệt nằm trên thanh tiến trình; màn duyệt truyện đăng ký hành động duyệt của nó vào đây.
@@ -66,7 +70,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
   return (
     <section ref={bodyRef} className="ws with-steps" data-aside={asideCollapsed ? "collapsed" : undefined}>
       <StudioSteps progress={progress}>
-        <StudioControls key={p.stage} stage={p.stage} valuesKnown={p.flow.valuesKnown} onEditIdea={p.flow.editInput} onRestart={restart} onStartNew={() => onNew()} approve={approve} />
+        <StudioControls onManual={onManual} key={p.stage} stage={p.stage} valuesKnown={p.flow.valuesKnown} onEditIdea={p.flow.editInput} onRestart={restart} onStartNew={() => onNew()} approve={approve} />
       </StudioSteps>
       <AsideContext.Provider value={aside}>
       <ApproveSlot.Provider value={setApprove}>
@@ -104,6 +108,8 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
 export default function StudioWorkspace({ go }: { go: (id: WorkspaceId) => void }) {
   const { user } = useAuth();
   const { child, reload } = useWorkspaceData();
+  const role = useMyRole(child);
+  const [manual, setManual] = useState(false);
   const [run, setRun] = useState(0);
   const [importing, setImporting] = useState(false);
   // Ý tưởng điền lại khi "Quay lại ý tưởng"; chỉ giữ trong bộ nhớ, không lưu vào trình duyệt.
@@ -119,6 +125,9 @@ export default function StudioWorkspace({ go }: { go: (id: WorkspaceId) => void 
       </section>
     );
   }
+  if (manual) return <ParentAuthoringWorkspace key={child.id} childId={child.id} onBack={() => setManual(false)} />;
+  if (!role) return <section className="ws dock"><div className="pane"><p>Đang kiểm tra quyền…</p></div></section>;
+  if (!role.can('GenerateStory')) return <section className="ws dock"><div className="pane"><p>Bạn chưa có quyền tạo truyện AI cho bé này.</p>{role.can('AssignActivity') && <button className="btn btn-s" onClick={() => setManual(true)}>Tự soạn truyện gia đình</button>}</div></section>;
   if (importing) {
     return (
       <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
@@ -133,5 +142,5 @@ export default function StudioWorkspace({ go }: { go: (id: WorkspaceId) => void 
     );
   }
   const reset = (next: Prefill = null) => { removeStorySession(user.id, child.id); setPrefill(next); setRun((n) => n + 1); };
-  return <Pipeline key={`${child.id}:${run}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} go={go} onImport={() => setImporting(true)} />;
+  return <Pipeline onManual={() => setManual(true)} key={`${child.id}:${run}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} go={go} onImport={() => setImporting(true)} />;
 }

@@ -2,7 +2,7 @@
 
 export type SupervisorRole = 'Owner' | 'AdditionalSupervisor';
 
-/** 7 quyền giám sát theo đặc tả Luồng 1 Mục 8 (backend có thêm GenerateStory, không hiển thị). */
+/** Eight supervision permissions from the current backend contract. */
 export type Permission =
   | 'ViewProgress'
   | 'ViewResults'
@@ -10,7 +10,8 @@ export type Permission =
   | 'ReceiveReport'
   | 'ApproveReadingLevel'
   | 'ApproveStory'
-  | 'ManageSafetySettings';
+  | 'ManageSafetySettings'
+  | 'GenerateStory';
 
 export interface SupervisionRelationship {
   id: number;

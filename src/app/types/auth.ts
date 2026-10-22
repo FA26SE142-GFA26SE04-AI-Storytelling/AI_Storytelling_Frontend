@@ -29,6 +29,8 @@ export type StaffRole = (typeof STAFF_ROLES)[number];
 export const isStaffRole = (role?: string | null): role is StaffRole => !!role && (STAFF_ROLES as readonly string[]).includes(role);
 
 export interface ApiResponse<T> {
+  /** HTTP status; 0 means no response (network failure or cancellation). */
+  status?: number;
   success: boolean;
   message: string;
   data: T | null;

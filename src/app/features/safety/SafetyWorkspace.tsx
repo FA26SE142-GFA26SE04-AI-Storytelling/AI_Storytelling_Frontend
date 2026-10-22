@@ -11,6 +11,7 @@ import { useRiseIn } from "@/app/lib/motion";
 import { fmtDate, presetBlocked } from "@/app/lib/guardian";
 import { CategoryRules, ConsentBlock, keptPolicyFields, normalizeRule, rulesToRequest } from "@/app/features/children/SafetyBlocks";
 import { useMyRole } from "@/app/features/children/useMyRole";
+import { profileLifecycleService } from '@/app/services/profileLifecycleService';
 
 const MODES: { id: ApprovalMode; b: string; s: string }[] = [
   { id: "AlwaysManual", b: "Luôn cần duyệt", s: "Mọi truyện AI tạo đều vào hàng chờ. Khuyên dùng cho trẻ nhỏ." },
@@ -107,7 +108,8 @@ export default function SafetyWorkspace() {
       const rc = await childProfileService.reconsent(child.id);
       if (!rc.success) { setSaving(false); setNote({ ok: false, text: rc.message }); return; }
     }
-    const res = await childProfileService.setSafetyPolicy(child.id, {
+    const savePolicy = policy ? childProfileService.setSafetyPolicy : profileLifecycleService.createSafety;
+    const res = await savePolicy(child.id, {
       ...keptPolicyFields(policy),
       maxStoryLength: len,
       requiredApprovalMode: mode,
@@ -132,6 +134,10 @@ export default function SafetyWorkspace() {
   const reapplyPreset = async () => {
     setSaving(true);
     setNote(null);
+    const preview = await profileLifecycleService.agePreset(child!.id);
+    if (!preview.success || !preview.data) { setSaving(false); setNote({ok:false,text:preview.message}); return; }
+    const names = cats.filter(c=>preview.data!.blockedCategoryIds.includes(c.id)).map(c=>c.displayName).join(', ');
+    if (!window.confirm(`Áp dụng chặn theo tuổi ${preview.data.ageBand}: ${names || 'không có danh mục chặn'}?`)) { setSaving(false); return; }
     const res = await childProfileService.applyAgePreset(child.id);
     setSaving(false);
     setNote({ ok: res.success, text: res.success ? "Đã áp dụng danh sách chặn mặc định cho nhóm tuổi mới." : res.message });

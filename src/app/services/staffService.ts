@@ -1,15 +1,10 @@
 import type { ApiResponse } from '@/app/types/auth';
 import type { ContentCategory } from '@/app/types/childProfile';
 import type { PagedResult } from '@/app/types/story';
-import type {
-  AdministratorAccount, AiMetrics, BusinessReport, CatalogEntry, CatalogKind, CreatorApplication, CreatorApplicationInput, DataRequest,
-  EvaluationPrompt, EvaluationRun, GenerationJobLog, ModeratorAccountDto, ParentAccount, PaymentTransaction, PromptCatalogVersion,
-  PublicStory, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, TemplateDraft, TokenQuotaConfig,
-} from '@/app/types/staff';
+import type { AdministratorAccount, BusinessReport, DataRequest, ModeratorAccountDto, PaymentTransaction, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, TokenQuotaConfig } from '@/app/types/staff';
 import { apiRequest } from './apiClient';
 import { authService } from './authService';
 import { API_BASE_URL } from './apiConfig';
-import { staffLocal } from './staffLocal';
 
 /**
  * Luồng 5 — Admin Portal và Moderation.
@@ -17,9 +12,6 @@ import { staffLocal } from './staffLocal';
  * API backend đã có → luôn gọi thật: ContentCategory, TokenQuota/config, DataRequest, BusinessReport, Payment, AdminAccount,
  * ModeratorAccount, ModerationQueue (danh sách, nhận xử lý, mở mục). Truyện của Content Creator: xem `creatorService.ts`.
  *
- * Backend CHƯA CÓ → chỉ dùng dữ liệu cục bộ (`staffLocal`), không gọi mạng (xem docs/FRONTEND_PROGRESS.md, "Luồng 5 — cần backend bổ sung"):
- * đơn Content Creator, quản lý tài khoản Parent, chỉ số AI và nhật ký sinh truyện, thẻ ước / bài học / nhân vật mẫu,
- * Prompt Catalog có phiên bản, bộ đánh giá AI, quyết định kiểm duyệt, bộ truyện mẫu.
  */
 
 const toStaff = (m: ModeratorAccountDto): StaffAccount => ({
@@ -103,40 +95,7 @@ export const staffService = {
   /** Mở mục mình đang nhận. */
   openItem: (itemId: number): Promise<ApiResponse<QueueItemDetail>> => apiRequest(`/ModerationQueue/${itemId}`, 'Chưa mở được mục này.'),
 
-  // ---------- Chưa có API: dữ liệu cục bộ ----------
-  applyCreator: async (input: CreatorApplicationInput): Promise<ApiResponse<CreatorApplication>> => staffLocal.apply(input),
-  applications: async (): Promise<ApiResponse<CreatorApplication[]>> => staffLocal.applications(),
-  reviewApplication: async (id: number, approve: boolean, note: string): Promise<ApiResponse<null>> => staffLocal.reviewApplication(id, approve, note),
 
-  parents: async (q: string, status: string): Promise<ApiResponse<ParentAccount[]>> => staffLocal.parents(q, status),
-  suspendParent: async (id: number, reason: string, note: string): Promise<ApiResponse<null>> => staffLocal.suspendParent(id, reason, note),
-  reinstateParent: async (id: number, note: string): Promise<ApiResponse<null>> => staffLocal.reinstateParent(id, note),
-  unlockParentLogin: async (id: number): Promise<ApiResponse<null>> => staffLocal.unlockLogin(id),
-
-  metrics: async (): Promise<ApiResponse<AiMetrics>> => staffLocal.metrics(),
-  jobs: async (): Promise<ApiResponse<GenerationJobLog[]>> => staffLocal.jobs(),
-
-  catalog: async (kind: CatalogKind): Promise<ApiResponse<CatalogEntry[]>> => staffLocal.catalog(kind),
-  saveCatalog: async (entry: Omit<CatalogEntry, 'id'> & { id?: number }): Promise<ApiResponse<CatalogEntry>> => staffLocal.saveCatalog(entry),
-  versions: async (): Promise<ApiResponse<PromptCatalogVersion[]>> => staffLocal.versions(),
-  draftVersion: async (note: string, flag: number, block: number, effectiveDate: string): Promise<ApiResponse<PromptCatalogVersion>> => staffLocal.draftVersion(note, flag, block, effectiveDate),
-  publishVersion: async (id: number): Promise<ApiResponse<null>> => staffLocal.publishVersion(id),
-  rollback: async (): Promise<ApiResponse<null>> => staffLocal.rollback(),
-
-  prompts: async (): Promise<ApiResponse<EvaluationPrompt[]>> => staffLocal.prompts(),
-  addPrompt: async (p: Omit<EvaluationPrompt, 'id' | 'status'>): Promise<ApiResponse<EvaluationPrompt>> => staffLocal.addPrompt(p),
-  setPromptStatus: async (id: number, status: EvaluationPrompt['status']): Promise<ApiResponse<null>> => staffLocal.setPromptStatus(id, status),
-  runEvaluation: async (versionId: number): Promise<ApiResponse<EvaluationRun>> => staffLocal.runEvaluation(versionId),
-  runs: async (): Promise<ApiResponse<EvaluationRun[]>> => staffLocal.runs(),
-  rate: async (runId: number, promptId: number, rating: NonNullable<EvaluationRun['results'][number]['rating']>): Promise<ApiResponse<null>> => staffLocal.rate(runId, promptId, rating),
-
-  /** Truyện Thư viện chung mẫu (cục bộ) để ghép bộ truyện mẫu — truyện Creator thật chưa có trạng thái công khai. */
-  libraryStories: async (): Promise<ApiResponse<PublicStory[]>> => staffLocal.myStories(),
-  myTemplates: async (): Promise<ApiResponse<TemplateDraft[]>> => staffLocal.myTemplates(),
-  saveTemplate: async (input: Parameters<typeof staffLocal.saveTemplate>[0]): Promise<ApiResponse<TemplateDraft>> => staffLocal.saveTemplate(input),
-  cloneTemplate: async (id: number): Promise<ApiResponse<TemplateDraft>> => staffLocal.cloneTemplate(id),
-  submitTemplate: async (id: number): Promise<ApiResponse<null>> => staffLocal.submitTemplate(id),
-  archiveTemplate: async (id: number): Promise<ApiResponse<null>> => staffLocal.archiveTemplate(id),
 };
 
 /** Tải một Blob về máy. */

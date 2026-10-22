@@ -5,6 +5,8 @@ export type CreatorAgeBand = '6-8' | '9-10';
 export type ExperienceMode = 'reading' | 'listening' | 'combined';
 
 export interface CreatorDraft {
+  source?: string;
+  status?: string;
   storyId: number;
   authorUserId: number;
   title: string;
@@ -55,7 +57,7 @@ export interface ImportPreview {
 
 export interface CreateDraftInput { title: string; description: string; ageBand: CreatorAgeBand; genre: string; experienceMode: ExperienceMode; language?: 'vi' | 'en' }
 
-export interface SaveVersionInput { title: string; content: string; sourceDeclaration: string; rightsDeclaration: string }
+export interface SaveVersionInput { assistanceReferences?: import('@/app/types/backendContracts').AssistanceReference[]; title: string; content: string; sourceDeclaration: string; rightsDeclaration: string }
 
 /** Kết quả một lệnh gọi: `status` 0 = không kết nối được (server có thể đã ghi — thử lại với cùng operationId). */
 export interface CreatorResult<T> { ok: boolean; status: number; message: string; data: T | null }

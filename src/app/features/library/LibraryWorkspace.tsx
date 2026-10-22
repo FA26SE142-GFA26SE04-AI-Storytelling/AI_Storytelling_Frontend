@@ -14,6 +14,7 @@ import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
 import { guardianService } from "@/app/services/guardianService";
 import type { CommunitySubmission, ContentReport } from "@/app/types/progress";
 import { useMyRole } from "@/app/features/children/useMyRole";
+import PersonalStoryEditor from "./PersonalStoryEditor";
 import { CommunityDialog, ReportDialog } from "./ModerationDialogs";
 
 const SUB_STATUS: Record<string, string> = { pending: "Đang chờ duyệt", approved: "Đã có trong thư viện cộng đồng", rejected: "Bị từ chối — có thể nộp lại", withdrawn: "Đã rút", removed: "Đã gỡ" };
@@ -63,6 +64,7 @@ function Preview({ story, onClose }: { story: StoryCard; onClose: () => void }) 
 
 export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void }) {
   const { stories, storiesLoading, error, reload, child } = useWorkspaceData();
+  const [managePersonal,setManagePersonal] = useState(false);
   const [filter, setFilter] = useState("all");
   const [status, setStatus] = useState("all");
   const [q, setQ] = useState("");
@@ -124,7 +126,7 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
       </div>
 
       <div className="pane">
-        <div className="lbar">
+        <div className="lbar"><button className="btn btn-s" onClick={()=>setManagePersonal(true)}>Truyện riêng</button>{managePersonal&&<PersonalStoryEditor onClose={()=>setManagePersonal(false)} onChanged={()=>void reload()}/>}
           <label className="row grow" style={{ gap: 6, color: "var(--muted)" }}>
             <Search className="ic" />
             <input className="inp" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm theo tên truyện" style={{ border: 0, background: "none" }} aria-label="Tìm theo tên truyện" />
@@ -174,8 +176,8 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
               {selStatus === "moderation" && <p className="sub">Truyện đang chờ kiểm duyệt viên xem, thường trong 24 giờ.</p>}
               {selStatus === "ready" && role?.can("AssignActivity") && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình của con</button>}
               {selStatus === "ready" && mod?.submission && <p className="sub">Thư viện cộng đồng: {SUB_STATUS[mod.submission.status] ?? mod.submission.status}</p>}
-              {selStatus === "ready" && mod?.submission && (mod.submission.status === "pending" || mod.submission.status === "approved") && role?.can("ApproveStory") && (
-                <button className="btn btn-s btn-c" onClick={() => void guardianService.withdrawCommunity(mod.submission!.id).then((r) => { flash(r.success ? r.message : r.message); void loadMod(); })}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
+              {selStatus === "ready" && mod?.submission && ((mod.submission.canWithdraw ?? mod.submission.status === "pending") || (mod.submission.canRemove ?? mod.submission.status === "approved")) && role?.can("ApproveStory") && (
+                <button className="btn btn-s btn-c" onClick={() => void (mod.submission!.canRemove ?? mod.submission!.status === "approved" ? guardianService.removeCommunity(mod.submission!.id) : guardianService.withdrawCommunity(mod.submission!.id)).then((r) => { flash(r.success ? r.message : r.message); void loadMod(); })}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
               )}
               {selStatus === "ready" && role?.can("ApproveStory") && !(mod?.submission && ["pending", "approved"].includes(mod.submission.status)) && (
                 <button className="btn btn-s btn-c" disabled={!!mod?.reports.some((r) => r.status === "pending")} title={mod?.reports.some((r) => r.status === "pending") ? "Truyện đang có báo cáo chờ xử lý" : undefined} onClick={() => setDialog("community")}><Send className="ic" />Nộp thư viện cộng đồng</button>

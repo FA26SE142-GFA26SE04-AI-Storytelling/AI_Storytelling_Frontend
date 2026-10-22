@@ -1,0 +1,14 @@
+import type * as B from '@/app/types/backendContracts';
+import { apiRequest, apiQuery } from './apiClient';
+export const creatorAssistanceService = {
+  create: (storyId: number, body: B.CreateAssistanceTaskRequest, signal?: AbortSignal) => apiRequest<B.AssistanceTaskDto>(`/creator/stories/${storyId}/assistance-tasks`, 'Không thực hiện được thao tác.', { method: 'POST', signal, body }),
+  list: (storyId: number, pageIndex = 1, signal?: AbortSignal) => apiRequest<B.PagedResult<B.AssistanceTaskSummary>>(`/creator/stories/${storyId}/assistance-tasks${apiQuery({ pageIndex, pageSize: 20 })}`, 'Không thực hiện được thao tác.', { method: 'GET', signal }),
+  get: (storyId: number, taskId: number, signal?: AbortSignal) => apiRequest<B.AssistanceTaskDto>(`/creator/stories/${storyId}/assistance-tasks/${taskId}`, 'Không thực hiện được thao tác.', { method: 'GET', signal }),
+  steps: (storyId: number, taskId: number, pageIndex = 1, signal?: AbortSignal) => apiRequest<B.PagedResult<B.AssistanceStepDto>>(`/creator/stories/${storyId}/assistance-tasks/${taskId}/steps${apiQuery({ pageIndex, pageSize: 20 })}`, 'Không thực hiện được thao tác.', { method: 'GET', signal }),
+  suggestions: (storyId: number, taskId: number, body: B.SuggestAssistanceRequest, signal?: AbortSignal) => apiRequest<B.AssistanceCommandResult>(`/creator/stories/${storyId}/assistance-tasks/${taskId}/suggestions`, 'Không thực hiện được thao tác.', { method: 'POST', signal, body }),
+  answer: (storyId: number, taskId: number, body: B.AnswerAssistanceRequest, signal?: AbortSignal) => apiRequest<B.AssistanceCommandResult>(`/creator/stories/${storyId}/assistance-tasks/${taskId}/clarification-answer`, 'Không thực hiện được thao tác.', { method: 'POST', signal, body }),
+  direction: (storyId: number, taskId: number, body: B.ConfirmAssistanceDirectionRequest, signal?: AbortSignal) => apiRequest<B.AssistanceCommandResult>(`/creator/stories/${storyId}/assistance-tasks/${taskId}/direction`, 'Không thực hiện được thao tác.', { method: 'POST', signal, body }),
+  trial: (storyId: number, taskId: number, body: B.CreateAssistanceTrialRequest, signal?: AbortSignal) => apiRequest<B.AssistanceCommandResult>(`/creator/stories/${storyId}/assistance-tasks/${taskId}/trials`, 'Không thực hiện được thao tác.', { method: 'POST', signal, body }),
+  cancel: (storyId: number, taskId: number, body: B.CancelAssistanceRequest, signal?: AbortSignal) => apiRequest<B.AssistanceCommandResult>(`/creator/stories/${storyId}/assistance-tasks/${taskId}/cancel`, 'Không thực hiện được thao tác.', { method: 'POST', signal, body }),
+  close: (storyId: number, taskId: number, body: B.AssistanceCommand, signal?: AbortSignal) => apiRequest<B.AssistanceCommandResult>(`/creator/stories/${storyId}/assistance-tasks/${taskId}/close`, 'Không thực hiện được thao tác.', { method: 'POST', signal, body }),
+};

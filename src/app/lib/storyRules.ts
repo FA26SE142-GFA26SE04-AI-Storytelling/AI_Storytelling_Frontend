@@ -5,9 +5,6 @@ import type { StoryOutputMode, VocabularyLevel } from "@/app/types/aiStory";
 /** Luồng 2 mục 3.1 — mỗi thể loại gắn một khung truyện trong Prompt Catalog. */
 export const GENRES = ["Cổ tích", "Phiêu lưu", "Động vật", "Khoa học vui", "Đời sống hằng ngày", "Ngụ ngôn"];
 
-export const MORAL_LESSONS = ["Biết chia sẻ", "Dũng cảm", "Trung thực", "Kiên nhẫn", "Biết ơn", "Tôn trọng bạn bè", "Yêu thương gia đình", "Giữ gìn thiên nhiên", "Biết xin lỗi", "Tự lập"];
-export const SAMPLE_CHARACTERS = ["Ếch Xanh", "Sóc Bông", "Thỏ Trắng", "Mèo Mướp", "Rùa Con", "Cô bé phi hành gia", "Chú rồng nhỏ", "Robot tí hon"];
-export const SAMPLE_SETTINGS = ["Khu rừng", "Đáy biển", "Trường học", "Ngôi làng", "Vũ trụ", "Đầm sen"];
 
 /** Chế độ đầu ra của truyện (Studio và Nhập truyện có sẵn). */
 export const OUTPUT_MODE: Record<StoryOutputMode, { label: string; hint: string }> = {

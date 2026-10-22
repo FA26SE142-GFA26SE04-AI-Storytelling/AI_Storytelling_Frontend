@@ -6,6 +6,8 @@ import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { CreateDraftInput, CreatorDraft } from "@/app/types/creator";
 import { GENRES } from "@/app/lib/storyRules";
 import { Notice, Page, fmt } from "./ui";
+import CreatorGeneration from "./CreatorGeneration";
+import { useAuth } from "@/app/context/AuthContext";
 import CreatorEditor from "./CreatorEditor";
 
 const AGE: Record<string, string> = { "6-8": "6–8 tuổi", "9-10": "9–10 tuổi" };
@@ -14,6 +16,8 @@ const blank = (): CreateDraftInput => ({ title: "", description: "", ageBand: "6
 
 /** Luồng 5 Bước 5.8 — truyện mẫu Content Creator soạn thủ công (`/creator/stories`), mỗi lần lưu là một phiên bản. */
 export function CreatorStories() {
+  const { user } = useAuth();
+  const [creatingAi, setCreatingAi] = useState(false);
   const [list, setList] = useState<CreatorDraft[] | null>(null);
   const [form, setForm] = useState<CreateDraftInput | null>(null);
   const [openId, setOpenId] = useState<number | null>(null);
@@ -46,6 +50,9 @@ export function CreatorStories() {
     } else setNote({ ok: false, text: r.status === 0 ? `${r.message}` : r.message });
   };
 
+  if (creatingAi || (openId !== null && list?.find(s => s.storyId === openId)?.source?.toLowerCase() === 'ai')) {
+    return <Page title="Sáng tác bằng AI"><CreatorGeneration key={`${user?.id}:${openId ?? 'new'}`} initialId={openId} onBack={() => { setCreatingAi(false); setOpenId(null); void load(); }} /></Page>;
+  }
   if (openId !== null) {
     return (
       <Page title="Soạn truyện mẫu" sub="Truyện mẫu dành cho Thư viện chung, bằng tiếng Việt và không chứa thông tin cá nhân của người thật.">
@@ -57,9 +64,8 @@ export function CreatorStories() {
   const set = (p: Partial<CreateDraftInput>) => setForm((f) => (f ? { ...f, ...p } : f));
   return (
     <Page title="Truyện mẫu của tôi" sub="Truyện bạn soạn sẽ vào Thư viện chung sau khi Moderator duyệt. Mỗi lần lưu tạo một phiên bản; có thể xem lại và khôi phục bản cũ."
-      actions={<button className="btn btn-p" onClick={() => { setForm(blank()); setNote(null); }}><Plus className="ic" />Truyện mới</button>}>
+      actions={<><button className="btn btn-s" onClick={() => setCreatingAi(true)}>Tạo bằng AI</button><button className="btn btn-p" onClick={() => { setForm(blank()); setNote(null); }}><Plus className="ic" />Truyện thủ công</button></>}>
       <Notice note={note} />
-      <div className="notice warn">Backend chưa có gửi duyệt, rút yêu cầu, gỡ khỏi Thư viện chung và xoá truyện của Content Creator. Truyện hiện ở trạng thái Nháp.</div>
       {form && (
         <div className="st-card">
           <h3>Truyện mới</h3>

@@ -116,6 +116,7 @@ export interface ContentQualityFailureDto {
   failedGates: { gate: string; reasonCode: string; violations: string[] }[];
 }
 export interface ContentGenerationProgressDto {
+  waitingForModeration?: boolean;
   storyId: number;
   outputMode?: StoryOutputMode | string;
   storyStatus: string;
@@ -164,10 +165,12 @@ export interface ReviewPackageDto {
   discussion: ArtifactStatusDto;
   canEdit: boolean;
   canApprove: boolean;
+  canConfirmContent?: boolean;
   canArchive: boolean;
 }
 export interface ValidationResultDto {
   canApprove: boolean;
+  canConfirmContent?: boolean;
   checks: { name: string; passed: boolean; message?: string | null }[];
   issues: string[];
 }
@@ -227,6 +230,8 @@ export interface StoryMediaPackage {
   scenes: {
     sceneId: number;
     sceneIndex: number;
+    text?: string;
+    audio?: { segmentId: number; segmentOrder: number; text: string; assetId: number | null; status: string; url: string | null; wordTimings: string | null }[];
     illustrations: {
       beatId: number; beatOrder: number; startOffset: number; endOffset: number;
       visualFocus: string; assetId: number | null; status: string; url: string | null;
