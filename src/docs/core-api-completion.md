@@ -2,6 +2,13 @@
 
 Ngày 22/10/2026. Giữ kiến trúc Next.js một route, AppShell/StaffApp và tầng service/hook hiện có. Không sửa backend hoặc database.
 
+## Kiểm tra khi merge main — 23/10/2026
+
+- Merge `origin/main` tại `02e9929`, giữ trang giới thiệu/giao diện đăng nhập mới và các luồng API, tiếp tục truyện hiện có. Conflict ở `LoginScreen.tsx` được kết hợp: giữ nút về trang giới thiệu và thông báo đăng ký Creator chưa được backend hỗ trợ.
+- Lint và production build (`npm run build -- --webpack`) đạt. Unit test đạt 251/252: ca audit thất bại vì controller backend hiện đã tăng lên **319 route**, trong đó **316 connected, 2 excluded, 1 missing**.
+- 15/15 browser smoke dùng network doubles đạt, gồm mở lại truyện từ Thư viện/URL và các luồng Parent, Creator, Moderator, Administrator, Child. Đây không phải kiểm thử backend thật.
+- Route chưa kết nối mới phát hiện: `POST /api/v1/stories/{storyId}/media/replacements/{candidateAssetId}/keep-current`. Không bỏ qua hoặc đổi kỳ vọng test để che route thiếu. Các số 318/316 và manifest phía dưới ghi nhận đợt tích hợp trước đó.
+
 ## Phạm vi đã đối chiếu
 
 Nguồn hiện hành: trực tiếp `AI_Storytelling_Backend/src/Core/StoryPlatform.Api/Controllers`, kiểm tra ngày 22/10/2026. Có **318 method + route**. Tài liệu actor flow cũ chỉ là nguồn tham khảo, không còn giới hạn phạm vi audit.
@@ -34,7 +41,7 @@ Kiểm chứng hiện tại: **252 unit test / 28 file**, TypeScript, lint, prod
 - Target được chụp cố định khi vào Studio để thao tác ghi session của một truyện vừa gửi không khởi động lại input flow. Chỉ nút tạo mới/làm lại do người dùng chọn mới xóa target.
 - Kiểm tra build đợt sửa resume dùng `npm run build -- --webpack`: cache Turbopack đang bận bởi dev server có sẵn. Giữ nguyên dev server của người dùng; browser smoke chạy trong browser context riêng và chặn toàn bộ API bằng network doubles.
 
-Bổ sung theo controller hiện tại đang ở working tree nhánh `feat/frontend-core-api-integration`; chưa commit/push trong đợt này.
+Bổ sung theo controller hiện tại đã được lưu trong commit `b266309` trên nhánh `feat/frontend-core-api-integration`.
 
 ## Phần bổ sung trong đợt hoàn thiện
 

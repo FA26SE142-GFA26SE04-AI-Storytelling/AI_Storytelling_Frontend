@@ -4,5 +4,18 @@
 .login-card { width: min(400px, 100%); margin-top: 60px; background: var(--panel); border: 1px solid var(--line-2); border-radius: 32px; padding: 28px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 30px 70px -30px color-mix(in srgb, var(--shadow) 40%, transparent); }
 .login-card h1 { margin: 4px 0 0; font-size: 26px; line-height: 1.15; }
 .login-frog { display: block; margin: -92px auto -4px; }
-.login-links { display: flex; justify-content: space-between; font-size: 12.5px; }
-.login-links button { color: var(--link); font-weight: 700; }
+/* Liên kết phụ: mỗi nút giữ trên một dòng, hết chỗ thì cả nút xuống hàng. */
+.login-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; font-size: 13px; }
+.login-links button, .login-alt button, .login-staff button, .login-forgot { color: var(--link); font-weight: 700; white-space: nowrap; }
+.login-forgot { align-self: flex-end; margin-top: -6px; font-size: 12.5px; }
+/* "Chưa có tài khoản? Tạo tài khoản" — lối chính thứ hai sau nút đăng nhập. */
+.login-alt { margin: 0; text-align: center; font-size: 13.5px; color: var(--muted); }
+.login-alt.small { font-size: 12.5px; margin-top: -6px; }
+/* Lối vào của đội ngũ nội dung: nhóm riêng, nhỏ và nhạt hơn. */
+.login-staff { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 12px; margin-top: 2px; border-top: 1px solid var(--line); }
+.login-staff > span { font-size: 11.5px; color: var(--faint); }
+.login-staff > div { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 14px; }
+.login-staff button { font-size: 12px; font-weight: 600; color: var(--muted); }
+.login-staff button:hover { color: var(--link); }
+/* Về trang giới thiệu: góc trên trái, không chiếm chỗ trong thẻ. */
+.login-home { position: absolute !important; top: 16px; left: 16px; z-index: 2 !important; }
