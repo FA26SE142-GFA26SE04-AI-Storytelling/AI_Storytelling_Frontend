@@ -21,7 +21,7 @@ export const storyService = {
     return apiRequest(`/Story${query ? `?${query}` : ''}`, 'Không tải được danh sách truyện.');
   },
 
-  getStoryById(id: number): Promise<ApiResponse<StoryDto>> {
-    return apiRequest(`/Story/${id}`, 'Không tìm thấy truyện.');
+  getStoryById(id: number, signal?: AbortSignal): Promise<ApiResponse<StoryDto>> {
+    return apiRequest(`/Story/${id}`, 'Không tìm thấy truyện.', {signal});
   },
 };

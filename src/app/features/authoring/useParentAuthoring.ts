@@ -40,7 +40,7 @@ export function useParentAuthoring(childId: number) {
     const run = scope.current; locked.current = true; setBusy(true); setNote('');
     const r = await call(); if (scope.current !== run) return;
     locked.current = false; setBusy(false); setNote(r.message || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
-    if (r.status === 0) { pending.current = call; setUncertain(true); }
+    if (r.status === 0 || (r.status ?? 0) >= 500) { pending.current = call; setUncertain(true); }
     else { pending.current = null; setUncertain(false); }
     return r;
   };

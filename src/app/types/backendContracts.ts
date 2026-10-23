@@ -1,4 +1,5 @@
-/** DTO snapshot from API_FRONTEND_ACTOR_FLOWS.md (2026-10-21). Domain services adapt these into UI models. */
+/** DTO snapshot, updated against Core controllers and media models on 2026-10-22. */
+import type { MediaPackageState } from '@/app/types/aiStory';
 export interface AIProposalDto {
   'proposalId': string;
   'requestedByUserId': number;
@@ -975,7 +976,7 @@ export interface MarkPartViewedRequestDto {
   'partId': number;
 }
 
-export interface MediaGenerationProgress {
+export interface MediaGenerationProgress extends MediaPackageState {
   'storyId': number;
   'approvedStoryVersionId': number | null;
   'storyStatus': string;
@@ -1221,6 +1222,8 @@ export interface ParentOperationDto {
 }
 
 export interface ParentPreparationDto {
+  mediaPackageRevision?: number | null;
+  media?: import('@/app/types/aiStory').StoryMediaPackage | null;
   'preparationId': number;
   'storyId': number;
   'storyVersionId': number;
@@ -1736,6 +1739,8 @@ export interface SceneChangeDto {
 }
 
 export interface SceneMediaItem {
+  text: string;
+  audio: NonNullable<import('@/app/types/aiStory').StoryMediaPackage['scenes'][number]['audio']>;
   'sceneId': number;
   'sceneIndex': number;
   'illustrations': (IllustrationBeatMediaItem)[];
@@ -1858,7 +1863,8 @@ export interface StoryFilterRequestDto {
   'authorUserId': number | null;
 }
 
-export interface StoryMediaPackage {
+export interface StoryMediaPackage extends MediaPackageState {
+  isReady: boolean;
   'storyId': number;
   'storyVersionId': number;
   'scenes': (SceneMediaItem)[];
@@ -1884,7 +1890,7 @@ export interface StoryReviewDto {
 }
 
 export type StoryStatus = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
-export type StoryStatusName = 'Draft' | 'OutlineReview' | 'ContentReview' | 'Approved' | 'MediaProcessing' | 'Ready' | 'Rejected' | 'Archived';
+export type StoryStatusName = 'Draft' | 'OutlineReview' | 'ContentReview' | 'Approved' | 'MediaProcessing' | 'MediaReview' | 'Ready' | 'Rejected' | 'Archived';
 export interface SubmitAIStoryInputRequestDto {
   'topic': string;
   'genre': string | null;

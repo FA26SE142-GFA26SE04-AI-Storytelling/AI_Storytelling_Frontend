@@ -8,7 +8,7 @@ import { STUDIO_STEPS, stepMode, type StudioProgress } from "./studioProgress";
 const CAPTION_ICON = { run: LoaderCircle, you: Hand, error: CircleAlert, done: Check, todo: Check } as const;
 
 /** Thanh tiến trình luôn hiện ở đầu Studio: bé lá nào đang sáng là bước đang làm. */
-export default function StudioSteps({ progress, children }: { progress: StudioProgress; children?: ReactNode }) {
+export default function StudioSteps({ progress, children, context }: { progress: StudioProgress; children?: ReactNode; context?: ReactNode }) {
   // Khung mô tả đứng yên (chỉ đổi màu mượt); chỉ chữ hiện dần khi nội dung mô tả thật sự đổi.
   // Khoá theo nội dung chữ chứ không theo từng lá đang chạy qua, nên thanh fill dần không làm chữ chớp lại.
   const capRef = useRiseIn<HTMLDivElement>(":scope > span", [progress.caption], { distance: 6 });
@@ -17,7 +17,7 @@ export default function StudioSteps({ progress, children }: { progress: StudioPr
   const shown = Math.max(current, 0) + 1;
 
   return (
-    <nav className="studio-steps" aria-label="Tiến trình tạo truyện">
+    <nav className={`studio-steps${context ? ' has-story' : ''}`} aria-label="Tiến trình tạo truyện">
       <ol>
         {STUDIO_STEPS.map((label, i) => {
           const mode = stepMode(i, progress);
@@ -34,6 +34,7 @@ export default function StudioSteps({ progress, children }: { progress: StudioPr
         <span><small>{progress.current >= 0 ? `Bước ${shown}/${STUDIO_STEPS.length}` : "Đã dừng"}</small>{progress.caption}</span>
       </div>
       {children}
+      {context && <div className="studio-story-resume">{context}</div>}
     </nav>
   );
 }

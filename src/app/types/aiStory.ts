@@ -208,7 +208,17 @@ export interface ArtifactGenerationResultDto {
 export interface ApproveResponseDto { success: boolean; storyId: number; status: string; approvedAt: string }
 export interface ArchiveRequestDto { reason?: string }
 export interface ArchiveResponseDto { success: boolean; storyId: number; status: string }
-export interface MediaProgressDto {
+export interface MediaPackageState {
+  packageRevision: number;
+  isGenerated: boolean;
+  isAwaitingConfirmation: boolean;
+  isConfirmed: boolean;
+  confirmedByUserId: number | null;
+  confirmedAt: string | null;
+}
+export interface ConfirmMediaPackageRequest { storyVersionId: number; packageRevision: number }
+export interface RegenerateMediaRequest extends ConfirmMediaPackageRequest { expectedConfirmed: boolean }
+export interface MediaProgressDto extends MediaPackageState {
   storyId: number;
   approvedStoryVersionId: number | null;
   storyStatus: string;
@@ -224,7 +234,8 @@ export interface MediaProgressDto {
   manualReviewAssetIds: number[] | null;
   scenesWithoutValidBeats: number[] | null;
 }
-export interface StoryMediaPackage {
+export interface StoryMediaPackage extends MediaPackageState {
+  isReady: boolean;
   storyId: number;
   storyVersionId: number;
   scenes: {

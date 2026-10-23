@@ -7,7 +7,7 @@ import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { storyService } from "@/app/services/storyService";
 import { ageLabel, splitScenes, statusKey, type StoryCard } from "@/app/lib/storyView";
-import type { WorkspaceId } from "@/app/components/shell/nav";
+import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useRiseIn } from "@/app/lib/motion";
 import { ArchiveDialog } from "@/app/features/review/ReviewTools";
 import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
@@ -28,7 +28,7 @@ const STATUS_GROUPS: { id: string; label: string; keys: string[] }[] = [
   { id: "outline", label: "Chờ duyệt dàn ý", keys: ["outline_review"] },
   { id: "moderation", label: "Đang kiểm duyệt an toàn", keys: ["moderation_review"] },
   { id: "review", label: "Chờ duyệt", keys: ["content_review"] },
-  { id: "media", label: "Đang chuẩn bị media", keys: ["approved", "media_processing"] },
+  { id: "media", label: "Đang chuẩn bị media", keys: ["approved", "media_processing", "media_review"] },
   { id: "ready", label: "Sẵn sàng", keys: ["ready", "published"] },
   { id: "blocked", label: "Bị chặn", keys: ["blocked"] },
   { id: "rejected", label: "Bị từ chối", keys: ["rejected"] },
@@ -62,7 +62,7 @@ function Preview({ story, onClose }: { story: StoryCard; onClose: () => void }) 
   );
 }
 
-export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void }) {
+export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const { stories, storiesLoading, error, reload, child } = useWorkspaceData();
   const [managePersonal,setManagePersonal] = useState(false);
   const [filter, setFilter] = useState("all");
@@ -171,8 +171,8 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
                 <span>Người tạo</span><b>{sel.by}</b>
                 <span>Trạng thái</span><span className={`pill ${sel.tone}`} style={{ width: "fit-content" }}>{sel.statusLabel}</span>
               </div>
-              {selStatus === "review" && <button className="btn btn-p btn-c" onClick={() => go("review")}><WandSparkles className="ic" />Mở để duyệt</button>}
-              {(selStatus === "generating" || selStatus === "outline") && <button className="btn btn-p btn-c" onClick={() => go("studio")}><WandSparkles className="ic" />Tiếp tục trong Studio</button>}
+              {selStatus === "review" && <button className="btn btn-p btn-c" onClick={() => sel.fromAi ? go('studio',{storyId:sel.id}) : go('review')}><WandSparkles className="ic" />Mở để duyệt</button>}
+              {sel.fromAi && ['draft','generating','outline','review','media','moderation'].includes(selStatus ?? '') && <button className="btn btn-p btn-c" onClick={() => go("studio",{storyId:sel.id})}><WandSparkles className="ic" />Tiếp tục trong Studio</button>}
               {selStatus === "moderation" && <p className="sub">Truyện đang chờ kiểm duyệt viên xem, thường trong 24 giờ.</p>}
               {selStatus === "ready" && role?.can("AssignActivity") && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình của con</button>}
               {selStatus === "ready" && mod?.submission && <p className="sub">Thư viện cộng đồng: {SUB_STATUS[mod.submission.status] ?? mod.submission.status}</p>}

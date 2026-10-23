@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import type { MediaProgressDto } from "@/app/types/aiStory";
 import type { ApiResponse } from "@/app/types/auth";
@@ -11,23 +11,33 @@ import { studioActions } from "./studioProgress";
 import { useStoryProgressPolling } from "@/app/features/story-workflow/useStoryProgressPolling";
 
 import { loadSnapshot, snapshotStage, keepPolling, type Stage, type StatusSnapshot } from '@/app/features/story-workflow/generationSnapshot';
+import { loadResumeSnapshot } from '@/app/features/story-workflow/resumeStory';
 export { snapshotStage, type Stage, type StatusSnapshot } from '@/app/features/story-workflow/generationSnapshot';
 
-export function useStoryPipeline(userId: number, childId: number | null, approvedLocally: boolean, initialValues?: AIStoryInputFormValues | null) {
-  const resumed = childId !== null ? readStorySession(userId, childId) : null;
-  const flow = useAIStoryInputFlow(childId, resumed?.storyId, resumed?.requestId, initialValues);
-  const storyId = flow.progress?.storyId ?? null;
-  const accepted = flow.phase === "input_accepted" && storyId !== null;
+export function useStoryPipeline(userId: number, childId: number | null, approvedLocally: boolean, initialValues?: AIStoryInputFormValues | null, resumeStoryId?:number | null) {
+  // Freeze the initial target: writing a newly submitted session must not restart its input flow.
+  const [resumed] = useState(() => {
+    if (initialValues) return null;
+    const cached = childId !== null ? readStorySession(userId,childId) : null;
+    return resumeStoryId ? cached?.storyId === resumeStoryId ? cached : {storyId:resumeStoryId,requestId:null} : cached;
+  });
+  const inputFlow = useAIStoryInputFlow(resumed ? null : childId, undefined, undefined, initialValues);
+  const storyId = resumed?.storyId ?? inputFlow.progress?.storyId ?? null;
+  const accepted = !!resumed || inputFlow.phase === "input_accepted" && storyId !== null;
 
   useEffect(() => {
-    if (flow.progress && childId !== null) writeStorySession(userId, childId, { storyId: flow.progress.storyId, requestId: flow.progress.requestId });
-  }, [flow.progress, userId, childId]);
+    if (childId !== null && resumed) writeStorySession(userId,childId,resumed);
+    else if (inputFlow.progress && childId !== null) writeStorySession(userId, childId, { storyId: inputFlow.progress.storyId, requestId: inputFlow.progress.requestId });
+  }, [inputFlow.progress, resumed, userId, childId]);
 
   const shouldContinue = useCallback((snap: StatusSnapshot) => keepPolling(snapshotStage(snap, approvedLocally)), [approvedLocally]);
-  const status = useStoryProgressPolling<StatusSnapshot>(accepted ? storyId : null, loadSnapshot, shouldContinue);
+  const loadResumed = useCallback((id:number,signal:AbortSignal) => loadResumeSnapshot(id,resumed?.requestId ?? null,signal),[resumed]);
+  const status = useStoryProgressPolling<StatusSnapshot>(accepted ? storyId : null, resumed ? loadResumed : loadSnapshot, shouldContinue);
+  const flow = resumed ? {...inputFlow,progress:status.data?.input ?? null,errorMessage:status.data?.input?.fallbackMessage ?? status.error} : inputFlow;
 
   let stage: Stage = "brief";
-  if (flow.phase === "submitting" || flow.phase === "checking_input") stage = "checking";
+  if (resumed) stage = snapshotStage(status.data,approvedLocally);
+  else if (flow.phase === "submitting" || flow.phase === "checking_input") stage = "checking";
   else if (flow.phase === "input_blocked" || flow.phase === "input_check_failed") stage = "blocked";
   else if (accepted) stage = snapshotStage(status.data, approvedLocally);
 
@@ -57,10 +67,10 @@ export function useStoryPipeline(userId: number, childId: number | null, approve
     return r;
   } : undefined;
 
-  return { cancel, flow, storyId, stage, snapshot: status.data, statusError: status.error, timedOut: status.timedOut, errorCode, retryFailed, refresh: status.refresh };
+  return { cancel, flow, storyId, stage, snapshot: status.data, resumed:!!resumed, statusError: status.error, timedOut: status.timedOut, errorCode, retryFailed, refresh: status.refresh };
 }
 
-const mediaContinue = (m: MediaProgressDto) => !m.isReady && !m.errorCode;
+const mediaContinue = (m: MediaProgressDto) => !m.isReady && !m.isAwaitingConfirmation && !m.errorCode;
 export function useMediaProgress(storyId: number | null) {
   return useStoryProgressPolling<MediaProgressDto>(storyId, api.getMediaProgress, mediaContinue, 600_000);
 }

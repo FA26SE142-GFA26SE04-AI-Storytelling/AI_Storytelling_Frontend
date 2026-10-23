@@ -2,18 +2,12 @@
 import ts from 'typescript';
 import fs from 'node:fs';
 import path from 'node:path';
+import { controllerInventory } from './controller-inventory.mjs';
 const root = process.cwd();
-const doc = fs.readFileSync(path.resolve(root, '../../AI_Storytelling_Backend/docs/API_FRONTEND_ACTOR_FLOWS.md'), 'utf8');
 const normalize = s => s.replace(/\?.*$/, '').replace(/\{[^}]*\}/g, '{}').replace(/\/+$/, '');
-const routes = [...doc.matchAll(/^#### (GET|POST|PUT|PATCH|DELETE) (\/api\/v1\/\S+)/gm)].map(m => ({ method:m[1], route:m[2],authorization:doc.slice(m.index,m.index+1800).match(/^- Quyền: (.+)$/m)?.[1]??'See controller' }));
-routes.push({method:'POST',route:'/api/v1/creator/stories/{storyId}/manual/confirm-content',authorization:'ContentCreator (current local backend extension)'});
 const controllerDir=path.resolve(root,'../../AI_Storytelling_Backend/src/Core/StoryPlatform.Api/Controllers');
-const sourceCount=fs.readdirSync(controllerDir).filter(p=>p.endsWith('Controller.cs')).reduce((sum,p)=>sum+[...fs.readFileSync(path.join(controllerDir,p),'utf8').matchAll(/\[Http(?:Get|Post|Put|Patch|Delete)\b/g)].length,0);
-if(sourceCount!==routes.length){
- const message=`Controller inventory changed: source=${sourceCount}, document=${routes.length}`;
- if(!process.argv.includes('--catalog-only'))throw new Error(message);
- console.error(message+'; checking the documented catalog only.');
-}
+const routes = fs.existsSync(controllerDir) ? controllerInventory(controllerDir)
+ : JSON.parse(fs.readFileSync('docs/core-api-coverage.json','utf8')).map(({method,route,authorization,controller,action,controllerLine})=>({method,route,authorization,controller,action,controllerLine}));
 const walkFiles = dir => fs.readdirSync(dir,{withFileTypes:true}).flatMap(d => d.isDirectory() ? walkFiles(path.join(dir,d.name)) : /\.tsx?$/.test(d.name) ? [path.join(dir,d.name)] : []);
 const all = walkFiles(path.join(root,'app'));
 const usages = all.map(p => ({p,text:fs.readFileSync(p,'utf8')}));

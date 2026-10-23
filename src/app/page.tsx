@@ -5,7 +5,8 @@ import { useAuth } from "@/app/context/AuthContext";
 import AppShell from "@/app/components/shell/AppShell";
 import LoginScreen from "@/app/components/shell/LoginScreen";
 import { WorkspaceDataProvider, useWorkspaceData } from "@/app/context/WorkspaceDataContext";
-import { WORKSPACES, type WorkspaceId, type WorkspaceProps } from "@/app/components/shell/nav";
+import { type WorkspaceId, type WorkspaceProps } from "@/app/components/shell/nav";
+import { readWorkspaceLocation, workspaceLocation } from '@/app/lib/workspaceLocation';
 import HomeWorkspace from "@/app/features/home/HomeWorkspace";
 import StudioWorkspace from "@/app/features/studio/StudioWorkspace";
 import LibraryWorkspace from "@/app/features/library/LibraryWorkspace";
@@ -39,14 +40,20 @@ const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
 function Workspaces() {
   const { child, childrenLoading } = useWorkspaceData();
   const [ws, setWs] = useState<WorkspaceId>("home");
+  const [resumeStoryId, setResumeStoryId] = useState<number | null>(null);
   const [kid, setKid] = useState(false);
   const View = VIEWS[ws];
-  const go = useCallback((id: WorkspaceId) => transitionWorkspace(() => setWs(id)), []);
+  const go = useCallback<WorkspaceProps['go']>((id, target) => transitionWorkspace(() => {
+    const storyId = id === 'studio' ? target?.storyId ?? null : null;
+    window.history.replaceState(null,'',workspaceLocation(window.location.href,id,storyId));
+    setResumeStoryId(storyId); setWs(id);
+  }), []);
 
   // Cho phép mở thẳng một không gian bằng #home, #lib, #review...
   useEffect(() => {
-    const id = window.location.hash.slice(1) as WorkspaceId;
-    if (WORKSPACES.some((w) => w.id === id)) setWs(id);
+    const restore = () => { const target = readWorkspaceLocation(window.location.href); setWs(target.workspace); setResumeStoryId(target.storyId); };
+    restore(); window.addEventListener('popstate',restore); window.addEventListener('hashchange',restore);
+    return () => { window.removeEventListener('popstate',restore); window.removeEventListener('hashchange',restore); };
   }, []);
 
   return (
@@ -54,7 +61,7 @@ function Workspaces() {
       <AppShell ws={ws} onWs={go} onKid={() => setKid(true)}>
         {childrenLoading
           ? <div className="splash">Đang tải hồ sơ bé…</div>
-          : <View go={go} onKid={() => setKid(true)} />}
+          : <View key={ws === 'studio' ? `studio:${resumeStoryId ?? 'new'}` : ws} go={go} resumeStoryId={resumeStoryId} onKid={() => setKid(true)} />}
       </AppShell>
       {kid && child && <KidMode onExit={() => setKid(false)} />}
     </>

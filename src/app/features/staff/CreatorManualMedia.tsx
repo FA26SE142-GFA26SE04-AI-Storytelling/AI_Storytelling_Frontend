@@ -4,14 +4,15 @@ import { creatorPublicationService } from '@/app/services/creatorPublicationServ
 import { aiStoryCreationService as media } from '@/app/services/aiStoryCreationService';
 import { useStoryProgressPolling } from '@/app/features/story-workflow/useStoryProgressPolling';
 import type { CreatorDraft } from '@/app/types/creator';
-import type { MediaProgressDto, StoryMediaPackage } from '@/app/types/aiStory';
+import type { StoryMediaPackage } from '@/app/types/aiStory';
 import type { ConfirmManualContentRequest } from '@/app/types/backendContracts';
-const continuePolling = (p: MediaProgressDto) => !p.isReady && !p.errorCode && !['Failed','Cancelled'].includes(p.jobStatus);
+import MediaAssets from '@/app/features/studio/MediaAssets';
+import { mediaNeedsPolling as continuePolling } from '@/app/features/story-workflow/mediaPackage';
 
 export default function CreatorManualMedia({ draft, disabled, onWorkingChange, onStatus }: {
   draft: CreatorDraft; disabled: boolean; onWorkingChange: (value: boolean) => void; onStatus: (value: string) => void;
 }) {
-  const [queued, setQueued] = useState(['MediaProcessing','Ready'].includes(draft.status ?? ''));
+  const [queued, setQueued] = useState(['MediaProcessing','MediaReview','Ready'].includes(draft.status ?? ''));
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
   const [pack, setPack] = useState<StoryMediaPackage | null>(null);
@@ -20,7 +21,7 @@ export default function CreatorManualMedia({ draft, disabled, onWorkingChange, o
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   const progress = useStoryProgressPolling(queued ? draft.storyId : null, media.getMediaProgress, continuePolling, 600_000);
   const current = progress.data?.approvedStoryVersionId === draft.selectedVersionId ? progress.data : null;
-  const working = busy || !!pending || queued && (!current || continuePolling(current));
+  const working = busy || !!pending || queued && (!current || continuePolling(current) || current.isAwaitingConfirmation);
   useEffect(() => { onWorkingChange(working); return () => onWorkingChange(false); }, [working, onWorkingChange]);
   useEffect(() => { if (current?.isReady) onStatus(current.storyStatus); }, [current, onStatus]);
 
@@ -58,9 +59,10 @@ export default function CreatorManualMedia({ draft, disabled, onWorkingChange, o
       {progress.timedOut && <p className="notice warn">Đã dừng theo dõi tự động. Hãy kiểm tra lại trạng thái.</p>}
       <div className="row"><button className="btn btn-s" disabled={busy} onClick={progress.refresh}>Kiểm tra media</button>
         {current?.jobStatus === 'Failed' && <button className="btn btn-s" disabled={busy} onClick={() => void retry()}>Thử lại media của bản này</button>}
-        {current?.isReady && <button className="btn btn-s" disabled={busy} onClick={() => void preview()}>Xem ảnh và nghe thử</button>}
+        {(current?.isGenerated || current?.isReady) && <button className="btn btn-s" disabled={busy} onClick={() => void preview()}>Xem ảnh và nghe thử</button>}
       </div>
     </>}
+    {queued && <MediaAssets storyId={draft.storyId} versionId={draft.selectedVersionId} disabled={disabled || busy} onChanged={() => { setPack(null); progress.refresh(); }}/>}
     {pack?.scenes.map(scene => <article key={scene.sceneId}><h4>Cảnh {scene.sceneIndex + 1}</h4><p style={{ whiteSpace:'pre-wrap' }}>{scene.text}</p>
       {scene.illustrations.map(i => i.url && i.status === 'Ready' ?
         // Signed asset URLs are supplied by the API; native image supports arbitrary storage hosts.

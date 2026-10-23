@@ -4,14 +4,37 @@ Ngày 22/10/2026. Giữ kiến trúc Next.js một route, AppShell/StaffApp và 
 
 ## Phạm vi đã đối chiếu
 
-Nguồn: `AI_Storytelling_Backend/docs/API_FRONTEND_ACTOR_FLOWS.md` và controller hiện tại. Có 306 method + route: 305 trong catalog baseline cùng endpoint Creator Manual bổ sung ở cuối tài liệu. Số attribute HTTP của controller được kiểm tra lại khi chạy audit.
+Nguồn hiện hành: trực tiếp `AI_Storytelling_Backend/src/Core/StoryPlatform.Api/Controllers`, kiểm tra ngày 22/10/2026. Có **318 method + route**. Tài liệu actor flow cũ chỉ là nguồn tham khảo, không còn giới hạn phạm vi audit.
 
-- **304 endpoint dành cho browser đã có service và nơi dùng trong màn hình/hook**, gồm những endpoint đi qua guardian facade hoặc được chọn theo actor trong hook assistance.
+- **316 endpoint dành cho browser đã có service và nơi dùng trong màn hình/hook**, gồm những endpoint đi qua guardian facade hoặc được chọn theo actor trong hook assistance.
 - **1 alias tương thích** `POST /stories/{storyId}/artifacts/generate`: frontend dùng route chuẩn `POST /stories/{storyId}/review/artifacts/generate`, cùng nghiệp vụ. Không thêm thao tác trùng chỉ để gọi hai đường dẫn.
 - **1 webhook** `POST /Payment/webhook/sepay`: SePay gọi Core, không đưa khóa webhook hoặc khả năng giả xác nhận thanh toán vào browser.
 - Ngoài inventory trên, đã nối GET `/health`, GET `/healthz` và nhận event `ReceiveNotification` ở `/hubs/notifications`. Không gọi trực tiếp AI API nội bộ từ frontend.
 
-Bằng chứng từng endpoint nằm trong [core-api-coverage.json](core-api-coverage.json): method, route, authorization theo tài liệu, disposition, service/operation, file/dòng HTTP và file màn hình/hook sử dụng. `CONNECTED_SOURCE` chỉ xác nhận source có đường nối; không đồng nghĩa đã PASS trên server thật.
+Bằng chứng từng endpoint nằm trong [core-api-coverage.json](core-api-coverage.json): method, route, authorization theo controller, controller/action/dòng khai báo, disposition, service/operation, file/dòng HTTP và file màn hình/hook sử dụng. `CONNECTED_SOURCE` chỉ xác nhận source có đường nối; không đồng nghĩa đã PASS trên server thật.
+
+## Bổ sung theo controller hiện tại
+
+- Quản lý hướng dẫn sáng tác: nối cả 9 action của `AuthoringGuideManagementController` cho Moderator và Administrator. Có tổng quan, lịch sử phân trang, chi tiết phiên bản, tạo nháp từ bản Published, thêm/sửa/xóa mục, hủy nháp, xem trước danh sách/điền mẫu và phát hành. Lệnh ghi dùng revisionToken; 409/lỗi mạng/5xx chặn thao tác mới để đồng bộ, giữ phần đang soạn. Phát hành chỉ bật sau xem trước đúng revision.
+- Media: thêm `POST /stories/{storyId}/media/confirm` và `POST /stories/{storyId}/media/segments/{segmentId}/regenerate`; cập nhật tạo lại illustration để gửi body bắt buộc `storyVersionId`, `packageRevision`, `expectedConfirmed`. Không suy đoán metadata nếu server trả thiếu hoặc gói khác version.
+- Parent/Creator AI và Creator Manual nhận `MediaReview`. Tạo xong chưa phải Ready: dừng polling, hiển thị ảnh/âm thanh, người lớn xác nhận rồi tải lại tiến trình. Tạo lại một mục phải xác nhận gói mới. Chưa Ready thì chưa gửi Moderator duyệt công khai.
+- Parent Manual: nối `POST /parent/stories/{storyId}/manual/media/generate` sau xác nhận nội dung với operationId/revision/baseVersion/contentConfirmationId. 202 chỉ là hàng đợi; kiểm tra consent/ngữ cảnh theo canUseAiAssistance rồi tiếp tục progress/package/confirm. Chuẩn bị truyện chỉ có văn bản vẫn không tự gọi provider.
+- Handoff gia đình: lấy operation mới nhất còn hợp lệ, xóa preview khi đổi media, chuẩn bị lại và xem trước rồi giao. Parent và bé hiển thị media từ preparation được backend cấp quyền khi version/package revision khớp và đã xác nhận.
+- HTTP layer của pipeline giữ status thực, kể cả bodyless 202, 409 và lỗi mạng status 0. Logic điều phối ở hook, HTTP ở service và UI ở feature; không đổi kiến trúc hoặc đưa mock vào ứng dụng.
+
+Kiểm chứng hiện tại: **252 unit test / 28 file**, TypeScript, lint, production build và **15 browser smoke** dùng network doubles. Có ca 409 giữ bản hướng dẫn đang soạn, yêu cầu tải lại gói media và mở lại truyện theo storyId sau khi mất phiên tab. Chưa chạy backend/database/provider thật.
+
+### Mở lại truyện đang tạo
+
+- Thư viện → chọn truyện AI → **Tiếp tục trong Studio**, áp dụng cả khi đang tạo/chờ xác nhận media. Nút **Mở để duyệt** cũng truyền đúng storyId truyện AI đang chọn.
+- URL `/?storyId=<id>#studio` mở lại được sau reload hoặc khi không còn sessionStorage. ID từ Thư viện/URL ưu tiên hơn phiên lưu của một truyện khác; session chỉ ghi nhớ điều hướng, không suy đoán tiến trình.
+- Studio đọc chi tiết và tiến trình được backend cấp quyền để mở đúng dàn ý, duyệt nội dung, media hoặc trạng thái chờ kiểm duyệt. Khi dữ liệu outline/generation cũ không còn nhưng truyện đang ở bước media, dùng media/progress được backend cấp quyền.
+- Không yêu cầu lại creation-context/POST ý tưởng để mở một truyện đang tồn tại. Metadata nhóm tuổi lấy từ truyện; thao tác vẫn theo quyền backend của storyId.
+- Nếu không đọc được truyện/tiến trình, hiện lỗi và nút tải lại, không tự quay về form tạo mới. Truyện đang kiểm tra input chỉ khôi phục đúng request khi còn requestId; không tự tạo request mới nếu backend chưa trả được tiến trình.
+- Target được chụp cố định khi vào Studio để thao tác ghi session của một truyện vừa gửi không khởi động lại input flow. Chỉ nút tạo mới/làm lại do người dùng chọn mới xóa target.
+- Kiểm tra build đợt sửa resume dùng `npm run build -- --webpack`: cache Turbopack đang bận bởi dev server có sẵn. Giữ nguyên dev server của người dùng; browser smoke chạy trong browser context riêng và chặn toàn bộ API bằng network doubles.
+
+Bổ sung theo controller hiện tại đang ở working tree nhánh `feat/frontend-core-api-integration`; chưa commit/push trong đợt này.
 
 ## Phần bổ sung trong đợt hoàn thiện
 
@@ -42,9 +65,9 @@ npm test -- --run
 npm run build
 ```
 
-Audit cần backend sibling và tài liệu để đối chiếu source mới nhất. Lệnh `--write` cập nhật manifest. Unit test vẫn đọc manifest khi chỉ checkout frontend; nếu backend sibling hiện diện thì đồng thời chạy audit mới.
+Audit đọc controller từ backend sibling nếu có; `controller-inventory.mjs` xử lý route kế thừa, route tuyệt đối, constraint và nhiều HTTP attribute trên cùng action. Lệnh `--write` cập nhật manifest. Khi chỉ checkout frontend, audit dùng inventory đã lưu, không tuyên bố đã đọc backend mới.
 
-Backend local đang thay đổi và số attribute HTTP không còn khớp catalog **306** route đã rà. Audit mặc định tiếp tục báo lỗi inventory drift; không coi các route mới ngoài catalog là đã kết nối. `--catalog-only` chỉ kiểm tra 306 route được tài liệu mô tả, vẫn báo độ lệch source. Unit test frontend sử dụng phạm vi catalog này để không phụ thuộc thay đổi backend đang làm dở.
+Audit không dùng catalog-only để bỏ qua route mới. `npm run audit:api` kiểm tra toàn bộ controller và thất bại nếu còn MISSING/SERVICE_ONLY. Unit test so sánh inventory 318 route với manifest; backend thêm route sẽ làm kiểm tra thất bại cho tới khi được rà và cập nhật.
 
 Kết quả đợt tích hợp trước khi dọn mock:
 
@@ -60,7 +83,7 @@ Chưa kiểm thử đăng nhập/quyền, dữ liệu, schema, CORS, thanh toán
 
 Không có API HTTP ghi hoàn thành đọc/quiz trẻ hoặc package đọc CommunityLibrary đầy đủ trong snapshot này, nên frontend không tự tạo progress hoặc giả hoàn thành. Payment chưa có endpoint tra cứu kết quả giao dịch trong catalog; chỉ server/webhook và thông báo xác nhận thanh toán. Không thêm API giả để che các giới hạn này.
 
-Phần tích hợp đã commit và push lên nhánh frontend `feat/frontend-core-api-integration`. Backend và các thay đổi đang có của công việc khác được giữ nguyên.
+Phần tích hợp trước đợt đối chiếu controller đã commit và push lên nhánh frontend `feat/frontend-core-api-integration`. Backend và các thay đổi đang có của công việc khác được giữ nguyên.
 
 ## Dọn mock khỏi mã nguồn ứng dụng — 22/10/2026
 

@@ -67,12 +67,12 @@ describe('Remaining Core contracts',()=>{
   expect(fetcher.mock.calls[0][0]).toMatch(/\/ModerationQueue\/review-views$/);expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual(body);
  });
 });
-it('has source evidence for every browser endpoint in the current document',()=>{
- if(existsSync('../../AI_Storytelling_Backend/docs/API_FRONTEND_ACTOR_FLOWS.md')){
-  const output=execFileSync(process.execPath,['scripts/audit-core-api.mjs','--check','--catalog-only'],{encoding:'utf8',timeout:15000});
-  const result=JSON.parse(output);expect(result).toEqual({total:306,connected:304,excluded:2,missing:[]});
+it('has source evidence for every browser endpoint in the current controllers',()=>{
+ if(existsSync('../../AI_Storytelling_Backend/src/Core/StoryPlatform.Api/Controllers')){
+  const output=execFileSync(process.execPath,['scripts/audit-core-api.mjs','--check'],{encoding:'utf8',timeout:15000});
+  const result=JSON.parse(output);expect(result).toEqual({total:318,connected:316,excluded:2,missing:[]});
  }
  const manifest=JSON.parse(readFileSync('docs/core-api-coverage.json','utf8')) as {method:string;route:string;disposition:string}[];
- expect(manifest).toHaveLength(306);expect(new Set(manifest.map(r=>r.method+' '+r.route)).size).toBe(306);
+ expect(manifest).toHaveLength(318);expect(new Set(manifest.map(r=>r.method+' '+r.route)).size).toBe(318);
  expect(manifest.filter(r=>r.disposition==='SERVER_TO_SERVER').map(r=>r.route)).toEqual(['/api/v1/Payment/webhook/sepay']);
 });

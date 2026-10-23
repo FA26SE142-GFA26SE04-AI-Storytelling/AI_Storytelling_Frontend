@@ -18,6 +18,7 @@ import { ModerationQueue, RatingPage } from "./Moderation";
 import RoadmapTemplates from "./RoadmapTemplates";
 import PublishedReviewWorkspace from "./PublishedReviewWorkspace";
 import RubricWorkspace from "./RubricWorkspace";
+import AuthoringGuideManagement from "./AuthoringGuideManagement";
 import { PromptsPage } from "./Creator";
 import { CreatorStories } from "./CreatorStories";
 import { AdminParents, AdminStaff } from "./AdminPeople";
@@ -33,6 +34,7 @@ const ROLE_LABEL: Record<StaffRole, string> = { Administrator: "Admin Portal", M
 const PAGES: Record<StaffRole, PageDef[]> = {
   Administrator: [
     { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace },
+    { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Xem bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
     { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "overview", label: "Chất lượng AI", icon: Activity, view: AdminOverview },
@@ -51,6 +53,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
   ],
   Moderator: [
     { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace },
+    { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
     { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "queue", label: "Hàng đợi kiểm duyệt", icon: Inbox, view: () => <ModerationQueue /> },

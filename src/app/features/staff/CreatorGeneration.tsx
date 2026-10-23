@@ -13,7 +13,8 @@ import OutlinePanel from '@/app/features/studio/OutlinePanel';
 import ReviewGate from '@/app/features/review/ReviewGate';
 import CreatorPublication from './CreatorPublication';
 import type { MediaProgressDto } from '@/app/types/aiStory';
-const continueMedia = (m: MediaProgressDto) => !m.isReady && !m.errorCode;
+import MediaAssets from '@/app/features/studio/MediaAssets';
+const continueMedia = (m: MediaProgressDto) => !m.isReady && !m.isAwaitingConfirmation && !m.errorCode;
 export default function CreatorGeneration({ initialId = null, onBack }: { initialId?: number | null; onBack: () => void }) {
   const flow = useCreatorGeneration(initialId);
   const [context, setContext] = useState<B.CreatorAIStoryInputContextDto | null>(null);
@@ -68,7 +69,7 @@ export default function CreatorGeneration({ initialId = null, onBack }: { initia
     {flow.id !== null && flow.stage === 'outline' && outline && <div className="st-card"><OutlinePanel key={outline.versionNo} storyId={flow.id} version={outline} editable={!locked} visible onReveal={() => {}} onApproved={refreshState} onChanged={refreshState} /></div>}
     {flow.id !== null && flow.stage === 'review' && <section className="ws with-steps creator-review"><ReviewGate key={`${flow.id}:${refresh}`} storyId={flow.id} ageBand={ageBand} actor="creator" onApproved={refreshState} onArchived={onBack} /></section>}
   </ApproveSlot.Provider>
-  {flow.id !== null && flow.stage === 'media' && <div className="st-card"><h3>{media.data?.isReady ? 'Media đã sẵn sàng' : 'Đang chuẩn bị media'}</h3><p>{media.error ?? media.data?.errorCode ?? media.data?.jobStatus}</p><p>{media.data?.readyIllustrations ?? 0} tranh sẵn sàng · {media.data?.readyAudio ?? 0} đoạn âm thanh sẵn sàng</p>{media.data?.errorCode && <button className="btn btn-s" disabled={flow.busy} onClick={() => void flow.command(() => api.retryMedia(flow.id!)).then(() => media.refresh())}>Thử lại media</button>}</div>}
+  {flow.id !== null && flow.stage === 'media' && <div className="st-card"><h3>{media.data?.isReady ? 'Media đã sẵn sàng' : media.data?.isAwaitingConfirmation ? 'Chờ bạn xác nhận tranh và giọng đọc' : 'Đang chuẩn bị media'}</h3><p>{media.error ?? media.data?.errorCode ?? media.data?.jobStatus}</p><p>{media.data?.readyIllustrations ?? 0} tranh sẵn sàng · {media.data?.readyAudio ?? 0} đoạn âm thanh sẵn sàng</p>{media.data?.errorCode && <button className="btn btn-s" disabled={flow.busy} onClick={() => void flow.command(() => api.retryMedia(flow.id!)).then(() => media.refresh())}>Thử lại media</button>}<MediaAssets storyId={flow.id} versionId={versionId} disabled={locked} onChanged={() => { media.refresh(); refreshState(); }}/></div>}
   {flow.id !== null && <CreatorPublication storyId={flow.id} versionId={versionId} storyStatus={storyStatus} onLockChange={setLocked} onRevision={refreshState} />}
   </>;
 }
