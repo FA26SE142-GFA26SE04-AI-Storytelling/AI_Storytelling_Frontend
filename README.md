@@ -95,21 +95,21 @@ npm run dev          # http://localhost:3000
 
 ---
 
-## Dữ liệu mẫu và backend thật
+## Kết nối backend
 
-Mặc định app **chạy bằng dữ liệu mẫu**, không cần backend. Muốn gọi API thật, tạo `src/.env.local`:
+Ứng dụng luôn lấy dữ liệu từ API backend. Cấu hình địa chỉ trong `src/.env.local`:
 
 ```env
-NEXT_PUBLIC_USE_MOCK=false
 NEXT_PUBLIC_API_URL=http://localhost:5259     # bỏ trống thì dùng https://api.taletale.site/api/v1
 ```
 
 `NEXT_PUBLIC_API_URL` được tự chuẩn hoá: bỏ `/swagger`, `/index.html`, dấu `/` thừa và thêm `/api/v1` nếu thiếu (`app/services/apiConfig.ts`).
 
-Khi đã tắt dữ liệu mẫu:
+Quy tắc dữ liệu:
 
 - API backend **đã có** thì luôn gọi thật.
-- Một số chức năng backend **chưa có** API (dashboard tiến độ, Hold Mode, báo cáo tuần, điều ước, một phần màn quản trị) dùng bộ máy dữ liệu cục bộ trên trình duyệt (`*Local.ts` trong `app/services`). Mỗi nhóm tự chuyển sang dữ liệu cục bộ khi lần gọi đầu thất bại, không kéo theo nhóm khác.
+- Chức năng chưa có API hiển thị trạng thái chưa hỗ trợ; không mô phỏng dữ liệu hoặc chuyển sang fallback local khi gọi API thất bại.
+- Fixture và network doubles chỉ dùng trong `tests/`. Xem kết quả đối chiếu và giới hạn kiểm chứng tại [`src/docs/core-api-completion.md`](src/docs/core-api-completion.md).
 - Tình trạng từng API ghi ở [`src/docs/FRONTEND_PROGRESS.md`](src/docs/FRONTEND_PROGRESS.md) và [`src/docs/BACKEND_API_STATUS.md`](src/docs/BACKEND_API_STATUS.md).
 
 Link trong email (`/reset-password`, `/forgot-password`) được `next.config.ts` chuyển về `/?auth=...` để màn đăng nhập xử lý.
@@ -129,8 +129,7 @@ src/
 │   ├── features/      Mỗi màn một thư mục, CSS riêng đặt cạnh component
 │   │   └── story-workflow/   Logic tạo / duyệt truyện AI (hook và hàm thuần, không JSX)
 │   ├── context/       AuthContext, ThemeContext, WorkspaceDataContext (hồ sơ bé + truyện)
-│   ├── services/      Gọi API, mỗi nhóm endpoint một file; *Local.ts là dữ liệu cục bộ
-│   ├── mocks/         Cờ USE_MOCK và hàm tiện ích cho dữ liệu mẫu
+│   ├── services/      Gọi API, mỗi nhóm endpoint một file
 │   ├── lib/           motion.ts, storyView.ts, quy tắc nghiệp vụ (storyRules, readingRules…)
 │   └── types/         Kiểu dữ liệu theo DTO backend
 ├── docs/              Tiến độ frontend, trạng thái API backend, kế hoạch tích hợp

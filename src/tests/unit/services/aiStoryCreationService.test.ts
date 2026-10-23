@@ -61,7 +61,8 @@ describe('AI workflow API contracts', () => {
 
   it('allows bodyless 202 only for illustration regeneration', async () => {
     vi.spyOn(authService, 'authenticatedFetch').mockImplementation(async () => new Response(null, { status: 202 }));
-    expect((await aiStoryCreationService.regenerateIllustration(10, 5)).success).toBe(true);
+    expect((await aiStoryCreationService.regenerateIllustration(10, 5, { storyVersionId:12,packageRevision:2,expectedConfirmed:false })).success).toBe(true);
+    expect((await aiStoryCreationService.regenerateAudio(10, 8, { storyVersionId:12,packageRevision:2,expectedConfirmed:false })).success).toBe(true);
     expect((await aiStoryCreationService.approveStory(10)).success).toBe(false);
     expect((await aiStoryCreationService.retryMedia(10)).success).toBe(false);
   });

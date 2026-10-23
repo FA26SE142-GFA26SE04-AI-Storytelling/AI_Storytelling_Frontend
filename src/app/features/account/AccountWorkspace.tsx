@@ -9,8 +9,9 @@ import type { LoginSession } from "@/app/types/supervision";
 import { fmtDateTime, passwordProblem } from "@/app/lib/guardian";
 import ProfileSection from "./ProfileSection";
 import DeleteAccountSection from "./DeleteAccountSection";
-import PlansSection from "./PlansSection";
-import AuditLogList from "./AuditLogList";
+import ActivitySection from './ActivitySection';
+import PaymentSection from './PaymentSection';
+import ConnectionStatus from './ConnectionStatus';
 
 type Note = { ok: boolean; text: string } | null;
 
@@ -64,6 +65,9 @@ export default function AccountWorkspace() {
         <div className="pb children-body">
           <div className="sec" style={{ gap: 28, maxWidth: 560 }}>
             <ProfileSection />
+            <PaymentSection />
+            <ActivitySection />
+            <ConnectionStatus />
 
             <form className="sec" style={{ gap: 10 }} onSubmit={changePassword}>
               <h3 className="display" style={{ margin: 0 }}>Đổi mật khẩu</h3>
@@ -89,13 +93,6 @@ export default function AccountWorkspace() {
               {sNote && <div className={`notice ${sNote.ok ? "ok" : "err"}`} role="status">{sNote.text}</div>}
               <button className="btn btn-no" style={{ width: "fit-content", marginTop: 8 }} onClick={() => void logoutAll()}><LogOut className="ic" />Đăng xuất khỏi mọi thiết bị</button>
             </section>
-
-            {user?.role === "Parent" && <PlansSection />}
-
-            <details className="sec">
-              <summary><h3 className="display" style={{ margin: 0, display: "inline" }}>Lịch sử hoạt động</h3></summary>
-              <AuditLogList load={accountService.myAuditLog} />
-            </details>
 
             {user?.role === "Parent" && <DeleteAccountSection />}
           </div>

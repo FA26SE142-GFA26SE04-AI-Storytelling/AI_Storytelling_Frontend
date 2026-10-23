@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import ActivitySection from '@/app/features/account/ActivitySection';
+import ProfileMaintenance from './ProfileMaintenance';
 import { Archive, Check, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
 import DataRequestSection from "./DataRequestSection";
-import AuditLogList from "@/app/features/account/AuditLogList";
 import type { ChildProfile } from "@/app/types/childProfile";
 import { AGE_BANDS, AVATARS, avatarOf, childStatus, fmtDate } from "@/app/lib/guardian";
 import type { WorkspaceId } from "@/app/components/shell/nav";
@@ -79,8 +80,6 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
     if (checks?.outdated && !confirm("Điều khoản sử dụng đã thay đổi. Bạn đồng ý với điều khoản hiện tại để tiếp tục hồ sơ?")) return;
     if (await run(() => childProfileService.resumeChildProfile(child.id, !!checks?.outdated), "Hồ sơ đã hoạt động trở lại. Tạo mã QR mới nếu bé cần đăng nhập.")) onChanged();
   };
-
-  const loadAudit = useCallback((page: number) => childProfileService.getChildAuditLog(child.id, page), [child.id]);
 
   const archive = async () => {
     if (!confirm(`Lưu trữ hồ sơ của ${child.nickname}? Hồ sơ bị ẩn khỏi danh sách, mọi phiên và mã QR của bé bị thu hồi.`)) return;
@@ -157,13 +156,8 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
       )}
 
       {isOwner && <DataRequestSection child={child} />}
-
-      {isOwner && (
-        <details className="sec">
-          <summary><h3 className="display" style={{ margin: 0, display: "inline" }}>Lịch sử thay đổi hồ sơ</h3></summary>
-          <AuditLogList load={loadAudit} />
-        </details>
-      )}
+      <ProfileMaintenance key={`maintenance:${child.id}`} child={child} isOwner={isOwner} onChanged={onChanged} />
+      <ActivitySection key={`audit:${child.id}`} childId={child.id} />
 
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
     </div>

@@ -5,12 +5,10 @@ import { Check, Sparkles, X } from "lucide-react";
 import { guardianService, type ChildRef } from "@/app/services/guardianService";
 import type { StoryWish } from "@/app/types/reading";
 import type { StoryCard } from "@/app/lib/storyView";
-import { WISH_CARDS } from "@/app/services/readingLocal";
 import type { WorkspaceId } from "@/app/components/shell/nav";
 import { FREE_TEXT_MAX } from "@/app/lib/storyRules";
 
 export const STUDIO_PREFILL_KEY = "taletale-studio-prefill";
-const card = (id: number | null) => WISH_CARDS.find((c) => c.id === id);
 
 /**
  * Luồng 2 mục 3.5 — phụ huynh xử lý điều ước của bé: Dùng truyện có sẵn / Tạo truyện mới / Từ chối.
@@ -27,7 +25,6 @@ export default function WishItem({ wish, childRef, stories, go, onChanged }: {
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const emojis = [wish.characterCardId, wish.placeCardId, wish.challengeCardId, wish.lessonCardId].map((id) => card(id)?.emoji).filter(Boolean).join(" ");
 
   const run = async (fn: () => Promise<{ success: boolean; message: string }>) => {
     setBusy(true);
@@ -49,10 +46,10 @@ export default function WishItem({ wish, childRef, stories, go, onChanged }: {
       // Điền sẵn form tạo truyện từ các thẻ bé đã chọn.
       const prefill = {
         childId: childRef?.id, wishId: wish.id,
-        topic: `Câu chuyện về ${card(wish.characterCardId)?.label.toLowerCase()} ở ${card(wish.placeCardId)?.label.toLowerCase()}${wish.challengeCardId ? `, ${card(wish.challengeCardId)?.label.toLowerCase()}` : ""}`,
-        charactersText: card(wish.characterCardId)?.label ?? "",
-        setting: card(wish.placeCardId)?.label ?? "",
-        lesson: card(wish.lessonCardId)?.label ?? "",
+        topic: wish.label,
+        charactersText: "",
+        setting: "",
+        lesson: "",
       };
       try { sessionStorage.setItem(STUDIO_PREFILL_KEY, JSON.stringify(prefill)); } catch { /* bỏ qua */ }
       go("studio");
@@ -62,7 +59,7 @@ export default function WishItem({ wish, childRef, stories, go, onChanged }: {
 
   return (
     <div className="wish-row">
-      <div className="row"><span className="wish-emoji" aria-hidden>{emojis}</span><b className="grow">{wish.label}</b><span className="pill wait">Điều ước</span></div>
+      <div className="row"><b className="grow">{wish.label}</b><span className="pill wait">Điều ước</span></div>
       {wish.suggestions.length > 0 ? (
         <div className="sec" style={{ gap: 4 }}>
           <small className="sub">Truyện có sẵn phù hợp:</small>

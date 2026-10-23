@@ -13,6 +13,7 @@ export const childStatus = (s: string) => CHILD_STATUS[s] ?? { label: s, tone: "
 
 /** Luồng 1 Mục 8 — ý nghĩa từng quyền. */
 export const PERMISSIONS: { id: Permission; label: string; hint: string }[] = [
+  { id: "GenerateStory", label: "Tạo truyện AI", hint: "Tạo truyện AI theo hồ sơ và chính sách của bé" },
   { id: "ViewProgress", label: "Xem tiến độ đọc", hint: "Số phiên, thời gian đọc, chuỗi ngày đọc" },
   { id: "ViewResults", label: "Xem kết quả", hint: "Điểm câu đố, kết quả đọc hiểu" },
   { id: "ReceiveReport", label: "Nhận báo cáo định kỳ", hint: "Báo cáo tuần về việc đọc của bé" },

@@ -1,10 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Flag, Flower2, Footprints, History, RefreshCw, type LucideIcon } from "lucide-react";
+import { Check, Flag, Flower2, Footprints, RefreshCw, type LucideIcon } from "lucide-react";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import { useRegisterApprove } from "@/app/features/story-workflow/approveSlot";
 import type { OutlineVersionDto } from "@/app/types/aiStory";
+import OutlineHistory from './OutlineHistory';
 
 type BeatKey = "opening" | "development" | "ending";
 const BEATS: [BeatKey, string, string, LucideIcon][] = [
@@ -62,7 +63,6 @@ export default function OutlinePanel({ storyId, version, editable, visible, onRe
   };
 
   // Nút duyệt nằm trên thanh tiến trình. Đang xem tab khác thì bấm sẽ đưa về tab dàn ý để xem trước khi duyệt.
-  // Không có thanh tiến trình (ví dụ màn của Content Creator) thì tự vẽ nút duyệt bên dưới.
   const approveInBar = useRegisterApprove(editable && version ? {
     label: visible ? "Duyệt dàn ý và viết truyện" : "Xem dàn ý để duyệt",
     disabled: visible ? busy || incomplete : false,
@@ -89,7 +89,7 @@ export default function OutlinePanel({ storyId, version, editable, visible, onRe
           </div>
         ))}
       </div>
-      <OutlineHistory storyId={storyId} current={version.versionNo} />
+      <OutlineHistory key={storyId} storyId={storyId}/>
       {err && <div className="notice err" role="alert">{err}</div>}
       {editable && incomplete && <div className="notice warn">Dàn ý cần có tiêu đề và đủ ba phần, kể cả kết thúc.</div>}
       {editable && (
@@ -100,35 +100,9 @@ export default function OutlinePanel({ storyId, version, editable, visible, onRe
           </div>
           {approveInBar
             ? <p className="hint">Hài lòng với dàn ý thì bấm dấu ✓ trên thanh tiến trình, AI sẽ viết truyện.</p>
-            : <button className="btn btn-ok btn-c" disabled={busy || incomplete} onClick={() => void approve()}><Check className="ic" />Duyệt dàn ý và viết truyện</button>}
+            : <button className="btn btn-ok btn-c" disabled={busy || incomplete} onClick={approve}><Check className="ic" />Duyệt dàn ý và viết truyện</button>}
         </>
       )}
     </div>
-  );
-}
-
-/** Các bản dàn ý trước (AI viết lại, phụ huynh sửa) để đối chiếu; chỉ xem, không khôi phục. */
-function OutlineHistory({ storyId, current }: { storyId: number; current: number }) {
-  const [versions, setVersions] = useState<OutlineVersionDto[] | null>(null);
-  const [open, setOpen] = useState<OutlineVersionDto | null>(null);
-  const load = () => { if (versions === null) void api.getOutlineVersions(storyId).then((r) => setVersions(r.data ?? [])); };
-  return (
-    <details onToggle={(e) => { if ((e.target as HTMLDetailsElement).open) load(); }}>
-      <summary><History className="ic" /> Các bản dàn ý trước</summary>
-      {versions === null && <p className="sub">Đang tải…</p>}
-      {versions?.filter((v) => v.versionNo !== current).length === 0 && <p className="sub">Chưa có bản nào khác.</p>}
-      <div className="sec" style={{ gap: 4, marginTop: 6 }}>
-        {versions?.filter((v) => v.versionNo !== current).sort((a, b) => b.versionNo - a.versionNo).map((v) => (
-          <button key={v.versionNo} type="button" className={`chip${open?.versionNo === v.versionNo ? " on" : ""}`} style={{ width: "fit-content" }} onClick={() => setOpen(open?.versionNo === v.versionNo ? null : v)}>
-            Bản {v.versionNo} · {new Date(v.createdAt).toLocaleString("vi-VN")}
-          </button>
-        ))}
-        {open && (
-          <div className="notice" style={{ whiteSpace: "pre-wrap" }}>
-            <b>{open.title}</b>{["", open.opening, open.development, open.ending].join("\n\n")}
-          </div>
-        )}
-      </div>
-    </details>
   );
 }

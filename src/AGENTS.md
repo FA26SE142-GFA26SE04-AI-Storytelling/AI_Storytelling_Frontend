@@ -29,7 +29,6 @@ app/
 │   └── story-workflow/  Logic nghiệp vụ tạo/duyệt truyện AI (hook + hàm thuần), không có JSX
 ├── context/       Auth, Theme, WorkspaceData (hồ sơ bé + danh sách truyện)
 ├── services/      Gọi API backend, mỗi nhóm endpoint một file
-├── mocks/         Dữ liệu mẫu thay cho API khi NEXT_PUBLIC_USE_MOCK khác "false"
 ├── lib/           Hàm tiện ích: motion.ts (animejs), storyView.ts (định dạng truyện)
 └── types/         Kiểu dữ liệu theo DTO backend
 tests/unit/        Vitest, cấu trúc thư mục giống app/
@@ -40,7 +39,7 @@ tests/unit/        Vitest, cấu trúc thư mục giống app/
 - **Import**: dùng alias `@/app/...` khi đi ra ngoài thư mục hiện tại, `./` cho file cùng thư mục. Không dùng `../`.
 - **Thêm một màn (không gian)**: khai báo id, nhãn, icon trong `components/shell/nav.ts`, tạo `features/<tên>/`, rồi thêm vào bảng `VIEWS` trong `page.tsx`. Component nhận `WorkspaceProps` (`go`, `onKid`).
 - **Dữ liệu**: lấy hồ sơ bé và truyện qua `useWorkspaceData()`. Gọi API qua `services/`, không `fetch` trực tiếp trong component. Logic nhiều bước (polling, duyệt) đặt trong hook ở `features/story-workflow/`.
-- **Dữ liệu mẫu**: mỗi service có dòng `if (USE_MOCK) Object.assign(service, mock...)` ở cuối file. Thêm endpoint mới thì thêm bản mock tương ứng trong `mocks/`. Test luôn chạy với service thật (`vitest.config.ts`).
+- **Dữ liệu thật**: ứng dụng chỉ lấy dữ liệu từ API backend. Không thêm mock, seed, bộ máy mô phỏng hoặc fallback local vào `app/`; API chưa có trả trạng thái chưa hỗ trợ. Fixture và network doubles chỉ nằm trong `tests/`, không import vào ứng dụng. Quy tắc này theo yêu cầu xóa mock của người dùng ngày 22/10/2026.
 - **Link từ email**: `next.config.ts` chuyển `/reset-password`, `/forgot-password` về `/?auth=...`; `LoginScreen` đọc các tham số này (`auth`, `token`, `email`).
 - **Kích thước file**: component quá ~250 dòng thì tách theo vùng giao diện (xem `features/studio/`).
 

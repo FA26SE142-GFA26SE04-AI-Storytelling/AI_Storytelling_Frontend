@@ -53,7 +53,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
     <>
       <div className="center plan-center">
         <div className="tabs plan-tabs" role="tablist">
-          <button role="tab" aria-selected={view === "brief"} className={view === "brief" ? "on" : ""} onClick={() => pick("brief")}>Yêu cầu</button>
+          <button role="tab" aria-selected={view === "brief"} className={view === "brief" ? "on" : ""} disabled={!flow.context && stage !== 'brief'} onClick={() => pick("brief")}>Yêu cầu</button>
           <button role="tab" aria-selected={view === "outline"} className={view === "outline" ? "on" : ""} disabled={!hasOutline} onClick={() => pick("outline")}>
             Dàn ý{stage === "outline" && <i className="tab-dot" aria-label="chờ bạn duyệt" />}
           </button>
@@ -81,7 +81,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
                 timedOut={timedOut || flow.isPollingTimedOut}
                 onRetry={blocked && flow.canRetryInput ? () => void flow.retry() : flow.isPollingTimedOut ? () => void flow.checkStatus() : refresh}
                 onRetryFailed={retryFailed}
-                onEdit={blocked ? flow.editInput : undefined}
+                onEdit={blocked && flow.valuesKnown ? flow.editInput : undefined}
               />
             )}
           </div>
@@ -100,7 +100,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
               {flow.context.interests.length > 0 && <div className="sec"><div className="sec-h">Sở thích của bé</div><div className="chips">{flow.context.interests.map((i) => <span key={i} className="chip">{i}</span>)}</div></div>}
               {flow.context.blockedCategoryCodes.length > 0 && <div className="sec"><div className="sec-h">Chủ đề bị chặn</div><div className="chips">{flow.context.blockedCategoryCodes.map((i) => <span key={i} className="chip block">{i}</span>)}</div></div>}
             </>
-          ) : <p className="sub">Đang tải…</p>}
+          ) : <p className="sub">{storyId ? 'Đang tiếp tục truyện đã lưu. Trạng thái và quyền thao tác được kiểm tra lại từ backend của truyện này.' : 'Đang tải…'}</p>}
       </AsidePane>
     </>
   );

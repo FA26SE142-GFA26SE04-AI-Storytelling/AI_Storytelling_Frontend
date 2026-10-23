@@ -20,7 +20,7 @@ export interface StoryReviewBundle {
   discussion: DiscussionReviewDto;
 }
 
-export function useStoryReview(storyId: number) {
+export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'parent') {
   const [bundle, setBundle] = useState<StoryReviewBundle | null>(null);
   const [proposal, setProposal] = useState<AIProposalDto | null>(null);
   const [validation, setValidation] = useState<ValidationResultDto | null>(null);
@@ -81,11 +81,7 @@ export function useStoryReview(storyId: number) {
     setProposal(null); await load(signal);
   });
 
-  /**
-   * Hoàn tất kiểm duyệt từng phần rồi kiểm tra điều kiện. Phụ huynh: duyệt (`review/approve`).
-   * Content Creator: xác nhận nội dung (`creator/.../confirm-content`) — Moderator mới là người duyệt công khai.
-   */
-  const approve = (onApproved: () => void, creator = false) => run(async signal => {
+  const approve = (onApproved: () => void) => run(async signal => {
     if (!bundle || hasMissingLearning(bundle)) throw new Error('Hãy tạo đủ học liệu cho bản thảo hiện tại trước khi phê duyệt.');
     const artifacts = isReadingOnly(bundle.summary.outputMode) ? (['story'] as const) : (['story', 'vocabulary', 'quiz', 'discussion'] as const);
     for (const artifact of artifacts) {
@@ -96,10 +92,10 @@ export function useStoryReview(storyId: number) {
     const checks = requireData(await api.validateReview(storyId, signal));
     if (signal.aborted) return;
     setValidation(checks);
-    if (!(creator ? checks.canConfirmContent : checks.canApprove)) throw new Error(checks.issues.join(' • ') || 'Nội dung chưa đủ điều kiện phê duyệt.');
-    if (creator) {
-      requireData(await api.confirmCreatorContent(storyId, bundle.story.versionId, signal));
-      if (!signal.aborted) onApproved();
+    if (!(actor === 'creator' ? checks.canConfirmContent : checks.canApprove)) throw new Error(checks.issues.join(' • ') || 'Nội dung chưa đủ điều kiện phê duyệt.');
+    if (actor === 'creator') {
+      const result = requireData(await api.confirmCreatorContent(storyId, bundle.summary.storyVersionId, signal));
+      if (!signal.aborted && result.versionId === bundle.summary.storyVersionId) onApproved();
       return;
     }
     const result = requireData(await api.approveStory(storyId, signal));

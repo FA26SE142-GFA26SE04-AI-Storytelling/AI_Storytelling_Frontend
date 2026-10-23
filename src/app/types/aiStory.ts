@@ -116,6 +116,7 @@ export interface ContentQualityFailureDto {
   failedGates: { gate: string; reasonCode: string; violations: string[] }[];
 }
 export interface ContentGenerationProgressDto {
+  waitingForModeration?: boolean;
   storyId: number;
   outputMode?: StoryOutputMode | string;
   storyStatus: string;
@@ -164,13 +165,11 @@ export interface ReviewPackageDto {
   discussion: ArtifactStatusDto;
   canEdit: boolean;
   canApprove: boolean;
-  canArchive: boolean;
-  /** Truyện Content Creator đang ContentReview: xác nhận nội dung thay cho duyệt. */
   canConfirmContent?: boolean;
+  canArchive: boolean;
 }
 export interface ValidationResultDto {
   canApprove: boolean;
-  /** Content Creator: đủ điều kiện xác nhận nội dung (canApprove của Creator luôn false). */
   canConfirmContent?: boolean;
   checks: { name: string; passed: boolean; message?: string | null }[];
   issues: string[];
@@ -209,7 +208,17 @@ export interface ArtifactGenerationResultDto {
 export interface ApproveResponseDto { success: boolean; storyId: number; status: string; approvedAt: string }
 export interface ArchiveRequestDto { reason?: string }
 export interface ArchiveResponseDto { success: boolean; storyId: number; status: string }
-export interface MediaProgressDto {
+export interface MediaPackageState {
+  packageRevision: number;
+  isGenerated: boolean;
+  isAwaitingConfirmation: boolean;
+  isConfirmed: boolean;
+  confirmedByUserId: number | null;
+  confirmedAt: string | null;
+}
+export interface ConfirmMediaPackageRequest { storyVersionId: number; packageRevision: number }
+export interface RegenerateMediaRequest extends ConfirmMediaPackageRequest { expectedConfirmed: boolean }
+export interface MediaProgressDto extends MediaPackageState {
   storyId: number;
   approvedStoryVersionId: number | null;
   storyStatus: string;
@@ -225,12 +234,15 @@ export interface MediaProgressDto {
   manualReviewAssetIds: number[] | null;
   scenesWithoutValidBeats: number[] | null;
 }
-export interface StoryMediaPackage {
+export interface StoryMediaPackage extends MediaPackageState {
+  isReady: boolean;
   storyId: number;
   storyVersionId: number;
   scenes: {
     sceneId: number;
     sceneIndex: number;
+    text?: string;
+    audio?: { segmentId: number; segmentOrder: number; text: string; assetId: number | null; status: string; url: string | null; wordTimings: string | null }[];
     illustrations: {
       beatId: number; beatOrder: number; startOffset: number; endOffset: number;
       visualFocus: string; assetId: number | null; status: string; url: string | null;

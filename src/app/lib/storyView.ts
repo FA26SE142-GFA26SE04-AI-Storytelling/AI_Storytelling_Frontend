@@ -34,6 +34,7 @@ const STATUS: Record<string, [StoryTone, string]> = {
   ready: ["ok", "Sẵn sàng"],
   approved: ["ok", "Đã duyệt"],
   media_processing: ["wait", "Đang tạo minh hoạ"],
+  media_review: ["wait", "Chờ xác nhận tranh và giọng đọc"],
   content_review: ["wait", "Chờ duyệt"],
   outline_review: ["wait", "Chờ duyệt dàn ý"],
   input_accepted: ["wait", "Đang xử lý"],

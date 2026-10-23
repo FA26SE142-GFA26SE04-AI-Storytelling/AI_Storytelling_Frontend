@@ -6,6 +6,7 @@ import { supervisionService as api } from "@/app/services/supervisionService";
 import type { ChildProfile } from "@/app/types/childProfile";
 import type { Invitation, OwnershipTransfer, Permission, PermissionRequest, SupervisionRelationship } from "@/app/types/supervision";
 import { PERMISSIONS, fmtDate } from "@/app/lib/guardian";
+import PermissionDirectory from './PermissionDirectory';
 
 type Data = {
   rels: SupervisionRelationship[];
@@ -88,6 +89,7 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
 
   return (
     <div className="sec" style={{ gap: 26, maxWidth: 680 }}>
+      <PermissionDirectory key={child.id} childId={child.id} isOwner={isOwner} onChanged={()=>void load()}/>
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
       {/* Đề nghị chuyển quyền Owner gửi tới mình */}
       {pendingTransfers.filter((t) => t.targetSupervisorUserId === meId).map((t) => (

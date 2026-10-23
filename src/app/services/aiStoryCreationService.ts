@@ -1,6 +1,8 @@
 import { ApiResponse } from '@/app/types/auth';
 import * as D from '@/app/types/aiStory';
 import { authService } from './authService';
+import type { ConfirmCreatorContentResponseDto } from '@/app/types/backendContracts';
+import { apiRequest } from './apiClient';
 import { API_BASE_URL } from './apiConfig';
 import { validStoryPayload } from './aiStoryContractValidation';
 
@@ -36,6 +38,7 @@ async function parseApiResponse<T>(response: Response, fallbackMessage: string):
   if (!body || typeof body !== 'object') {
     return {
       success: false,
+      status: response.status,
       message: HTTP_ERROR_MESSAGES[response.status] ?? fallbackMessage,
       data: null,
       errors: [`HTTP ${response.status}: Phản hồi từ máy chủ không có dữ liệu hợp lệ.`],
@@ -47,6 +50,7 @@ async function parseApiResponse<T>(response: Response, fallbackMessage: string):
     const hasData = candidate.data !== null && candidate.data !== undefined;
     return {
       success: response.ok && candidate.success && hasData,
+      status: response.status,
       message: candidate.message || HTTP_ERROR_MESSAGES[response.status] || fallbackMessage,
       data: hasData ? (candidate.data as T) : null,
       errors: candidate.errors ?? null,
@@ -57,6 +61,7 @@ async function parseApiResponse<T>(response: Response, fallbackMessage: string):
   const errors = problemErrors(problem);
   return {
     success: false,
+    status: response.status,
     message:
       problem.detail ||
       (errors && errors.length > 0 ? errors[0] : undefined) ||
@@ -75,15 +80,15 @@ async function request<T>(path: string, method = 'GET', body?: unknown, signal?:
       method, signal, cache: 'no-store',
       ...(body !== undefined ? { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {}),
     });
-    // Only this endpoint's controller deliberately returns a bodyless Accepted.
-    if (emptyAccepted && response.status === 202) return { success: true, message: 'Đã nhận yêu cầu.', data: null };
+    // Regeneration actions deliberately return a bodyless Accepted.
+    if (emptyAccepted && response.status === 202) return { success: true, status:response.status, message: 'Đã nhận yêu cầu.', data: null };
     const result = await parseApiResponse<T>(response, 'Không thể hoàn tất thao tác. Vui lòng kiểm tra lại.');
     if (result.data !== null && !validStoryPayload(path, result.data)) {
-      return { success: false, data: null, message: 'Phản hồi từ máy chủ chưa đầy đủ. Vui lòng kiểm tra lại trạng thái.' };
+      return { success: false, status:response.status, data: null, message: 'Phản hồi từ máy chủ chưa đầy đủ. Vui lòng kiểm tra lại trạng thái.' };
     }
     return result;
   } catch (error) {
-    return { success: false, message: signal?.aborted ? 'Đã dừng theo dõi.' : 'Không thể kết nối máy chủ. Vui lòng kiểm tra lại trạng thái trước khi gửi lại.',
+    return { success: false, status:0, message: signal?.aborted ? 'Đã dừng theo dõi.' : 'Không thể kết nối máy chủ. Vui lòng kiểm tra lại trạng thái trước khi gửi lại.',
       data: null, errors: [(error as Error).message || 'Network error'] };
   }
 }
@@ -92,6 +97,7 @@ const review = (id: number) => `${story(id)}/review`;
 const outline = (id: number) => `${story(id)}/outline`;
 
 export const aiStoryCreationService = {
+  autoPublishCheck: (id: number) => apiRequest<D.ApproveResponseDto | null>(`/stories/${id}/review/auto-publish-check`, 'Không kiểm tra được điều kiện duyệt tự động.', {method:'POST'}),
   getCreationContext: (id: number, signal?: AbortSignal) => request<D.AIStoryInputContextDto>(`/ai-story-input/children/${id}/context`, 'GET', undefined, signal),
   submitInput: (input: D.SubmitAIStoryInputRequestDto, signal?: AbortSignal) => request<D.AIStoryInputProgressDto>('/ai-story-input/requests', 'POST', input, signal),
   getInputProgress: (id: number, requestId: number, signal?: AbortSignal) => request<D.AIStoryInputProgressDto>(`/ai-story-input/stories/${id}/requests/${requestId}`, 'GET', undefined, signal),
@@ -119,6 +125,7 @@ export const aiStoryCreationService = {
   completeStoryReview: (id: number, signal?: AbortSignal) => request<boolean>(`${review(id)}/story/complete`, 'POST', undefined, signal),
   completeReview: (id: number, artifact: D.ReviewArtifact, signal?: AbortSignal) => request<boolean>(`${review(id)}/${artifact}/complete`, 'POST', undefined, signal),
   validateReview: (id: number, signal?: AbortSignal) => request<D.ValidationResultDto>(`${review(id)}/validation`, 'GET', undefined, signal),
+  confirmCreatorContent: (id: number, versionId: number, signal?: AbortSignal) => apiRequest<ConfirmCreatorContentResponseDto>(`/creator/stories/${id}/generation/confirm-content`, 'Không xác nhận được nội dung.', { method: 'POST', body: { versionId }, signal }),
   approveStory: (id: number, signal?: AbortSignal) => request<D.ApproveResponseDto>(`${review(id)}/approve`, 'POST', undefined, signal),
   archiveStory: (id: number, input: D.ArchiveRequestDto, signal?: AbortSignal) => request<D.ArchiveResponseDto>(`${review(id)}/archive`, 'POST', input, signal),
   partialEditStory: (id: number, input: D.PartialEditRequestDto, signal?: AbortSignal) => request<D.CreateProposalResponseDto>(`${review(id)}/story/ai/partial-edit`, 'POST', input, signal),
@@ -129,10 +136,8 @@ export const aiStoryCreationService = {
   getMediaProgress: (id: number, signal?: AbortSignal) => request<D.MediaProgressDto>(`${story(id)}/media/progress`, 'GET', undefined, signal),
   getMediaPackage: (id: number, signal?: AbortSignal) => request<D.StoryMediaPackage>(`${story(id)}/media/package`, 'GET', undefined, signal),
   retryMedia: (id: number, signal?: AbortSignal) => request<D.MediaProgressDto>(`${story(id)}/media/retry`, 'POST', undefined, signal),
-  /** Chế độ tự duyệt theo ngưỡng: đủ điều kiện thì backend duyệt luôn (data khác null), không thì giữ chờ phụ huynh duyệt. */
-  autoPublishCheck: (id: number, signal?: AbortSignal) => request<D.ApproveResponseDto | null>(`${review(id)}/auto-publish-check`, 'POST', undefined, signal, true),
-  /** Content Creator xác nhận phiên bản nội dung để tạo media (thay cho duyệt của phụ huynh). Trả 202, chuyển sang MediaProcessing. */
-  confirmCreatorContent: (id: number, versionId: number, signal?: AbortSignal) => request<{ storyId: number; versionId: number; status: string }>(`/creator/stories/${id}/generation/confirm-content`, 'POST', { versionId }, signal),
-  regenerateIllustration: (id: number, beatId: number, signal?: AbortSignal) => request<null>(`${story(id)}/media/illustration-beats/${beatId}/regenerate`, 'POST', undefined, signal, true),
+  regenerateIllustration: (id: number, beatId: number, body: D.RegenerateMediaRequest, signal?: AbortSignal) => request<null>(`${story(id)}/media/illustration-beats/${beatId}/regenerate`, 'POST', body, signal, true),
+  regenerateAudio: (id: number, segmentId: number, body: D.RegenerateMediaRequest, signal?: AbortSignal) => request<null>(`${story(id)}/media/segments/${segmentId}/regenerate`, 'POST', body, signal, true),
+  confirmMedia: (id: number, body: D.ConfirmMediaPackageRequest, signal?: AbortSignal) => request<D.MediaProgressDto>(`${story(id)}/media/confirm`, 'POST', body, signal),
 };
 

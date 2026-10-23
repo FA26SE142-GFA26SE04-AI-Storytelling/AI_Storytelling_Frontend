@@ -28,3 +28,7 @@
 .st-rating { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
 .st-rating label { display: flex; flex-direction: column; gap: 2px; font-size: 11.5px; color: var(--muted); }
 @media (max-width: 900px) { .st-split { grid-template-columns: 1fr; } .st-body { padding: 14px; } .st-rating { grid-template-columns: repeat(2, 1fr); } }
+
+/* Shared review workspace embedded in the staff document flow. */
+.st-body > .creator-review { position: relative; inset: auto; flex: none; min-height: 600px; height: 75vh; }
+@media (max-width: 900px) { .st-body > .creator-review { grid-template-columns: minmax(0, 1fr); height: auto; } .creator-review .review-doc { min-height: 420px; } }

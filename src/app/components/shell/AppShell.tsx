@@ -6,7 +6,6 @@ import { useAuth } from "@/app/context/AuthContext";
 import { WORKSPACES, type WorkspaceId } from "./nav";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { ageLabel } from "@/app/lib/storyView";
-import { USE_MOCK } from "@/app/mocks/config";
 import { circleReveal, useRiseIn } from "@/app/lib/motion";
 import Frog from "@/app/components/brand/Frog";
 import NotificationBell from "./NotificationBell";
@@ -67,7 +66,7 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
       <footer className="status">
         <span className={error ? "" : "live"}><i style={error ? { background: "var(--danger)" } : undefined} />{error ? "Lỗi kết nối" : storiesLoading ? "Đang đồng bộ…" : "Đã đồng bộ"}</span>
         <span>{current?.label}</span>
-        <div className="r">{USE_MOCK && <span style={{ color: "var(--warn-ink)", fontWeight: 700 }}>Dữ liệu mẫu</span>}<span>{user?.fullName || user?.email}</span></div>
+        <div className="r"><span>{user?.fullName || user?.email}</span></div>
       </footer>
     </div>
   );

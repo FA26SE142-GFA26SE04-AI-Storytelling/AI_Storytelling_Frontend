@@ -8,7 +8,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useRiseIn } from "@/app/lib/motion";
 import { accountService } from "@/app/services/accountService";
 import { passwordProblem } from "@/app/lib/guardian";
-import { staffService } from "@/app/services/staffService";
+
 import QrCode from "@/app/components/QrCode";
 
 type Mode = "login" | "register" | "verify" | "forgot" | "reset" | "mfa" | "creator" | "activate";
@@ -88,11 +88,7 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
         const r = await verifyMfa(mfa.challenge, f.token.trim());
         if (!r.success) setMsg({ ok: false, text: r.message || "Mã không đúng." });
       } else if (mode === "creator") {
-        const problem = passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp." : !cr.commit ? "Hãy đồng ý cam kết bảo mật dữ liệu trẻ em và quy tắc nội dung." : cr.note.length > 1000 ? "Mô tả kinh nghiệm tối đa 1000 ký tự." : null);
-        if (problem) { setMsg({ ok: false, text: problem }); return; }
-        const r = await staffService.applyCreator({ fullName: f.fullName.trim(), email: f.email.trim(), password: f.password, expertise: cr.expertise.trim(), yearsExperience: cr.years, experienceNote: cr.note.trim(), portfolioUrl: cr.portfolio.trim() });
-        if (r.success) { go("login"); setMsg({ ok: true, text: r.message || "Đã nộp đơn. Bạn sẽ nhận email kết quả." }); }
-        else setMsg({ ok: false, text: r.message });
+        setMsg({ok:false,text:'Backend chưa cung cấp API đăng ký Content Creator.'});
       } else if (mode === "register") {
         const problem = passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp." : null);
         if (problem) { setMsg({ ok: false, text: problem }); return; }
@@ -141,6 +137,7 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
       <PondBackdrop />
       {onHome && <button type="button" className="btn btn-g login-home" onClick={onHome}>← Trang giới thiệu</button>}
       <form ref={cardRef} className="login-card" onSubmit={submit}>
+        {mode === "creator" && <p className="notice">Đăng ký Content Creator chưa được hỗ trợ bởi backend.</p>}
         <span className="login-frog"><Frog size={110} mood="happy" /></span>
         <h1 className="display">{TITLES[mode]}</h1>
         <p className="sub">Nền tảng kể chuyện AI an toàn cho trẻ em, có phụ huynh đồng hành.</p>
@@ -206,7 +203,7 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
         {msg && <div className={`notice ${msg.ok ? "ok" : "err"}`} role="alert">{msg.text}</div>}
         {backendOnline === false && <div className="notice err" role="status">{backendStatusMessage}</div>}
 
-        <button className="btn btn-p btn-c" style={{ padding: 10 }} disabled={busy}>{busy ? "Đang xử lý…" : SUBMIT_LABELS[mode]}</button>
+        <button className="btn btn-p btn-c" style={{ padding: 10 }} disabled={busy || mode === "creator"}>{busy ? "Đang xử lý…" : SUBMIT_LABELS[mode]}</button>
 
         {mode === "login" ? (
           <>

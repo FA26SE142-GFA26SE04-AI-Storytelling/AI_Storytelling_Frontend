@@ -50,7 +50,7 @@ export default function ImportStoryPanel({ child, go, onDone }: { child: ChildPr
   /** Sau mỗi bản mới: Phù hợp → đã chuyển sang tạo học liệu; còn lại → hiện đánh giá để phụ huynh quyết định. */
   const afterVersion = async (storyId: number, versionId: number, decision: string | null) => {
     if (decision === "Suitable") { setStage({ kind: "done", title }); return; }
-    const ev = await api.evaluate(storyId, versionId);
+    const ev = await api.evaluation(storyId, versionId);
     if (!ev.success || !ev.data) { setErr(ev.message); return; }
     setStage({ kind: "decide", storyId, versionId, evaluation: ev.data });
   };

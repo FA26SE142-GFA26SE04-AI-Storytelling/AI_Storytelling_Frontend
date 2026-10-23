@@ -9,6 +9,8 @@ Ký hiệu:
 - `[ ]` chưa làm
 - `[ ]` có ghi **Một phần**: đã làm được một phần, ghi rõ phần còn thiếu
 
+> Cập nhật sau khi hợp nhất 22/10/2026: runtime mock, `*Local.ts` và chế độ đọc mô phỏng đã được xóa. Chức năng chưa có API trả trạng thái chưa hỗ trợ. Những mô tả dữ liệu mẫu bên dưới là ghi chép lịch sử; đối chiếu hiện tại xem [core-api-completion.md](core-api-completion.md) và [backend-api-integration-result.md](backend-api-integration-result.md). Kiểm thử dùng network doubles, chưa xác thực backend/database chạy thật.
+
 ## Tổng quan
 
 | Luồng | % hoàn thành |
