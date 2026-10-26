@@ -50,14 +50,19 @@ function Workspaces() {
     if (WORKSPACES.some((w) => w.id === id)) setWs(id);
   }, []);
 
+  const kidOpen = kid && !!child;
+
   return (
     <>
-      <AppShell ws={ws} onWs={go} onKid={() => setKid(true)}>
-        {childrenLoading
-          ? <div className="splash">Đang tải hồ sơ bé…</div>
-          : <View go={go} onKid={() => setKid(true)} />}
-      </AppShell>
-      {kid && child && <KidMode onExit={() => setKid(false)} />}
+      {/* Khi bé đang dùng, khoá hẳn khu người lớn phía sau (kể cả phím Tab), chỉ ra được qua cổng phụ huynh. */}
+      <div inert={kidOpen} style={{ display: "contents" }}>
+        <AppShell ws={ws} onWs={go} onKid={() => setKid(true)}>
+          {childrenLoading
+            ? <div className="splash">Đang tải hồ sơ bé…</div>
+            : <View go={go} onKid={() => setKid(true)} />}
+        </AppShell>
+      </div>
+      {kidOpen && <KidMode onExit={() => setKid(false)} />}
     </>
   );
 }

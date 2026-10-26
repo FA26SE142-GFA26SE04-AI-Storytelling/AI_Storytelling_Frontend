@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, Home } from "lucide-react";
 import { readingService } from "@/app/services/readingService";
 import type { LibraryStory, StoryWish, WishCard, WishGroup } from "@/app/types/reading";
@@ -25,7 +25,12 @@ export default function KidWish({ childId, library, onBack, onOpen }: { childId:
   const [busy, setBusy] = useState(false);
   const narrator = useNarrator();
 
-  useEffect(() => { void readingService.wishCards(childId).then((r) => setCards(r.data ?? [])); }, [childId]);
+  const [cardsErr, setCardsErr] = useState(false);
+  const loadCards = useCallback(() => {
+    setCardsErr(false);
+    void readingService.wishCards(childId).then((r) => { if (r.success) setCards(r.data ?? []); else setCardsErr(true); });
+  }, [childId]);
+  useEffect(() => { loadCards(); }, [loadCards]);
 
   const cur = STEPS[step];
   const choose = (c: WishCard) => {
@@ -56,7 +61,7 @@ export default function KidWish({ childId, library, onBack, onOpen }: { childId:
       <div className="kpane"><div className="kcard" style={{ textAlign: "center", alignItems: "center" }}>
         <Frog size={110} mood="happy" />
         <h2 className="display">Bố mẹ sẽ xem điều ước của em nhé!</h2>
-        <div className="kwish-cards big" aria-label="Thẻ em đã chọn">{chosen.map((c) => <span key={c.id} title={c.label}>{c.emoji}</span>)}</div>
+        <div className="kwish-cards big" role="img" aria-label={`Thẻ em đã chọn: ${chosen.map((c) => c.label).join(", ")}`}>{chosen.map((c) => <span key={c.id} title={c.label} aria-hidden>{c.emoji}</span>)}</div>
         {result.suggestions.length > 0 && (
           <>
             <p style={{ fontSize: 16, margin: 0 }}>Trong lúc chờ bố mẹ, em thử đọc truyện này nhé!</p>
@@ -78,6 +83,18 @@ export default function KidWish({ childId, library, onBack, onOpen }: { childId:
     );
   }
 
+  if (cardsErr) {
+    return (
+      <div className="kpane"><div className="kcard" style={{ textAlign: "center", alignItems: "center" }}>
+        <Frog size={110} mood="think" /><h2 className="display">Ôi, chưa mở được thẻ điều ước</h2>
+        <div className="row">
+          <button className="kbtn" onClick={onBack}><Home />Về trang chính</button>
+          <button className="kbtn primary" onClick={loadCards}>Thử lại</button>
+        </div>
+      </div></div>
+    );
+  }
+
   const options = cards.filter((c) => c.group === cur.group).slice(0, 8);
   const chosenId = picked[cur.group];
   return (
@@ -91,7 +108,7 @@ export default function KidWish({ childId, library, onBack, onOpen }: { childId:
             <span aria-hidden>{c.emoji}</span>{c.label}
           </button>
         ))}
-        {cur.group === "lesson" && <button className={`wish-card${chosenId === null ? " on" : ""}`} onClick={() => setPicked((p) => ({ ...p, lesson: null }))}><span aria-hidden>👨‍👩‍👧</span>Để bố mẹ chọn</button>}
+        {cur.group === "lesson" && <button className={`wish-card${chosenId === null ? " on" : ""}`} aria-pressed={chosenId === null} onClick={() => setPicked((p) => ({ ...p, lesson: null }))}><span aria-hidden>👨‍👩‍👧</span>Để bố mẹ chọn</button>}
       </div>
       <div className="row">
         <span className="grow" />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Bookmark, ChevronLeft, ChevronRight, Heart, Home, Pause, Volume2, X } from "lucide-react";
 import { readingService } from "@/app/services/readingService";
 import type { LibraryStory, OpenedFrom, ReadingMode, ReadingPackage, ReadingVocabulary } from "@/app/types/reading";
@@ -8,6 +8,7 @@ import { gradientFor } from "@/app/lib/storyView";
 import { tokenize } from "@/app/lib/readingRules";
 import Frog, { type FrogMood } from "@/app/components/brand/Frog";
 import { useNarrator } from "./useNarrator";
+import { useDialog } from "./useDialog";
 
 type Props = {
   childId: number;
@@ -51,6 +52,17 @@ function segmentsOf(text: string, vocab: ReadingVocabulary[]): Segment[] {
 const sentenceWith = (pages: string[], term: string) =>
   pages.flatMap((p) => p.match(/[^.!?…]+[.!?…]*/g) ?? []).find((s) => s.toLowerCase().includes(term.toLowerCase()))?.trim() ?? "";
 
+/** Hộp nghĩa từ: giữ focus bên trong, Esc để đóng. */
+function VocabPopup({ term, onClose, children }: { term: string; onClose: () => void; children: ReactNode }) {
+  const ref = useDialog<HTMLDivElement>(onClose);
+  return (
+    <div ref={ref} className="kpop" role="dialog" aria-modal="true" aria-label={`Từ ${term}`}>
+      <div className="row"><b className="display grow" style={{ fontSize: 26 }}>{term}</b><button className="kbtn" onClick={onClose} aria-label="Đóng"><X /></button></div>
+      {children}
+    </div>
+  );
+}
+
 /** Luồng 3 Bước 3.2 — Immersive Mode. */
 export default function KidReader({ childId, story, openedFrom, isRetake, readingMode, onFinished, onLeave, onForceExit }: Props) {
   const [pack, setPack] = useState<ReadingPackage | null>(null);
@@ -63,9 +75,19 @@ export default function KidReader({ childId, story, openedFrom, isRetake, readin
   const [popup, setPopup] = useState<ReadingVocabulary | null>(null);
   const [toast, setToast] = useState("");
   const [mood, setMood] = useState<FrogMood>("idle");
+  const [leaving, setLeaving] = useState(false);
   const narrator = useNarrator();
   const nextTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const moodTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Chặn bấm "Đọc xong rồi!" hai lần (bé hay bấm liên tục) → không gửi hoàn thành hai lần.
+  const finishing = useRef(false);
   const big = readingMode === "listen_first";
+
+  useEffect(() => () => {
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    if (moodTimer.current) clearTimeout(moodTimer.current);
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -91,7 +113,11 @@ export default function KidReader({ childId, story, openedFrom, isRetake, readin
   const last = !!pack && page === pack.pages.length - 1;
   const segments = useMemo(() => (cur ? segmentsOf(cur.text, pack!.vocabulary) : []), [cur, pack]);
 
-  const toastFor = (t: string) => { setToast(t); setTimeout(() => setToast(""), 2200); };
+  const toastFor = (t: string) => {
+    setToast(t);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(""), 2200);
+  };
 
   const readPage = useCallback((auto: boolean) => {
     if (!cur) return;
@@ -132,8 +158,23 @@ export default function KidReader({ childId, story, openedFrom, isRetake, readin
     if (delta > 0) readingService.log(sessionId, "page_completed", { page: page + 1 });
     setPage((p) => Math.min(Math.max(0, p + delta), pack.pages.length - 1));
     setMood("happy");
-    setTimeout(() => setMood("idle"), 900);
+    if (moodTimer.current) clearTimeout(moodTimer.current);
+    moodTimer.current = setTimeout(() => setMood("idle"), 900);
   };
+
+  // Lật trang bằng phím ← → (máy tính bảng có bàn phím), trừ khi đang mở hộp nghĩa từ hoặc gõ chữ.
+  const goRef = useRef(go);
+  useEffect(() => { goRef.current = go; });
+  useEffect(() => {
+    if (popup) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+      if (e.key === "ArrowRight") goRef.current(1);
+      else if (e.key === "ArrowLeft") goRef.current(-1);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [popup]);
 
   const toggleListenAll = () => {
     const next = !listenAll;
@@ -173,15 +214,24 @@ export default function KidReader({ childId, story, openedFrom, isRetake, readin
   };
 
   const leave = async () => {
+    if (leaving) return;
+    setLeaving(true);
     narrator.stop();
     if (sessionId !== null) await readingService.exit(childId, sessionId, page + 1);
     onLeave();
   };
 
   const finish = async () => {
+    if (finishing.current) return;
     narrator.stop();
-    if (sessionId !== null && pack) { readingService.log(sessionId, "page_completed", { page: page + 1 }); onFinished(sessionId, pack); }
+    if (sessionId !== null && pack) {
+      finishing.current = true;
+      readingService.log(sessionId, "page_completed", { page: page + 1 });
+      onFinished(sessionId, pack);
+    }
   };
+
+  const closePopup = useCallback(() => setPopup(null), []);
 
   if (err) {
     return (
@@ -199,7 +249,7 @@ export default function KidReader({ childId, story, openedFrom, isRetake, readin
   return (
     <div className="reader">
       <div className="reader-top">
-        <button className="kbtn" onClick={() => void leave()} aria-label="Về trang chính"><Home /></button>
+        <button className="kbtn" onClick={() => void leave()} disabled={leaving} aria-label="Về trang chính"><Home /></button>
         <div className="grow">
           <b className="display reader-title">{pack.title}{isRetake && <span className="kpill">Đọc lại để mở khoá</span>}</b>
           <div className="kprogress" role="progressbar" aria-valuemin={1} aria-valuemax={pack.pages.length} aria-valuenow={page + 1} aria-label="Tiến độ đọc">
@@ -211,7 +261,7 @@ export default function KidReader({ childId, story, openedFrom, isRetake, readin
       </div>
 
       <div className={`book reading${big ? " big" : ""}`}>
-        <div className="illus cover" style={cur.imageUrl ? { backgroundImage: `url(${cur.imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: gradientFor(story.storyId + page) }}>
+        <div className="illus cover" role="img" aria-label={`Tranh minh hoạ trang ${page + 1}`} style={cur.imageUrl ? { backgroundImage: `url(${cur.imageUrl})`, backgroundSize: "cover", backgroundPosition: "center" } : { background: gradientFor(story.storyId + page) }}>
           {!cur.imageUrl && <span className="illus-frog"><Frog size={big ? 150 : 110} mood={mood} /></span>}
         </div>
         <div className="kpage">
@@ -221,7 +271,7 @@ export default function KidReader({ childId, story, openedFrom, isRetake, readin
               const active = hl !== null && hl >= s.start && hl < s.end;
               if (s.vocab) return <button key={s.start} className={`kword vocab${active ? " hl" : ""}`} onClick={() => openVocab(s.vocab!)}>{s.text}</button>;
               if (!s.word) return <span key={s.start}>{s.text}</span>;
-              return <span key={s.start} className={`kword${active ? " hl" : ""}`} onClick={() => narrator.speak(s.text, { rate: 0.8 })}>{s.text}</span>;
+              return <button key={s.start} type="button" className={`kword${active ? " hl" : ""}`} onClick={() => narrator.speak(s.text, { rate: 0.8 })}>{s.text}</button>;
             })}
           </p>
           <div className="row" style={{ marginTop: "auto", flexWrap: "wrap" }}>
@@ -237,19 +287,19 @@ export default function KidReader({ childId, story, openedFrom, isRetake, readin
       </div>
 
       {popup && (
-        <div className="kpop-backdrop" onClick={(e) => { if (e.target === e.currentTarget) setPopup(null); }}>
-          <div className="kpop" role="dialog" aria-label={`Từ ${popup.term}`}>
-            <div className="row"><b className="display grow" style={{ fontSize: 26 }}>{popup.term}</b><button className="kbtn" onClick={() => setPopup(null)} aria-label="Đóng"><X /></button></div>
+        <div className="kpop-backdrop" onClick={(e) => { if (e.target === e.currentTarget) closePopup(); }}>
+          <VocabPopup term={popup.term} onClose={closePopup}>
             <p style={{ fontSize: 17, margin: 0 }}>{popup.definition}</p>
             {sentenceWith(pagesText, popup.term) && <p className="sub" style={{ fontSize: 15, margin: 0 }}>“{sentenceWith(pagesText, popup.term)}”</p>}
             <div className="row">
               <button className="kbtn" onClick={() => narrator.speak(`${popup.term}. ${popup.definition}`)} aria-label="Nghe"><Volume2 /></button>
               <button className="kbtn primary grow" onClick={() => void saveWord(popup)}>Lưu vào sổ tay</button>
             </div>
-          </div>
+          </VocabPopup>
         </div>
       )}
-      {toast && <div className="ktoast" role="status">{toast}</div>}
+      {/* Vùng thông báo luôn có mặt để trình đọc màn hình đọc được nội dung mới. */}
+      <div className={toast ? "ktoast" : "sr-only"} role="status" aria-live="polite">{toast}</div>
     </div>
   );
 }

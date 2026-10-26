@@ -39,12 +39,12 @@ export default function KidMode({ onExit }: { onExit: () => void }) {
   const requestExit = () => (gateOn ? setGateOpen(true) : leave());
 
   if (!child || !entry) {
-    return <div className="kid" role="dialog" aria-label="Chế độ của bé"><PondBackdrop /><div className="kpane"><div className="kcard"><h2 className="display">Đang mở…</h2></div></div></div>;
+    return <div className="kid" role="dialog" aria-modal="true" aria-label="Chế độ của bé"><PondBackdrop /><div className="kpane"><div className="kcard"><h2 className="display">Đang mở…</h2></div></div></div>;
   }
 
   if (!entry.ok) {
     return (
-      <div className="kid" role="dialog" aria-label="Chế độ của bé">
+      <div className="kid" role="dialog" aria-modal="true" aria-label="Chế độ của bé">
         <PondBackdrop />
         <div className="kpane">
           <div className="kcard" style={{ alignItems: "center", textAlign: "center" }}>

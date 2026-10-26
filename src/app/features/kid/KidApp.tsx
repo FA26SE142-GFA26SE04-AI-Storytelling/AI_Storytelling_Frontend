@@ -54,7 +54,7 @@ export default function KidApp({ childId, onExit }: { childId: number; onExit: (
 
   if (sessionEnd) {
     return (
-      <div className="kid" role="dialog" aria-label="Chế độ của bé">
+      <div className="kid" role="dialog" aria-modal="true" aria-label="Chế độ của bé">
         <PondBackdrop />
         <div className="kpane"><div className="kcard" style={{ alignItems: "center", textAlign: "center" }}>
           <Frog size={120} mood="idle" />
@@ -69,19 +69,19 @@ export default function KidApp({ childId, onExit }: { childId: number; onExit: (
   }
 
   return (
-    <div className="kid" role="dialog" aria-label="Chế độ của bé">
+    <div className="kid" role="dialog" aria-modal="true" aria-label="Chế độ của bé">
       <PondBackdrop />
       {!reading && (
         <div className="ktop">
           <button className="btn btn-s" onClick={onExit}><LogOut className="ic" />Thoát</button>
-          <div className="ktabs" role="tablist">
-            <button role="tab" aria-selected={screen.kind !== "notebook"} className={screen.kind !== "notebook" ? "on" : ""} onClick={toHome}>Truyện</button>
-            <button role="tab" aria-selected={screen.kind === "notebook"} className={screen.kind === "notebook" ? "on" : ""} onClick={() => setScreen({ kind: "notebook" })}>Sổ tay & Cây</button>
-          </div>
+          <nav className="ktabs" aria-label="Khu của bé">
+            <button aria-pressed={screen.kind !== "notebook"} className={screen.kind !== "notebook" ? "on" : ""} onClick={toHome}>Truyện</button>
+            <button aria-pressed={screen.kind === "notebook"} className={screen.kind === "notebook" ? "on" : ""} onClick={() => setScreen({ kind: "notebook" })}>Sổ tay & Cây</button>
+          </nav>
           {home && <>
             <span className="kstat">{home.nickname}</span>
-            <span className="kstat" title="Sao tích luỹ"><Star className="ic" style={{ color: "var(--warn-ink)", fill: "var(--gold)" }} />{home.achievements.expTotal}</span>
-            <span className="kstat" title="Chuỗi ngày đọc"><Flame className="ic" style={{ color: "var(--gold-deep)" }} />{home.achievements.streakDays}</span>
+            <span className="kstat" title="Sao tích luỹ"><Star className="ic" style={{ color: "var(--warn-ink)", fill: "var(--gold)" }} />{home.achievements.expTotal}<span className="sr-only"> sao tích luỹ</span></span>
+            <span className="kstat" title="Chuỗi ngày đọc"><Flame className="ic" style={{ color: "var(--gold-deep)" }} />{home.achievements.streakDays}<span className="sr-only"> ngày đọc liên tiếp</span></span>
           </>}
         </div>
       )}

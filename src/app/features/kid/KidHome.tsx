@@ -16,6 +16,8 @@ type Props = {
 
 const LENGTH_LABEL = { short: "Ngắn", medium: "Vừa", long: "Dài" } as const;
 const card = (id: number | null) => WISH_CARDS.find((c) => c.id === id);
+/** Nhãn đọc to cho các huy hiệu chỉ có ký hiệu (trình đọc màn hình đọc "♥" thành "black heart suit"). */
+const BADGE_LABEL: Record<string, string> = { "♥": "Yêu thích", "✓ Đã đọc": "Đã đọc" };
 
 /** Thông điệp điều ước cho bé — không bao giờ nêu lý do từ chối (Bước 3.1b). */
 function wishMessage(w: StoryWish): string {
@@ -31,9 +33,10 @@ function Cover({ story, onClick, badge, locked }: { story: LibraryStory; onClick
     <button className={`kcover big${locked ? " locked" : ""}`} onClick={onClick} disabled={locked}>
       <span className="cover" style={story.coverImageUrl ? { backgroundImage: `url(${story.coverImageUrl})`, backgroundSize: "cover" } : { background: gradientFor(story.storyId) }}>
         {locked && <Lock className="lock" />}
-        {badge && <em className="kpill">{badge}</em>}
+        {badge && <em className="kpill">{BADGE_LABEL[badge] ? <><span aria-hidden>{badge}</span><span className="sr-only">{BADGE_LABEL[badge]}</span></> : badge}</em>}
       </span>
       <b className="display">{story.title}</b>
+      {locked && <span className="sr-only">(đang khoá)</span>}
     </button>
   );
 }
@@ -90,7 +93,7 @@ export default function KidHome({ home, onOpen, onWish }: Props) {
           {roadmapOpen ? (
             <div className="kshelf">
               <Cover story={roadmapOpen} onClick={hold || home.roadmap.openLocked ? undefined : () => onOpen(roadmapOpen, "roadmap")} locked={!!hold || !!home.roadmap.openLocked} />
-              {home.roadmap.queued.map((s) => <div key={s.storyId} className="kcover big locked"><span className="cover" style={{ background: gradientFor(s.storyId) }}><Lock className="lock" /></span><b className="display">Chưa tới lượt</b></div>)}
+              {home.roadmap.queued.map((s) => <div key={s.storyId} className="kcover big locked"><span className="cover" style={{ background: gradientFor(s.storyId) }}><Lock className="lock" /></span><b className="display">Chưa tới lượt</b><span className="sr-only">(đang khoá)</span></div>)}
             </div>
           ) : <p className="sub" style={{ fontSize: 15 }}>Con đã đọc hết truyện bố mẹ chọn!</p>}
           {home.roadmap.note && <p className="knote">💌 {home.roadmap.note}</p>}
@@ -106,6 +109,7 @@ export default function KidHome({ home, onOpen, onWish }: Props) {
               <div key={c.submissionId} className="kcover big locked" title={c.description ?? undefined}>
                 <span className="cover" style={{ background: gradientFor(c.submissionId) }}><Lock className="lock" /></span>
                 <b className="display">{c.title}</b>
+                <span className="sr-only">(sắp mở)</span>
               </div>
             ))}
           </div>
@@ -137,10 +141,10 @@ export default function KidHome({ home, onOpen, onWish }: Props) {
       <div className="ksection">
         <h3 className="display">Thư viện của em</h3>
         <div className="kfilters">
-          <label className="ksearch"><Search /><input value={q} onChange={(e) => search(e.target.value)} placeholder="Tìm truyện" aria-label="Tìm truyện" /></label>
-          <button className={`kchip${onlyFav ? " on" : ""}`} onClick={() => setOnlyFav(!onlyFav)}><BookHeart size={16} /> Yêu thích</button>
-          {genres.map((g) => <button key={g} className={`kchip${genre === g ? " on" : ""}`} onClick={() => setGenre(genre === g ? null : g)}>{g}</button>)}
-          {(Object.keys(LENGTH_LABEL) as (keyof typeof LENGTH_LABEL)[]).map((l) => <button key={l} className={`kchip${length === l ? " on" : ""}`} onClick={() => setLength(length === l ? null : l)}>{LENGTH_LABEL[l]}</button>)}
+          <label className="ksearch"><Search /><input type="search" name="q" autoComplete="off" spellCheck={false} value={q} onChange={(e) => search(e.target.value)} placeholder="Tìm truyện…" aria-label="Tìm truyện" /></label>
+          <button className={`kchip${onlyFav ? " on" : ""}`} aria-pressed={onlyFav} onClick={() => setOnlyFav(!onlyFav)}><BookHeart size={16} /> Yêu thích</button>
+          {genres.map((g) => <button key={g} className={`kchip${genre === g ? " on" : ""}`} aria-pressed={genre === g} onClick={() => setGenre(genre === g ? null : g)}>{g}</button>)}
+          {(Object.keys(LENGTH_LABEL) as (keyof typeof LENGTH_LABEL)[]).map((l) => <button key={l} className={`kchip${length === l ? " on" : ""}`} aria-pressed={length === l} onClick={() => setLength(length === l ? null : l)}>{LENGTH_LABEL[l]}</button>)}
         </div>
         {list.length === 0 && <p className="sub" style={{ fontSize: 15 }}>{home.library.length ? "Không tìm thấy truyện nào." : "Chưa có truyện nào. Bố mẹ sẽ chuẩn bị truyện cho em nhé!"}</p>}
         <div className="kgrid">

@@ -47,6 +47,8 @@ export default function KidAfter({ childId, sessionId, pack, ageBand, readingMod
   const [pool, setPool] = useState<string[]>(() => shuffle(game));
   const [ach, setAch] = useState<Achievements | null>(completed?.achievements ?? null);
   const [watered, setWatered] = useState(false);
+  // Đang gửi kết quả câu đố / tưới cây: khoá nút để bé bấm liên tục không gửi hai lần (cộng sao hai lần).
+  const [busy, setBusy] = useState(false);
   const narrator = useNarrator();
   const listen = readingMode === "listen_first";
   const q = quiz[qi];
@@ -77,14 +79,20 @@ export default function KidAfter({ childId, sessionId, pack, ageBand, readingMod
 
   const nextQuestion = async () => {
     if (qi < quiz.length - 1) { setQi(qi + 1); setPicked(null); setTyped(""); return; }
+    if (busy) return;
+    setBusy(true);
     const r = await readingService.submitQuiz(childId, sessionId, pack, answers);
+    setBusy(false);
     readingService.log(sessionId, "quiz_completed", { correct: r.data?.correct, total: r.data?.total });
     setScore(r.data ? { correct: r.data.correct, total: r.data.total } : null);
     setQuizExp(r.data?.expGained ?? 0);
   };
 
   const water = async () => {
+    if (busy) return;
+    setBusy(true);
     const r = await readingService.invest(childId);
+    setBusy(false);
     if (r.data) setAch(r.data);
     setWatered(true);
     readingService.log(sessionId, "reward_granted", { exp: (completed?.expGained ?? 0) + quizExp });
@@ -121,7 +129,7 @@ export default function KidAfter({ childId, sessionId, pack, ageBand, readingMod
         <h2 className="display">{q.question}</h2>
         {q.type === "short_answer" ? (
           <form className="row" onSubmit={(e) => { e.preventDefault(); if (typed.trim()) answer(typed); }}>
-            <input className="inp kinput" value={typed} disabled={picked !== null} onChange={(e) => setTyped(e.target.value)} placeholder="Em viết câu trả lời nhé" aria-label="Câu trả lời" />
+            <input className="inp kinput" name="answer" autoComplete="off" spellCheck={false} value={typed} disabled={picked !== null} onChange={(e) => setTyped(e.target.value)} placeholder="Em viết câu trả lời nhé…" aria-label="Câu trả lời" />
             <button className="kbtn primary" disabled={!typed.trim() || picked !== null}>Trả lời</button>
           </form>
         ) : (
@@ -132,12 +140,14 @@ export default function KidAfter({ childId, sessionId, pack, ageBand, readingMod
             })}
           </div>
         )}
-        {picked !== null && (
-          <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
-            <b className="display" style={{ fontSize: 18 }}>{right ? "Đúng rồi, giỏi quá!" : `Câu trả lời là: ${q.acceptedAnswers[0]}. Lần sau em sẽ nhớ nhé!`}</b>
-            <button className="kbtn primary" onClick={() => void nextQuestion()}>{qi < quiz.length - 1 ? "Câu tiếp theo" : "Xem kết quả"}</button>
-          </div>
-        )}
+        <div role="status" aria-live="polite">
+          {picked !== null && (
+            <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
+              <b className="display" style={{ fontSize: 18 }}>{right ? "Đúng rồi, giỏi quá!" : `Câu trả lời là: ${q.acceptedAnswers[0]}. Lần sau em sẽ nhớ nhé!`}</b>
+              <button className="kbtn primary" disabled={busy} onClick={() => void nextQuestion()}>{qi < quiz.length - 1 ? "Câu tiếp theo" : busy ? "Đang chấm…" : "Xem kết quả"}</button>
+            </div>
+          )}
+        </div>
       </div></div>
     );
   }
@@ -149,9 +159,15 @@ export default function KidAfter({ childId, sessionId, pack, ageBand, readingMod
       <div className="kpane"><div className="kcard">
         <span className="kpill">Trò chơi: Chuyện gì xảy ra trước?</span>
         <h2 className="display">Em bấm các câu theo đúng thứ tự trong truyện nhé</h2>
-        <ol className="seq-order">{order.map((s, i) => <li key={s}><b>{i + 1}</b>{s}</li>)}</ol>
+        {/* Bấm vào câu đã xếp để gỡ ra nếu chọn nhầm (trước khi xếp xong). */}
+        <ol className="seq-order">{order.map((s, i) => (
+          <li key={i}>
+            <button type="button" className="seq-item" disabled={solved} onClick={() => { setOrder(order.filter((_, j) => j !== i)); setPool([...pool, s]); }}
+              aria-label={solved ? undefined : `Gỡ câu ${i + 1}: ${s}`}><b>{i + 1}</b>{s}</button>
+          </li>
+        ))}</ol>
         <div className="kans">
-          {pool.map((s) => <button key={s} className="kopt" onClick={() => { setOrder([...order, s]); setPool(pool.filter((x) => x !== s)); }}>{s}</button>)}
+          {pool.map((s, i) => <button key={i} className="kopt" onClick={() => { setOrder([...order, s]); setPool(pool.filter((_, j) => j !== i)); }}>{s}</button>)}
         </div>
         {solved && <b className="display" style={{ fontSize: 18 }}>{correct ? "Chính xác! Em nhớ truyện thật giỏi!" : "Gần đúng rồi! Mình thử lại nhé."}</b>}
         <div className="row">
@@ -172,10 +188,10 @@ export default function KidAfter({ childId, sessionId, pack, ageBand, readingMod
     <div className="kpane"><div className="kcard" style={{ textAlign: "center", alignItems: "center" }}>
       <span className="tree-emoji" aria-hidden>{stage.emoji}</span>
       <h2 className="display">Cây tri thức của em: {stage.label}</h2>
-      <div className="kprogress wide" aria-label="Cây lớn tới mốc tiếp theo"><i style={{ width: `${stage.progress * 100}%` }} /></div>
+      <div className="kprogress wide" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(stage.progress * 100)} aria-label="Cây lớn tới mốc tiếp theo"><i style={{ width: `${stage.progress * 100}%` }} /></div>
       {stage.next && <p className="sub" style={{ fontSize: 14 }}>Còn {stage.next.min - treeExp} ⭐ nữa để thành {stage.next.label.toLowerCase()}</p>}
       {isRetake && <p className="sub" style={{ fontSize: 14 }}>Lần đọc lại này không nhận thêm sao, nhưng em đã cố gắng rất tốt!</p>}
-      {!watered && pending > 0 && <button className="kbtn primary" onClick={() => void water()}>Tưới cây (+{pending} ⭐)</button>}
+      {!watered && pending > 0 && <button className="kbtn primary" disabled={busy} onClick={() => void water()}>{busy ? "Đang tưới…" : `Tưới cây (+${pending} ⭐)`}</button>}
       {watered && <p className="kexp">Cây đã được tưới!</p>}
       {!isRetake && gained === 0 && pending === 0 && <p className="sub" style={{ fontSize: 14 }}>Em đã đọc truyện này rồi nên lần này không nhận thêm sao.</p>}
       {(completed?.newBadges ?? []).map((b) => <p key={b} className="kbadge">{BADGES[b]?.emoji} Huy hiệu mới: {BADGES[b]?.label ?? b}</p>)}
