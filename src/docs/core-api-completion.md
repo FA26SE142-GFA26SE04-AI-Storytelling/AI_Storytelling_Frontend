@@ -170,3 +170,7 @@ Kiểm chứng source và kiểm thử: 274/274 frontend unit tests; 184/184 bac
 - Kiểm chứng: 288 unit test frontend, 41 test backend outline/content; 5 browser fixture kiểm tra chạy content có lỗi outline cũ, outline đang chạy, retry outline trả 202, mất kết nối rồi phục hồi, và content thất bại thật rồi retry. TypeScript/lint/production build đạt.
 
 Chưa khởi động lại backend hoặc gọi AI provider thật. Cần chạy bản backend đã cập nhật để nhận đầy đủ logic progress mới; không có thay đổi schema/migration trong bản sửa này.
+
+## Kiểm tra trước push — 27/10/2026
+
+Đã hợp nhất origin/main, giữ bố cục form một cột và độ dài đề xuất từ backend. Production build và lint đạt; unit tests 304/305 qua. Test còn lỗi là kiểm tra độ phủ API khi đối chiếu với backend local hiện có 358 route: 330 connected, 2 excluded, 26 missing. Các route mới thuộc quiz session, cảm xúc/tưởng thưởng/điều ước của trẻ, phản hồi đọc của phụ huynh và quản lý wish cards. Snapshot `core-api-coverage.json` vẫn là 332 route của lần tích hợp trước; không thêm exclusion hoặc sửa test để che 26 route còn thiếu. Kết quả này không xác nhận đã tích hợp toàn bộ API của backend local mới, không phải lỗi build hay conflict chưa xử lý.
