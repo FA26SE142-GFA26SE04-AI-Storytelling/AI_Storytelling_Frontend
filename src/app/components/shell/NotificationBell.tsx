@@ -72,8 +72,10 @@ export default function NotificationBell({ onOpen }: { onOpen?: (ws: WorkspaceId
   return (
     <div className="notif" ref={boxRef}>
       <button className="btn btn-g" aria-label={`Thông báo${count ? `, ${count} chưa đọc` : ""}`} aria-expanded={open} onClick={() => { setOpen(!open); if (!open) void load(); }}>
-        <Bell className="ic" />{count > 0 && <span className="notif-dot">{count > 9 ? "9+" : count}</span>}
+        <Bell className="ic" />
       </button>
+      {/* Nằm ngoài nút: nút có overflow hidden và bo góc nên sẽ cắt méo chấm số nếu để bên trong. */}
+      {count > 0 && <span className="notif-dot" aria-hidden>{count > 9 ? "9+" : count}</span>}
       {open && (
         <div className="notif-panel" role="dialog" aria-label="Thông báo">
           <div className="row"><b className="grow">Thông báo</b>{count > 0 && <button className="btn btn-g" onClick={() => void guardianService.markAllNotificationsRead().then(load)}>Đọc hết</button>}</div>

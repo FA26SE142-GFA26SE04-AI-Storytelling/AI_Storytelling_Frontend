@@ -147,23 +147,46 @@
 .plan-scroll { height: 100%; overflow-y: auto; padding: 22px 26px 36px; }
 /* Form/dàn ý là một tờ giấy đặt trên mặt ao */
 .plan-scroll > .pb { overflow: visible; flex: none; max-width: 900px; margin: 0 auto; padding: 22px 24px; gap: 16px; background: color-mix(in srgb, var(--paper) 92%, transparent); border: 1px solid var(--line-2); border-radius: 26px 26px 26px 10px; box-shadow: 0 24px 50px -28px color-mix(in srgb, var(--shadow) 40%, transparent); }
-.brief-head { display: flex; align-items: flex-start; gap: 16px; }
-.brief-head h3 { margin: 0 0 2px; font-size: 20px; color: var(--ink-warm); }
-.brief-head .kv { flex: none; width: 230px; }
-.brief-grid { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 20px 26px; }
-.brief-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-.brief-grid textarea.inp { min-height: 96px; }
-.brief-foot { display: flex; align-items: center; justify-content: flex-end; gap: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
-@media (max-width: 1000px) {
-  .brief-grid { grid-template-columns: 1fr; }
-  .brief-head { flex-direction: column; }
-  .brief-head .kv { width: 100%; }
+/* Form ý tưởng: một cột cuộn dọc, độ rộng vừa tầm đọc */
+.plan-scroll > .pb.brief { max-width: 720px; }
+.brief .lbl { font-size: 13px; color: var(--text); }
+.brief .hint { font-size: 12px; color: var(--muted); line-height: 1.45; }
+.brief-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.brief-head h3 { margin: 0 6px 0 0; font-size: 24px; color: var(--ink-warm); }
+.brief-head .sub { flex-basis: 100%; margin: 2px 0 0; }
+.brief-tag { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px; border-radius: 999px; background: var(--surface); border: 1px solid var(--line); font-size: 12.5px; font-weight: 700; color: var(--muted); }
+.brief-tag svg { width: 12px; height: 12px; }
+.brief-flow { display: flex; flex-direction: column; gap: 30px; min-width: 0; }
+.brief-group { border: 0; margin: 0; padding: 0; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+.brief-group + .brief-group { padding-top: 26px; border-top: 1px dashed var(--line-2); }
+.brief-group legend { padding: 0; margin-bottom: 12px; font-size: 18px; font-weight: 700; color: var(--ink-warm); }
+.brief-group legend small { font-family: var(--font-ui); font-size: 12.5px; font-weight: 600; color: var(--muted); margin-left: 6px; }
+.brief-topic { min-height: 120px; font-size: 15px; line-height: 1.5; resize: vertical; }
+/* Ô xổ xuống: màu nền/chữ đặt rõ để không bị trắng trên Windows ở theme tối. */
+.brief select.inp { background-color: var(--surface); color: var(--text); padding: 8px 10px; cursor: pointer; }
+.brief select.inp option { background-color: var(--panel); color: var(--text); }
+.brief .inp { padding: 8px 10px; }
+.brief-combo { display: flex; gap: 8px; min-width: 0; }
+.brief-combo > input { flex: 1; min-width: 0; }
+.brief-combo > .brief-suggest { flex: none; width: 140px; }
+/* Thanh nút gửi: dính ở đáy khung cuộn, nằm gọn trong tờ giấy. Nút bên trái, lý do và số lượt bên phải. */
+.brief-submit { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 14px 0 2px; border-top: 1px solid var(--line-2);
+  background: color-mix(in srgb, var(--paper) 96%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.brief-submit > .notice { flex-basis: 100%; }
+.brief-go { flex: none; padding: 11px 22px; font-size: 15px; }
+/* Bị khoá: xám rõ ràng thay vì xanh nhạt mờ (trông như lỗi hiển thị). */
+.brief-go:disabled { opacity: 1; background: var(--surface-2); color: var(--muted); box-shadow: none; cursor: not-allowed; }
+.brief-submit-info { flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.brief-why { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--warn-ink); }
+.brief-why svg { width: 15px; height: 15px; flex: none; }
+@media (max-width: 720px) {
+  .brief-submit { position: static; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .brief-go { flex: 1 1 100%; justify-content: center; }
 }
 @media (max-width: 720px) {
   .plan-stage { min-height: 62dvh; }
   .plan-scroll { padding: 12px; height: auto; overflow: visible; }
   .plan-scroll > .pb { padding: 16px; }
-  .brief-foot { flex-direction: column-reverse; align-items: stretch; }
 }
 
 /* ===== Thu gọn cột phải (mọi state của Studio) ===== */

@@ -9,6 +9,8 @@
   body { font-size: 14px; }
   .shell { height: 100dvh; grid-template-columns: 1fr; grid-template-rows: 50px minmax(0, 1fr) auto; gap: 8px; padding: 8px 8px calc(8px + env(safe-area-inset-bottom)); }
   .status { display: none; }
+  .shell.no-status { grid-template-rows: 50px minmax(0, 1fr) auto; }
+  .top-note { display: none; }
 
   /* Thanh trên gọn: bỏ tên app, chữ "Xem như bé" chỉ còn biểu tượng */
   .top { border-radius: 20px; gap: 4px; padding-right: 8px; }
@@ -28,7 +30,6 @@
   .rail button.on { width: 48px; }
   .rail button[data-tip]:hover::after { display: none; }
   .rail .sep { width: 1px; height: 24px; margin: 0 2px; flex: none; }
-  .rail .bottom { margin-top: 0; margin-left: 0; }
 
   /* Không gian làm việc: một cột, cuộn dọc */
   .ws { overflow-y: auto; overflow-x: hidden; grid-template-columns: minmax(0, 1fr) !important; grid-template-rows: none !important; grid-auto-rows: min-content; align-content: start; gap: 10px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }

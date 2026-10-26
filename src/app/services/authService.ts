@@ -238,6 +238,11 @@ export const authService = {
             ...init,
             headers: newHeaders,
           });
+          // Token vừa làm mới mà backend vẫn từ chối: phiên không còn hợp lệ.
+          if (response.status === 401) {
+            this.clearStoredAuth();
+            this.notifyAuthStateChange(null, null);
+          }
         } else if (![400,401,403].includes(refreshResult.status ?? 0)) {
           // A transient refresh failure is not proof that the session was revoked.
           return new Response(JSON.stringify(refreshResult), { status: 503, headers: { 'Content-Type':'application/json' } });

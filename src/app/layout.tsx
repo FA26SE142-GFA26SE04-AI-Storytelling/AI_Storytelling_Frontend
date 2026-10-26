@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Baloo_2, Nunito } from "next/font/google";
+import { Andika, Baloo_2, Nunito } from "next/font/google";
 import "./globals.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
@@ -18,6 +18,13 @@ const nunito = Nunito({
   variable: "--font-nunito",
   subsets: ["latin", "vietnamese"],
   weight: ["400", "600", "700", "800"],
+});
+
+// Font cho chữ trong trang sách: thiết kế cho người mới tập đọc (chữ a, g một tầng; I, l, 1 khác nhau rõ).
+const andika = Andika({
+  variable: "--font-andika",
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "700"],
 });
 
 export const metadata: Metadata = {
@@ -39,7 +46,7 @@ export default function RootLayout({
     <html
       lang="vi"
       data-theme="light"
-      className={`${baloo.variable} ${nunito.variable} h-full antialiased`}
+      className={`${baloo.variable} ${nunito.variable} ${andika.variable} h-full antialiased`}
       suppressHydrationWarning
     >
       <head>
