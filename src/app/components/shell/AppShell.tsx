@@ -23,12 +23,11 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
   const railRef = useRiseIn<HTMLElement>("button", [], { delay: 40, distance: 10 });
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const { children: kids, child, selectChild, reviewQueue, storiesLoading, error } = useWorkspaceData();
-  const current = WORKSPACES.find((w) => w.id === ws);
+  const { children: kids, child, selectChild, reviewQueue, error } = useWorkspaceData();
   const initial = (user?.fullName || user?.username || "?").trim().charAt(0).toUpperCase();
 
   return (
-    <div className="shell">
+    <div className="shell no-status">
       <PondBackdrop rich />
       <header className="top">
         <div className="logo" aria-label="Taletale"><Frog variant="face" size={46} /></div>
@@ -42,6 +41,9 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
           ) : <span className="c">Chưa có hồ sơ bé</span>}
         </div>
 
+        {/* Chỉ hiện khi có chuyện cần biết: mất kết nối hoặc đang dùng dữ liệu mẫu. */}
+        {error && <span className="top-note err" role="status" title={error}>Lỗi kết nối</span>}
+        {USE_MOCK && <span className="top-note warn">Dữ liệu mẫu</span>}
         <button className="btn btn-g" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Giao diện sáng" : "Giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
         <NotificationBell onOpen={onWs} />
         <button className="btn btn-kid" onClick={onKid} disabled={!child}><Eye className="ic" />Cho bé đọc</button>
@@ -59,16 +61,9 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
             </button>
           </div>
         ))}
-        <button className="bottom" data-tip="Chế độ của bé" aria-label="Chế độ của bé" onClick={onKid} disabled={!child}><Frog variant="face" size={38} animated={false} /></button>
       </nav>
 
       <main className="stage">{children}</main>
-
-      <footer className="status">
-        <span className={error ? "" : "live"}><i style={error ? { background: "var(--danger)" } : undefined} />{error ? "Lỗi kết nối" : storiesLoading ? "Đang đồng bộ…" : "Đã đồng bộ"}</span>
-        <span>{current?.label}</span>
-        <div className="r">{USE_MOCK && <span style={{ color: "var(--warn-ink)", fontWeight: 700 }}>Dữ liệu mẫu</span>}<span>{user?.fullName || user?.email}</span></div>
-      </footer>
     </div>
   );
 }

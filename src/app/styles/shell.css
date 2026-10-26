@@ -4,6 +4,8 @@
 .shell > :not(.pond) { position: relative; z-index: 1; }
 /* Chú thích của thanh bên tràn sang vùng làm việc: thanh bên phải nằm trên khung nội dung. */
 .shell > .rail { z-index: 2; }
+/* Thanh trên chứa bảng thông báo thả xuống: phải nằm trên cả thanh bên và vùng làm việc, kẻo bảng bị nội dung đè lên. */
+.shell > .top { z-index: 3; }
 
 /* Thanh trên và thanh bên: kính mờ trên nền nước */
 .top, .rail { border: 1px solid var(--line); background: color-mix(in srgb, var(--chrome) 55%, transparent); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 10px 26px -18px color-mix(in srgb, var(--shadow) 45%, transparent); }
@@ -24,7 +26,12 @@
 .rail button[data-tip]:hover::after { content: attr(data-tip); position: absolute; left: 50px; top: 50%; transform: translateY(-50%); background: var(--tooltip); color: var(--bg); font-size: 11.5px; padding: 4px 8px; border-radius: 6px; white-space: nowrap; z-index: 50; pointer-events: none; }
 .rail .sep { width: 24px; height: 1px; background: var(--line-2); margin: 4px 0; }
 .rail .badge { position: absolute; top: 3px; right: 3px; min-width: 15px; height: 15px; border-radius: 99px; background: var(--rose); color: #fff; font-size: 9.5px; font-weight: 800; display: grid; place-items: center; padding: 0 3px; }
-.rail .bottom { margin-top: auto; color: var(--warn-ink); background: color-mix(in srgb, var(--primary) 14%, transparent); }
+
+/* Khung của phụ huynh không có thanh trạng thái ở đáy. */
+.shell.no-status { grid-template-rows: 54px minmax(0, 1fr); }
+.top-note { flex: none; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
+.top-note.warn { color: var(--warn-ink); background: color-mix(in srgb, var(--gold) 22%, transparent); }
+.top-note.err { color: var(--danger); background: color-mix(in srgb, var(--danger) 12%, transparent); }
 
 .stage { position: relative; min-width: 0; min-height: 0; }
 .ws { position: absolute; inset: 0; display: grid; animation: wsin .25s ease-out; }
@@ -62,7 +69,7 @@
 
 /* Chuông thông báo */
 .notif { position: relative; }
-.notif-dot { position: absolute; top: 0; right: 0; min-width: 16px; height: 16px; padding: 0 4px; border-radius: 999px; background: var(--danger); color: #fff; font-size: 10px; font-weight: 800; display: grid; place-items: center; }
+.notif-dot { position: absolute; top: -5px; right: -5px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 999px; background: var(--danger); color: #fff; font-size: 10.5px; font-weight: 800; line-height: 1; display: grid; place-items: center; pointer-events: none; box-shadow: 0 0 0 2px var(--chrome); }
 .notif-panel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; width: min(340px, calc(100vw - 32px)); max-height: 70vh; overflow-y: auto; background: var(--panel); border: 1px solid var(--line-2); border-radius: 18px; padding: 12px; box-shadow: 0 20px 50px -20px color-mix(in srgb, var(--shadow) 60%, transparent); display: flex; flex-direction: column; gap: 8px; }
 .notif-panel ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .notif-panel li button { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 2px; padding: 8px 10px; border-radius: 12px; font-size: 12.5px; }

@@ -110,10 +110,13 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
   return (
     <section ref={rootRef} className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
       <div className="pane dash">
-        <div className="tabs">
-          <button className={tab === "all" ? "on" : ""} onClick={() => setTab("all")}>Tất cả các con</button>
-          {kids.map((k) => <button key={k.id} className={tab === "one" && k.id === child.id ? "on" : ""} onClick={() => { selectChild(k.id); setTab("one"); }}>{k.nickname}</button>)}
-        </div>
+        {/* Đổi bé đang xem dùng ô "Chọn bé" trên thanh trên cùng; ở đây chỉ chọn xem một bé hay tổng hợp cả nhà. */}
+        {kids.length > 1 && (
+          <div className="tabs" role="group" aria-label="Phạm vi xem">
+            <button aria-pressed={tab === "one"} className={tab === "one" ? "on" : ""} onClick={() => setTab("one")}>Bé đang chọn: {child.nickname}</button>
+            <button aria-pressed={tab === "all"} className={tab === "all" ? "on" : ""} onClick={() => setTab("all")}>Tất cả các con</button>
+          </div>
+        )}
         {error && <div className="err-banner" role="alert">{error}</div>}
 
         <div className="dash-body">
