@@ -168,10 +168,14 @@ export const authService = {
           this.notifyAuthStateChange(data.data.user, data.data.accessToken);
           return data;
         } else {
-          // Refresh token đã hết hạn hoặc bị thu hồi -> Tự động out tài khoản
-          console.warn('Refresh token expired or invalid, logging out...', data?.message);
-          this.clearStoredAuth();
-          this.notifyAuthStateChange(null, null);
+          // Chỉ out tài khoản khi backend từ chối refresh token (hết hạn / bị thu hồi).
+          // Lỗi máy chủ tạm thời (5xx) thì giữ phiên để thử lại sau.
+          const rejected = response.status === 400 || response.status === 401 || response.status === 403 || (response.ok && data?.success === false);
+          if (rejected) {
+            console.warn('Refresh token expired or invalid, logging out...', data?.message);
+            this.clearStoredAuth();
+            this.notifyAuthStateChange(null, null);
+          }
           return {
             success: false,
             message: data?.message || 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
@@ -218,6 +222,10 @@ export const authService = {
 
     let response = await fetch(input, config);
 
+    // Token truyền riêng (VD token phiên của bé) không phải của người lớn: gặp 401 thì trả nguyên lỗi,
+    // không làm mới và gửi lại bằng token người lớn, kẻo bé dùng quyền của phụ huynh.
+    if (customToken && customToken !== this.getStoredAccessToken()) return response;
+
     // Nếu gặp 401 (Access Token hết hạn hoặc không hợp lệ), thử dùng Refresh Token
     if (response.status === 401) {
       const storedRefreshToken = this.getStoredRefreshToken();
@@ -235,6 +243,11 @@ export const authService = {
             ...init,
             headers: newHeaders,
           });
+          // Token vừa làm mới mà backend vẫn từ chối: phiên không còn hợp lệ.
+          if (response.status === 401) {
+            this.clearStoredAuth();
+            this.notifyAuthStateChange(null, null);
+          }
         }
       } else {
         // Không có refresh token -> Đăng xuất

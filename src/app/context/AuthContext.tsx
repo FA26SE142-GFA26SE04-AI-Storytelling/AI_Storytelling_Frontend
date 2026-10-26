@@ -38,13 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const health = await authService.checkBackendHealth();
     setBackendOnline(health.isOnline);
     setBackendStatusMessage(health.message);
-
-    // Nếu Backend Offline -> xóa sạch session và out tài khoản
-    if (!health.isOnline) {
-      authService.clearStoredAuth();
-      setUser(null);
-      setAccessToken(null);
-    }
+    // Máy chủ chưa phản hồi chỉ là trạng thái tạm thời: giữ nguyên phiên, chỉ đăng xuất khi backend từ chối token.
   }, []);
 
   // Đăng ký listener và khởi tạo trạng thái phiên đăng nhập khi tải trang
@@ -57,21 +51,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       setIsLoading(true);
 
-      // 1. Kiểm tra kết nối tới Server Backend trước
-      const health = await authService.checkBackendHealth();
-      setBackendOnline(health.isOnline);
-      setBackendStatusMessage(health.message);
+      // 1. Kiểm tra kết nối tới Server Backend (chỉ để hiện thông báo, không đăng xuất khi máy chủ tạm offline)
+      void authService.checkBackendHealth().then((health) => {
+        setBackendOnline(health.isOnline);
+        setBackendStatusMessage(health.message);
+      });
 
-      // Nếu Server Backend đang Offline: Xóa toàn bộ dữ liệu lưu trữ và out tài khoản
-      if (!health.isOnline) {
-        authService.clearStoredAuth();
-        setUser(null);
-        setAccessToken(null);
-        setIsLoading(false);
-        return;
-      }
-
-      // 2. Server Online: Đọc Token & User từ LocalStorage
+      // 2. Đọc Token & User từ LocalStorage
       const token = authService.getStoredAccessToken();
       const storedRefreshToken = authService.getStoredRefreshToken();
       const storedUser = authService.getStoredUser();
@@ -98,11 +84,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (profileRes.success && profileRes.data) {
         setUser(profileRes.data);
         setAccessToken(authService.getStoredAccessToken());
-      } else {
-        // Xác minh thất bại -> Xóa sạch và out tài khoản
-        authService.clearStoredAuth();
+      } else if (!authService.getStoredAccessToken() && !authService.getStoredRefreshToken()) {
+        // Backend từ chối phiên (authService đã xoá token) -> out tài khoản
         setUser(null);
         setAccessToken(null);
+      } else {
+        // Mất mạng hoặc máy chủ lỗi tạm thời: giữ phiên đã lưu, các request sau sẽ tự làm mới token khi cần.
+        setUser(storedUser);
+        setAccessToken(storedUser ? authService.getStoredAccessToken() : null);
       }
 
       setIsLoading(false);

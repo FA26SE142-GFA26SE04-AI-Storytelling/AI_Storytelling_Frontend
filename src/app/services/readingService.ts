@@ -4,7 +4,7 @@ import type {
   Achievements, CompleteResult, KidHome, LibraryStory, OpenedFrom, QuizAnswerInput, QuizResult, Reaction, ReadingPackage,
   ReadingProgress, StartSessionResult, StoryWish, SubmitWishInput, TelemetryEvent, WishCard,
 } from '@/app/types/reading';
-import { apiRequest } from './apiClient';
+import { apiRequest, isMissingEndpoint } from './apiClient';
 import { childAccessService } from './childAccessService';
 import { childManualStoryService } from './parentAuthoringService';
 import { childProfileService } from './childProfileService';
@@ -104,7 +104,9 @@ async function call<T>(path: string, fallback: () => Promise<ApiResponse<T>>, op
   if (backendReady === false) return fallback();
   const r = await apiRequest<T>(path, 'Không kết nối được.', { ...opts, token: token() });
   if (r.success) { backendReady = true; return r; }
-  if (backendReady === null) { backendReady = false; return fallback(); }
+  // Chỉ chuyển hẳn sang bộ máy cục bộ khi backend chưa có API này. Mất mạng hay lỗi tạm thời thì báo lỗi
+  // và lần sau gọi lại, để tiến độ đọc của bé không âm thầm chỉ lưu trên trình duyệt.
+  if (backendReady === null && isMissingEndpoint(r)) { backendReady = false; return fallback(); }
   return r;
 }
 

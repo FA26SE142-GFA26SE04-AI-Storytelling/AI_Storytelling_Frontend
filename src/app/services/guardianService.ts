@@ -5,7 +5,7 @@ import type {
   RoadmapAddResult, RoadmapCopyPreview, RoadmapItem, RoadmapPosition, RoadmapStatus, RoadmapStoryInput, RoadmapTemplate, SkipReason,
 } from '@/app/types/progress';
 import type { StoryWish } from '@/app/types/reading';
-import { apiRequest } from './apiClient';
+import { apiRequest, isMissingEndpoint } from './apiClient';
 import { guardianLocal, type ChildRef } from './guardianLocal';
 import { notificationLocal } from './notificationLocal';
 import { staffLocal } from './staffLocal';
@@ -38,7 +38,7 @@ import { staffLocal } from './staffLocal';
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 /**
- * Mỗi nhóm API đề xuất tự quyết định có backend hay không: lần gọi đầu thất bại thì nhóm đó dùng dữ liệu cục bộ,
+ * Mỗi nhóm API đề xuất tự quyết định có backend hay không: lần gọi đầu báo endpoint chưa có (404/405/501) thì nhóm đó dùng dữ liệu cục bộ,
  * các nhóm khác không bị kéo theo.
  */
 type ProposedGroup = 'dashboard' | 'intervention' | 'completions' | 'reports' | 'wishes';
@@ -49,7 +49,8 @@ async function call<T>(group: ProposedGroup, path: string, fallback: () => ApiRe
   if (ready === false) return fallback();
   const r = await apiRequest<T>(path, 'Không kết nối được.', opts);
   if (r.success) { backendReady.set(group, true); return r; }
-  if (ready === null) { backendReady.set(group, false); return fallback(); }
+  // Chỉ dùng hẳn dữ liệu cục bộ khi backend chưa có API; lỗi mạng hay lỗi tạm thời thì báo lỗi, lần sau gọi lại.
+  if (ready === null && isMissingEndpoint(r)) { backendReady.set(group, false); return fallback(); }
   return r;
 }
 

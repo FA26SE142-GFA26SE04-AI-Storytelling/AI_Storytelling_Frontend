@@ -2,7 +2,7 @@ import { USE_MOCK } from '@/app/mocks/config';
 import type { ApiResponse } from '@/app/types/auth';
 import type { LearningConfig, ProfileVersion, Recommendation, ReviewInput, ReviewResult } from '@/app/types/adaptive';
 import type { ReadingMode, TopicRelation } from '@/app/types/childProfile';
-import { apiRequest } from './apiClient';
+import { apiRequest, isMissingEndpoint } from './apiClient';
 import { childProfileService } from './childProfileService';
 import { adaptiveLocal, type AdaptiveContext, type ApplyLevel, type Reviewer } from './adaptiveLocal';
 
@@ -24,7 +24,8 @@ async function call<T>(path: string, fallback: () => Promise<ApiResponse<T>>, op
   if (backendReady === false) return fallback();
   const r = await apiRequest<T>(path, 'Không kết nối được.', opts);
   if (r.success) { backendReady = true; return r; }
-  if (backendReady === null) { backendReady = false; return fallback(); }
+  // Chỉ dùng hẳn dữ liệu cục bộ khi backend chưa có API; lỗi mạng hay lỗi tạm thời thì báo lỗi, lần sau gọi lại.
+  if (backendReady === null && isMissingEndpoint(r)) { backendReady = false; return fallback(); }
   return r;
 }
 

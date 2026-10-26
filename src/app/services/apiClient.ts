@@ -7,15 +7,24 @@ type Options = {
   body?: unknown;
   /** Gọi không kèm token người lớn (VD bé đăng nhập bằng mã QR). */
   anonymous?: boolean;
-  /** Dùng token khác token đang lưu (VD token của phiên bé). */
+  /**
+   * Dùng token khác token đang lưu (VD token của phiên bé). Có khai báo `token` mà giá trị rỗng (phiên bé đã hết)
+   * thì không gửi request, để không rơi về token của người lớn.
+   */
   token?: string;
 };
+
+/** Mã HTTP cho biết backend chưa có endpoint này (khác với lỗi mạng hay lỗi máy chủ tạm thời). */
+export const isMissingEndpoint = (r: ApiResponse<unknown>) => r.status === 404 || r.status === 405 || r.status === 501;
 
 /**
  * Gọi API backend và luôn trả về ApiResponse, kể cả khi mạng lỗi hoặc body rỗng.
  * `fallback` là thông báo hiển thị khi backend không trả message.
  */
 export async function apiRequest<T>(path: string, fallback: string, opts: Options = {}): Promise<ApiResponse<T>> {
+  if ('token' in opts && !opts.token && !opts.anonymous) {
+    return { success: false, message: 'Phiên của bé đã hết hạn. Hãy nhờ bố mẹ mở lại nhé!', data: null, status: 401 };
+  }
   const init: RequestInit = { method: opts.method ?? 'GET' };
   if (opts.body !== undefined) init.body = JSON.stringify(opts.body);
   try {
@@ -27,13 +36,13 @@ export async function apiRequest<T>(path: string, fallback: string, opts: Option
     let parsed: Partial<ApiResponse<T>> | null = null;
     try { parsed = text.trim() ? JSON.parse(text) : null; } catch { parsed = null; }
     if (parsed && typeof parsed.success === 'boolean') {
-      return { success: parsed.success, message: parsed.message || (parsed.success ? '' : fallback), data: parsed.data ?? null, errors: parsed.errors };
+      return { success: parsed.success, message: parsed.message || (parsed.success ? '' : fallback), data: parsed.data ?? null, errors: parsed.errors, status: response.status };
     }
     // Lỗi kiểm tra dữ liệu của ASP.NET (ProblemDetails): lấy thông báo đầu tiên.
     const problem = parsed as { errors?: Record<string, string[]> } | null;
     const firstError = problem?.errors && !Array.isArray(problem.errors) ? Object.values(problem.errors).flat()[0] : undefined;
-    return { success: response.ok, message: response.ok ? '' : firstError || fallback, data: null };
+    return { success: response.ok, message: response.ok ? '' : firstError || fallback, data: null, status: response.status };
   } catch (error) {
-    return { success: false, message: fallback, data: null, errors: [(error as Error).message || 'Network error'] };
+    return { success: false, message: fallback, data: null, errors: [(error as Error).message || 'Network error'], status: 0 };
   }
 }
