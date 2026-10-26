@@ -1,6 +1,6 @@
 # Kết quả kết nối API frontend
 
-> Đối chiếu mới nhất 22/10/2026 từ Core Controllers: 318 route, gồm 316 route có đường nối service → màn hình/hook, 1 compatibility alias và 1 webhook server-to-server. Đã thêm quản lý hướng dẫn, tạo/xác nhận/tạo lại media và media cho truyện gia đình. Chi tiết hiện hành: [core-api-completion.md](core-api-completion.md); bằng chứng từng route: [core-api-coverage.json](core-api-coverage.json). Các phần dưới ghi lại những đợt triển khai trước.
+> Đối chiếu mới nhất 25/10/2026 từ Core Controllers: **332 route, 330 route có đường nối service → màn hình/hook, 1 compatibility alias và 1 webhook server-to-server; missing: []**. Đã bổ sung 13 API đọc truyện/sổ tay trẻ và API giữ media cũ; regeneration gửi operationId theo contract mới. Chi tiết hiện hành: [core-api-completion.md](core-api-completion.md); bằng chứng từng route: [core-api-coverage.json](core-api-coverage.json). Các phần dưới ghi lại những đợt triển khai trước. Source coverage không thay thế live E2E.
 
 Ngày hoàn tất kiểm tra frontend: 22/10/2026. Căn cứ: `AI_Storytelling_Backend/docs/API_FRONTEND_ACTOR_FLOWS.md`, backend baseline `e808851` cùng phần bổ sung Creator Manual trong working tree, frontend gốc `93d00ef`.
 

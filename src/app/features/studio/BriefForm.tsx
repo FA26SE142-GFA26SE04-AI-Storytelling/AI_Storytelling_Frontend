@@ -74,7 +74,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
     return <div className="pb"><p className="sub">{errorMessage ?? "Đang tải cấu hình tạo truyện của bé…"}</p></div>;
   }
   const max = Math.min(context.maximumLength, 5000);
-  const presets = lengthPresets(max, context.readingLevel);
+  const presets = lengthPresets(max, context.readingLevel, context.recommendedTargetLength);
   const preset = LENGTHS.find(([k]) => presets[k] === values.targetLength)?.[0] ?? null;
   const pii = piiMessage(detectPii([values.topic, values.charactersText, values.setting, values.lesson].join("\n"), context.childNickname));
   const tone = vocabularyTone(values.vocabularyLevel, context.defaultVocabularyLevel);
@@ -128,7 +128,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
               <button type="button" key={k} disabled={locked} className={preset === k ? "on" : ""} onClick={() => updateValues({ targetLength: presets[k] })}>{label}<small>{presets[k]}</small></button>
             ))}</div>
             <input type="range" className="range" disabled={locked} min={MIN_TARGET_LENGTH} max={max} step={10} value={clampTargetLength(values.targetLength, max)} onChange={(e) => updateValues({ targetLength: +e.target.value })} aria-label="Độ dài mục tiêu" />
-            <small className="hint">Ngắn / Vừa / Dài theo mức đọc {context.readingLevel} của bé; tối đa {max} tiếng theo cài đặt an toàn.</small>
+            <small className="hint">{context.recommendedTargetLength ? `Mức vừa theo đề xuất máy chủ: ${presets.medium} tiếng` : `Ngắn / Vừa / Dài theo mức đọc ${context.readingLevel} của bé`}; tối đa {max} tiếng theo cài đặt an toàn.</small>
           </div>
 
           {context.availableVocabularyLevels.length > 1 && (

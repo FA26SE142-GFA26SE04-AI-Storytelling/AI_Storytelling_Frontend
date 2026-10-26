@@ -5,6 +5,8 @@ import { ApiResponse } from '@/app/types/auth';
 
 export interface PollingResult<T> { scope: number | null; data: T | null; error: string | null; timedOut: boolean }
 
+export const transientPollingFailure = (status?:number) => status===0 || status===408 || status===429 || (status!==undefined && status>=500);
+
 /**
  * Trạng thái khi một lần theo dõi bắt đầu. Cùng một truyện (refresh, đổi điều kiện dừng) thì giữ dữ liệu cũ trong lúc tải lại:
  * xoá về null sẽ làm giao diện tạm rơi về bước đầu rồi mới nhảy lại, nhìn như nháy cả màn hình.
@@ -36,6 +38,7 @@ export function useStoryProgressPolling<T>(
     let timer: ReturnType<typeof setTimeout> | undefined;
     let controller: AbortController | undefined;
     const started = Date.now();
+    let failures = 0;
     const cancel = () => { alive = false; clearTimeout(timer); controller?.abort(); };
     cancelRef.current = cancel;
     // Cùng một truyện (refresh, đổi điều kiện dừng): giữ dữ liệu cũ trong lúc tải lại, để giao diện không nháy về trạng thái rỗng.
@@ -45,9 +48,15 @@ export function useStoryProgressPolling<T>(
       const response = await load(scope, controller.signal);
       if (!alive) return;
       if (!response.success || response.data === null || response.data === undefined) {
-        setResult(current => ({ ...current, error: response.message || 'Không thể kiểm tra trạng thái.' }));
+        const retryable=transientPollingFailure(response.status);
+        const timedOut=retryable && Date.now()-started>=timeoutMs;
+        setResult(current => ({ ...current, timedOut, error: retryable
+          ? 'Chưa lấy được cập nhật từ máy chủ. Đây chưa phải kết quả tạo truyện; hệ thống sẽ kiểm tra lại.'
+          : response.message || 'Không thể kiểm tra trạng thái.' }));
+        if(retryable&&!timedOut)timer=setTimeout(()=>void poll(),Math.min(1800*2**failures++,15000));
         return;
       }
+      failures=0;
       const waiting = shouldContinue(response.data);
       const timedOut = waiting && Date.now() - started >= timeoutMs;
       setResult({ scope, data: response.data, error: null, timedOut });

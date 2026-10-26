@@ -93,7 +93,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           onArchived={() => { void reload(); onNew(); }}
         />
       ) : section === "media" && p.storyId !== null ? (
-        <StudioMedia key={p.storyId} storyId={p.storyId} media={media} onFinish={() => { void reload(); onNew(); go("library"); }} />
+        <StudioMedia key={p.storyId} storyId={p.storyId} ageBand={p.snapshot?.story?.ageBand??''} media={media} onFinish={() => { void reload(); onNew(); go("library"); }} />
       ) : (
         <StudioPlan
           flow={p.flow}

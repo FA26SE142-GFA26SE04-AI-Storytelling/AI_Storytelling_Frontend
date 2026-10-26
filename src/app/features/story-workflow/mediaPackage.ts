@@ -1,5 +1,5 @@
 import type { RegenerateMediaRequest, StoryMediaPackage, MediaProgressDto } from '@/app/types/aiStory';
-export function mediaMutationSnapshot(pack: StoryMediaPackage, versionId?: number | null): RegenerateMediaRequest | null {
+export function mediaMutationSnapshot(pack: StoryMediaPackage, versionId?: number | null): Omit<RegenerateMediaRequest,'operationId'> | null {
   if (!Number.isInteger(pack.storyVersionId) || pack.storyVersionId < 1 ||
       !Number.isInteger(pack.packageRevision) || pack.packageRevision < 0 ||
       typeof pack.isConfirmed !== 'boolean' || versionId != null && pack.storyVersionId !== versionId) return null;

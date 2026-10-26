@@ -48,10 +48,18 @@ export function clampTargetLength(value: number, maximumLength: number): number 
 }
 
 /**
- * Ngắn / vừa / dài = phần ba thấp / giữa / cao của khoảng độ dài (tiếng) theo mức đọc của bé (Luồng 2 mục 5.3b),
- * không vượt độ dài tối đa trong cài đặt an toàn.
+ * Lấy đề xuất backend làm mức vừa; các lựa chọn đều tuân thủ giới hạn an toàn.
+ * Context từ server cũ chưa có đề xuất vẫn dùng khoảng theo mức đọc.
  */
-export function lengthPresets(maximumLength: number, readingLevel: number): Record<LengthPreset, number> {
+export function lengthPresets(maximumLength: number, readingLevel: number, recommendedTargetLength?: number): Record<LengthPreset, number> {
+  if (recommendedTargetLength && Number.isFinite(recommendedTargetLength) && recommendedTargetLength > 0) {
+    const medium = clampTargetLength(recommendedTargetLength, maximumLength);
+    return {
+      short: clampTargetLength(Math.max(MIN_TARGET_LENGTH, Math.round(medium * 0.8 / 10) * 10), maximumLength),
+      medium,
+      long: clampTargetLength(Math.round(medium * 1.2 / 10) * 10, maximumLength),
+    };
+  }
   const at = (choice: LengthPreset) => clampTargetLength(lengthTarget(choice, readingLevel || 2, maximumLength), maximumLength);
   return { short: at('short'), medium: at('medium'), long: at('long') };
 }
@@ -71,8 +79,7 @@ export function createDefaultFormValues(context: AIStoryInputContextDto): AIStor
     charactersText: 'Sóc Bông, Thỏ Trắng',
     setting: '',
     vocabularyLevel: context.defaultVocabularyLevel,
-    // Mặc định độ dài "vừa" theo mức đọc của bé (Luồng 2 mục 5.3b).
-    targetLength: lengthPresets(context.maximumLength, context.readingLevel).medium,
+    targetLength: lengthPresets(context.maximumLength, context.readingLevel, context.recommendedTargetLength).medium,
     outputMode: 'learning',
   };
 }

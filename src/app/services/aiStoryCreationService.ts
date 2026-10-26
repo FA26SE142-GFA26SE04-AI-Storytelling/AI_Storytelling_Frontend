@@ -139,5 +139,6 @@ export const aiStoryCreationService = {
   regenerateIllustration: (id: number, beatId: number, body: D.RegenerateMediaRequest, signal?: AbortSignal) => request<null>(`${story(id)}/media/illustration-beats/${beatId}/regenerate`, 'POST', body, signal, true),
   regenerateAudio: (id: number, segmentId: number, body: D.RegenerateMediaRequest, signal?: AbortSignal) => request<null>(`${story(id)}/media/segments/${segmentId}/regenerate`, 'POST', body, signal, true),
   confirmMedia: (id: number, body: D.ConfirmMediaPackageRequest, signal?: AbortSignal) => request<D.MediaProgressDto>(`${story(id)}/media/confirm`, 'POST', body, signal),
+  keepCurrentMedia: (id:number, candidateAssetId:number, body:D.KeepCurrentMediaRequest, signal?:AbortSignal) => request<D.MediaProgressDto>(`${story(id)}/media/replacements/${candidateAssetId}/keep-current`, 'POST', body, signal),
 };
 

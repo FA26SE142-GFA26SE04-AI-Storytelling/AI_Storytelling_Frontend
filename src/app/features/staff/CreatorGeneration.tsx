@@ -7,6 +7,7 @@ import { creatorInputService } from '@/app/services/creatorPublicationService';
 import { creatorService } from '@/app/services/creatorService';
 import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationService';
 import { useCreatorGeneration } from '@/app/features/story-workflow/useCreatorGeneration';
+import { lengthPresets } from '@/app/features/story-workflow/aiStoryInputFlowUtils';
 import { useStoryProgressPolling } from '@/app/features/story-workflow/useStoryProgressPolling';
 import { ApproveSlot, type ApproveAction } from '@/app/features/story-workflow/approveSlot';
 import OutlinePanel from '@/app/features/studio/OutlinePanel';
@@ -14,6 +15,7 @@ import ReviewGate from '@/app/features/review/ReviewGate';
 import CreatorPublication from './CreatorPublication';
 import type { MediaProgressDto } from '@/app/types/aiStory';
 import MediaAssets from '@/app/features/studio/MediaAssets';
+import MediaIssues from '@/app/features/studio/MediaIssues';
 const continueMedia = (m: MediaProgressDto) => !m.isReady && !m.isAwaitingConfirmation && !m.errorCode;
 export default function CreatorGeneration({ initialId = null, onBack }: { initialId?: number | null; onBack: () => void }) {
   const flow = useCreatorGeneration(initialId);
@@ -34,7 +36,7 @@ export default function CreatorGeneration({ initialId = null, onBack }: { initia
   const [submitted, setSubmitted] = useState<B.SubmitCreatorAIStoryInputRequestDto | null>(null);
   useEffect(() => {
     const controller = new AbortController(); let alive = true; setContext(null);
-    void creatorInputService.context(ageBand, readingLevel, 'vi', controller.signal).then(r => { if (!alive) return; if (r.success && r.data) { setContext(r.data); setContextError(''); setVocabularyLevel(r.data.availableVocabularyLevels[0] ?? 'basic'); } else setContextError(r.message); });
+    void creatorInputService.context(ageBand, readingLevel, 'vi', controller.signal).then(r => { if (!alive) return; if (r.success && r.data) { setContext(r.data); setContextError(''); setVocabularyLevel(r.data.availableVocabularyLevels[0] ?? 'basic'); setTargetLength(lengthPresets(r.data.maximumLength, r.data.readingLevel, r.data.recommendedTargetLength).medium); } else setContextError(r.message); });
     return () => { alive = false; controller.abort(); };
   }, [ageBand, readingLevel]);
   useEffect(() => {
@@ -60,8 +62,9 @@ export default function CreatorGeneration({ initialId = null, onBack }: { initia
       <label className="field">Ý tưởng<textarea className="inp" rows={3} value={topic} onChange={e => setTopic(e.target.value)} /></label><label className="field">Bài học<input className="inp" value={lesson} onChange={e => setLesson(e.target.value)} /></label><label className="field">Mức từ vựng<select className="inp" value={vocabularyLevel} onChange={e => setVocabularyLevel(e.target.value)}>{context?.availableVocabularyLevels.map(v => <option key={v}>{v}</option>)}</select></label><label className="field">Độ dài mong muốn<input type="number" className="inp" min={1} max={context?.maximumLength ?? 1000} value={targetLength} onChange={e => setTargetLength(Number(e.target.value))} /></label><button className="btn btn-p" disabled={!context || !topic.trim() || !lesson.trim() || targetLength < 1 || targetLength > context.maximumLength} onClick={start}>Gửi ý tưởng</button>
     </fieldset>}
     {flow.input && flow.input.inputStatus !== 'input_accepted' && <><p>{flow.input.fallbackMessage ?? 'Đang kiểm tra ý tưởng…'}</p>{flow.input.canRetry && submitted && <button className="btn btn-s" disabled={flow.busy} onClick={() => void flow.retry(submitted!)}>Thử lại kiểm tra ý tưởng</button>}</>}
-    {flow.stage === 'generating' && <p>Đang viết và kiểm tra nội dung. {flow.snapshot?.generation?.currentStep}</p>}
-    {flow.stage === 'outline_wait' && flow.id !== null && <p>Đang chờ dàn ý…</p>}
+    {flow.stage === 'generating' && !flow.failure && <p role="status">Đang viết và kiểm tra nội dung. Hãy chờ kết quả từ máy chủ.</p>}
+    {flow.stage === 'outline_wait' && flow.id !== null && !flow.failure && <p role="status">Đang chờ dàn ý…</p>}
+    {flow.failure && <p className="notice err" role="alert">Máy chủ xác nhận bước xử lý thất bại ({flow.failure.code}). Hãy kiểm tra lại trạng thái trước khi thử lại.</p>}
     {flow.stage === 'moderation' && <p className="notice warn">Nội dung đang chờ kiểm duyệt vùng xám. Hãy kiểm tra lại trạng thái sau.</p>}
     {flow.stage === 'stopped' && <p className="notice warn">Luồng đã dừng theo trạng thái backend; không tự tạo lệnh thử lại.</p>}
   </div>
@@ -69,6 +72,7 @@ export default function CreatorGeneration({ initialId = null, onBack }: { initia
     {flow.id !== null && flow.stage === 'outline' && outline && <div className="st-card"><OutlinePanel key={outline.versionNo} storyId={flow.id} version={outline} editable={!locked} visible onReveal={() => {}} onApproved={refreshState} onChanged={refreshState} /></div>}
     {flow.id !== null && flow.stage === 'review' && <section className="ws with-steps creator-review"><ReviewGate key={`${flow.id}:${refresh}`} storyId={flow.id} ageBand={ageBand} actor="creator" onApproved={refreshState} onArchived={onBack} /></section>}
   </ApproveSlot.Provider>
+  {flow.stage === 'media' && <MediaIssues progress={media.data}/>}
   {flow.id !== null && flow.stage === 'media' && <div className="st-card"><h3>{media.data?.isReady ? 'Media đã sẵn sàng' : media.data?.isAwaitingConfirmation ? 'Chờ bạn xác nhận tranh và giọng đọc' : 'Đang chuẩn bị media'}</h3><p>{media.error ?? media.data?.errorCode ?? media.data?.jobStatus}</p><p>{media.data?.readyIllustrations ?? 0} tranh sẵn sàng · {media.data?.readyAudio ?? 0} đoạn âm thanh sẵn sàng</p>{media.data?.errorCode && <button className="btn btn-s" disabled={flow.busy} onClick={() => void flow.command(() => api.retryMedia(flow.id!)).then(() => media.refresh())}>Thử lại media</button>}<MediaAssets storyId={flow.id} versionId={versionId} disabled={locked} onChanged={() => { media.refresh(); refreshState(); }}/></div>}
   {flow.id !== null && <CreatorPublication storyId={flow.id} versionId={versionId} storyStatus={storyStatus} onLockChange={setLocked} onRevision={refreshState} />}
   </>;
