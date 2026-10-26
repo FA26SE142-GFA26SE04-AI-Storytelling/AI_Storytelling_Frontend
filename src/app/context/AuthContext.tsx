@@ -38,7 +38,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const health = await authService.checkBackendHealth();
     setBackendOnline(health.isOnline);
     setBackendStatusMessage(health.message);
-
     // Reachability is informational; a network outage must not revoke stored credentials.
   }, []);
 
@@ -52,14 +51,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       setIsLoading(true);
 
-      // 1. Kiểm tra kết nối tới Server Backend trước
-      const health = await authService.checkBackendHealth();
-      setBackendOnline(health.isOnline);
-      setBackendStatusMessage(health.message);
+      // 1. Kiểm tra kết nối tới Server Backend (chỉ để hiện thông báo, không đăng xuất khi máy chủ tạm offline)
+      void authService.checkBackendHealth().then((health) => {
+        setBackendOnline(health.isOnline);
+        setBackendStatusMessage(health.message);
+      });
 
-      // Continue checking the actual authenticated endpoint even when Swagger is unavailable.
-
-      // 2. Server Online: Đọc Token & User từ LocalStorage
+      // 2. Đọc Token & User từ LocalStorage (vẫn kiểm tra /Auth/me kể cả khi không ping được máy chủ)
       const token = authService.getStoredAccessToken();
       const storedRefreshToken = authService.getStoredRefreshToken();
       const storedUser = authService.getStoredUser();
@@ -86,11 +84,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (profileRes.success && profileRes.data) {
         setUser(profileRes.data);
         setAccessToken(authService.getStoredAccessToken());
-      } else if (profileRes.status === 401 || profileRes.status === 403) {
-        // Only a definitive authentication rejection clears the adult session.
+      } else if (profileRes.status === 401 || profileRes.status === 403 || (!authService.getStoredAccessToken() && !authService.getStoredRefreshToken())) {
+        // Backend từ chối phiên (401/403, hoặc authService đã xoá token khi refresh bị từ chối) -> out tài khoản
         authService.clearStoredAuth();
         setUser(null);
         setAccessToken(null);
+      } else {
+        // Mất mạng hoặc máy chủ lỗi tạm thời: giữ phiên đã lưu, các request sau sẽ tự làm mới token khi cần.
+        setUser(storedUser);
+        setAccessToken(storedUser ? authService.getStoredAccessToken() : null);
       }
 
       setIsLoading(false);
