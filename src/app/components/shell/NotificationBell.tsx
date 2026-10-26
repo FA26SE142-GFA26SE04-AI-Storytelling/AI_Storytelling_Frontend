@@ -7,12 +7,15 @@ import type { AppNotification } from "@/app/types/progress";
 import type { WorkspaceId } from "@/app/components/shell/nav";
 import { fmtDateTime } from "@/app/lib/guardian";
 import { isUnread, notificationTarget, notificationText } from "@/app/lib/notifications";
+import { subscribeNotifications } from '@/app/services/notificationRealtime';
+import { useAuth } from '@/app/context/AuthContext';
 
 /**
  * Chuông thông báo (Luồng 1 Phụ lục A, Luồng 4). Hỏi số chưa đọc mỗi phút; số tăng hoặc mở chuông thì tải lại danh sách.
  * `onOpen` (khu phụ huynh): bấm thông báo thì đánh dấu đã đọc và mở màn liên quan.
  */
 export default function NotificationBell({ onOpen }: { onOpen?: (ws: WorkspaceId) => void }) {
+  const {user,accessToken}=useAuth();
   const [items, setItems] = useState<AppNotification[]>([]);
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
@@ -36,6 +39,10 @@ export default function NotificationBell({ onOpen }: { onOpen?: (ws: WorkspaceId
     if (n > lastCount.current) void load();
     lastCount.current = n;
   }, [load]);
+  useEffect(()=>{
+    if(!user||!accessToken)return;
+    return subscribeNotifications(()=>void load());
+  },[user?.id,accessToken,load,user]);
 
   useEffect(() => {
     void load();

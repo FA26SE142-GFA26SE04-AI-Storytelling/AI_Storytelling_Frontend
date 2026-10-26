@@ -17,6 +17,7 @@ import LearningTab from "./LearningTab";
 import SupervisorsTab from "./SupervisorsTab";
 import AccessTab from "./AccessTab";
 import JoinInvitation from "./JoinInvitation";
+import RestoreArchived from './RestoreArchived';
 import { childProfileService } from "@/app/services/childProfileService";
 import { forgetArchived, listArchived, rememberArchived, type ArchivedChild } from "@/app/lib/archivedChildren";
 
@@ -38,17 +39,19 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
   const [role, setRole] = useState<Role | null>(null);
   const listRef = useRiseIn<HTMLDivElement>(".kid-item", [kids.length]);
   const meId = user?.id ?? -1;
-  // Hồ sơ vừa lưu trữ trên trình duyệt này (backend chưa liệt kê hồ sơ đã lưu trữ).
   const [archived, setArchived] = useState<ArchivedChild[]>([]);
   const [restoreNote, setRestoreNote] = useState<string | null>(null);
   useEffect(() => { setArchived(listArchived(meId)); }, [meId]);
+  const restored = async (id: number) => {
+    forgetArchived(meId, id);
+    setArchived(listArchived(meId));
+    await open(id);
+  };
   const restore = async (c: ArchivedChild) => {
     const r = await childProfileService.restoreChildProfile(c.id);
     if (!r.success) { setRestoreNote(r.message); return; }
-    forgetArchived(meId, c.id);
-    setArchived(listArchived(meId));
-    setRestoreNote(`Đã khôi phục hồ sơ ${c.nickname}. Mã đăng nhập nhanh cũ không dùng được nữa, hãy tạo mã mới.`);
-    await open(c.id);
+    setRestoreNote(`Đã khôi phục hồ sơ ${c.nickname}. Hãy tạo mã đăng nhập nhanh mới cho bé.`);
+    await restored(c.id);
   };
 
   // Vai trò và quyền của mình với bé đang chọn — kiểm tra lại mỗi lần đổi bé.
@@ -79,6 +82,7 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
       <div className="pane">
         <div className="ph"><span>Con của tôi</span><div className="act"><span className="pill draft">{kids.length} bé</span></div></div>
         <div ref={listRef} className="pb" style={{ gap: 6 }}>
+          <RestoreArchived onRestored={id=>void restored(id)} />
           {kids.map((k) => {
             const st = childStatus(k.status);
             return (
@@ -91,17 +95,13 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
           })}
           <button className={`btn btn-p btn-c${mode === "create" ? " on" : ""}`} style={{ marginTop: 8 }} onClick={() => setMode("create")}><Plus className="ic" />Thêm bé</button>
           <button className="btn btn-s btn-c" onClick={() => setMode("join")}><Ticket className="ic" />Nhập mã mời</button>
-          {archived.length > 0 && (
-            <div className="sec" style={{ gap: 4, marginTop: 12 }}>
-              <small className="sub">Vừa lưu trữ</small>
-              {archived.map((c) => (
-                <div key={c.id} className="row" style={{ gap: 6 }}>
-                  <span className="grow">{c.nickname}</span>
-                  <button className="btn btn-g" onClick={() => void restore(c)}><RotateCcw className="ic" />Khôi phục</button>
-                </div>
-              ))}
-            </div>
-          )}
+          {archived.length > 0 && <div className="sec" style={{ gap: 4, marginTop: 12 }}>
+            <small className="sub">Vừa lưu trữ</small>
+            {archived.map(c => <div key={c.id} className="row" style={{ gap: 6 }}>
+              <span className="grow">{c.nickname}</span>
+              <button className="btn btn-g" onClick={() => void restore(c)}><RotateCcw className="ic" />Khôi phục</button>
+            </div>)}
+          </div>}
           {restoreNote && <div className="notice warn" role="status">{restoreNote}</div>}
         </div>
       </div>

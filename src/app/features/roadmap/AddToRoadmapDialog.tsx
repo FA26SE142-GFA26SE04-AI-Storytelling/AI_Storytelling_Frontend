@@ -6,8 +6,8 @@ import { Route, X } from "lucide-react";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import { guardianService, type ChildRef } from "@/app/services/guardianService";
-import type { RoadmapAddResult, RoadmapCopyPreview, RoadmapPosition, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
-import { FREE_TEXT_MAX } from "@/app/lib/storyRules";
+import type { RoadmapAddResult, RoadmapPosition, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
+import type { RoadmapCopyPlanDto } from '@/app/types/backendContracts';
 import { ageLabel } from "@/app/lib/storyView";
 
 /** Lấy thông tin cần kiểm tra cho từng bé (trạng thái, nhóm tuổi, độ dài tối đa). */
@@ -37,6 +37,7 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
 }) {
   const { child } = useWorkspaceData();
   const refs = useChildRefs();
+  const [preview, setPreview] = useState<RoadmapCopyPlanDto | null>(null);
   const [picked, setPicked] = useState<number[]>(child ? [child.id] : []);
   const [position, setPosition] = useState<RoadmapPosition>("next");
   const [days, setDays] = useState<number | null>(template?.defaultDaysPerStep ?? null);
@@ -44,11 +45,10 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<RoadmapAddResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  // Bộ truyện mẫu: xem trước bé nào / truyện nào được chép rồi mới chép thật. Đổi lựa chọn thì phải xem lại.
-  const [preview, setPreview] = useState<RoadmapCopyPreview[] | null>(null);
-  useEffect(() => { setPreview(null); }, [picked, position, days]);
   const title = template ? `Thêm bộ “${template.title}”` : `Thêm “${story?.title}” vào lộ trình`;
 
+  const selectionKey = picked.join(',');
+  useEffect(() => { setPreview(null); }, [selectionKey, position, days, template?.id]);
   const submit = async () => {
     const chosen = refs.filter((r) => picked.includes(r.id));
     if (!chosen.length) { setErr("Hãy chọn ít nhất một bé."); return; }
@@ -56,8 +56,9 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
     setErr(null);
     if (template && !preview) {
       const p = await guardianService.previewTemplate(chosen, template, position, days);
-      if (!p.success) { setBusy(false); setErr(p.message); return; }
-      if (p.data) { setBusy(false); setPreview(p.data); return; }
+      setBusy(false);
+      if (p.success && p.data) setPreview(p.data); else setErr(p.message);
+      return;
     }
     const r = template
       ? await guardianService.applyTemplate(chosen, template, position, days)
@@ -75,6 +76,7 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
         {result ? (
           <>
             {result.added.length > 0 && <div className="notice ok">Đã thêm cho {[...new Set(result.added.map((a) => nameOf(a.childProfileId)))].join(", ")}{result.added.some((a) => a.moved) ? " (truyện đã có được chuyển lên đọc tiếp theo)" : ""}.</div>}
+            {result.warnings?.map((w,i) => <p className="notice" key={i}>{w}</p>)}
             {result.skipped.length > 0 && (
               <div className="notice err">
                 <b>Bỏ qua:</b>
@@ -117,26 +119,13 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
             </div>
             {!template && (
               <label className="field"><span className="lbl">Lời nhắn cho con (không bắt buộc)</span>
-                <input className="inp" maxLength={FREE_TEXT_MAX} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ví dụ: Truyện này mẹ thích lắm!" /></label>
+                <input className="inp" maxLength={500} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ví dụ: Truyện này mẹ thích lắm!" /></label>
             )}
-            {preview && (
-              <div className="sec" style={{ gap: 6 }}>
-                <span className="lbl">Xem trước</span>
-                {preview.map((c) => (
-                  <div key={c.childProfileId} className={`notice ${c.willCopy ? "ok" : "err"}`}>
-                    <b>{c.nickname}</b>: {c.willCopy ? `chép ${c.steps.filter((x) => x.copy).length}/${c.steps.length} truyện` : c.reason ?? "không chép được"}
-                    {c.warnings.map((w) => <div key={w}><small>⚠ {w}</small></div>)}
-                    {c.willCopy && c.steps.some((x) => !x.copy) && (
-                      <ul style={{ margin: "4px 0 0", paddingLeft: 18 }}>{c.steps.filter((x) => !x.copy).map((x) => <li key={x.title}><small>Bỏ qua “{x.title}”{x.reason ? `: ${x.reason}` : ""}</small></li>)}</ul>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+            {preview && <div className="sec"><b>Kế hoạch sao chép</b>{preview.children.map(c => <div key={c.childProfileId}><b>{nameOf(c.childProfileId)}</b><p>{c.message ?? c.outcome}</p>{c.steps.map(s => <p key={s.storyId}>{s.title ?? s.storyId}: {s.action === 'Copy' ? 'Sẽ thêm' : s.message ?? s.skipCode ?? 'Bỏ qua'}</p>)}{c.warnings.map(w => <p key={w}>{w}</p>)}</div>)}<p className="sub">Điều kiện sẽ được kiểm tra lại khi xác nhận.</p></div>}
             {err && <div className="notice err" role="alert">{err}</div>}
             <div className="row" style={{ justifyContent: "flex-end" }}>
               <button className="btn btn-g" onClick={onClose}>Hủy</button>
-              <button className="btn btn-p" disabled={busy || !refs.length || (!!preview && !preview.some((c) => c.willCopy))} onClick={() => void submit()}><Route className="ic" />{busy ? "Đang xử lý…" : template && !preview ? "Xem trước" : "Thêm vào lộ trình"}</button>
+              <button className="btn btn-p" disabled={busy || !refs.length} onClick={() => void submit()}><Route className="ic" />{busy ? "Đang xử lý…" : template && !preview ? "Xem trước kế hoạch" : "Thêm vào lộ trình"}</button>
             </div>
           </>
         )}

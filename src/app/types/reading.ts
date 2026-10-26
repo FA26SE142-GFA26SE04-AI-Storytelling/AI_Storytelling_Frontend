@@ -55,7 +55,7 @@ export interface LibraryStory {
   readingLevel: number | null;
   /** Khó hơn mức của bé ≥ 2 bậc (Luồng 3 Bước 3.1). */
   isChallenge: boolean;
-  createdAt: string;
+  createdAt: string | null;
 }
 
 export interface ReadingProgress {

@@ -7,6 +7,7 @@ import { authService } from './authService';
 
 /** Luồng 2 nhánh Existing Story: nhập → đánh giá → AI Adapt / sửa tay / giữ bản gốc / lưu trữ. */
 export const existingStoryService = {
+  evaluation: (storyId: number, storyVersionId: number) => apiRequest<ExistingStoryEvaluation>(`/stories/${storyId}/existing/evaluation?storyVersionId=${storyVersionId}`, 'Không tải được đánh giá đã lưu.'),
   importStory(input: ImportStoryRequest): Promise<ApiResponse<ImportStoryResponse>> {
     return apiRequest('/stories/import', 'Không nhập được truyện.', { method: 'POST', body: { outputMode: 'learning', ...input, language: 'vi' } });
   },

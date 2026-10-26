@@ -14,6 +14,7 @@ import { fmtDateTime } from "@/app/lib/guardian";
  * và các đề xuất đã xử lý. Muốn hoàn tác một thay đổi, sửa lại mức đọc ở trên (ghi lịch sử nguồn "thủ công").
  */
 export default function LearningHistory({ child, refreshKey }: { child: ChildProfile; refreshKey: number }) {
+  const [error,setError]=useState('');
   const [versions, setVersions] = useState<ProfileVersion[] | null>(null);
   const [recs, setRecs] = useState<Recommendation[]>([]);
 
@@ -21,6 +22,7 @@ export default function LearningHistory({ child, refreshKey }: { child: ChildPro
     let alive = true;
     void Promise.all([adaptiveService.versions(child.id), adaptiveService.recommendations(child.id)]).then(([v, r]) => {
       if (!alive) return;
+      setError(!v.success?v.message:!r.success?r.message:'');
       setVersions(v.data ?? []);
       setRecs((r.data ?? []).filter((x) => x.status !== "awaiting_review"));
     });
@@ -29,6 +31,7 @@ export default function LearningHistory({ child, refreshKey }: { child: ChildPro
 
   return (
     <section className="sec" style={{ gap: 8, marginTop: 12 }}>
+      {error&&<p className="notice" role="status">{error}</p>}
       <h3 className="display row" style={{ margin: 0 }}><History className="ic" />Lịch sử thay đổi mức đọc và chế độ đọc</h3>
       {versions === null && <p className="sub">Đang tải…</p>}
       {versions?.length === 0 && <p className="sub">Chưa có thay đổi nào sau khi hồ sơ được kích hoạt.</p>}
@@ -56,7 +59,6 @@ export default function LearningHistory({ child, refreshKey }: { child: ChildPro
           })}
         </>
       )}
-      {adaptiveService.isLocal() && <p className="sub">Đang lưu tạm trên trình duyệt này (máy chủ chưa có chức năng học tập thích ứng).</p>}
     </section>
   );
 }

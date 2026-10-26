@@ -180,3 +180,14 @@
 /* Cột lưới co giãn mượt: hai bên đều là độ dài cố định nên trình duyệt nội suy được. */
 .ws.with-steps { transition: grid-template-columns .38s cubic-bezier(.65, 0, .25, 1); }
 .ws.with-steps[data-aside="collapsed"] { grid-template-columns: minmax(0, 1fr) 52px; }
+.studio-steps.has-story { flex-wrap: wrap; }
+.studio-story-resume { grid-column: 1 / -1; width: 100%; flex-basis: 100%; min-width: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; }
+.studio-story-resume > span { flex: 1 1 180px; min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 720px) {
+  .studio-steps.has-story { flex-wrap: nowrap; }
+  .studio-story-resume { flex-basis: auto; flex-shrink: 0; }
+  .ws.with-steps .board .artwrap { width: 100%; min-width: 0; }
+  .ws.with-steps .board .art { width: 100%; }
+  .ws.with-steps .media-bar { flex-wrap: wrap; }
+  .ws.with-steps .media-bar > .grow { flex-basis: 100%; }
+}

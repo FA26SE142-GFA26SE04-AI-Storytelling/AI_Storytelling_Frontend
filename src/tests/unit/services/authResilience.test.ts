@@ -44,7 +44,7 @@ describe('token của bé không bị đổi sang token phụ huynh', () => {
   it('phiên bé đã hết (token rỗng) thì không gửi request', async () => {
     const { apiRequest } = await import('@/app/services/apiClient');
     const spy = vi.spyOn(globalThis, 'fetch');
-    const r = await apiRequest('/MyRoadmap', 'lỗi', { token: undefined });
+    const r = await apiRequest('/MyRoadmap', 'lỗi', { session: 'child', token: undefined });
     expect(r.success).toBe(false);
     expect(spy).not.toHaveBeenCalled();
   });
@@ -92,36 +92,5 @@ describe('chỉ đăng xuất khi backend từ chối phiên', () => {
       .mockResolvedValueOnce(new Response(null, { status: 401 }));
     await authService.getProfile();
     expect(localStorage.getItem('taletale_access_token')).toBeNull();
-  });
-});
-
-describe('chỉ chuyển sang dữ liệu cục bộ khi backend chưa có API', () => {
-  beforeEach(() => {
-    sessionStorage.setItem('taletale-child-session', JSON.stringify({ childProfileId: 3, accessToken: 'child-token', expiresAt: Date.now() + 60_000, via: 'profile_switcher' }));
-  });
-
-  it('lỗi mạng ở lần gọi đầu: báo lỗi, vẫn gọi backend ở lần sau', async () => {
-    const { readingService } = await import('@/app/services/readingService');
-    const spy = vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new TypeError('Failed to fetch'));
-    const first = await readingService.saveProgress(3, 9, { lastPageRead: 2 } as never);
-    expect(first.success).toBe(false);
-    expect(readingService.isLocal()).toBe(false);
-    spy.mockResolvedValueOnce(json({ success: true, data: null }));
-    await readingService.saveProgress(3, 9, { lastPageRead: 3 } as never);
-    expect(spy).toHaveBeenCalledTimes(2);
-  });
-
-  it.each([500, 502])('máy chủ lỗi tạm thời (HTTP %s) không chuyển sang cục bộ', async (status) => {
-    const { readingService } = await import('@/app/services/readingService');
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status }));
-    await readingService.saveProgress(3, 9, { lastPageRead: 2 } as never);
-    expect(readingService.isLocal()).toBe(false);
-  });
-
-  it('backend trả 404 (chưa có API) thì dùng bộ máy cục bộ', async () => {
-    const { readingService } = await import('@/app/services/readingService');
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 404 }));
-    await readingService.saveProgress(3, 9, { lastPageRead: 2 } as never);
-    expect(readingService.isLocal()).toBe(true);
   });
 });

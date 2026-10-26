@@ -6,7 +6,6 @@ import { useAuth } from "@/app/context/AuthContext";
 import { WORKSPACES, type WorkspaceId } from "./nav";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { ageLabel } from "@/app/lib/storyView";
-import { USE_MOCK } from "@/app/mocks/config";
 import { circleReveal, useRiseIn } from "@/app/lib/motion";
 import Frog from "@/app/components/brand/Frog";
 import NotificationBell from "./NotificationBell";
@@ -41,9 +40,8 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
           ) : <span className="c">Chưa có hồ sơ bé</span>}
         </div>
 
-        {/* Chỉ hiện khi có chuyện cần biết: mất kết nối hoặc đang dùng dữ liệu mẫu. */}
+        {/* Chỉ hiện khi có chuyện cần biết: mất kết nối. */}
         {error && <span className="top-note err" role="status" title={error}>Lỗi kết nối</span>}
-        {USE_MOCK && <span className="top-note warn">Dữ liệu mẫu</span>}
         <button className="btn btn-g" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Giao diện sáng" : "Giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
         <NotificationBell onOpen={onWs} />
         <button className="btn btn-kid" onClick={onKid} disabled={!child}><Eye className="ic" />Cho bé đọc</button>

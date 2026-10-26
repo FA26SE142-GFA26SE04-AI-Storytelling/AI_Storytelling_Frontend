@@ -3,7 +3,7 @@ import type { AppNotification } from "@/app/types/progress";
 
 /**
  * Luồng 1 Phụ lục A — thông báo trong app.
- * Backend trả `type` dạng PascalCase (`SupervisionInvite`), bộ máy cục bộ dùng snake_case (`supervision_invite`):
+ * Chuẩn hóa tên loại thông báo từ backend:
  * mọi chỗ so sánh đều đi qua `notificationKey`.
  */
 export const notificationKey = (type: string) => type.replace(/([a-z0-9])([A-Z])/g, "$1_$2").toLowerCase();
@@ -49,10 +49,10 @@ const TEXT: Record<string, string> = {
 
 export const notificationText = (n: AppNotification) => TEXT[notificationKey(n.type)] ?? "Bạn có thông báo mới";
 
-/** Backend dùng `Unread` / `Read`; bộ máy cục bộ dùng `unread` / `read`. */
+/** Backend dùng trạng thái `Unread` / `Read`. */
 export const isUnread = (n: AppNotification) => !n.readAt && n.status.toLowerCase() !== "read";
 
-/** Màn mở khi bấm vào thông báo (khu phụ huynh). Nhóm theo `NotificationGroups` của backend, bộ máy cục bộ theo loại. */
+/** Màn mở khi bấm vào thông báo (khu phụ huynh). Nhóm theo `NotificationGroups` và loại thông báo của backend. */
 export function notificationTarget(n: AppNotification): WorkspaceId | null {
   const key = notificationKey(n.type);
   if (key.startsWith("roadmap_") || key.startsWith("hold_mode_") || key === "assignment_cancelled") return "roadmap";

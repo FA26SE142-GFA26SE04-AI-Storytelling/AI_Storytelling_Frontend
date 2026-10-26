@@ -2,47 +2,61 @@ import type { ApiResponse } from '@/app/types/auth';
 import { authService } from './authService';
 import { API_BASE_URL } from './apiConfig';
 
-type Options = {
+export type ApiOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   body?: unknown;
-  /** Gọi không kèm token người lớn (VD bé đăng nhập bằng mã QR). */
+  form?: FormData;
   anonymous?: boolean;
-  /**
-   * Dùng token khác token đang lưu (VD token của phiên bé). Có khai báo `token` mà giá trị rỗng (phiên bé đã hết)
-   * thì không gửi request, để không rơi về token của người lớn.
-   */
   token?: string;
+  session?: 'adult' | 'child' | 'anonymous';
+  signal?: AbortSignal;
+  /** Only opt in where the controller deliberately returns no JSON. */
+  emptyResponse?: boolean;
 };
 
-/** Mã HTTP cho biết backend chưa có endpoint này (khác với lỗi mạng hay lỗi máy chủ tạm thời). */
-export const isMissingEndpoint = (r: ApiResponse<unknown>) => r.status === 404 || r.status === 405 || r.status === 501;
-
-/**
- * Gọi API backend và luôn trả về ApiResponse, kể cả khi mạng lỗi hoặc body rỗng.
- * `fallback` là thông báo hiển thị khi backend không trả message.
- */
-export async function apiRequest<T>(path: string, fallback: string, opts: Options = {}): Promise<ApiResponse<T>> {
-  if ('token' in opts && !opts.token && !opts.anonymous) {
-    return { success: false, message: 'Phiên của bé đã hết hạn. Hãy nhờ bố mẹ mở lại nhé!', data: null, status: 401 };
+/** Preserves error progress, false/0/null payloads and actual HTTP status. */
+export async function apiRequest<T>(path: string, fallback: string, opts: ApiOptions = {}): Promise<ApiResponse<T>> {
+  if (opts.session === 'child' && !opts.token) {
+    return { success: false, status: 401, message: 'Phiên của bé đã hết hạn.', data: null };
   }
-  const init: RequestInit = { method: opts.method ?? 'GET' };
-  if (opts.body !== undefined) init.body = JSON.stringify(opts.body);
+  const init: RequestInit = { method: opts.method ?? 'GET', signal: opts.signal };
+  if (opts.form) init.body = opts.form;
+  else if (opts.body !== undefined) init.body = JSON.stringify(opts.body);
   try {
     const url = `${API_BASE_URL}${path}`;
-    const response = opts.anonymous
-      ? await fetch(url, { ...init, headers: { 'Content-Type': 'application/json' } })
+    const response = opts.anonymous || opts.session === 'anonymous'
+      ? await fetch(url, { ...init, headers: opts.form ? {} : { 'Content-Type': 'application/json' } })
       : await authService.authenticatedFetch(url, init, opts.token);
     const text = await response.text();
-    let parsed: Partial<ApiResponse<T>> | null = null;
-    try { parsed = text.trim() ? JSON.parse(text) : null; } catch { parsed = null; }
-    if (parsed && typeof parsed.success === 'boolean') {
-      return { success: parsed.success, message: parsed.message || (parsed.success ? '' : fallback), data: parsed.data ?? null, errors: parsed.errors, status: response.status };
+    let parsed: Record<string, unknown> | null = null;
+    try {
+      const value: unknown = text.trim() ? JSON.parse(text) : null;
+      if (value !== null && typeof value === 'object' && !Array.isArray(value)) parsed = value as Record<string, unknown>;
+    } catch { /* Unexpected HTML/invalid JSON is a contract error, not an empty success. */ }
+    const errors = Array.isArray(parsed?.errors)
+      ? parsed.errors.filter((v): v is string => typeof v === 'string')
+      : parsed?.errors && typeof parsed.errors === 'object'
+        ? Object.values(parsed.errors).flat().filter((v): v is string => typeof v === 'string') : null;
+    if (typeof parsed?.success === 'boolean') {
+      const success = response.ok && parsed.success;
+      return { success, status: response.status, message: typeof parsed.message === 'string' ? parsed.message : success ? '' : fallback,
+        data: (parsed.data ?? null) as T | null, errors };
     }
-    // Lỗi kiểm tra dữ liệu của ASP.NET (ProblemDetails): lấy thông báo đầu tiên.
-    const problem = parsed as { errors?: Record<string, string[]> } | null;
-    const firstError = problem?.errors && !Array.isArray(problem.errors) ? Object.values(problem.errors).flat()[0] : undefined;
-    return { success: response.ok, message: response.ok ? '' : firstError || fallback, data: null, status: response.status };
+    if (response.ok && !text.trim() && (opts.emptyResponse || response.status === 204)) {
+      return { success: true, status: response.status, message: '', data: null };
+    }
+    const detail = typeof parsed?.detail === 'string' ? parsed.detail : typeof parsed?.title === 'string' ? parsed.title : undefined;
+    return { success: false, status: response.status, message: errors?.[0] || detail || fallback, data: null, errors };
   } catch (error) {
-    return { success: false, message: fallback, data: null, errors: [(error as Error).message || 'Network error'], status: 0 };
+    return { success: false, status: 0, message: opts.signal?.aborted ? 'Đã dừng theo dõi.' : fallback,
+      data: null, errors: [error instanceof Error ? error.message : 'Network error'] };
   }
+}
+
+export function apiQuery(values: object): string {
+  const query = new URLSearchParams();
+  Object.entries(values).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') query.set(key, String(value));
+  });
+  return query.size ? `?${query}` : '';
 }

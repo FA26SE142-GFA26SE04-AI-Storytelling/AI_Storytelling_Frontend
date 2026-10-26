@@ -4,21 +4,22 @@ import "./staff.css";
 import "@/app/features/children/children.css";
 import { useState, type ComponentType } from "react";
 import {
-  Activity, BookOpenText, ChartColumn, Coins, Eye, FileClock, FlaskConical, Inbox, LibraryBig, ListChecks, LogOut, Moon, Receipt,
+  Activity, BookOpenText, ChartColumn, Coins, FileClock, FlaskConical, Inbox, LibraryBig, ListChecks, LogOut, Moon, Receipt,
   ScrollText, Shield, Sun, UserCog, Users, type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useTheme } from "@/app/context/ThemeContext";
 import type { StaffRole } from "@/app/types/auth";
-import { USE_MOCK } from "@/app/mocks/config";
 import Frog from "@/app/components/brand/Frog";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import NotificationBell from "@/app/components/shell/NotificationBell";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import { ModerationQueue, RatingPage } from "./Moderation";
+import RoadmapTemplates from "./RoadmapTemplates";
+import PublishedReviewWorkspace from "./PublishedReviewWorkspace";
+import RubricWorkspace from "./RubricWorkspace";
+import AuthoringGuideManagement from "./AuthoringGuideManagement";
 import { PromptsPage } from "./Creator";
-import { RoadmapTemplates } from "./RoadmapTemplates";
-import { PublishedContent } from "./PublishedContent";
 import { CreatorStories } from "./CreatorStories";
 import { AdminParents, AdminStaff } from "./AdminPeople";
 import { AdminEvaluation, AdminLogs, AdminOverview } from "./AdminAi";
@@ -32,6 +33,10 @@ const ROLE_LABEL: Record<StaffRole, string> = { Administrator: "Admin Portal", M
 /** Luồng 5 — ba khu tách biệt theo vai trò; mỗi tài khoản đúng một vai trò (BR-5.7a). */
 const PAGES: Record<StaffRole, PageDef[]> = {
   Administrator: [
+    { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace },
+    { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
+    { id: "templates", label: "Xem bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
+    { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "overview", label: "Chất lượng AI", icon: Activity, view: AdminOverview },
     { id: "escalated", label: "Kiểm duyệt (ca chuyển lên)", icon: Inbox, view: () => <ModerationQueue admin /> },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
@@ -47,9 +52,11 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "account", label: "Tài khoản của tôi", icon: UserCog, view: AccountWorkspace, sep: true },
   ],
   Moderator: [
-    { id: "queue", label: "Hàng đợi kiểm duyệt", icon: Inbox, view: () => <ModerationQueue /> },
-    { id: "published", label: "Nội dung đã công khai", icon: Eye, view: PublishedContent },
+    { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace },
+    { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
+    { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
+    { id: "queue", label: "Hàng đợi kiểm duyệt", icon: Inbox, view: () => <ModerationQueue /> },
     { id: "rating", label: "Đánh giá AI", icon: FlaskConical, view: RatingPage },
     { id: "account", label: "Tài khoản của tôi", icon: UserCog, view: AccountWorkspace, sep: true },
   ],
@@ -95,7 +102,7 @@ export default function StaffApp({ role }: { role: StaffRole }) {
       <footer className="status">
         <span className="live"><i />{ROLE_LABEL[role]}</span>
         <span>{page.label}</span>
-        <div className="r">{USE_MOCK && <span style={{ color: "var(--warn-ink)", fontWeight: 700 }}>Dữ liệu mẫu</span>}<span>{user?.fullName || user?.email}</span></div>
+        <div className="r"><span>{user?.fullName || user?.email}</span></div>
       </footer>
     </div>
   );

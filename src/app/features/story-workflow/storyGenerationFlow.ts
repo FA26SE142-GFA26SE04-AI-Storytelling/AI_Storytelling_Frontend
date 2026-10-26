@@ -5,7 +5,7 @@ export function normalizeStoryStatus(value: string): string {
 }
 
 export function isMediaStage(status: string): boolean {
-  return ['approved', 'media_processing', 'ready'].includes(normalizeStoryStatus(status));
+  return ['approved', 'media_processing', 'media_review', 'ready'].includes(normalizeStoryStatus(status));
 }
 
 export function contentDestination(progress: ContentGenerationProgressDto): 'media' | 'review' | 'waiting' | 'stopped' {

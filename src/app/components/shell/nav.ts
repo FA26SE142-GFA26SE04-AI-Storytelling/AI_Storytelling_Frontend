@@ -16,6 +16,7 @@ export const WORKSPACES: { id: WorkspaceId; label: string; icon: LucideIcon; sep
 
 /** Props chung mà mọi không gian làm việc nhận được từ page.tsx. */
 export type WorkspaceProps = {
-  go: (id: WorkspaceId) => void;
+  go: (id: WorkspaceId, target?: { storyId: number | null }) => void;
+  resumeStoryId?: number | null;
   onKid: () => void;
 };

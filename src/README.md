@@ -9,10 +9,9 @@ npm install
 npm run dev          # http://localhost:3000
 ```
 
-Mặc định dùng dữ liệu mẫu. Gọi backend thật bằng `.env.local`:
+Ứng dụng luôn gọi API backend. Cấu hình địa chỉ bằng `.env.local`:
 
 ```env
-NEXT_PUBLIC_USE_MOCK=false
 NEXT_PUBLIC_API_URL=http://localhost:5259
 ```
 

@@ -1,20 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Plus, WandSparkles } from "lucide-react";
-import CreatorAiStudio from "./CreatorAiStudio";
+import { Plus } from "lucide-react";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { CreateDraftInput, CreatorDraft } from "@/app/types/creator";
 import { GENRES } from "@/app/lib/storyRules";
 import { Notice, Page, fmt } from "./ui";
+import CreatorGeneration from "./CreatorGeneration";
+import { useAuth } from "@/app/context/AuthContext";
 import CreatorEditor from "./CreatorEditor";
-import { creatorAssistance } from "@/app/services/assistanceService";
-import CreatorPublication from "./CreatorPublication";
-
-/** Trạng thái truyện backend → nhãn. */
-const STORY_STATUS: Record<string, [string, string]> = {
-  Draft: ["draft", "Nháp"], ContentReview: ["draft", "Đang soạn"], MediaProcessing: ["wait", "Đang tạo media"], Ready: ["ok", "Sẵn sàng"], Archived: ["draft", "Lưu trữ"],
-};
 
 const AGE: Record<string, string> = { "6-8": "6–8 tuổi", "9-10": "9–10 tuổi" };
 const MODE: Record<string, string> = { reading: "Đọc", listening: "Nghe", combined: "Đọc và nghe" };
@@ -22,11 +16,11 @@ const blank = (): CreateDraftInput => ({ title: "", description: "", ageBand: "6
 
 /** Luồng 5 Bước 5.8 — truyện mẫu Content Creator soạn thủ công (`/creator/stories`), mỗi lần lưu là một phiên bản. */
 export function CreatorStories() {
+  const { user } = useAuth();
+  const [creatingAi, setCreatingAi] = useState(false);
   const [list, setList] = useState<CreatorDraft[] | null>(null);
   const [form, setForm] = useState<CreateDraftInput | null>(null);
   const [openId, setOpenId] = useState<number | null>(null);
-  const [ai, setAi] = useState<{ storyId: number | null; ageBand?: string } | null>(null);
-  const [pubStory, setPubStory] = useState<CreatorDraft | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
   // Tạo truyện mất mạng thì thử lại đúng thao tác cũ (cùng operationId) để không tạo trùng.
@@ -56,19 +50,13 @@ export function CreatorStories() {
     } else setNote({ ok: false, text: r.status === 0 ? `${r.message}` : r.message });
   };
 
-  // Truyện tạo bằng AI đi qua pipeline dàn ý → nội dung → media, không dùng trình soạn thủ công.
-  if (ai) {
-    return (
-      <Page title="Tạo truyện mẫu bằng AI" sub="AI viết theo nhóm tuổi và mức đọc bạn chọn. Bạn duyệt dàn ý, xem lại nội dung rồi xác nhận để tạo tranh và giọng đọc.">
-        <CreatorAiStudio key={ai.storyId ?? "new"} storyId={ai.storyId} ageBand={ai.ageBand} onBack={() => { setAi(null); void load(); }} />
-      </Page>
-    );
+  if (creatingAi || (openId !== null && list?.find(s => s.storyId === openId)?.source?.toLowerCase() === 'ai')) {
+    return <Page title="Sáng tác bằng AI"><CreatorGeneration key={`${user?.id}:${openId ?? 'new'}`} initialId={openId} onBack={() => { setCreatingAi(false); setOpenId(null); void load(); }} /></Page>;
   }
-
   if (openId !== null) {
     return (
       <Page title="Soạn truyện mẫu" sub="Truyện mẫu dành cho Thư viện chung, bằng tiếng Việt và không chứa thông tin cá nhân của người thật.">
-        <CreatorEditor key={openId} storyId={openId} assistance={creatorAssistance} onBack={() => { setOpenId(null); void load(); }} />
+        <CreatorEditor key={openId} storyId={openId} onBack={() => { setOpenId(null); void load(); }} />
       </Page>
     );
   }
@@ -76,12 +64,8 @@ export function CreatorStories() {
   const set = (p: Partial<CreateDraftInput>) => setForm((f) => (f ? { ...f, ...p } : f));
   return (
     <Page title="Truyện mẫu của tôi" sub="Truyện bạn soạn sẽ vào Thư viện chung sau khi Moderator duyệt. Mỗi lần lưu tạo một phiên bản; có thể xem lại và khôi phục bản cũ."
-      actions={<div className="row" style={{ gap: 8 }}>
-        <button className="btn btn-s" onClick={() => setAi({ storyId: null })}><WandSparkles className="ic" />Tạo bằng AI</button>
-        <button className="btn btn-p" onClick={() => { setForm(blank()); setNote(null); }}><Plus className="ic" />Truyện mới</button>
-      </div>}>
+      actions={<><button className="btn btn-s" onClick={() => setCreatingAi(true)}>Tạo bằng AI</button><button className="btn btn-p" onClick={() => { setForm(blank()); setNote(null); }}><Plus className="ic" />Truyện thủ công</button></>}>
       <Notice note={note} />
-      {pubStory && <CreatorPublication key={pubStory.storyId} story={pubStory} onClose={() => setPubStory(null)} onChanged={() => void load()} />}
       {form && (
         <div className="st-card">
           <h3>Truyện mới</h3>
@@ -106,24 +90,20 @@ export function CreatorStories() {
       )}
       <div className="st-card st-scroll">
         <table className="st-table">
-          <thead><tr><th>Truyện</th><th>Tuổi</th><th>Trải nghiệm</th><th>Phiên bản</th><th>Trạng thái</th><th>Cập nhật</th><th /></tr></thead>
+          <thead><tr><th>Truyện</th><th>Tuổi</th><th>Trải nghiệm</th><th>Phiên bản</th><th>Cập nhật</th><th /></tr></thead>
           <tbody>
-            {list === null && <tr><td colSpan={7} className="sub">Đang tải…</td></tr>}
+            {list === null && <tr><td colSpan={6} className="sub">Đang tải…</td></tr>}
             {list?.map((s) => (
               <tr key={s.storyId}>
                 <td><b>{s.title || "Truyện chưa đặt tên"}</b><br /><small className="sub">{s.genre || "—"}{s.description ? ` · ${s.description}` : ""}</small></td>
                 <td>{AGE[s.ageBand] ?? s.ageBand}</td>
                 <td>{MODE[s.experienceMode] ?? s.experienceMode}</td>
                 <td>{s.lastVersionNo ? `V${s.lastVersionNo}` : "Chưa lưu"}</td>
-                <td>{s.status ? <span className={`pill ${STORY_STATUS[s.status]?.[0] ?? "draft"}`}>{STORY_STATUS[s.status]?.[1] ?? s.status}</span> : "—"}</td>
                 <td>{fmt(s.updatedAt ?? s.createdAt)}</td>
-                <td style={{ whiteSpace: "nowrap" }}>
-                  <button className="btn btn-g" onClick={() => (s.source === "Ai" ? setAi({ storyId: s.storyId, ageBand: s.ageBand }) : setOpenId(s.storyId))}>Mở</button>
-                  <button className="btn btn-g" disabled={!s.lastVersionNo} title={s.lastVersionNo ? undefined : "Lưu ít nhất một phiên bản trước"} onClick={() => setPubStory(s)}>Phát hành</button>
-                </td>
+                <td><button className="btn btn-g" onClick={() => setOpenId(s.storyId)}>Mở</button></td>
               </tr>
             ))}
-            {list?.length === 0 && <tr><td colSpan={7} className="sub">Chưa có truyện nào.</td></tr>}
+            {list?.length === 0 && <tr><td colSpan={6} className="sub">Chưa có truyện nào.</td></tr>}
           </tbody>
         </table>
       </div>

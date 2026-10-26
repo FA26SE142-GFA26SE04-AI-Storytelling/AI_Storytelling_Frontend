@@ -18,7 +18,6 @@ import HoldPanel from "./HoldPanel";
 const SKIP_REASON: Record<string, string> = {
   blocked_category: "Thuộc chủ đề bị chặn",
   age_band_mismatch: "Không hợp nhóm tuổi",
-  too_long: "Dài hơn mức cho phép của bé",
   story_unavailable: "Truyện không còn đọc được",
   source_deleted: "Truyện gốc đã bị xoá",
   data_deletion: "Dữ liệu của bé đã bị xoá",
@@ -29,6 +28,8 @@ const SOURCE: Record<string, string> = { parent: "Bố mẹ chọn", template: "
 export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   const { child, stories } = useWorkspaceData();
   const role = useMyRole(child);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [counts, setCounts] = useState<{ completed: number; total: number } | null>(null);
   const [items, setItems] = useState<RoadmapItem[] | null>(null);
   const [dialog, setDialog] = useState<{ kind: "pick" } | { kind: "templates" } | { kind: "add"; story?: RoadmapStoryInput; template?: RoadmapTemplate } | null>(null);
   const [templates, setTemplates] = useState<RoadmapTemplate[]>([]);
@@ -41,6 +42,8 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
     if (!child) return;
     const r = await guardianService.roadmap(child.id);
     setItems(r.data ?? []);
+    setCounts(r.counts ?? null);
+    setLoadError(r.success ? null : r.message);
   }, [child]);
   useEffect(() => { setItems(null); void load(); }, [load]);
 
@@ -49,8 +52,8 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   const open = items?.find((i) => i.status === "open") ?? null;
   const queued = (items ?? []).filter((i) => i.status === "queued").sort((a, b) => a.position - b.position);
   const history = (items ?? []).filter((i) => i.status === "completed" || i.status === "skipped" || i.status === "removed");
-  const done = (items ?? []).filter((i) => i.status === "completed").length;
-  const total = (items ?? []).filter((i) => i.status !== "removed" && i.status !== "skipped").length;
+  const done = counts?.completed ?? (items ?? []).filter((i) => i.status === "completed").length;
+  const total = counts?.total ?? (items ?? []).filter((i) => i.status !== "removed" && i.status !== "skipped").length;
   const overdue = !!open?.dueAt && Date.parse(open.dueAt) < Date.now();
   const ready = stories.filter((s) => ["ready", "published"].includes(statusKey(s.raw)));
 
@@ -80,14 +83,7 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   const openTemplates = async () => {
     const r = await guardianService.templates();
     setTemplates(r.data ?? []);
-    if (!r.success) setNote({ ok: false, text: r.message });
     setDialog({ kind: "templates" });
-  };
-
-  const pickTemplate = async (t: RoadmapTemplate) => {
-    const r = await guardianService.template(t);
-    if (r.success && r.data) setDialog({ kind: "add", template: r.data });
-    else { setNote({ ok: false, text: r.message }); setDialog(null); }
   };
 
   return (
@@ -98,7 +94,8 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
           <div className="act"><span className="pill ai">{done}/{total} đã đọc</span></div>
         </div>
         <div className="pb rm-body">
-          {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
+          {loadError && <div className="notice err" role="alert">{loadError}</div>}
+      {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
           {!canEdit && role && <div className="notice err">Bạn chỉ xem được lộ trình. Cần quyền “Quản lý lộ trình của con” để thêm, gỡ hoặc sắp xếp.</div>}
           <HoldPanel child={child} role={role} onChanged={() => void load()} />
 
@@ -161,7 +158,8 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
           <button className="btn btn-s btn-c" disabled={!canEdit} onClick={() => void openTemplates()}><Library className="ic" />Kho bộ truyện mẫu</button>
           <button className="btn btn-s btn-c" onClick={() => go("library")}>Mở thư viện truyện</button>
           {canEdit && (queued.length > 0 || open) && <button className="btn btn-no btn-c" onClick={() => { if (confirm(`Gỡ toàn bộ truyện chưa đọc khỏi lộ trình của ${child.nickname}?`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình."); }}><Trash2 className="ic" />Làm trống lộ trình</button>}
-          <p className="sub">{child.nickname} đọc lần lượt từng truyện. Đọc xong truyện đang mở, truyện kế tiếp tự mở. Điểm câu đố không quyết định việc hoàn thành.</p>        </div>
+          <p className="sub">{child.nickname} đọc lần lượt từng truyện. Đọc xong truyện đang mở, truyện kế tiếp tự mở. Điểm câu đố không quyết định việc hoàn thành.</p>
+        </div>
       </div>
 
       {dialog?.kind === "pick" && (
@@ -190,10 +188,10 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
               {templates.filter((t) => t.targetAgeBand === child.ageBand).concat(templates.filter((t) => t.targetAgeBand !== child.ageBand)).map((t) => (
                 <div key={t.id} className="rm-template">
                   <b>{t.title}</b>
-                  <small>{ageLabel(t.targetAgeBand)} · mức {t.readingLevelMin}–{t.readingLevelMax} · {t.topic ? `${t.topic} · ` : ""}{t.storyCount ?? t.stories.length} truyện</small>
+                  <small>{ageLabel(t.targetAgeBand)} · mức {t.readingLevelMin}–{t.readingLevelMax} · {t.topic} · {t.stories.length} truyện</small>
                   <span className="sub">{t.description}</span>
                   {t.targetAgeBand !== child.ageBand && <small className="warn">Bộ này dành cho {ageLabel(t.targetAgeBand)}.</small>}
-                  <button className="btn btn-s" style={{ width: "fit-content" }} onClick={() => void pickTemplate(t)}>Xem và thêm</button>
+                  <button className="btn btn-s" style={{ width: "fit-content" }} onClick={() => setDialog({ kind: "add", template: t })}>Xem và thêm</button>
                 </div>
               ))}
             </div>

@@ -168,16 +168,14 @@ export const authService = {
           this.notifyAuthStateChange(data.data.user, data.data.accessToken);
           return data;
         } else {
-          // Chỉ out tài khoản khi backend từ chối refresh token (hết hạn / bị thu hồi).
-          // Lỗi máy chủ tạm thời (5xx) thì giữ phiên để thử lại sau.
-          const rejected = response.status === 400 || response.status === 401 || response.status === 403 || (response.ok && data?.success === false);
-          if (rejected) {
-            console.warn('Refresh token expired or invalid, logging out...', data?.message);
+          // Refresh token đã hết hạn hoặc bị thu hồi -> Tự động out tài khoản
+          if ([400,401,403].includes(response.status)) {
             this.clearStoredAuth();
             this.notifyAuthStateChange(null, null);
           }
           return {
             success: false,
+            status: response.status,
             message: data?.message || 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
             data: null,
             errors: data?.errors,
@@ -188,6 +186,7 @@ export const authService = {
         // Lỗi kết nối hoặc lỗi bất thường
         return {
           success: false,
+          status: 0,
           message: 'Không thể kết nối đến máy chủ để làm mới phiên đăng nhập.',
           data: null,
           errors: [(error as Error).message || 'Network connection failed'],
@@ -205,7 +204,7 @@ export const authService = {
    * Nếu refresh token cũng hết hạn -> tự động xóa token và đăng xuất (out tài khoản).
    */
   async authenticatedFetch(input: RequestInfo | URL, init: RequestInit = {}, customToken?: string): Promise<Response> {
-    const token = customToken || this.getStoredAccessToken();
+    const token = customToken !== undefined ? customToken : this.getStoredAccessToken();
 
     const headers = new Headers(init.headers || {});
     if (token && !headers.has('Authorization')) {
@@ -222,12 +221,8 @@ export const authService = {
 
     let response = await fetch(input, config);
 
-    // Token truyền riêng (VD token phiên của bé) không phải của người lớn: gặp 401 thì trả nguyên lỗi,
-    // không làm mới và gửi lại bằng token người lớn, kẻo bé dùng quyền của phụ huynh.
-    if (customToken && customToken !== this.getStoredAccessToken()) return response;
-
     // Nếu gặp 401 (Access Token hết hạn hoặc không hợp lệ), thử dùng Refresh Token
-    if (response.status === 401) {
+    if (response.status === 401 && customToken === undefined && !init.signal?.aborted) {
       const storedRefreshToken = this.getStoredRefreshToken();
       if (storedRefreshToken) {
         const refreshResult = await this.refreshToken();
@@ -248,6 +243,9 @@ export const authService = {
             this.clearStoredAuth();
             this.notifyAuthStateChange(null, null);
           }
+        } else if (![400,401,403].includes(refreshResult.status ?? 0)) {
+          // A transient refresh failure is not proof that the session was revoked.
+          return new Response(JSON.stringify(refreshResult), { status: 503, headers: { 'Content-Type':'application/json' } });
         }
       } else {
         // Không có refresh token -> Đăng xuất
@@ -388,19 +386,20 @@ export const authService = {
       const data = await safeJsonParse<ApiResponse<UserProfile>>(response);
       if (response.ok && data?.success && data.data) {
         this.setStoredUser(data.data);
-        return data;
+        return { ...data, status: response.status };
       }
-      return data || {
+      return { ...(data || {
         success: false,
         message: 'Không thể tải thông tin cá nhân từ Backend.',
         data: null,
-      };
+      }), success: false, status: response.status };
     } catch (error) {
       console.error('Get profile error:', error);
       return {
         success: false,
         message: 'Không thể tải thông tin cá nhân từ Backend.',
         data: null,
+        status: 0,
         errors: [(error as Error).message || 'Network connection failed'],
       };
     }

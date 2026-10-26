@@ -29,12 +29,12 @@ export type StaffRole = (typeof STAFF_ROLES)[number];
 export const isStaffRole = (role?: string | null): role is StaffRole => !!role && (STAFF_ROLES as readonly string[]).includes(role);
 
 export interface ApiResponse<T> {
+  /** HTTP status; 0 means no response (network failure or cancellation). */
+  status?: number;
   success: boolean;
   message: string;
   data: T | null;
   errors?: string[] | null;
-  /** Mã HTTP do `apiRequest` gắn thêm (0 = lỗi mạng). Không có trong body backend trả về. */
-  status?: number;
 }
 
 export interface LoginRequest {

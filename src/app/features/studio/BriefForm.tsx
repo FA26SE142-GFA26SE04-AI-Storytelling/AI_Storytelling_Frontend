@@ -5,7 +5,7 @@ import { CircleAlert, Lock, ShieldAlert, Sparkles } from "lucide-react";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
-import { copyrightHits, GENRES, SAMPLE_CHARACTERS, SAMPLE_SETTINGS } from "@/app/lib/storyRules";
+import { copyrightHits, GENRES } from "@/app/lib/storyRules";
 import { STUDIO_PREFILL_KEY } from "@/app/features/home/WishItem";
 import { takeLandingIdea } from "@/app/features/landing/landingIdea";
 import {
@@ -85,8 +85,6 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   const pii = piiMessage(detectPii([values.topic, values.charactersText, values.setting, values.lesson].join("\n"), context.childNickname));
   const tone = vocabularyTone(values.vocabularyLevel, context.defaultVocabularyLevel);
   const copyright = copyrightHits([values.topic, values.charactersText, values.setting, values.lesson].join("\n"));
-  const chars = values.charactersText.split(",").map((c) => c.trim()).filter(Boolean);
-  const addChar = (c: string) => !chars.includes(c) && updateValues({ charactersText: [...chars, c].join(", ") });
   const modes = outputModesOf(context);
 
   // Ô nhập tự do + ô "Gợi ý" xổ xuống bên cạnh để chọn nhanh (chọn xong ô gợi ý tự trở về trống).
@@ -143,14 +141,9 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
               </select>
             </div>
             {text("charactersText", "Nhân vật", "Ví dụ: Sóc Bông, Thỏ Trắng…", {
-              hint: "Nhiều nhân vật thì cách nhau bằng dấu phẩy. Chọn gợi ý sẽ thêm vào danh sách.",
-              suggestions: SAMPLE_CHARACTERS.filter((c) => !chars.includes(c)),
-              onPick: addChar,
+              hint: "Nhiều nhân vật thì cách nhau bằng dấu phẩy.",
             })}
-            {text("setting", "Bối cảnh", "Ví dụ: Khu rừng tre ven hồ sen…", {
-              suggestions: SAMPLE_SETTINGS,
-              onPick: (v) => updateValues({ setting: v }),
-            })}
+            {text("setting", "Bối cảnh", "Ví dụ: Khu rừng tre ven hồ sen…")}
           </fieldset>
 
           {copyright.length > 0 && (

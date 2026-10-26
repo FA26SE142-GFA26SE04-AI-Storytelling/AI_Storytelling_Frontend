@@ -53,6 +53,7 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
   const role = useMyRole(child);
   const refs = useChildRefs();
   const [tab, setTab] = useState<"one" | "all">("one");
+  const [capabilityError,setCapabilityError]=useState('');
   const [dash, setDash] = useState<Dashboard | null>(null);
   const [wishes, setWishes] = useState<(StoryWish & { label: string })[]>([]);
   const [reports, setReports] = useState<ProgressReport[]>([]);
@@ -72,7 +73,7 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
       // Luồng 6 Bước 6.5 — hàng đợi đề xuất chung của bé, tải lại mỗi lần mở Dashboard.
       child.status === "Active" ? adaptiveService.recommendations(child.id) : Promise.resolve({ data: [] as Recommendation[] }),
     ]);
-    setDash(d.data);
+    setDash(d.data);setCapabilityError(d.success?'':d.message);
     setRecs(rc.data ?? []);
     setWishes((w.data ?? []).filter((x) => x.status === "pending"));
     setReports(r.data ?? []);
@@ -119,7 +120,7 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
         )}
         {error && <div className="err-banner" role="alert">{error}</div>}
 
-        <div className="dash-body">
+        <div className="dash-body">{capabilityError&&<p className="notice" role="status">{capabilityError}</p>}
           <header className="hero">
             <div>
               <h1 className="display home-h1">Chào {user?.fullName?.split(" ").slice(-1)[0] || "bạn"}</h1>
@@ -282,7 +283,6 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
                   </div>
                 ) : <Locked title="Báo cáo tuần" go={go} />}
               </div>
-              {guardianService.isLocal() && <p className="sub" style={{ textAlign: "center" }}>Số liệu đang tính từ các lần bé đọc trên trình duyệt này (máy chủ chưa có chức năng theo dõi tiến độ).</p>}
             </>
           )}
         </div>

@@ -111,36 +111,6 @@ export interface TemplateDraft {
   feedback: string | null;
 }
 
-// ---------- Bộ truyện mẫu qua API (`/RoadmapTemplate`). Độ tuổi dạng "6-8" / "9-10". ----------
-
-export type RoadmapTemplateGroup = 'Drafts' | 'Pending' | 'Published' | 'Archived' | 'Orphaned';
-export interface RoadmapCategoryRef { id: number; code: string; displayName: string }
-
-export interface RoadmapTemplateListItem {
-  id: number; name: string; ageBand: string; mainCategory: RoadmapCategoryRef | null; storyCount: number; status: string;
-  createdByName: string | null; isMine: boolean; submittedAt: string | null; publishedAt: string | null;
-  openCloneId: number | null; needsUpdate: boolean; retiredStoryCount: number;
-}
-
-export interface RoadmapTemplateDetail {
-  id: number; name: string; description: string | null; ageBand: string; mainCategory: RoadmapCategoryRef | null;
-  readingLevelMin: number; readingLevelMax: number; defaultDaysPerStory: number; status: string;
-  createdByName: string | null; isMine: boolean; clonedFromId: number | null;
-  stories: { storyId: number; position: number; days: number | null; title: string | null; ageBand: string; readingLevel: number | null; isEligible: boolean }[];
-  checks: { code: string; passed: boolean; message: string }[];
-  canSubmit: boolean;
-  lastReview: { decision: string; reviewerName: string | null; generalNote: string | null; reason: string | null; parts: { partType: string; storyId: number | null; action: string | null; note: string }[]; decidedAt: string | null } | null;
-  needsUpdate: boolean;
-  retiredStoryIds: number[];
-}
-
-export interface RoadmapTemplateInput {
-  name: string; description: string | null; ageBand: '6-8' | '9-10'; mainCategoryId: number;
-  readingLevelMin: number; readingLevelMax: number; defaultDaysPerStory: number;
-}
-
-export interface RoadmapCandidateStory { storyId: number; title: string | null; ageBand: string; readingLevel: number | null; labels: RoadmapCategoryRef[] }
-
 export interface AiMetrics {
   period: string;
   generationSuccessRate: number;
@@ -224,8 +194,8 @@ export interface ModeratorAccountDto {
 }
 
 /** Loại mục và trạng thái trong hàng đợi kiểm duyệt của backend (`ModerationQueue`). */
-export type QueueItemType = 'PublicStoryReview' | 'GrayZoneStory' | 'ContentReport' | 'RoadmapTemplateReview' | 'CommunitySubmission' | 'PublicStoryRemoval';
-export type QueueItemStatus = 'Pending' | 'Claimed' | 'Approved' | 'ChangesRequested' | 'Rejected' | 'Cleared' | 'Blocked' | 'Dismissed' | 'Archived' | 'Escalated' | 'Withdrawn';
+export type QueueItemType = 'PublicStoryRemoval' | 'PublicStoryReview' | 'GrayZoneStory' | 'ContentReport' | 'RoadmapTemplateReview' | 'CommunitySubmission';
+export type QueueItemStatus = 'Pending' | 'Claimed' | 'Approved' | 'ChangesRequested' | 'Rejected' | 'Cleared' | 'Blocked' | 'Dismissed' | 'Archived' | 'Escalated' | 'Withdrawn' | 'Removed' | 'Closed';
 
 export interface QueueItem {
   id: number;
@@ -247,92 +217,14 @@ export interface QueueItem {
 
 /** Mục đang nhận: thêm cờ, checklist, tiến độ rà (chuỗi JSON). Nội dung truyện lấy riêng theo `storyId`. */
 export interface QueueItemDetail extends QueueItem {
+  rowVersion: number;
   flags: string | null;
   checklist: string | null;
   reviewProgress: string | null;
-  /** Dùng khi quyết định yêu cầu gỡ truyện (chống ghi đè đồng thời). */
-  rowVersion?: number;
 }
-
-// ---------- Gói duyệt theo từng loại mục (Luồng 5 — Moderator ra quyết định) ----------
-
-export interface ReviewBlocker { code: string; message: string }
-export interface ReviewLabel { id?: number; contentCategoryId?: number; code: string; displayName: string }
-export interface ReviewScene { sceneId?: number; sceneIndex: number; sceneText?: string; text?: string; viewed?: boolean; imageUrls?: string[]; audioUrls?: string[];
-  illustrations?: { beatOrder: number; url: string | null }[];
-  segments?: { segmentId: number; text: string; audioUrl: string | null; hasPronunciationWarning: boolean; heard: boolean }[] }
-export interface ReviewStory { storyId?: number; title: string | null; description: string | null; ageBand: string; readingLevel: number | null; moralLesson?: string | null; labels: ReviewLabel[] }
-export interface ReviewVersion { title: string; content: string | null; lesson: string | null }
-interface ReviewExtras {
-  vocabulary: { id?: number; term: string; definition: string }[];
-  quizzes: { id?: number; type: string; question: string; correctAnswer: string | null; choices: string | null }[];
-  discussionQuestions: { id?: number; question: string; isMoralLesson: boolean }[];
-}
-
-export interface PublicReviewChecklist { safety: boolean | null; ageFit: boolean | null; education: boolean | null; language: boolean | null; copyright: boolean | null; image: boolean | null; audio: boolean | null; interaction: boolean | null }
-export interface PublicReviewPackage extends ReviewExtras {
-  itemId: number; storyId: number; versionNo: number; isResubmission: boolean;
-  story: ReviewStory; version: ReviewVersion; scenes: ReviewScene[];
-  flags: { flagId: string; kind: string; name: string; reason: string | null; resolved: boolean }[];
-  progress: { totalScenes: number; missingSceneIds: number[]; audioHeardCount: number; missingWarningSegmentIds: number[]; needsAtLeastOneAudio: boolean; requiredViewsComplete: boolean };
-  checklist: PublicReviewChecklist; approveBlockers: ReviewBlocker[]; canApprove: boolean;
-  reviewHistory: { itemId: number; versionNo: number | null; decision: string; decidedByName: string | null; decidedAt: string | null; reason: string | null; feedback: string | null }[];
-}
-
-export interface ChecklistEntry { code: string; label: string; passed: boolean; note: string | null }
-export interface CommunityReviewPackage extends ReviewExtras {
-  itemId: number; story: ReviewStory; version: ReviewVersion; scenes: ReviewScene[]; labels: ReviewLabel[];
-  copyrightDeclaration: string | null; piiRescan: { kind: string; location: string }[]; isResubmission: boolean;
-  checklist: ChecklistEntry[]; blockers: ReviewBlocker[]; canApprove: boolean;
-}
-
-export interface RoadmapReviewPackage {
-  itemId: number;
-  roadmap: { id: number; name: string; description: string | null; ageBand: string; mainCategory: { displayName: string } | null; readingLevelMin: number; readingLevelMax: number; defaultDaysPerStory: number; createdByName: string | null };
-  stories: { storyId: number; position: number; days: number | null; title: string | null; ageBand: string; isEligible: boolean }[];
-  checks: { code: string; passed: boolean; message: string }[];
-  checklist: ChecklistEntry[]; blockers: ReviewBlocker[]; canApprove: boolean;
-}
-
-export interface ReportReviewPackage extends ReviewExtras {
-  itemId: number; reportId: number; reason: string; description: string | null; attachmentUrl: string | null;
-  itemStatus: string; escalationReason: string | null; createdAt: string;
-  story: ReviewStory & { isArchived: boolean }; version: ReviewVersion | null; scenes: ReviewScene[];
-}
-
-/** Một phần cần sửa khi Moderator yêu cầu sửa. Truyện: partId là id cảnh / câu đố / từ; bộ truyện mẫu: storyId + action. */
-export interface ChangePart { partType: string; partId?: number | null; storyId?: number | null; action?: string | null; note: string }
-
-/** Lý do gỡ truyện khi xử lý báo cáo (enum ArchivedReason của backend). */
-export type ReportArchiveReason = 'SafetyConcern' | 'Copyright' | 'Inappropriate';
 
 export interface QueueQuery { itemType?: QueueItemType; status?: QueueItemStatus; priority?: 'High' | 'Medium' | 'Low'; onlyOverdue?: boolean; pageIndex?: number; pageSize?: number }
 export interface BusinessReport { id: number; periodStart: string; periodEnd: string; storiesGenerated: number; storiesApproved: number; storiesRejected: number; readingSessionsCompleted: number; status: string; publishedAt: string | null }
 export interface TokenQuotaConfig { id: number; scope: string; organizationId: number | null; childProfileId: number | null; userId: number | null; quotaLimit: number; quotaUsed: number; periodStart: string; periodEnd: string }
 export interface PaymentTransaction { id: number; planId: number; planName: string; amount: number; transactionCode: string; qrCodeUrl: string | null; status: string; expiresAt: string; paidAt: string | null; sepayTransactionId: string | null }
 export interface AdministratorAccount { userId: number; email: string; fullName: string; role: string; roleBeforeAdmin: string | null }
-
-// ---------- Rà soát nội dung đã công khai (`/PublishedContentReview`) ----------
-
-export type PublishedSource = 'PublicLibrary' | 'RoadmapTemplate';
-export interface PublishedContentItem { source: string; id: number; title: string; ageBand: string; labels: ReviewLabel[]; publishedAt: string | null; storyCount: number | null; needsUpdate: boolean }
-export interface PublishedStoryContent {
-  story: ReviewStory & { isArchived: boolean }; version: ReviewVersion | null; scenes: ReviewScene[];
-  vocabulary: { term: string; definition: string }[]; quizzes: { type: string; question: string; correctAnswer: string | null; choices: string | null }[];
-  discussionQuestions: { question: string; isMoralLesson: boolean }[];
-}
-export interface PublishedRoadmap {
-  roadmapId: number; name: string; description: string | null; ageBand: string; mainCategory: ReviewLabel | null;
-  readingLevelMin: number; readingLevelMax: number; defaultDaysPerStory: number; publishedAt: string | null; needsUpdate: boolean;
-  stories: { storyId: number; position: number; days: number | null; title: string | null; ageBand: string; isArchived: boolean }[];
-}
-
-/** So sánh phiên bản khi duyệt truyện gửi lại (`/PublicStoryReview/{id}/compare`). */
-export interface VersionComparison {
-  against: string; baseVersionNo: number; currentVersionNo: number; isIdentical: boolean;
-  textDiff: { type: string; before: string | null; after: string | null }[];
-  baseMetrics: { wordCount: number; sentenceCount: number }; currentMetrics: { wordCount: number; sentenceCount: number };
-  changedFields: string[];
-  sceneChanges: { sceneIndex: number; change: string; textChanged: boolean; imageChanged: boolean; audioChanged: boolean }[];
-  artifactChanges: { kind: string; change: string; key: string }[];
-}

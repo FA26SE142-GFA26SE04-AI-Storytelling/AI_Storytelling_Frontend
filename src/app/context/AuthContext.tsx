@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const health = await authService.checkBackendHealth();
     setBackendOnline(health.isOnline);
     setBackendStatusMessage(health.message);
-    // Máy chủ chưa phản hồi chỉ là trạng thái tạm thời: giữ nguyên phiên, chỉ đăng xuất khi backend từ chối token.
+    // Reachability is informational; a network outage must not revoke stored credentials.
   }, []);
 
   // Đăng ký listener và khởi tạo trạng thái phiên đăng nhập khi tải trang
@@ -57,7 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setBackendStatusMessage(health.message);
       });
 
-      // 2. Đọc Token & User từ LocalStorage
+      // 2. Đọc Token & User từ LocalStorage (vẫn kiểm tra /Auth/me kể cả khi không ping được máy chủ)
       const token = authService.getStoredAccessToken();
       const storedRefreshToken = authService.getStoredRefreshToken();
       const storedUser = authService.getStoredUser();
@@ -84,8 +84,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (profileRes.success && profileRes.data) {
         setUser(profileRes.data);
         setAccessToken(authService.getStoredAccessToken());
-      } else if (!authService.getStoredAccessToken() && !authService.getStoredRefreshToken()) {
-        // Backend từ chối phiên (authService đã xoá token) -> out tài khoản
+      } else if (profileRes.status === 401 || profileRes.status === 403 || (!authService.getStoredAccessToken() && !authService.getStoredRefreshToken())) {
+        // Backend từ chối phiên (401/403, hoặc authService đã xoá token khi refresh bị từ chối) -> out tài khoản
+        authService.clearStoredAuth();
         setUser(null);
         setAccessToken(null);
       } else {

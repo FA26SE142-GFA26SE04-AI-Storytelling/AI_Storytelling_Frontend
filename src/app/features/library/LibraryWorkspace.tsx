@@ -7,13 +7,14 @@ import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { storyService } from "@/app/services/storyService";
 import { ageLabel, splitScenes, statusKey, type StoryCard } from "@/app/lib/storyView";
-import type { WorkspaceId } from "@/app/components/shell/nav";
+import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useRiseIn } from "@/app/lib/motion";
 import { ArchiveDialog } from "@/app/features/review/ReviewTools";
 import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
 import { guardianService } from "@/app/services/guardianService";
 import type { CommunitySubmission, ContentReport } from "@/app/types/progress";
 import { useMyRole } from "@/app/features/children/useMyRole";
+import PersonalStoryEditor from "./PersonalStoryEditor";
 import { CommunityDialog, ReportDialog } from "./ModerationDialogs";
 
 const SUB_STATUS: Record<string, string> = { pending: "Đang chờ duyệt", approved: "Đã có trong thư viện cộng đồng", rejected: "Bị từ chối — có thể nộp lại", withdrawn: "Đã rút", removed: "Đã gỡ" };
@@ -27,7 +28,7 @@ const STATUS_GROUPS: { id: string; label: string; keys: string[] }[] = [
   { id: "outline", label: "Chờ duyệt dàn ý", keys: ["outline_review"] },
   { id: "moderation", label: "Đang kiểm duyệt an toàn", keys: ["moderation_review"] },
   { id: "review", label: "Chờ duyệt", keys: ["content_review"] },
-  { id: "media", label: "Đang chuẩn bị media", keys: ["approved", "media_processing"] },
+  { id: "media", label: "Đang chuẩn bị media", keys: ["approved", "media_processing", "media_review"] },
   { id: "ready", label: "Sẵn sàng", keys: ["ready", "published"] },
   { id: "blocked", label: "Bị chặn", keys: ["blocked"] },
   { id: "rejected", label: "Bị từ chối", keys: ["rejected"] },
@@ -61,8 +62,9 @@ function Preview({ story, onClose }: { story: StoryCard; onClose: () => void }) 
   );
 }
 
-export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void }) {
+export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const { stories, storiesLoading, error, reload, child } = useWorkspaceData();
+  const [managePersonal,setManagePersonal] = useState(false);
   const [filter, setFilter] = useState("all");
   const [status, setStatus] = useState("all");
   const [q, setQ] = useState("");
@@ -124,7 +126,7 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
       </div>
 
       <div className="pane">
-        <div className="lbar">
+        <div className="lbar"><button className="btn btn-s" onClick={()=>setManagePersonal(true)}>Truyện riêng</button>{managePersonal&&<PersonalStoryEditor onClose={()=>setManagePersonal(false)} onChanged={()=>void reload()}/>}
           <label className="row grow" style={{ gap: 6, color: "var(--muted)" }}>
             <Search className="ic" />
             <input className="inp" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm theo tên truyện" style={{ border: 0, background: "none" }} aria-label="Tìm theo tên truyện" />
@@ -169,13 +171,13 @@ export default function LibraryWorkspace({ go }: { go: (id: WorkspaceId) => void
                 <span>Người tạo</span><b>{sel.by}</b>
                 <span>Trạng thái</span><span className={`pill ${sel.tone}`} style={{ width: "fit-content" }}>{sel.statusLabel}</span>
               </div>
-              {selStatus === "review" && <button className="btn btn-p btn-c" onClick={() => go("review")}><WandSparkles className="ic" />Mở để duyệt</button>}
-              {(selStatus === "generating" || selStatus === "outline") && <button className="btn btn-p btn-c" onClick={() => go("studio")}><WandSparkles className="ic" />Tiếp tục trong Studio</button>}
+              {selStatus === "review" && <button className="btn btn-p btn-c" onClick={() => sel.fromAi ? go('studio',{storyId:sel.id}) : go('review')}><WandSparkles className="ic" />Mở để duyệt</button>}
+              {sel.fromAi && ['draft','generating','outline','review','media','moderation'].includes(selStatus ?? '') && <button className="btn btn-p btn-c" onClick={() => go("studio",{storyId:sel.id})}><WandSparkles className="ic" />Tiếp tục trong Studio</button>}
               {selStatus === "moderation" && <p className="sub">Truyện đang chờ kiểm duyệt viên xem, thường trong 24 giờ.</p>}
               {selStatus === "ready" && role?.can("AssignActivity") && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình của con</button>}
               {selStatus === "ready" && mod?.submission && <p className="sub">Thư viện cộng đồng: {SUB_STATUS[mod.submission.status] ?? mod.submission.status}</p>}
-              {selStatus === "ready" && mod?.submission && (mod.submission.status === "pending" || mod.submission.status === "approved") && role?.can("ApproveStory") && (
-                <button className="btn btn-s btn-c" onClick={() => void guardianService.withdrawCommunity(mod.submission!).then((r) => { flash(r.message || (r.success ? "Đã cập nhật." : "Chưa thực hiện được.")); void loadMod(); })}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
+              {selStatus === "ready" && mod?.submission && ((mod.submission.canWithdraw ?? mod.submission.status === "pending") || (mod.submission.canRemove ?? mod.submission.status === "approved")) && role?.can("ApproveStory") && (
+                <button className="btn btn-s btn-c" onClick={() => void (mod.submission!.canRemove ?? mod.submission!.status === "approved" ? guardianService.removeCommunity(mod.submission!.id) : guardianService.withdrawCommunity(mod.submission!.id)).then((r) => { flash(r.success ? r.message : r.message); void loadMod(); })}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
               )}
               {selStatus === "ready" && role?.can("ApproveStory") && !(mod?.submission && ["pending", "approved"].includes(mod.submission.status)) && (
                 <button className="btn btn-s btn-c" disabled={!!mod?.reports.some((r) => r.status === "pending")} title={mod?.reports.some((r) => r.status === "pending") ? "Truyện đang có báo cáo chờ xử lý" : undefined} onClick={() => setDialog("community")}><Send className="ic" />Nộp thư viện cộng đồng</button>
