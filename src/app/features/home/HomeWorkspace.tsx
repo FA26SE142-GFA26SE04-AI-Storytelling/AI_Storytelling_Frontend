@@ -4,7 +4,7 @@ import "./home.css";
 import "./dashboard.css";
 import "@/app/features/roadmap/roadmap.css";
 import { useCallback, useEffect, useState } from "react";
-import { Eye, Lock, Sparkles, WandSparkles } from "lucide-react";
+import { BookOpen, Lock, WandSparkles } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { guardianService } from "@/app/services/guardianService";
@@ -18,10 +18,8 @@ import type { TokenQuotaStatus } from "@/app/types/childProfile";
 import type { PermissionRequest } from "@/app/types/supervision";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import Frog from "@/app/components/brand/Frog";
-import HeroPond from "@/app/components/brand/HeroPond";
-import { ageLabel } from "@/app/lib/storyView";
 import { BADGES } from "@/app/lib/readingRules";
-import { childStatus, fmtDate, PERMISSIONS } from "@/app/lib/guardian";
+import { fmtDate, PERMISSIONS } from "@/app/lib/guardian";
 import { useMyRole } from "@/app/features/children/useMyRole";
 import { useChildRefs } from "@/app/features/roadmap/AddToRoadmapDialog";
 import HoldPanel from "@/app/features/roadmap/HoldPanel";
@@ -30,6 +28,10 @@ import RecommendationCard from "@/app/features/adaptive/RecommendationCard";
 import WishItem from "./WishItem";
 import SupervisionTodos, { useSupervisionTodos } from "./SupervisionTodos";
 import CompletionCard from "./CompletionCard";
+import InProgressStories, { needsYouCount } from "./InProgressStories";
+import ChildCard from "./ChildCard";
+import AccountStats from "./AccountStats";
+import { openChildCreate } from "@/app/features/children/childrenIntent";
 
 const DOW = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];
 
@@ -44,26 +46,24 @@ function Locked({ title, go }: { title: string; go: WorkspaceProps["go"] }) {
   );
 }
 
-type AllRow = { id: number; nickname: string; status: string; dash: Dashboard | null };
-
 /** Luồng 4 Bước 4.3c — Dashboard tổng quan của phụ huynh, đầu trang là "Con của tôi" (Luồng 1 Bước 1.9). */
-export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
+export default function HomeWorkspace({ go }: WorkspaceProps) {
   const { user } = useAuth();
   const { children: kids, child, selectChild, stories, reviewQueue, error, reloadChildren } = useWorkspaceData();
   const role = useMyRole(child);
   const refs = useChildRefs();
-  const [tab, setTab] = useState<"one" | "all">("one");
-  const [capabilityError,setCapabilityError]=useState('');
   const [dash, setDash] = useState<Dashboard | null>(null);
+  // Backend chưa có API dashboard / báo cáo tuần: ẩn hẳn các khối đó thay vì hiện "—" hay thông báo lỗi kỹ thuật.
+  const [dashOk, setDashOk] = useState(false);
+  const [reportsOk, setReportsOk] = useState(false);
   const [wishes, setWishes] = useState<(StoryWish & { label: string })[]>([]);
   const [reports, setReports] = useState<ProgressReport[]>([]);
   const [quota, setQuota] = useState<TokenQuotaStatus | null>(null);
   const [requests, setRequests] = useState<PermissionRequest[]>([]);
   const [recs, setRecs] = useState<Recommendation[]>([]);
-  const [allRows, setAllRows] = useState<AllRow[]>([]);
   const todos = useSupervisionTodos(child, user?.id ?? -1);
   const [openReport, setOpenReport] = useState<number | null>(null);
-  const rootRef = useRiseIn<HTMLElement>(".dash-block", [child?.id, tab, dash ? 1 : 0]);
+  const rootRef = useRiseIn<HTMLElement>(".dash-block", [child?.id, dash ? 1 : 0]);
 
   const load = useCallback(async () => {
     if (!child) return;
@@ -73,7 +73,9 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
       // Luồng 6 Bước 6.5 — hàng đợi đề xuất chung của bé, tải lại mỗi lần mở Dashboard.
       child.status === "Active" ? adaptiveService.recommendations(child.id) : Promise.resolve({ data: [] as Recommendation[] }),
     ]);
-    setDash(d.data);setCapabilityError(d.success?'':d.message);
+    setDash(d.data);
+    setDashOk(d.success && !!d.data);
+    setReportsOk(r.success);
     setRecs(rc.data ?? []);
     setWishes((w.data ?? []).filter((x) => x.status === "pending"));
     setReports(r.data ?? []);
@@ -85,15 +87,10 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
   }, [child]);
   useEffect(() => { setDash(null); void load(); }, [load]);
 
-  useEffect(() => {
-    if (tab !== "all") return;
-    void Promise.all(kids.map(async (k) => ({ id: k.id, nickname: k.nickname, status: k.status, dash: (await guardianService.dashboard(k.id)).data }))).then(setAllRows);
-  }, [tab, kids]);
-
   if (!child) {
     return (
       <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
-        <div className="pane"><div className="empty"><Frog size={110} mood="think" /><b className="display">Chưa có hồ sơ bé</b><span>Tạo hồ sơ bé để bắt đầu tạo truyện, hoặc nhập mã mời nếu bố/mẹ của bé đã mời bạn.</span><button className="btn btn-p" onClick={() => go("children")}>Thêm hồ sơ bé</button></div></div>
+        <div className="pane"><div className="empty"><Frog size={110} mood="think" /><b className="display">Chưa có hồ sơ bé</b><span>Tạo hồ sơ bé để bắt đầu tạo truyện, hoặc nhập mã mời nếu bố/mẹ của bé đã mời bạn.</span><button className="btn btn-p" onClick={() => openChildCreate(go)}>Thêm hồ sơ bé</button></div></div>
       </section>
     );
   }
@@ -105,56 +102,47 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
   // Đề xuất hiện cho mọi người giám sát hợp lệ; nhãn quyền tính trên thẻ (Bước 6.5). Đề xuất vừa quyết định giữ lại 3 ngày để xem kết quả.
   const awaitingRecs = recs.filter((r) => r.status === "awaiting_review");
   const recentRecs = recs.filter((r) => r.status !== "awaiting_review" && r.status !== "stale" && r.decidedAt && Date.now() - Date.parse(r.decidedAt) < 3 * 86_400_000);
-  const actionCount = (can("ApproveStory") ? reviewQueue.length + wishes.length : 0) + (dash?.holdCase?.needsAttention ? 1 : 0) + (role?.isOwner ? requests.length : 0) + unseen.length + awaitingRecs.length + todos.count;
+  const actionCount = (can("ApproveStory") ? reviewQueue.length + wishes.length : 0) + needsYouCount(stories) + (dash?.holdCase?.needsAttention ? 1 : 0) + (role?.isOwner ? requests.length : 0) + unseen.length + awaitingRecs.length + todos.count;
   const permLabel = (p: string) => PERMISSIONS.find((x) => x.id === p)?.label ?? p;
 
   return (
     <section ref={rootRef} className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
       <div className="pane dash">
-        {/* Đổi bé đang xem dùng ô "Chọn bé" trên thanh trên cùng; ở đây chỉ chọn xem một bé hay tổng hợp cả nhà. */}
-        {kids.length > 1 && (
-          <div className="tabs" role="group" aria-label="Phạm vi xem">
-            <button aria-pressed={tab === "one"} className={tab === "one" ? "on" : ""} onClick={() => setTab("one")}>Bé đang chọn: {child.nickname}</button>
-            <button aria-pressed={tab === "all"} className={tab === "all" ? "on" : ""} onClick={() => setTab("all")}>Tất cả các con</button>
-          </div>
-        )}
         {error && <div className="err-banner" role="alert">{error}</div>}
 
-        <div className="dash-body">{capabilityError&&<p className="notice" role="status">{capabilityError}</p>}
-          <header className="hero">
-            <div>
-              <h1 className="display home-h1">Chào {user?.fullName?.split(" ").slice(-1)[0] || "bạn"}</h1>
-              <p className="sub" style={{ fontSize: 14, marginTop: 4 }}>
-                {tab === "all" ? `Bạn đang theo dõi ${kids.length} bé.` : `${child.nickname} (${ageLabel(child.ageBand)}) · ${actionCount ? `${actionCount} việc cần bạn xử lý` : "Không có việc gì cần xử lý"}`}
-              </p>
-            </div>
-            <HeroPond />
-          </header>
+        <div className="dash-body">
+          <h1 className="sr-only">Tổng quan</h1>
 
-          {tab === "all" ? (
-            <div className="dash-block">
-              <h3>Tóm tắt các con</h3>
-              {allRows.map((r) => (
-                <button key={r.id} className="all-row" onClick={() => { selectChild(r.id); setTab("one"); }}>
-                  <b>{r.nickname}</b>
-                  <span className={`pill ${childStatus(r.status).tone}`}>{childStatus(r.status).label}</span>
-                  <span className="grow sub">{r.dash ? `Tuần này đọc ${r.dash.storiesThisWeek} truyện · chuỗi ${r.dash.streakDays} ngày · ${r.dash.pendingWishes} điều ước chờ` : "…"}</span>
-                  {r.dash?.holdCase?.status === "hold_mode" && <span className="pill wait">Tạm khoá thư viện</span>}
-                </button>
-              ))}
-            </div>
-          ) : (
+          {/* Tất cả các con, mỗi bé một thẻ gọn. Bấm thẻ để mở hồ sơ của bé. */}
+          <section className="kc-row" aria-label="Các con">
+            {kids.map((k) => (
+              <ChildCard key={k.id} child={k} onOpenProfile={() => { selectChild(k.id); go("children"); }} />
+            ))}
+          </section>
+
             <>
               <div className="continue">
-                <button className="cont" onClick={onKid}>
-                  <span className="thumb cover" style={{ background: "linear-gradient(170deg,#2FA866,#6FD39A 60%,#D2F5E0)" }} />
-                  <span className="grow"><small>Cho {child.nickname} đọc</small><b className="display">{dash?.roadmap.open?.title ?? "Mở thư viện của bé"}</b><small>{dash?.roadmap.open ? "Truyện đang mở trong lộ trình" : "Bé tự chọn truyện"}</small></span>
-                  <span className="go"><Eye className="ic" /></span>
+                {/* Hai lối tắt: Thư viện truyện và Studio tạo truyện */}
+                <button className="cont" onClick={() => go("library")}>
+                  <span className="thumb cover" style={{ background: "linear-gradient(170deg, var(--primary), color-mix(in srgb, var(--primary) 40%, var(--paper)))" }} />
+                  <span className="grow">
+                    <small>Thư viện truyện</small><b className="display">Xem tất cả truyện</b>
+                    <small>{stories.length ? `${stories.length} truyện · ${stories.filter((s) => s.tone === "ok").length} đã duyệt` : "Lọc, xem trước như bé thấy, thêm vào lộ trình"}</small>
+                  </span>
+                  <span className="go" aria-hidden><BookOpen className="ic" /></span>
                 </button>
                 <button className="cont" onClick={() => go("studio")}>
-                  <span className="thumb cover" style={{ background: "linear-gradient(170deg,#E0568A,#F59BB6 60%,#FFD6E2)" }} />
-                  <span className="grow"><small>Bắt đầu mới</small><b className="display">Tạo truyện mới</b><small>Mô tả ý tưởng, AI sẽ viết cùng bạn</small></span>
-                  <span className="go"><WandSparkles className="ic" /></span>
+                  <span className="thumb cover" style={{ background: "linear-gradient(170deg, var(--lotus-deep), color-mix(in srgb, var(--lotus) 45%, var(--paper)))" }} />
+                  <span className="grow">
+                    <small>Studio tạo truyện</small><b className="display">Tạo truyện mới</b><small>Mô tả ý tưởng, AI sẽ viết cùng bạn</small>
+                    {quota && !quota.isUnlimited && (
+                      <span className="quota" title={quota.periodEnd ? `Làm mới ${fmtDate(quota.periodEnd)}` : undefined}>
+                        <span className="quota-bar" aria-hidden><i style={{ width: `${Math.min(100, ((quota.remaining ?? 0) / Math.max(1, quota.quotaLimit ?? 1)) * 100)}%` }} /></span>
+                        <small>Còn {quota.remaining ?? 0}/{quota.quotaLimit ?? "?"} lượt</small>
+                      </span>
+                    )}
+                  </span>
+                  <span className="go" aria-hidden><WandSparkles className="ic" /></span>
                 </button>
               </div>
 
@@ -176,6 +164,9 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
                   {can("ViewProgress") && unseen.length > 0 && <p className="sub">{unseen.length} câu chuyện con vừa đọc xong — xem bên dưới để trò chuyện với con.</p>}
                 </div>
 
+                <InProgressStories stories={stories} go={go} />
+
+
                 {/* Con vừa đọc xong */}
                 {can("ViewProgress") ? (dash?.completions.length ?? 0) > 0 && (
                   <div className="dash-block wide">
@@ -187,8 +178,8 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
                   </div>
                 ) : null}
 
-                {/* Tiến độ */}
-                {can("ViewProgress") ? (
+                {/* Tiến độ (chỉ khi backend có API dashboard) */}
+                {dashOk && (can("ViewProgress") ? (
                   <div className="dash-block">
                     <h3>Tiến độ</h3>
                     <div className="stats3">
@@ -205,19 +196,12 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
                       ))}
                     </div>
                     {(dash?.newBadges.length ?? 0) > 0 && <p className="sub">Huy hiệu mới: {dash!.newBadges.map((b) => `${BADGES[b.badgeCode]?.emoji ?? ""} ${BADGES[b.badgeCode]?.label ?? b.badgeCode}`).join(", ")}</p>}
-                    <div className="dash-roadmap">
-                      <b>Lộ trình của con</b>
-                      {dash?.roadmap.empty
-                        ? <span className="sub">{dash.roadmap.total ? `${child.nickname} đã đọc hết truyện bạn chọn.` : "Chưa có truyện nào."} Thêm truyện hoặc bộ truyện mẫu nhé.</span>
-                        : <span className="sub">Đang mở: {dash?.roadmap.open?.title ?? "—"} · {dash?.roadmap.done}/{dash?.roadmap.total} đã đọc{dash?.roadmap.overdue ? " · đã qua ngày mong đọc xong" : ""}</span>}
-                      <button className="btn btn-s" style={{ width: "fit-content" }} onClick={() => go("roadmap")}>Mở lộ trình</button>
-                    </div>
                     {!dash?.holdCase?.needsAttention && <HoldPanel child={child} role={role} compact onChanged={() => void load()} />}
                   </div>
-                ) : <Locked title="Tiến độ" go={go} />}
+                ) : <Locked title="Tiến độ" go={go} />)}
 
                 {/* Kết quả học tập */}
-                {can("ViewResults") ? (
+                {dashOk && (can("ViewResults") ? (
                   <div className="dash-block">
                     <h3>Kết quả học tập</h3>
                     <small className="sub">Điểm câu đố 5 lần gần nhất</small>
@@ -232,10 +216,10 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
                     ) : <p className="sub">Chưa có kết quả câu đố.</p>}
                     <p className="sub">Đã lưu {dash?.wordsCollected ?? 0} từ vào sổ tay.</p>
                   </div>
-                ) : <Locked title="Kết quả học tập" go={go} />}
+                ) : <Locked title="Kết quả học tập" go={go} />)}
 
                 {/* Sở thích + Hoạt động gần đây */}
-                {can("ViewProgress") ? (
+                {dashOk && (can("ViewProgress") ? (
                   <div className="dash-block">
                     <h3>Sở thích</h3>
                     {dash?.topGenres.length ? <div className="chips">{dash.topGenres.map((g) => <span key={g.genre} className="chip">{g.genre} · {g.count}</span>)}</div> : <p className="sub">Chưa đủ dữ liệu (chỉ tính truyện bé tự chọn).</p>}
@@ -244,17 +228,10 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
                     <h3 style={{ marginTop: 10 }}>Hoạt động gần đây</h3>
                     {dash?.activity.length ? <ul className="activity">{dash.activity.map((a, i) => <li key={i}><span>{a.text}</span><small>{fmtDate(a.at)}</small></li>)}</ul> : <p className="sub">Chưa có hoạt động.</p>}
                   </div>
-                ) : <Locked title="Sở thích và hoạt động" go={go} />}
+                ) : <Locked title="Sở thích và hoạt động" go={go} />)}
 
-                {/* Tài khoản */}
-                <div className="dash-block">
-                  <h3>Tài khoản</h3>
-                  {quota ? (quota.isUnlimited ? <p className="sub">Không giới hạn lượt tạo truyện.</p> : <p className="sub">Đã dùng {quota.quotaUsed ?? 0}/{quota.quotaLimit ?? "?"} lượt tạo truyện, còn {quota.remaining ?? 0} lượt{quota.periodEnd ? ` (làm mới ${fmtDate(quota.periodEnd)})` : ""}.</p>) : <p className="sub">Chưa tải được số lượt tạo truyện.</p>}
-                  <button className="btn btn-s" style={{ width: "fit-content" }} onClick={() => go("studio")}><Sparkles className="ic" />Tạo truyện</button>
-                </div>
-
-                {/* Báo cáo định kỳ */}
-                {can("ReceiveReport") ? (
+                {/* Báo cáo định kỳ (chỉ khi backend có API báo cáo) */}
+                {reportsOk && (can("ReceiveReport") ? (
                   <div className="dash-block wide">
                     <h3>Báo cáo tuần</h3>
                     {reports.length === 0 && <p className="sub">Chưa có báo cáo.</p>}
@@ -281,10 +258,12 @@ export default function HomeWorkspace({ go, onKid }: WorkspaceProps) {
                       </div>
                     ))}
                   </div>
-                ) : <Locked title="Báo cáo tuần" go={go} />}
+                ) : <Locked title="Báo cáo tuần" go={go} />)}
+
+                {/* Thống kê của tài khoản: luôn ở cuối trang */}
+                <AccountStats kids={kids} stories={stories} quota={quota} />
               </div>
             </>
-          )}
         </div>
       </div>
     </section>

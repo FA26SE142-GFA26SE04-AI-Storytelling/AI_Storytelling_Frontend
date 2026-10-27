@@ -12,6 +12,7 @@ import { avatarOf, childStatus } from "@/app/lib/guardian";
 import { ageLabel } from "@/app/lib/storyView";
 import { useRiseIn } from "@/app/lib/motion";
 import CreateChildWizard from "./CreateChildWizard";
+import { clearChildIntent, wantsChildCreate } from "./childrenIntent";
 import ProfileTab from "./ProfileTab";
 import LearningTab from "./LearningTab";
 import SupervisorsTab from "./SupervisorsTab";
@@ -34,7 +35,9 @@ type Role = { isOwner: boolean; perms: string[] };
 export default function ChildrenWorkspace({ go }: WorkspaceProps) {
   const { user } = useAuth();
   const { children: kids, child, selectChild, reloadChildren } = useWorkspaceData();
-  const [mode, setMode] = useState<"view" | "create" | "join">(kids.length ? "view" : "create");
+  // Mở từ nút "+ Thêm bé" ở màn khác thì vào thẳng form tạo hồ sơ.
+  const [mode, setMode] = useState<"view" | "create" | "join">(() => (wantsChildCreate() || !kids.length ? "create" : "view"));
+  useEffect(() => { clearChildIntent(); }, []);
   const [tab, setTab] = useState<Tab>("profile");
   const [role, setRole] = useState<Role | null>(null);
   const listRef = useRiseIn<HTMLDivElement>(".kid-item", [kids.length]);
