@@ -55,6 +55,27 @@ function progress(inputStatus: AIStoryInputProgressDto['inputStatus']): AIStoryI
 }
 
 describe('AI Story Input Phase 1 contract', () => {
+  it('uses the backend 900-word recommendation in both the new form and submitted request', () => {
+    const current = { ...context, maximumLength: 1500, recommendedTargetLength: 900 };
+    const values = createDefaultFormValues(current);
+    expect(values.targetLength).toBe(900);
+    expect(buildSubmitRequest(7, values, current, 'recommended-length').targetLength).toBe(900);
+    expect(lengthPresets(1500, 2, 900)).toEqual({ short: 720, medium: 900, long: 1080 });
+  });
+
+  it('honors server recommendations for older children and clamps them to safety limits', () => {
+    expect(createDefaultFormValues({ ...context, maximumLength: 2000, recommendedTargetLength: 1500 }).targetLength).toBe(1500);
+    expect(createDefaultFormValues({ ...context, recommendedTargetLength: 900 }).targetLength).toBe(500);
+    expect(lengthPresets(500, 2, 900).long).toBe(500);
+    expect(lengthPresets(1500, 2, Number.NaN).medium).toBe(550);
+  });
+
+  it('preserves explicit lengths in saved drafts despite a new backend default', () => {
+    const current = { ...context, maximumLength: 1500, recommendedTargetLength: 900 };
+    expect(restoreFormValues({ targetLength: 550 }, current).targetLength).toBe(550);
+    expect(restoreFormValues({}, current).targetLength).toBe(900);
+  });
+
   it('maps context defaults and clamps target length to maximumLength', () => {
     const values = createDefaultFormValues(context);
     expect(values.topic).toContain('vũ trụ');

@@ -666,6 +666,7 @@ export interface CreateStoryRequestDto {
 }
 
 export interface CreatorAIStoryInputContextDto {
+  'recommendedTargetLength'?: number;
   'ageBand': string;
   'readingLevel': number;
   'defaultLanguage': string;
@@ -977,6 +978,7 @@ export interface MarkPartViewedRequestDto {
 }
 
 export interface MediaGenerationProgress extends MediaPackageState {
+  issues?: import('@/app/types/aiStory').MediaGenerationIssue[];
   'storyId': number;
   'approvedStoryVersionId': number | null;
   'storyStatus': string;
@@ -1669,6 +1671,7 @@ export interface RetryOutlineRequestDto {
 }
 
 export interface ReviewPackageDto {
+  'assistanceRevisionToken'?: string | null;
   'storyId': number;
   'outputMode': string;
   'storyVersionId': number;

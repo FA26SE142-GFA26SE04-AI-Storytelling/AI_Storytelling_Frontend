@@ -117,7 +117,7 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
   const regenerateArtifact = (artifact: Exclude<ReviewArtifact, 'story'>) =>
     askAi('AI đang soạn lại học liệu…', signal => api.regenerateReviewArtifact(storyId, artifact, signal));
 
-  const saveStory = (draft: { title: string; content: string; lesson: string }, onSaved?: () => void) => run(async signal => {
+  const saveStory = (draft: { title: string; content: string; lesson: string; assistanceReferences?: import('@/app/types/backendContracts').AssistanceReference[] }, onSaved?: () => void) => run(async signal => {
     if (!bundle) return;
     requireData(await api.updateStoryReview(storyId, { versionId: bundle.story.versionId, ...draft }, signal));
     if (signal.aborted) return;

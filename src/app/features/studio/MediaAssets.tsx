@@ -4,7 +4,7 @@ import { useMediaPackage } from '@/app/features/story-workflow/useMediaPackage';
 export default function MediaAssets({ storyId, versionId, onChanged, disabled = false }: {
   storyId: number; versionId?: number | null; onChanged: () => void; disabled?: boolean;
 }) {
-  const { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm } = useMediaPackage({storyId,versionId,onChanged,disabled});
+  const { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm, keepCurrent } = useMediaPackage({storyId,versionId,onChanged,disabled});
   return <details><summary>Ảnh và âm thanh thực tế</summary>
     <button className="btn btn-s" disabled={busy} onClick={() => void load()}>Tải gói media mới nhất</button>
     {note && <p className="notice" role="status">{note}</p>}
@@ -21,6 +21,7 @@ export default function MediaAssets({ storyId, versionId, onChanged, disabled = 
         <button className="btn btn-s" disabled={busy || disabled || uncertain} onClick={() => void regenerate('audio', a.segmentId)}>Tạo lại giọng đọc đoạn này</button>
       </div>)}
     </article>)}
+    {pack?.replacements?.filter(r=>['Failed','ManualReview'].includes(r.status)).map(r=><div className="notice" key={r.candidateAssetId}><p>Bản tạo lại {r.type === 'Illustration' ? 'tranh' : 'âm thanh'} chưa đạt yêu cầu.</p><button className="btn btn-s" disabled={busy||disabled||uncertain} onClick={()=>void keepCurrent(r.candidateAssetId)}>Giữ media trước đó</button></div>)}
     {pack?.isAwaitingConfirmation && <div className="sec"><label className="row"><input type="checkbox" checked={reviewed} disabled={busy || disabled || uncertain} onChange={e => setReviewed(e.target.checked)} />Tôi đã xem tranh và nghe các đoạn âm thanh của gói này</label>
       <button className="btn btn-ok" disabled={busy || disabled || uncertain || !reviewed} onClick={() => void confirm()}>Xác nhận tranh và giọng đọc</button>
     </div>}

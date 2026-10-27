@@ -4,6 +4,7 @@
  * Theme tối được bật bằng thuộc tính data-theme="dark" trên <html> (xem ThemeContext).
  */
 :root {
+  --on-primary: #ffffff;
   /* Nền và bề mặt */
   --bg: #f4fbf6;
   --chrome: #ffffff;

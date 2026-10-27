@@ -4,7 +4,7 @@ import type * as B from '@/app/types/backendContracts';
 import type { ApiResponse } from '@/app/types/auth';
 import { creatorInputService } from '@/app/services/creatorPublicationService';
 import { useStoryProgressPolling } from './useStoryProgressPolling';
-import { loadSnapshot, snapshotStage, type StatusSnapshot } from './generationSnapshot';
+import { loadSnapshot, snapshotStage, keepSnapshotPolling, pipelineFailure, type StatusSnapshot } from './generationSnapshot';
 import { useAuth } from '@/app/context/AuthContext';
 const continueInput = (p: B.AIStoryInputProgressDto) => ['pending_input','checking_input'].includes(p.inputStatus);
 export function useCreatorGeneration(initialId: number | null) {
@@ -23,8 +23,8 @@ export function useCreatorGeneration(initialId: number | null) {
   const check = useStoryProgressPolling(id !== null && input && continueInput(input) ? id : null, loadInput, continueInput);
   useEffect(() => { if (check.data) { setInput(check.data); setMessage(check.data.fallbackMessage ?? ''); } }, [check.data]);
   const activeId = id !== null && (!input || input.inputStatus === 'input_accepted') ? id : null;
-  const shouldContinue = useCallback((s: StatusSnapshot) => ['outline_wait','generating'].includes(snapshotStage(s, false)), []);
-  const snapshot = useStoryProgressPolling(activeId, loadSnapshot, shouldContinue);
+  const shouldContinue = useCallback((s: StatusSnapshot) => keepSnapshotPolling(s), []);
+  const snapshot = useStoryProgressPolling(activeId, loadSnapshot, shouldContinue, Infinity);
   const stage = snapshotStage(snapshot.data, false);
   const submit = async (body: B.SubmitCreatorAIStoryInputRequestDto) => {
     if (locked.current) return;
@@ -57,5 +57,5 @@ export function useCreatorGeneration(initialId: number | null) {
   };
   const refreshSnapshot = snapshot.refresh, refreshInput = check.refresh;
   const refresh = useCallback(() => { refreshSnapshot(); refreshInput(); }, [refreshSnapshot, refreshInput]);
-  return { id, input, stage, snapshot: snapshot.data, error: snapshot.error ?? check.error, message, busy, timedOut: snapshot.timedOut || check.timedOut, submit, retry, command, refresh };
+  return { id, input, stage, failure:pipelineFailure(snapshot.data,stage), snapshot: snapshot.data, error: snapshot.error ?? check.error, message, busy, timedOut: snapshot.timedOut || check.timedOut, submit, retry, command, refresh };
 }

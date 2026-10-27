@@ -12,6 +12,7 @@ import AssistancePanel from "@/app/features/authoring/AssistancePanel";
 import type { AssistanceReference } from "@/app/types/backendContracts";
 import CreatorPublication from "./CreatorPublication";
 import CreatorManualMedia from "./CreatorManualMedia";
+import type {AssistanceSelection} from '@/app/features/story-workflow/assistanceSelection';
 
 const ORIGIN: Record<string, string> = { Write: "Viết", Import: "Nhập", Restore: "Khôi phục" };
 const EMPTY: SaveVersionInput = { title: "", content: "", sourceDeclaration: "", rightsDeclaration: "" };
@@ -30,6 +31,7 @@ type Write = { call: () => Promise<CreatorResult<ContentSaved>>; snapshot: SaveV
  */
 export default function CreatorEditor({ storyId, onBack }: { storyId: number; onBack: () => void }) {
   const [references, setReferences] = useState<AssistanceReference[]>([]);
+  const [selection,setSelection]=useState<AssistanceSelection|null>(null);
   const [publicationLocked, setPublicationLocked] = useState(true);
   const [mediaLocked, setMediaLocked] = useState(false);
   const editorLocked = publicationLocked || mediaLocked;
@@ -137,7 +139,7 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
         <fieldset disabled={editorLocked || busy} style={{ border: 0, padding: 0 }}>
         <label className="field"><span className="lbl">Tên truyện</span><input className="inp" maxLength={200} value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
         <label className="field"><span className="lbl">Nội dung (mỗi đoạn cách nhau một dòng trống)</span>
-          <textarea className="inp" rows={14} maxLength={200_000} value={form.content} onChange={(e) => set({ content: e.target.value })} /></label>
+          <textarea className="inp" rows={14} maxLength={200_000} value={form.content} onSelect={e=>setSelection({snapshot:{title:form.title,content:e.currentTarget.value},start:e.currentTarget.selectionStart,length:e.currentTarget.selectionEnd-e.currentTarget.selectionStart})} onChange={(e) => set({ content: e.target.value })} /></label>
         <div className="st-form">
           <label className="field"><span className="lbl">Nguồn nội dung</span><input className="inp" maxLength={2000} value={form.sourceDeclaration} onChange={(e) => set({ sourceDeclaration: e.target.value })} placeholder="VD: Tự sáng tác" /></label>
           <label className="field"><span className="lbl">Cam kết bản quyền</span><input className="inp" maxLength={2000} value={form.rightsDeclaration} onChange={(e) => set({ rightsDeclaration: e.target.value })} placeholder="VD: Tôi có quyền phát hành nội dung này" /></label>
@@ -152,12 +154,12 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
           <button className="btn btn-p" disabled={busy || !dirty || conflict} onClick={save}><Save className="ic" />{busy ? "Đang lưu…" : "Lưu phiên bản mới"}</button>
         </div>
         </fieldset>
+        <AssistancePanel key={`${storyId}:${draft.selectedVersionId}`} actor="creator" story={draft} selection={selection} snapshot={{title:form.title,content:form.content}} disabled={busy || editorLocked || hasPending || conflict} onApply={(next,ref) => { setForm(f => ({...f,...next}));setSelection(null);setReferences(v => v.some(r=>r.taskId===ref.taskId&&r.stepId===ref.stepId)?v:[...v,ref]); }} />
         <p className="sub">Mỗi lần lưu tạo một phiên bản mới; bản đã nộp được giữ nguyên trong lịch sử.</p>
       </div>
       <CreatorManualMedia key={`media:${storyId}:${draft.selectedVersionId}`} draft={draft} disabled={busy || dirty || conflict || hasPending || publicationLocked} onWorkingChange={setMediaLocked} onStatus={mediaState} />
       <CreatorPublication storyId={storyId} versionId={draft.selectedVersionId} storyStatus={draft.status} onRevision={() => void open()} onLockChange={setPublicationLocked} />
 
-      <AssistancePanel key={`${storyId}:${draft.selectedVersionId}`} actor="creator" story={{ ...draft, source:draft.source ?? 'Manual',status:draft.status ?? 'Draft' }} snapshot={{title:form.title,content:form.content}} disabled={busy || editorLocked || hasPending} onApply={(next,ref) => { setForm(f => ({...f,...next})); setReferences(v => [...v,ref]); }} />
 
       {importing && <CreatorImport draft={draft} defaultTitle={form.title} onClose={() => setImporting(false)}
         onSaved={(r) => { const snap = fromVersion(r.version); setForm(snap); apply(r, snap); setNote({ ok: true, text: `Đã nhập nội dung (phiên bản V${r.version.versionNo}).` }); }} />}

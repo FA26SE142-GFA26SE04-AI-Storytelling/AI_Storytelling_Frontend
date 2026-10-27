@@ -34,7 +34,8 @@ export function useMediaPackage({ storyId, versionId, onChanged, disabled = fals
     const body = mediaMutationSnapshot(pack, versionId);
     if (!body || !window.confirm('Tạo lại mục này sẽ cần xác nhận lại toàn bộ gói media. Tiếp tục?')) return;
     const run = scope.current; lock.current = true; setBusy(true); setReviewed(false);
-    const r = kind === 'audio' ? await api.regenerateAudio(storyId, assetId, body) : await api.regenerateIllustration(storyId, assetId, body);
+    const command = {...body,operationId:crypto.randomUUID()};
+    const r = kind === 'audio' ? await api.regenerateAudio(storyId, assetId, command) : await api.regenerateIllustration(storyId, assetId, command);
     if (run !== scope.current) return;
     lock.current = false; setBusy(false); setPack(null);
     setUncertain(r.status === 0 || (r.status ?? 0) >= 500);
@@ -53,5 +54,18 @@ export function useMediaPackage({ storyId, versionId, onChanged, disabled = fals
     setNote(r.success && r.data?.isReady && r.data.isConfirmed && r.data.approvedStoryVersionId === body.storyVersionId && r.data.packageRevision === body.packageRevision ? 'Đã xác nhận tranh và giọng đọc của phiên bản này.' : r.message || 'Hãy tải lại gói và kiểm tra trạng thái xác nhận.');
     onChanged();
   };
-  return { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm };
+  const keepCurrent = async (candidateAssetId:number) => {
+    if(lock.current || disabled || uncertain || !pack)return;
+    const snapshot=mediaMutationSnapshot(pack,versionId);
+    const candidate=pack.replacements?.find(r=>r.candidateAssetId===candidateAssetId && ['Failed','ManualReview'].includes(r.status));
+    if(!snapshot || snapshot.packageRevision<1 || !candidate || !window.confirm('Giữ media trước đó và bỏ bản tạo lại bị lỗi?'))return;
+    const run=scope.current;lock.current=true;setBusy(true);setReviewed(false);
+    const r=await api.keepCurrentMedia(storyId,candidateAssetId,{storyVersionId:snapshot.storyVersionId,packageRevision:snapshot.packageRevision,operationId:crypto.randomUUID()});
+    if(run!==scope.current)return;
+    lock.current=false;setBusy(false);setPack(null);
+    setUncertain(r.status===0 || (r.status ?? 0)>=500);
+    setNote(r.success?'Đã giữ media trước đó. Tải lại gói để kiểm tra và xác nhận.':r.message);
+    onChanged();
+  };
+  return { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm, keepCurrent };
 }

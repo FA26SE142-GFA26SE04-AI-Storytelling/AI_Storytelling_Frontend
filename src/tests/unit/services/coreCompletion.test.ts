@@ -70,9 +70,9 @@ describe('Remaining Core contracts',()=>{
 it('has source evidence for every browser endpoint in the current controllers',()=>{
  if(existsSync('../../AI_Storytelling_Backend/src/Core/StoryPlatform.Api/Controllers')){
   const output=execFileSync(process.execPath,['scripts/audit-core-api.mjs','--check'],{encoding:'utf8',timeout:15000});
-  const result=JSON.parse(output);expect(result).toEqual({total:318,connected:316,excluded:2,missing:[]});
+  const result=JSON.parse(output);expect(result).toEqual({total:332,connected:330,excluded:2,missing:[]});
  }
  const manifest=JSON.parse(readFileSync('docs/core-api-coverage.json','utf8')) as {method:string;route:string;disposition:string}[];
- expect(manifest).toHaveLength(318);expect(new Set(manifest.map(r=>r.method+' '+r.route)).size).toBe(318);
+ expect(manifest).toHaveLength(332);expect(new Set(manifest.map(r=>r.method+' '+r.route)).size).toBe(332);
  expect(manifest.filter(r=>r.disposition==='SERVER_TO_SERVER').map(r=>r.route)).toEqual(['/api/v1/Payment/webhook/sepay']);
 });

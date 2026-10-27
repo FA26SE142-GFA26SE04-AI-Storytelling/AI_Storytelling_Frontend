@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import type { MediaProgressDto } from "@/app/types/aiStory";
 import type { ApiResponse } from "@/app/types/auth";
@@ -10,7 +10,7 @@ import type { AIStoryInputFormValues } from "@/app/features/story-workflow/aiSto
 import { studioActions } from "./studioProgress";
 import { useStoryProgressPolling } from "@/app/features/story-workflow/useStoryProgressPolling";
 
-import { loadSnapshot, snapshotStage, keepPolling, type Stage, type StatusSnapshot } from '@/app/features/story-workflow/generationSnapshot';
+import { loadSnapshot, snapshotStage, keepSnapshotPolling, pipelineFailure, type Stage, type StatusSnapshot } from '@/app/features/story-workflow/generationSnapshot';
 import { loadResumeSnapshot } from '@/app/features/story-workflow/resumeStory';
 export { snapshotStage, type Stage, type StatusSnapshot } from '@/app/features/story-workflow/generationSnapshot';
 
@@ -30,18 +30,24 @@ export function useStoryPipeline(userId: number, childId: number | null, approve
     else if (inputFlow.progress && childId !== null) writeStorySession(userId, childId, { storyId: inputFlow.progress.storyId, requestId: inputFlow.progress.requestId });
   }, [inputFlow.progress, resumed, userId, childId]);
 
-  const shouldContinue = useCallback((snap: StatusSnapshot) => keepPolling(snapshotStage(snap, approvedLocally)), [approvedLocally]);
+  const shouldContinue = useCallback((snap: StatusSnapshot) => keepSnapshotPolling(snap, approvedLocally), [approvedLocally]);
   const loadResumed = useCallback((id:number,signal:AbortSignal) => loadResumeSnapshot(id,resumed?.requestId ?? null,signal),[resumed]);
-  const status = useStoryProgressPolling<StatusSnapshot>(accepted ? storyId : null, resumed ? loadResumed : loadSnapshot, shouldContinue);
+  const status = useStoryProgressPolling<StatusSnapshot>(accepted ? storyId : null, resumed ? loadResumed : loadSnapshot, shouldContinue, Infinity);
+  const [receipt,setReceipt]=useState<{storyId:number;previous:StatusSnapshot|null;snapshot:StatusSnapshot}|null>(null);
+  const retryKey=useRef<{storyId:number;kind:string;key:string}|null>(null);
+  const retryBusy=useRef(false);
+  // Render the queued response immediately instead of the failed snapshot retained during refresh.
+  const snapshot=receipt?.storyId===storyId && receipt.previous===status.data ? receipt.snapshot : status.data;
   const flow = resumed ? {...inputFlow,progress:status.data?.input ?? null,errorMessage:status.data?.input?.fallbackMessage ?? status.error} : inputFlow;
 
   let stage: Stage = "brief";
-  if (resumed) stage = snapshotStage(status.data,approvedLocally);
+  if (resumed) stage = snapshotStage(snapshot,approvedLocally);
   else if (flow.phase === "submitting" || flow.phase === "checking_input") stage = "checking";
   else if (flow.phase === "input_blocked" || flow.phase === "input_check_failed") stage = "blocked";
-  else if (accepted) stage = snapshotStage(status.data, approvedLocally);
+  else if (accepted) stage = snapshotStage(snapshot, approvedLocally);
 
-  const errorCode = status.data?.generation?.lastErrorCode ?? status.data?.outline?.lastErrorCode ?? null;
+  const failure = pipelineFailure(snapshot,stage);
+  const errorCode = failure?.code ?? null;
   /** Huỷ truyện hiện tại trên backend (từ chối dàn ý hoặc lưu trữ) trước khi làm lại. */
   const cancel = async (): Promise<ApiResponse<unknown>> => {
     const how = studioActions(stage).cancelWith;
@@ -58,16 +64,31 @@ export function useStoryPipeline(userId: number, childId: number | null, approve
    * Thử lại bước AI vừa lỗi: viết truyện / học liệu (`generation/retry`) hoặc tạo dàn ý lần đầu (`outline/retry`).
    * Lỗi khi viết lại dàn ý đã có thì không có ở đây: phụ huynh bấm "Viết lại" trong tab Dàn ý.
    */
-  const generationFailed = status.data?.generation?.currentStep?.startsWith("failed_") ?? false;
-  const outlineFailed = !!status.data?.outline?.lastErrorCode && !status.data.outline.currentVersion;
+  const generationFailed = failure?.kind === 'generation';
+  const outlineFailed = failure?.kind === 'outline' && !snapshot?.outline?.currentVersion;
   const retryFailed = storyId !== null && (generationFailed || outlineFailed) ? async () => {
-    const key = `retry-${storyId}-${crypto.randomUUID()}`;
-    const r = generationFailed ? await api.retryGeneration(storyId, { retryKey: key }) : await api.retryOutline(storyId, { operationKey: key });
-    status.refresh();
-    return r;
+    if(retryBusy.current)return {success:false,data:null,message:'Đang gửi yêu cầu thử lại.'};
+    retryBusy.current=true;
+    const kind=generationFailed?'generation':'outline';
+    if(retryKey.current?.storyId!==storyId||retryKey.current.kind!==kind)
+      retryKey.current={storyId,kind,key:`retry-${storyId}-${crypto.randomUUID()}`};
+    const key=retryKey.current.key;
+    try {
+      const base={outline:snapshot?.outline??null,generation:snapshot?.generation??null};
+      if(generationFailed){
+        const r=await api.retryGeneration(storyId,{retryKey:key});
+        if(r.success&&r.data)setReceipt({storyId,previous:status.data,snapshot:{...base,generation:r.data}});
+        if(r.status!==0&&(r.status??0)<500)retryKey.current=null;
+        status.refresh();return r;
+      }
+      const r=await api.retryOutline(storyId,{operationKey:key});
+      if(r.success&&r.data)setReceipt({storyId,previous:status.data,snapshot:{...base,outline:r.data}});
+      if(r.status!==0&&(r.status??0)<500)retryKey.current=null;
+      status.refresh();return r;
+    } finally {retryBusy.current=false;}
   } : undefined;
 
-  return { cancel, flow, storyId, stage, snapshot: status.data, resumed:!!resumed, statusError: status.error, timedOut: status.timedOut, errorCode, retryFailed, refresh: status.refresh };
+  return { cancel, flow, storyId, stage, snapshot, resumed:!!resumed, statusError: status.error, timedOut: status.timedOut, errorCode, retryFailed, refresh: status.refresh };
 }
 
 const mediaContinue = (m: MediaProgressDto) => !m.isReady && !m.isAwaitingConfirmation && !m.errorCode;

@@ -1068,6 +1068,69 @@
   },
   {
     "method": "POST",
+    "route": "/api/v1/child/notebook/sessions/{sessionId}/words",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildNotebookController.cs",
+    "action": "Collect",
+    "controllerLine": 36,
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/notebook/sessions/{}/words",
+        "service": "childNotebookService",
+        "operation": "collect",
+        "file": "app/services/childReadingService.ts",
+        "line": 18,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/child/notebook",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildNotebookController.cs",
+    "action": "List",
+    "controllerLine": 44,
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/notebook",
+        "service": "childNotebookService",
+        "operation": "list",
+        "file": "app/services/childReadingService.ts",
+        "line": 17,
+        "callers": [
+          "app/features/kid/ChildReadingLibrary.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/child/notebook/{entryId}",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildNotebookController.cs",
+    "action": "Remove",
+    "controllerLine": 51,
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/child/notebook/{}",
+        "service": "childNotebookService",
+        "operation": "remove",
+        "file": "app/services/childReadingService.ts",
+        "line": 19,
+        "callers": [
+          "app/features/kid/ChildReadingLibrary.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
     "route": "/api/v1/ChildProfile",
     "authorization": "Roles = \"Parent\"",
     "controller": "ChildProfileController.cs",
@@ -1290,6 +1353,216 @@
         "line": 60,
         "callers": [
           "app/features/children/ProfileTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/child/reading/stories",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "SearchStories",
+    "controllerLine": 56,
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/reading/stories",
+        "service": "childReadingService",
+        "operation": "stories",
+        "file": "app/services/childReadingService.ts",
+        "line": 5,
+        "callers": [
+          "app/features/kid/ChildReadingLibrary.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/child/reading/sessions",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "Start",
+    "controllerLine": 64,
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/reading/sessions",
+        "service": "childReadingService",
+        "operation": "start",
+        "file": "app/services/childReadingService.ts",
+        "line": 6,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/content",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "GetContent",
+    "controllerLine": 72,
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/reading/sessions/{}/content",
+        "service": "childReadingService",
+        "operation": "content",
+        "file": "app/services/childReadingService.ts",
+        "line": 7,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/progress",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "SaveProgress",
+    "controllerLine": 79,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/child/reading/sessions/{}/progress",
+        "service": "childReadingService",
+        "operation": "progress",
+        "file": "app/services/childReadingService.ts",
+        "line": 8,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/complete",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "Complete",
+    "controllerLine": 87,
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/reading/sessions/{}/complete",
+        "service": "childReadingService",
+        "operation": "complete",
+        "file": "app/services/childReadingService.ts",
+        "line": 9,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/bookmark",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "SetBookmark",
+    "controllerLine": 94,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/child/reading/sessions/{}/bookmark",
+        "service": "childReadingService",
+        "operation": "bookmark",
+        "file": "app/services/childReadingService.ts",
+        "line": 10,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/favorite",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "SetFavorite",
+    "controllerLine": 102,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/child/reading/sessions/{}/favorite",
+        "service": "childReadingService",
+        "operation": "favorite",
+        "file": "app/services/childReadingService.ts",
+        "line": 11,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/signal",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "GetSignal",
+    "controllerLine": 112,
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/reading/sessions/{}/signal",
+        "service": "childReadingService",
+        "operation": "signal",
+        "file": "app/services/childReadingService.ts",
+        "line": 12,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/events",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "LogEvent",
+    "controllerLine": 118,
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/reading/sessions/{}/events",
+        "service": "childReadingService",
+        "operation": "event",
+        "file": "app/services/childReadingService.ts",
+        "line": 13,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/vocabulary/{vocabularyId}",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "GetDefinition",
+    "controllerLine": 126,
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/reading/sessions/{}/vocabulary/{}",
+        "service": "childReadingService",
+        "operation": "definition",
+        "file": "app/services/childReadingService.ts",
+        "line": 14,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
         ]
       }
     ],
@@ -3054,7 +3327,7 @@
         "callers": [
           "app/features/staff/CreatorManualMedia.tsx",
           "app/features/story-workflow/useMediaPackage.ts",
-          "app/features/studio/StudioMedia.tsx"
+          "app/features/story-workflow/useStudioMediaPreview.ts"
         ]
       }
     ],
@@ -3096,7 +3369,8 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 141,
         "callers": [
-          "app/features/story-workflow/useMediaPackage.ts"
+          "app/features/story-workflow/useMediaPackage.ts",
+          "app/features/story-workflow/useStudioCompletion.ts"
         ]
       }
     ],
@@ -3142,6 +3416,27 @@
           "app/features/staff/CreatorGeneration.tsx",
           "app/features/staff/CreatorManualMedia.tsx",
           "app/features/studio/StudioMedia.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/stories/{storyId}/media/replacements/{candidateAssetId}/keep-current",
+    "authorization": "Roles = \"Parent,ContentCreator\"; Roles = \"Parent,ContentCreator\"",
+    "controller": "MediaGenerationController.cs",
+    "action": "KeepCurrent",
+    "controllerLine": 89,
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/media/replacements/{}/keep-current",
+        "service": "aiStoryCreationService",
+        "operation": "keepCurrentMedia",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 142,
+        "callers": [
+          "app/features/story-workflow/useMediaPackage.ts"
         ]
       }
     ],

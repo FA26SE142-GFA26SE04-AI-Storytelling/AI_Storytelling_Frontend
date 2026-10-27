@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { startPolling } from '@/app/features/story-workflow/useStoryProgressPolling';
+import { startPolling, transientPollingFailure } from '@/app/features/story-workflow/useStoryProgressPolling';
 
 describe('startPolling', () => {
+  it('reconnects for transient reads while respecting authorization and invalid requests',()=>{
+    for(const status of [0,408,429,500,502,503,504])expect(transientPollingFailure(status)).toBe(true);
+    for(const status of [undefined,400,401,403,404,409])expect(transientPollingFailure(status)).toBe(false);
+  });
   const current = { scope: 7, data: { stage: 'review' }, error: 'cũ', timedOut: true };
 
   it('keeps the last data when the same story is refreshed, so the screen does not fall back to an empty state', () => {

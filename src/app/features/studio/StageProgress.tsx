@@ -67,12 +67,14 @@ export default function StageProgress({ stage, snapshot, message, errorCode, tim
   const waitingUser = stage === "outline";
   return (
     <div className="pipe-inline">
-      <div className="pipe-card pipe-now">
+      <div className="pipe-card pipe-now" aria-busy={progress.mode === 'run'}>
         <Frog size={96} mood={waitingUser ? "happy" : "think"} />
         <div ref={textRef} className="pipe-text">
           <small className="hint">Bước {progress.current + 1}/{STUDIO_STEPS.length} · {STUDIO_STEPS[progress.current]}</small>
           <h3 className="display">{waitingUser ? "Dàn ý đã sẵn sàng" : progress.caption}</h3>
-          <p className="sub">{waitingUser ? "Mở tab Dàn ý để xem và duyệt, rồi AI sẽ viết truyện." : "Mỗi bước đều có quy tắc an toàn đi kèm. Bạn có thể rời màn hình này, AI vẫn tiếp tục làm."}</p>
+          <p className="sub">{waitingUser ? "Mở tab Dàn ý để xem và duyệt, rồi AI sẽ viết truyện." : errorCode
+            ? 'Máy chủ xác nhận lần xử lý này đã thất bại. Bạn có thể thử lại khi sẵn sàng.'
+            : 'Đang chờ kết quả từ máy chủ. Các thao tác chuyển bước sẽ mở khi xử lý hoàn tất; bạn có thể rời màn hình rồi quay lại kiểm tra.'}</p>
         </div>
         {errorCode && (
           <div className="notice err row" role="alert" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
@@ -81,7 +83,8 @@ export default function StageProgress({ stage, snapshot, message, errorCode, tim
           </div>
         )}
         {retryError && <div className="notice err" role="alert">{retryError}</div>}
-        {timedOut && <div className="notice err">Việc xử lý lâu hơn dự kiến. <button className="link-btn" onClick={onRetry}>Kiểm tra lại</button></div>}
+        {!errorCode && message && <div className="notice" role="status">{message}</div>}
+        {timedOut && <div className="notice warn" role="status">Đã tạm dừng theo dõi tự động; chưa có kết luận tác vụ thất bại. <button className="link-btn" onClick={onRetry}>Kiểm tra lại</button></div>}
       </div>
     </div>
   );

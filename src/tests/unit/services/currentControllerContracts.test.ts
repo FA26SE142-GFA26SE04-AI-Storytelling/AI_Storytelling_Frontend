@@ -40,13 +40,13 @@ describe('Current controller contracts', () => {
     expect(result.status).toBe(409); expect(result.success).toBe(false); expect(fetcher).toHaveBeenCalledTimes(1);
   });
   it.each([
-    ['/stories/7/media/illustration-beats/5/regenerate',() => media.regenerateIllustration(7,5,snapshot)],
-    ['/stories/7/media/segments/8/regenerate',() => media.regenerateAudio(7,8,snapshot)],
+    ['/stories/7/media/illustration-beats/5/regenerate',() => media.regenerateIllustration(7,5,{...snapshot,operationId:'operation-1'})],
+    ['/stories/7/media/segments/8/regenerate',() => media.regenerateAudio(7,8,{...snapshot,operationId:'operation-1'})],
   ] as const)('queues %s with a version, revision and expected confirmation state',async(path,call) => {
     fetcher.mockResolvedValueOnce(new Response(null,{status:202}));
     const r = await call(); expect(r.success).toBe(true); expect(r.status).toBe(202);
     expect(fetcher.mock.calls[0][0].endsWith(path)).toBe(true);
-    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual(snapshot);
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({...snapshot,operationId:'operation-1'});
   });
   it('pins media confirmation without sending regeneration-only fields',async() => {
     await media.confirmMedia(7,{storyVersionId:12,packageRevision:3});

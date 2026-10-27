@@ -3,6 +3,9 @@
 import { useMemo, useState } from "react";
 import { Save, X } from "lucide-react";
 import type { StoryReviewDto } from "@/app/types/aiStory";
+import type { AssistanceReference } from "@/app/types/backendContracts";
+import AssistancePanel from "@/app/features/authoring/AssistancePanel";
+import type { AssistanceSelection } from "@/app/features/story-workflow/assistanceSelection";
 import {
   normalizeSelection, overlapInParagraph, paragraphSelection, paragraphsWithOffsets, type StorySelection,
 } from "@/app/features/story-workflow/storySelection";
@@ -63,14 +66,18 @@ export function StoryView({ story, selection, selectable, onSelect }: ViewProps)
 
 type EditorProps = {
   story: StoryReviewDto;
+  actor: 'parent' | 'creator';
+  assistanceRevisionToken?: string | null;
   busy: boolean;
-  onSave: (draft: { title: string; content: string; lesson: string }) => void;
+  onSave: (draft: { title: string; content: string; lesson: string; assistanceReferences?: AssistanceReference[] }) => void;
   onCancel: () => void;
 };
 
-/** Sửa tay: không gọi AI nên không tốn lượt; lưu xong hệ thống kiểm tra lại khi duyệt. */
-export function StoryEditor({ story, busy, onSave, onCancel }: EditorProps) {
+/** Chỉnh bản nháp; gợi ý AI chỉ được lưu khi người dùng áp dụng và xác nhận. */
+export function StoryEditor({ story, actor, assistanceRevisionToken, busy, onSave, onCancel }: EditorProps) {
   const [draft, setDraft] = useState({ title: story.title, content: story.content, lesson: story.lesson });
+  const [selection, setSelection] = useState<AssistanceSelection | null>(null);
+  const [references, setReferences] = useState<AssistanceReference[]>([]);
   const dirty = draft.title !== story.title || draft.content !== story.content || draft.lesson !== story.lesson;
 
   return (
@@ -78,12 +85,16 @@ export function StoryEditor({ story, busy, onSave, onCancel }: EditorProps) {
       <label className="field"><span className="lbl">Tiêu đề</span>
         <input className="inp display" value={draft.title} disabled={busy} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label>
       <label className="field"><span className="lbl">Nội dung (mỗi đoạn một dòng)</span>
-        <textarea className="inp" rows={18} value={draft.content} disabled={busy} onChange={(e) => setDraft({ ...draft, content: e.target.value })} /></label>
+        <textarea className="inp" rows={18} value={draft.content} disabled={busy} onChange={(e) => setDraft({ ...draft, content: e.target.value })}
+          onSelect={e => { const t=e.currentTarget; setSelection({snapshot:{title:draft.title,content:t.value},start:t.selectionStart,length:t.selectionEnd-t.selectionStart}); }} /></label>
       <label className="field"><span className="lbl">Bài học</span>
         <input className="inp" value={draft.lesson} disabled={busy} onChange={(e) => setDraft({ ...draft, lesson: e.target.value })} /></label>
+      {assistanceRevisionToken && <AssistancePanel actor={actor} story={{storyId:story.storyId,selectedVersionId:story.versionId,revisionToken:assistanceRevisionToken}}
+        snapshot={{title:draft.title,content:draft.content}} selection={selection} disabled={busy}
+        onApply={(next,reference) => {setDraft({...draft,...next});setSelection(null);setReferences(previous=>[...previous.filter(r=>r.taskId!==reference.taskId||r.stepId!==reference.stepId),reference]);}} />}
       <div className="row" style={{ justifyContent: "flex-end" }}>
         <button className="btn btn-g" disabled={busy} onClick={onCancel}><X className="ic" />Huỷ</button>
-        <button className="btn btn-p" disabled={busy || !dirty || !draft.content.trim() || !draft.title.trim()} onClick={() => onSave(draft)}><Save className="ic" />Lưu bản sửa</button>
+        <button className="btn btn-p" disabled={busy || !dirty || !draft.content.trim() || !draft.title.trim()} onClick={() => onSave({...draft,assistanceReferences:references})}><Save className="ic" />Lưu bản sửa</button>
       </div>
     </div>
   );

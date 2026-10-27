@@ -4,6 +4,10 @@ import { createRequire } from 'node:module';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { currentControllerFixture } from './current-controller-fixtures.mjs';
 import { resumeStoryFixture } from './resume-story-fixtures.mjs';
+import { childReadingFixture } from './child-reading-fixtures.mjs';
+import { assistanceFixture, exerciseAssistance } from './assistance-fixtures.mjs';
+import { pipelineStatusFixture, exercisePipeline } from './pipeline-status-fixtures.mjs';
+import { exerciseMediaDiagnostics } from './media-diagnostics-fixtures.mjs';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const base = process.env.FRONTEND_SMOKE_URL || 'http://localhost:3107';
@@ -18,6 +22,7 @@ const card={id:7,title:'Ếch con khám phá',content:'Ếch con đọc truyện
 const draft={storyId:7,authorUserId:1,title:card.title,description:'',language:'vi',ageBand:'6-8',genre:'Khám phá',experienceMode:'reading',audienceRevision:1,revisionToken:'r1',selectedVersionId:12,lastVersionNo:1,createdAt:now,updatedAt:null,source:'Ai',status:'ContentReview'};
 async function fixture(role,run,manual=false,caseName=null) {
  const label=caseName ?? (manual ? `${role}Manual` : role);
+ if(process.env.SMOKE_CASES&&!process.env.SMOKE_CASES.split(',').includes(label))return;
  const context=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
  const page=await context.newPage(); const requests=[]; const errors=[]; const state={claimed:false,cleared:false,creatorStatus:manual?'Draft':'ContentReview',submitted:false};
  const user={id:1,username:'fixture',email:'fixture@example.invalid',fullName:'Người dùng kiểm thử',role,status:'Active'};
@@ -38,7 +43,10 @@ async function fixture(role,run,manual=false,caseName=null) {
   requests.push({path,method,body,authorization:req.headers().authorization});
   const ok=async (data,status=200)=>route.fulfill({status,contentType:'application/json',headers:{'access-control-allow-origin':'*','access-control-allow-headers':'*'},body:JSON.stringify({success:true,message:'Đã ghi nhận fixture',data})});
   if(method==='OPTIONS')return ok(null);
+  if(await pipelineStatusFixture({path,method,body,state,ok,card,now,caseName,route}) !== false)return;
+  if(await assistanceFixture({path,method,body,state,ok,paged,draft,card,caseName,now,route}) !== false)return;
   if(await resumeStoryFixture({path,caseName,state,ok,paged,card}) !== false)return;
+  if(await childReadingFixture({path,method,body,state,ok,caseName}) !== false)return;
   if(await currentControllerFixture({path,method,body,url,state,ok,draft,card,paged,now}) !== false)return;
   if(path==='/health'||path==='/healthz')return route.fulfill({status:200,contentType:'text/plain',body:'Healthy'});
   if(path==='/hubs/notifications/negotiate'&&caseName==='ParentAccount')return route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({negotiateVersion:1,connectionId:'fixture-connection',connectionToken:'fixture-connection',availableTransports:[{transport:'WebSockets',transferFormats:['Text']}]})});
@@ -94,7 +102,7 @@ async function fixture(role,run,manual=false,caseName=null) {
   if(path==='/stories/7/review/validation')return ok({canApprove:false,canConfirmContent:true,checks:[],issues:[]});
   if(path==='/creator/stories/7/generation/confirm-content'){state.creatorStatus='MediaProcessing';return ok({storyId:7,versionId:12,status:'MediaProcessing',confirmedAt:now});}
   if(path==='/stories/7/media/confirm'){assert.deepEqual(body,{storyVersionId:12,packageRevision:state.mediaRevision??1});state.creatorStatus='Ready';return ok({storyId:7,approvedStoryVersionId:12,storyStatus:'Ready',isReady:true,isConfirmed:true,packageRevision:state.mediaRevision??1,isAwaitingConfirmation:false});}
-  if(path==='/stories/7/media/illustration-beats/5/regenerate'||path==='/stories/7/media/segments/8/regenerate'){assert.deepEqual(body,{storyVersionId:12,packageRevision:state.mediaRevision??1,expectedConfirmed:state.creatorStatus==='Ready'});state.mediaRevision=(state.mediaRevision??1)+1;state.creatorStatus='MediaReview';return route.fulfill({status:202,body:''});}
+  if(path==='/stories/7/media/illustration-beats/5/regenerate'||path==='/stories/7/media/segments/8/regenerate'){const {operationId,...snapshot}=body;assert(operationId);assert.deepEqual(snapshot,{storyVersionId:12,packageRevision:state.mediaRevision??1,expectedConfirmed:state.creatorStatus==='Ready'});state.mediaRevision=(state.mediaRevision??1)+1;state.creatorStatus='MediaReview';return route.fulfill({status:202,body:''});}
   if(path==='/stories/7/media/progress'){if(state.creatorStatus!=='Ready')state.creatorStatus='MediaReview';return ok({storyId:7,approvedStoryVersionId:12,storyStatus:state.creatorStatus,jobStatus:'Completed',sceneCount:1,readyIllustrations:1,readyAudio:1,isReady:state.creatorStatus==='Ready',isGenerated:true,isAwaitingConfirmation:state.creatorStatus==='MediaReview',isConfirmed:state.creatorStatus==='Ready',packageRevision:state.mediaRevision??1,confirmedAt:null,confirmedByUserId:null,errorCode:null,requiredIllustrations:1,missingIllustrationBeatIds:[],missingAudioSegmentIds:[],manualReviewAssetIds:[],scenesWithoutValidBeats:[]});}
   if(path==='/PublicStorySubmission/submit'){state.submitted=true;return ok({itemId:9,storyId:7,storyVersionId:12,status:'Pending',submittedAt:now});}
   if(path==='/ChildAccessCredential/easylogin/login')return ok({childProfileId:10,accessToken:'child-fixture',expiresInSeconds:3600});
@@ -123,6 +131,15 @@ async function confirmMediaInBrowser(page, regenerate=false) {
  await page.getByRole('button',{name:'Xác nhận tranh và giọng đọc',exact:true}).click();
 }
 try {
+ for (const dark of [false,true]) {
+  await fixture('Parent',context=>exerciseMediaDiagnostics({...context,base,dark,output}),false,`ParentResumeMediaDiagnostics${dark?'Dark':'Light'}`);
+ }
+ for(const label of ['PipelineContentRunning','PipelineOutlineRunning','PipelineRetry','PipelineNetwork','PipelineContentRetry']){
+  await fixture('Parent',async context=>exercisePipeline({...context,label,base}),false,label);
+ }
+ for(const [role,manual,label,stale] of [['Parent',true,'ParentManualAssistance',false],['ContentCreator',true,'CreatorManualAssistance',false],['Parent',false,'ParentAiAssistance',false],['ContentCreator',false,'CreatorAiAssistance',false],['ContentCreator',true,'CreatorManualAssistanceStale',true],['ContentCreator',true,'CreatorManualAssistanceRetry',false]]){
+  await fixture(role,async context=>exerciseAssistance({...context,manual,parent:role==='Parent',stale,retry:label.endsWith('Retry')}),manual,label);
+ }
  await fixture('Parent',async({page,requests,state})=>{
   page.on('dialog',d=>d.accept());
   await page.getByRole('button',{name:'Tài khoản',exact:true}).click();
@@ -137,6 +154,73 @@ try {
   assert(requests.some(r=>r.path==='/Auth/me/audit-log'));
   assert(!requests.some(r=>r.path.includes('/webhook/')));
  },false,'ParentAccount');
+ await fixture('Parent',async({page,requests,state})=>{
+  state.resumeStatus='MediaReview';
+  await page.route('**/api/v1/stories/88/media/confirm',async route=>{
+   const body=route.request().postDataJSON();assert.deepEqual(body,{storyVersionId:112,packageRevision:1});state.resumeStatus='Ready';requests.push({path:'/stories/88/media/confirm',method:'POST',body});
+   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,message:'OK',data:{storyId:88,approvedStoryVersionId:112,packageRevision:1,isConfirmed:true,isReady:true}})});
+  });
+  await page.route('**/api/v1/ChildRoadmap/stories',async route=>{
+   const body=route.request().postDataJSON();assert.equal(body.storyId,88);assert.deepEqual(body.childProfileIds,[10]);requests.push({path:'/ChildRoadmap/stories',method:'POST',body});
+   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,message:'OK',data:{results:[{childProfileId:10,outcome:'Added',itemId:99,skipCode:null,message:null,warnings:[]}]}})});
+  });
+  await page.goto(`${base}/?storyId=88#studio`,{waitUntil:'domcontentloaded'});
+  const finish=page.getByRole('button',{name:'Xác nhận media và hoàn tất truyện',exact:true});await finish.waitFor();assert(await finish.isDisabled());
+  assert.equal(await page.getByRole('button',{name:'Giao truyện cho Bé Sen',exact:true}).count(),0);
+  await page.getByRole('checkbox',{name:'Tôi đã xem tranh và nghe giọng đọc của gói media này',exact:true}).check();
+  await finish.click();
+  await page.getByRole('button',{name:'Giao truyện cho Bé Sen',exact:true}).click();
+  assert(!requests.some(r=>r.path==='/ChildRoadmap/stories'));
+  await page.getByRole('button',{name:'Thêm vào lộ trình',exact:true}).click();
+  await page.getByText('Đã thêm cho Bé Sen.',{exact:true}).waitFor();
+  assert.equal(requests.filter(r=>r.path==='/stories/88/media/confirm').length,1);
+  assert.equal(requests.filter(r=>r.path==='/ChildRoadmap/stories').length,1);
+ },false,'ParentResumeCompletion');
+ await fixture('Parent',async({page,state})=>{
+  state.resumeStatus='MediaReview';
+  await page.route('**/api/v1/stories/88/media/confirm',route=>route.fulfill({status:409,contentType:'application/json',body:JSON.stringify({success:false,message:'STALE_MEDIA_PACKAGE',data:null})}));
+  await page.goto(`${base}/?storyId=88#studio`,{waitUntil:'domcontentloaded'});
+  await page.getByRole('checkbox',{name:'Tôi đã xem tranh và nghe giọng đọc của gói media này',exact:true}).check();
+  await page.getByRole('button',{name:'Xác nhận media và hoàn tất truyện',exact:true}).click();
+  await page.getByText('STALE_MEDIA_PACKAGE',{exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'Giao truyện cho Bé Sen',exact:true}).count(),0);
+  assert(await page.getByRole('button',{name:'Xác nhận media và hoàn tất truyện',exact:true}).isDisabled());
+ },false,'ParentResumeCompletionConflict');
+ await fixture('Parent',async({page,requests,state})=>{
+  state.resumeStatus='MediaReview';let loads=0;
+  const image1='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="400" height="250"><rect width="400" height="250" fill="green"/></svg>');
+  const image2=image1.replace('green','blue');
+  const audio='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+  await page.route('**/api/v1/stories/88/media/package',async route=>{
+   loads++;
+   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,message:'OK',data:{storyId:88,storyVersionId:112,packageRevision:1,isGenerated:true,isConfirmed:false,isAwaitingConfirmation:true,isReady:false,scenes:[0,1].map(i=>({sceneId:i+1,sceneIndex:i,text:`Nội dung cảnh media ${i+1}.`,illustrations:[{beatId:i*2+1,beatOrder:1,status:'Ready',url:image1},{beatId:i*2+2,beatOrder:2,status:'Ready',url:image2}],audio:[{segmentId:i+1,segmentOrder:0,status:'Ready',url:audio}]}))}})});
+  });
+  await page.goto(`${base}/?storyId=88#studio`,{waitUntil:'domcontentloaded'});
+  const img=page.getByRole('img',{name:'Tranh 1 của cảnh 1',exact:true});await img.waitFor();
+  assert.equal(await img.getAttribute('src'),image1);
+  await page.getByLabel('Nghe cảnh 1, đoạn 1',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Tranh 2',exact:true}).click();
+  assert.equal(await page.getByRole('img',{name:'Tranh 2 của cảnh 1',exact:true}).getAttribute('src'),image2);
+  await page.getByRole('button',{name:'Cảnh 2 Nội dung cảnh media 2.'}).click();
+  await page.getByLabel('Nghe cảnh 2, đoạn 1',{exact:true}).waitFor();
+  await page.getByRole('img',{name:'Tranh 1 của cảnh 2',exact:true}).dispatchEvent('error');
+  await page.getByText('Không mở được ảnh. URL có thể hết hạn hoặc máy chủ lưu trữ đang lỗi.',{exact:true}).waitFor();
+  const previous=loads;
+  await page.getByRole('button',{name:'Tải lại ảnh và giọng đọc',exact:true}).click();
+  await page.getByRole('img',{name:'Tranh 1 của cảnh 2',exact:true}).waitFor();assert(loads>previous);
+  assert.equal(await page.locator('.art .cover').count(),0);
+  assert(!requests.some(r=>r.method==='POST'&&r.path.includes('/media')));
+  await page.setViewportSize({width:390,height:844});
+  await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'));
+ },false,'ParentResumeMediaPreview');
+ await fixture('Parent',async({page,state})=>{
+  state.resumeStatus='MediaReview';
+  await page.route('**/api/v1/stories/88/media/package',r=>r.fulfill({status:403,contentType:'application/json',body:JSON.stringify({success:false,message:'Không có quyền tải gói media.',data:null})}));
+  await page.goto(`${base}/?storyId=88#studio`,{waitUntil:'domcontentloaded'});
+  await page.getByRole('alert').filter({hasText:'Không có quyền tải gói media.'}).waitFor();
+  assert.equal(await page.locator('.studio-media-image').count(),0);
+  assert.equal(await page.locator('.art .cover').count(),0);
+ },false,'ParentResumeMediaError');
  await fixture('Parent',async({page,requests})=>{
   page.on('dialog',d=>d.accept());
   await page.getByRole('button',{name:'Thư viện truyện',exact:true}).click();
@@ -285,6 +369,21 @@ try {
   await page.getByRole('button',{name:'Gửi bản hiện tại cho Moderator',exact:true}).waitFor();
   assert.deepEqual(requests.filter(r=>r.path.endsWith('/media/confirm')).map(r=>r.body.packageRevision),[1,2]);
  },true,'MediaConflict');
+ await fixture('ContentCreator',async({page,requests,state})=>{
+  page.on('dialog',d=>d.accept());state.creatorStatus='MediaReview';
+  await page.route('**/api/v1/stories/7/media/package',r=>r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,message:'OK',data:{storyId:7,storyVersionId:12,packageRevision:1,isConfirmed:false,isGenerated:false,isReady:false,isAwaitingConfirmation:false,scenes:[],replacements:[{candidateAssetId:88,previousAssetId:1,type:'Illustration',targetId:5,status:'Failed'}]}})}));
+  await page.route('**/api/v1/stories/7/media/replacements/88/keep-current',async r=>{
+   const body=r.request().postDataJSON();assert(body.operationId);assert.equal(body.storyVersionId,12);assert.equal(body.packageRevision,1);
+   requests.push({path:'/stories/7/media/replacements/88/keep-current',method:'POST',body});
+   await r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,message:'OK',data:{storyId:7,approvedStoryVersionId:12,packageRevision:1,storyStatus:'MediaReview'}})});
+  });
+  await page.getByRole('button',{name:'Mở',exact:true}).click();
+  await page.getByText('Ảnh và âm thanh thực tế',{exact:true}).click();
+  await page.getByRole('button',{name:'Tải gói media mới nhất',exact:true}).click();
+  await page.getByRole('button',{name:'Giữ media trước đó',exact:true}).click();
+  await page.getByText('Đã giữ media trước đó. Tải lại gói để kiểm tra và xác nhận.',{exact:true}).waitFor();
+  assert.equal(requests.filter(r=>r.path.endsWith('/keep-current')).length,1);
+ },true,'MediaKeepCurrent');
  await fixture('Administrator',async({page,requests})=>{
   await page.getByRole('button',{name:'Hướng dẫn sáng tác',exact:true}).click();
   await page.getByText('Bản đang phát hành: parent-vi-1',{exact:true}).waitFor();
@@ -331,6 +430,96 @@ try {
  },false,'ParentResumeForbidden');
  await fixture('ChildSession',async({page,requests})=>{
   await page.goto(`${base}/?kid=fixture`,{waitUntil:'domcontentloaded'});
+  await page.getByRole('button',{name:'Đọc truyện',exact:true}).click();
+  const stage=page.getByRole('article',{name:'Sân khấu kể chuyện',exact:true});await stage.waitFor();
+  assert.equal(await page.getByRole('heading',{name:'Hành trình của em',exact:true}).count(),0);
+  assert.equal(await page.getByRole('textbox',{name:'Tìm truyện',exact:true}).count(),0);
+  await page.getByRole('img',{name:'Tranh cảnh 1',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Nghe truyện',exact:true}).click();
+  await page.getByRole('button',{name:'Tạm dừng',exact:true}).waitFor();
+  await page.locator('.kid-narrator audio').dispatchEvent('ended');
+  await page.locator('.kid-segments button[aria-pressed="true"]').filter({hasText:'Đoạn 2'}).waitFor();
+  await page.getByRole('button',{name:'Tạm dừng',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Từ mới trong truyện',exact:true}).click();
+  await page.getByRole('button',{name:'Nghe truyện',exact:true}).waitFor();
+  assert(await page.locator('.kid-narrator audio').evaluate(a=>a.paused));
+  await page.getByRole('button',{name:'Đoàn kết',exact:true}).click();
+  await page.getByText('Cùng giúp đỡ nhau.',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Về với câu chuyện',exact:true}).click();
+  await page.getByRole('button',{name:'Nghe truyện',exact:true}).click();
+  await page.getByRole('button',{name:'Tạm dừng',exact:true}).waitFor();
+  const oldAudio=await page.locator('.kid-narrator audio').elementHandle();
+  await page.getByRole('button',{name:'Cảnh tiếp',exact:true}).click();
+  await page.getByRole('img',{name:'Tranh cảnh 2',exact:true}).waitFor();
+  assert(await page.locator('.kid-narrator audio').evaluate(a=>a.paused));
+  assert(await oldAudio.evaluate(a=>a.paused));
+  assert(requests.some(r=>r.path.endsWith('/events')&&r.body.eventType==='TtsStarted'));
+  await page.setViewportSize({width:390,height:844});
+  await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'));
+  const width=await stage.evaluate(e=>({scroll:e.scrollWidth,width:e.clientWidth}));assert(width.scroll<=width.width+2);
+ },false,'ChildTheater');
+ await fixture('ChildSession',async({page})=>{
+  await page.goto(`${base}/?kid=fixture`,{waitUntil:'domcontentloaded'});
+  await page.getByRole('heading',{name:'Câu chuyện đang chờ em',exact:true}).waitFor();
+  assert.equal(await page.getByRole('button',{name:'Tìm truyện',exact:true}).count(),0);
+  assert.equal(await page.getByRole('button',{name:'Trang trước',exact:true}).count(),0);
+  await page.getByRole('button',{name:'Đọc lại truyện đang mở',exact:true}).click();
+  await page.getByRole('article',{name:'Sân khấu kể chuyện',exact:true}).waitFor();
+ },false,'ChildLibraryHold');
+ await fixture('ChildSession',async({page,requests})=>{
+  page.on('dialog',d=>d.accept());
+  await page.goto(`${base}/?kid=fixture`,{waitUntil:'domcontentloaded'});
+  await page.getByRole('button',{name:'Đọc truyện',exact:true}).click();
+  await page.getByRole('heading',{name:'Truyện đọc từ backend',exact:true}).waitFor();
+  await page.getByText('Nội dung cảnh 1 từ backend.',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Cách đọc',exact:true}).click();
+  await page.getByRole('button',{name:'Đánh dấu truyện',exact:true}).click();
+  await page.getByRole('button',{name:'Bỏ đánh dấu',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Yêu thích',exact:true}).click();
+  await page.getByRole('button',{name:'Bỏ yêu thích',exact:true}).waitFor();
+  await page.getByLabel('Cách đọc',{exact:true}).selectOption('ListenFirst');
+  await page.getByText('Đã lưu vị trí đọc.',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Cách đọc',exact:true}).click();
+  await page.getByRole('button',{name:'Từ mới trong truyện',exact:true}).click();
+  await page.getByRole('button',{name:'Đoàn kết',exact:true}).click();
+  await page.getByText('Cùng giúp đỡ nhau.',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Lưu vào sổ tay',exact:true}).click();
+  await page.getByRole('button',{name:'Đã lưu vào sổ tay',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Cảnh tiếp',exact:true}).click();
+  await page.getByText('Nội dung cảnh 2 từ backend.',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Em đã đọc xong',exact:true}).click();
+  await page.getByText('Em đã hoàn thành truyện!',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Về danh sách đọc',exact:true}).click();
+  await page.getByRole('button',{name:'Sổ tay của em',exact:true}).click();
+  await page.getByRole('button',{name:'Đọc lại đoạn này',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Xóa từ khỏi sổ tay',exact:true}).click();
+  await page.getByText('Chưa có từ được lưu.',{exact:true}).waitFor();
+  const childRequests=requests.filter(r=>r.path.startsWith('/child/reading')||r.path.startsWith('/child/notebook'));
+  assert(childRequests.every(r=>r.authorization==='Bearer child-fixture'));
+  assert(childRequests.some(r=>r.path.endsWith('/complete')));
+  assert(childRequests.some(r=>r.method==='DELETE'));
+  await page.setViewportSize({width:390,height:844});
+  await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'));
+ },false,'ChildReading');
+ await fixture('ChildSession',async({page})=>{
+  await page.goto(`${base}/?kid=fixture`,{waitUntil:'domcontentloaded'});
+  await page.getByRole('button',{name:'Đọc truyện',exact:true}).click();
+  await page.getByRole('heading',{name:'Truyện đọc từ backend',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Cách đọc',exact:true}).click();
+  await page.getByRole('button',{name:'Đánh dấu truyện',exact:true}).click();
+  await page.getByRole('heading',{name:'Đọc và nghe truyện',exact:true}).waitFor();
+  assert.equal(await page.getByText('Nội dung cảnh 1 từ backend.',{exact:true}).count(),0);
+ },false,'ChildReadingExit');
+ await fixture('ChildSession',async({page,requests})=>{
+  await page.route('**/api/v1/child/reading/sessions/4/content',r=>r.fulfill({status:403,contentType:'application/json',body:JSON.stringify({success:false,message:'Truyện đã thu hồi quyền đọc.',data:null})}));
+  await page.goto(`${base}/?kid=fixture`,{waitUntil:'domcontentloaded'});
+  await page.getByRole('button',{name:'Đọc truyện',exact:true}).click();
+  await page.getByText('Truyện đã thu hồi quyền đọc.',{exact:true}).waitFor();
+  assert(!requests.some(r=>r.path.endsWith('/progress')||r.path.endsWith('/complete')));
+ },false,'ChildReadingForbidden');
+ await fixture('ChildSession',async({page,requests})=>{
+  await page.goto(`${base}/?kid=fixture`,{waitUntil:'domcontentloaded'});
+  await page.getByText('Thư viện và hành trình',{exact:true}).click();
   await page.getByRole('button',{name:'Mở truyện gia đình #7',exact:true}).click();
   await page.getByRole('heading',{name:'Truyện gia đình đã cấp quyền',exact:true}).waitFor();
   await page.getByText('Em đọc đúng bản đã được bố mẹ giao.',{exact:true}).waitFor();
@@ -340,5 +529,5 @@ try {
   await page.setViewportSize({width:390,height:844});
   await page.evaluate(()=>document.documentElement.setAttribute('data-theme','dark'));
  });
- await writeFile(new URL('results.json',output),JSON.stringify(results,null,2));console.log(JSON.stringify(results,null,2));
+ await writeFile(new URL(process.env.SMOKE_CASES?'focused-results.json':'results.json',output),JSON.stringify(results,null,2));console.log(JSON.stringify(results,null,2));
 } finally {await browser.close();}

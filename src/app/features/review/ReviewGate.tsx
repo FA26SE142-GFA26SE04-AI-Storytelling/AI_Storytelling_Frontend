@@ -116,7 +116,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
                 <span className="hint" style={{ marginLeft: "auto" }}>Bản thảo #{summary.storyVersionId} · {countWords(content)} tiếng</span>
               </div>
               {editing ? (
-                <StoryEditor story={story} busy={busy} onCancel={() => setEditing(false)}
+                <StoryEditor key={story.versionId} story={story} actor={actor} assistanceRevisionToken={summary.assistanceRevisionToken} busy={busy} onCancel={() => setEditing(false)}
                   onSave={(draft) => { void r.saveStory(draft, () => setEditing(false)); }} />
               ) : (
                 <>

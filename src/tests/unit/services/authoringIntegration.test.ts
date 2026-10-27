@@ -7,10 +7,23 @@ import { childManualService } from '@/app/services/childManualService';
 import { authoringGuideService } from '@/app/services/authoringGuideService';
 import { creatorPublicationService } from '@/app/services/creatorPublicationService';
 import { roadmapTemplateService } from '@/app/services/roadmapTemplateService';
+import { aiStoryCreationService } from '@/app/services/aiStoryCreationService';
 let fetcher: ReturnType<typeof vi.fn>;
 beforeEach(() => { fetcher=vi.fn().mockImplementation(() => Promise.resolve(new Response(JSON.stringify({success:true,message:'',data:null}))));vi.stubGlobal('fetch',fetcher);vi.spyOn(authService,'getStoredAccessToken').mockReturnValue('adult'); });
 afterEach(() => {vi.restoreAllMocks();vi.unstubAllGlobals();});
 describe('Manual authoring contracts and actor boundaries', () => {
+  it('keeps AI review saves on the review API and carries assistance provenance',async()=>{
+    const body={versionId:12,title:'Mi',content:'Mi cùng sửa hộp.',lesson:'Hợp tác',assistanceReferences:[{taskId:5,stepId:8,usage:'TrialUsed'}]};
+    await aiStoryCreationService.updateStoryReview(7,body);
+    expect(fetcher.mock.calls[0][0]).toMatch(/\/stories\/7\/review\/story$/);
+    expect(fetcher.mock.calls[0][1].method).toBe('PUT');
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual(body);
+  });
+  it.each([202,409,503])('preserves HTTP %s for queued/conflicted/uncertain assistance commands',async(status)=>{
+    fetcher.mockResolvedValueOnce(new Response(JSON.stringify({success:status===202,message:'fixture',data:{taskId:9,taskRevision:2}}),{status}));
+    const result=await parentAssistanceService.suggestions(7,9,{operationId:'same-op',expectedTaskRevision:1});
+    expect(result.status).toBe(status);expect(result.success).toBe(status===202);
+  });
   it('confirms Creator Manual with the saved version and revision, never Parent confirmation', async () => {
     await creatorPublicationService.confirmManual(7,{ versionId:12,revisionToken:'r1' });
     expect(fetcher.mock.calls[0][0]).toMatch(/\/creator\/stories\/7\/manual\/confirm-content$/);

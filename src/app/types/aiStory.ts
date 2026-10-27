@@ -14,6 +14,7 @@ export interface AIStoryInputContextDto {
   /** 'learning' (kèm học liệu) và/hoặc 'reading_media_only' (chỉ để đọc). */
   availableOutputModes?: StoryOutputMode[];
   maximumLength: number;
+  recommendedTargetLength?: number;
   requiredApprovalMode: string;
   parentalGateEnabled: boolean;
   safetyScoreThreshold: number | null;
@@ -149,6 +150,7 @@ export interface QuizReviewDto { storyId: number; versionId: number; items: Quiz
 export interface DiscussionReviewDto { storyId: number; versionId: number; items: DiscussionPromptDto[] }
 export interface ArtifactStatusDto { state: string; itemCount: number }
 export interface ReviewPackageDto {
+  assistanceRevisionToken?: string | null;
   storyId: number;
   /** 'reading_media_only': truyện chỉ để đọc, không có từ vựng / câu đố / thảo luận. */
   outputMode?: StoryOutputMode | string;
@@ -192,7 +194,7 @@ export interface PartialEditRequestDto {
   selection: { start: number; endExclusive: number; text: string };
   instruction: string;
 }
-export interface UpdateStoryReviewRequestDto { versionId: number; title: string; content: string; lesson: string }
+export interface UpdateStoryReviewRequestDto { versionId: number; title: string; content: string; lesson: string; assistanceReferences?: import('./backendContracts').AssistanceReference[] }
 export interface UpdateVocabularyRequestDto { versionId: number; items: VocabularyItemDto[] }
 export interface UpdateQuizRequestDto { versionId: number; items: QuizQuestionDto[] }
 export interface UpdateDiscussionRequestDto { versionId: number; items: DiscussionPromptDto[] }
@@ -217,8 +219,10 @@ export interface MediaPackageState {
   confirmedAt: string | null;
 }
 export interface ConfirmMediaPackageRequest { storyVersionId: number; packageRevision: number }
-export interface RegenerateMediaRequest extends ConfirmMediaPackageRequest { expectedConfirmed: boolean }
+export interface RegenerateMediaRequest extends ConfirmMediaPackageRequest { expectedConfirmed: boolean; operationId: string }
+export interface KeepCurrentMediaRequest extends ConfirmMediaPackageRequest { operationId: string }
 export interface MediaProgressDto extends MediaPackageState {
+  issues?: MediaGenerationIssue[];
   storyId: number;
   approvedStoryVersionId: number | null;
   storyStatus: string;
@@ -234,7 +238,13 @@ export interface MediaProgressDto extends MediaPackageState {
   manualReviewAssetIds: number[] | null;
   scenesWithoutValidBeats: number[] | null;
 }
+export interface MediaGenerationIssue {
+  sceneId: number; sceneIndex: number; assetId: number; type: string;
+  targetId: number; itemNumber: number; status: string; errorCode: string;
+  attemptCount: number; nextRetryAt: string | null;
+}
 export interface StoryMediaPackage extends MediaPackageState {
+  replacements?: {candidateAssetId:number; previousAssetId:number; type:string; targetId:number; status:string}[];
   isReady: boolean;
   storyId: number;
   storyVersionId: number;
