@@ -86,3 +86,23 @@
 .kid-wish-card:hover:not(:disabled) { background: var(--surface-2); }
 .kid-wish-card[aria-pressed=true] { background: var(--surface-2); outline: 3px solid var(--primary); outline-offset: -3px; }
 @media(prefers-reduced-motion:reduce) { .kid-wish * { transition: none!important; } }
+
+/* Sau khi đọc: cảm nhận, câu đố, phần thưởng */
+.kid-after { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; max-width: 680px; }
+.kid-reward-line { font-size: 20px; }
+.kid-feelings,.kid-quiz-choices { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.kid-quiz { display: flex; flex-direction: column; gap: 14px; width: 100%; padding: 20px; border-radius: 24px; background: var(--surface); text-align: left; }
+.kid-quiz h3 { margin: 0; font-size: 22px; }
+.kid-quiz-choices { justify-content: flex-start; }
+.kid-quiz-feedback { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 18px; background: var(--surface-2); font-size: 18px; }
+.kid-quiz-feedback.ok { outline: 2px solid var(--primary); outline-offset: -2px; }
+.kid-quiz-feedback p { margin: 0; }
+.kid-rewards { display: flex; flex-direction: column; gap: 16px; }
+.kid-reward-stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(160px,100%),1fr)); gap: 12px; }
+.kid-reward-stats .kcard { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.kid-reward-stats b { font-size: 30px; font-family: var(--font-display); }
+.kid-badges { display: grid; grid-template-columns: repeat(auto-fill,minmax(min(240px,100%),1fr)); gap: 12px; }
+.kid-badge { display: flex; gap: 12px; align-items: flex-start; padding: 16px; border-radius: 20px; background: var(--surface); opacity: .6; }
+.kid-badge.on { opacity: 1; outline: 2px solid var(--primary); outline-offset: -2px; }
+.kid-badge svg { width: 32px; height: 32px; flex-shrink: 0; }
+.kid-badge p { margin: 4px 0; color: var(--muted); }

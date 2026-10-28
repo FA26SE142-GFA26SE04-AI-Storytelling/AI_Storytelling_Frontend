@@ -36,3 +36,14 @@
 .wish-emoji { font-size: 20px; }
 
 @media (max-width: 900px) { .dash-grid { grid-template-columns: 1fr; } .dash-body { padding: 20px 16px; } }
+
+/* Bé đã đọc gì */
+.read-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.read-table th { text-align: left; font-weight: 700; color: var(--muted); font-size: 12px; padding: 6px 8px; border-bottom: 1px solid var(--line); }
+.read-table td { padding: 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.read-table tr:last-child td { border-bottom: 0; }
+@media (max-width: 600px) {
+  .read-table thead { display: none; }
+  .read-table tr { display: grid; gap: 2px; padding: 8px 0; border-bottom: 1px solid var(--line); }
+  .read-table td { padding: 0; border: 0; }
+}

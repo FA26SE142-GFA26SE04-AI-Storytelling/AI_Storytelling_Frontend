@@ -4,6 +4,7 @@ import {ArrowLeft,ChevronLeft,ChevronRight,Heart,Bookmark,Sparkles,BookOpen,Chec
 import Frog from '@/app/components/brand/Frog';
 import type {useChildReader} from './useChildReader';
 import KidNarrator from './KidNarrator';
+import KidAfterReading from './KidAfterReading';
 
 export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChildReader>}) {
   const [words,setWords]=useState(false),[settings,setSettings]=useState(false);
@@ -30,6 +31,6 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
     <div className="kid-story-extras">{c.vocabulary.length>0&&<button className="kid-soft-button" aria-expanded={words} onClick={()=>setWords(v=>!v)}><Sparkles aria-hidden="true"/>Từ mới trong truyện</button>}<button className="kid-soft-button" disabled={disabled} aria-pressed={!!r.session?.isFavorited} onClick={()=>void r.flag('favorite')}><Heart aria-hidden="true"/>{r.session?.isFavorited?'Bỏ yêu thích':'Yêu thích'}</button></div>
     {words&&<section className="kid-word-panel" aria-label="Khám phá từ mới"><h2 className="display">Một từ mới, một điều hay</h2><div className="kid-word-list">{c.vocabulary.map(v=><button className="kid-soft-button" key={v.id} disabled={r.busy||r.blocked} onClick={()=>void r.lookup(v.id)}>{v.term}</button>)}</div>{r.definition&&<div><h3 className="display">{r.definition.term}</h3><p>{r.definition.definition}</p><button className="kid-listen-primary" disabled={r.busy||r.blocked||r.definition.isCollected} onClick={()=>void r.collect()}>{r.definition.isCollected?<Check aria-hidden="true"/>:<Bookmark aria-hidden="true"/>}{r.definition.isCollected?'Đã lưu vào sổ tay':'Lưu vào sổ tay'}</button></div>}<button className="kid-soft-button" onClick={()=>setWords(false)}>Về với câu chuyện</button></section>}
     {index===scenes.length-1&&scene&&!r.done&&<div className="kid-story-finish"><Frog mood="happy" size={60}/><p>Em đã đi đến cuối câu chuyện rồi!</p><button className="kid-listen-primary" disabled={disabled} onClick={()=>void r.complete()}><Check aria-hidden="true"/>Em đã đọc xong</button></div>}
-    {r.done&&<section className="kid-story-finish"><Frog mood="happy" size={90}/><h2 className="display">Câu chuyện đã khép lại!</h2>{c.lesson&&<p>{c.lesson}</p>}<button className="kid-listen-primary" onClick={r.close}>Về thư viện của em</button></section>}
+    {r.done&&<section className="kid-story-finish"><Frog mood="happy" size={90}/><h2 className="display">Câu chuyện đã khép lại!</h2>{c.lesson&&<p>{c.lesson}</p>}{r.completed&&<KidAfterReading token={r.token} completed={r.completed}/>}<button className="kid-listen-primary" onClick={r.close}>Về thư viện của em</button></section>}
   </article>;
 }

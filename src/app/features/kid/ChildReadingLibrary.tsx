@@ -6,9 +6,10 @@ import type { ChildStoryPage, NotebookEntry } from '@/app/types/childReading';
 import { useChildReader } from './useChildReader';
 import ChildReader from './ChildReader';
 import KidWish from './KidWish';
+import KidRewards from './KidRewards';
 import './child-reading.css';
 import Frog from '@/app/components/brand/Frog';
-import {BookOpen,NotebookPen,Search,Sparkles} from 'lucide-react';
+import {Award,BookOpen,NotebookPen,Search,Sparkles} from 'lucide-react';
 
 export default function ChildReadingLibrary({childId,community,onReadingChange}:{childId:number;community?:{submissionId:number;title:string}|null;onReadingChange?:(active:boolean)=>void}) {
   const session=childAccessService.readSession();
@@ -17,7 +18,7 @@ export default function ChildReadingLibrary({childId,community,onReadingChange}:
   const refresh=useCallback(()=>setRevision(v=>v+1),[]);
   const reader=useChildReader(token,refresh);
   const reading=!!reader.content;
-  const [pane,setPane]=useState<'stories'|'notebook'|'wishes'>('stories');
+  const [pane,setPane]=useState<'stories'|'notebook'|'wishes'|'rewards'>('stories');
   useEffect(()=>{onReadingChange?.(reading);return()=>onReadingChange?.(false);},[reading,onReadingChange]);
   const [stories,setStories]=useState<ChildStoryPage|null>(null);
   const [entries,setEntries]=useState<NotebookEntry[]>([]);
@@ -48,7 +49,7 @@ export default function ChildReadingLibrary({childId,community,onReadingChange}:
   if(reader.content)return <ChildReader reader={reader}/>;
   return <section className="ksection kid-reading">
     <header className="kid-library-heading"><div><span className="kid-overline">MỖI CÂU CHUYỆN, MỘT CHUYẾN ĐI</span><h2 className="display">Đọc và nghe truyện</h2></div><Frog mood="happy" size={76}/></header>
-    <div className="kid-library-tabs" aria-label="Thư viện của em"><button className="kid-soft-button" aria-pressed={pane==='stories'} onClick={()=>setPane('stories')}><BookOpen aria-hidden="true"/>Truyện của em</button><button className="kid-soft-button" aria-pressed={pane==='notebook'} onClick={()=>setPane('notebook')}><NotebookPen aria-hidden="true"/>Sổ tay của em</button><button className="kid-soft-button" aria-pressed={pane==='wishes'} onClick={()=>setPane('wishes')}><Sparkles aria-hidden="true"/>Em ước</button></div>
+    <div className="kid-library-tabs" aria-label="Thư viện của em"><button className="kid-soft-button" aria-pressed={pane==='stories'} onClick={()=>setPane('stories')}><BookOpen aria-hidden="true"/>Truyện của em</button><button className="kid-soft-button" aria-pressed={pane==='notebook'} onClick={()=>setPane('notebook')}><NotebookPen aria-hidden="true"/>Sổ tay của em</button><button className="kid-soft-button" aria-pressed={pane==='wishes'} onClick={()=>setPane('wishes')}><Sparkles aria-hidden="true"/>Em ước</button><button className="kid-soft-button" aria-pressed={pane==='rewards'} onClick={()=>setPane('rewards')}><Award aria-hidden="true"/>Phần thưởng</button></div>
     {community&&<button className="btn btn-p" disabled={reader.busy} onClick={()=>void reader.open({communitySubmissionId:community.submissionId})}>Đọc truyện cộng đồng: {community.title}</button>}
     {reader.note&&<p role="status" className="notice">{reader.note}</p>}
     {note&&<p role="status" className="notice">{note}</p>}
@@ -71,6 +72,7 @@ export default function ChildReadingLibrary({childId,community,onReadingChange}:
     {!loading&&!entries.length&&<p>Chưa có từ được lưu.</p>}
     {entries.map(e=><article className="kcard" key={e.entryId}><h3>{e.term}</h3><p>{e.definition}</p><p>{e.storyTitle}</p><button className="btn btn-s" disabled={reader.busy} onClick={()=>void reader.open({storyId:e.storyId},e.sceneIndex==null?undefined:e.sceneIndex+1)}>Đọc lại đoạn này</button><button className="btn btn-s" disabled={removing} onClick={()=>void remove(e.entryId)}>Xóa từ khỏi sổ tay</button></article>)}
     </>}
+    {pane==='rewards'&&<KidRewards key={revision} token={token}/>}
     {pane==='wishes'&&<KidWish key={revision} token={token} busy={reader.busy} onRead={target=>void reader.open(target)}/>}
     <button className="kid-soft-button kid-library-refresh" disabled={loading} onClick={refresh}>Tải lại thư viện và sổ tay</button>
   </section>;

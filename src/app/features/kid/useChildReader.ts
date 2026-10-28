@@ -13,6 +13,7 @@ export function useChildReader(token:string, onLibrary:()=>void) {
   const [busy,setBusy] = useState(false);
   const [blocked,setBlocked] = useState(false);
   const [done,setDone] = useState(false);
+  const [completed,setCompleted] = useState<D.ReadingCompleted|null>(null);
   const [note,setNote] = useState('');
   const scope = useRef(0), lock = useRef(false);
   const activeSeconds=useRef(0);
@@ -55,7 +56,7 @@ export function useChildReader(token:string, onLibrary:()=>void) {
   };
   const open = async (target:D.ReadingStart, targetPage?:number) => {
     if (lock.current) return;
-    setBlocked(false); setDone(false); setContent(null); setSession(null); setDefinition(null);
+    setBlocked(false); setDone(false); setCompleted(null); setContent(null); setSession(null); setDefinition(null);
     activeSeconds.current=0;
     lock.current=true; setBusy(true); setNote(''); const run=++scope.current;
     const started=await api.start(token,target);
@@ -79,7 +80,7 @@ export function useChildReader(token:string, onLibrary:()=>void) {
   };
   const complete = async () => {
     if (!session || done || !await save()) return;
-    await execute(()=>api.complete(token,session.sessionId),()=>{setDone(true);setNote('Em đã hoàn thành truyện!');onLibrary();});
+    await execute(()=>api.complete(token,session.sessionId),r=>{setDone(true);setCompleted(r);setNote('Em đã hoàn thành truyện!');onLibrary();});
   };
   const flag = async (kind:'bookmark'|'favorite') => {
     if (!session) return;
@@ -93,5 +94,5 @@ export function useChildReader(token:string, onLibrary:()=>void) {
     const run=scope.current; const r=await api.event(token,session.sessionId,type,payload);
     if(run===scope.current&&!r.success)setNote(r.message);
   };
-  return {session,content,page,mode,definition,busy,blocked,done,note,open,close,save,complete,flag,lookup,collect,event};
+  return {token,session,content,page,mode,definition,busy,blocked,done,completed,note,open,close,save,complete,flag,lookup,collect,event};
 }

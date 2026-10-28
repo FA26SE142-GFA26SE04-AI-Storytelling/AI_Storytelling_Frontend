@@ -28,6 +28,7 @@ import RecommendationCard from "@/app/features/adaptive/RecommendationCard";
 import WishItem from "./WishItem";
 import SupervisionTodos, { useSupervisionTodos } from "./SupervisionTodos";
 import CompletionCard from "./CompletionCard";
+import ReadingFeedback from "./ReadingFeedback";
 import InProgressStories, { needsYouCount } from "./InProgressStories";
 import ChildCard from "./ChildCard";
 import AccountStats from "./AccountStats";
@@ -176,6 +177,9 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
                     </div>
                   </div>
                 ) : null}
+
+                {/* Truyện con đã đọc xong, cảm nhận và điểm câu đố */}
+                {can("ViewProgress") ? <ReadingFeedback childId={child.id} nickname={child.nickname} showResults={can("ViewResults")} /> : <Locked title={`${child.nickname} đã đọc gì`} go={go} />}
 
                 {/* Tiến độ (chỉ khi backend có API dashboard) */}
                 {dashOk && (can("ViewProgress") ? (
