@@ -4,6 +4,7 @@ import type * as B from '@/app/types/backendContracts';
 import { moderationService as service } from '@/app/services/moderationService';
 import { useAuth } from '@/app/context/AuthContext';
 import { Page } from './ui';
+import StoryWishCards from './StoryWishCards';
 export default function PublishedReviewWorkspace() {
   const { user } = useAuth();
   const [source, setSource] = useState<B.PublishedContentSourceName>('PublicLibrary');
@@ -52,6 +53,7 @@ export default function PublishedReviewWorkspace() {
     <div className="row"><button className="btn btn-s" disabled={busy || page===1} onClick={() => setPage(p => p-1)}>Trước</button><span>Trang {page}</span><button className="btn btn-s" disabled={busy || !list?.hasNextPage} onClick={() => setPage(p => p+1)}>Tiếp</button></div>
     {roadmap && <section className="st-card"><h3>{roadmap.name}</h3><p>{roadmap.description}</p>{roadmap.stories.map(s => <button className="btn btn-s" disabled={busy} key={s.storyId} onClick={() => void openStory(s.storyId)}>{s.title}</button>)}</section>}
     {story && <section className="st-card"><h3>{story.story.title}</h3><p style={{whiteSpace:'pre-wrap'}}>{story.version?.content}</p><details><summary>Học liệu</summary>{story.vocabulary.map((v,i) => <p key={i}>{v.term}: {v.definition}</p>)}{story.quizzes.map((q,i) => <p key={i}>{q.question}</p>)}{story.discussionQuestions.map((q,i) => <p key={i}>{q.question}</p>)}</details>
+      {(user?.role==='Moderator'||user?.role==='Administrator') && <StoryWishCards key={story.story.storyId} storyId={story.story.storyId}/>}
       {user?.role==='Moderator' && <><label className="field">Lý do<select className="inp" value={reason} onChange={e => setReason(e.target.value as B.ContentReportReasonName)}>{[['SafetyConcern','Không an toàn'],['Inappropriate','Không phù hợp'],['WrongAgeBand','Không đúng độ tuổi'],['Copyright','Bản quyền'],['Cultural','Văn hóa'],['Other','Khác']].map(([v,label]) => <option key={v} value={v}>{label}</option>)}</select></label><textarea className="inp" aria-label="Ghi chú rà soát" maxLength={2000} value={description} onChange={e => setDescription(e.target.value)} /><input className="inp" type="url" maxLength={500} aria-label="Nguồn đính kèm" value={attachmentUrl} onChange={e => setAttachmentUrl(e.target.value)} /><button className="btn btn-p" disabled={busy} onClick={() => void report()}>Tạo mục rà soát</button></>}
     </section>}
   </Page>;

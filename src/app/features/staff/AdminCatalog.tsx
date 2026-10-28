@@ -43,5 +43,5 @@ export default function AdminCatalog(){
         </div>
       </div>
 
-<p className="notice">Backend chưa cung cấp API Prompt Catalog, thẻ ước, bài học gợi ý và nhân vật mẫu.</p></Page>;
+<p className="notice">Backend chưa cung cấp API Prompt Catalog, bài học gợi ý và nhân vật mẫu. Thẻ ước được quản lý ở mục Thẻ ước.</p></Page>;
 }

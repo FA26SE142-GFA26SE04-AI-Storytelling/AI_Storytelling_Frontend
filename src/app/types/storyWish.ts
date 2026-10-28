@@ -78,3 +78,36 @@ export interface ParentWishGenerationFormDto {
 }
 
 export interface ParentWishCreateStoryResultDto { wish: ParentWishDto; generation: AIStoryInputProgressDto }
+
+// ---------- Moderator quản lý thẻ ước (/moderation/wish-cards) ----------
+/** Bé ước dùng 4 nhóm đầu; Desire/Event/Ending dành cho Bé sáng tác. */
+export type ManagedWishCardGroup = WishCardGroup | 'Desire' | 'Event' | 'Ending';
+
+export interface WishCardDto {
+  id: number;
+  group: ManagedWishCardGroup | string;
+  label: string;
+  imageUrl: string;
+  audioUrl: string | null;
+  /** "6-8", "9-10" hoặc null = mọi nhóm tuổi. */
+  ageBand: string | null;
+  contentCategoryId: number | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: string;
+}
+
+export interface WishCardQueryDto { group?: ManagedWishCardGroup; isActive?: boolean; pageIndex: number; pageSize: number }
+
+export interface UpdateWishCardRequestDto {
+  label: string;
+  imageUrl: string;
+  audioUrl: string | null;
+  ageBand: string | null;
+  contentCategoryId: number | null;
+  sortOrder: number;
+}
+export interface CreateWishCardRequestDto extends UpdateWishCardRequestDto { group: ManagedWishCardGroup }
+
+/** Thẻ đã gắn cho một truyện; source là "Moderator" hoặc "Ai". */
+export interface WishCardMatchDto { storyId: number; wishCardId: number; group: string; label: string; source: string }

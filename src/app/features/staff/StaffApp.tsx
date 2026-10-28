@@ -5,7 +5,7 @@ import "@/app/features/children/children.css";
 import { useState, type ComponentType } from "react";
 import {
   Activity, BookOpenText, ChartColumn, Coins, FileClock, FlaskConical, Inbox, LibraryBig, ListChecks, LogOut, Moon, Receipt,
-  ScrollText, Shield, Sun, UserCog, Users, type LucideIcon,
+  ScrollText, Shield, Sparkles, Sun, UserCog, Users, type LucideIcon,
 } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useTheme } from "@/app/context/ThemeContext";
@@ -24,6 +24,7 @@ import { CreatorStories } from "./CreatorStories";
 import { AdminParents, AdminStaff } from "./AdminPeople";
 import { AdminEvaluation, AdminLogs, AdminOverview } from "./AdminAi";
 import AdminCatalog from "./AdminCatalog";
+import WishCardManagement from "./WishCardManagement";
 import { AdminBusinessReport, AdminDataRequests, AdminPayments, AdminQuota } from "./AdminSystem";
 
 type PageDef = { id: string; label: string; icon: LucideIcon; view: ComponentType; sep?: boolean };
@@ -42,6 +43,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
     { id: "parents", label: "Tài khoản phụ huynh", icon: Users, view: AdminParents },
     { id: "catalog", label: "Danh mục & Prompt Catalog", icon: ListChecks, view: AdminCatalog },
+    { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
     { id: "logs", label: "Nhật ký sinh truyện", icon: ScrollText, view: AdminLogs },
     { id: "eval", label: "Đánh giá AI", icon: FlaskConical, view: AdminEvaluation },
     { id: "prompts", label: "Bộ test prompt", icon: FileClock, view: () => <PromptsPage admin /> },
@@ -56,6 +58,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
     { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
+    { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
     { id: "queue", label: "Hàng đợi kiểm duyệt", icon: Inbox, view: () => <ModerationQueue /> },
     { id: "rating", label: "Đánh giá AI", icon: FlaskConical, view: RatingPage },
     { id: "account", label: "Tài khoản của tôi", icon: UserCog, view: AccountWorkspace, sep: true },
