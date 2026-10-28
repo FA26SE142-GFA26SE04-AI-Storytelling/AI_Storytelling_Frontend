@@ -4,6 +4,7 @@ import { Puzzle } from 'lucide-react';
 import { childReadingService, childRewardsService } from '@/app/services/childReadingService';
 import type { ChildBadge, ReadingCompleted, ReadingFeeling } from '@/app/types/childReading';
 import KidQuiz from './KidQuiz';
+import IconButton from '@/app/components/IconButton';
 
 const FEELINGS: { id: ReadingFeeling; label: string; face: string }[] = [
   { id: 'VeryLike', label: 'Rất thích', face: '😍' },
@@ -47,14 +48,14 @@ export default function KidAfterReading({ token, completed }: { token: string; c
     {completed.roadmapStepCompleted && <p>Em đã đi thêm một bước trong hành trình đọc!</p>}
     <section aria-label="Em thấy truyện thế nào?">
       <h3 className="display">Em thấy truyện này thế nào?</h3>
-      <div className="kid-feelings">{FEELINGS.map(f => <button key={f.id} className="kid-soft-button" aria-pressed={feeling === f.id} disabled={busy} onClick={() => void choose(f.id)}>
-        <span aria-hidden="true" style={{ fontSize: 26 }}>{f.face}</span>{f.label}
+      <div className="kid-feelings">{FEELINGS.map(f => <button key={f.id} type="button" className="kid-soft-button icon-only" aria-label={f.label} title={f.label} aria-pressed={feeling === f.id} disabled={busy} onClick={() => void choose(f.id)}>
+        <span aria-hidden="true">{f.face}</span>
       </button>)}</div>
       {feeling && <p className="sub">Cảm ơn em đã chia sẻ, bố mẹ sẽ biết em {FEELINGS.find(f => f.id === feeling)?.label.toLowerCase()} truyện này.</p>}
       {note && <p className="notice" role="status">{note}</p>}
     </section>
     {quiz
       ? <KidQuiz token={token} sessionId={completed.sessionId} onDone={(gained, codes) => { setExp(v => v + gained); setBadgeCodes(v => [...v, ...codes]); }} />
-      : <button className="kid-soft-button" onClick={() => setQuiz(true)}><Puzzle aria-hidden="true" />Làm câu đố về truyện</button>}
+      : <IconButton icon={Puzzle} label="Làm câu đố về truyện" iconClassName="" className="kid-listen-primary" onClick={() => setQuiz(true)} />}
   </div>;
 }

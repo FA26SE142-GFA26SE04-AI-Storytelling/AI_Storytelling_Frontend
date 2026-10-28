@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Sparkles, X } from "lucide-react";
+import { Ban, Check, Sparkles, X } from "lucide-react";
+import IconButton from "@/app/components/IconButton";
 import { parentWishService } from "@/app/services/storyWishService";
 import type { ParentWishDto, ParentWishSuggestionsDto } from "@/app/types/storyWish";
 import type { WorkspaceId } from "@/app/components/shell/nav";
@@ -79,7 +80,7 @@ export default function WishItem({ wish, nickname, go, onChanged }: {
                   : s.opened ? <small className="sub"> — {nickname} đã mở đọc</small> : null}
               </span>
               {s.storyId != null
-                ? <button className="btn btn-s" disabled={busy} onClick={() => void run(() => parentWishService.useExisting(wish.wishId, s.rank))}><Check className="ic" />Dùng truyện này</button>
+                ? <IconButton icon={Check} label={`Dùng truyện "${s.title}"`} className="btn btn-ok" disabled={busy} onClick={() => void run(() => parentWishService.useExisting(wish.wishId, s.rank))} />
                 : <small className="sub">Truyện cộng đồng, bé có thể tự đọc</small>}
             </div>
           ))}
@@ -88,13 +89,13 @@ export default function WishItem({ wish, nickname, go, onChanged }: {
       {declining ? (
         <div className="row">
           <input className="inp" maxLength={DECLINE_REASON_MAX} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Lý do (chỉ bạn thấy, không bắt buộc)" aria-label="Lý do từ chối" />
-          <button className="btn btn-no" disabled={busy} onClick={() => void run(() => parentWishService.decline(wish.wishId, note))}>Từ chối</button>
-          <button className="btn btn-g" aria-label="Hủy" disabled={busy} onClick={() => setDeclining(false)}><X className="ic" /></button>
+          <IconButton icon={Check} label="Xác nhận từ chối" className="btn btn-no" disabled={busy} onClick={() => void run(() => parentWishService.decline(wish.wishId, note))} />
+          <IconButton icon={X} label="Hủy" className="btn btn-g" disabled={busy} onClick={() => setDeclining(false)} />
         </div>
       ) : (
         <div className="row">
-          <button className="btn btn-p" disabled={busy} onClick={createNew}><Sparkles className="ic" />Tạo truyện mới</button>
-          <button className="btn btn-g" disabled={busy} onClick={() => setDeclining(true)}>Từ chối</button>
+          <IconButton icon={Sparkles} label="Tạo truyện mới từ điều ước" className="btn btn-p" disabled={busy} onClick={createNew} />
+          <IconButton icon={Ban} label="Từ chối điều ước" className="btn btn-no" disabled={busy} onClick={() => setDeclining(true)} />
         </div>
       )}
       {err && <div className="notice err" role="alert">{err}</div>}

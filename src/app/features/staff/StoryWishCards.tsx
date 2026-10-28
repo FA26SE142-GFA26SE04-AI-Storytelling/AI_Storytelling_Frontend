@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Plus, X } from "lucide-react";
+import IconButton from "@/app/components/IconButton";
 import { wishCardService } from "@/app/services/wishCardService";
 import type { WishCardDto, WishCardGroup, WishCardMatchDto } from "@/app/types/storyWish";
 import { groupLabel, WISH_GROUPS } from "./WishCardManagement";
@@ -48,7 +49,7 @@ export default function StoryWishCards({ storyId }: { storyId: number }) {
     {matches && !matches.length && <p className="sub">Truyện chưa được gắn thẻ nào.</p>}
     <div className="chips">{matches?.map((m) => <span key={m.wishCardId} className="chip sm on">
       {groupLabel(m.group)}: {m.label}{m.source === "Ai" ? " (AI)" : ""}
-      <button type="button" className="btn btn-g" style={{ padding: "0 4px", minHeight: 0 }} aria-label={`Gỡ thẻ ${m.label}`} disabled={busy} onClick={() => void act(() => wishCardService.removeFromStory(storyId, m.wishCardId))}><X className="ic" /></button>
+      <IconButton icon={X} label={`Gỡ thẻ ${m.label}`} className="btn btn-g" style={{ width: 22, height: 22 }} disabled={busy} onClick={() => void act(() => wishCardService.removeFromStory(storyId, m.wishCardId))} />
     </span>)}</div>
     <div className="row">
       <select className="inp" aria-label="Nhóm thẻ" value={group} disabled={busy} onChange={(e) => setGroup(e.target.value as WishCardGroup)}>
@@ -58,7 +59,7 @@ export default function StoryWishCards({ storyId }: { storyId: number }) {
         <option value="">Chọn thẻ…</option>
         {cards.filter((c) => !taken.has(c.id)).map((c) => <option key={c.id} value={c.id}>{c.label}{c.ageBand ? ` (${c.ageBand} tuổi)` : ""}</option>)}
       </select>
-      <button className="btn btn-p" disabled={busy || !cardId} onClick={() => void act(() => wishCardService.addToStory(storyId, Number(cardId)))}>Gắn thẻ</button>
+      <IconButton icon={Plus} label="Gắn thẻ cho truyện" className="btn btn-p" disabled={busy || !cardId} onClick={() => void act(() => wishCardService.addToStory(storyId, Number(cardId)))} />
     </div>
   </details>;
 }

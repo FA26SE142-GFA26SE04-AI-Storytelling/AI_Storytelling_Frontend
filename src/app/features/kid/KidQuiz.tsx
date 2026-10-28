@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Check, ChevronRight } from 'lucide-react';
+import { Check, ChevronRight, Flag, RotateCcw, SkipForward } from 'lucide-react';
+import IconButton from '@/app/components/IconButton';
 import { childQuizService } from '@/app/services/childReadingService';
 import type { ChildQuiz, ChildQuizResult, QuizAnswerResult } from '@/app/types/childReading';
 import Frog from '@/app/components/brand/Frog';
@@ -59,7 +60,7 @@ export default function KidQuiz({ token, sessionId, onDone }: { token: string; s
     <h3 className="display">Em trả lời đúng {result.correct}/{result.totalQuestions} câu</h3>
     {result.answered < result.totalQuestions && <p>Em đã bỏ qua {result.totalQuestions - result.answered} câu.</p>}
     <p>Lần này: {pct(result.currentPercent)} · Tốt nhất: {pct(result.bestPercent)}</p>
-    <button className="kid-soft-button" disabled={busy} onClick={restart}>Làm lại câu đố</button>
+    <IconButton icon={RotateCcw} label="Làm lại câu đố" iconClassName="" className="kid-soft-button" disabled={busy} onClick={restart} />
   </section>;
 
   const q = quiz.questions[index];
@@ -71,16 +72,16 @@ export default function KidQuiz({ token, sessionId, onDone }: { token: string; s
       ? <div className="kid-quiz-choices">{q.choices.map(c => <button key={c} className="kid-soft-button" disabled={busy} onClick={() => void send(c)}>{c}</button>)}</div>
       : <form className="row" onSubmit={e => { e.preventDefault(); void send(text); }}>
         <input className="inp" aria-label="Câu trả lời của em" maxLength={200} value={text} onChange={e => setText(e.target.value)} />
-        <button className="kid-soft-button" disabled={busy || !text.trim()}><Check aria-hidden="true" />Trả lời</button>
+        <IconButton icon={Check} label="Trả lời" type="submit" iconClassName="" className="kid-soft-button" disabled={busy || !text.trim()} />
       </form>)}
     {answer && <div className={`kid-quiz-feedback ${answer.isCorrect ? 'ok' : 'try'}`} role="status">
       <Frog mood={answer.isCorrect ? 'happy' : 'think'} size={56} />
       <p>{answer.feedback || (answer.isCorrect ? 'Đúng rồi!' : 'Mình thử nghĩ lại nhé.')}{answer.expGained > 0 ? ` +${answer.expGained} EXP` : ''}</p>
     </div>}
     <div className="kid-library-tabs">
-      <button className={answer ? 'kid-listen-primary' : 'kid-soft-button'} disabled={busy} onClick={next}>
-        {index < quiz.questions.length - 1 ? (answer ? 'Câu tiếp' : 'Bỏ qua câu này') : 'Xem kết quả'}<ChevronRight aria-hidden="true" />
-      </button>
+      {index < quiz.questions.length - 1
+        ? <IconButton icon={answer ? ChevronRight : SkipForward} label={answer ? 'Câu tiếp' : 'Bỏ qua câu này'} iconClassName="" className={answer ? 'kid-listen-primary' : 'kid-soft-button'} disabled={busy} onClick={next} />
+        : <IconButton icon={Flag} label="Xem kết quả" iconClassName="" className={answer ? 'kid-listen-primary' : 'kid-soft-button'} disabled={busy} onClick={next} />}
     </div>
   </section>;
 }

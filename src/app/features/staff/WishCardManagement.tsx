@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, EyeOff, Pencil, Plus, Save, X } from "lucide-react";
+import IconButton from "@/app/components/IconButton";
 import { wishCardService } from "@/app/services/wishCardService";
 import { staffService } from "@/app/services/staffService";
 import type { ContentCategory } from "@/app/types/childProfile";
@@ -88,14 +89,14 @@ export default function WishCardManagement() {
             <td>{c.sortOrder}</td>
             <td><span className={`pill ${c.isActive ? "ok" : "draft"}`}>{c.isActive ? "Đang dùng" : "Đã ẩn"}</span></td>
             <td><div className="row">
-              <button className="btn btn-s" disabled={busy} onClick={() => edit(c)}>Sửa</button>
-              <button className="btn btn-g" disabled={busy} onClick={() => void run(() => wishCardService.setActive(c.id, !c.isActive))}>{c.isActive ? "Ẩn" : "Hiện lại"}</button>
+              <IconButton icon={Pencil} label={`Sửa thẻ ${c.label}`} disabled={busy} onClick={() => edit(c)} />
+              <IconButton icon={c.isActive ? EyeOff : Eye} label={`${c.isActive ? "Ẩn" : "Hiện lại"} thẻ ${c.label}`} className="btn btn-g" disabled={busy} onClick={() => void run(() => wishCardService.setActive(c.id, !c.isActive))} />
             </div></td>
           </tr>)}
           {list && !list.items.length && <tr><td colSpan={8} className="sub">Chưa có thẻ nào khớp bộ lọc.</td></tr>}
         </tbody>
       </table>
-      <div className="row"><button className="btn btn-s" disabled={busy || page === 1} onClick={() => setPage((p) => p - 1)}>Trước</button><span>Trang {page}{list ? `/${Math.max(1, list.totalPages)}` : ""}</span><button className="btn btn-s" disabled={busy || !list?.hasNextPage} onClick={() => setPage((p) => p + 1)}>Tiếp</button></div>
+      <div className="row"><IconButton icon={ChevronLeft} label="Trang trước" disabled={busy || page === 1} onClick={() => setPage((p) => p - 1)} /><span>Trang {page}{list ? `/${Math.max(1, list.totalPages)}` : ""}</span><IconButton icon={ChevronRight} label="Trang sau" disabled={busy || !list?.hasNextPage} onClick={() => setPage((p) => p + 1)} /></div>
     </div>
 
     <div className="st-card">
@@ -119,8 +120,8 @@ export default function WishCardManagement() {
       {isUrl(image) && <div className="row"><img src={image} alt="Xem trước hình thẻ" width={88} height={88} style={{ objectFit: "contain", borderRadius: 12 }} /><span className="sub">Xem trước hình thẻ</span></div>}
       {problem && (label || image) && <small className="sub">{problem}</small>}
       <div className="row">
-        <button className="btn btn-p" disabled={busy || !!problem} onClick={() => void save()}>{editing ? "Lưu thay đổi" : <><Plus className="ic" />Thêm thẻ</>}</button>
-        {editing && <button className="btn btn-g" disabled={busy} onClick={reset}>Hủy sửa</button>}
+        <IconButton icon={editing ? Save : Plus} label={editing ? "Lưu thay đổi" : "Thêm thẻ"} className="btn btn-p" disabled={busy || !!problem} onClick={() => void save()} />
+        {editing && <IconButton icon={X} label="Hủy sửa" className="btn btn-g" disabled={busy} onClick={reset} />}
       </div>
     </div>
   </Page>;

@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react";
 import { parentReadingFeedbackService } from "@/app/services/childReadingService";
 import type { PagedReadingFeedback } from "@/app/types/childReading";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import IconButton from "@/app/components/IconButton";
 
 const FACE: Record<string, string> = { VeryLike: "😍", Like: "🙂", Neutral: "😐", Dislike: "🙁" };
 
@@ -46,9 +48,9 @@ export default function ReadingFeedback({ childId, nickname, showResults }: { ch
       )}
       {data && data.totalPages > 1 && (
         <div className="row">
-          <button className="btn btn-s" disabled={!data.hasPreviousPage} onClick={() => setPage((p) => p - 1)}>Trước</button>
+          <IconButton icon={ChevronLeft} label="Trang trước" disabled={!data.hasPreviousPage} onClick={() => setPage((p) => p - 1)} />
           <span className="sub">Trang {data.pageIndex}/{data.totalPages}</span>
-          <button className="btn btn-s" disabled={!data.hasNextPage} onClick={() => setPage((p) => p + 1)}>Tiếp</button>
+          <IconButton icon={ChevronRight} label="Trang sau" disabled={!data.hasNextPage} onClick={() => setPage((p) => p + 1)} />
         </div>
       )}
     </div>

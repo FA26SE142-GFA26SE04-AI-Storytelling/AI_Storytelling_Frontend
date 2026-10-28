@@ -106,3 +106,10 @@
 .kid-badge.on { opacity: 1; outline: 2px solid var(--primary); outline-offset: -2px; }
 .kid-badge svg { width: 32px; height: 32px; flex-shrink: 0; }
 .kid-badge p { margin: 4px 0; color: var(--muted); }
+
+/* Nút icon trong chế độ bé: tối thiểu 52px để bé dễ chạm. */
+.kid-soft-button.icon-only,.kid-listen-primary.icon-only { padding: 0; width: 56px; height: 56px; min-height: 56px; }
+.kid-listen-primary.icon-only { width: 68px; height: 68px; border-radius: 22px; }
+.kid-soft-button.icon-only svg,.kid-listen-primary.icon-only svg { width: 26px; height: 26px; }
+.kid-listen-primary.icon-only svg { width: 32px; height: 32px; }
+.kid-feelings .icon-only { font-size: 30px; }

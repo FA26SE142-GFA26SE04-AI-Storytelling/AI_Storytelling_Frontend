@@ -1,16 +1,17 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Sparkles } from 'lucide-react';
+import { ArrowLeft, BookOpen, Lightbulb, MapPin, Mountain, Send, SkipForward, Sparkles, UserRound, UsersRound, X, type LucideIcon } from 'lucide-react';
 import { childWishService } from '@/app/services/storyWishService';
 import type { ReadingStart } from '@/app/types/childReading';
 import type { ChildWishCardDto, ChildWishDto, WishCardGroup, WishDraftDto } from '@/app/types/storyWish';
 import Frog from '@/app/components/brand/Frog';
+import IconButton from '@/app/components/IconButton';
 
-const STEPS: { group: WishCardGroup; question: string; optional: boolean }[] = [
-  { group: 'Character', question: 'Ai là nhân vật chính?', optional: false },
-  { group: 'Place', question: 'Câu chuyện diễn ra ở đâu?', optional: false },
-  { group: 'Challenge', question: 'Nhân vật gặp thử thách gì?', optional: true },
-  { group: 'Lesson', question: 'Em muốn học điều gì?', optional: true },
+const STEPS: { group: WishCardGroup; question: string; optional: boolean; icon: LucideIcon }[] = [
+  { group: 'Character', question: 'Ai là nhân vật chính?', optional: false, icon: UserRound },
+  { group: 'Place', question: 'Câu chuyện diễn ra ở đâu?', optional: false, icon: MapPin },
+  { group: 'Challenge', question: 'Nhân vật gặp thử thách gì?', optional: true, icon: Mountain },
+  { group: 'Lesson', question: 'Em muốn học điều gì?', optional: true, icon: Lightbulb },
 ];
 
 const playAudio = (url: string | null) => {
@@ -77,7 +78,7 @@ export default function KidWish({ token, busy, onRead }: { token: string; busy: 
   const disabled = working || busy;
 
   if (draft) return <section className="kid-wish">
-    <div className="kid-wish-steps" aria-label="Các bước ước">{STEPS.map((s, i) => <button key={s.group} className="kid-soft-button" aria-pressed={i === step} disabled={disabled} onClick={() => setStep(i)}>{i + 1}</button>)}</div>
+    <div className="kid-wish-steps" aria-label="Các bước ước">{STEPS.map((s, i) => <IconButton key={s.group} icon={s.icon} label={`Bước ${i + 1}: ${s.question}`} iconClassName="" className="kid-soft-button" aria-pressed={i === step} disabled={disabled} onClick={() => setStep(i)} />)}</div>
     <h3 className="display">{current.question}{current.optional && <small> (không bắt buộc)</small>}</h3>
     {note && <p role="status" className="notice">{note}</p>}
     {!cards && <p role="status">Đang tải thẻ…</p>}
@@ -86,14 +87,14 @@ export default function KidWish({ token, busy, onRead }: { token: string; busy: 
       {c.imageUrl && <img src={c.imageUrl} alt="" />}<span>{c.label}</span>
     </button>)}</div>
     <div className="kid-library-tabs">
-      {current.group === 'Lesson' && <button className="kid-soft-button" aria-pressed={draft.lessonLeftToParent} disabled={disabled} onClick={() => void pick(null, true)}>Để bố mẹ chọn</button>}
-      {current.optional && step < STEPS.length - 1 && <button className="kid-soft-button" disabled={disabled} onClick={() => setStep(step + 1)}>Bỏ qua</button>}
-      {step > 0 && <button className="kid-soft-button" disabled={disabled} onClick={() => setStep(step - 1)}>Quay lại</button>}
+      {step > 0 && <IconButton icon={ArrowLeft} label="Quay lại" iconClassName="" className="kid-soft-button" disabled={disabled} onClick={() => setStep(step - 1)} />}
+      {current.group === 'Lesson' && <IconButton icon={UsersRound} label="Để bố mẹ chọn" iconClassName="" className="kid-soft-button" aria-pressed={draft.lessonLeftToParent} disabled={disabled} onClick={() => void pick(null, true)} />}
+      {current.optional && step < STEPS.length - 1 && <IconButton icon={SkipForward} label="Bỏ qua" iconClassName="" className="kid-soft-button" disabled={disabled} onClick={() => setStep(step + 1)} />}
     </div>
     <p className="sub">Em đã chọn: {draft.cards.map(c => c.label).join(', ') || 'chưa có thẻ nào'}{draft.lessonLeftToParent ? ' · bài học để bố mẹ chọn' : ''}</p>
     <div className="kid-library-tabs">
-      <button className="kid-listen-primary" disabled={disabled || !draft.canSubmit} onClick={() => void submit()}><Sparkles aria-hidden="true" />Gửi điều ước cho bố mẹ</button>
-      <button className="kid-soft-button" disabled={disabled} onClick={() => setDraft(null)}>Để sau</button>
+      <IconButton icon={Send} label="Gửi điều ước cho bố mẹ" iconClassName="" className="kid-listen-primary" disabled={disabled || !draft.canSubmit} onClick={() => void submit()} />
+      <IconButton icon={X} label="Để sau" iconClassName="" className="kid-soft-button" disabled={disabled} onClick={() => setDraft(null)} />
     </div>
     {!draft.canSubmit && <p className="sub">Em chọn nhân vật và nơi chốn nhé!</p>}
   </section>;
@@ -102,17 +103,17 @@ export default function KidWish({ token, busy, onRead }: { token: string; busy: 
     <div className="kid-library-invitation"><Frog mood="happy" size={90} /><div>
       <h3 className="display">Em muốn nghe truyện gì?</h3>
       <p>Chọn vài tấm thẻ, bố mẹ sẽ tìm hoặc viết truyện cho em.</p>
-      <button className="kid-listen-primary" disabled={disabled} onClick={() => void start()}><Sparkles aria-hidden="true" />Em ước một câu chuyện</button>
+      <IconButton icon={Sparkles} label="Em ước một câu chuyện" iconClassName="" className="kid-listen-primary" disabled={disabled} onClick={() => void start()} />
     </div></div>
     {note && <p role="status" className="notice">{note}</p>}
     {!wishes && !note && <p role="status">Đang tải điều ước…</p>}
     {wishes?.map(w => <article className="kcard" key={w.wishId}>
       <h3>{w.cards.map(c => c.label).join(' · ') || 'Điều ước của em'}</h3>
       <p>{w.message}</p>
-      {w.fulfilledStoryId != null && <button className="kid-listen-primary" disabled={disabled} onClick={() => onRead({ storyId: w.fulfilledStoryId! })}>Đọc truyện</button>}
+      {w.fulfilledStoryId != null && <IconButton icon={BookOpen} label="Đọc truyện" iconClassName="" className="kid-listen-primary" disabled={disabled} onClick={() => onRead({ storyId: w.fulfilledStoryId! })} />}
       {w.suggestions.length > 0 && <><p className="sub">Trong lúc chờ, em đọc thử nhé:</p>
         <div className="kid-library-tabs">{w.suggestions.filter(s => s.storyId != null || s.communitySubmissionId != null).map(s => <button key={s.rank} className="kid-soft-button" disabled={disabled}
-          onClick={() => onRead(s.storyId != null ? { storyId: s.storyId } : { communitySubmissionId: s.communitySubmissionId! })}>{s.title}</button>)}</div></>}
+          onClick={() => onRead(s.storyId != null ? { storyId: s.storyId } : { communitySubmissionId: s.communitySubmissionId! })}><BookOpen aria-hidden="true" />{s.title}</button>)}</div></>}
     </article>)}
   </section>;
 }
