@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStoryCreationService } from '@/app/services/aiStoryCreationService';
+import { parentWishService } from '@/app/services/storyWishService';
 import {
   AIStoryCreativeInputDto,
   AIStoryInputContextDto,
@@ -44,6 +45,9 @@ export interface UseAIStoryInputFlowResult {
   checkStatus: () => Promise<void>;
   editInput: () => void;
   markWaitingForOutline: () => void;
+  /** Điều ước của bé đang được tạo thành truyện; lần gửi đầu tiên đi qua create-story của điều ước. */
+  wishId: number | null;
+  setWishId: (wishId: number | null) => void;
 }
 
 export function useAIStoryInputFlow(
@@ -70,6 +74,9 @@ export function useAIStoryInputFlow(
   const idempotencyKeyRef = useRef<string | null>(null);
   const retryKeyRef = useRef<string | null>(null);
   const lastCreativeInputRef = useRef<AIStoryCreativeInputDto | null>(null);
+  const [wishId, setWishIdState] = useState<number | null>(null);
+  const wishIdRef = useRef<number | null>(null);
+  const setWishId = useCallback((id: number | null) => { wishIdRef.current = id; setWishIdState(id); }, []);
   // Ý tưởng điền sẵn khi làm lại; giữ cố định suốt vòng đời hook để form không bị nạp lại khi cha render.
   const [initial] = useState(initialValues ?? null);
 
@@ -101,6 +108,8 @@ export function useAIStoryInputFlow(
     idempotencyKeyRef.current = null;
     retryKeyRef.current = null;
     lastCreativeInputRef.current = null;
+    wishIdRef.current = null;
+    setWishIdState(null);
     setHasCreativeInput(false);
     setContext(null);
     setValues(null);
@@ -244,12 +253,15 @@ export function useAIStoryInputFlow(
     try {
       const controller = new AbortController();
       requestControllerRef.current = controller;
-      const response = await aiStoryCreationService.submitInput(
-        buildSubmitRequest(childProfileId, values, context, idempotencyKey, existingStoryId),
-        controller.signal
-      );
+      const request = buildSubmitRequest(childProfileId, values, context, idempotencyKey, existingStoryId);
+      // create-story chỉ nhận điều ước còn Pending: sau lần gửi đầu, sửa và gửi lại đi theo luồng thường với existingStoryId.
+      const fromWish = wishIdRef.current !== null && !existingStoryId ? wishIdRef.current : null;
+      const response = fromWish !== null
+        ? await parentWishService.createStory(fromWish, request, controller.signal).then((r) => ({ ...r, data: r.data?.generation ?? null }))
+        : await aiStoryCreationService.submitInput(request, controller.signal);
       if (!mountedRef.current || flowVersion !== flowVersionRef.current) return;
       if (response.data) {
+        if (fromWish !== null) setWishId(null);
         beginTracking(response.data, flowVersion);
         return;
       }
@@ -258,7 +270,7 @@ export function useAIStoryInputFlow(
     } finally {
       if (flowVersion === flowVersionRef.current) submitLockRef.current = false;
     }
-  }, [beginTracking, childProfileId, clearPolling, context, progress?.storyId, values]);
+  }, [beginTracking, childProfileId, clearPolling, context, progress?.storyId, setWishId, values]);
 
   const retry = useCallback(async () => {
     if (
@@ -335,5 +347,7 @@ export function useAIStoryInputFlow(
     checkStatus,
     editInput,
     markWaitingForOutline,
+    wishId,
+    setWishId,
   };
 }

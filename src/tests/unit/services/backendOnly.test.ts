@@ -13,9 +13,9 @@ it('ships no runtime data simulators, imports or mock switch',()=>{
  expect(source.filter(p=>/[\\/]mocks[\\/]|(?:guardian|reading|adaptive|staff|notification)Local\.ts$/.test(p))).toEqual([]);
  for(const file of source){const text=readFileSync(file,'utf8');expect(text,file).not.toMatch(/USE_MOCK|NEXT_PUBLIC_USE_MOCK|contractMock|(?:from\s+['"][^'"]*(?:\/mocks\/|(?:guardian|reading|adaptive|staff|notification)Local))/);}
 });
-it('does not simulate unsupported progress, recommendations or wishes',async()=>{
+it('does not simulate unsupported progress or recommendations',async()=>{
  const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);
- const result=await Promise.all([guardianService.dashboard(10),guardianService.reports(10),guardianService.wishes(10),adaptiveService.recommendations(10),adaptiveService.versions(10)]);
+ const result=await Promise.all([guardianService.dashboard(10),guardianService.reports(10),adaptiveService.recommendations(10),adaptiveService.versions(10)]);
  for(const r of result){expect(r.success).toBe(false);expect(r.status).toBe(501);expect(r.data).toBeNull();}
  expect(fetcher).not.toHaveBeenCalled();
  expect('metrics' in staffService).toBe(false);expect('applications' in staffService).toBe(false);

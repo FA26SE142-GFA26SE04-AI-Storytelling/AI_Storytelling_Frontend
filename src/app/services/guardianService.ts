@@ -4,7 +4,6 @@ import type {
   AppNotification, ChildRef, CommunitySubmission, ContentReport, Dashboard, InterventionCase, ProgressReport, ReadCompletion, ReportReason,
   RoadmapAddResult, RoadmapItem, RoadmapPosition, RoadmapStoryInput, RoadmapTemplate,
 } from '@/app/types/progress';
-import type { StoryWish } from '@/app/types/reading';
 import { apiRequest } from './apiClient';
 import { roadmapService } from './roadmapService';
 import { roadmapItems, roadmapAddResult, roadmapTemplate, roadmapCopyResult } from './roadmapAdapters';
@@ -73,13 +72,7 @@ export const guardianService = {
 
   reports: (childId: number): Promise<ApiResponse<ProgressReport[]>> => unavailable('tính năng này', [childId]),
 
-  wishes: (childId: number): Promise<ApiResponse<(StoryWish & { label: string })[]>> => unavailable('tính năng này', [childId]),
-  fulfillWishWithStory: (child: ChildRef, wishId: number, story: RoadmapStoryInput): Promise<ApiResponse<null>> =>
-    unavailable('tính năng này', [child,wishId,story]),
-  acceptWish: (childId: number, wishId: number): Promise<ApiResponse<null>> =>
-    unavailable('tính năng này', [childId,wishId]),
-  declineWish: (childId: number, wishId: number, note: string): Promise<ApiResponse<null>> =>
-    unavailable('tính năng này', [childId,wishId,note]),
+  // Điều ước của bé: xem storyWishService (parentWishService).
 
   async reportStory(storyId: number, reason: ReportReason, description: string): Promise<ApiResponse<ContentReport>> {
     const r = await apiRequest<B.ContentReportResultDto>('/ContentReport', 'Không gửi được báo cáo.', { method: 'POST', body: { storyId, reason: reportReasons[reason], description: description || null } });

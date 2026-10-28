@@ -7,9 +7,10 @@ import { childProfileService } from "@/app/services/childProfileService";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
 import { copyrightHits, GENRES } from "@/app/lib/storyRules";
 import { STUDIO_PREFILL_KEY } from "@/app/features/home/WishItem";
+import { parentWishService } from "@/app/services/storyWishService";
 import { takeLandingIdea } from "@/app/features/landing/landingIdea";
 import {
-  clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, outputModesOf, vocabularyTone,
+  clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, outputModesOf, restoreFormValues, vocabularyTone,
   type AIStoryInputFormValues, type LengthPreset,
 } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
 import { OUTPUT_MODE } from "@/app/lib/storyRules";
@@ -44,18 +45,39 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   // Nguồn điền sẵn: điều ước của bé (Luồng 2 mục 3.5), gợi ý chủ đề của Luồng 6 Nhánh B,
   // hoặc ý tưởng khách gõ ở trang giới thiệu trước khi có tài khoản (chỉ khi form đang trống).
   const [prefilled, setPrefilled] = useState<"wish" | "recommendation" | "landing" | null>(null);
+  const [wishLesson, setWishLesson] = useState(false);
+  const [wishError, setWishError] = useState<string | null>(null);
   useEffect(() => {
     if (!context || locked) return;
+    let p: { childId?: number; wishId?: number; source?: string; topic?: string; charactersText?: string; setting?: string; lesson?: string } | null = null;
     try {
       const raw = sessionStorage.getItem(STUDIO_PREFILL_KEY);
-      const p = raw ? JSON.parse(raw) : null;
-      if (p && p.childId === context.childProfileId) {
-        sessionStorage.removeItem(STUDIO_PREFILL_KEY);
-        updateValues({ topic: p.topic, charactersText: p.charactersText, setting: p.setting ?? "", ...(p.lesson ? { lesson: p.lesson } : {}) });
-        setPrefilled(p.source === "recommendation" ? "recommendation" : "wish");
-        return;
-      }
+      p = raw ? JSON.parse(raw) : null;
     } catch { /* bỏ qua */ }
+    if (p && p.childId === context.childProfileId) {
+      try { sessionStorage.removeItem(STUDIO_PREFILL_KEY); } catch { /* bỏ qua */ }
+      if (typeof p.wishId === "number") {
+        // Điều ước của bé: backend điền sẵn form từ các thẻ bé chọn; gửi đi qua create-story của điều ước.
+        const wishId = p.wishId;
+        let alive = true;
+        void parentWishService.generationForm(wishId).then((r) => {
+          if (!alive) return;
+          if (!r.success || !r.data) { setWishError(r.message); return; }
+          const q = r.data.request;
+          updateValues(restoreFormValues({
+            topic: q.topic, genre: q.genre, lesson: q.lesson, charactersText: (q.characters ?? []).join(", "),
+            setting: q.setting ?? "", vocabularyLevel: q.vocabularyLevel, targetLength: q.targetLength, outputMode: q.outputMode,
+          }, context));
+          flow.setWishId(wishId);
+          setWishLesson(r.data.lessonLeftToParent);
+          setPrefilled("wish");
+        });
+        return () => { alive = false; };
+      }
+      updateValues({ topic: p.topic ?? "", charactersText: p.charactersText ?? "", setting: p.setting ?? "", ...(p.lesson ? { lesson: p.lesson } : {}) });
+      setPrefilled(p.source === "recommendation" ? "recommendation" : "wish");
+      return;
+    }
     if (values?.topic.trim()) return;
     const idea = takeLandingIdea();
     if (!idea) return;
@@ -115,6 +137,8 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
       </div>
 
       {prefilled && <div className="notice ok">{prefilled === "wish" ? `Đã điền sẵn từ điều ước của ${context.childNickname}.` : prefilled === "landing" ? "Đã điền sẵn ý tưởng bạn nhập ở trang giới thiệu." : `Đã điền sẵn chủ đề gợi ý cho ${context.childNickname}.`} Bạn có thể chỉnh trước khi tạo.</div>}
+      {prefilled === "wish" && wishLesson && !locked && <div className="notice">{context.childNickname} để bố mẹ chọn bài học. Hãy điền bài học trước khi gửi.</div>}
+      {wishError && <div className="notice err" role="alert">Không mở được điều ước: {wishError}</div>}
 
       <div className="brief-flow">
           <fieldset className="brief-group">

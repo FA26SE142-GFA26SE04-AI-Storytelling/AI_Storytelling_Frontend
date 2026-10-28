@@ -75,3 +75,14 @@
   .kid-theater .kid-listen-primary { min-height: 56px; padding: 12px 22px; }
 }
 @media(prefers-reduced-motion:reduce) { .kid-theater *,.kid-reading * { animation: none!important; transition: none!important; } }
+
+/* Bé ước một câu chuyện */
+.kid-wish { display: flex; flex-direction: column; gap: 16px; }
+.kid-wish-steps { display: flex; gap: 8px; }
+.kid-wish-steps .kid-soft-button { min-width: 48px; padding-inline: 0; }
+.kid-wish-cards { display: grid; grid-template-columns: repeat(auto-fill,minmax(min(140px,100%),1fr)); gap: 12px; }
+.kid-wish-card { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px; min-height: 48px; border-radius: 20px; background: var(--surface); color: var(--text); font-weight: 700; font-size: 17px; transition: background .15s,transform .15s; }
+.kid-wish-card img { width: 100%; aspect-ratio: 1; object-fit: contain; border-radius: 14px; }
+.kid-wish-card:hover:not(:disabled) { background: var(--surface-2); }
+.kid-wish-card[aria-pressed=true] { background: var(--surface-2); outline: 3px solid var(--primary); outline-offset: -3px; }
+@media(prefers-reduced-motion:reduce) { .kid-wish * { transition: none!important; } }

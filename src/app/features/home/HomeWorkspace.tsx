@@ -13,7 +13,8 @@ import { supervisionService } from "@/app/services/supervisionService";
 import { adaptiveService } from "@/app/services/adaptiveService";
 import type { Recommendation } from "@/app/types/adaptive";
 import type { Dashboard, ProgressReport } from "@/app/types/progress";
-import type { StoryWish } from "@/app/types/reading";
+import { parentWishService } from "@/app/services/storyWishService";
+import type { ParentWishDto } from "@/app/types/storyWish";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
 import type { PermissionRequest } from "@/app/types/supervision";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
@@ -21,7 +22,6 @@ import Frog from "@/app/components/brand/Frog";
 import { BADGES } from "@/app/lib/readingRules";
 import { fmtDate, PERMISSIONS } from "@/app/lib/guardian";
 import { useMyRole } from "@/app/features/children/useMyRole";
-import { useChildRefs } from "@/app/features/roadmap/AddToRoadmapDialog";
 import HoldPanel from "@/app/features/roadmap/HoldPanel";
 import { useRiseIn } from "@/app/lib/motion";
 import RecommendationCard from "@/app/features/adaptive/RecommendationCard";
@@ -51,12 +51,11 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
   const { user } = useAuth();
   const { children: kids, child, selectChild, stories, reviewQueue, error, reloadChildren } = useWorkspaceData();
   const role = useMyRole(child);
-  const refs = useChildRefs();
   const [dash, setDash] = useState<Dashboard | null>(null);
   // Backend chưa có API dashboard / báo cáo tuần: ẩn hẳn các khối đó thay vì hiện "—" hay thông báo lỗi kỹ thuật.
   const [dashOk, setDashOk] = useState(false);
   const [reportsOk, setReportsOk] = useState(false);
-  const [wishes, setWishes] = useState<(StoryWish & { label: string })[]>([]);
+  const [wishes, setWishes] = useState<ParentWishDto[]>([]);
   const [reports, setReports] = useState<ProgressReport[]>([]);
   const [quota, setQuota] = useState<TokenQuotaStatus | null>(null);
   const [requests, setRequests] = useState<PermissionRequest[]>([]);
@@ -68,7 +67,7 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
   const load = useCallback(async () => {
     if (!child) return;
     const [d, w, r, q, rels, rc] = await Promise.all([
-      guardianService.dashboard(child.id), guardianService.wishes(child.id), guardianService.reports(child.id),
+      guardianService.dashboard(child.id), parentWishService.list(child.id), guardianService.reports(child.id),
       childProfileService.getTokenQuotaForChild(child.id), supervisionService.listSupervisors(child.id),
       // Luồng 6 Bước 6.5 — hàng đợi đề xuất chung của bé, tải lại mỗi lần mở Dashboard.
       child.status === "Active" ? adaptiveService.recommendations(child.id) : Promise.resolve({ data: [] as Recommendation[] }),
@@ -77,7 +76,7 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
     setDashOk(d.success && !!d.data);
     setReportsOk(r.success);
     setRecs(rc.data ?? []);
-    setWishes((w.data ?? []).filter((x) => x.status === "pending"));
+    setWishes((w.data ?? []).filter((x) => x.status === "Pending"));
     setReports(r.data ?? []);
     setQuota(q.success ? q.data : null);
     // Yêu cầu cấp quyền chỉ Owner xử lý (Luồng 1 Bước G).
@@ -154,7 +153,7 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
                   {can("ApproveStory") && reviewQueue.map((s) => (
                     <button key={s.id} className="mini-item" onClick={() => go("review")}><span className="cover-sm" style={{ background: s.gradient }} /><span className="grow" style={{ textAlign: "left" }}><b>{s.title}</b><small>Truyện chờ duyệt</small></span></button>
                   ))}
-                  {can("ApproveStory") && wishes.map((w) => <WishItem key={w.id} wish={w} childRef={refs.find((r) => r.id === child.id)} stories={stories} go={go} onChanged={() => void load()} />)}
+                  {can("ApproveStory") && wishes.map((w) => <WishItem key={w.wishId} wish={w} nickname={child.nickname} go={go} onChanged={() => void load()} />)}
                   {dash?.holdCase?.needsAttention && <HoldPanel child={child} role={role} onChanged={() => void load()} />}
                   {role?.isOwner && requests.map((q) => (
                     <button key={q.id} className="mini-item" onClick={() => go("children")}><span className="grow" style={{ textAlign: "left" }}><b>Người giám sát #{q.requesterUserId} xin quyền {q.permissions.map(permLabel).join(", ")}</b><small>Mở Hồ sơ bé → Người giám sát để xử lý</small></span></button>
