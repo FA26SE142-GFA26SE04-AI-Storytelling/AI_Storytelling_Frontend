@@ -2,13 +2,16 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { WorkspaceEntry, WorkspaceId } from "./nav";
+import type { LucideIcon } from "lucide-react";
 
-type Props = {
-  entry: WorkspaceEntry;
-  items: WorkspaceEntry[];
-  ws: WorkspaceId;
-  onWs: (id: WorkspaceId) => void;
+/** Một mục trong menu xổ xuống; dùng chung cho khu phụ huynh và khu nhân viên. */
+export type MenuItem<Id extends string = string> = { id: Id; label: string; icon: LucideIcon; menuLabel?: string; hint?: string };
+
+type Props<Id extends string> = {
+  entry: { label: string; icon: LucideIcon };
+  items: MenuItem<Id>[];
+  ws: Id;
+  onWs: (id: Id) => void;
   /** Thanh tab ở đáy (điện thoại): menu mở lên trên thay vì xuống dưới. */
   upward?: boolean;
 };
@@ -17,7 +20,7 @@ type Props = {
  * Nút trên thanh điều hướng có menu xổ xuống. Menu gắn thẳng vào body, vì thanh điều hướng cuộn ngang
  * sẽ cắt mất mọi thứ tràn ra ngoài nó.
  */
-export default function NavMenuButton({ entry, items, ws, onWs, upward }: Props) {
+export default function NavMenuButton<Id extends string>({ entry, items, ws, onWs, upward }: Props<Id>) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top?: number; bottom?: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);

@@ -3,19 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import { LogOut } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
-import { WORKSPACES, type WorkspaceId } from "./nav";
+import type { MenuItem } from "./NavMenuButton";
 
-/** Các trang mở từ menu avatar (khai báo trong nav.ts với inMenu), chia nhóm: hồ sơ bé rồi tới tài khoản. */
-const ITEMS = WORKSPACES.filter((w) => w.inMenu);
-const GROUPS = [ITEMS.filter((w) => w.inMenu === "kids"), ITEMS.filter((w) => w.inMenu === "account")].filter((g) => g.length > 0);
-
-export default function AccountMenu({ ws, onWs }: { ws: WorkspaceId; onWs: (id: WorkspaceId) => void }) {
+/** Menu avatar: tên và email, các nhóm trang (mỗi nhóm cách nhau một vạch), rồi Đăng xuất. Dùng chung cho mọi vai trò. */
+export default function AccountMenu<Id extends string>({ ws, onWs, groups }: { ws: Id; onWs: (id: Id) => void; groups: MenuItem<Id>[][] }) {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
   const name = user?.fullName || user?.username || "Tài khoản";
   const initial = name.trim().charAt(0).toUpperCase() || "?";
-  const inAccount = ITEMS.some((w) => w.id === ws);
+  const inAccount = groups.some((g) => g.some((w) => w.id === ws));
 
   useEffect(() => {
     if (!open) return;
@@ -37,7 +34,7 @@ export default function AccountMenu({ ws, onWs }: { ws: WorkspaceId; onWs: (id: 
             <span className="av me">{initial}</span>
             <span className="grow"><b>{name}</b><small>{user?.email}</small></span>
           </div>
-          {GROUPS.map((group, i) => (
+          {groups.filter((g) => g.length > 0).map((group, i) => (
             <div key={i} style={{ display: "contents" }}>
               <div className="acc-sep" />
               {group.map(({ id, label, icon: Icon }) => (

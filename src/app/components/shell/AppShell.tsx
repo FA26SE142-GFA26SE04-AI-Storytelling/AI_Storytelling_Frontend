@@ -19,6 +19,9 @@ type Props = {
   children: React.ReactNode;
 };
 
+/** Nhóm trang trong menu avatar (khai báo trong nav.ts với inMenu): hồ sơ bé rồi tới tài khoản. */
+const MENU_GROUPS = [WORKSPACES.filter((w) => w.inMenu === "kids"), WORKSPACES.filter((w) => w.inMenu === "account")];
+
 /** Các nút điều hướng; dùng chung cho thanh ngang trên header (máy tính) và thanh tab ở đáy (điện thoại). */
 function NavButtons({ ws, onWs, reviewCount, upward }: { ws: WorkspaceId; onWs: (id: WorkspaceId) => void; reviewCount: number; upward?: boolean }) {
   // Mục có `under` gom vào menu của nút cha; chỉ nút cha (id trùng `under`) hiện trên thanh.
@@ -61,7 +64,7 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
         <button className="btn btn-g" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Giao diện sáng" : "Giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
         <NotificationBell onOpen={onWs} />
         <KidButton onKid={onKid} />
-        <AccountMenu ws={ws} onWs={onWs} />
+        <AccountMenu ws={ws} onWs={onWs} groups={MENU_GROUPS} />
       </header>
 
       {/* Điện thoại: header không đủ chỗ nên điều hướng nằm ở thanh tab dưới đáy. */}

@@ -305,7 +305,7 @@ try {
  },true);
  await fixture('Moderator',async({page,requests})=>{
   page.on('dialog',d=>d.accept());
-  await page.getByRole('button',{name:'Hướng dẫn sáng tác',exact:true}).click();
+  await page.getByRole('button',{name:'Nội dung',exact:true}).click();await page.getByRole('menuitem',{name:'Hướng dẫn sáng tác',exact:true}).click();
   await page.getByRole('button',{name:'Tạo bản nháp từ bản đang dùng',exact:true}).click();
   await page.getByLabel('Mã hướng dẫn',{exact:true}).fill('ending');
   await page.getByLabel('Tiêu đề',{exact:true}).fill('Kết thúc mới');
@@ -340,7 +340,7 @@ try {
   assert(requests.some(r=>r.path==='/parent/stories/7/family-confirmations'));
  },false,'ParentManualMedia');
  await fixture('Moderator',async({page})=>{
-  await page.getByRole('button',{name:'Hướng dẫn sáng tác',exact:true}).click();
+  await page.getByRole('button',{name:'Nội dung',exact:true}).click();await page.getByRole('menuitem',{name:'Hướng dẫn sáng tác',exact:true}).click();
   await page.getByRole('button',{name:'Tạo bản nháp từ bản đang dùng',exact:true}).click();
   await page.getByLabel('Mã hướng dẫn',{exact:true}).fill('ending');
   await page.getByLabel('Tiêu đề',{exact:true}).fill('Bản đang soạn được giữ');
@@ -387,7 +387,7 @@ try {
   assert.equal(requests.filter(r=>r.path.endsWith('/keep-current')).length,1);
  },true,'MediaKeepCurrent');
  await fixture('Administrator',async({page,requests})=>{
-  await page.getByRole('button',{name:'Hướng dẫn sáng tác',exact:true}).click();
+  await page.getByRole('button',{name:'Nội dung',exact:true}).click();await page.getByRole('menuitem',{name:'Hướng dẫn sáng tác',exact:true}).click();
   await page.getByText('Bản đang phát hành: parent-vi-1',{exact:true}).waitFor();
   await page.getByRole('button',{name:'parent-vi-1 · Published',exact:true}).click();
   await page.getByRole('button',{name:'Tạo bản nháp từ phiên bản này',exact:true}).waitFor();
