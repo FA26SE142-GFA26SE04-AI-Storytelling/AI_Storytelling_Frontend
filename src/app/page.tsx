@@ -7,9 +7,9 @@ import AppShell from "@/app/components/shell/AppShell";
 import LoginScreen from "@/app/components/shell/LoginScreen";
 import { WorkspaceDataProvider, useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { type WorkspaceId, type WorkspaceProps } from "@/app/components/shell/nav";
-import { readWorkspaceLocation, workspaceLocation } from '@/app/lib/workspaceLocation';
-import HomeWorkspace from "@/app/features/home/HomeWorkspace";
+import { DEFAULT_WORKSPACE, readWorkspaceLocation, takesStoryId, workspaceLocation } from '@/app/lib/workspaceLocation';
 import StudioWorkspace from "@/app/features/studio/StudioWorkspace";
+import AuthoringWorkspace from "@/app/features/authoring/AuthoringWorkspace";
 import LibraryWorkspace from "@/app/features/library/LibraryWorkspace";
 import ReviewWorkspace from "@/app/features/review/ReviewWorkspace";
 import ReportWorkspace from "@/app/features/report/ReportWorkspace";
@@ -27,30 +27,33 @@ import "@/app/styles/mobile.css";
 
 // Mỗi không gian một component. Thêm không gian mới: khai báo trong nav.ts rồi thêm vào đây.
 const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
-  home: HomeWorkspace,
   children: ChildrenWorkspace,
   studio: StudioWorkspace,
+  authoring: AuthoringWorkspace,
   library: LibraryWorkspace,
   roadmap: RoadmapWorkspace,
   review: ReviewWorkspace,
   report: ReportWorkspace,
   safety: SafetyWorkspace,
-  account: AccountWorkspace,
+  account: () => <AccountWorkspace page="profile" />,
+  "account-security": () => <AccountWorkspace page="security" />,
+  "account-payment": () => <AccountWorkspace page="payment" />,
+  "account-activity": () => <AccountWorkspace page="activity" />,
 };
 
 function Workspaces() {
   const { child, childrenLoading } = useWorkspaceData();
-  const [ws, setWs] = useState<WorkspaceId>("home");
+  const [ws, setWs] = useState<WorkspaceId>(DEFAULT_WORKSPACE);
   const [resumeStoryId, setResumeStoryId] = useState<number | null>(null);
   const [kid, setKid] = useState(false);
   const View = VIEWS[ws];
   const go = useCallback<WorkspaceProps['go']>((id, target) => transitionWorkspace(() => {
-    const storyId = id === 'studio' ? target?.storyId ?? null : null;
+    const storyId = takesStoryId(id) ? target?.storyId ?? null : null;
     window.history.replaceState(null,'',workspaceLocation(window.location.href,id,storyId));
     setResumeStoryId(storyId); setWs(id);
   }), []);
 
-  // Cho phép mở thẳng một không gian bằng #home, #lib, #review...
+  // Cho phép mở thẳng một không gian bằng #library, #studio, #review...
   useEffect(() => {
     const restore = () => { const target = readWorkspaceLocation(window.location.href); setWs(target.workspace); setResumeStoryId(target.storyId); };
     restore(); window.addEventListener('popstate',restore); window.addEventListener('hashchange',restore);
@@ -66,7 +69,7 @@ function Workspaces() {
         <AppShell ws={ws} onWs={go} onKid={() => setKid(true)}>
           {childrenLoading
             ? <div className="splash">Đang tải hồ sơ bé…</div>
-            : <View key={ws === 'studio' ? `studio:${resumeStoryId ?? 'new'}` : ws} go={go} resumeStoryId={resumeStoryId} onKid={() => setKid(true)} />}
+            : <View key={takesStoryId(ws) ? `${ws}:${resumeStoryId ?? 'new'}` : ws} go={go} resumeStoryId={resumeStoryId} onKid={() => setKid(true)} />}
         </AppShell>
       </div>
       {kidOpen && <KidMode onExit={() => setKid(false)} />}

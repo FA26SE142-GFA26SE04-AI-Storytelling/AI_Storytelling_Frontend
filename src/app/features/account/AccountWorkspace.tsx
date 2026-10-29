@@ -14,9 +14,13 @@ import PaymentSection from './PaymentSection';
 import ConnectionStatus from './ConnectionStatus';
 
 type Note = { ok: boolean; text: string } | null;
+/** Mỗi trang tài khoản lo một việc. Không truyền `page` thì hiện tất cả (khu nhân viên). */
+export type AccountPage = "profile" | "security" | "payment" | "activity";
+const TITLE: Record<AccountPage, string> = { profile: "Thông tin cá nhân", security: "Bảo mật & đăng nhập", payment: "Mua thêm lượt tạo truyện", activity: "Lịch sử hoạt động" };
 
 /** Luồng 1 Bước 1.1b — quản lý tài khoản cá nhân: thông tin, email, mật khẩu, phiên đăng nhập, xoá tài khoản. */
-export default function AccountWorkspace() {
+export default function AccountWorkspace({ page }: { page?: AccountPage }) {
+  const show = (p: AccountPage) => !page || page === p;
   const { user, logout } = useAuth();
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
   const [pwNote, setPwNote] = useState<Note>(null);
@@ -29,7 +33,8 @@ export default function AccountWorkspace() {
     setSessions(r.data ?? []);
     if (!r.success) setSNote({ ok: false, text: r.message });
   }, []);
-  useEffect(() => { void loadSessions(); }, [loadSessions]);
+  const needSessions = show("security");
+  useEffect(() => { if (needSessions) void loadSessions(); }, [loadSessions, needSessions]);
 
   const changePassword = async (e: FormEvent) => {
     e.preventDefault();
@@ -61,14 +66,14 @@ export default function AccountWorkspace() {
   return (
     <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
       <div className="pane children-main">
-        <div className="ph"><span>Tài khoản</span></div>
+        <div className="ph"><span>{page ? TITLE[page] : "Tài khoản"}</span></div>
         <div className="pb children-body">
           <div className="sec" style={{ gap: 28, maxWidth: 560 }}>
-            <ProfileSection />
-            <PaymentSection />
-            <ActivitySection />
-            <ConnectionStatus />
+            {show("profile") && <ProfileSection />}
+            {show("payment") && <PaymentSection />}
+            {show("activity") && <><ActivitySection /><ConnectionStatus /></>}
 
+            {show("security") && <>
             <form className="sec" style={{ gap: 10 }} onSubmit={changePassword}>
               <h3 className="display" style={{ margin: 0 }}>Đổi mật khẩu</h3>
               <label className="field"><span className="lbl">Mật khẩu hiện tại</span><input className="inp" type="password" required autoComplete="current-password" value={pw.current} onChange={set("current")} /></label>
@@ -95,6 +100,7 @@ export default function AccountWorkspace() {
             </section>
 
             {user?.role === "Parent" && <DeleteAccountSection />}
+            </>}
           </div>
         </div>
       </div>

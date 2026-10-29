@@ -57,7 +57,8 @@ export function notificationTarget(n: AppNotification): WorkspaceId | null {
   const key = notificationKey(n.type);
   if (key.startsWith("roadmap_") || key.startsWith("hold_mode_") || key === "assignment_cancelled") return "roadmap";
   if (key === "story_awaiting_approval") return "review";
-  if (key === "progress_report_ready" || key === "recommendation_awaiting_review" || key.startsWith("story_wish_")) return "home";
+  if (key === "progress_report_ready") return "report";
+  if (key === "recommendation_awaiting_review" || key.startsWith("story_wish_")) return "library";
   switch (n.group) {
     case "supervisors":
     case "children": return "children";

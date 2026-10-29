@@ -23,7 +23,6 @@ type Props = {
   retryFailed?: () => Promise<{ success: boolean; message: string }>;
   refresh: () => void;
   onOutlineApproved: () => void;
-  onImport: () => void;
 };
 
 type View = "brief" | "outline" | "status";
@@ -36,7 +35,7 @@ function autoView(stage: Stage): View {
   return "status";
 }
 
-export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, retryFailed, refresh, onOutlineApproved, onImport }: Props) {
+export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, retryFailed, refresh, onOutlineApproved }: Props) {
   // Lựa chọn tab chỉ có hiệu lực trong bước đã chọn; sang bước mới thì quay về view mặc định.
   const [choice, setChoice] = useState<{ stage: Stage; view: View } | null>(null);
   const hasOutline = !!snapshot?.outline?.currentVersion && storyId !== null;
@@ -60,7 +59,6 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
           {auto === "status" && (
             <button role="tab" aria-selected={view === "status"} className={view === "status" ? "on" : ""} onClick={() => pick("status")}>{statusLabel}</button>
           )}
-          {stage === "brief" && <button style={{ marginLeft: "auto", color: "var(--link)" }} onClick={onImport}>Nhập truyện có sẵn</button>}
         </div>
         <div className="plan-stage">
           <PondBackdrop />

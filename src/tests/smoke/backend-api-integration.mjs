@@ -142,11 +142,14 @@ try {
  }
  await fixture('Parent',async({page,requests,state})=>{
   page.on('dialog',d=>d.accept());
-  await page.getByRole('button',{name:'Tài khoản',exact:true}).click();
+  await page.getByRole('button',{name:'Mở menu tài khoản',exact:true}).click();
+  await page.getByRole('menuitem',{name:'Lịch sử hoạt động',exact:true}).click();
   await page.getByText('ProfileUpdated',{exact:false}).waitFor();
+  await page.getByText('Các dịch vụ đã sẵn sàng.',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Mở menu tài khoản',exact:true}).click();
+  await page.getByRole('menuitem',{name:'Mua thêm lượt tạo truyện',exact:true}).click();
   await page.getByRole('button',{name:'Chọn gói',exact:true}).click();
   await page.getByText('FIXTURE17',{exact:true}).waitFor();
-  await page.getByText('Các dịch vụ đã sẵn sàng.',{exact:true}).waitFor();
   await page.getByRole('button',{name:'Thông báo, 1 chưa đọc',exact:true}).click();
   await page.getByText('Có truyện mới trong lộ trình của con',{exact:true}).waitFor();
   assert.equal(state.notificationPushed,true);
@@ -321,8 +324,7 @@ try {
   assert(requests.some(r=>r.method==='DELETE'&&r.path===`${root}/draft`));
  },false,'ModeratorGuides');
  await fixture('Parent',async({page,requests})=>{
-  await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();
-  await page.getByRole('button',{name:'Tự soạn truyện',exact:true}).click();
+  await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();await page.getByRole('menuitem',{name:'Thủ công',exact:true}).click();
   await page.getByRole('button',{name:'Ếch con khám phá #7',exact:true}).click();
   await page.getByRole('button',{name:'Kiểm tra bản đã lưu',exact:true}).click();
   for(const name of ['Đúng ý định của tôi','Phù hợp với bé','Đã kiểm tra thông tin riêng tư','Đã đọc phần kết'])await page.getByRole('checkbox',{name,exact:true}).check();
@@ -402,7 +404,7 @@ try {
   assert.equal(new URL(page.url()).hash,'#studio');
   assert(!requests.slice(start).some(r=>r.path.startsWith('/ai-story-input')||r.path.startsWith('/stories/7/')));
   await page.getByRole('button',{name:'Về thư viện',exact:true}).click();
-  await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();
+  await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();await page.getByRole('menuitem',{name:'Dùng AI',exact:true}).click();
   await page.getByText('Hai bạn cùng ngắm trăng.',{exact:true}).waitFor();
   await page.evaluate(()=>sessionStorage.clear());
   await page.reload({waitUntil:'domcontentloaded'});
