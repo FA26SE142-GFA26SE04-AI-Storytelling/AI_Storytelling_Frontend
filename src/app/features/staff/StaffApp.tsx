@@ -4,8 +4,8 @@ import "./staff.css";
 import "@/app/features/children/children.css";
 import { useState, type ComponentType } from "react";
 import {
-  Activity, BookOpenText, ChartColumn, Coins, FileClock, FlaskConical, Inbox, KeyRound, LibraryBig, ListChecks, Moon, Receipt,
-  ScrollText, Shield, Sparkles, Sun, UserRound, Users, type LucideIcon,
+  Activity, BookOpenText, ChartColumn, Coins, FileClock, FlaskConical, Inbox, KeyRound, LibraryBig, ListChecks, Moon, PencilLine, Receipt,
+  ScrollText, Shield, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import type { StaffRole } from "@/app/types/auth";
@@ -22,14 +22,15 @@ import PublishedReviewWorkspace from "./PublishedReviewWorkspace";
 import RubricWorkspace from "./RubricWorkspace";
 import AuthoringGuideManagement from "./AuthoringGuideManagement";
 import { PromptsPage } from "./Creator";
-import { CreatorStories } from "./CreatorStories";
+import { CreatorCreateAi, CreatorCreateManual, CreatorLibrary, type CreatorPageProps } from "./CreatorStories";
 import { AdminParents, AdminStaff } from "./AdminPeople";
 import { AdminEvaluation, AdminLogs, AdminOverview } from "./AdminAi";
 import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
 import { AdminBusinessReport, AdminDataRequests, AdminPayments, AdminQuota } from "./AdminSystem";
 
-type PageDef = { id: string; label: string; icon: LucideIcon; view: ComponentType; hint?: string };
+/** Mọi trang nhân viên nhận go (chuyển trang, kèm id truyện cần mở) và target; trang không cần thì bỏ qua. */
+type PageDef = { id: string; label: string; icon: LucideIcon; view: ComponentType<CreatorPageProps>; hint?: string; menuLabel?: string; short?: string };
 /** Một nút trên thanh điều hướng: mở thẳng một trang, hoặc xổ menu gồm nhiều trang cùng nhóm. */
 type NavEntry = string | { label: string; icon: LucideIcon; items: string[] };
 
@@ -65,7 +66,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     ...ACCOUNT_PAGES,
   ],
   Moderator: [
-    { id: "queue", label: "Hàng đợi kiểm duyệt", icon: Inbox, view: () => <ModerationQueue /> },
+    { id: "queue", label: "Hàng đợi kiểm duyệt", short: "Hàng đợi", icon: Inbox, view: () => <ModerationQueue /> },
     { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và bộ mẫu đang công khai" },
     { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "rating", label: "Đánh giá AI", icon: FlaskConical, view: RatingPage },
@@ -75,8 +76,10 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     ...ACCOUNT_PAGES,
   ],
   ContentCreator: [
-    { id: "stories", label: "Truyện mẫu của tôi", icon: BookOpenText, view: CreatorStories },
-    { id: "prompts", label: "Bộ test prompt", icon: FlaskConical, view: () => <PromptsPage /> },
+    { id: "library", label: "Thư viện truyện mẫu", short: "Thư viện", icon: BookOpenText, view: CreatorLibrary },
+    { id: "create-ai", label: "Tạo truyện bằng AI", menuLabel: "Dùng AI", icon: WandSparkles, view: CreatorCreateAi, hint: "AI viết truyện mẫu từ ý tưởng của bạn" },
+    { id: "create-manual", label: "Tạo truyện thủ công", menuLabel: "Thủ công", icon: PencilLine, view: CreatorCreateManual, hint: "Bạn tự viết nội dung, lưu thành từng phiên bản" },
+    { id: "prompts", label: "Bộ test prompt", short: "Test prompt", icon: FlaskConical, view: () => <PromptsPage /> },
     ...ACCOUNT_PAGES,
   ],
 };
@@ -98,7 +101,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     { label: "Rà soát & đánh giá", icon: LibraryBig, items: ["published", "rubrics", "rating"] },
     { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards"] },
   ],
-  ContentCreator: ["stories", "prompts"],
+  ContentCreator: ["library", { label: "Tạo truyện", icon: WandSparkles, items: ["create-ai", "create-manual"] }, "prompts"],
 };
 
 function StaffNav({ role, pageId, onPage, upward }: { role: StaffRole; pageId: string; onPage: (id: string) => void; upward?: boolean }) {
@@ -106,8 +109,8 @@ function StaffNav({ role, pageId, onPage, upward }: { role: StaffRole; pageId: s
   const byId = (id: string) => pages.find((p) => p.id === id)!;
   return NAV[role].map((entry) => {
     if (typeof entry === "string") {
-      const { id, label, icon: Icon } = byId(entry);
-      return <button key={id} className={pageId === id ? "on" : ""} data-tip={label} title={label} aria-label={label} aria-current={pageId === id ? "page" : undefined} onClick={() => onPage(id)}><Icon /></button>;
+      const { id, label, short, icon: Icon } = byId(entry);
+      return <button key={id} className={pageId === id ? "on" : ""} data-tip={label} title={label} aria-label={label} aria-current={pageId === id ? "page" : undefined} onClick={() => onPage(id)}><Icon /><span className="nav-txt">{short ?? label}</span></button>;
     }
     return <NavMenuButton key={entry.label} entry={entry} items={entry.items.map(byId)} ws={pageId} onWs={onPage} upward={upward} />;
   });
@@ -118,6 +121,9 @@ export default function StaffApp({ role }: { role: StaffRole }) {
   const navRef = useRiseIn<HTMLElement>("button", [], { delay: 40, distance: 10 });
   const pages = PAGES[role];
   const [pageId, setPageId] = useState(pages[0].id);
+  // Id truyện cần mở khi chuyển trang (ví dụ bấm Mở trong Thư viện truyện mẫu); null là tạo mới.
+  const [target, setTarget] = useState<number | null>(null);
+  const go = (id: string, storyId: number | null = null) => { setPageId(id); setTarget(storyId); };
   const page = pages.find((p) => p.id === pageId) ?? pages[0];
   const View = page.view;
 
@@ -130,21 +136,21 @@ export default function StaffApp({ role }: { role: StaffRole }) {
         <span className="top-role">{ROLE_LABEL[role]}</span>
 
         <nav ref={navRef} className="topnav" aria-label={ROLE_LABEL[role]}>
-          <StaffNav role={role} pageId={pageId} onPage={setPageId} />
+          <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} />
         </nav>
         <div className="top-gap" />
 
         <button className="btn btn-g" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Giao diện sáng" : "Giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
         <NotificationBell />
-        <AccountMenu ws={pageId} onWs={setPageId} groups={[ACCOUNT_PAGES]} />
+        <AccountMenu ws={pageId} onWs={(id) => go(id)} groups={[ACCOUNT_PAGES]} />
       </header>
 
       {/* Điện thoại: header không đủ chỗ nên điều hướng nằm ở thanh tab dưới đáy. */}
       <nav className="rail rail-mobile" aria-label={ROLE_LABEL[role]}>
-        <StaffNav role={role} pageId={pageId} onPage={setPageId} upward />
+        <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} upward />
       </nav>
 
-      <main className="stage"><View key={page.id} /></main>
+      <main className="stage"><View key={`${page.id}:${target ?? "new"}`} go={go} target={target} /></main>
     </div>
   );
 }

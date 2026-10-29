@@ -34,6 +34,7 @@ function NavButtons({ ws, onWs, reviewCount, upward }: { ws: WorkspaceId; onWs: 
         {group.length > 0 ? <NavMenuButton entry={entry} items={group} ws={ws} onWs={onWs} upward={upward} /> : (
           <button className={ws === id ? "on" : ""} data-tip={label} title={label} aria-label={label} aria-current={ws === id ? "page" : undefined} onClick={() => onWs(id)}>
             <Icon />
+            <span className="nav-txt">{entry.short ?? label}</span>
             {id === "review" && reviewCount > 0 && <span className="badge">{reviewCount}</span>}
           </button>
         )}

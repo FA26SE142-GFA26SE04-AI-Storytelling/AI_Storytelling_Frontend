@@ -2,13 +2,13 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import type { LucideIcon } from "lucide-react";
+import { ChevronDown, type LucideIcon } from "lucide-react";
 
 /** Một mục trong menu xổ xuống; dùng chung cho khu phụ huynh và khu nhân viên. */
 export type MenuItem<Id extends string = string> = { id: Id; label: string; icon: LucideIcon; menuLabel?: string; hint?: string };
 
 type Props<Id extends string> = {
-  entry: { label: string; icon: LucideIcon };
+  entry: { label: string; icon: LucideIcon; short?: string };
   items: MenuItem<Id>[];
   ws: Id;
   onWs: (id: Id) => void;
@@ -54,6 +54,8 @@ export default function NavMenuButton<Id extends string>({ entry, items, ws, onW
     <>
       <button ref={btnRef} className={active || open ? "on" : ""} data-tip={entry.label} title={entry.label} aria-label={entry.label} aria-haspopup="menu" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
         <Icon />
+        <span className="nav-txt">{entry.short ?? entry.label}</span>
+        <ChevronDown className="nav-caret" aria-hidden />
       </button>
       {open && pos && createPortal(
         <div ref={menuRef} className="nav-menu" role="menu" aria-label={entry.label} style={{ left: pos.left, top: pos.top, bottom: pos.bottom }}>

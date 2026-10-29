@@ -11,18 +11,20 @@ export type WorkspaceEntry = {
   inMenu?: "kids" | "account";
   /** Nằm trong menu xổ xuống của một nút khác trên thanh điều hướng (ví dụ hai cách tạo truyện dưới Studio). */
   under?: WorkspaceId;
+  /** Chữ ngắn hiện cạnh biểu tượng trên thanh điều hướng (mặc định là label). */
+  short?: string;
   /** Tên và mô tả ngắn khi hiện trong menu xổ xuống. */
   menuLabel?: string;
   hint?: string;
 };
 
 export const WORKSPACES: WorkspaceEntry[] = [
-  { id: "library", label: "Thư viện truyện", icon: BookOpen },
+  { id: "library", label: "Thư viện truyện", short: "Thư viện", icon: BookOpen },
   // Nút Studio xổ ra hai cách tạo truyện: Dùng AI (chính Studio) và Thủ công.
-  { id: "studio", label: "Studio tạo truyện", icon: WandSparkles, under: "studio", menuLabel: "Dùng AI", hint: "AI viết truyện từ ý tưởng của bạn, bạn duyệt từng bước" },
+  { id: "studio", label: "Studio tạo truyện", short: "Tạo truyện", icon: WandSparkles, under: "studio", menuLabel: "Dùng AI", hint: "AI viết truyện từ ý tưởng của bạn, bạn duyệt từng bước" },
   { id: "authoring", label: "Thủ công", icon: PencilLine, under: "studio", hint: "Bạn tự viết truyện (có thể tải tệp lên), tự kiểm tra rồi giao cho bé" },
-  { id: "roadmap", label: "Lộ trình của con", icon: Route },
-  { id: "review", label: "Duyệt nội dung", icon: Inbox },
+  { id: "roadmap", label: "Lộ trình của con", short: "Lộ trình", icon: Route },
+  { id: "review", label: "Duyệt nội dung", short: "Duyệt", icon: Inbox },
   // Mở từ menu avatar: nhóm của bé (ít dùng hằng ngày), rồi nhóm tài khoản.
   { id: "children", label: "Hồ sơ bé", icon: Users, inMenu: "kids" },
   { id: "safety", label: "Cài đặt an toàn", icon: ShieldCheck, inMenu: "kids" },

@@ -32,12 +32,15 @@
 .shell.top-nav > .rail-mobile { display: none; }
 .topnav { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 0 8px; }
 .topnav::-webkit-scrollbar { display: none; }
-.topnav button { width: 40px; height: 40px; flex: none; border-radius: 50%; display: grid; place-items: center; color: var(--muted); position: relative; transition: background .15s, color .15s; }
-.topnav button svg { width: 19px; height: 19px; }
+/* Nút có biểu tượng kèm chữ ngắn, để không phải rê chuột mới biết là gì. */
+.topnav button { height: 38px; flex: none; border-radius: 999px; display: inline-flex; align-items: center; gap: 7px; padding: 0 13px; color: var(--muted); font-size: 13px; font-weight: 700; white-space: nowrap; position: relative; transition: background .15s, color .15s; }
+.topnav button svg { width: 18px; height: 18px; flex: none; }
+.topnav button .nav-caret { width: 14px; height: 14px; margin-left: -3px; opacity: .7; }
+.topnav button[aria-expanded="true"] .nav-caret { transform: rotate(180deg); }
 .topnav button:hover { background: var(--surface); color: var(--text); }
-.topnav button.on { width: 46px; border-radius: 50% 50% 50% 50% / 64% 64% 36% 36%; background: var(--primary-strong); color: #fff; box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--primary) 80%, transparent); }
+.topnav button.on { background: var(--primary-strong); color: #fff; box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--primary) 80%, transparent); }
 .topnav .sep { width: 1px; height: 22px; background: var(--line-2); margin: 0 6px; flex: none; }
-.topnav .badge { position: absolute; top: 2px; right: 2px; min-width: 15px; height: 15px; border-radius: 99px; background: var(--rose); color: #fff; font-size: 9.5px; font-weight: 800; display: grid; place-items: center; padding: 0 3px; }
+.topnav .badge { position: absolute; top: -2px; right: -2px; min-width: 15px; height: 15px; border-radius: 99px; background: var(--rose); color: #fff; font-size: 9.5px; font-weight: 800; display: grid; place-items: center; padding: 0 3px; }
 .top-gap { display: none; }
 
 /* Nút Cho bé đọc kèm danh sách chọn bé */
@@ -138,3 +141,6 @@
 /* Nhãn vai trò cạnh logo ở khu nhân viên (Admin Portal, Kiểm duyệt, Content Workspace) */
 .top-role { flex: none; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800; white-space: nowrap; color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent); }
 @media (max-width: 720px) { .top-role { display: none; } }
+
+/* Thanh tab ở đáy điện thoại không đủ chỗ: chỉ hiện biểu tượng. */
+.rail .nav-txt, .rail .nav-caret { display: none; }
