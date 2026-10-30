@@ -1,5 +1,7 @@
 "use client";
+import { confirmDialog } from "@/app/lib/confirm";
 
+import PasswordInput from "@/app/components/PasswordInput";
 import { useState, type FormEvent } from "react";
 import { Trash2 } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
@@ -26,7 +28,7 @@ export default function DeleteAccountSection() {
 
   const remove = async (e: FormEvent) => {
     e.preventDefault();
-    if (!confirm("Xoá tài khoản? Thao tác này không hoàn tác được.")) return;
+    if (!await confirmDialog("Xoá tài khoản? Thao tác này không hoàn tác được.")) return;
     setBusy(true);
     setErr(null);
     const r = await accountService.deleteAccount(password, dropDrafts);
@@ -54,7 +56,7 @@ export default function DeleteAccountSection() {
             </label>
           )}
           <label className="field"><span className="lbl">Mật khẩu hiện tại</span>
-            <input className="inp" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" /></label>
+            <PasswordInput className="inp" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" /></label>
           <div className="row">
             <button type="button" className="btn btn-g" disabled={busy} onClick={() => { setPreview(null); setPassword(""); }}>Hủy</button>
             <button className="btn btn-no" disabled={busy || !password || (preview.draftProfiles.length > 0 && !dropDrafts)}><Trash2 className="ic" />Xoá vĩnh viễn</button>

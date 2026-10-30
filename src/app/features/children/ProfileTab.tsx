@@ -1,13 +1,13 @@
 "use client";
+import { confirmDialog } from "@/app/lib/confirm";
 
 import { useEffect, useState } from "react";
 import ActivitySection from '@/app/features/account/ActivitySection';
-import ProfileMaintenance from './ProfileMaintenance';
 import { Archive, Check, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
 import DataRequestSection from "./DataRequestSection";
 import type { ChildProfile } from "@/app/types/childProfile";
-import { AGE_BANDS, AVATARS, avatarOf, childStatus, fmtDate } from "@/app/lib/guardian";
+import { AGE_BANDS, AVATARS, avatarOf, fmtDate } from "@/app/lib/guardian";
 import type { WorkspaceId } from "@/app/components/shell/nav";
 
 type Checks = { learning: boolean; policy: boolean; consent: boolean; outdated: boolean };
@@ -29,7 +29,6 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note>(null);
   const [hint, setHint] = useState<string | null>(null);
-  const status = childStatus(child.status);
   const dirty = nickname.trim() !== child.nickname || ageBand !== child.ageBand || avatar !== avatarOf(child.avatarId).id;
 
   useEffect(() => {
@@ -71,18 +70,18 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
   };
 
   const suspend = async () => {
-    if (!confirm(`Tạm dừng hồ sơ của ${child.nickname}? Bé sẽ thoát khỏi phiên đang đọc và mã QR đăng nhập bị thu hồi.`)) return;
+    if (!await confirmDialog(`Tạm dừng hồ sơ của ${child.nickname}? Bé sẽ thoát khỏi phiên đang đọc và mã QR đăng nhập bị thu hồi.`)) return;
     if (await run(() => childProfileService.suspendChildProfile(child.id), "Đã tạm dừng hồ sơ.")) onChanged();
   };
 
   const resume = async () => {
     // Điều khoản đổi phiên bản trong lúc tạm dừng: Owner phải đồng ý bản mới mới tiếp tục được.
-    if (checks?.outdated && !confirm("Điều khoản sử dụng đã thay đổi. Bạn đồng ý với điều khoản hiện tại để tiếp tục hồ sơ?")) return;
+    if (checks?.outdated && !await confirmDialog("Điều khoản sử dụng đã thay đổi. Bạn đồng ý với điều khoản hiện tại để tiếp tục hồ sơ?")) return;
     if (await run(() => childProfileService.resumeChildProfile(child.id, !!checks?.outdated), "Hồ sơ đã hoạt động trở lại. Tạo mã QR mới nếu bé cần đăng nhập.")) onChanged();
   };
 
   const archive = async () => {
-    if (!confirm(`Lưu trữ hồ sơ của ${child.nickname}? Hồ sơ bị ẩn khỏi danh sách, mọi phiên và mã QR của bé bị thu hồi.`)) return;
+    if (!await confirmDialog(`Lưu trữ hồ sơ của ${child.nickname}? Hồ sơ bị ẩn khỏi danh sách, mọi phiên và mã QR của bé bị thu hồi.`)) return;
     if (await run(() => childProfileService.archiveChildProfile(child.id), "Đã lưu trữ hồ sơ.")) onArchived();
   };
 
@@ -96,12 +95,8 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
   ] : [];
 
   return (
-    <div className="sec" style={{ gap: 24, maxWidth: 620 }}>
+    <div className="sec" style={{ gap: 24 }}>
       <section className="sec" style={{ gap: 12 }}>
-        <div className="row" style={{ justifyContent: "space-between" }}>
-          <h3 className="display" style={{ margin: 0 }}>Thông tin bé</h3>
-          <span className={`pill ${status.tone}`}>{status.label}</span>
-        </div>
         <label className="field"><span className="lbl">Biệt danh</span>
           <input className="inp" maxLength={150} disabled={!isOwner} value={nickname} onChange={(e) => setNickname(e.target.value)} /></label>
         <div className="field"><span className="lbl">Nhóm tuổi</span>
@@ -156,7 +151,6 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
       )}
 
       {isOwner && <DataRequestSection child={child} />}
-      <ProfileMaintenance key={`maintenance:${child.id}`} child={child} isOwner={isOwner} onChanged={onChanged} />
       <ActivitySection key={`audit:${child.id}`} childId={child.id} />
 
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}

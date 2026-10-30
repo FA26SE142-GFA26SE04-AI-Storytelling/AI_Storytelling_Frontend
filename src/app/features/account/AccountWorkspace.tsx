@@ -1,5 +1,7 @@
 "use client";
+import { confirmDialog } from "@/app/lib/confirm";
 
+import PasswordInput from "@/app/components/PasswordInput";
 import "../children/children.css";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { KeyRound, LogOut, MonitorSmartphone } from "lucide-react";
@@ -55,7 +57,7 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
   };
 
   const logoutAll = async () => {
-    if (!confirm("Đăng xuất khỏi mọi thiết bị, kể cả thiết bị này?")) return;
+    if (!await confirmDialog("Đăng xuất khỏi mọi thiết bị, kể cả thiết bị này?")) return;
     const r = await accountService.logoutAllDevices();
     if (r.success) await logout();
     else setSNote({ ok: false, text: r.message });
@@ -76,9 +78,9 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
             {show("security") && <>
             <form className="sec" style={{ gap: 10 }} onSubmit={changePassword}>
               <h3 className="display" style={{ margin: 0 }}>Đổi mật khẩu</h3>
-              <label className="field"><span className="lbl">Mật khẩu hiện tại</span><input className="inp" type="password" required autoComplete="current-password" value={pw.current} onChange={set("current")} /></label>
-              <label className="field"><span className="lbl">Mật khẩu mới</span><input className="inp" type="password" required autoComplete="new-password" value={pw.next} onChange={set("next")} /></label>
-              <label className="field"><span className="lbl">Nhập lại mật khẩu mới</span><input className="inp" type="password" required autoComplete="new-password" value={pw.confirm} onChange={set("confirm")} /></label>
+              <label className="field"><span className="lbl">Mật khẩu hiện tại</span><PasswordInput className="inp" required autoComplete="current-password" value={pw.current} onChange={set("current")} /></label>
+              <label className="field"><span className="lbl">Mật khẩu mới</span><PasswordInput className="inp" required autoComplete="new-password" value={pw.next} onChange={set("next")} /></label>
+              <label className="field"><span className="lbl">Nhập lại mật khẩu mới</span><PasswordInput className="inp" required autoComplete="new-password" value={pw.confirm} onChange={set("confirm")} /></label>
               <p className="sub">Ít nhất 8 ký tự, có cả chữ và số. Đổi xong, các thiết bị khác sẽ bị đăng xuất.</p>
               {pwNote && <div className={`notice ${pwNote.ok ? "ok" : "err"}`} role="status">{pwNote.text}</div>}
               <button className="btn btn-p" style={{ width: "fit-content" }} disabled={pwBusy}><KeyRound className="ic" />{pwBusy ? "Đang đổi…" : "Đổi mật khẩu"}</button>

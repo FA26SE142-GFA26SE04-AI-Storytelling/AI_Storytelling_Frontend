@@ -69,3 +69,30 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
   .level-row { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .children-body, .wizard-body { padding: 16px; }
 }
+
+/* Thanh tab của khu Con của tôi: chữ lớn hơn, các tab chia đều hết chiều ngang. */
+.children-tabs { height: 48px; padding: 0; }
+.children-tabs button { flex: 1; font-size: 15px; font-weight: 700; padding: 0 12px; }
+
+/* Form hồ sơ học tập: hai cột khi đủ rộng, khung và nút gọn hơn. */
+.learn-grid { container-type: inline-size; display: grid; gap: 14px 32px; align-items: start; }
+.learn-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+@container (min-width: 760px) { .learn-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.learn-grid .field { gap: 5px; }
+.learn-grid .level { padding: 6px 4px; border-radius: 12px; }
+.learn-grid .level b { font-size: 18px; }
+.mode-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 6px; }
+.learn-grid .opt { padding: 7px 11px; border-radius: 14px; gap: 8px; align-items: center; }
+.learn-grid .opt small { display: block; line-height: 1.35; }
+.learn-grid .chip { padding: 3px 9px; }
+.learn-grid textarea.inp { min-height: 0; }
+
+/* Bảng lịch sử yêu cầu dữ liệu: có viền ngoài, đường kẻ giữa các dòng và tiêu đề cột. */
+.req-table-wrap { border: 1px solid var(--line-2); border-radius: 14px; overflow: hidden; background: var(--surface); }
+.req-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.req-table th { text-align: left; font-size: 11.5px; font-weight: 700; color: var(--muted); padding: 8px 12px; background: var(--surface-2); border-bottom: 1px solid var(--line-2); white-space: nowrap; }
+.req-table td { padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.req-table th + th, .req-table td + td { border-left: 1px solid var(--line); }
+.req-table tbody tr:last-child td { border-bottom: 0; }
+.req-table .req-act { width: 1%; white-space: nowrap; text-align: right; }
+.req-reason { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }

@@ -1,4 +1,5 @@
 "use client";
+import { confirmDialog } from "@/app/lib/confirm";
 
 import { useCallback, useEffect, useState } from "react";
 import { QrCode as QrIcon, RefreshCw, ShieldOff } from "lucide-react";
@@ -32,7 +33,7 @@ export default function AccessTab({ child }: { child: ChildProfile }) {
   useEffect(() => { setFresh(null); setCred(undefined); setNote(null); void load(); }, [load]);
 
   const makeQr = async () => {
-    if (cred?.hasEasyLogin && !confirm("Tạo mã mới? Mã QR cũ sẽ hết hiệu lực và phiên của bé đang mở bằng mã cũ bị đóng.")) return;
+    if (cred?.hasEasyLogin && !await confirmDialog("Tạo mã mới? Mã QR cũ sẽ hết hiệu lực và phiên của bé đang mở bằng mã cũ bị đóng.")) return;
     setBusy(true);
     setNote(null);
     const r = await api.generateEasyLogin(child.id);
@@ -42,7 +43,7 @@ export default function AccessTab({ child }: { child: ChildProfile }) {
   };
 
   const revoke = async () => {
-    if (!confirm(`Thu hồi mã QR của ${child.nickname}? Mã hiện tại hết hiệu lực ngay và phiên của bé đang mở bằng mã này bị đóng.`)) return;
+    if (!await confirmDialog(`Thu hồi mã QR của ${child.nickname}? Mã hiện tại hết hiệu lực ngay và phiên của bé đang mở bằng mã này bị đóng.`)) return;
     setBusy(true);
     setNote(null);
     const r = await api.revokeCredential(child.id);
@@ -54,12 +55,11 @@ export default function AccessTab({ child }: { child: ChildProfile }) {
   if (cred === undefined) return <p className="sub">Đang tải…</p>;
 
   return (
-    <div className="sec" style={{ gap: 24, maxWidth: 620 }}>
+    <div className="sec" style={{ gap: 24 }}>
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
 
       <section className="sec" style={{ gap: 12 }}>
         <div>
-          <h3 className="display" style={{ margin: 0 }}>Đăng nhập bằng mã QR</h3>
           <p className="sub">Mở máy của bé, dùng camera quét mã để vào thẳng khu đọc truyện của {child.nickname}. Mã dùng lâu dài cho tới khi bạn tạo mã mới hoặc thu hồi.</p>
         </div>
         {!active && <div className="notice err">Hồ sơ cần đang hoạt động thì bé mới đăng nhập được.</div>}

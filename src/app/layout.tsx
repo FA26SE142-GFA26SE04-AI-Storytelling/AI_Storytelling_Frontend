@@ -6,6 +6,8 @@ import "./styles/base.css";
 import "./styles/shell.css";
 import "./components/brand/brand.css";
 import { ThemeProvider } from "./context/ThemeContext";
+import ToastHost from "./components/ToastHost";
+import ConfirmHost from "./components/ConfirmHost";
 import { AuthProvider } from "./context/AuthContext";
 
 const baloo = Baloo_2({
@@ -58,6 +60,8 @@ export default function RootLayout({
             <main className="h-full w-full">
               {children}
             </main>
+            <ToastHost />
+            <ConfirmHost />
           </ThemeProvider>
         </AuthProvider>
       </body>

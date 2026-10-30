@@ -1,4 +1,5 @@
 "use client";
+import { confirmDialog } from "@/app/lib/confirm";
 
 import { useCallback, useEffect, useState } from "react";
 import { Download, Plus, Trash2, X } from "lucide-react";
@@ -83,7 +84,7 @@ export function AdminDataRequests() {
                   <td>#{r.id}</td><td>#{r.childProfileId}</td><td>{del ? "Xoá dữ liệu" : "Xuất dữ liệu"}</td><td>{fmt(r.createdAt)}</td>
                   <td>{hours >= 72 ? <span className="pill flag">Quá hạn</span> : hours >= 48 ? <span className="pill wait">Còn {Math.ceil(72 - hours)} giờ</span> : <span className="pill ok">Còn {Math.ceil(72 - hours)} giờ</span>}</td>
                   <td style={{ whiteSpace: "nowrap" }}>{del
-                    ? <button className="btn btn-no" disabled={busy} onClick={() => { if (confirm(`Xoá toàn bộ dữ liệu của hồ sơ #${r.childProfileId}? Không hoàn tác được.`)) void run(() => staffService.resolveDelete(r.id)); }}><Trash2 className="ic" />Xoá</button>
+                    ? <button className="btn btn-no" disabled={busy} onClick={async () => { if (await confirmDialog(`Xoá toàn bộ dữ liệu của hồ sơ #${r.childProfileId}? Không hoàn tác được.`)) void run(() => staffService.resolveDelete(r.id)); }}><Trash2 className="ic" />Xoá</button>
                     : <button className="btn btn-s" disabled={busy} onClick={() => void exportData(r.id)}><Download className="ic" />Xuất</button>}
                     <button className="btn btn-g" disabled={busy} onClick={() => {
                       const reason = prompt("Lý do từ chối (phụ huynh sẽ thấy):")?.trim();
@@ -160,7 +161,7 @@ export function AdminPayments() {
           <tbody>
             {list.map((p) => (
               <tr key={p.id}><td><code>{p.transactionCode}</code></td><td>{p.planName}</td><td>{p.amount.toLocaleString("vi-VN")}đ</td><td>{p.sepayTransactionId ?? "—"}</td><td>{fmt(p.expiresAt)}</td>
-                <td><button className="btn btn-s" disabled={busy} onClick={() => { if (confirm("Xác nhận đã nhận đủ tiền và cộng lượt cho phụ huynh?")) void run(() => staffService.markPaid(p.id)); }}>Xác nhận đã thanh toán</button></td></tr>
+                <td><button className="btn btn-s" disabled={busy} onClick={async () => { if (await confirmDialog("Xác nhận đã nhận đủ tiền và cộng lượt cho phụ huynh?")) void run(() => staffService.markPaid(p.id)); }}>Xác nhận đã thanh toán</button></td></tr>
             ))}
             {list.length === 0 && <tr><td colSpan={6} className="sub">Không có giao dịch cần đối soát.</td></tr>}
           </tbody>

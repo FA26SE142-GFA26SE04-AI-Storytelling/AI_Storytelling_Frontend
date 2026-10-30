@@ -1,4 +1,5 @@
 'use client';
+import { confirmDialog } from "@/app/lib/confirm";
 import { useEffect, useRef, useState } from 'react';
 import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationService';
 import type { StoryMediaPackage } from '@/app/types/aiStory';
@@ -32,7 +33,7 @@ export function useMediaPackage({ storyId, versionId, onChanged, disabled = fals
   const regenerate = async (kind: 'illustration' | 'audio', assetId: number) => {
     if (lock.current || disabled || uncertain || !pack) return;
     const body = mediaMutationSnapshot(pack, versionId);
-    if (!body || !window.confirm('Tạo lại mục này sẽ cần xác nhận lại toàn bộ gói media. Tiếp tục?')) return;
+    if (!body || !await confirmDialog('Tạo lại mục này sẽ cần xác nhận lại toàn bộ gói media. Tiếp tục?')) return;
     const run = scope.current; lock.current = true; setBusy(true); setReviewed(false);
     const command = {...body,operationId:crypto.randomUUID()};
     const r = kind === 'audio' ? await api.regenerateAudio(storyId, assetId, command) : await api.regenerateIllustration(storyId, assetId, command);
@@ -58,7 +59,7 @@ export function useMediaPackage({ storyId, versionId, onChanged, disabled = fals
     if(lock.current || disabled || uncertain || !pack)return;
     const snapshot=mediaMutationSnapshot(pack,versionId);
     const candidate=pack.replacements?.find(r=>r.candidateAssetId===candidateAssetId && ['Failed','ManualReview'].includes(r.status));
-    if(!snapshot || snapshot.packageRevision<1 || !candidate || !window.confirm('Giữ media trước đó và bỏ bản tạo lại bị lỗi?'))return;
+    if(!snapshot || snapshot.packageRevision<1 || !candidate || !await confirmDialog('Giữ media trước đó và bỏ bản tạo lại bị lỗi?'))return;
     const run=scope.current;lock.current=true;setBusy(true);setReviewed(false);
     const r=await api.keepCurrentMedia(storyId,candidateAssetId,{storyVersionId:snapshot.storyVersionId,packageRevision:snapshot.packageRevision,operationId:crypto.randomUUID()});
     if(run!==scope.current)return;

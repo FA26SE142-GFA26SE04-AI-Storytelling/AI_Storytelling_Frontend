@@ -12,6 +12,7 @@ import { profileLifecycleService } from '@/app/services/profileLifecycleService'
 export default function LearningTab({ child, canEdit, onSaved }: { child: ChildProfile; canEdit: boolean; onSaved: () => void }) {
   const [value, setValue] = useState<LearningValue | null>(null);
   const [exists, setExists] = useState(false);
+  const [saved, setSaved] = useState("");
   const [historyKey, setHistoryKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
@@ -24,6 +25,7 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
       setExists(r.success && !!r.data);
       const v = learningFrom(r.success ? r.data : null, child.ageBand);
       setValue(v);
+      setSaved(JSON.stringify(v));
     });
     return () => { alive = false; };
   }, [child.id, child.ageBand]);
@@ -38,20 +40,23 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
     if (r.success) {
       setHistoryKey((k) => k + 1);
       setExists(true);
+      setSaved(JSON.stringify(value));
       onSaved();
     }
   };
 
+  // Chỉ cho lưu khi có thay đổi so với lần tải/lưu gần nhất, hoặc khi bé chưa có hồ sơ học tập.
+  const dirty = !exists || JSON.stringify(value) !== saved;
+
   if (!value) return <p className="sub">Đang tải hồ sơ học tập…</p>;
   return (
-    <div className="sec" style={{ gap: 16, maxWidth: 620 }}>
+    <div className="sec" style={{ gap: 16 }}>
       <div>
-        <h3 className="display" style={{ margin: 0 }}>Hồ sơ học tập</h3>
         <p className="sub">{exists ? `AI dựa vào đây để viết truyện vừa sức ${child.nickname}.` : `${child.nickname} chưa có hồ sơ học tập. Lưu để có thể kích hoạt hồ sơ.`}</p>
       </div>
-      <LearningForm value={value} onChange={setValue} disabled={!canEdit} />
+      <LearningForm value={value} onChange={setValue} disabled={!canEdit} ageBand={child.ageBand} />
       {!canEdit && <p className="sub">Bạn chưa có quyền sửa mức đọc của bé. Hãy xin quyền ở tab Người giám sát.</p>}
-      {canEdit && <button className="btn btn-p" style={{ width: "fit-content" }} disabled={busy} onClick={() => void save()}><Save className="ic" />{busy ? "Đang lưu…" : "Lưu hồ sơ học tập"}</button>}
+      {canEdit && <button className="btn btn-p" style={{ width: "fit-content" }} disabled={busy || !dirty} onClick={() => void save()}><Save className="ic" />{busy ? "Đang lưu…" : "Lưu hồ sơ học tập"}</button>}
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
       {child.status === "Active" && <LearningHistory child={child} refreshKey={historyKey} />}
     </div>

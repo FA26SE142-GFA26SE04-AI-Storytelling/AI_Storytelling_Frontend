@@ -100,7 +100,7 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
           </div>
         )}
 
-        {step === 1 && <LearningForm value={learning} onChange={setLearning} />}
+        {step === 1 && <LearningForm value={learning} onChange={setLearning} ageBand={ageBand} />}
 
         {step === 2 && (
           <div className="sec" style={{ gap: 18 }}>

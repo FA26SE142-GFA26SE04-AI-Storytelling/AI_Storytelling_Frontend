@@ -1,13 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Plus, X } from "lucide-react";
-import type { LearningProfile, ReadingMode, SetLearningProfileRequest } from "@/app/types/childProfile";
-import { FOCUS_AREAS, READING_LEVELS, READING_MODES, TOPIC_SUGGESTIONS, defaultReadingLevel, defaultReadingMode } from "@/app/lib/guardian";
+import type { ContentCategory, LearningProfile, ReadingMode, SetLearningProfileRequest } from "@/app/types/childProfile";
+import { childProfileService } from "@/app/services/childProfileService";
+import { READING_LEVELS, READING_MODES, defaultReadingLevel, defaultReadingMode } from "@/app/lib/guardian";
 
 export type LearningValue = { readingLevel: number; readingMode: ReadingMode; comprehensionGoal: string; favorites: string[]; focus: string[] };
 
 const isMode = (m?: string | null): m is ReadingMode => READING_MODES.some((x) => x.id === m);
+
+// Danh mục nội dung lấy từ backend, dùng chung cho mọi form để khỏi tải lại.
+let categoryCache: Promise<ContentCategory[]> | null = null;
+const loadCategories = () => (categoryCache ??= childProfileService.getContentCategories().then((r) => (r.success ? r.data ?? [] : [])).catch(() => []).then((list) => { if (list.length === 0) categoryCache = null; return list; }));
+
+/** Gợi ý chủ đề: danh mục đang bật và không bị chặn mặc định cho nhóm tuổi của bé. Backend lỗi thì không có gợi ý, phụ huynh vẫn tự nhập được. */
+function useTopicSuggestions(ageBand?: string): string[] {
+  const [cats, setCats] = useState<ContentCategory[] | null>(null);
+  useEffect(() => { let alive = true; void loadCategories().then((c) => { if (alive) setCats(c); }); return () => { alive = false; }; }, []);
+  if (!cats) return [];
+  return cats.filter((c) => c.isActive && !(ageBand && c.defaultBlockedAgeBands?.includes(ageBand))).map((c) => c.displayName);
+}
 
 /** Hồ sơ học tập đang lưu, hoặc giá trị mặc định theo nhóm tuổi khi bé chưa có hồ sơ học tập. */
 export const learningFrom = (lp: LearningProfile | null, ageBand: string): LearningValue => ({
@@ -29,18 +42,25 @@ export const learningRequest = (v: LearningValue): SetLearningProfileRequest => 
 });
 
 /** Bước 1.3 — mức đọc, chế độ đọc, mục tiêu đọc hiểu, chủ đề yêu thích, lĩnh vực ưu tiên. */
-export default function LearningForm({ value, onChange, disabled }: { value: LearningValue; onChange: (v: LearningValue) => void; disabled?: boolean }) {
+export default function LearningForm({ value, onChange, disabled, ageBand }: { value: LearningValue; onChange: (v: LearningValue) => void; disabled?: boolean; ageBand?: string }) {
+  const suggestions = useTopicSuggestions(ageBand);
   const [topic, setTopic] = useState("");
+  const [skill, setSkill] = useState("");
   const set = (patch: Partial<LearningValue>) => onChange({ ...value, ...patch });
   const addTopic = (t: string) => {
     const clean = t.trim().slice(0, 150);
     if (clean && !value.favorites.includes(clean)) set({ favorites: [...value.favorites, clean] });
     setTopic("");
   };
-  const toggleFocus = (f: string) => set({ focus: value.focus.includes(f) ? value.focus.filter((x) => x !== f) : [...value.focus, f] });
+  const addSkill = (s: string) => {
+    const clean = s.trim().slice(0, 150);
+    if (clean && !value.focus.includes(clean)) set({ focus: [...value.focus, clean] });
+    setSkill("");
+  };
 
   return (
-    <div className="sec" style={{ gap: 18 }}>
+    <div className="learn-grid">
+      <div className="learn-col">
       <div className="field">
         <span className="lbl">Mức đọc</span>
         <div className="level-row" role="radiogroup" aria-label="Mức đọc">
@@ -56,7 +76,7 @@ export default function LearningForm({ value, onChange, disabled }: { value: Lea
 
       <div className="field">
         <span className="lbl">Chế độ đọc</span>
-        <div className="sec" style={{ gap: 7 }} role="radiogroup" aria-label="Chế độ đọc">
+        <div className="mode-row" role="radiogroup" aria-label="Chế độ đọc">
           {READING_MODES.map((m) => (
             <label key={m.id} className={`opt${value.readingMode === m.id ? " on" : ""}`}>
               <input type="radio" name="reading-mode" disabled={disabled} checked={value.readingMode === m.id} onChange={() => set({ readingMode: m.id })} />
@@ -69,6 +89,10 @@ export default function LearningForm({ value, onChange, disabled }: { value: Lea
       <label className="field"><span className="lbl">Mục tiêu đọc hiểu (không bắt buộc)</span>
         <textarea className="inp" rows={2} maxLength={500} disabled={disabled} value={value.comprehensionGoal}
           onChange={(e) => set({ comprehensionGoal: e.target.value })} placeholder="Ví dụ: hiểu ý chính, nhớ tên nhân vật" /></label>
+
+      </div>
+
+      <div className="learn-col">
 
       <div className="field">
         <span className="lbl">Chủ đề bé yêu thích</span>
@@ -85,7 +109,7 @@ export default function LearningForm({ value, onChange, disabled }: { value: Lea
               <button type="button" className="btn btn-s" disabled={!topic.trim()} onClick={() => addTopic(topic)}><Plus className="ic" />Thêm</button>
             </div>
             <div className="chips">
-              {TOPIC_SUGGESTIONS.filter((t) => !value.favorites.includes(t)).map((t) => <button type="button" key={t} className="chip" onClick={() => addTopic(t)}>+ {t}</button>)}
+              {suggestions.filter((t) => !value.favorites.includes(t)).map((t) => <button type="button" key={t} className="chip" onClick={() => addTopic(t)}>+ {t}</button>)}
             </div>
           </>
         )}
@@ -94,9 +118,19 @@ export default function LearningForm({ value, onChange, disabled }: { value: Lea
       <div className="field">
         <span className="lbl">Kỹ năng muốn ưu tiên</span>
         <div className="chips">
-          {FOCUS_AREAS.map((f) => <button type="button" key={f} disabled={disabled} className={`chip${value.focus.includes(f) ? " on" : ""}`} onClick={() => toggleFocus(f)}>{f}</button>)}
+          {value.focus.map((s) => (
+            <span key={s} className="chip on">{s}{!disabled && <button type="button" aria-label={`Bỏ ${s}`} onClick={() => set({ focus: value.focus.filter((x) => x !== s) })}><X size={12} /></button>}</span>
+          ))}
         </div>
+        {!disabled && (
+          <div className="row">
+            <input className="inp" value={skill} maxLength={150} onChange={(e) => setSkill(e.target.value)} placeholder="Thêm kỹ năng, ví dụ: đọc hiểu, phát âm"
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(skill); } }} />
+            <button type="button" className="btn btn-s" disabled={!skill.trim()} onClick={() => addSkill(skill)}><Plus className="ic" />Thêm</button>
+          </div>
+        )}
       </div>
+    </div>
     </div>
   );
 }

@@ -1,4 +1,5 @@
 'use client';
+import { confirmDialog } from "@/app/lib/confirm";
 import { useEffect, useState } from 'react';
 import { paymentService } from '@/app/services/paymentService';
 import type { PaymentTransactionDto, SubscriptionPlanDto } from '@/app/types/backendContracts';
@@ -9,7 +10,7 @@ export default function PaymentSection() {
   useEffect(()=>{ const c=new AbortController(); let alive=true; void paymentService.plans(c.signal).then(r=>{if(alive){setPlans(r.data??[]);if(!r.success)setNote(r.message);}});return()=>{alive=false;c.abort();}; },[]);
   const create=async(plan:SubscriptionPlanDto)=>{
     if(busy||uncertain||transaction)return;
-    if(!window.confirm(`Tạo giao dịch mua ${plan.name}, ${plan.priceVnd.toLocaleString('vi-VN')} đồng?`))return;
+    if(!await confirmDialog(`Tạo giao dịch mua ${plan.name}, ${plan.priceVnd.toLocaleString('vi-VN')} đồng?`))return;
     setBusy(true);const r=await paymentService.create(plan.id);setBusy(false);
     if(r.success&&r.data)setTransaction(r.data);else{setNote(r.message);if(r.status===0|| (r.status??0)>=500)setUncertain(true);}
   };

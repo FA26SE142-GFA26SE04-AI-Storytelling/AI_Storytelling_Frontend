@@ -122,9 +122,8 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
         )}
         {mode === "view" && child && (
           <>
-            <div className="tabs">
+            <div className="tabs children-tabs">
               {TABS.map((t) => <button key={t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>{t.label}</button>)}
-              <span style={{ marginLeft: "auto", padding: "0 12px" }} className="sub">{child.nickname} · {role ? (role.isOwner ? "Bạn là người quản lý chính" : "Bạn là người giám sát") : "…"}</span>
             </div>
             <div className="pb children-body">
               {!role ? <p className="sub">Đang tải…</p> : (

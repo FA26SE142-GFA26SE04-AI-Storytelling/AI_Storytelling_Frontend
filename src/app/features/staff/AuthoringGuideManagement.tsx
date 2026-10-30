@@ -1,4 +1,5 @@
 'use client';
+import { confirmDialog } from "@/app/lib/confirm";
 import { useEffect, useState } from 'react';
 import { authoringGuideManagementService as api } from '@/app/services/authoringGuideManagementService';
 import { useGuideManagement } from '@/app/features/story-workflow/useGuideManagement';
@@ -26,9 +27,9 @@ export default function AuthoringGuideManagement() {
     void api.versions(page, controller.signal).then(r => { if (!controller.signal.aborted) { setHistory(r.data); if (!r.success) setNote(r.message); } });
     return () => controller.abort();
   }, [page, model?.revisionToken, setNote]);
-  const discardEdits = () => !dirty || window.confirm('Bỏ thay đổi hướng dẫn chưa lưu?');
-  const load = async () => { if (!discardEdits()) return; setDirty(false); setPreview(null); await h.load(); };
-  const select = (id:string | null) => { if (discardEdits()) { setSelected(id); setDirty(false); setValues({}); setPreview(null); } };
+  const discardEdits = async () => !dirty || await confirmDialog('Bỏ thay đổi hướng dẫn chưa lưu?');
+  const load = async () => { if (!(await discardEdits())) return; setDirty(false); setPreview(null); await h.load(); };
+  const select = async (id:string | null) => { if (await discardEdits()) { setSelected(id); setDirty(false); setValues({}); setPreview(null); } };
   const runPreview = async (render = false) => {
     if (!model || !model.draft || reading || h.busy || h.blocked || dirty) return;
     setReading(true); setPreview(null);
@@ -48,9 +49,9 @@ export default function AuthoringGuideManagement() {
     </div>
     {model.draft && <><div className="st-card"><h3>Bản nháp: {model.draft.version.catalogVersion}</h3>
       <div className="row"><button className="btn btn-s" disabled={disabled} onClick={() => select(null)}>Thêm hướng dẫn</button>
-        <button className="btn btn-no" disabled={disabled} onClick={() => { if (window.confirm('Hủy toàn bộ bản nháp hướng dẫn?') && discardEdits()) void write(() => api.discard(model.revisionToken)); }}>Hủy bản nháp</button></div>
+        <button className="btn btn-no" disabled={disabled} onClick={async () => { if (await confirmDialog('Hủy toàn bộ bản nháp hướng dẫn?') && await discardEdits()) void write(() => api.discard(model.revisionToken)); }}>Hủy bản nháp</button></div>
       <div className="st-list">{model.draft.items.map(g => <div key={g.id} className="row"><button className="btn btn-g grow" disabled={disabled} onClick={() => select(g.id)}>{g.title}</button>
-        <button className="btn btn-g" disabled={disabled || dirty} onClick={() => { if (window.confirm(`Xóa hướng dẫn “${g.title}” khỏi bản nháp?`)) void write(() => api.remove(g.id,model.revisionToken)); }}>Xóa khỏi bản nháp</button></div>)}</div>
+        <button className="btn btn-g" disabled={disabled || dirty} onClick={async () => { if (await confirmDialog(`Xóa hướng dẫn “${g.title}” khỏi bản nháp?`)) void write(() => api.remove(g.id,model.revisionToken)); }}>Xóa khỏi bản nháp</button></div>)}</div>
     </div>
       <GuideItemEditor key={`${model.revisionToken}:${selected ?? 'new'}`} item={item} disabled={disabled} onDirty={() => { setDirty(true); setPreview(null); }} onSave={(id,value) => void write(() => api.upsert(id,{...value,revisionToken:model.revisionToken}))}/>
       <section className="st-card"><h3>Xem trước bản nháp</h3><fieldset disabled={disabled || dirty} style={{border:0,padding:0}}><div className="row">
@@ -61,7 +62,7 @@ export default function AuthoringGuideManagement() {
         {item && <><h4>Điền thử: {item.title}</h4>{item.placeholderDefinitions.map(key => <label className="field" key={key}>{key}<input className="inp" value={values[key] ?? ''} onChange={e => { setValues(v => ({...v,[key]:e.target.value})); setPreview(null); }}/></label>)}<button className="btn btn-s" onClick={() => void runPreview(true)}>Xem trước hướng dẫn đã điền</button></>}
       </fieldset>
       {previewValid && <>{preview.page?.items.map(g => <article key={g.id}><h4>{g.title}</h4><p>{g.instruction}</p><p>{g.example}</p></article>)}{preview.render && <p style={{whiteSpace:'pre-wrap'}}>{preview.render.text}</p>}</>}
-      <button className="btn btn-ok" disabled={disabled || !previewValid} onClick={() => { if (window.confirm('Phát hành cả bộ hướng dẫn này cho phụ huynh?')) void write(() => api.publish(model.revisionToken)); }}>Phát hành bộ đã xem trước</button></section>
+      <button className="btn btn-ok" disabled={disabled || !previewValid} onClick={async () => { if (await confirmDialog('Phát hành cả bộ hướng dẫn này cho phụ huynh?')) void write(() => api.publish(model.revisionToken)); }}>Phát hành bộ đã xem trước</button></section>
     </>}
     </>}
     <section className="st-card"><h3>Lịch sử bộ hướng dẫn</h3>{history?.items.map(v => <button className="btn btn-s" key={v.versionId} disabled={disabled} onClick={() => { setReading(true); void api.version(v.versionId).then(r => { setReading(false); if (r.success) setVersion(r.data); else h.setNote(r.message); }); }}>{v.catalogVersion} · {v.status}</button>)}
