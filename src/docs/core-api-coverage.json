@@ -1122,12 +1122,10 @@
         "operation": "getChildProfileById",
         "file": "app/services/childProfileService.ts",
         "line": 24,
-        "callers": [
-          "app/features/children/ProfileMaintenance.tsx"
-        ]
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "GET",
@@ -2184,6 +2182,7 @@
         "line": 113,
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
+          "app/features/children/LearningForm.tsx",
           "app/features/safety/SafetyWorkspace.tsx"
         ]
       },
@@ -3414,12 +3413,10 @@
         "operation": "removeLearning",
         "file": "app/services/profileLifecycleService.ts",
         "line": 9,
-        "callers": [
-          "app/features/children/ProfileMaintenance.tsx"
-        ]
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "GET",
@@ -6536,12 +6533,10 @@
         "operation": "removeSafety",
         "file": "app/services/profileLifecycleService.ts",
         "line": 11,
-        "callers": [
-          "app/features/children/ProfileMaintenance.tsx"
-        ]
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "GET",
