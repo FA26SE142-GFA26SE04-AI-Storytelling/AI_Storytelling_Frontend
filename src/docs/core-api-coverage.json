@@ -139,7 +139,7 @@
         "service": "authService",
         "operation": "register",
         "file": "app/services/authService.ts",
-        "line": 260,
+        "line": 265,
         "callers": [
           "app/context/AuthContext.tsx"
         ]
@@ -170,32 +170,11 @@
   },
   {
     "method": "POST",
-    "route": "/api/v1/Auth/mfa/verify",
-    "authorization": "AllowAnonymous",
-    "controller": "AuthController.cs",
-    "action": "VerifyMfa",
-    "controllerLine": 60,
-    "evidence": [
-      {
-        "key": "POST /api/v1/Auth/mfa/verify",
-        "service": "authService",
-        "operation": "verifyMfa",
-        "file": "app/services/authService.ts",
-        "line": 114,
-        "callers": [
-          "app/context/AuthContext.tsx"
-        ]
-      }
-    ],
-    "disposition": "CONNECTED_SOURCE"
-  },
-  {
-    "method": "POST",
     "route": "/api/v1/Auth/staff-activation",
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ActivateStaffAccount",
-    "controllerLine": 73,
+    "controllerLine": 60,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/staff-activation",
@@ -216,7 +195,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "VerifyEmail",
-    "controllerLine": 88,
+    "controllerLine": 75,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/verify-email",
@@ -233,7 +212,7 @@
         "service": "authService",
         "operation": "verifyEmail",
         "file": "app/services/authService.ts",
-        "line": 286,
+        "line": 291,
         "callers": []
       }
     ],
@@ -245,7 +224,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ResendVerificationEmail",
-    "controllerLine": 101,
+    "controllerLine": 88,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/resend-verification-email",
@@ -266,14 +245,14 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ForgotPassword",
-    "controllerLine": 116,
+    "controllerLine": 103,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/forgot-password",
         "service": "authService",
         "operation": "forgotPassword",
         "file": "app/services/authService.ts",
-        "line": 312,
+        "line": 317,
         "callers": [
           "app/context/AuthContext.tsx"
         ]
@@ -287,14 +266,14 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ResetPassword",
-    "controllerLine": 129,
+    "controllerLine": 116,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/reset-password",
         "service": "authService",
         "operation": "resetPassword",
         "file": "app/services/authService.ts",
-        "line": 338,
+        "line": 343,
         "callers": [
           "app/context/AuthContext.tsx"
         ]
@@ -308,7 +287,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ChangePassword",
-    "controllerLine": 142,
+    "controllerLine": 129,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/change-password",
@@ -325,7 +304,7 @@
         "service": "authService",
         "operation": "changePassword",
         "file": "app/services/authService.ts",
-        "line": 419,
+        "line": 424,
         "callers": [
           "app/context/AuthContext.tsx"
         ]
@@ -339,7 +318,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "RefreshToken",
-    "controllerLine": 156,
+    "controllerLine": 143,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/refresh-token",
@@ -360,14 +339,14 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "GetProfile",
-    "controllerLine": 169,
+    "controllerLine": 156,
     "evidence": [
       {
         "key": "GET /api/v1/Auth/me",
         "service": "authService",
         "operation": "getProfile",
         "file": "app/services/authService.ts",
-        "line": 375,
+        "line": 380,
         "callers": [
           "app/context/AuthContext.tsx"
         ]
@@ -381,7 +360,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "UpdateProfile",
-    "controllerLine": 179,
+    "controllerLine": 166,
     "evidence": [
       {
         "key": "PUT /api/v1/Auth/me",
@@ -402,7 +381,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "RequestEmailChange",
-    "controllerLine": 190,
+    "controllerLine": 177,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/change-email",
@@ -423,7 +402,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ConfirmEmailChange",
-    "controllerLine": 202,
+    "controllerLine": 189,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/change-email/confirm",
@@ -444,7 +423,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "GetDeleteAccountPreview",
-    "controllerLine": 214,
+    "controllerLine": 201,
     "evidence": [
       {
         "key": "GET /api/v1/Auth/me/delete-preview",
@@ -465,7 +444,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "DeleteAccount",
-    "controllerLine": 225,
+    "controllerLine": 212,
     "evidence": [
       {
         "key": "DELETE /api/v1/Auth/me",
@@ -486,14 +465,14 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "Logout",
-    "controllerLine": 238,
+    "controllerLine": 225,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/logout",
         "service": "authService",
         "operation": "logout",
         "file": "app/services/authService.ts",
-        "line": 450,
+        "line": 455,
         "callers": [
           "app/context/AuthContext.tsx"
         ]
@@ -507,7 +486,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "LogoutAllDevices",
-    "controllerLine": 252,
+    "controllerLine": 239,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/logout-all-devices",
@@ -528,7 +507,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ListSessions",
-    "controllerLine": 263,
+    "controllerLine": 250,
     "evidence": [
       {
         "key": "GET /api/v1/Auth/sessions",
@@ -549,7 +528,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "RevokeSession",
-    "controllerLine": 276,
+    "controllerLine": 263,
     "evidence": [
       {
         "key": "DELETE /api/v1/Auth/sessions/{}",
@@ -570,7 +549,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "GetMyAuditLog",
-    "controllerLine": 288,
+    "controllerLine": 275,
     "evidence": [
       {
         "key": "GET /api/v1/Auth/me/audit-log",
@@ -1079,7 +1058,7 @@
         "service": "childNotebookService",
         "operation": "collect",
         "file": "app/services/childReadingService.ts",
-        "line": 18,
+        "line": 33,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1100,7 +1079,7 @@
         "service": "childNotebookService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 17,
+        "line": 32,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx"
         ]
@@ -1121,7 +1100,7 @@
         "service": "childNotebookService",
         "operation": "remove",
         "file": "app/services/childReadingService.ts",
-        "line": 19,
+        "line": 34,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx"
         ]
@@ -1360,6 +1339,69 @@
   },
   {
     "method": "GET",
+    "route": "/api/v1/child/quiz/sessions/{sessionId}",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildQuizController.cs",
+    "action": "GetQuiz",
+    "controllerLine": 28,
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/quiz/sessions/{}",
+        "service": "childQuizService",
+        "operation": "get",
+        "file": "app/services/childReadingService.ts",
+        "line": 20,
+        "callers": [
+          "app/features/kid/KidQuiz.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/child/quiz/sessions/{sessionId}/answers",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildQuizController.cs",
+    "action": "SubmitAnswer",
+    "controllerLine": 33,
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/quiz/sessions/{}/answers",
+        "service": "childQuizService",
+        "operation": "answer",
+        "file": "app/services/childReadingService.ts",
+        "line": 21,
+        "callers": [
+          "app/features/kid/KidQuiz.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/child/quiz/sessions/{sessionId}/result",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildQuizController.cs",
+    "action": "GetResult",
+    "controllerLine": 37,
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/quiz/sessions/{}/result",
+        "service": "childQuizService",
+        "operation": "result",
+        "file": "app/services/childReadingService.ts",
+        "line": 22,
+        "callers": [
+          "app/features/kid/KidQuiz.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
     "route": "/api/v1/child/reading/stories",
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
@@ -1506,12 +1548,33 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
+    "method": "PUT",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/feeling",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "SetFeeling",
+    "controllerLine": 112,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/child/reading/sessions/{}/feeling",
+        "service": "childReadingService",
+        "operation": "feeling",
+        "file": "app/services/childReadingService.ts",
+        "line": 16,
+        "callers": [
+          "app/features/kid/KidAfterReading.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
     "method": "GET",
     "route": "/api/v1/child/reading/sessions/{sessionId}/signal",
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "GetSignal",
-    "controllerLine": 112,
+    "controllerLine": 121,
     "evidence": [
       {
         "key": "GET /api/v1/child/reading/sessions/{}/signal",
@@ -1532,7 +1595,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "LogEvent",
-    "controllerLine": 118,
+    "controllerLine": 127,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/events",
@@ -1553,7 +1616,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "GetDefinition",
-    "controllerLine": 126,
+    "controllerLine": 135,
     "evidence": [
       {
         "key": "GET /api/v1/child/reading/sessions/{}/vocabulary/{}",
@@ -1563,6 +1626,28 @@
         "line": 14,
         "callers": [
           "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/child/rewards",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildRewardsController.cs",
+    "action": "Get",
+    "controllerLine": 36,
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/rewards",
+        "service": "childRewardsService",
+        "operation": "get",
+        "file": "app/services/childReadingService.ts",
+        "line": 25,
+        "callers": [
+          "app/features/kid/KidAfterReading.tsx",
+          "app/features/kid/KidRewards.tsx"
         ]
       }
     ],
@@ -1606,6 +1691,7 @@
         "line": 7,
         "callers": [
           "app/services/guardianService.ts",
+          "app/features/home/ChildCard.tsx",
           "app/features/roadmap/RoadmapWorkspace.tsx"
         ]
       }
@@ -1673,6 +1759,111 @@
         "callers": [
           "app/services/guardianService.ts",
           "app/features/roadmap/RoadmapWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/child/wish-cards",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildWishCardsController.cs",
+    "action": "List",
+    "controllerLine": 38,
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/wish-cards",
+        "service": "childWishService",
+        "operation": "cards",
+        "file": "app/services/storyWishService.ts",
+        "line": 8,
+        "callers": [
+          "app/features/kid/KidWish.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/child/wishes/draft",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildWishesController.cs",
+    "action": "StartDraft",
+    "controllerLine": 28,
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/wishes/draft",
+        "service": "childWishService",
+        "operation": "startDraft",
+        "file": "app/services/storyWishService.ts",
+        "line": 11,
+        "callers": [
+          "app/features/kid/KidWish.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/child/wishes/draft/cards",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildWishesController.cs",
+    "action": "SelectCard",
+    "controllerLine": 33,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/child/wishes/draft/cards",
+        "service": "childWishService",
+        "operation": "selectCard",
+        "file": "app/services/storyWishService.ts",
+        "line": 13,
+        "callers": [
+          "app/features/kid/KidWish.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/child/wishes/draft/submit",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildWishesController.cs",
+    "action": "Submit",
+    "controllerLine": 39,
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/wishes/draft/submit",
+        "service": "childWishService",
+        "operation": "submit",
+        "file": "app/services/storyWishService.ts",
+        "line": 15,
+        "callers": [
+          "app/features/kid/KidWish.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/child/wishes",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildWishesController.cs",
+    "action": "ListMine",
+    "controllerLine": 45,
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/wishes",
+        "service": "childWishService",
+        "operation": "mine",
+        "file": "app/services/storyWishService.ts",
+        "line": 18,
+        "callers": [
+          "app/features/kid/KidWish.tsx"
         ]
       }
     ],
@@ -2047,7 +2238,8 @@
         "callers": [
           "app/features/staff/AdminCatalog.tsx",
           "app/features/staff/ReviewPanel.tsx",
-          "app/features/staff/RoadmapTemplates.tsx"
+          "app/features/staff/RoadmapTemplates.tsx",
+          "app/features/staff/WishCardManagement.tsx"
         ]
       }
     ],
@@ -2108,7 +2300,7 @@
         "service": "guardianService",
         "operation": "reportStory",
         "file": "app/services/guardianService.ts",
-        "line": 85,
+        "line": 78,
         "callers": [
           "app/features/library/ModerationDialogs.tsx"
         ]
@@ -2290,7 +2482,7 @@
     "authorization": "Authenticated",
     "controller": "CreatorAssistanceController.cs",
     "action": "Create",
-    "controllerLine": 22,
+    "controllerLine": 21,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/assistance-tasks",
@@ -2311,7 +2503,7 @@
     "authorization": "Authenticated",
     "controller": "CreatorAssistanceController.cs",
     "action": "List",
-    "controllerLine": 26,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "GET /api/v1/creator/stories/{}/assistance-tasks",
@@ -2332,7 +2524,7 @@
     "authorization": "Authenticated",
     "controller": "CreatorAssistanceController.cs",
     "action": "Get",
-    "controllerLine": 29,
+    "controllerLine": 28,
     "evidence": [
       {
         "key": "GET /api/v1/creator/stories/{}/assistance-tasks/{}",
@@ -2353,7 +2545,7 @@
     "authorization": "Authenticated",
     "controller": "CreatorAssistanceController.cs",
     "action": "Steps",
-    "controllerLine": 32,
+    "controllerLine": 31,
     "evidence": [
       {
         "key": "GET /api/v1/creator/stories/{}/assistance-tasks/{}/steps",
@@ -2374,7 +2566,7 @@
     "authorization": "Authenticated",
     "controller": "CreatorAssistanceController.cs",
     "action": "Suggestions",
-    "controllerLine": 35,
+    "controllerLine": 34,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/suggestions",
@@ -2383,7 +2575,8 @@
         "file": "app/services/creatorAssistanceService.ts",
         "line": 8,
         "callers": [
-          "app/features/authoring/AssistancePanel.tsx"
+          "app/features/authoring/AssistancePanel.tsx",
+          "app/features/story-workflow/useAssistance.ts"
         ]
       }
     ],
@@ -2395,7 +2588,7 @@
     "authorization": "Authenticated",
     "controller": "CreatorAssistanceController.cs",
     "action": "Answer",
-    "controllerLine": 40,
+    "controllerLine": 39,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/clarification-answer",
@@ -2416,7 +2609,7 @@
     "authorization": "Authenticated",
     "controller": "CreatorAssistanceController.cs",
     "action": "Direction",
-    "controllerLine": 43,
+    "controllerLine": 42,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/direction",
@@ -2437,7 +2630,7 @@
     "authorization": "Authenticated",
     "controller": "CreatorAssistanceController.cs",
     "action": "Trial",
-    "controllerLine": 46,
+    "controllerLine": 45,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/trials",
@@ -2458,7 +2651,7 @@
     "authorization": "Authenticated",
     "controller": "CreatorAssistanceController.cs",
     "action": "Cancel",
-    "controllerLine": 51,
+    "controllerLine": 50,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/cancel",
@@ -2479,7 +2672,7 @@
     "authorization": "Authenticated",
     "controller": "CreatorAssistanceController.cs",
     "action": "Close",
-    "controllerLine": 54,
+    "controllerLine": 53,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/assistance-tasks/{}/close",
@@ -2732,7 +2925,7 @@
     "authorization": "Roles = \"ContentCreator\"",
     "controller": "CreatorModerationCheckController.cs",
     "action": "Check",
-    "controllerLine": 12,
+    "controllerLine": 11,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/content/check",
@@ -3163,7 +3356,7 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "GrayZoneReviewController.cs",
     "action": "Get",
-    "controllerLine": 11,
+    "controllerLine": 10,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/gray-zone-stories/{}",
@@ -3184,7 +3377,7 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "GrayZoneReviewController.cs",
     "action": "Decide",
-    "controllerLine": 14,
+    "controllerLine": 13,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/gray-zone-stories/{}/decision",
@@ -3258,7 +3451,8 @@
         "line": 74,
         "callers": [
           "app/features/children/LearningTab.tsx",
-          "app/features/children/ProfileTab.tsx"
+          "app/features/children/ProfileTab.tsx",
+          "app/features/home/ChildCard.tsx"
         ]
       }
     ],
@@ -3540,7 +3734,7 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ModerationRubricsController.cs",
     "action": "List",
-    "controllerLine": 11,
+    "controllerLine": 10,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/rubrics",
@@ -3561,7 +3755,7 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ModerationRubricsController.cs",
     "action": "Active",
-    "controllerLine": 14,
+    "controllerLine": 13,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/rubrics/active",
@@ -3582,7 +3776,7 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ModerationRubricsController.cs",
     "action": "Get",
-    "controllerLine": 16,
+    "controllerLine": 15,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/rubrics/{}",
@@ -3603,7 +3797,7 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ModerationRubricsController.cs",
     "action": "Create",
-    "controllerLine": 18,
+    "controllerLine": 17,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/rubrics",
@@ -3624,7 +3818,7 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ModerationRubricsController.cs",
     "action": "Clone",
-    "controllerLine": 20,
+    "controllerLine": 19,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/rubrics/{}/clone",
@@ -3645,7 +3839,7 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ModerationRubricsController.cs",
     "action": "Update",
-    "controllerLine": 22,
+    "controllerLine": 21,
     "evidence": [
       {
         "key": "PUT /api/v1/moderation/rubrics/{}",
@@ -3666,7 +3860,7 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ModerationRubricsController.cs",
     "action": "Delete",
-    "controllerLine": 24,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "DELETE /api/v1/moderation/rubrics/{}",
@@ -3687,7 +3881,7 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ModerationRubricsController.cs",
     "action": "Validate",
-    "controllerLine": 26,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/rubrics/{}/validate",
@@ -3708,7 +3902,7 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ModerationRubricsController.cs",
     "action": "Evaluate",
-    "controllerLine": 28,
+    "controllerLine": 27,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/rubrics/{}/evaluations",
@@ -3726,10 +3920,10 @@
   {
     "method": "POST",
     "route": "/api/v1/moderation/rubrics/{id}/activate",
-    "authorization": "Roles = \"Moderator,Administrator\"; Roles = \"Administrator\"",
+    "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ModerationRubricsController.cs",
     "action": "Activate",
-    "controllerLine": 31,
+    "controllerLine": 29,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/rubrics/{}/activate",
@@ -3747,10 +3941,10 @@
   {
     "method": "GET",
     "route": "/api/v1/moderation/rubrics/{id}/audit-logs",
-    "authorization": "Roles = \"Moderator,Administrator\"; Roles = \"Administrator\"",
+    "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ModerationRubricsController.cs",
     "action": "Logs",
-    "controllerLine": 33,
+    "controllerLine": 31,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/rubrics/{}/audit-logs",
@@ -3904,7 +4098,7 @@
         "service": "guardianService",
         "operation": "notifications",
         "file": "app/services/guardianService.ts",
-        "line": 108,
+        "line": 101,
         "callers": [
           "app/components/shell/NotificationBell.tsx",
           "app/features/home/SupervisionTodos.tsx"
@@ -3926,7 +4120,7 @@
         "service": "guardianService",
         "operation": "unreadNotificationCount",
         "file": "app/services/guardianService.ts",
-        "line": 119,
+        "line": 112,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -3947,7 +4141,7 @@
         "service": "guardianService",
         "operation": "markNotificationRead",
         "file": "app/services/guardianService.ts",
-        "line": 112,
+        "line": 105,
         "callers": [
           "app/components/shell/NotificationBell.tsx",
           "app/features/home/SupervisionTodos.tsx"
@@ -3969,7 +4163,7 @@
         "service": "guardianService",
         "operation": "markAllNotificationsRead",
         "file": "app/services/guardianService.ts",
-        "line": 115,
+        "line": 108,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -3990,7 +4184,7 @@
         "service": "guardianService",
         "operation": "deleteNotification",
         "file": "app/services/guardianService.ts",
-        "line": 123,
+        "line": 116,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -4265,7 +4459,8 @@
         "file": "app/services/parentAssistanceService.ts",
         "line": 8,
         "callers": [
-          "app/features/authoring/AssistancePanel.tsx"
+          "app/features/authoring/AssistancePanel.tsx",
+          "app/features/story-workflow/useAssistance.ts"
         ]
       }
     ],
@@ -4771,6 +4966,172 @@
         "line": 24,
         "callers": [
           "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ParentReadingFeedback/{childProfileId}",
+    "authorization": "Roles = \"Parent\"",
+    "controller": "ParentReadingFeedbackController.cs",
+    "action": "List",
+    "controllerLine": 18,
+    "evidence": [
+      {
+        "key": "GET /api/v1/ParentReadingFeedback/{}",
+        "service": "parentReadingFeedbackService",
+        "operation": "list",
+        "file": "app/services/childReadingService.ts",
+        "line": 29,
+        "callers": [
+          "app/features/home/ReadingFeedback.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/wishes/{wishId}/suggestions",
+    "authorization": "Roles = \"Parent\"",
+    "controller": "ParentWishSuggestionsController.cs",
+    "action": "Get",
+    "controllerLine": 13,
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/wishes/{}/suggestions",
+        "service": "parentWishService",
+        "operation": "suggestions",
+        "file": "app/services/storyWishService.ts",
+        "line": 28,
+        "callers": [
+          "app/features/home/WishItem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/wishes",
+    "authorization": "Roles = \"Parent\"",
+    "controller": "ParentWishesController.cs",
+    "action": "List",
+    "controllerLine": 14,
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/wishes",
+        "service": "parentWishService",
+        "operation": "list",
+        "file": "app/services/storyWishService.ts",
+        "line": 24,
+        "callers": [
+          "app/features/home/HomeWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/wishes/{wishId}",
+    "authorization": "Roles = \"Parent\"",
+    "controller": "ParentWishesController.cs",
+    "action": "Get",
+    "controllerLine": 21,
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/wishes/{}",
+        "service": "parentWishService",
+        "operation": "get",
+        "file": "app/services/storyWishService.ts",
+        "line": 26,
+        "callers": []
+      }
+    ],
+    "disposition": "SERVICE_ONLY"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/parent/wishes/{wishId}/generation-form",
+    "authorization": "Roles = \"Parent\"",
+    "controller": "ParentWishesController.cs",
+    "action": "GetGenerationForm",
+    "controllerLine": 28,
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/wishes/{}/generation-form",
+        "service": "parentWishService",
+        "operation": "generationForm",
+        "file": "app/services/storyWishService.ts",
+        "line": 30,
+        "callers": [
+          "app/features/studio/BriefForm.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/wishes/{wishId}/create-story",
+    "authorization": "Roles = \"Parent\"",
+    "controller": "ParentWishesController.cs",
+    "action": "CreateStory",
+    "controllerLine": 38,
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/wishes/{}/create-story",
+        "service": "parentWishService",
+        "operation": "createStory",
+        "file": "app/services/storyWishService.ts",
+        "line": 33,
+        "callers": [
+          "app/features/story-workflow/useAIStoryInputFlow.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/wishes/{wishId}/use-existing",
+    "authorization": "Roles = \"Parent\"",
+    "controller": "ParentWishesController.cs",
+    "action": "UseExisting",
+    "controllerLine": 47,
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/wishes/{}/use-existing",
+        "service": "parentWishService",
+        "operation": "useExisting",
+        "file": "app/services/storyWishService.ts",
+        "line": 36,
+        "callers": [
+          "app/features/home/WishItem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/parent/wishes/{wishId}/decline",
+    "authorization": "Roles = \"Parent\"",
+    "controller": "ParentWishesController.cs",
+    "action": "Decline",
+    "controllerLine": 54,
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/wishes/{}/decline",
+        "service": "parentWishService",
+        "operation": "decline",
+        "file": "app/services/storyWishService.ts",
+        "line": 38,
+        "callers": [
+          "app/features/home/WishItem.tsx"
         ]
       }
     ],
@@ -6445,6 +6806,7 @@
         "line": 91,
         "callers": [
           "app/features/children/ProfileTab.tsx",
+          "app/features/home/ChildCard.tsx",
           "app/features/kid/KidMode.tsx",
           "app/features/roadmap/AddToRoadmapDialog.tsx",
           "app/features/safety/SafetyWorkspace.tsx"
@@ -6862,6 +7224,7 @@
           "app/features/children/PermissionDirectory.tsx",
           "app/features/children/SupervisorsTab.tsx",
           "app/features/children/useMyRole.ts",
+          "app/features/home/ChildCard.tsx",
           "app/features/home/HomeWorkspace.tsx"
         ]
       }
@@ -7121,6 +7484,173 @@
         "callers": [
           "app/features/home/HomeWorkspace.tsx",
           "app/features/studio/BriefForm.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/moderation/wish-cards",
+    "authorization": "Roles = \"Moderator,Administrator\"",
+    "controller": "WishCardManagementController.cs",
+    "action": "List",
+    "controllerLine": 19,
+    "evidence": [
+      {
+        "key": "GET /api/v1/moderation/wish-cards",
+        "service": "wishCardService",
+        "operation": "list",
+        "file": "app/services/wishCardService.ts",
+        "line": 8,
+        "callers": [
+          "app/features/staff/StoryWishCards.tsx",
+          "app/features/staff/WishCardManagement.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/moderation/wish-cards/{id}",
+    "authorization": "Roles = \"Moderator,Administrator\"",
+    "controller": "WishCardManagementController.cs",
+    "action": "Get",
+    "controllerLine": 27,
+    "evidence": [
+      {
+        "key": "GET /api/v1/moderation/wish-cards/{}",
+        "service": "wishCardService",
+        "operation": "get",
+        "file": "app/services/wishCardService.ts",
+        "line": 10,
+        "callers": []
+      }
+    ],
+    "disposition": "SERVICE_ONLY"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/moderation/wish-cards",
+    "authorization": "Roles = \"Moderator,Administrator\"",
+    "controller": "WishCardManagementController.cs",
+    "action": "Create",
+    "controllerLine": 34,
+    "evidence": [
+      {
+        "key": "POST /api/v1/moderation/wish-cards",
+        "service": "wishCardService",
+        "operation": "create",
+        "file": "app/services/wishCardService.ts",
+        "line": 12,
+        "callers": [
+          "app/features/staff/WishCardManagement.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/moderation/wish-cards/{id}",
+    "authorization": "Roles = \"Moderator,Administrator\"",
+    "controller": "WishCardManagementController.cs",
+    "action": "Update",
+    "controllerLine": 42,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/moderation/wish-cards/{}",
+        "service": "wishCardService",
+        "operation": "update",
+        "file": "app/services/wishCardService.ts",
+        "line": 15,
+        "callers": [
+          "app/features/staff/WishCardManagement.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/moderation/wish-cards/{id}/active",
+    "authorization": "Roles = \"Moderator,Administrator\"",
+    "controller": "WishCardManagementController.cs",
+    "action": "SetActive",
+    "controllerLine": 52,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/moderation/wish-cards/{}/active",
+        "service": "wishCardService",
+        "operation": "setActive",
+        "file": "app/services/wishCardService.ts",
+        "line": 17,
+        "callers": [
+          "app/features/staff/WishCardManagement.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/moderation/stories/{storyId}/wish-cards",
+    "authorization": "Roles = \"Moderator,Administrator\"",
+    "controller": "WishCardMatchManagementController.cs",
+    "action": "List",
+    "controllerLine": 13,
+    "evidence": [
+      {
+        "key": "GET /api/v1/moderation/stories/{}/wish-cards",
+        "service": "wishCardService",
+        "operation": "storyCards",
+        "file": "app/services/wishCardService.ts",
+        "line": 21,
+        "callers": [
+          "app/features/staff/StoryWishCards.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/moderation/stories/{storyId}/wish-cards",
+    "authorization": "Roles = \"Moderator,Administrator\"",
+    "controller": "WishCardMatchManagementController.cs",
+    "action": "Add",
+    "controllerLine": 16,
+    "evidence": [
+      {
+        "key": "POST /api/v1/moderation/stories/{}/wish-cards",
+        "service": "wishCardService",
+        "operation": "addToStory",
+        "file": "app/services/wishCardService.ts",
+        "line": 23,
+        "callers": [
+          "app/features/staff/StoryWishCards.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/moderation/stories/{storyId}/wish-cards/{wishCardId}",
+    "authorization": "Roles = \"Moderator,Administrator\"",
+    "controller": "WishCardMatchManagementController.cs",
+    "action": "Remove",
+    "controllerLine": 22,
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/moderation/stories/{}/wish-cards/{}",
+        "service": "wishCardService",
+        "operation": "removeFromStory",
+        "file": "app/services/wishCardService.ts",
+        "line": 25,
+        "callers": [
+          "app/features/staff/StoryWishCards.tsx"
         ]
       }
     ],
