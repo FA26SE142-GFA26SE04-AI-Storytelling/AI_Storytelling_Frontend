@@ -50,7 +50,10 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
   // Chip bị xoá thu nhỏ trước (160ms) rồi mới bỏ khỏi danh sách.
   const [leaving, setLeaving] = useState<string[]>([]);
   const latest = useRef(value);
-  latest.current = value;
+  // Cập nhật sau mỗi lần render để timeout xoá chip đọc giá trị mới nhất (không gán ref trong lúc render).
+  useEffect(() => {
+    latest.current = value;
+  });
   const removeChip = (kind: "favorites" | "focus", text: string) => {
     const key = `${kind}:${text}`;
     setLeaving((l) => [...l, key]);

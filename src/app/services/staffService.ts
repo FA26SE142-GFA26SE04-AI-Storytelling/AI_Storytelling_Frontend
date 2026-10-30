@@ -1,7 +1,7 @@
 import type { ApiResponse } from '@/app/types/auth';
 import type { ContentCategory } from '@/app/types/childProfile';
 import type { PagedResult } from '@/app/types/story';
-import type { AdministratorAccount, BusinessReport, DataRequest, ModeratorAccountDto, PaymentTransaction, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, TokenQuotaConfig } from '@/app/types/staff';
+import type { BusinessReport, DataRequest, InviteStaffInput, PaymentTransaction, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, StaffAccountDto, StaffAccountRole, TokenQuotaConfig } from '@/app/types/staff';
 import { apiRequest } from './apiClient';
 import { authService } from './authService';
 import { API_BASE_URL } from './apiConfig';
@@ -9,13 +9,13 @@ import { API_BASE_URL } from './apiConfig';
 /**
  * Luồng 5 — Admin Portal và Moderation.
  *
- * API backend đã có → luôn gọi thật: ContentCategory, TokenQuota/config, DataRequest, BusinessReport, Payment, AdminAccount,
- * ModeratorAccount, ModerationQueue (danh sách, nhận xử lý, mở mục). Truyện của Content Creator: xem `creatorService.ts`.
+ * API backend đã có → luôn gọi thật: ContentCategory, TokenQuota/config, DataRequest, BusinessReport, Payment, StaffAccount
+ * (Moderator và Administrator), ModerationQueue (danh sách, nhận xử lý, mở mục). Truyện của Content Creator: xem `creatorService.ts`.
  *
  */
 
-const toStaff = (m: ModeratorAccountDto): StaffAccount => ({
-  userId: m.userId, email: m.email, fullName: m.fullName, role: 'Moderator', expertise: m.expertise,
+const toStaff = (m: StaffAccountDto): StaffAccount => ({
+  userId: m.userId, email: m.email, fullName: m.fullName, role: m.role === 'Administrator' ? 'Administrator' : 'Moderator', expertise: m.expertise,
   // Chưa kích hoạt = vẫn là lời mời; Suspended = đã vô hiệu hoá.
   status: !m.isActivated ? 'invited' : m.status === 'Suspended' ? 'deactivated' : 'active',
   createdAt: m.activatedAt ?? m.inviteExpiresAt ?? '',
@@ -67,23 +67,28 @@ export const staffService = {
   markPaid: (id: number): Promise<ApiResponse<PaymentTransaction>> => apiRequest(`/Payment/transactions/${id}/mark-paid`, 'Không xác nhận được.', { method: 'POST' }),
 
   // ---------- Tài khoản vận hành ----------
-  grantAdmin: (email: string): Promise<ApiResponse<AdministratorAccount>> => apiRequest('/AdminAccount/grant', 'Không cấp được quyền.', { method: 'POST', body: { email } }),
-  revokeAdmin: (userId: number): Promise<ApiResponse<AdministratorAccount>> => apiRequest(`/AdminAccount/${userId}/revoke`, 'Không thu hồi được quyền.', { method: 'POST' }),
-  /** Danh sách Moderator (backend chưa có API liệt kê Administrator). */
-  async staff(): Promise<ApiResponse<StaffAccount[]>> {
-    const r = await apiRequest<ModeratorAccountDto[]>('/ModeratorAccount', 'Không tải được tài khoản vận hành.');
+  /** Moderator và Administrator; `role` lọc theo một vai trò, bỏ trống để lấy cả hai. Chỉ Administrator gọi được. */
+  async staff(role?: StaffAccountRole): Promise<ApiResponse<StaffAccount[]>> {
+    const query = role ? `?${new URLSearchParams({ role })}` : '';
+    const r = await apiRequest<StaffAccountDto[]>(`/StaffAccount${query}`, 'Không tải được tài khoản vận hành.');
     return { ...r, data: r.data ? r.data.map(toStaff) : null };
   },
-  /** Mời Moderator qua email: email chứa mã mời 72 giờ, người được mời kích hoạt ở trang đăng nhập. */
-  inviteModerator: (email: string, fullName: string, expertise: string, note?: string): Promise<ApiResponse<ModeratorAccountDto>> =>
-    apiRequest('/ModeratorAccount/invite', 'Không gửi được lời mời.', { method: 'POST', body: { email, fullName, expertise, note: note || null } }),
-  resendInvite: (userId: number): Promise<ApiResponse<ModeratorAccountDto>> =>
-    apiRequest(`/ModeratorAccount/${userId}/resend-invite`, 'Không gửi lại được lời mời.', { method: 'POST' }),
-  /** Vô hiệu hoá bắt buộc lý do (≥ 3 ký tự). */
-  deactivateModerator: (userId: number, reason: string): Promise<ApiResponse<ModeratorAccountDto>> =>
-    apiRequest(`/ModeratorAccount/${userId}/deactivate`, 'Không vô hiệu hoá được.', { method: 'POST', body: { reason } }),
-  reactivateModerator: (userId: number): Promise<ApiResponse<ModeratorAccountDto>> =>
-    apiRequest(`/ModeratorAccount/${userId}/reactivate`, 'Không kích hoạt lại được.', { method: 'POST' }),
+  /** Mời Moderator hoặc Administrator qua email: mã mời 72 giờ, người được mời kích hoạt ở trang đăng nhập. Chuyên môn bắt buộc với Moderator. */
+  invite: ({ role, email, fullName, expertise, note }: InviteStaffInput): Promise<ApiResponse<StaffAccountDto>> =>
+    apiRequest('/StaffAccount/invite', 'Không gửi được lời mời.', {
+      method: 'POST',
+      body: { role, email, fullName, expertise: role === 'Moderator' ? expertise || null : null, note: note || null },
+    }),
+  resendInvite: (userId: number): Promise<ApiResponse<StaffAccountDto>> =>
+    apiRequest(`/StaffAccount/${userId}/resend-invite`, 'Không gửi lại được lời mời.', { method: 'POST' }),
+  /** Huỷ lời mời chưa dùng: backend xoá tài khoản chưa kích hoạt để mời lại được cùng email. */
+  cancelInvite: (userId: number): Promise<ApiResponse<StaffAccountDto>> =>
+    apiRequest(`/StaffAccount/${userId}/cancel-invite`, 'Không huỷ được lời mời.', { method: 'POST' }),
+  /** Vô hiệu hoá bắt buộc lý do (3–500 ký tự); tài khoản bị đăng xuất mọi phiên. */
+  deactivate: (userId: number, reason: string): Promise<ApiResponse<StaffAccountDto>> =>
+    apiRequest(`/StaffAccount/${userId}/deactivate`, 'Không vô hiệu hoá được.', { method: 'POST', body: { reason } }),
+  reactivate: (userId: number): Promise<ApiResponse<StaffAccountDto>> =>
+    apiRequest(`/StaffAccount/${userId}/reactivate`, 'Không kích hoạt lại được.', { method: 'POST' }),
 
   // ---------- Hàng đợi kiểm duyệt (backend chưa có API ra quyết định / trả lại) ----------
   queue(query: QueueQuery = {}): Promise<ApiResponse<PagedResult<QueueItem>>> {
