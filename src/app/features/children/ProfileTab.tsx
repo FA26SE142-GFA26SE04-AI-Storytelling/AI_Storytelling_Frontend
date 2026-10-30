@@ -9,19 +9,17 @@ import { childProfileService } from "@/app/services/childProfileService";
 import DataRequestSection from "./DataRequestSection";
 import type { ChildProfile } from "@/app/types/childProfile";
 import { AGE_BANDS, AVATARS, avatarOf, fmtDate } from "@/app/lib/guardian";
-import type { WorkspaceId } from "@/app/components/shell/nav";
 
 type Checks = { learning: boolean; policy: boolean; consent: boolean; outdated: boolean };
 type Note = { ok: boolean; text: string } | null;
 
 /** Bước 1.2 (sửa thông tin, avatar), 1.8 (kích hoạt), 1.8b và Mục 7 (tạm dừng, tiếp tục, lưu trữ). */
-export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTab, go }: {
+export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTab }: {
   child: ChildProfile;
   isOwner: boolean;
   onChanged: () => void;
   onArchived: () => void;
-  onTab: (tab: "learning") => void;
-  go: (id: WorkspaceId) => void;
+  onTab: (tab: "learning" | "safety") => void;
 }) {
   const [nickname, setNickname] = useState(child.nickname);
   const [ageBand, setAgeBand] = useState(child.ageBand);
@@ -93,8 +91,8 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
   const rows = checks ? [
     { ok: true, label: "Thông tin bé", hint: "Biệt danh và nhóm tuổi" },
     { ok: checks.learning, label: "Hồ sơ học tập", hint: "Mức đọc, chế độ đọc, chủ đề yêu thích", fix: () => onTab("learning") },
-    { ok: checks.policy, label: "Cài đặt an toàn", hint: "Chủ đề được phép và bị chặn", fix: () => go("safety") },
-    { ok: checks.consent, label: "Đồng ý của phụ huynh", hint: checks.outdated ? "Điều khoản đã đổi — cần đồng ý lại" : "Đọc và đồng ý điều khoản dữ liệu", fix: () => go("safety") },
+    { ok: checks.policy, label: "Cài đặt an toàn", hint: "Chủ đề được phép và bị chặn", fix: () => onTab("safety") },
+    { ok: checks.consent, label: "Đồng ý của phụ huynh", hint: checks.outdated ? "Điều khoản đã đổi — cần đồng ý lại" : "Đọc và đồng ý điều khoản dữ liệu", fix: () => onTab("safety") },
   ] : [];
 
   return (

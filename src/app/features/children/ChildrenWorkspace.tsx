@@ -15,16 +15,18 @@ import CreateChildWizard from "./CreateChildWizard";
 import { clearChildIntent, wantsChildCreate } from "./childrenIntent";
 import ProfileTab from "./ProfileTab";
 import LearningTab from "./LearningTab";
+import SafetyTab from "@/app/features/safety/SafetyWorkspace";
 import SupervisorsTab from "./SupervisorsTab";
 import AccessTab from "./AccessTab";
 import JoinInvitation from "./JoinInvitation";
 import { childProfileService } from "@/app/services/childProfileService";
 import { forgetArchived, listArchived, rememberArchived, type ArchivedChild } from "@/app/lib/archivedChildren";
 
-type Tab = "profile" | "learning" | "supervisors" | "access";
+type Tab = "profile" | "learning" | "safety" | "supervisors" | "access";
 const TABS: { id: Tab; label: string }[] = [
   { id: "profile", label: "Hồ sơ" },
   { id: "learning", label: "Học tập" },
+  { id: "safety", label: "An toàn" },
   { id: "supervisors", label: "Người giám sát" },
   { id: "access", label: "Bé đăng nhập" },
 ];
@@ -125,8 +127,9 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
             <div className="pb children-body">
               {!role ? <p className="sub">Đang tải…</p> : (
                 <div key={`${tab}:${child.id}`} className="tab-pane">
-                  {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={role.isOwner} onChanged={() => void reloadChildren(child.id)} onArchived={() => { rememberArchived(meId, child); setArchived(listArchived(meId)); void reloadChildren(); }} onTab={setTab} go={go} />}
+                  {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={role.isOwner} onChanged={() => void reloadChildren(child.id)} onArchived={() => { rememberArchived(meId, child); setArchived(listArchived(meId)); void reloadChildren(); }} onTab={setTab} />}
                   {tab === "learning" && <LearningTab key={child.id} child={child} canEdit={canEditLearning} onSaved={() => void reloadChildren(child.id)} />}
+                  {tab === "safety" && <SafetyTab key={child.id} />}
                   {tab === "supervisors" && <SupervisorsTab key={child.id} child={child} meId={meId} onLeft={() => void reloadChildren()} />}
                   {tab === "access" && (canManageAccess
                     ? <AccessTab key={child.id} child={child} />
