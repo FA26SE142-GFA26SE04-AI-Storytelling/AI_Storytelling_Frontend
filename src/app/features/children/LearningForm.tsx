@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Plus, X } from "lucide-react";
 import type { ContentCategory, LearningProfile, ReadingMode, SetLearningProfileRequest } from "@/app/types/childProfile";
 import { childProfileService } from "@/app/services/childProfileService";
@@ -47,6 +47,19 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
   const [topic, setTopic] = useState("");
   const [skill, setSkill] = useState("");
   const set = (patch: Partial<LearningValue>) => onChange({ ...value, ...patch });
+  // Chip bị xoá thu nhỏ trước (160ms) rồi mới bỏ khỏi danh sách.
+  const [leaving, setLeaving] = useState<string[]>([]);
+  const latest = useRef(value);
+  latest.current = value;
+  const removeChip = (kind: "favorites" | "focus", text: string) => {
+    const key = `${kind}:${text}`;
+    setLeaving((l) => [...l, key]);
+    window.setTimeout(() => {
+      onChange({ ...latest.current, [kind]: latest.current[kind].filter((x) => x !== text) });
+      setLeaving((l) => l.filter((k) => k !== key));
+    }, 160);
+  };
+  const chipClass = (kind: "favorites" | "focus", text: string) => `chip on${leaving.includes(`${kind}:${text}`) ? " leaving" : ""}`;
   const addTopic = (t: string) => {
     const clean = t.trim().slice(0, 150);
     if (clean && !value.favorites.includes(clean)) set({ favorites: [...value.favorites, clean] });
@@ -98,7 +111,7 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
         <span className="lbl">Chủ đề bé yêu thích</span>
         <div className="chips">
           {value.favorites.map((t) => (
-            <span key={t} className="chip on">{t}{!disabled && <button type="button" aria-label={`Bỏ ${t}`} onClick={() => set({ favorites: value.favorites.filter((x) => x !== t) })}><X size={12} /></button>}</span>
+            <span key={t} className={chipClass("favorites", t)}>{t}{!disabled && <button type="button" aria-label={`Bỏ ${t}`} onClick={() => removeChip("favorites", t)}><X size={12} /></button>}</span>
           ))}
         </div>
         {!disabled && (
@@ -119,7 +132,7 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
         <span className="lbl">Kỹ năng muốn ưu tiên</span>
         <div className="chips">
           {value.focus.map((s) => (
-            <span key={s} className="chip on">{s}{!disabled && <button type="button" aria-label={`Bỏ ${s}`} onClick={() => set({ focus: value.focus.filter((x) => x !== s) })}><X size={12} /></button>}</span>
+            <span key={s} className={chipClass("focus", s)}>{s}{!disabled && <button type="button" aria-label={`Bỏ ${s}`} onClick={() => removeChip("focus", s)}><X size={12} /></button>}</span>
           ))}
         </div>
         {!disabled && (

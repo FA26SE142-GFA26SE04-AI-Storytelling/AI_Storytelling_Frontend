@@ -13,7 +13,6 @@ import AuthoringWorkspace from "@/app/features/authoring/AuthoringWorkspace";
 import LibraryWorkspace from "@/app/features/library/LibraryWorkspace";
 import ReviewWorkspace from "@/app/features/review/ReviewWorkspace";
 import ReportWorkspace from "@/app/features/report/ReportWorkspace";
-import SafetyWorkspace from "@/app/features/safety/SafetyWorkspace";
 import KidMode from "@/app/features/kid/KidMode";
 import KidEntry from "@/app/features/kid/KidEntry";
 import ChildrenWorkspace from "@/app/features/children/ChildrenWorkspace";
@@ -34,7 +33,6 @@ const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
   roadmap: RoadmapWorkspace,
   review: ReviewWorkspace,
   report: ReportWorkspace,
-  safety: SafetyWorkspace,
   account: () => <AccountWorkspace page="profile" />,
   "account-security": () => <AccountWorkspace page="security" />,
   "account-payment": () => <AccountWorkspace page="payment" />,

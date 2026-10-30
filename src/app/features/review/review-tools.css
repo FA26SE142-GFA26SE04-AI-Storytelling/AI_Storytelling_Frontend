@@ -9,3 +9,10 @@
 
 /* Xem trước như bé thấy */
 .preview-text { font-size: 19px; line-height: 1.7; min-height: 140px; margin: 4px 0; color: var(--ink-warm, var(--text)); }
+
+/* 3. Hộp thoại: nền mờ dần hiện, hộp phóng nhẹ từ 96% lên 100%. */
+.dlg-backdrop { animation: dlg-fade .18s ease-out; }
+.dlg { animation: dlg-pop .22s cubic-bezier(.2, .9, .3, 1.1); }
+@keyframes dlg-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dlg-pop { from { opacity: 0; transform: translateY(8px) scale(.96); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .dlg-backdrop, .dlg { animation: none; } }

@@ -14,3 +14,27 @@
 
 .trow { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-weight: 700; font-size: 13px; }
 .trow small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+
+/* Cài đặt an toàn nằm trong tab "An toàn" của Hồ sơ bé. */
+.safety-tab { display: flex; flex-direction: column; gap: 20px; }
+.safety-jump { display: flex; flex-wrap: wrap; gap: 6px; }
+.safety-jump button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); color: var(--muted); font-size: 12.5px; font-weight: 600; transition: color .15s, border-color .15s; }
+.safety-jump button:hover { color: var(--text); border-color: var(--primary); }
+.safety-tab .setbody { background: transparent; padding: 0; overflow: visible; gap: 28px; }
+.safety-tab .setbody section { max-width: none; scroll-margin-top: 12px; }
+.safety-tab .setbody h2 { font-size: 18px; }
+.safety-savebar { display: flex; align-items: center; gap: 12px; padding: 4px 0 8px; }
+
+/* Bố cục thẻ: mỗi mục là một thẻ có đệm; màn rộng chia hai cột, mục dài chiếm cả hàng. */
+.safety-tab { container-type: inline-size; }
+.safety-tab .setbody { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; align-items: start; }
+.safety-tab .setbody > .notice, .safety-tab .setbody > p { grid-column: 1 / -1; }
+.safety-tab .setbody section { background: var(--surface); border: 0; border-radius: 18px; padding: 18px 22px 20px; }
+.safety-tab .setbody h2 { margin-bottom: 4px; }
+.safety-tab .setbody .trow:last-child { border-bottom: 0; padding-bottom: 0; }
+.safety-tab #s-mode > .sec { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 8px; }
+@container (min-width: 860px) {
+  .safety-tab .setbody { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+  .safety-tab #s-mode, .safety-tab #s-topic { grid-column: 1 / -1; }
+}
+.safety-jump { padding-bottom: 2px; }

@@ -91,7 +91,7 @@ export default function SafetyWorkspace() {
     return () => { alive = false; };
   }, [child, apply]);
 
-  if (!child) return <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}><div className="pane"><div className="empty"><b className="display">Chưa có hồ sơ bé</b></div></div></section>;
+  if (!child) return <p className="sub">Chưa có hồ sơ bé.</p>;
 
   const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   const outdated = !!policy?.consentOutdated;
@@ -146,15 +146,10 @@ export default function SafetyWorkspace() {
   };
 
   return (
-    <section className="ws dock" style={{ gridTemplateColumns: "230px 1fr" }}>
-      <div className="pane">
-        <div className="ph"><span>Cài đặt an toàn</span></div>
-        <div className="pb setnav" style={{ gap: 2 }}>
-          {NAV.map((n) => <button key={n.id} onClick={() => jump(n.id)}><n.icon className="ic" />{n.label}</button>)}
-          {canEdit && <button className="btn btn-p btn-c" style={{ marginTop: 12 }} disabled={saving || loading} onClick={() => void save()}>{saving ? "Đang lưu…" : "Lưu cài đặt"}</button>}
-          {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
-        </div>
-      </div>
+    <div className="safety-tab">
+      <nav className="safety-jump" aria-label="Các mục cài đặt an toàn">
+        {NAV.map((n) => <button key={n.id} type="button" onClick={() => jump(n.id)}><n.icon className="ic" />{n.label}</button>)}
+      </nav>
 
       <div ref={bodyRef} className="setbody">
         {loading ? <p className="sub">Đang tải chính sách của {child.nickname}…</p> : (
@@ -229,6 +224,13 @@ export default function SafetyWorkspace() {
           </>
         )}
       </div>
-    </section>
+
+      {canEdit && !loading && (
+        <div className="safety-savebar">
+          <button className="btn btn-p" disabled={saving} onClick={() => void save()}>{saving ? "Đang lưu…" : "Lưu cài đặt an toàn"}</button>
+          {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
+        </div>
+      )}
+    </div>
   );
 }

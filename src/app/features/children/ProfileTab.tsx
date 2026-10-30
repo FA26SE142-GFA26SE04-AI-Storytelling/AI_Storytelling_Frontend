@@ -2,25 +2,24 @@
 import { confirmDialog } from "@/app/lib/confirm";
 
 import { useEffect, useState } from "react";
+import { useFlash } from "@/app/lib/useFlash";
 import ActivitySection from '@/app/features/account/ActivitySection';
 import { Archive, Check, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
 import DataRequestSection from "./DataRequestSection";
 import type { ChildProfile } from "@/app/types/childProfile";
 import { AGE_BANDS, AVATARS, avatarOf, fmtDate } from "@/app/lib/guardian";
-import type { WorkspaceId } from "@/app/components/shell/nav";
 
 type Checks = { learning: boolean; policy: boolean; consent: boolean; outdated: boolean };
 type Note = { ok: boolean; text: string } | null;
 
 /** Bước 1.2 (sửa thông tin, avatar), 1.8 (kích hoạt), 1.8b và Mục 7 (tạm dừng, tiếp tục, lưu trữ). */
-export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTab, go }: {
+export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTab }: {
   child: ChildProfile;
   isOwner: boolean;
   onChanged: () => void;
   onArchived: () => void;
-  onTab: (tab: "learning") => void;
-  go: (id: WorkspaceId) => void;
+  onTab: (tab: "learning" | "safety") => void;
 }) {
   const [nickname, setNickname] = useState(child.nickname);
   const [ageBand, setAgeBand] = useState(child.ageBand);
@@ -48,6 +47,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
     return r.success;
   };
 
+  const [savedInfo, flashInfo] = useFlash();
   const save = async () => {
     setBusy(true);
     setNote(null);
@@ -56,6 +56,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
     setBusy(false);
     setNote({ ok: r.success, text: r.success ? "Đã lưu thông tin bé." : r.message || "Không lưu được." });
     if (!r.success) return;
+    flashInfo();
     // Đổi nhóm tuổi: backend gợi ý áp lại danh sách chặn và đổi chế độ đọc cho hợp tuổi.
     const tips = [
       r.data?.shouldReapplyBlockedPreset && "áp dụng danh sách chủ đề nên chặn của nhóm tuổi mới (Cài đặt an toàn)",
@@ -90,8 +91,8 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
   const rows = checks ? [
     { ok: true, label: "Thông tin bé", hint: "Biệt danh và nhóm tuổi" },
     { ok: checks.learning, label: "Hồ sơ học tập", hint: "Mức đọc, chế độ đọc, chủ đề yêu thích", fix: () => onTab("learning") },
-    { ok: checks.policy, label: "Cài đặt an toàn", hint: "Chủ đề được phép và bị chặn", fix: () => go("safety") },
-    { ok: checks.consent, label: "Đồng ý của phụ huynh", hint: checks.outdated ? "Điều khoản đã đổi — cần đồng ý lại" : "Đọc và đồng ý điều khoản dữ liệu", fix: () => go("safety") },
+    { ok: checks.policy, label: "Cài đặt an toàn", hint: "Chủ đề được phép và bị chặn", fix: () => onTab("safety") },
+    { ok: checks.consent, label: "Đồng ý của phụ huynh", hint: checks.outdated ? "Điều khoản đã đổi — cần đồng ý lại" : "Đọc và đồng ý điều khoản dữ liệu", fix: () => onTab("safety") },
   ] : [];
 
   return (
@@ -113,7 +114,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
           <span className="sub">Avatar giúp bé nhận ra hồ sơ của mình khi đăng nhập.</span>
         </div>
         <p className="sub">Tạo ngày {fmtDate(child.createdAt)}.{!isOwner && " Chỉ người quản lý chính (Owner) mới sửa được thông tin này."}</p>
-        {isOwner && <button className="btn btn-s" style={{ width: "fit-content" }} disabled={!dirty || busy || !nickname.trim()} onClick={() => void save()}><Save className="ic" />Lưu thông tin</button>}
+        {isOwner && <button className={`btn btn-s${savedInfo ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={!dirty || busy || !nickname.trim()} onClick={() => void save()}>{savedInfo ? <Check className="ic" /> : <Save className="ic" />}{savedInfo ? "Đã lưu" : "Lưu thông tin"}</button>}
         {hint && <div className="notice ok" role="status">{hint}</div>}
       </section>
 
