@@ -1,4 +1,5 @@
 'use client';
+import { confirmDialog } from "@/app/lib/confirm";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { childAccessService } from '@/app/services/childAccessService';
 import { childReadingService, childNotebookService } from '@/app/services/childReadingService';
@@ -39,7 +40,7 @@ export default function ChildReadingLibrary({childId,community,onReadingChange}:
     return ()=>{scope.current=run+1;controller.abort();};
   },[token,query,source,page,revision]);
   const remove=async(id:number)=>{
-    if(removeLock.current||!window.confirm('Xóa từ này khỏi sổ tay?'))return;
+    if(removeLock.current||!await confirmDialog('Xóa từ này khỏi sổ tay?'))return;
     removeLock.current=true;setRemoving(true);const run=scope.current;
     const r=await childNotebookService.remove(token,id);
     removeLock.current=false;setRemoving(false);

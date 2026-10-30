@@ -1,4 +1,5 @@
 "use client";
+import { confirmDialog } from "@/app/lib/confirm";
 
 import "./safety.css";
 import "../children/children.css";
@@ -137,7 +138,7 @@ export default function SafetyWorkspace() {
     const preview = await profileLifecycleService.agePreset(child!.id);
     if (!preview.success || !preview.data) { setSaving(false); setNote({ok:false,text:preview.message}); return; }
     const names = cats.filter(c=>preview.data!.blockedCategoryIds.includes(c.id)).map(c=>c.displayName).join(', ');
-    if (!window.confirm(`Áp dụng chặn theo tuổi ${preview.data.ageBand}: ${names || 'không có danh mục chặn'}?`)) { setSaving(false); return; }
+    if (!await confirmDialog(`Áp dụng chặn theo tuổi ${preview.data.ageBand}: ${names || 'không có danh mục chặn'}?`)) { setSaving(false); return; }
     const res = await childProfileService.applyAgePreset(child.id);
     setSaving(false);
     setNote({ ok: res.success, text: res.success ? "Đã áp dụng danh sách chặn mặc định cho nhóm tuổi mới." : res.message });

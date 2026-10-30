@@ -1,4 +1,5 @@
 "use client";
+import { confirmDialog } from "@/app/lib/confirm";
 
 import { useCallback, useEffect, useState } from "react";
 import { Copy, Crown, LogOut, Mail, RefreshCw, UserMinus, X } from "lucide-react";
@@ -6,7 +7,6 @@ import { supervisionService as api } from "@/app/services/supervisionService";
 import type { ChildProfile } from "@/app/types/childProfile";
 import type { Invitation, OwnershipTransfer, Permission, PermissionRequest, SupervisionRelationship } from "@/app/types/supervision";
 import { PERMISSIONS, fmtDate } from "@/app/lib/guardian";
-import PermissionDirectory from './PermissionDirectory';
 
 type Data = {
   rels: SupervisionRelationship[];
@@ -88,8 +88,7 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
   const copy = (code: string) => { void navigator.clipboard?.writeText(code); setNote({ ok: true, text: "Đã sao chép mã mời." }); };
 
   return (
-    <div className="sec" style={{ gap: 26, maxWidth: 680 }}>
-      <PermissionDirectory key={child.id} childId={child.id} isOwner={isOwner} onChanged={()=>void load()}/>
+    <div className="sec" style={{ gap: 26 }}>
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
       {/* Đề nghị chuyển quyền Owner gửi tới mình */}
       {pendingTransfers.filter((t) => t.targetSupervisorUserId === meId).map((t) => (
@@ -103,7 +102,6 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
       ))}
 
       <section className="sec" style={{ gap: 10 }}>
-        <h3 className="display" style={{ margin: 0 }}>Người giám sát</h3>
         <p className="sub">Bố/mẹ còn lại hoặc người thân cùng theo dõi {child.nickname}. Người được mời nhận sẵn 4 quyền cơ bản; bạn có thể cấp thêm hoặc thu hồi bất kỳ lúc nào.</p>
         {data.rels.map((r) => {
           const extra = r.supervisorRole !== "Owner";
@@ -137,7 +135,7 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
                       <X className="ic" />Huỷ đề nghị chuyển quyền</button>
                     : <button className="btn btn-s" disabled={busy} onClick={() => void act(() => api.requestOwnershipTransfer(child.id, r.supervisorUserId), "Đã gửi đề nghị. Quyền Owner chỉ chuyển khi người kia đồng ý.")}>
                       <Crown className="ic" />Chuyển quyền Owner</button>}
-                  <button className="btn btn-no" disabled={busy} onClick={() => { if (confirm(`Gỡ ${name(r)} khỏi hồ sơ của ${child.nickname}?`)) void act(() => api.revokeSupervisor(r.id), "Đã gỡ người giám sát. Người này mất quyền ngay."); }}>
+                  <button className="btn btn-no" disabled={busy} onClick={async () => { if (await confirmDialog(`Gỡ ${name(r)} khỏi hồ sơ của ${child.nickname}?`)) void act(() => api.revokeSupervisor(r.id), "Đã gỡ người giám sát. Người này mất quyền ngay."); }}>
                     <UserMinus className="ic" />Gỡ</button>
                 </div>
               )}
@@ -180,7 +178,7 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
               <button className="btn btn-s" disabled={!askPerm || busy} onClick={() => askPerm && void act(() => api.requestPermission(me.id, askPerm), "Đã gửi yêu cầu tới người quản lý chính.", () => setAskPerm(""))}>Xin quyền</button>
             </div>
           )}
-          <button className="btn btn-no" style={{ width: "fit-content" }} disabled={busy} onClick={() => { if (confirm(`Rời khỏi hồ sơ của ${child.nickname}? Bạn sẽ mất quyền xem ngay.`)) void act(() => api.revokeSupervisor(me.id), "Bạn đã rời hồ sơ.", onLeft); }}>
+          <button className="btn btn-no" style={{ width: "fit-content" }} disabled={busy} onClick={async () => { if (await confirmDialog(`Rời khỏi hồ sơ của ${child.nickname}? Bạn sẽ mất quyền xem ngay.`)) void act(() => api.revokeSupervisor(me.id), "Bạn đã rời hồ sơ.", onLeft); }}>
             <LogOut className="ic" />Rời hồ sơ</button>
         </section>
       )}

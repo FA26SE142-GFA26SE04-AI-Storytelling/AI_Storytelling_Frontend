@@ -1,4 +1,5 @@
 "use client";
+import { confirmDialog } from "@/app/lib/confirm";
 
 import "./roadmap.css";
 import "@/app/features/review/review-tools.css";
@@ -190,7 +191,7 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
           <button className="btn btn-p btn-c" disabled={!canEdit} onClick={() => setDialog({ kind: "pick" })}><Plus className="ic" />Chọn truyện của {child.nickname}</button>
           <button className="btn btn-s btn-c" disabled={!canEdit} onClick={() => void openTemplates()}><Library className="ic" />Kho bộ truyện mẫu</button>
           <button className="btn btn-s btn-c" onClick={() => go("library")}>Mở thư viện truyện</button>
-          {canEdit && (queued.length > 0 || open) && <button className="btn btn-no btn-c" onClick={() => { if (confirm(`Gỡ toàn bộ truyện chưa đọc khỏi lộ trình của ${child.nickname}?`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình."); }}><Trash2 className="ic" />Làm trống lộ trình</button>}
+          {canEdit && (queued.length > 0 || open) && <button className="btn btn-no btn-c" onClick={async () => { if (await confirmDialog(`Gỡ toàn bộ truyện chưa đọc khỏi lộ trình của ${child.nickname}?`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình."); }}><Trash2 className="ic" />Làm trống lộ trình</button>}
           <p className="sub">{child.nickname} đọc lần lượt từng truyện. Đọc xong truyện đang mở, truyện kế tiếp tự mở. Điểm câu đố không quyết định việc hoàn thành.</p>
         </div>
       </div>

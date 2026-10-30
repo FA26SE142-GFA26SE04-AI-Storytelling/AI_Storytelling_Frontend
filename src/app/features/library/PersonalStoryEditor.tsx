@@ -1,4 +1,5 @@
 'use client';
+import { confirmDialog } from "@/app/lib/confirm";
 import { useEffect,useState } from 'react';
 import { storyManagementService as service } from '@/app/services/storyManagementService';
 import { storyService } from '@/app/services/storyService';
@@ -12,7 +13,7 @@ export default function PersonalStoryEditor({onClose,onChanged}:{onClose:()=>voi
  const owned=!saved||saved.authorUserId===user?.id&&saved.source==='Manual';
  const write=async(action:'save'|'publish'|'remove')=>{
   if(busy||uncertain||!owned)return;
-  if(action!=='save'&&!window.confirm(action==='remove'?'Xóa truyện riêng này?':'Yêu cầu phát hành công khai truyện này? Backend sẽ kiểm tra điều kiện.'))return;
+  if(action!=='save'&&!await confirmDialog(action==='remove'?'Xóa truyện riêng này?':'Yêu cầu phát hành công khai truyện này? Backend sẽ kiểm tra điều kiện.'))return;
   setBusy(true);setNote('');
   const r=action==='save'?(saved?await service.update(saved.id,form):await service.create(form)):action==='publish'?await service.publish(saved!.id):await service.remove(saved!.id);
   setBusy(false);setNote(r.message);

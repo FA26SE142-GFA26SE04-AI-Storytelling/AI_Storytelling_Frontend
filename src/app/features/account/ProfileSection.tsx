@@ -1,5 +1,6 @@
 "use client";
 
+import PasswordInput from "@/app/components/PasswordInput";
 import { useState, type FormEvent } from "react";
 import { Mail, Save } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
@@ -76,7 +77,7 @@ export default function ProfileSection() {
               <label className="field"><span className="lbl">Email mới</span>
                 <input className="inp" type="email" required value={email.next} onChange={(e) => setEmail({ ...email, next: e.target.value })} autoComplete="email" /></label>
               <label className="field"><span className="lbl">Mật khẩu hiện tại</span>
-                <input className="inp" type="password" required value={email.password} onChange={(e) => setEmail({ ...email, password: e.target.value })} autoComplete="current-password" /></label>
+                <PasswordInput className="inp" required value={email.password} onChange={(e) => setEmail({ ...email, password: e.target.value })} autoComplete="current-password" /></label>
               <button className="btn btn-s" style={{ width: "fit-content" }} disabled={busy}><Mail className="ic" />Gửi mã xác thực</button>
             </form>
           ) : (

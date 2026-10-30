@@ -42,8 +42,6 @@ export const READING_MODES: { id: ReadingMode; label: string; hint: string }[] =
 export const defaultReadingMode = (ageBand: string): ReadingMode => (ageBand === "Age_9_10" ? "ReadFirst" : "ListenFirst");
 
 /** Luồng 6 Mục 4 — trọng tâm kỹ năng, dùng làm "lĩnh vực ưu tiên". */
-export const FOCUS_AREAS = ["Đọc hiểu", "Phát triển từ vựng", "Phát âm", "Sắp xếp trình tự", "Nguyên nhân – kết quả", "Suy luận"];
-export const TOPIC_SUGGESTIONS = ["động vật", "thiên nhiên", "vũ trụ", "khoa học", "cổ tích", "gia đình", "tình bạn", "phiêu lưu", "robot", "biển cả"];
 
 /** Mã avatar theo quy ước backend `avatar-<tên>`; hồ sơ mới nhận `avatar-default` (hiển thị là Ếch). */
 export const AVATARS = [

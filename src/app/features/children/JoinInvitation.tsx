@@ -1,4 +1,5 @@
 "use client";
+import { confirmDialog } from "@/app/lib/confirm";
 
 import { useState } from "react";
 import { supervisionService as api } from "@/app/services/supervisionService";
@@ -46,7 +47,7 @@ export default function JoinInvitation({ onJoined, onCancel }: { onJoined: (chil
   };
 
   const reject = async () => {
-    if (!confirm("Từ chối lời mời này? Mã mời sẽ không dùng được nữa.")) return;
+    if (!await confirmDialog("Từ chối lời mời này? Mã mời sẽ không dùng được nữa.")) return;
     setBusy(true);
     setMsg(null);
     const r = await api.rejectInvitation(invitationCode);

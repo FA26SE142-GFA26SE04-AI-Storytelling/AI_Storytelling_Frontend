@@ -1,5 +1,6 @@
 "use client";
 
+import PasswordInput from "@/app/components/PasswordInput";
 import "./login.css";
 import { useEffect, useState, type FormEvent } from "react";
 import Frog from "@/app/components/brand/Frog";
@@ -172,12 +173,12 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
         {needsPassword && (
           <>
             <label className="field"><span className="lbl">{mode === "reset" || mode === "activate" ? "Mật khẩu mới" : "Mật khẩu"}</span>
-              <input className="inp" type="password" required value={f.password} onChange={set("password")} autoComplete={mode === "login" ? "current-password" : "new-password"} /></label>
+              <PasswordInput className="inp" required value={f.password} onChange={set("password")} autoComplete={mode === "login" ? "current-password" : "new-password"} /></label>
             {mode === "login" && <button type="button" className="login-forgot" onClick={() => go("forgot")}>Quên mật khẩu?</button>}
           </>
         )}
         {needsConfirm && (
-          <label className="field"><span className="lbl">Nhập lại mật khẩu</span><input className="inp" type="password" required value={f.confirm} onChange={set("confirm")} autoComplete="new-password" /></label>
+          <label className="field"><span className="lbl">Nhập lại mật khẩu</span><PasswordInput className="inp" required value={f.confirm} onChange={set("confirm")} autoComplete="new-password" /></label>
         )}
         {needsConfirm && <p className="sub">Ít nhất 8 ký tự, có cả chữ và số.</p>}
         {mode === "verify" && (

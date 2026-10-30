@@ -1,4 +1,5 @@
 'use client';
+import { confirmDialog } from "@/app/lib/confirm";
 import './authoring.css';
 import { useEffect, useRef, useState } from 'react';
 import { Upload } from 'lucide-react';
@@ -42,7 +43,7 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
   // Tải tệp .txt/.docx: máy chủ đọc nội dung tệp rồi đưa thẳng vào khung soạn để xem và sửa; chỉ lưu khi bấm "Lưu phiên bản".
   const loadFile = async (file: File) => {
     if (!story || reading) return;
-    if (form.content.trim() && !window.confirm('Nội dung tệp sẽ thay phần đang soạn. Tiếp tục?')) return;
+    if (form.content.trim() && !await confirmDialog('Nội dung tệp sẽ thay phần đang soạn. Tiếp tục?')) return;
     setReading(true); h.setNote('');
     const body = new FormData();
     body.append('File', file); body.append('RevisionToken', story.revisionToken); body.append('OperationId', crypto.randomUUID());
@@ -79,7 +80,7 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
         <details open={!story}>
           <summary>Bản nháp gia đình của bạn</summary>
           <div className="pa-wrap">
-            {h.list?.items.map(d => <button className={`btn ${d.storyId === story?.storyId ? 'btn-ok' : 'btn-s'}`} key={d.storyId} disabled={h.busy || h.uncertain} onClick={() => { if (!dirty || window.confirm('Bỏ thay đổi chưa lưu để mở bản khác?')) void h.load(d.storyId,true); }}>{d.title} #{d.storyId}</button>)}
+            {h.list?.items.map(d => <button className={`btn ${d.storyId === story?.storyId ? 'btn-ok' : 'btn-s'}`} key={d.storyId} disabled={h.busy || h.uncertain} onClick={async () => { if (!dirty || await confirmDialog('Bỏ thay đổi chưa lưu để mở bản khác?')) void h.load(d.storyId,true); }}>{d.title} #{d.storyId}</button>)}
             {h.list && h.list.items.length === 0 && <p className="sub">Chưa có bản nháp nào.</p>}
           </div>
           <div className="pa-actions" style={{ marginTop:10 }}>

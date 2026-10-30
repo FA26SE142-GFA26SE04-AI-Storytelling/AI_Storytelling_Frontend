@@ -1,4 +1,5 @@
 "use client";
+import { confirmDialog } from "@/app/lib/confirm";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ArrowLeft, FileUp, History, RotateCcw, Save } from "lucide-react";
@@ -106,9 +107,9 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
     void runWrite({ call: () => creatorService.save(storyId, op, revisionToken, selectedVersionId, snapshot), snapshot, okText: "Đã lưu", replaceForm: false });
   };
 
-  const restore = (v: CreatorVersion) => {
+  const restore = async (v: CreatorVersion) => {
     if (!draft || editorLocked) return;
-    if (dirty && !confirm("Bạn có thay đổi chưa lưu. Khôi phục sẽ thay nội dung đang sửa bằng bản cũ. Tiếp tục?")) return;
+    if (dirty && !await confirmDialog("Bạn có thay đổi chưa lưu. Khôi phục sẽ thay nội dung đang sửa bằng bản cũ. Tiếp tục?")) return;
     const op = newOperationId("restore");
     const { revisionToken, selectedVersionId } = draft;
     void runWrite({ call: () => creatorService.restore(storyId, op, revisionToken, selectedVersionId, v.versionId), snapshot: form, okText: `Đã khôi phục từ V${v.versionNo}`, replaceForm: true });
@@ -129,7 +130,7 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
     <>
       <div className="st-card">
         <div className="row" style={{ flexWrap: "wrap" }}>
-          <button className="btn btn-g" onClick={() => { if (!dirty || confirm("Bỏ các thay đổi chưa lưu?")) onBack(); }}><ArrowLeft className="ic" />Danh sách</button>
+          <button className="btn btn-g" onClick={async () => { if (!dirty || await confirmDialog("Bỏ các thay đổi chưa lưu?")) onBack(); }}><ArrowLeft className="ic" />Danh sách</button>
           <h3 className="grow">{form.title || "Truyện chưa đặt tên"}</h3>
           <span className="pill draft">Nháp · {draft.lastVersionNo ? `V${draft.lastVersionNo}` : "chưa lưu"}</span>
           {dirty && <span className="pill wait">Chưa lưu</span>}

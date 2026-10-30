@@ -1,5 +1,6 @@
 "use client";
 
+import PasswordInput from "@/app/components/PasswordInput";
 import "../children/children.css";
 import { useState, type FormEvent } from "react";
 import { Lock } from "lucide-react";
@@ -30,7 +31,7 @@ export default function ParentalGate({ email, onPass, onCancel }: { email: strin
         <p className="sub">Nhập mật khẩu tài khoản {email} để quay về khu người lớn.</p>
         {/* Ô ẩn để trình quản lý mật khẩu biết đang điền cho tài khoản nào. */}
         <input type="email" name="username" autoComplete="username" value={email} readOnly hidden />
-        <input className="inp" type="password" name="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} aria-label="Mật khẩu" />
+        <PasswordInput className="inp" name="password" required autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} aria-label="Mật khẩu" />
         {err && <div className="notice err" role="alert">{err}</div>}
         <div className="row" style={{ justifyContent: "flex-end" }}>
           <button type="button" className="btn btn-g" onClick={onCancel}>Ở lại với bé</button>
