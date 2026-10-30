@@ -1265,9 +1265,7 @@
         "operation": "restore",
         "file": "app/services/profileLifecycleService.ts",
         "line": 7,
-        "callers": [
-          "app/features/children/RestoreArchived.tsx"
-        ]
+        "callers": []
       }
     ],
     "disposition": "CONNECTED_SOURCE"
@@ -3609,7 +3607,7 @@
         "service": "staffService",
         "operation": "queue",
         "file": "app/services/staffService.ts",
-        "line": 91,
+        "line": 96,
         "callers": [
           "app/features/staff/ConnectedModerationQueue.tsx"
         ]
@@ -3630,7 +3628,7 @@
         "service": "staffService",
         "operation": "claim",
         "file": "app/services/staffService.ts",
-        "line": 94,
+        "line": 99,
         "callers": [
           "app/features/staff/ConnectedModerationQueue.tsx"
         ]
@@ -3661,7 +3659,7 @@
         "service": "staffService",
         "operation": "openItem",
         "file": "app/services/staffService.ts",
-        "line": 96,
+        "line": 101,
         "callers": []
       }
     ],
@@ -6545,8 +6543,29 @@
     "controller": "StaffAccountController.cs",
     "action": "List",
     "controllerLine": 24,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/StaffAccount",
+        "service": "staffService",
+        "operation": "staff",
+        "file": "app/services/staffService.ts",
+        "line": 73,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      },
+      {
+        "key": "GET /api/v1/StaffAccount",
+        "service": "staffService",
+        "operation": "staff",
+        "file": "app/services/staffService.ts",
+        "line": 73,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -6555,8 +6574,19 @@
     "controller": "StaffAccountController.cs",
     "action": "Invite",
     "controllerLine": 33,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/StaffAccount/invite",
+        "service": "staffService",
+        "operation": "invite",
+        "file": "app/services/staffService.ts",
+        "line": 78,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -6565,8 +6595,19 @@
     "controller": "StaffAccountController.cs",
     "action": "ResendInvite",
     "controllerLine": 44,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/StaffAccount/{}/resend-invite",
+        "service": "staffService",
+        "operation": "resendInvite",
+        "file": "app/services/staffService.ts",
+        "line": 83,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -6575,8 +6616,19 @@
     "controller": "StaffAccountController.cs",
     "action": "CancelInvite",
     "controllerLine": 54,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/StaffAccount/{}/cancel-invite",
+        "service": "staffService",
+        "operation": "cancelInvite",
+        "file": "app/services/staffService.ts",
+        "line": 86,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -6585,8 +6637,19 @@
     "controller": "StaffAccountController.cs",
     "action": "Deactivate",
     "controllerLine": 64,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/StaffAccount/{}/deactivate",
+        "service": "staffService",
+        "operation": "deactivate",
+        "file": "app/services/staffService.ts",
+        "line": 89,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -6595,8 +6658,19 @@
     "controller": "StaffAccountController.cs",
     "action": "Reactivate",
     "controllerLine": 75,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/StaffAccount/{}/reactivate",
+        "service": "staffService",
+        "operation": "reactivate",
+        "file": "app/services/staffService.ts",
+        "line": 91,
+        "callers": [
+          "app/features/staff/AdminPeople.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
