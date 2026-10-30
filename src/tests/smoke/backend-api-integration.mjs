@@ -142,11 +142,14 @@ try {
  }
  await fixture('Parent',async({page,requests,state})=>{
   page.on('dialog',d=>d.accept());
-  await page.getByRole('button',{name:'Tài khoản',exact:true}).click();
+  await page.getByRole('button',{name:'Mở menu tài khoản',exact:true}).click();
+  await page.getByRole('menuitem',{name:'Lịch sử hoạt động',exact:true}).click();
   await page.getByText('ProfileUpdated',{exact:false}).waitFor();
+  await page.getByText('Các dịch vụ đã sẵn sàng.',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Mở menu tài khoản',exact:true}).click();
+  await page.getByRole('menuitem',{name:'Mua thêm lượt tạo truyện',exact:true}).click();
   await page.getByRole('button',{name:'Chọn gói',exact:true}).click();
   await page.getByText('FIXTURE17',{exact:true}).waitFor();
-  await page.getByText('Các dịch vụ đã sẵn sàng.',{exact:true}).waitFor();
   await page.getByRole('button',{name:'Thông báo, 1 chưa đọc',exact:true}).click();
   await page.getByText('Có truyện mới trong lộ trình của con',{exact:true}).waitFor();
   assert.equal(state.notificationPushed,true);
@@ -302,7 +305,7 @@ try {
  },true);
  await fixture('Moderator',async({page,requests})=>{
   page.on('dialog',d=>d.accept());
-  await page.getByRole('button',{name:'Hướng dẫn sáng tác',exact:true}).click();
+  await page.getByRole('button',{name:'Nội dung',exact:true}).click();await page.getByRole('menuitem',{name:'Hướng dẫn sáng tác',exact:true}).click();
   await page.getByRole('button',{name:'Tạo bản nháp từ bản đang dùng',exact:true}).click();
   await page.getByLabel('Mã hướng dẫn',{exact:true}).fill('ending');
   await page.getByLabel('Tiêu đề',{exact:true}).fill('Kết thúc mới');
@@ -321,8 +324,7 @@ try {
   assert(requests.some(r=>r.method==='DELETE'&&r.path===`${root}/draft`));
  },false,'ModeratorGuides');
  await fixture('Parent',async({page,requests})=>{
-  await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();
-  await page.getByRole('button',{name:'Tự soạn truyện',exact:true}).click();
+  await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();await page.getByRole('menuitem',{name:'Thủ công',exact:true}).click();
   await page.getByRole('button',{name:'Ếch con khám phá #7',exact:true}).click();
   await page.getByRole('button',{name:'Kiểm tra bản đã lưu',exact:true}).click();
   for(const name of ['Đúng ý định của tôi','Phù hợp với bé','Đã kiểm tra thông tin riêng tư','Đã đọc phần kết'])await page.getByRole('checkbox',{name,exact:true}).check();
@@ -338,7 +340,7 @@ try {
   assert(requests.some(r=>r.path==='/parent/stories/7/family-confirmations'));
  },false,'ParentManualMedia');
  await fixture('Moderator',async({page})=>{
-  await page.getByRole('button',{name:'Hướng dẫn sáng tác',exact:true}).click();
+  await page.getByRole('button',{name:'Nội dung',exact:true}).click();await page.getByRole('menuitem',{name:'Hướng dẫn sáng tác',exact:true}).click();
   await page.getByRole('button',{name:'Tạo bản nháp từ bản đang dùng',exact:true}).click();
   await page.getByLabel('Mã hướng dẫn',{exact:true}).fill('ending');
   await page.getByLabel('Tiêu đề',{exact:true}).fill('Bản đang soạn được giữ');
@@ -385,7 +387,7 @@ try {
   assert.equal(requests.filter(r=>r.path.endsWith('/keep-current')).length,1);
  },true,'MediaKeepCurrent');
  await fixture('Administrator',async({page,requests})=>{
-  await page.getByRole('button',{name:'Hướng dẫn sáng tác',exact:true}).click();
+  await page.getByRole('button',{name:'Nội dung',exact:true}).click();await page.getByRole('menuitem',{name:'Hướng dẫn sáng tác',exact:true}).click();
   await page.getByText('Bản đang phát hành: parent-vi-1',{exact:true}).waitFor();
   await page.getByRole('button',{name:'parent-vi-1 · Published',exact:true}).click();
   await page.getByRole('button',{name:'Tạo bản nháp từ phiên bản này',exact:true}).waitFor();
@@ -402,7 +404,7 @@ try {
   assert.equal(new URL(page.url()).hash,'#studio');
   assert(!requests.slice(start).some(r=>r.path.startsWith('/ai-story-input')||r.path.startsWith('/stories/7/')));
   await page.getByRole('button',{name:'Về thư viện',exact:true}).click();
-  await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();
+  await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();await page.getByRole('menuitem',{name:'Dùng AI',exact:true}).click();
   await page.getByText('Hai bạn cùng ngắm trăng.',{exact:true}).waitFor();
   await page.evaluate(()=>sessionStorage.clear());
   await page.reload({waitUntil:'domcontentloaded'});

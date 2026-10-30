@@ -27,6 +27,64 @@
 .rail .sep { width: 24px; height: 1px; background: var(--line-2); margin: 4px 0; }
 .rail .badge { position: absolute; top: 3px; right: 3px; min-width: 15px; height: 15px; border-radius: 99px; background: var(--rose); color: #fff; font-size: 9.5px; font-weight: 800; display: grid; place-items: center; padding: 0 3px; }
 
+/* Khung phụ huynh: điều hướng nằm ngang trên header, không còn thanh bên. */
+.shell.top-nav { grid-template-columns: minmax(0, 1fr); }
+.shell.top-nav > .rail-mobile { display: none; }
+.topnav { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 0 8px; }
+.topnav::-webkit-scrollbar { display: none; }
+/* Nút có biểu tượng kèm chữ ngắn, để không phải rê chuột mới biết là gì. */
+.topnav button { height: 38px; flex: none; border-radius: 999px; display: inline-flex; align-items: center; gap: 7px; padding: 0 13px; color: var(--muted); font-size: 13px; font-weight: 700; white-space: nowrap; position: relative; transition: background .15s, color .15s; }
+.topnav button svg { width: 18px; height: 18px; flex: none; }
+.topnav button .nav-caret { width: 14px; height: 14px; margin-left: -3px; opacity: .7; }
+.topnav button[aria-expanded="true"] .nav-caret { transform: rotate(180deg); }
+.topnav button:hover { background: var(--surface); color: var(--text); }
+.topnav button.on { background: var(--primary-strong); color: #fff; box-shadow: 0 4px 14px -4px color-mix(in srgb, var(--primary) 80%, transparent); }
+.topnav .sep { width: 1px; height: 22px; background: var(--line-2); margin: 0 6px; flex: none; }
+.topnav .badge { position: absolute; top: -2px; right: -2px; min-width: 15px; height: 15px; border-radius: 99px; background: var(--rose); color: #fff; font-size: 9.5px; font-weight: 800; display: grid; place-items: center; padding: 0 3px; }
+.top-gap { display: none; }
+
+/* Nút Cho bé đọc kèm danh sách chọn bé */
+.kid-pick { position: relative; flex: none; }
+.kid-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; width: 240px; background: var(--panel); border: 1px solid var(--line-2); border-radius: 18px; padding: 8px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--shadow) 60%, transparent); }
+.kid-menu > .sub { padding: 4px 8px 6px; }
+.kid-menu button { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; text-align: left; font-size: 13px; font-weight: 700; }
+.kid-menu button:hover { background: var(--surface); }
+.kid-menu button.on { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.kid-menu button .grow { flex: 1; display: flex; flex-direction: column; }
+.kid-menu button small { color: var(--muted); font-weight: 400; font-size: 11.5px; }
+.kid-menu button .ic { color: var(--primary); width: 16px; height: 16px; }
+.kid-menu .av { width: 30px; height: 30px; font-size: 12px; background: var(--gold); }
+
+/* Menu xổ xuống của nút trên thanh điều hướng (ví dụ Studio: ba cách tạo truyện). Gắn vào body nên dùng position: fixed. */
+.nav-menu { position: fixed; z-index: 80; width: 280px; background: var(--panel); border: 1px solid var(--line-2); border-radius: 18px; padding: 8px; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--shadow) 60%, transparent); animation: wsin .18s ease-out; }
+.nav-menu button { display: flex; align-items: center; gap: 12px; padding: 10px; border-radius: 12px; text-align: left; }
+.nav-menu button:hover { background: var(--surface); }
+.nav-menu button.on { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.nav-menu-ic { width: 34px; height: 34px; flex: none; border-radius: 10px; display: grid; place-items: center; background: var(--surface); color: var(--primary); }
+.nav-menu-ic svg { width: 18px; height: 18px; }
+.nav-menu button.on .nav-menu-ic { background: var(--primary-strong); color: #fff; }
+.nav-menu .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.nav-menu b { font-size: 13px; }
+.nav-menu small { font-size: 11.5px; color: var(--muted); line-height: 1.35; }
+
+/* Avatar mở menu tài khoản */
+.acc-pick { position: relative; flex: none; }
+.me-btn { border-radius: 50%; padding: 2px; display: grid; place-items: center; transition: box-shadow .15s; }
+.me-btn:hover, .me-btn.on, .me-btn[aria-expanded="true"] { box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 45%, transparent); }
+.me-btn .av { width: 30px; height: 30px; font-size: 12px; }
+.acc-menu { position: absolute; right: 0; top: calc(100% + 8px); z-index: 60; width: 260px; background: var(--panel); border: 1px solid var(--line-2); border-radius: 18px; padding: 8px; display: flex; flex-direction: column; gap: 2px; box-shadow: 0 18px 40px -18px color-mix(in srgb, var(--shadow) 60%, transparent); }
+.acc-who { display: flex; align-items: center; gap: 10px; padding: 6px 8px; min-width: 0; }
+.acc-who .av { width: 36px; height: 36px; font-size: 14px; }
+.acc-who .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 13px; }
+.acc-who small { color: var(--muted); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.acc-sep { height: 1px; background: var(--line); margin: 6px 4px; }
+.acc-menu button { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 12px; text-align: left; font-size: 13px; font-weight: 600; }
+.acc-menu button:hover { background: var(--surface); }
+.acc-menu button.on { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.acc-menu button.on .ic { color: var(--primary); }
+.acc-menu button .ic { width: 16px; height: 16px; color: var(--muted); }
+.acc-menu button.danger, .acc-menu button.danger .ic { color: var(--danger); }
+
 /* Khung của phụ huynh không có thanh trạng thái ở đáy. */
 .shell.no-status { grid-template-rows: 54px minmax(0, 1fr); }
 .top-note { flex: none; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 800; white-space: nowrap; }
@@ -79,3 +137,10 @@
 .notif-panel li { display: flex; align-items: center; gap: 2px; }
 .notif-panel li button.notif-del { width: auto; flex: none; padding: 6px; color: var(--muted); background: none; font-weight: 400; }
 .notif-panel li button.notif-del:hover { color: var(--text); background: var(--surface); }
+
+/* Nhãn vai trò cạnh logo ở khu nhân viên (Admin Portal, Kiểm duyệt, Content Workspace) */
+.top-role { flex: none; padding: 3px 10px; border-radius: 999px; font-size: 11.5px; font-weight: 800; white-space: nowrap; color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, transparent); border: 1px solid color-mix(in srgb, var(--primary) 30%, transparent); }
+@media (max-width: 720px) { .top-role { display: none; } }
+
+/* Thanh tab ở đáy điện thoại không đủ chỗ: chỉ hiện biểu tượng. */
+.rail .nav-txt, .rail .nav-caret { display: none; }

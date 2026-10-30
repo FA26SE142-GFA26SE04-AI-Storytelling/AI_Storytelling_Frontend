@@ -5,6 +5,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import { storyService } from "@/app/services/storyService";
 import type { ChildProfile } from "@/app/types/childProfile";
+import type { StoryDto } from "@/app/types/story";
 import { toCard, statusKey, type StoryCard } from "@/app/lib/storyView";
 
 type DataState = {
@@ -55,9 +56,18 @@ export function WorkspaceDataProvider({ children: node }: { children: React.Reac
     if (childId === null || !meId) { setStories([]); return; }
     setStoriesLoading(true);
     // Backend chưa lọc được theo hồ sơ bé: tạm lấy truyện do mình tạo (gồm truyện của mọi bé mình quản lý).
-    const res = await storyService.getStories({ authorUserId: meId, pageSize: 100, isDescending: true });
-    setStories((res.data?.items ?? []).map(toCard));
-    setError(res.success ? null : res.message);
+    // Mỗi trang tối đa 100 truyện (giới hạn của backend) nên tải lần lượt tới hết.
+    const all: StoryDto[] = [];
+    let message: string | null = null;
+    for (let pageIndex = 1; pageIndex <= 50; pageIndex++) {
+      const res = await storyService.getStories({ authorUserId: meId, pageIndex, pageSize: 100, isDescending: true });
+      if (!res.success) { message = res.message; break; }
+      const items = res.data?.items ?? [];
+      all.push(...items);
+      if (items.length === 0 || all.length >= (res.data?.totalCount ?? 0)) break;
+    }
+    setStories(all.map(toCard));
+    setError(message);
     setStoriesLoading(false);
   }, [childId, meId]);
 

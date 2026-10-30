@@ -3,7 +3,7 @@
 import "./roadmap.css";
 import "@/app/features/review/review-tools.css";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, BookOpen, GripVertical, Library, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, BookOpen, Check, GripVertical, Library, Plus, Trash2, X } from "lucide-react";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { guardianService } from "@/app/services/guardianService";
 import type { RoadmapItem, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
@@ -26,8 +26,11 @@ const SOURCE: Record<string, string> = { parent: "Bố mẹ chọn", template: "
 
 /** Luồng 4 Bước 4.1–4.1d — "Lộ trình của con". */
 export default function RoadmapWorkspace({ go }: WorkspaceProps) {
-  const { child, stories } = useWorkspaceData();
+  const { child, children: kids, selectChild, stories } = useWorkspaceData();
   const role = useMyRole(child);
+  // Nhiều bé thì phải bấm chọn một bé trước khi hiện lộ trình; chỉ có một bé thì hiện luôn.
+  const [picked, setPicked] = useState<number | null>(null);
+  const showing = !!child && (kids.length === 1 || picked === child.id);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [counts, setCounts] = useState<{ completed: number; total: number } | null>(null);
   const [items, setItems] = useState<RoadmapItem[] | null>(null);
@@ -39,15 +42,44 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   const canEdit = !!role?.can("AssignActivity");
 
   const load = useCallback(async () => {
-    if (!child) return;
+    if (!child || !showing) return;
     const r = await guardianService.roadmap(child.id);
     setItems(r.data ?? []);
     setCounts(r.counts ?? null);
     setLoadError(r.success ? null : r.message);
-  }, [child]);
+  }, [child, showing]);
   useEffect(() => { setItems(null); void load(); }, [load]);
 
   if (!child) return <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}><div className="pane"><div className="empty"><b className="display">Chưa có hồ sơ bé</b></div></div></section>;
+
+  const choose = (id: number) => { setPicked(id); selectChild(id); setNote(null); setShowHistory(false); };
+  const kidsBar = (
+    <div className="rm-kids" role="tablist" aria-label="Chọn bé để xem lộ trình">
+      {kids.map((k) => (
+        <button key={k.id} role="tab" aria-selected={showing && child.id === k.id} className={`rm-kid${showing && child.id === k.id ? " on" : ""}`} onClick={() => choose(k.id)}>
+          <span className="av">{k.nickname.trim().charAt(0).toUpperCase()}</span>
+          <span className="grow"><b>{k.nickname}</b><small>{ageLabel(k.ageBand)}</small></span>
+          {showing && child.id === k.id && <Check className="ic" />}
+        </button>
+      ))}
+    </div>
+  );
+
+  if (!showing) return (
+    <section className="ws dock" style={{ gridTemplateColumns: "1fr", gridTemplateRows: "auto 1fr" }}>
+      <div className="pane rm-pick-pane">
+        <div className="ph"><span>Lộ trình của con</span></div>
+        <div className="pb rm-body">
+          {kidsBar}
+          <div className="empty" style={{ height: "auto", padding: 24 }}>
+            <Frog size={80} mood="think" />
+            <b className="display">Chọn bé để xem lộ trình</b>
+            <span>Mỗi bé có một lộ trình riêng. Bấm vào tên bé ở trên.</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 
   const open = items?.find((i) => i.status === "open") ?? null;
   const queued = (items ?? []).filter((i) => i.status === "queued").sort((a, b) => a.position - b.position);
@@ -87,7 +119,8 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   };
 
   return (
-    <section className="ws dock" style={{ gridTemplateColumns: "1fr 320px" }}>
+    <section className="ws dock" style={{ gridTemplateColumns: "1fr 320px", gridTemplateRows: "auto 1fr" }}>
+      <div className="pane rm-kids-pane" style={{ gridColumn: "1 / -1" }}><div className="pb">{kidsBar}</div></div>
       <div className="pane rm-main">
         <div className="ph">
           <span>Lộ trình của {child.nickname}</span>

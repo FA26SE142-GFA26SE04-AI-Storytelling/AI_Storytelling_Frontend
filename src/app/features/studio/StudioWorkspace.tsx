@@ -11,7 +11,6 @@ import type { WorkspaceId, WorkspaceProps } from "@/app/components/shell/nav";
 import { workspaceLocation } from '@/app/lib/workspaceLocation';
 import StudioPlan from "./StudioPlan";
 import StudioMedia from "./StudioMedia";
-import ImportStoryPanel from "./ImportStoryPanel";
 import ReviewGate from "@/app/features/review/ReviewGate";
 import StudioSteps from "./StudioSteps";
 import StudioControls from "./StudioControls";
@@ -20,8 +19,6 @@ import { studioProgress } from "./studioProgress";
 import { useSteppedProgress } from "./useSteppedProgress";
 import { useMediaProgress, useStoryPipeline, type Stage } from "./useStoryPipeline";
 import { useRiseIn } from "@/app/lib/motion";
-
-import ParentAuthoringWorkspace from "@/app/features/authoring/ParentAuthoringWorkspace";
 import { useMyRole } from "@/app/features/children/useMyRole";
 
 type Prefill = AIStoryInputFormValues | null;
@@ -33,7 +30,6 @@ const sectionOf = (stage: Stage, storyId: number | null): Section =>
 
 type PipelineProps = {
   resumeStoryId: number | null;
-  onManual: () => void;
   userId: number;
   childId: number;
   prefill: Prefill;
@@ -41,10 +37,9 @@ type PipelineProps = {
   onToggleAside: () => void;
   onNew: (prefill?: Prefill) => void;
   go: (id: WorkspaceId) => void;
-  onImport: () => void;
 };
 
-function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, go, onImport, onManual, resumeStoryId }: PipelineProps) {
+function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, go, resumeStoryId }: PipelineProps) {
   const { child, reload } = useWorkspaceData();
   const [approved, setApproved] = useState(false);
   // Nút duyệt nằm trên thanh tiến trình; màn duyệt truyện đăng ký hành động duyệt của nó vào đây.
@@ -80,7 +75,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
   return (
     <section ref={bodyRef} className="ws with-steps" data-aside={asideCollapsed ? "collapsed" : undefined}>
       <StudioSteps progress={progress} context={p.resumed ? <><span role="status">Đang tiếp tục: {p.snapshot?.story?.title ?? `truyện #${p.storyId}`}</span><button className="btn btn-g" onClick={() => go('library')}>Về thư viện</button>{p.statusError && <button className="btn btn-s" onClick={p.refresh}>Tải lại trạng thái truyện</button>}</> : undefined}>
-        <StudioControls onManual={onManual} key={p.stage} stage={p.stage} valuesKnown={p.flow.valuesKnown} onEditIdea={p.flow.editInput} onRestart={restart} onStartNew={() => onNew()} approve={approve} />
+        <StudioControls key={p.stage} stage={p.stage} valuesKnown={p.flow.valuesKnown} onEditIdea={p.flow.editInput} onRestart={restart} onStartNew={() => onNew()} approve={approve} />
       </StudioSteps>
       <AsideContext.Provider value={aside}>
       <ApproveSlot.Provider value={setApprove}>
@@ -106,7 +101,6 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           retryFailed={p.retryFailed}
           refresh={p.refresh}
           onOutlineApproved={() => { setApproved(true); p.refresh(); }}
-          onImport={onImport}
         />
       )}
       </ApproveSlot.Provider>
@@ -117,12 +111,10 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
 
 export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspaceProps,'go' | 'resumeStoryId'>) {
   const { user } = useAuth();
-  const { child, reload } = useWorkspaceData();
+  const { child } = useWorkspaceData();
   const role = useMyRole(child);
-  const [manual, setManual] = useState(false);
   const [run, setRun] = useState(0);
   const [resumeTarget, setResumeTarget] = useState(resumeStoryId ?? null);
-  const [importing, setImporting] = useState(false);
   // Ý tưởng điền lại khi "Quay lại ý tưởng"; chỉ giữ trong bộ nhớ, không lưu vào trình duyệt.
   const [prefill, setPrefill] = useState<Prefill>(null);
   // Giữ qua các truyện trong phiên làm việc: thu gọn một lần là đủ.
@@ -136,22 +128,8 @@ export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspacePro
       </section>
     );
   }
-  if (manual) return <ParentAuthoringWorkspace key={child.id} childId={child.id} onBack={() => setManual(false)} />;
   if (!resumeTarget && !role) return <section className="ws dock"><div className="pane"><p>Đang kiểm tra quyền…</p></div></section>;
-  if (!resumeTarget && !role?.can('GenerateStory')) return <section className="ws dock"><div className="pane"><p>Bạn chưa có quyền tạo truyện AI cho bé này.</p>{role?.can('AssignActivity') && <button className="btn btn-s" onClick={() => setManual(true)}>Tự soạn truyện gia đình</button>}</div></section>;
-  if (importing) {
-    return (
-      <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
-        <div className="pane" style={{ display: "flex", flexDirection: "column", minHeight: 0 }}>
-          <div className="tabs">
-            <button onClick={() => setImporting(false)}>Tạo bằng AI</button>
-            <button className="on">Nhập truyện có sẵn</button>
-          </div>
-          <ImportStoryPanel key={`${child.id}:${run}`} child={child} go={go} onDone={() => { void reload(); setRun((n) => n + 1); }} />
-        </div>
-      </section>
-    );
-  }
+  if (!resumeTarget && !role?.can('GenerateStory')) return <section className="ws dock"><div className="pane"><p>Bạn chưa có quyền tạo truyện AI cho bé này.</p>{role?.can('AssignActivity') && <button className="btn btn-s" onClick={() => go("authoring")}>Làm thủ công</button>}</div></section>;
   const reset = (next: Prefill = null) => { removeStorySession(user.id, child.id); setResumeTarget(null); window.history.replaceState(null,'',workspaceLocation(window.location.href,'studio')); setPrefill(next); setRun((n) => n + 1); };
-  return <Pipeline resumeStoryId={resumeTarget} onManual={() => setManual(true)} key={`${child.id}:${run}:${resumeTarget ?? 'new'}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} go={go} onImport={() => setImporting(true)} />;
+  return <Pipeline resumeStoryId={resumeTarget} key={`${child.id}:${run}:${resumeTarget ?? 'new'}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} go={go} />;
 }

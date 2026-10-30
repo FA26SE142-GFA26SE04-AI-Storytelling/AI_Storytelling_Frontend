@@ -22,6 +22,12 @@
   .top .btn-kid .ic { width: 18px; height: 18px; }
   .top .btn-g { width: 40px; height: 40px; padding: 0; justify-content: center; }
   .top .av { display: none; }
+  .kid-menu .av, .acc-pick .av { display: grid; }
+  .acc-menu { width: min(260px, calc(100vw - 24px)); }
+  /* Điện thoại: bỏ thanh ngang trên header, dùng lại thanh tab ở đáy. */
+  .top .topnav { display: none; }
+  .top .top-gap { display: block; flex: 1; }
+  .shell.top-nav > .rail-mobile { display: flex; }
 
   /* Thanh tab đáy thay cho thanh bên */
   .rail { grid-row: 3; flex-direction: row; justify-content: space-between; gap: 2px; padding: 6px 8px; border-radius: 24px; overflow-x: auto; scrollbar-width: none; }
@@ -64,8 +70,13 @@
 
   /* Thư viện */
   .lbar { height: auto; flex-wrap: wrap; padding: 8px 12px; }
-  .lgrid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 10px; overflow: visible; }
-  .card h4 { font-size: 14px; }
+  .lib-scroll { overflow: visible; flex: none; padding: 14px 12px 24px; gap: 24px; }
+  .shelf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 10px; }
+  .shelf-row > .bk { flex-basis: 132px; }
+  .shelf-arrow { display: none; }
+  .bk-name { font-size: 15px; }
+  .bk-rank { font-size: 42px; }
+  .bk-cover:has(.bk-rank) .bk-name { left: 34px; }
 
   /* Báo cáo */
   .report { overflow-y: auto; }
@@ -109,7 +120,7 @@
 
 /* Điện thoại rất nhỏ */
 @media (max-width: 380px) {
-  .lgrid { grid-template-columns: 1fr; }
+  .shelf-grid { gap: 12px 8px; }
   .rail button { width: 40px; }
   .kpi-row { grid-template-columns: 1fr; }
 }

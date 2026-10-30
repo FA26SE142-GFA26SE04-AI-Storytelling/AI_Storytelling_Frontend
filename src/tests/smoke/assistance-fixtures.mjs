@@ -45,7 +45,7 @@ export async function assistanceFixture({path,method,body,state,ok,paged,draft,c
 }
 
 export async function exerciseAssistance({page,requests,manual,parent,stale=false,retry=false}) {
- if(parent&&manual){await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();await page.getByRole('button',{name:'Tự soạn truyện',exact:true}).click();await page.getByRole('button',{name:'Ếch con khám phá #7',exact:true}).click();}
+ if(parent&&manual){await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();await page.getByRole('menuitem',{name:'Thủ công',exact:true}).click();await page.getByRole('button',{name:'Ếch con khám phá #7',exact:true}).click();}
  else if(parent){await page.goto(new URL('/?storyId=7#studio',page.url()).href,{waitUntil:'domcontentloaded'});}
  else await page.getByRole('button',{name:'Mở',exact:true}).click();
  if(!manual)await page.getByRole('button',{name:'Tự sửa bản thảo',exact:true}).click();

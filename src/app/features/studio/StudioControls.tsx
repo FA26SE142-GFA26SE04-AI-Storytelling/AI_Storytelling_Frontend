@@ -8,7 +8,6 @@ import type { Stage } from "./useStoryPipeline";
 import { studioActions } from "./studioProgress";
 
 type Props = {
-  onManual?: () => void;
   stage: Stage;
   /** Còn giữ được ý tưởng đã gửi để điền lại (mất khi tải lại trang vì không lưu vào trình duyệt). */
   valuesKnown: boolean;
@@ -33,7 +32,7 @@ const WHAT_IS_LOST: Partial<Record<Stage, string>> = {
  * Luôn hiện để vị trí cố định; bước đầu và lúc AI đang chạy thì mờ và không bấm được (tooltip nói lý do).
  * Luôn hỏi lại trước khi huỷ.
  */
-export default function StudioControls({ stage, valuesKnown, onEditIdea, onRestart, onStartNew, approve, onManual }: Props) {
+export default function StudioControls({ stage, valuesKnown, onEditIdea, onRestart, onStartNew, approve }: Props) {
   const [pending, setPending] = useState<Pending>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -64,7 +63,6 @@ export default function StudioControls({ stage, valuesKnown, onEditIdea, onResta
   return (
     // Tooltip đặt ở khung ngoài vì nút bị vô hiệu không phải trình duyệt nào cũng hiện tooltip riêng.
     <div className="ss-actions" title={a.waitReason ?? undefined}>
-      {stage === "brief" && onManual && <button className="btn btn-s" onClick={onManual}>Tự soạn truyện</button>}
       <button className="btn btn-g ss-icon" disabled={busy || !canBack} title={canBack ? backLabel : undefined} aria-label={backLabel}
         onClick={() => (a.editInPlace ? onEditIdea() : setPending("back"))}>
         {a.editInPlace ? <PenLine className="ic" /> : <Undo2 className="ic" />}

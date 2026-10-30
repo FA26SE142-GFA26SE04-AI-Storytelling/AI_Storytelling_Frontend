@@ -16,6 +16,8 @@ export type StoryCard = {
   gradient: string;
   createdAt: string;
   raw: StoryDto;
+  /** Truyện tự soạn (trang "Thủ công"): chỉ mở và sửa qua API /parent/stories. */
+  family?: boolean;
 };
 
 const GRADIENTS = [
@@ -73,6 +75,12 @@ export function toCard(s: StoryDto): StoryCard {
     createdAt: s.createdAt,
     raw: s,
   };
+}
+
+/** Bản nháp tự soạn (GET /parent/stories) đổi sang thẻ truyện để hiện chung trong Thư viện. */
+export function familyToCard(d: { storyId: number; authorUserId: number; title: string; description: string; language: string; ageBand: string; genre: string; createdAt: string; updatedAt: string | null; source: string; status: string }): StoryCard {
+  const card = toCard({ id: d.storyId, title: d.title, description: d.description, genre: d.genre, ageBand: d.ageBand, language: d.language, source: d.source || "Manual", status: d.status, isPublished: false, authorUserId: d.authorUserId, authorName: null, createdAt: d.createdAt, updatedAt: d.updatedAt });
+  return { ...card, family: true, fromAi: false };
 }
 
 /** Tách nội dung truyện thành các cảnh: theo đoạn, nếu chỉ có một đoạn thì gom mỗi 3 câu. */
