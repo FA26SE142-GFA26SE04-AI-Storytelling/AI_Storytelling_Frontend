@@ -67,16 +67,22 @@ describe('Remaining Core contracts',()=>{
   expect(fetcher.mock.calls[0][0]).toMatch(/\/ModerationQueue\/review-views$/);expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual(body);
  });
 });
-// Backend endpoints wrapped in app/services but not yet called by any screen (SERVICE_ONLY); no UI planned in this scope.
-const UNCONNECTED_ENDPOINTS=['GET /api/v1/parent/wishes/{wishId}','GET /api/v1/moderation/wish-cards/{id}'];
+// Backend endpoints with a wrapper in app/services but no screen calling it yet (SERVICE_ONLY).
+const SERVICE_ONLY_ENDPOINTS=['POST /api/v1/stories/import','POST /api/v1/stories/import-file','POST /api/v1/stories/{storyId}/existing/evaluate','GET /api/v1/stories/{storyId}/existing/evaluation','POST /api/v1/stories/{storyId}/existing/adapt','PUT /api/v1/stories/{storyId}/existing/content','POST /api/v1/stories/{storyId}/existing/keep-original','POST /api/v1/stories/{storyId}/existing/archive','POST /api/v1/parent/stories/{storyId}/imports/preview','POST /api/v1/parent/stories/{storyId}/imports/confirm','GET /api/v1/parent/wishes/{wishId}','GET /api/v1/moderation/wish-cards/{id}'];
+// Backend endpoints with no web wrapper at all yet (MISSING): staff account management added on main.
+const MISSING_ENDPOINTS=['GET /api/v1/StaffAccount','POST /api/v1/StaffAccount/invite','POST /api/v1/StaffAccount/{userId}/resend-invite','POST /api/v1/StaffAccount/{userId}/cancel-invite','POST /api/v1/StaffAccount/{userId}/deactivate','POST /api/v1/StaffAccount/{userId}/reactivate'];
+const UNCONNECTED_ENDPOINTS=m=>m.filter(r=>r.disposition==='MISSING'||r.disposition==='SERVICE_ONLY').map(r=>r.method+' '+r.route);
 it('has source evidence for every browser endpoint in the current controllers',()=>{
  if(existsSync('../../AI_Storytelling_Backend/src/Core/StoryPlatform.Api/Controllers')){
-  // Without --check: the script exits 1 while UNCONNECTED_ENDPOINTS is non-empty.
+  // Without --check: the script exits 1 while any endpoint is unconnected.
   const output=execFileSync(process.execPath,['scripts/audit-core-api.mjs'],{encoding:'utf8',timeout:15000});
-  const result=JSON.parse(output);expect(result).toEqual({total:357,connected:353,excluded:2,missing:UNCONNECTED_ENDPOINTS});
+  const result=JSON.parse(output);expect(result.total).toBe(329);expect(result.connected).toBe(309);expect(result.excluded).toBe(2);
+  expect([...result.missing].sort()).toEqual([...SERVICE_ONLY_ENDPOINTS,...MISSING_ENDPOINTS].sort());
  }
  const manifest=JSON.parse(readFileSync('docs/core-api-coverage.json','utf8')) as {method:string;route:string;disposition:string}[];
- expect(manifest).toHaveLength(357);expect(new Set(manifest.map(r=>r.method+' '+r.route)).size).toBe(357);
- expect(manifest.filter(r=>r.disposition==='SERVICE_ONLY').map(r=>r.method+' '+r.route)).toEqual(UNCONNECTED_ENDPOINTS);
+ expect(manifest).toHaveLength(329);expect(new Set(manifest.map(r=>r.method+' '+r.route)).size).toBe(329);
+ expect(manifest.filter(r=>r.disposition==='SERVICE_ONLY').map(r=>r.method+' '+r.route)).toEqual(SERVICE_ONLY_ENDPOINTS);
+ expect(manifest.filter(r=>r.disposition==='MISSING').map(r=>r.method+' '+r.route)).toEqual(MISSING_ENDPOINTS);
+ expect(UNCONNECTED_ENDPOINTS(manifest)).toHaveLength(18);
  expect(manifest.filter(r=>r.disposition==='SERVER_TO_SERVER').map(r=>r.route)).toEqual(['/api/v1/Payment/webhook/sepay']);
 });
