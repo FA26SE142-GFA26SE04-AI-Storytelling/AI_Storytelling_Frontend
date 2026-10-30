@@ -96,3 +96,38 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
 .req-table tbody tr:last-child td { border-bottom: 0; }
 .req-table .req-act { width: 1%; white-space: nowrap; text-align: right; }
 .req-reason { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+/* ---- Hiệu ứng khu Con của tôi ---- */
+/* 1. Đổi tab: nội dung trượt lên nhẹ; gạch dưới trượt giữa các tab. */
+.children-tabs { position: relative; }
+.children-tabs button.on { border-color: transparent; }
+.children-tabs::after { content: ""; position: absolute; bottom: -1px; left: calc(var(--i, 0) * 100% / var(--n, 4)); width: calc(100% / var(--n, 4)); height: 2px; background: var(--primary); transition: left .28s cubic-bezier(.3, .9, .3, 1); }
+.tab-pane { display: flex; flex-direction: column; gap: inherit; animation: tab-in .22s ease-out; }
+@keyframes tab-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* 2. Thẻ bé ở thanh bên: nhích nhẹ khi rê chuột, vòng sáng khi vừa được chọn. */
+.kid-item:hover { transform: translateX(2px); }
+.kid-item.on { animation: kid-pick .4s ease-out; }
+@keyframes kid-pick { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--primary) 45%, transparent); } 100% { box-shadow: 0 0 0 8px transparent; } }
+
+/* 4. Lưu xong: nút hiện dấu tích; chip chủ đề/kỹ năng bật vào và thu nhỏ khi xoá. */
+.btn.saved:disabled { opacity: 1; }
+.btn.saved .ic { animation: check-pop .35s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes check-pop { from { transform: scale(.3); } to { transform: none; } }
+.learn-grid .chip.on { animation: chip-in .22s cubic-bezier(.3, 1.5, .5, 1); transition: transform .16s, opacity .16s; }
+.learn-grid .chip.on.leaving { transform: scale(.7); opacity: 0; }
+@keyframes chip-in { from { transform: scale(.7); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* 5. Ô tick quyền: ô vuông riêng, dấu tích vẽ ra khi bật; khung đổi màu mượt. */
+.perm { transition: border-color .2s, background-color .2s; }
+.perm input { appearance: none; -webkit-appearance: none; flex: none; width: 16px; height: 16px; margin-top: 2px; border: 1.5px solid var(--faint); border-radius: 5px; display: grid; place-content: center; background: transparent; transition: background-color .15s, border-color .15s; cursor: inherit; }
+.perm input::after { content: ""; width: 8px; height: 4px; margin-top: -2px; border-left: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(-45deg) scale(0); transition: transform .18s cubic-bezier(.3, 1.6, .5, 1); }
+.perm input:checked { background: var(--primary-strong); border-color: var(--primary-strong); }
+.perm input:checked::after { transform: rotate(-45deg) scale(1); }
+.perm input:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .tab-pane, .kid-item.on, .btn.saved .ic, .learn-grid .chip.on { animation: none; }
+  .children-tabs::after, .perm, .perm input, .perm input::after, .learn-grid .chip.on { transition: none; }
+  .kid-item:hover { transform: none; }
+}

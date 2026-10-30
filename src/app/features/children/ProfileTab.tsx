@@ -2,6 +2,7 @@
 import { confirmDialog } from "@/app/lib/confirm";
 
 import { useEffect, useState } from "react";
+import { useFlash } from "@/app/lib/useFlash";
 import ActivitySection from '@/app/features/account/ActivitySection';
 import { Archive, Check, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
@@ -48,6 +49,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
     return r.success;
   };
 
+  const [savedInfo, flashInfo] = useFlash();
   const save = async () => {
     setBusy(true);
     setNote(null);
@@ -56,6 +58,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
     setBusy(false);
     setNote({ ok: r.success, text: r.success ? "Đã lưu thông tin bé." : r.message || "Không lưu được." });
     if (!r.success) return;
+    flashInfo();
     // Đổi nhóm tuổi: backend gợi ý áp lại danh sách chặn và đổi chế độ đọc cho hợp tuổi.
     const tips = [
       r.data?.shouldReapplyBlockedPreset && "áp dụng danh sách chủ đề nên chặn của nhóm tuổi mới (Cài đặt an toàn)",
@@ -113,7 +116,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
           <span className="sub">Avatar giúp bé nhận ra hồ sơ của mình khi đăng nhập.</span>
         </div>
         <p className="sub">Tạo ngày {fmtDate(child.createdAt)}.{!isOwner && " Chỉ người quản lý chính (Owner) mới sửa được thông tin này."}</p>
-        {isOwner && <button className="btn btn-s" style={{ width: "fit-content" }} disabled={!dirty || busy || !nickname.trim()} onClick={() => void save()}><Save className="ic" />Lưu thông tin</button>}
+        {isOwner && <button className={`btn btn-s${savedInfo ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={!dirty || busy || !nickname.trim()} onClick={() => void save()}>{savedInfo ? <Check className="ic" /> : <Save className="ic" />}{savedInfo ? "Đã lưu" : "Lưu thông tin"}</button>}
         {hint && <div className="notice ok" role="status">{hint}</div>}
       </section>
 

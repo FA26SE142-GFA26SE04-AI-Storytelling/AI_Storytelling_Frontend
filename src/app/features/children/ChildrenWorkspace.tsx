@@ -82,7 +82,6 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
   return (
     <section className="ws dock" style={{ gridTemplateColumns: "250px 1fr" }}>
       <div className="pane">
-        <div className="ph"><span>Con của tôi</span><div className="act"><span className="pill draft">{kids.length} bé</span></div></div>
         <div ref={listRef} className="pb" style={{ gap: 6 }}>
           {kids.map((k) => {
             const st = childStatus(k.status);
@@ -120,19 +119,19 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
         )}
         {mode === "view" && child && (
           <>
-            <div className="tabs children-tabs">
+            <div className="tabs children-tabs" style={{ "--i": Math.max(0, TABS.findIndex((x) => x.id === tab)), "--n": TABS.length } as React.CSSProperties}>
               {TABS.map((t) => <button key={t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>{t.label}</button>)}
             </div>
             <div className="pb children-body">
               {!role ? <p className="sub">Đang tải…</p> : (
-                <>
+                <div key={`${tab}:${child.id}`} className="tab-pane">
                   {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={role.isOwner} onChanged={() => void reloadChildren(child.id)} onArchived={() => { rememberArchived(meId, child); setArchived(listArchived(meId)); void reloadChildren(); }} onTab={setTab} go={go} />}
                   {tab === "learning" && <LearningTab key={child.id} child={child} canEdit={canEditLearning} onSaved={() => void reloadChildren(child.id)} />}
                   {tab === "supervisors" && <SupervisorsTab key={child.id} child={child} meId={meId} onLeft={() => void reloadChildren()} />}
                   {tab === "access" && (canManageAccess
                     ? <AccessTab key={child.id} child={child} />
                     : <p className="sub">Chỉ người quản lý chính hoặc người có quyền &quot;Sửa cài đặt an toàn&quot; mới quản lý được cách bé đăng nhập.</p>)}
-                </>
+                </div>
               )}
             </div>
           </>

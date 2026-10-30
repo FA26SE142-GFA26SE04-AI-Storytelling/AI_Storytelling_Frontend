@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Save } from "lucide-react";
+import { Check, Save } from "lucide-react";
+import { useFlash } from "@/app/lib/useFlash";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ChildProfile } from "@/app/types/childProfile";
 import LearningHistory from "@/app/features/adaptive/LearningHistory";
@@ -15,6 +16,7 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
   const [saved, setSaved] = useState("");
   const [historyKey, setHistoryKey] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [saved2, flashSaved] = useFlash();
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
@@ -39,6 +41,7 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
     setNote({ ok: r.success, text: r.success ? "Đã lưu hồ sơ học tập. Truyện tạo sau sẽ theo cấu hình mới." : r.message || "Không lưu được." });
     if (r.success) {
       setHistoryKey((k) => k + 1);
+      flashSaved();
       setExists(true);
       setSaved(JSON.stringify(value));
       onSaved();
@@ -56,7 +59,7 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
       </div>
       <LearningForm value={value} onChange={setValue} disabled={!canEdit} ageBand={child.ageBand} />
       {!canEdit && <p className="sub">Bạn chưa có quyền sửa mức đọc của bé. Hãy xin quyền ở tab Người giám sát.</p>}
-      {canEdit && <button className="btn btn-p" style={{ width: "fit-content" }} disabled={busy || !dirty} onClick={() => void save()}><Save className="ic" />{busy ? "Đang lưu…" : "Lưu hồ sơ học tập"}</button>}
+      {canEdit && <button className={`btn btn-p${saved2 ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={busy || !dirty} onClick={() => void save()}>{saved2 ? <Check className="ic" /> : <Save className="ic" />}{busy ? "Đang lưu…" : saved2 ? "Đã lưu" : "Lưu hồ sơ học tập"}</button>}
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
       {child.status === "Active" && <LearningHistory child={child} refreshKey={historyKey} />}
     </div>
