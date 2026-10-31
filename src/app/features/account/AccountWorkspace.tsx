@@ -18,7 +18,6 @@ import ConnectionStatus from './ConnectionStatus';
 type Note = { ok: boolean; text: string } | null;
 /** Mỗi trang tài khoản lo một việc. Không truyền `page` thì hiện tất cả (khu nhân viên). */
 export type AccountPage = "profile" | "security" | "payment" | "activity";
-const TITLE: Record<AccountPage, string> = { profile: "Thông tin cá nhân", security: "Bảo mật & đăng nhập", payment: "Mua thêm lượt tạo truyện", activity: "Lịch sử hoạt động" };
 
 /** Luồng 1 Bước 1.1b — quản lý tài khoản cá nhân: thông tin, email, mật khẩu, phiên đăng nhập, xoá tài khoản. */
 export default function AccountWorkspace({ page }: { page?: AccountPage }) {
@@ -68,7 +67,6 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
   return (
     <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
       <div className="pane children-main">
-        <div className="ph"><span>{page ? TITLE[page] : "Tài khoản"}</span></div>
         <div className="pb children-body">
           <div className="sec" style={{ gap: 28, maxWidth: 560 }}>
             {show("profile") && <ProfileSection />}

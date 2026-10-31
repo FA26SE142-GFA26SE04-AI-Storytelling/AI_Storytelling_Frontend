@@ -37,8 +37,26 @@
 .rm-kid { flex: none; scroll-snap-align: start; display: flex; align-items: center; gap: 10px; min-width: 190px; padding: 10px 14px; border-radius: 18px; background: var(--surface); border: 1px solid var(--line); text-align: left; transition: border-color .15s, background .15s; }
 .rm-kid:hover { border-color: var(--line-2); }
 .rm-kid.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--surface)); box-shadow: 0 0 0 1px var(--primary); }
-.rm-kid .av { width: 34px; height: 34px; font-size: 14px; background: var(--gold); }
+.rm-kid .av { width: 34px; height: 34px; font-size: 20px; }
 .rm-kid .grow { flex: 1; display: flex; flex-direction: column; min-width: 0; }
 .rm-kid b { font-size: 14px; }
 .rm-kid small { font-size: 11.5px; color: var(--muted); }
 .rm-kid .ic { width: 16px; height: 16px; color: var(--primary); }
+
+.rm-kid b { display: flex; align-items: center; gap: 5px; }
+.rm-kid .kid-owner { width: 14px; height: 14px; flex: none; color: var(--gold-deep, #d9a21b); }
+
+/* Chọn bé: nội dung đổi theo bé trượt nhẹ vào, thẻ bé vừa chọn nảy lên */
+.rm-swap { animation: rm-swap-in .32s cubic-bezier(.2, .8, .3, 1) both; }
+.rm-kid.on { animation: rm-kid-pop .3s cubic-bezier(.3, 1.4, .5, 1); }
+.rm-kid.on .av { animation: rm-av-spin .45s cubic-bezier(.3, 1.3, .5, 1); }
+.rm-kid > .ic { animation: rm-check-in .3s .08s cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes rm-swap-in { from { opacity: 0; transform: translateY(10px); } }
+@keyframes rm-kid-pop { 0% { transform: scale(.96); } 100% { transform: scale(1); } }
+@keyframes rm-av-spin { from { transform: scale(.6) rotate(-25deg); } }
+@keyframes rm-check-in { from { opacity: 0; transform: scale(.2); } }
+@media (prefers-reduced-motion: reduce) { .rm-swap, .rm-kid.on, .rm-kid.on .av, .rm-kid > .ic { animation: none; } }
+
+.rm-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.rm-actions-edit { position: relative; display: flex; flex-wrap: wrap; gap: 10px; }
+.rm-actions .btn-no { margin-left: auto; }

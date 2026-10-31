@@ -136,7 +136,6 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
                   </button>
                 )}
               </div>
-              {tab === "discussion" && <p className="sub">Dành cho bố mẹ trò chuyện cùng bé sau khi đọc. Bé không thấy phần này.</p>}
               <ArtifactItems kind={tab} items={items[tab]} />
             </article>
           )}

@@ -355,7 +355,6 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
               {/* Truyện tự soạn đi qua API riêng: kiểm tra, giao cho bé, thu hồi đều làm ở trang Tự soạn. */}
               {sel.family && <>
                 <button className="btn btn-p btn-c" onClick={() => go("authoring", { storyId: sel.id })}><PencilLine className="ic" />Mở trong trang Thủ công</button>
-                <p className="sub">Sửa, kiểm tra và giao truyện này cho bé ở trang Thủ công.</p>
               </>}
               {!sel.family && <>
               {selStatus === "review" && <button className="btn btn-p btn-c" onClick={() => sel.fromAi ? go('studio',{storyId:sel.id}) : go('review')}><WandSparkles className="ic" />Mở để duyệt</button>}

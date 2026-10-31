@@ -1,11 +1,14 @@
 "use client";
+import { avatarOf } from "@/app/lib/guardian";
+import DenyCover from "@/app/components/DenyCover";
 import { confirmDialog } from "@/app/lib/confirm";
 
 import "./roadmap.css";
 import "@/app/features/review/review-tools.css";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, BookOpen, Check, GripVertical, Library, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, BookOpen, Check, Crown, GripVertical, Plus, Trash2, X } from "lucide-react";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
+import { useAuth } from "@/app/context/AuthContext";
 import { guardianService } from "@/app/services/guardianService";
 import type { RoadmapItem, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
@@ -28,6 +31,7 @@ const SOURCE: Record<string, string> = { parent: "Bố mẹ chọn", template: "
 /** Luồng 4 Bước 4.1–4.1d — "Lộ trình của con". */
 export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   const { child, children: kids, selectChild, stories } = useWorkspaceData();
+  const meId = useAuth().user?.id ?? -1;
   const role = useMyRole(child);
   // Nhiều bé thì phải bấm chọn một bé trước khi hiện lộ trình; chỉ có một bé thì hiện luôn.
   const [picked, setPicked] = useState<number | null>(null);
@@ -35,8 +39,9 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [counts, setCounts] = useState<{ completed: number; total: number } | null>(null);
   const [items, setItems] = useState<RoadmapItem[] | null>(null);
-  const [dialog, setDialog] = useState<{ kind: "pick" } | { kind: "templates" } | { kind: "add"; story?: RoadmapStoryInput; template?: RoadmapTemplate } | null>(null);
-  const [templates, setTemplates] = useState<RoadmapTemplate[]>([]);
+  const [dialog, setDialog] = useState<{ kind: "pick" } | { kind: "add"; story?: RoadmapStoryInput; template?: RoadmapTemplate } | null>(null);
+  const [templates, setTemplates] = useState<RoadmapTemplate[] | null>(null);
+  const [pickTab, setPickTab] = useState<"mine" | "sets">("mine");
   const [drag, setDrag] = useState<number | null>(null);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
   const [showHistory, setShowHistory] = useState(false);
@@ -56,10 +61,10 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   const choose = (id: number) => { setPicked(id); selectChild(id); setNote(null); setShowHistory(false); };
   const kidsBar = (
     <div className="rm-kids" role="tablist" aria-label="Chọn bé để xem lộ trình">
-      {kids.map((k) => (
+      {kids.slice().sort((a, b) => Number(b.ownerUserId === meId) - Number(a.ownerUserId === meId)).map((k) => (
         <button key={k.id} role="tab" aria-selected={showing && child.id === k.id} className={`rm-kid${showing && child.id === k.id ? " on" : ""}`} onClick={() => choose(k.id)}>
-          <span className="av">{k.nickname.trim().charAt(0).toUpperCase()}</span>
-          <span className="grow"><b>{k.nickname}</b><small>{ageLabel(k.ageBand)}</small></span>
+          <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
+          <span className="grow"><b>{k.nickname}{k.ownerUserId === meId && <Crown className="ic kid-owner" aria-label="Bạn là người quản lý chính" />}</b><small>{ageLabel(k.ageBand)}</small></span>
           {showing && child.id === k.id && <Check className="ic" />}
         </button>
       ))}
@@ -69,7 +74,6 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   if (!showing) return (
     <section className="ws dock" style={{ gridTemplateColumns: "1fr", gridTemplateRows: "auto 1fr" }}>
       <div className="pane rm-pick-pane">
-        <div className="ph"><span>Lộ trình của con</span></div>
         <div className="pb rm-body">
           {kidsBar}
           <div className="empty" style={{ height: "auto", padding: 24 }}>
@@ -85,7 +89,6 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   const open = items?.find((i) => i.status === "open") ?? null;
   const queued = (items ?? []).filter((i) => i.status === "queued").sort((a, b) => a.position - b.position);
   const history = (items ?? []).filter((i) => i.status === "completed" || i.status === "skipped" || i.status === "removed");
-  const done = counts?.completed ?? (items ?? []).filter((i) => i.status === "completed").length;
   const total = counts?.total ?? (items ?? []).filter((i) => i.status !== "removed" && i.status !== "skipped").length;
   const overdue = !!open?.dueAt && Date.parse(open.dueAt) < Date.now();
   const ready = stories.filter((s) => ["ready", "published"].includes(statusKey(s.raw)));
@@ -113,24 +116,27 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
     reorder(ids);
   };
 
-  const openTemplates = async () => {
-    const r = await guardianService.templates();
-    setTemplates(r.data ?? []);
-    setDialog({ kind: "templates" });
+  const openPick = () => { setPickTab("mine"); setDialog({ kind: "pick" }); };
+  const showSets = async () => {
+    setPickTab("sets");
+    if (templates === null) setTemplates((await guardianService.templates()).data ?? []);
   };
 
   return (
-    <section className="ws dock" style={{ gridTemplateColumns: "1fr 320px", gridTemplateRows: "auto 1fr" }}>
-      <div className="pane rm-kids-pane" style={{ gridColumn: "1 / -1" }}><div className="pb">{kidsBar}</div></div>
+    <section className="ws dock" style={{ gridTemplateColumns: "1fr", gridTemplateRows: "auto 1fr" }}>
+      <div className="pane rm-kids-pane"><div className="pb">{kidsBar}</div></div>
       <div className="pane rm-main">
-        <div className="ph">
-          <span>Lộ trình của {child.nickname}</span>
-          <div className="act"><span className="pill ai">{done}/{total} đã đọc</span></div>
-        </div>
-        <div className="pb rm-body">
+        <div key={child.id} className="pb rm-body rm-swap">
           {loadError && <div className="notice err" role="alert">{loadError}</div>}
+          <div className="rm-actions">
+            <div className="rm-actions-edit">
+              <DenyCover active={!!role && !canEdit} text="Bạn không đủ quyền hạn để thêm, gỡ hoặc sắp xếp lộ trình." />
+              <button className="btn btn-p" disabled={!canEdit} onClick={openPick}><Plus className="ic" />Thêm truyện</button>
+            </div>
+            <button className="btn btn-s" onClick={() => go("library")}>Thư viện</button>
+            {canEdit && (queued.length > 0 || open) && <button className="btn btn-no" onClick={async () => { if (await confirmDialog(`Gỡ toàn bộ truyện chưa đọc khỏi lộ trình của ${child.nickname}?`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình."); }}><Trash2 className="ic" />Làm trống</button>}
+          </div>
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
-          {!canEdit && role && <div className="notice err">Bạn chỉ xem được lộ trình. Cần quyền “Quản lý lộ trình của con” để thêm, gỡ hoặc sắp xếp.</div>}
           <HoldPanel child={child} role={role} onChanged={() => void load()} />
 
           <h3 className="display rm-h">Đang đọc</h3>
@@ -185,55 +191,47 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
         </div>
       </div>
 
-      <div className="pane">
-        <div className="ph"><span>Thêm vào lộ trình</span></div>
-        <div className="pb">
-          <button className="btn btn-p btn-c" disabled={!canEdit} onClick={() => setDialog({ kind: "pick" })}><Plus className="ic" />Chọn truyện của {child.nickname}</button>
-          <button className="btn btn-s btn-c" disabled={!canEdit} onClick={() => void openTemplates()}><Library className="ic" />Kho bộ truyện mẫu</button>
-          <button className="btn btn-s btn-c" onClick={() => go("library")}>Mở thư viện truyện</button>
-          {canEdit && (queued.length > 0 || open) && <button className="btn btn-no btn-c" onClick={async () => { if (await confirmDialog(`Gỡ toàn bộ truyện chưa đọc khỏi lộ trình của ${child.nickname}?`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình."); }}><Trash2 className="ic" />Làm trống lộ trình</button>}
-          <p className="sub">{child.nickname} đọc lần lượt từng truyện. Đọc xong truyện đang mở, truyện kế tiếp tự mở. Điểm câu đố không quyết định việc hoàn thành.</p>
-        </div>
-      </div>
-
       {dialog?.kind === "pick" && (
-        <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label="Chọn truyện" onClick={(e) => { if (e.target === e.currentTarget) setDialog(null); }}>
-          <div className="dlg">
-            <div className="row"><b className="display grow" style={{ fontSize: 18 }}>Chọn truyện cho {child.nickname}</b><button className="btn btn-g" aria-label="Đóng" onClick={() => setDialog(null)}><X className="ic" /></button></div>
-            {ready.length === 0 && <p className="sub">Chưa có truyện nào sẵn sàng. Truyện cần được duyệt và tạo xong minh hoạ.</p>}
-            <div className="sec" style={{ gap: 6 }}>
-              {ready.map((s) => (
-                <button key={s.id} className="rm-pick" onClick={() => setDialog({ kind: "add", story: { storyId: s.id, title: s.title, ageBand: s.ageBand, length: s.words } })}>
-                  <span className="cover-sm" style={{ background: s.gradient }} />
-                  <span className="grow"><b>{s.title}</b><small>{ageLabel(s.ageBand)} · {s.words} tiếng</small></span>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {dialog?.kind === "templates" && (
-        <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label="Kho bộ truyện mẫu" onClick={(e) => { if (e.target === e.currentTarget) setDialog(null); }}>
+        <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label="Thêm truyện" onClick={(e) => { if (e.target === e.currentTarget) setDialog(null); }}>
           <div className="dlg wide">
-            <div className="row"><b className="display grow" style={{ fontSize: 18 }}>Kho bộ truyện mẫu</b><button className="btn btn-g" aria-label="Đóng" onClick={() => setDialog(null)}><X className="ic" /></button></div>
-            {templates.length === 0 && <p className="sub">Chưa có bộ truyện mẫu nào được duyệt.</p>}
-            <div className="rm-templates">
-              {templates.filter((t) => t.targetAgeBand === child.ageBand).concat(templates.filter((t) => t.targetAgeBand !== child.ageBand)).map((t) => (
-                <div key={t.id} className="rm-template">
-                  <b>{t.title}</b>
-                  <small>{ageLabel(t.targetAgeBand)} · mức {t.readingLevelMin}–{t.readingLevelMax} · {t.topic} · {t.stories.length} truyện</small>
-                  <span className="sub">{t.description}</span>
-                  {t.targetAgeBand !== child.ageBand && <small className="warn">Bộ này dành cho {ageLabel(t.targetAgeBand)}.</small>}
-                  <button className="btn btn-s" style={{ width: "fit-content" }} onClick={() => setDialog({ kind: "add", template: t })}>Xem và thêm</button>
-                </div>
-              ))}
+            <div className="row"><b className="display grow" style={{ fontSize: 18 }}>Thêm truyện cho {child.nickname}</b><button className="btn btn-g" aria-label="Đóng" onClick={() => setDialog(null)}><X className="ic" /></button></div>
+            <div className="seg" role="tablist">
+              <button type="button" role="tab" aria-selected={pickTab === "mine"} className={pickTab === "mine" ? "on" : ""} onClick={() => setPickTab("mine")}>Truyện của tôi</button>
+              <button type="button" role="tab" aria-selected={pickTab === "sets"} className={pickTab === "sets" ? "on" : ""} onClick={() => void showSets()}>Bộ truyện mẫu</button>
             </div>
+            {pickTab === "mine" ? (
+              <>
+                {ready.length === 0 && <p className="sub">Chưa có truyện nào sẵn sàng. Truyện cần được duyệt và tạo xong minh hoạ.</p>}
+                <div className="sec" style={{ gap: 6 }}>
+                  {ready.map((s) => (
+                    <button key={s.id} className="rm-pick" onClick={() => setDialog({ kind: "add", story: { storyId: s.id, title: s.title, ageBand: s.ageBand, length: s.words } })}>
+                      <span className="cover-sm" style={{ background: s.gradient }} />
+                      <span className="grow"><b>{s.title}</b><small>{ageLabel(s.ageBand)} · {s.words} tiếng</small></span>
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : templates === null ? <p className="sub">Đang tải…</p> : (
+              <>
+                {templates.length === 0 && <p className="sub">Chưa có bộ truyện mẫu nào được duyệt.</p>}
+                <div className="rm-templates">
+                  {templates.filter((t) => t.targetAgeBand === child.ageBand).concat(templates.filter((t) => t.targetAgeBand !== child.ageBand)).map((t) => (
+                    <div key={t.id} className="rm-template">
+                      <b>{t.title}</b>
+                      <small>{ageLabel(t.targetAgeBand)} · mức {t.readingLevelMin}–{t.readingLevelMax} · {t.topic} · {t.stories.length} truyện</small>
+                      <span className="sub">{t.description}</span>
+                      {t.targetAgeBand !== child.ageBand && <small className="warn">Bộ này dành cho {ageLabel(t.targetAgeBand)}.</small>}
+                      <button className="btn btn-s" style={{ width: "fit-content" }} onClick={() => setDialog({ kind: "add", template: t })}>Xem và thêm</button>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
 
-      {dialog?.kind === "add" && <AddToRoadmapDialog story={dialog.story} template={dialog.template} onClose={() => { setDialog(null); void load(); }} onDone={() => void load()} />}
+      {dialog?.kind === "add" && <AddToRoadmapDialog single story={dialog.story} template={dialog.template} onClose={() => { setDialog(null); void load(); }} onDone={() => void load()} />}
     </section>
   );
 }

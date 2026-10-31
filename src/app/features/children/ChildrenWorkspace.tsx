@@ -28,7 +28,7 @@ const TABS: { id: Tab; label: string }[] = [
   { id: "learning", label: "Học tập" },
   { id: "safety", label: "An toàn" },
   { id: "supervisors", label: "Người giám sát" },
-  { id: "access", label: "Bé đăng nhập" },
+  { id: "access", label: "QR đăng nhập" },
 ];
 type Role = { isOwner: boolean; perms: string[] };
 
@@ -111,7 +111,6 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
       <div className="pane children-main">
         {mode === "create" && (
           <>
-            <div className="ph"><span>Thêm hồ sơ bé</span></div>
             <CreateChildWizard onDone={(id) => void open(id)} onCancel={() => setMode("view")} />
           </>
         )}

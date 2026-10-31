@@ -19,8 +19,8 @@ type Props = {
   children: React.ReactNode;
 };
 
-/** Nhóm trang trong menu avatar (khai báo trong nav.ts với inMenu): hồ sơ bé rồi tới tài khoản. */
-const MENU_GROUPS = [WORKSPACES.filter((w) => w.inMenu === "kids"), WORKSPACES.filter((w) => w.inMenu === "account")];
+/** Nhóm trang trong menu avatar (khai báo trong nav.ts với inMenu): tài khoản rồi tới hồ sơ bé. */
+const MENU_GROUPS = [WORKSPACES.filter((w) => w.inMenu === "account"), WORKSPACES.filter((w) => w.inMenu === "kids")];
 
 /** Các nút điều hướng; dùng chung cho thanh ngang trên header (máy tính) và thanh tab ở đáy (điện thoại). */
 function NavButtons({ ws, onWs, reviewCount, upward }: { ws: WorkspaceId; onWs: (id: WorkspaceId) => void; reviewCount: number; upward?: boolean }) {

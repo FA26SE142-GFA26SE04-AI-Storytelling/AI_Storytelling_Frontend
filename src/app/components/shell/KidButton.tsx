@@ -1,4 +1,5 @@
 "use client";
+import { avatarOf } from "@/app/lib/guardian";
 
 import { useEffect, useRef, useState } from "react";
 import { Check, Eye } from "lucide-react";
@@ -33,7 +34,7 @@ export default function KidButton({ onKid }: { onKid: () => void }) {
           <p className="sub">Bé nào sẽ đọc?</p>
           {kids.map((k) => (
             <button key={k.id} role="menuitem" className={child?.id === k.id ? "on" : ""} onClick={() => pick(k.id)}>
-              <span className="av">{k.nickname.trim().charAt(0).toUpperCase()}</span>
+              <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
               <span className="grow">{k.nickname}<small>{ageLabel(k.ageBand)}</small></span>
               {child?.id === k.id && <Check className="ic" />}
             </button>

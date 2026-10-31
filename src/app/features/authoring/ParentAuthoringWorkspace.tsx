@@ -65,7 +65,6 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
   const canApprove = role?.can('ApproveStory'); const canAssign = role?.can('AssignActivity');
   const step = (n: number) => <span className="pa-num">{n}</span>;
   return <section className="ws dock" style={{ gridTemplateColumns:'1fr' }}><div className="pane st-page">
-    <div className="ph"><span>Thủ công</span></div>
     <div className="st-body pa-body">
       {h.note && <p className="notice" role="status">{h.note}</p>}
       {h.uncertain && <p className="notice warn">Chưa rõ máy chủ đã nhận lệnh. Không tạo thao tác mới. <button className="btn btn-s" disabled={h.busy} onClick={() => void h.retry()}>Thử lại đúng lệnh</button></p>}

@@ -9,6 +9,7 @@ import { guardianService, type ChildRef } from "@/app/services/guardianService";
 import type { RoadmapAddResult, RoadmapPosition, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
 import type { RoadmapCopyPlanDto } from '@/app/types/backendContracts';
 import { ageLabel } from "@/app/lib/storyView";
+import { showToast } from "@/app/lib/toast";
 
 /** Lấy thông tin cần kiểm tra cho từng bé (trạng thái, nhóm tuổi, độ dài tối đa). */
 export function useChildRefs(): ChildRef[] {
@@ -29,9 +30,11 @@ export function useChildRefs(): ChildRef[] {
  * Luồng 4 Bước 4.1 / 4.1c — thêm một truyện hoặc một bộ truyện mẫu vào lộ trình của một hoặc nhiều con.
  * Mỗi bé được kiểm tra riêng; bé không phù hợp bị bỏ qua và liệt kê lại (BR-4.A1).
  */
-export default function AddToRoadmapDialog({ story, template, onClose, onDone }: {
+export default function AddToRoadmapDialog({ story, template, single, onClose, onDone }: {
   story?: RoadmapStoryInput;
   template?: RoadmapTemplate;
+  /** Chỉ thêm cho bé đang chọn: ẩn mục chọn bé. */
+  single?: boolean;
   onClose: () => void;
   onDone?: () => void;
 }) {
@@ -45,7 +48,8 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<RoadmapAddResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const title = template ? `Thêm bộ “${template.title}”` : `Thêm “${story?.title}” vào lộ trình`;
+  const forWho = single && child ? ` cho ${child.nickname}` : "";
+  const title = template ? `Thêm bộ “${template.title}”${forWho}` : `Thêm “${story?.title}”${forWho}`;
 
   const selectionKey = picked.join(',');
   useEffect(() => { setPreview(null); }, [selectionKey, position, days, template?.id]);
@@ -64,7 +68,14 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
       ? await guardianService.applyTemplate(chosen, template, position, days)
       : await guardianService.addToRoadmap(chosen, story!, position, days, note.trim() || null);
     setBusy(false);
-    if (r.success && r.data) { setResult(r.data); onDone?.(); } else setErr(r.message);
+    if (!(r.success && r.data)) { setErr(r.message); return; }
+    onDone?.();
+    // Thêm trọn vẹn thì chỉ báo bằng thông báo rồi đóng; có bé bị bỏ qua hoặc có cảnh báo thì giữ hộp thoại để đọc chi tiết.
+    if (r.data.skipped.length === 0 && !r.data.warnings?.length) {
+      const names = [...new Set(r.data.added.map((a) => nameOf(a.childProfileId)))].join(", ");
+      showToast(`Đã thêm cho ${names}${r.data.added.some((a) => a.moved) ? " (truyện đã có được chuyển lên đọc tiếp theo)" : ""}.`);
+      onClose();
+    } else setResult(r.data);
   };
 
   const nameOf = (id: number) => refs.find((r) => r.id === id)?.nickname ?? `#${id}`;
@@ -93,7 +104,7 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
                 <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>{template.stories.map((s) => <li key={s.storyId}>{s.title}</li>)}</ol>
               </div>
             )}
-            <div className="field">
+            {!single && <div className="field">
               <span className="lbl">Cho bé</span>
               <div className="chips">
                 {refs.map((r) => (
@@ -102,7 +113,7 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
                   </button>
                 ))}
               </div>
-            </div>
+            </div>}
             <div className="field">
               <span className="lbl">Vị trí</span>
               <div className="seg">
@@ -125,7 +136,7 @@ export default function AddToRoadmapDialog({ story, template, onClose, onDone }:
             {err && <div className="notice err" role="alert">{err}</div>}
             <div className="row" style={{ justifyContent: "flex-end" }}>
               <button className="btn btn-g" onClick={onClose}>Hủy</button>
-              <button className="btn btn-p" disabled={busy || !refs.length} onClick={() => void submit()}><Route className="ic" />{busy ? "Đang xử lý…" : template && !preview ? "Xem trước kế hoạch" : "Thêm vào lộ trình"}</button>
+              <button className="btn btn-p" disabled={busy || !refs.length} onClick={() => void submit()}><Route className="ic" />{busy ? "Đang xử lý…" : template && !preview ? "Xem trước kế hoạch" : "Thêm"}</button>
             </div>
           </>
         )}
