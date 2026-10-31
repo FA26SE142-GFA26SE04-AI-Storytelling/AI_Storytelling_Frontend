@@ -2,7 +2,7 @@
 
 import "./library.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Archive, ChevronLeft, ChevronRight, Eye, Flag, Info, PencilLine, Route, Search, Send, WandSparkles, X } from "lucide-react";
+import { Archive, ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, Send, WandSparkles, X } from "lucide-react";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { useAuth } from "@/app/context/AuthContext";
@@ -17,7 +17,6 @@ import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
 import { guardianService } from "@/app/services/guardianService";
 import type { CommunitySubmission, ContentReport } from "@/app/types/progress";
 import { useMyRole } from "@/app/features/children/useMyRole";
-import PersonalStoryEditor from "./PersonalStoryEditor";
 import { CommunityDialog, ReportDialog } from "./ModerationDialogs";
 
 const SUB_STATUS: Record<string, string> = { pending: "Đang chờ duyệt", approved: "Đã có trong thư viện cộng đồng", rejected: "Bị từ chối — có thể nộp lại", withdrawn: "Đã rút", removed: "Đã gỡ" };
@@ -181,7 +180,15 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
     const seen = new Set(pub.map((s) => s.id));
     return [...pub, ...family.filter((s) => !seen.has(s.id))].filter((s) => SHOWN_GROUPS.includes(statusOf(s)));
   }, [pub, family]);
-  const [managePersonal,setManagePersonal] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!filterOpen) return;
+    const down = (e: MouseEvent) => { if (!filterRef.current?.contains(e.target as Node)) setFilterOpen(false); };
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") setFilterOpen(false); };
+    document.addEventListener("mousedown", down); document.addEventListener("keydown", key);
+    return () => { document.removeEventListener("mousedown", down); document.removeEventListener("keydown", key); };
+  }, [filterOpen]);
   const [source, setSource] = useState("all");
   const [topic, setTopic] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<{ title: string; items: StoryCard[] } | null>(null);
@@ -226,6 +233,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
       (srcF === "all" || sourceOf(s) === srcF) &&
       s.title.toLowerCase().includes(needle));
   }, [sorted, q, status, genreF, ageF, srcF]);
+  const activeCount = [status, genreF, ageF, srcF].filter((v) => v !== "all").length;
   const clearFilters = () => { setQ(""); setStatus("all"); setGenreF("all"); setAgeF("all"); setSrcF("all"); };
 
   // Chưa bấm vào truyện nào thì không chọn sẵn truyện đầu tiên.
@@ -246,34 +254,50 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
     <AsideContext.Provider value={aside}>
     <section className="ws dock lib" data-aside={asideCollapsed ? "collapsed" : undefined}>
       <div className="pane">
-        <div className="lbar"><button className="btn btn-s" onClick={()=>setManagePersonal(true)}>Truyện riêng</button>{managePersonal&&<PersonalStoryEditor onClose={()=>setManagePersonal(false)} onChanged={()=>void reload()}/>}
-          <label className="row grow" style={{ gap: 6, color: "var(--muted)" }}>
-            <Search className="ic" />
-            <input className="inp" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm theo tên truyện" style={{ border: 0, background: "none" }} aria-label="Tìm theo tên truyện" />
-          </label>
-          <select className="inp" style={{ width: "auto" }} aria-label="Trạng thái" value={status} onChange={(e) => setStatus(e.target.value)}>
-            <option value="all">Mọi trạng thái</option>
-            {STATUS_GROUPS.filter((g) => counts[g.id] > 0 || g.id === status).map((g) => <option key={g.id} value={g.id}>{g.label} ({counts[g.id]})</option>)}
-          </select>
-          <button className="btn btn-s" onClick={() => void reload()}>Tải lại</button>
-        </div>
-        <div className="lfilters" role="group" aria-label="Lọc truyện">
-          <select className={`inp${genreF !== "all" ? " on" : ""}`} aria-label="Lọc theo thể loại" value={genreF} onChange={(e) => setGenreF(e.target.value)}>
-            <option value="all">Mọi thể loại</option>
-            {topics.map((t) => <option key={t} value={t}>{t} ({stories.filter((s) => s.topic === t).length})</option>)}
-          </select>
-          <select className={`inp${ageF !== "all" ? " on" : ""}`} aria-label="Lọc theo nhóm tuổi" value={ageF} onChange={(e) => setAgeF(e.target.value)}>
-            <option value="all">Mọi độ tuổi</option>
-            {ageBands.map((a) => <option key={a} value={a}>{ageLabel(a)} ({stories.filter((s) => s.ageBand === a).length})</option>)}
-          </select>
-          <select className={`inp${srcF !== "all" ? " on" : ""}`} aria-label="Lọc theo nguồn" value={srcF} onChange={(e) => setSrcF(e.target.value)}>
-            <option value="all">Mọi nguồn</option>
-            {Object.entries(SOURCE_LABEL).map(([id, label]) => <option key={id} value={id}>{label} ({stories.filter((s) => sourceOf(s) === id).length})</option>)}
-          </select>
-          {searching && <button className="btn btn-g" onClick={clearFilters}><X className="ic" />Xoá lọc</button>}
-        </div>
         {(error || familyError) && <div className="err-banner" role="alert">{error ?? `Chưa tải được truyện tự soạn: ${familyError}`}</div>}
         <div className="lib-scroll">
+          <div className="lbar">
+            <div className="lsearch">
+            <label className="row grow" style={{ gap: 6, color: "var(--muted)" }}>
+              <Search className="ic" />
+              <input className="inp" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm theo tên truyện" style={{ border: 0, background: "none" }} aria-label="Tìm theo tên truyện" />
+            </label>
+            <div className="lfilter" ref={filterRef}>
+              <button className={`btn btn-s lfilter-btn${activeCount > 0 ? " on" : ""}`} aria-haspopup="dialog" aria-expanded={filterOpen} onClick={() => setFilterOpen((v) => !v)}>
+                <SlidersHorizontal className="ic" />Bộ lọc{activeCount > 0 && <span className="lfilter-n">{activeCount}</span>}
+              </button>
+              {filterOpen && (
+                <div className="lfilter-pop" role="dialog" aria-label="Lọc truyện">
+                  <label>Trạng thái
+                    <select className={`inp${status !== "all" ? " on" : ""}`} aria-label="Trạng thái" value={status} onChange={(e) => setStatus(e.target.value)}>
+                      <option value="all">Mọi trạng thái</option>
+                      {STATUS_GROUPS.filter((g) => counts[g.id] > 0 || g.id === status).map((g) => <option key={g.id} value={g.id}>{g.label} ({counts[g.id]})</option>)}
+                    </select>
+                  </label>
+                  <label>Thể loại
+                    <select className={`inp${genreF !== "all" ? " on" : ""}`} aria-label="Lọc theo thể loại" value={genreF} onChange={(e) => setGenreF(e.target.value)}>
+                      <option value="all">Mọi thể loại</option>
+                      {topics.map((t) => <option key={t} value={t}>{t} ({stories.filter((s) => s.topic === t).length})</option>)}
+                    </select>
+                  </label>
+                  <label>Độ tuổi
+                    <select className={`inp${ageF !== "all" ? " on" : ""}`} aria-label="Lọc theo nhóm tuổi" value={ageF} onChange={(e) => setAgeF(e.target.value)}>
+                      <option value="all">Mọi độ tuổi</option>
+                      {ageBands.map((a) => <option key={a} value={a}>{ageLabel(a)} ({stories.filter((s) => s.ageBand === a).length})</option>)}
+                    </select>
+                  </label>
+                  <label>Nguồn
+                    <select className={`inp${srcF !== "all" ? " on" : ""}`} aria-label="Lọc theo nguồn" value={srcF} onChange={(e) => setSrcF(e.target.value)}>
+                      <option value="all">Mọi nguồn</option>
+                      {Object.entries(SOURCE_LABEL).map(([id, label]) => <option key={id} value={id}>{label} ({stories.filter((s) => sourceOf(s) === id).length})</option>)}
+                    </select>
+                  </label>
+                  {activeCount > 0 && <button className="btn btn-g" onClick={() => { setStatus("all"); setGenreF("all"); setAgeF("all"); setSrcF("all"); }}><X className="ic" />Xoá lọc</button>}
+                </div>
+              )}
+            </div>
+            </div>
+          </div>
           {storiesLoading && stories.length === 0 ? <p className="sub lib-empty">Đang tải truyện…</p>
           : stories.length === 0 ? (
             <div className="lib-empty">
