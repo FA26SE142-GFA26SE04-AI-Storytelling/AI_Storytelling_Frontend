@@ -4,7 +4,11 @@ import type {
 } from '@/app/types/supervision';
 import { apiRequest } from './apiClient';
 
+/** Backend nhận quyền trong body dạng số (enum Permission), khác với đường dẫn dùng tên. */
+const PERMISSION_CODE: Record<Permission, number> = { ViewProgress: 1, ViewResults: 2, AssignActivity: 3, ReceiveReport: 4, ApproveReadingLevel: 5, ApproveStory: 6, ManageSafetySettings: 7, GenerateStory: 8 };
+
 /** Luồng 1 Bước 1.5–1.7b, Mục 3: mời, gỡ, phân quyền người giám sát và chuyển quyền Owner. */
+
 export const supervisionService = {
   listSupervisors(childId: number): Promise<ApiResponse<SupervisionRelationship[]>> {
     return apiRequest(`/Supervision/${childId}/relationships`, 'Không tải được danh sách người giám sát.');
@@ -66,7 +70,7 @@ export const supervisionService = {
 
   /** Bước G — Additional Supervisor xin thêm 1 quyền. */
   requestPermission(relationshipId: number, permission: Permission): Promise<ApiResponse<PermissionRequest>> {
-    return apiRequest(`/Permission/relationships/${relationshipId}/requests`, 'Không gửi được yêu cầu.', { method: 'POST', body: { permissions: [permission] } });
+    return apiRequest(`/Permission/relationships/${relationshipId}/requests`, 'Không gửi được yêu cầu.', { method: 'POST', body: { permissions: [PERMISSION_CODE[permission]] } });
   },
 
   listPermissionRequests(relationshipId: number): Promise<ApiResponse<PermissionRequest[]>> {

@@ -1,8 +1,10 @@
 "use client";
+import DenyCover from "@/app/components/DenyCover";
 import { confirmDialog } from "@/app/lib/confirm";
+import Select from "@/app/components/Select";
 
 import { useCallback, useEffect, useState } from "react";
-import { Copy, Crown, LogOut, Mail, RefreshCw, UserMinus, X } from "lucide-react";
+import { Copy, Crown, Mail, RefreshCw, UserMinus, X } from "lucide-react";
 import { supervisionService as api } from "@/app/services/supervisionService";
 import type { ChildProfile } from "@/app/types/childProfile";
 import type { Invitation, OwnershipTransfer, Permission, PermissionRequest, SupervisionRelationship } from "@/app/types/supervision";
@@ -26,7 +28,7 @@ const INV_STATUS: Record<string, { label: string; tone: string }> = {
 const permLabel = (p: string) => PERMISSIONS.find((x) => x.id === p)?.label ?? p;
 
 /** Bước 1.5–1.7b, Mục 3 Bước G. */
-export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildProfile; meId: number; onLeft: () => void }) {
+export default function SupervisorsTab({ child, meId }: { child: ChildProfile; meId: number }) {
   const [data, setData] = useState<Data | null>(null);
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -102,8 +104,7 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
       ))}
 
       <section className="sec" style={{ gap: 10 }}>
-        <p className="sub">Bố/mẹ còn lại hoặc người thân cùng theo dõi {child.nickname}. Người được mời nhận sẵn 4 quyền cơ bản; bạn có thể cấp thêm hoặc thu hồi bất kỳ lúc nào.</p>
-        {data.rels.map((r) => {
+        {data.rels.slice().sort((a, b) => Number(b.supervisorRole === "Owner") - Number(a.supervisorRole === "Owner")).map((r) => {
           const extra = r.supervisorRole !== "Owner";
           const perms = data.perms[r.id] ?? [];
           const canManage = isOwner && extra;
@@ -116,13 +117,14 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
                 <span className={`pill ${extra ? "draft" : "ai"}`}>{extra ? "Người giám sát" : "Quản lý chính"}</span>
               </div>
               {extra && (canManage || r.id === me?.id) && (
-                <div className="perm-grid">
+                <div className="perm-grid" style={{ position: "relative" }}>
+                  <DenyCover active={!canManage} text="Bạn không đủ quyền hạn để đổi quyền. Hãy dùng mục xin quyền bên dưới." />
                   {PERMISSIONS.map((p) => {
                     const has = perms.includes(p.id);
                     return (
                       <label key={p.id} className={`perm${has ? " on" : ""}`} title={p.hint}>
                         <input type="checkbox" checked={has} disabled={!canManage || busy} onChange={() => void togglePerm(r.id, p.id, has)} />
-                        <span><b>{p.label}</b><small>{p.hint}</small></span>
+                        <span><b>{p.label}</b></span>
                       </label>
                     );
                   })}
@@ -159,7 +161,7 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
         </section>
       )}
 
-      {/* Additional Supervisor: xin thêm quyền, rời hồ sơ */}
+      {/* Additional Supervisor: xin thêm quyền */}
       {me && !isOwner && (
         <section className="sec" style={{ gap: 10 }}>
           <h3 className="display" style={{ margin: 0 }}>Quyền của bạn</h3>
@@ -171,15 +173,10 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
           ))}
           {missing.length > 0 && (
             <div className="row">
-              <select className="inp" value={askPerm} onChange={(e) => setAskPerm(e.target.value as Permission | "")} aria-label="Quyền muốn xin">
-                <option value="">Chọn quyền muốn xin…</option>
-                {missing.map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
-              </select>
+              <Select<Permission | ""> value={askPerm} onChange={setAskPerm} ariaLabel="Quyền muốn xin" placeholder="Chọn quyền muốn xin…" options={missing.map((p) => ({ value: p.id as Permission | "", label: p.label }))} />
               <button className="btn btn-s" disabled={!askPerm || busy} onClick={() => askPerm && void act(() => api.requestPermission(me.id, askPerm), "Đã gửi yêu cầu tới người quản lý chính.", () => setAskPerm(""))}>Xin quyền</button>
             </div>
           )}
-          <button className="btn btn-no" style={{ width: "fit-content" }} disabled={busy} onClick={async () => { if (await confirmDialog(`Rời khỏi hồ sơ của ${child.nickname}? Bạn sẽ mất quyền xem ngay.`)) void act(() => api.revokeSupervisor(me.id), "Bạn đã rời hồ sơ.", onLeft); }}>
-            <LogOut className="ic" />Rời hồ sơ</button>
         </section>
       )}
 
@@ -192,7 +189,6 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
               onKeyDown={(e) => { if (e.key === "Enter") invite(); }} />
             <button className="btn btn-p" disabled={busy || !email.trim()} onClick={invite}><Mail className="ic" />Gửi lời mời</button>
           </div>
-          <p className="sub">Người được mời đăng nhập tài khoản phụ huynh, nhập mã mời ở mục &quot;Nhập mã mời&quot; rồi xác thực bằng mã gửi tới email được mời. Mã chỉ dùng được một lần.</p>
           {data.invitations.length > 0 && (
             <table className="inv">
               <thead><tr><th>Mã mời</th><th>Trạng thái</th><th>Hết hạn</th><th /></tr></thead>
@@ -224,9 +220,6 @@ export default function SupervisorsTab({ child, meId, onLeft }: { child: ChildPr
         </section>
       )}
 
-      <div className="row">
-        <button className="btn btn-g" onClick={() => { setNote(null); void load(); }}><RefreshCw className="ic" />Tải lại</button>
-      </div>
     </div>
   );
 }

@@ -83,11 +83,10 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
           {READING_LEVELS.map((l) => (
             <button key={l.level} type="button" role="radio" aria-checked={value.readingLevel === l.level} disabled={disabled}
               className={`level${value.readingLevel === l.level ? " on" : ""}`} onClick={() => set({ readingLevel: l.level })}>
-              <b className="display">{l.level}</b><small>{l.grade}</small>
+              <b className="display">{l.level}</b>
             </button>
           ))}
         </div>
-        <span className="sub">AI dùng mức đọc để chỉnh độ dài truyện, độ dài câu và số từ mới.</span>
       </div>
 
       <div className="field">
@@ -96,7 +95,7 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
           {READING_MODES.map((m) => (
             <label key={m.id} className={`opt${value.readingMode === m.id ? " on" : ""}`}>
               <input type="radio" name="reading-mode" disabled={disabled} checked={value.readingMode === m.id} onChange={() => set({ readingMode: m.id })} />
-              <span><b>{m.label}</b><small>{m.hint}</small></span>
+              <span title={m.hint}><b>{m.label}</b></span>
             </label>
           ))}
         </div>

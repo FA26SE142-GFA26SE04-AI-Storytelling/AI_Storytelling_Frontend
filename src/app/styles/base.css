@@ -195,3 +195,21 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 .confirm-ic { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 12px; background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary-strong); }
 .confirm-ic.danger { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
 .confirm-actions { justify-content: flex-end; margin-top: 6px; }
+
+/* Ô chọn tuỳ biến (components/Select) */
+.sel { position: relative; min-width: 0; flex: 1; }
+.sel-btn { display: flex; align-items: center; justify-content: space-between; gap: 8px; text-align: left; cursor: pointer; min-height: 38px; }
+.sel-btn.open { border-color: var(--primary); }
+.sel-ph { color: var(--muted); }
+.sel-chev { width: 16px; height: 16px; flex: none; color: var(--muted); transition: transform .18s; }
+.sel-btn.open .sel-chev { transform: rotate(180deg); }
+.sel-list { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 40; margin: 0; padding: 6px; list-style: none; max-height: 280px; overflow-y: auto; border: 1px solid var(--line-2); border-radius: 14px; background: var(--panel); box-shadow: 0 14px 32px -12px color-mix(in srgb, var(--shadow) 50%, transparent); animation: sel-in .14s ease-out; }
+.sel-opt { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 12px; border-radius: 10px; font-size: 14px; cursor: pointer; }
+.sel-opt.hi { background: var(--surface-2); }
+.sel-opt.on { color: var(--primary); font-weight: 700; }
+.sel-opt .ic { width: 16px; height: 16px; }
+@keyframes sel-in { from { opacity: 0; transform: translateY(-4px); } }
+@media (prefers-reduced-motion: reduce) { .sel-list { animation: none; } .sel-chev { transition: none; } }
+
+/* Vùng chỉ xem: lớp phủ trong suốt bắt cú bấm để báo thiếu quyền */
+.deny-cover { position: absolute; inset: 0; z-index: 5; cursor: not-allowed; }

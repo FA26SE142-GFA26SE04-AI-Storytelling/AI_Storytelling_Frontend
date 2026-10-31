@@ -29,7 +29,7 @@ const NAV = [
 
 function Toggle({ on, label, hint, disabled, onChange }: { on: boolean; label: string; hint: string; disabled?: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="trow"><span>{label}<small>{hint}</small></span>
+    <div className="trow" title={hint}><span>{label}</span>
       <button type="button" className={`tog${on ? " on" : ""}`} disabled={disabled} role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} /></div>
   );
 }
@@ -55,6 +55,8 @@ export default function SafetyWorkspace() {
   const [loading, setLoading] = useState(true);
   const bodyRef = useRiseIn<HTMLDivElement>("section", [child?.id, loading], { delay: 70 });
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const [denied, setDenied] = useState(0);
+  const deny = () => { setDenied((n) => n + 1); setTimeout(() => setDenied(0), 3500); };
   const [saving, setSaving] = useState(false);
 
   const apply = useCallback((pol: SafetyPolicy | null, active: ContentCategory[], ageBand: string) => {
@@ -152,19 +154,18 @@ export default function SafetyWorkspace() {
       </nav>
 
       <div ref={bodyRef} className="setbody">
+        {role && !canEdit && !loading && <div className="safety-deny" onClick={deny} aria-hidden />}
+        {denied > 0 && <div key={denied} className="notice err" role="status">Bạn không đủ quyền hạn để chỉnh sửa cài đặt an toàn.</div>}
         {loading ? <p className="sub">Đang tải chính sách của {child.nickname}…</p> : (
           <>
-            {role && !canEdit && <div className="notice err">Bạn chỉ xem được cài đặt an toàn của {child.nickname}. Cần quyền “Sửa cài đặt an toàn” — xin quyền ở Hồ sơ bé → Người giám sát.</div>}
-            {!policy && <div className="notice err">{child.nickname} chưa có chính sách an toàn. Đã chọn sẵn các chủ đề nên chặn theo tuổi — xem lại, đồng ý điều khoản rồi bấm Lưu cài đặt.</div>}
             {outdated && <div className="notice err">Điều khoản sử dụng đã thay đổi. {isOwner ? "Hãy đọc lại và đồng ý ở mục Đồng ý của phụ huynh." : "Người quản lý chính cần đồng ý lại."}</div>}
             <section id="s-mode">
               <h2 className="display">Chế độ duyệt</h2>
-              <p className="sub" style={{ marginBottom: 10 }}>Áp dụng cho mọi truyện AI tạo cho {child.nickname}</p>
               <div className="sec" style={{ gap: 7 }}>
                 {MODES.map((m) => (
                   <label key={m.id} className={`opt${mode === m.id ? " on" : ""}`}>
                     <input type="radio" name="mode" disabled={!canEdit} checked={mode === m.id} onChange={() => setMode(m.id)} />
-                    <span><b>{m.b}</b><small>{m.s}</small></span>
+                    <span title={m.s}><b>{m.b}</b></span>
                   </label>
                 ))}
               </div>
@@ -172,7 +173,6 @@ export default function SafetyWorkspace() {
 
             <section id="s-topic">
               <h2 className="display">Chủ đề</h2>
-              <p className="sub" style={{ marginBottom: 10 }}>AI sẽ từ chối chủ đề bị chặn, kể cả khi yêu cầu nhắc tới.</p>
               {policy && child.shouldReapplyBlockedPreset && canEdit && (
                 <div className="notice ok row" style={{ justifyContent: "space-between", flexWrap: "wrap", marginBottom: 10 }}>
                   <span>Nhóm tuổi của {child.nickname} vừa đổi. Có thể áp dụng danh sách chủ đề nên chặn cho nhóm tuổi mới.</span>
@@ -187,7 +187,6 @@ export default function SafetyWorkspace() {
               <div className="field" style={{ margin: "10px 0 2px" }}>
                 <span className="lbl row" style={{ justifyContent: "space-between" }}>Độ dài tối đa của truyện <b style={{ color: "var(--text)" }}>{len.toLocaleString("vi-VN")} tiếng</b></span>
                 <input type="range" className="range" disabled={!canEdit} min={200} max={5000} step={100} value={len} onChange={(e) => setLen(+e.target.value)} aria-label="Độ dài tối đa" />
-                <span className="sub">Đếm theo tiếng (âm tiết). Mức 1 khoảng 200–400 tiếng, mức 5 khoảng 1.600–2.400 tiếng.</span>
               </div>
               <Toggle on={gate} disabled={!canEdit} onChange={setGate} label="Cổng xác nhận người lớn" hint="Hỏi mật khẩu của bạn trước khi rời chế độ của bé" />
             </section>
@@ -200,7 +199,6 @@ export default function SafetyWorkspace() {
 
             <section id="s-hold">
               <h2 className="display">Tạm dừng khi bé gặp khó</h2>
-              <p className="sub" style={{ marginBottom: 10 }}>Nếu {child.nickname} làm câu đố dưới ngưỡng nhiều bài liên tiếp, thư viện tạm khóa truyện mới và bạn nhận được thông báo. Bé mở khóa bằng cách đọc lại truyện đó.</p>
               <div className="field">
                 <span className="lbl row" style={{ justifyContent: "space-between" }}>Ngưỡng đọc hiểu <b style={{ color: "var(--text)" }}>{threshold}%</b></span>
                 <input type="range" className="range" disabled={!canEdit} min={50} max={90} step={5} value={threshold} onChange={(e) => setThreshold(+e.target.value)} aria-label="Ngưỡng đọc hiểu" />
@@ -215,10 +213,7 @@ export default function SafetyWorkspace() {
 
             <section id="s-consent">
               <h2 className="display">Đồng ý của phụ huynh</h2>
-              <p className="sub" style={{ marginBottom: 10 }}>
-                Bắt buộc để kích hoạt hồ sơ và tạo truyện mới cho {child.nickname}. Chỉ người quản lý chính được đồng ý.
-                {policy?.consentRecorded && !outdated && ` Đã đồng ý ngày ${fmtDate(policy.consentRecordedAt)}.`}
-              </p>
+              {policy?.consentRecorded && !outdated && <p className="sub" style={{ marginBottom: 10 }}>{`Đã đồng ý ngày ${fmtDate(policy.consentRecordedAt)}.`}</p>}
               <ConsentBlock checked={consent} onChange={setConsent} disabled={!isOwner || (!!policy?.consentRecorded && !outdated)} />
             </section>
           </>

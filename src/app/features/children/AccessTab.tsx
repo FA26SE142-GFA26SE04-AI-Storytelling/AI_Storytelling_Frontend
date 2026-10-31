@@ -60,7 +60,6 @@ export default function AccessTab({ child }: { child: ChildProfile }) {
 
       <section className="sec" style={{ gap: 12 }}>
         <div>
-          <p className="sub">Mở máy của bé, dùng camera quét mã để vào thẳng khu đọc truyện của {child.nickname}. Mã dùng lâu dài cho tới khi bạn tạo mã mới hoặc thu hồi.</p>
         </div>
         {!active && <div className="notice err">Hồ sơ cần đang hoạt động thì bé mới đăng nhập được.</div>}
         {fresh ? (
@@ -85,7 +84,6 @@ export default function AccessTab({ child }: { child: ChildProfile }) {
       {cred?.hasEasyLogin && (
         <section className="sec" style={{ gap: 8 }}>
           <h3 className="display" style={{ margin: 0 }}>Thu hồi mã QR</h3>
-          <p className="sub">Dùng khi mất thiết bị hoặc lộ mã. Phiên của bé đang mở bằng mã này sẽ bị đóng.</p>
           <button className="btn btn-no" style={{ width: "fit-content" }} disabled={busy} onClick={() => void revoke()}><ShieldOff className="ic" />Thu hồi</button>
         </section>
       )}

@@ -1,4 +1,5 @@
 "use client";
+import DenyCover from "@/app/components/DenyCover";
 
 import { useEffect, useState } from "react";
 import { Check, Save } from "lucide-react";
@@ -54,11 +55,10 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
   if (!value) return <p className="sub">Đang tải hồ sơ học tập…</p>;
   return (
     <div className="sec" style={{ gap: 16 }}>
-      <div>
-        <p className="sub">{exists ? `AI dựa vào đây để viết truyện vừa sức ${child.nickname}.` : `${child.nickname} chưa có hồ sơ học tập. Lưu để có thể kích hoạt hồ sơ.`}</p>
+      <div style={{ position: "relative" }}>
+        <LearningForm value={value} onChange={setValue} disabled={!canEdit} ageBand={child.ageBand} />
+        <DenyCover active={!canEdit} text="Bạn không đủ quyền hạn để sửa hồ sơ học tập của bé." />
       </div>
-      <LearningForm value={value} onChange={setValue} disabled={!canEdit} ageBand={child.ageBand} />
-      {!canEdit && <p className="sub">Bạn chưa có quyền sửa mức đọc của bé. Hãy xin quyền ở tab Người giám sát.</p>}
       {canEdit && <button className={`btn btn-p${saved2 ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={busy || !dirty} onClick={() => void save()}>{saved2 ? <Check className="ic" /> : <Save className="ic" />}{busy ? "Đang lưu…" : saved2 ? "Đã lưu" : "Lưu hồ sơ học tập"}</button>}
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
       {child.status === "Active" && <LearningHistory child={child} refreshKey={historyKey} />}

@@ -1,26 +1,37 @@
 "use client";
+import DenyCover from "@/app/components/DenyCover";
 import { confirmDialog } from "@/app/lib/confirm";
 
 import { useEffect, useState } from "react";
 import { useFlash } from "@/app/lib/useFlash";
 import ActivitySection from '@/app/features/account/ActivitySection';
-import { Archive, Check, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
+import { Archive, Check, LogOut, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
+import { supervisionService } from "@/app/services/supervisionService";
 import DataRequestSection from "./DataRequestSection";
 import type { ChildProfile } from "@/app/types/childProfile";
-import { AGE_BANDS, AVATARS, avatarOf, fmtDate } from "@/app/lib/guardian";
+import { AGE_BANDS, AVATARS, avatarOf } from "@/app/lib/guardian";
 
 type Checks = { learning: boolean; policy: boolean; consent: boolean; outdated: boolean };
 type Note = { ok: boolean; text: string } | null;
 
 /** Bước 1.2 (sửa thông tin, avatar), 1.8 (kích hoạt), 1.8b và Mục 7 (tạm dừng, tiếp tục, lưu trữ). */
-export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTab }: {
+export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTab, meId, onLeft }: {
   child: ChildProfile;
   isOwner: boolean;
   onChanged: () => void;
   onArchived: () => void;
   onTab: (tab: "learning" | "safety") => void;
+  meId: number;
+  onLeft: () => void;
 }) {
+  const [myRelId, setMyRelId] = useState<number | null>(null);
+  useEffect(() => {
+    if (isOwner) return;
+    let alive = true;
+    void supervisionService.listSupervisors(child.id).then((r) => { if (alive) setMyRelId((r.data ?? []).find((x) => x.supervisorUserId === meId)?.id ?? null); });
+    return () => { alive = false; };
+  }, [child.id, isOwner, meId]);
   const [nickname, setNickname] = useState(child.nickname);
   const [ageBand, setAgeBand] = useState(child.ageBand);
   const [avatar, setAvatar] = useState(avatarOf(child.avatarId).id);
@@ -92,12 +103,13 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
     { ok: true, label: "Thông tin bé", hint: "Biệt danh và nhóm tuổi" },
     { ok: checks.learning, label: "Hồ sơ học tập", hint: "Mức đọc, chế độ đọc, chủ đề yêu thích", fix: () => onTab("learning") },
     { ok: checks.policy, label: "Cài đặt an toàn", hint: "Chủ đề được phép và bị chặn", fix: () => onTab("safety") },
-    { ok: checks.consent, label: "Đồng ý của phụ huynh", hint: checks.outdated ? "Điều khoản đã đổi — cần đồng ý lại" : "Đọc và đồng ý điều khoản dữ liệu", fix: () => onTab("safety") },
+    { ok: checks.consent, label: checks.outdated ? "Đồng ý lại điều khoản" : "Đồng ý của phụ huynh", hint: checks.outdated ? "Điều khoản đã đổi — cần đồng ý lại" : "Đọc và đồng ý điều khoản dữ liệu", fix: () => onTab("safety") },
   ] : [];
 
   return (
     <div className="sec" style={{ gap: 24 }}>
-      <section className="sec" style={{ gap: 12 }}>
+      <section className="sec" style={{ gap: 12, position: "relative" }}>
+        <DenyCover active={!isOwner} text="Bạn không đủ quyền hạn để sửa thông tin bé. Chỉ người quản lý chính được sửa." />
         <label className="field"><span className="lbl">Biệt danh</span>
           <input className="inp" maxLength={150} disabled={!isOwner} value={nickname} onChange={(e) => setNickname(e.target.value)} /></label>
         <div className="field"><span className="lbl">Nhóm tuổi</span>
@@ -111,9 +123,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
               <button key={a.id} type="button" role="radio" disabled={!isOwner} aria-checked={avatar === a.id} aria-label={a.label} className={`avatar${avatar === a.id ? " on" : ""}`} onClick={() => setAvatar(a.id)}>{a.emoji}</button>
             ))}
           </div>
-          <span className="sub">Avatar giúp bé nhận ra hồ sơ của mình khi đăng nhập.</span>
         </div>
-        <p className="sub">Tạo ngày {fmtDate(child.createdAt)}.{!isOwner && " Chỉ người quản lý chính (Owner) mới sửa được thông tin này."}</p>
         {isOwner && <button className={`btn btn-s${savedInfo ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={!dirty || busy || !nickname.trim()} onClick={() => void save()}>{savedInfo ? <Check className="ic" /> : <Save className="ic" />}{savedInfo ? "Đã lưu" : "Lưu thông tin"}</button>}
         {hint && <div className="notice ok" role="status">{hint}</div>}
       </section>
@@ -121,12 +131,11 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
       {child.status === "Draft" && (
         <section className="sec" style={{ gap: 10 }}>
           <h3 className="display" style={{ margin: 0 }}>Kích hoạt hồ sơ</h3>
-          <p className="sub">Bé chỉ đọc được truyện khi hồ sơ đang hoạt động. Cần hoàn tất các mục sau:</p>
           {!checks && <p className="sub">Đang kiểm tra…</p>}
           {rows.map((r) => (
             <div key={r.label} className="ck">
               <span className={`st ${r.ok ? "ok" : "warn"}`}>{r.ok ? <Check /> : <CircleAlert />}</span>
-              <span className="grow">{r.label}<small style={{ display: "block" }}>{r.hint}</small></span>
+              <span className="grow" title={r.hint}>{r.label}</span>
               {!r.ok && r.fix && <button className="btn btn-s" onClick={r.fix}>Hoàn tất</button>}
             </div>
           ))}
@@ -137,17 +146,20 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
       {isOwner && (child.status === "Active" || child.status === "Suspended") && (
         <section className="sec" style={{ gap: 8 }}>
           <h3 className="display" style={{ margin: 0 }}>Trạng thái hồ sơ</h3>
-          <p className="sub">
-            {child.status === "Active"
-              ? `Tạm dừng khi ${child.nickname} cần nghỉ dùng một thời gian; dữ liệu vẫn được giữ.`
-              : `Hồ sơ đang tạm dừng: ${child.nickname} chưa đăng nhập hay đọc truyện được.`}
-          </p>
           <div className="row">
             {child.status === "Active"
               ? <button className="btn btn-s" disabled={busy} onClick={() => void suspend()}><CirclePause className="ic" />Tạm dừng hồ sơ</button>
               : <button className="btn btn-p" disabled={busy} onClick={() => void resume()}><CirclePlay className="ic" />Tiếp tục hồ sơ</button>}
             <button className="btn btn-no" disabled={busy} onClick={() => void archive()}><Archive className="ic" />Lưu trữ hồ sơ</button>
           </div>
+        </section>
+      )}
+
+      {!isOwner && myRelId !== null && (
+        <section className="sec" style={{ gap: 8 }}>
+          <h3 className="display" style={{ margin: 0 }}>Rời hồ sơ</h3>
+          <button className="btn btn-no" style={{ width: "fit-content" }} disabled={busy} onClick={async () => { if (await confirmDialog(`Rời khỏi hồ sơ của ${child.nickname}? Bạn sẽ mất quyền xem ngay.`) && await run(() => supervisionService.revokeSupervisor(myRelId), "Bạn đã rời hồ sơ.")) onLeft(); }}>
+            <LogOut className="ic" />Rời hồ sơ</button>
         </section>
       )}
 

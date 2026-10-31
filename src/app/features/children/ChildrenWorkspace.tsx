@@ -2,7 +2,7 @@
 
 import "./children.css";
 import { useEffect, useState } from "react";
-import { Plus, RotateCcw, Ticket } from "lucide-react";
+import { Crown, Plus, RotateCcw, Ticket } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { supervisionService } from "@/app/services/supervisionService";
@@ -85,12 +85,12 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
     <section className="ws dock" style={{ gridTemplateColumns: "250px 1fr" }}>
       <div className="pane">
         <div ref={listRef} className="pb" style={{ gap: 6 }}>
-          {kids.map((k) => {
+          {kids.slice().sort((a, b) => Number(b.ownerUserId === meId) - Number(a.ownerUserId === meId)).map((k) => {
             const st = childStatus(k.status);
             return (
               <button key={k.id} className={`kid-item${mode === "view" && child?.id === k.id ? " on" : ""}`} onClick={() => { selectChild(k.id); setMode("view"); }}>
                 <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
-                <span className="grow"><b>{k.nickname}</b><small>{ageLabel(k.ageBand)}</small></span>
+                <span className="grow"><b>{k.nickname}{k.ownerUserId === meId && <Crown className="ic kid-owner" aria-label="Bạn là người quản lý chính" />}</b><small>{ageLabel(k.ageBand)}</small></span>
                 <span className={`pill ${st.tone}`}>{st.label}</span>
               </button>
             );
@@ -127,10 +127,10 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
             <div className="pb children-body">
               {!role ? <p className="sub">Đang tải…</p> : (
                 <div key={`${tab}:${child.id}`} className="tab-pane">
-                  {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={role.isOwner} onChanged={() => void reloadChildren(child.id)} onArchived={() => { rememberArchived(meId, child); setArchived(listArchived(meId)); void reloadChildren(); }} onTab={setTab} />}
+                  {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={role.isOwner} onChanged={() => void reloadChildren(child.id)} onArchived={() => { rememberArchived(meId, child); setArchived(listArchived(meId)); void reloadChildren(); }} meId={meId} onLeft={() => void reloadChildren()} onTab={setTab} />}
                   {tab === "learning" && <LearningTab key={child.id} child={child} canEdit={canEditLearning} onSaved={() => void reloadChildren(child.id)} />}
                   {tab === "safety" && <SafetyTab key={child.id} />}
-                  {tab === "supervisors" && <SupervisorsTab key={child.id} child={child} meId={meId} onLeft={() => void reloadChildren()} />}
+                  {tab === "supervisors" && <SupervisorsTab key={child.id} child={child} meId={meId} />}
                   {tab === "access" && (canManageAccess
                     ? <AccessTab key={child.id} child={child} />
                     : <p className="sub">Chỉ người quản lý chính hoặc người có quyền &quot;Sửa cài đặt an toàn&quot; mới quản lý được cách bé đăng nhập.</p>)}

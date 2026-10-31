@@ -38,3 +38,6 @@
   .safety-tab #s-mode, .safety-tab #s-topic { grid-column: 1 / -1; }
 }
 .safety-jump { padding-bottom: 2px; }
+
+.safety-tab .setbody { position: relative; }
+.safety-deny { position: absolute; inset: 0; z-index: 5; cursor: not-allowed; }

@@ -131,3 +131,6 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
   .children-tabs::after, .perm, .perm input, .perm input::after, .learn-grid .chip.on { transition: none; }
   .kid-item:hover { transform: none; }
 }
+
+.kid-item b { display: flex; align-items: center; gap: 5px; }
+.kid-owner { width: 13px; height: 13px; flex: none; color: var(--gold-deep, #d9a21b); }

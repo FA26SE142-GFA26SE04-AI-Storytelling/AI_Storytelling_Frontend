@@ -55,7 +55,6 @@ export default function DataRequestSection({ child }: { child: ChildProfile }) {
   return (
     <section className="sec" style={{ gap: 8 }}>
       <h3 className="display" style={{ margin: 0 }}>Dữ liệu của bé</h3>
-      <p className="sub">Bạn có thể yêu cầu xuất toàn bộ dữ liệu của {child.nickname}, hoặc xoá hồ sơ. Xoá sẽ thu hồi mọi quyền truy cập, xoá truyện riêng và dữ liệu học tập; không hoàn tác được. Quản trị viên xử lý trong tối đa 72 giờ.</p>
       <div className="row">
         <button className="btn btn-s" disabled={busy || pending("export")} onClick={() => void run(() => staffService.createDataRequest(child.id, "export"), "Đã gửi yêu cầu xuất dữ liệu.")}>Yêu cầu xuất dữ liệu</button>
         <button className="btn btn-no" disabled={busy || pending("delete")} onClick={() => { setConfirmDelete(true); setNote(null); }}>Yêu cầu xoá hồ sơ</button>
