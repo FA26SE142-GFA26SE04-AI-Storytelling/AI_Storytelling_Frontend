@@ -33,9 +33,9 @@ const TABS: { id: Tab; label: string }[] = [
 type Role = { isOwner: boolean; perms: string[] };
 
 /** Luồng 1 — khu quản lý hồ sơ bé ("Con của tôi", Bước 1.9). */
-export default function ChildrenWorkspace({ go }: WorkspaceProps) {
+export default function ChildrenWorkspace(_props: WorkspaceProps) {
   const { user } = useAuth();
-  const { children: kids, child, selectChild, reloadChildren } = useWorkspaceData();
+  const { children: kids, reloadChildren } = useWorkspaceData();
   // Mở từ nút "+ Thêm bé" ở màn khác thì vào thẳng form tạo hồ sơ.
   const [mode, setMode] = useState<"view" | "create" | "join">(() => (wantsChildCreate() || !kids.length ? "create" : "view"));
   useEffect(() => { clearChildIntent(); }, []);
@@ -43,6 +43,10 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
   const [role, setRole] = useState<Role | null>(null);
   const listRef = useRiseIn<HTMLDivElement>(".kid-item", [kids.length]);
   const meId = user?.id ?? -1;
+  // Bé chọn ở đây chỉ để xem và sửa trong trang Hồ sơ bé, không đổi bé của các trang khác.
+  const sortedKids = kids.slice().sort((a, b) => Number(b.ownerUserId === meId) - Number(a.ownerUserId === meId));
+  const [selId, setSelId] = useState<number | null>(null);
+  const child = kids.find((k) => k.id === selId) ?? sortedKids[0] ?? null;
   const [archived, setArchived] = useState<ArchivedChild[]>([]);
   const [restoreNote, setRestoreNote] = useState<string | null>(null);
   useEffect(() => { setArchived(listArchived(meId)); }, [meId]);
@@ -73,7 +77,8 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
   }, [child, meId]);
 
   const open = async (id: number, nextTab: Tab = "profile") => {
-    await reloadChildren(id);
+    await reloadChildren();
+    setSelId(id);
     setMode("view");
     setTab(nextTab);
   };
@@ -85,10 +90,10 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
     <section className="ws dock" style={{ gridTemplateColumns: "250px 1fr" }}>
       <div className="pane">
         <div ref={listRef} className="pb" style={{ gap: 6 }}>
-          {kids.slice().sort((a, b) => Number(b.ownerUserId === meId) - Number(a.ownerUserId === meId)).map((k) => {
+          {sortedKids.map((k) => {
             const st = childStatus(k.status);
             return (
-              <button key={k.id} className={`kid-item${mode === "view" && child?.id === k.id ? " on" : ""}`} onClick={() => { selectChild(k.id); setMode("view"); }}>
+              <button key={k.id} className={`kid-item${mode === "view" && child?.id === k.id ? " on" : ""}`} onClick={() => { setSelId(k.id); setMode("view"); }}>
                 <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
                 <span className="grow"><b>{k.nickname}{k.ownerUserId === meId && <Crown className="ic kid-owner" aria-label="Bạn là người quản lý chính" />}</b><small>{ageLabel(k.ageBand)}</small></span>
                 <span className={`pill ${st.tone}`}>{st.label}</span>
@@ -126,9 +131,9 @@ export default function ChildrenWorkspace({ go }: WorkspaceProps) {
             <div className="pb children-body">
               {!role ? <p className="sub">Đang tải…</p> : (
                 <div key={`${tab}:${child.id}`} className="tab-pane">
-                  {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={role.isOwner} onChanged={() => void reloadChildren(child.id)} onArchived={() => { rememberArchived(meId, child); setArchived(listArchived(meId)); void reloadChildren(); }} meId={meId} onLeft={() => void reloadChildren()} onTab={setTab} />}
-                  {tab === "learning" && <LearningTab key={child.id} child={child} canEdit={canEditLearning} onSaved={() => void reloadChildren(child.id)} />}
-                  {tab === "safety" && <SafetyTab key={child.id} />}
+                  {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={role.isOwner} onChanged={() => void reloadChildren()} onArchived={() => { rememberArchived(meId, child); setArchived(listArchived(meId)); void reloadChildren(); }} meId={meId} onLeft={() => void reloadChildren()} onTab={setTab} />}
+                  {tab === "learning" && <LearningTab key={child.id} child={child} canEdit={canEditLearning} onSaved={() => void reloadChildren()} />}
+                  {tab === "safety" && <SafetyTab key={child.id} child={child} />}
                   {tab === "supervisors" && <SupervisorsTab key={child.id} child={child} meId={meId} />}
                   {tab === "access" && (canManageAccess
                     ? <AccessTab key={child.id} child={child} />

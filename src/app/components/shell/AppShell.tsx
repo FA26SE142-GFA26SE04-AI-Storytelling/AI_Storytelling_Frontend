@@ -15,7 +15,7 @@ import PondBackdrop from "@/app/components/brand/PondBackdrop";
 type Props = {
   ws: WorkspaceId;
   onWs: (id: WorkspaceId) => void;
-  onKid: () => void;
+  onKid: (childId: number) => void;
   children: React.ReactNode;
 };
 

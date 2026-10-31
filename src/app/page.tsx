@@ -20,6 +20,7 @@ import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import RoadmapWorkspace from "@/app/features/roadmap/RoadmapWorkspace";
 import StaffApp from "@/app/features/staff/StaffApp";
 import { isStaffRole } from "@/app/types/auth";
+import ChildPickerHost from "@/app/components/ChildPickerHost";
 import { transitionWorkspace, useClickRipple } from "@/app/lib/motion";
 // Nạp sau cùng để ghi đè CSS của các màn trên điện thoại.
 import "@/app/styles/mobile.css";
@@ -40,10 +41,11 @@ const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
 };
 
 function Workspaces() {
-  const { child, childrenLoading } = useWorkspaceData();
+  const { children: kids, childrenLoading } = useWorkspaceData();
   const [ws, setWs] = useState<WorkspaceId>(DEFAULT_WORKSPACE);
   const [resumeStoryId, setResumeStoryId] = useState<number | null>(null);
-  const [kid, setKid] = useState(false);
+  // Bé đang dùng chế độ "Cho bé đọc"; chỉ đặt khi bấm nút đó, các trang phụ huynh không dùng.
+  const [kidId, setKidId] = useState<number | null>(null);
   const View = VIEWS[ws];
   const go = useCallback<WorkspaceProps['go']>((id, target) => transitionWorkspace(() => {
     const storyId = takesStoryId(id) ? target?.storyId ?? null : null;
@@ -58,19 +60,20 @@ function Workspaces() {
     return () => { window.removeEventListener('popstate',restore); window.removeEventListener('hashchange',restore); };
   }, []);
 
-  const kidOpen = kid && !!child;
+  const kidChild = kids.find((k) => k.id === kidId) ?? null;
+  const kidOpen = !!kidChild;
 
   return (
     <>
       {/* Khi bé đang dùng, khoá hẳn khu người lớn phía sau (kể cả phím Tab), chỉ ra được qua cổng phụ huynh. */}
       <div inert={kidOpen} style={{ display: "contents" }}>
-        <AppShell ws={ws} onWs={go} onKid={() => setKid(true)}>
+        <AppShell ws={ws} onWs={go} onKid={setKidId}>
           {childrenLoading
             ? <div className="splash">Đang tải hồ sơ bé…</div>
-            : <View key={takesStoryId(ws) ? `${ws}:${resumeStoryId ?? 'new'}` : ws} go={go} resumeStoryId={resumeStoryId} onKid={() => setKid(true)} />}
+            : <View key={takesStoryId(ws) ? `${ws}:${resumeStoryId ?? 'new'}` : ws} go={go} resumeStoryId={resumeStoryId} />}
         </AppShell>
       </div>
-      {kidOpen && <KidMode onExit={() => setKid(false)} />}
+      {kidChild && <KidMode child={kidChild} onExit={() => setKidId(null)} />}
     </>
   );
 }
@@ -114,6 +117,7 @@ export default function HomePage() {
   return (
     <WorkspaceDataProvider key={user.id}>
       <Workspaces />
+      <ChildPickerHost />
     </WorkspaceDataProvider>
   );
 }

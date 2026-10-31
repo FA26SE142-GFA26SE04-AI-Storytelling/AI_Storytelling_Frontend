@@ -8,6 +8,7 @@ import { Clock, FileCheck, Inbox, CirclePause, ShieldCheck, Sparkles } from "luc
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ApprovalMode, ContentCategory, PolicyRule, SafetyPolicy } from "@/app/types/childProfile";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
+import type { ChildProfile } from "@/app/types/childProfile";
 import { useRiseIn } from "@/app/lib/motion";
 import { fmtDate, presetBlocked } from "@/app/lib/guardian";
 import { CategoryRules, ConsentBlock, keptPolicyFields, normalizeRule, rulesToRequest } from "@/app/features/children/SafetyBlocks";
@@ -35,8 +36,8 @@ function Toggle({ on, label, hint, disabled, onChange }: { on: boolean; label: s
 }
 
 /** Luồng 1 Bước 1.4 — cài đặt an toàn của bé. */
-export default function SafetyWorkspace() {
-  const { child, reloadChildren } = useWorkspaceData();
+export default function SafetyWorkspace({ child }: { child: ChildProfile | null }) {
+  const { reloadChildren } = useWorkspaceData();
   // Mặc định chỉ Owner sửa được; người giám sát khác cần quyền "Sửa cài đặt an toàn" (BR-1.8). Kiểm tra lại mỗi lần đổi bé.
   const role = useMyRole(child);
   const canEdit = !!role?.can("ManageSafetySettings");
@@ -130,7 +131,7 @@ export default function SafetyWorkspace() {
     setNote({ ok: res.success, text: res.success ? "Đã lưu cài đặt an toàn." : res.message });
     if (res.success) {
       if (res.data) apply(res.data, cats, child.ageBand);
-      void reloadChildren(child.id);
+      void reloadChildren();
     }
   };
 

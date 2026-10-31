@@ -204,3 +204,35 @@
   .ws.with-steps .media-bar { flex-wrap: wrap; }
   .ws.with-steps .media-bar > .grow { flex-basis: 100%; }
 }
+
+/* ===== Chuyển động của Studio ===== */
+/* Vào trang: thanh tiến trình, khung chính và cột phải hiện lần lượt, chỉ một lần khi mở Studio. */
+.ws.with-steps > .studio-steps { animation: st-in .4s cubic-bezier(.2, .8, .3, 1) both; }
+.ws.with-steps > :nth-child(2) { animation: st-in .45s .08s cubic-bezier(.2, .8, .3, 1) both; }
+.ws.with-steps > :nth-child(3) { animation: st-in .45s .16s cubic-bezier(.2, .8, .3, 1) both; }
+@keyframes st-in { from { opacity: 0; transform: translateY(12px); } }
+
+/* Lá bước vừa xong nảy lên một nhịp */
+.ss.done .ss-pad { animation: st-pop .38s cubic-bezier(.3, 1.6, .5, 1); }
+@keyframes st-pop { 0% { transform: scale(.6); } 100% { transform: scale(1); } }
+
+/* AI đang viết: ếch nhún nhẹ, chữ bước hiện tại thở chậm để biết trang vẫn đang chạy */
+.pipe-now > :first-child { animation: st-bob 2.4s ease-in-out infinite; transform-origin: 50% 100%; }
+.pipe-now h3 { animation: st-breathe 2.4s ease-in-out infinite; }
+@keyframes st-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes st-breathe { 0%, 100% { opacity: 1; } 50% { opacity: .62; } }
+
+/* Dàn ý: các mốc hiện lần lượt như chuỗi lá sen nối nhau */
+.beat { animation: st-beat .4s cubic-bezier(.2, .8, .3, 1) both; }
+.beat:nth-child(1) { animation-delay: .04s; } .beat:nth-child(2) { animation-delay: .12s; } .beat:nth-child(3) { animation-delay: .2s; }
+.beat:nth-child(4) { animation-delay: .28s; } .beat:nth-child(5) { animation-delay: .36s; } .beat:nth-child(6) { animation-delay: .44s; }
+.beat:nth-child(n+7) { animation-delay: .5s; }
+@keyframes st-beat { from { opacity: 0; transform: translateX(-10px); } }
+
+/* Form ý tưởng: lựa chọn bật lên có nhịp, ô nhập sáng viền khi đang gõ */
+.ws.with-steps .chip.on, .ws.with-steps .seg button.on { animation: st-pop .26s cubic-bezier(.3, 1.5, .5, 1); }
+.brief textarea:focus, .brief .inp:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent); transition: box-shadow .2s, border-color .15s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .ws.with-steps > *, .ss.done .ss-pad, .pipe-now > :first-child, .pipe-now h3, .beat, .ws.with-steps .chip.on, .ws.with-steps .seg button.on { animation: none; }
+}

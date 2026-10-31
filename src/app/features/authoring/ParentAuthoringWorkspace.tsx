@@ -19,7 +19,7 @@ function resultOf<T>(ops: B.ParentOperationDto[], kind: string, versionId: numbe
   const value = ops.filter(o => o.kind === kind && o.sourceIsCurrent && o.storyVersionId === versionId && !o.revokedAt).sort((a,b) => b.id - a.id)[0]?.result;
   return value && typeof value === 'object' ? value as T : null;
 }
-export default function ParentAuthoringWorkspace({ childId, initialStoryId = null }: { childId: number; initialStoryId?: number | null }) {
+export default function ParentAuthoringWorkspace({ childId, initialStoryId = null, onChangeKid }: { childId: number; initialStoryId?: number | null; onChangeKid?: () => void }) {
   const h = useParentAuthoring(childId);
   // Mở thẳng bản nháp được chọn từ Thư viện. Đợi danh sách tải xong, vì lần tải danh sách đầu tiên huỷ mọi lần mở bản nháp trước đó.
   const opened = useRef(false);
@@ -28,7 +28,7 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
     opened.current = true;
     void h.load(initialStoryId, true);
   }, [h, initialStoryId]);
-  const { child, children: kids } = useWorkspaceData(); const role = useMyRole(child);
+  const { children: kids } = useWorkspaceData(); const child = kids.find(k => k.id === childId) ?? null; const role = useMyRole(child);
   const [references, setReferences] = useState<B.AssistanceReference[]>([]);
   const [selection,setSelection]=useState<AssistanceSelection|null>(null);
   const [form, setForm] = useState(empty);
@@ -66,6 +66,7 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
   const step = (n: number) => <span className="pa-num">{n}</span>;
   return <section className="ws dock" style={{ gridTemplateColumns:'1fr' }}><div className="pane st-page">
     <div className="st-body pa-body">
+      <div className="row pa-kid"><span>Soạn truyện cho <b>{child?.nickname ?? `bé #${childId}`}</b></span>{onChangeKid && <button className="btn btn-g" onClick={onChangeKid}>Đổi bé</button>}</div>
       {h.note && <p className="notice" role="status">{h.note}</p>}
       {h.uncertain && <p className="notice warn">Chưa rõ máy chủ đã nhận lệnh. Không tạo thao tác mới. <button className="btn btn-s" disabled={h.busy} onClick={() => void h.retry()}>Thử lại đúng lệnh</button></p>}
 

@@ -1,7 +1,7 @@
 "use client";
 
 import "./studio.css";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AsideContext } from "@/app/components/shell/AsidePane";
 import { ApproveSlot, type ApproveAction } from "@/app/features/story-workflow/approveSlot";
 import { useAuth } from "@/app/context/AuthContext";
@@ -20,6 +20,8 @@ import { useSteppedProgress } from "./useSteppedProgress";
 import { useMediaProgress, useStoryPipeline, type Stage } from "./useStoryPipeline";
 import { useRiseIn } from "@/app/lib/motion";
 import { useMyRole } from "@/app/features/children/useMyRole";
+import Frog from "@/app/components/brand/Frog";
+import { chooseChild } from "@/app/lib/chooseChild";
 
 type Prefill = AIStoryInputFormValues | null;
 
@@ -36,11 +38,14 @@ type PipelineProps = {
   asideCollapsed: boolean;
   onToggleAside: () => void;
   onNew: (prefill?: Prefill) => void;
+  /** Chọn lại bé khi chưa gửi ý tưởng (truyện chưa được tạo). */
+  onChangeKid: () => void;
   go: (id: WorkspaceId) => void;
 };
 
-function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, go, resumeStoryId }: PipelineProps) {
-  const { child, reload } = useWorkspaceData();
+function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, onChangeKid, go, resumeStoryId }: PipelineProps) {
+  const { children: kids, reload } = useWorkspaceData();
+  const child = kids.find((k) => k.id === childId) ?? null;
   const [approved, setApproved] = useState(false);
   // Nút duyệt nằm trên thanh tiến trình; màn duyệt truyện đăng ký hành động duyệt của nó vào đây.
   const [approve, setApprove] = useState<ApproveAction | null>(null);
@@ -74,7 +79,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
   </div></div></section>;
   return (
     <section ref={bodyRef} className="ws with-steps" data-aside={asideCollapsed ? "collapsed" : undefined}>
-      <StudioSteps progress={progress} context={p.resumed ? <><span role="status">Đang tiếp tục: {p.snapshot?.story?.title ?? `truyện #${p.storyId}`}</span><button className="btn btn-g" onClick={() => go('library')}>Về thư viện</button>{p.statusError && <button className="btn btn-s" onClick={p.refresh}>Tải lại trạng thái truyện</button>}</> : undefined}>
+      <StudioSteps progress={progress} context={p.resumed ? <><span role="status">Đang tiếp tục: {p.snapshot?.story?.title ?? `truyện #${p.storyId}`}</span><button className="btn btn-g" onClick={() => go('library')}>Về thư viện</button>{p.statusError && <button className="btn btn-s" onClick={p.refresh}>Tải lại trạng thái truyện</button>}</> : p.storyId === null && child ? <><span>Tạo truyện cho <b>{child.nickname}</b></span>{kids.length > 1 && <button className="btn btn-g" onClick={onChangeKid}>Đổi bé</button>}</> : undefined}>
         <StudioControls key={p.stage} stage={p.stage} valuesKnown={p.flow.valuesKnown} onEditIdea={p.flow.editInput} onRestart={restart} onStartNew={() => onNew()} approve={approve} />
       </StudioSteps>
       <AsideContext.Provider value={aside}>
@@ -88,7 +93,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           onArchived={() => { void reload(); onNew(); }}
         />
       ) : section === "media" && p.storyId !== null ? (
-        <StudioMedia key={p.storyId} storyId={p.storyId} ageBand={p.snapshot?.story?.ageBand??''} media={media} onFinish={() => { void reload(); onNew(); go("library"); }} />
+        <StudioMedia key={p.storyId} storyId={p.storyId} childId={childId} ageBand={p.snapshot?.story?.ageBand??''} media={media} onFinish={() => { void reload(); onNew(); go("library"); }} />
       ) : (
         <StudioPlan
           flow={p.flow}
@@ -111,7 +116,11 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
 
 export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspaceProps,'go' | 'resumeStoryId'>) {
   const { user } = useAuth();
-  const { child } = useWorkspaceData();
+  const { children: kids } = useWorkspaceData();
+  // Bé được chọn riêng cho trang Tạo truyện: chỉ có một bé đang hoạt động thì chọn luôn, nhiều bé thì hỏi bằng hộp chọn bé.
+  const activeKids = kids.filter((k) => k.status === "Active");
+  const [kidId, setKidId] = useState<number | null>(null);
+  const child = kids.find((k) => k.id === kidId) ?? (activeKids.length === 1 ? activeKids[0] : null);
   const role = useMyRole(child);
   const [run, setRun] = useState(0);
   const [resumeTarget, setResumeTarget] = useState(resumeStoryId ?? null);
@@ -121,6 +130,35 @@ export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspacePro
   const [asideCollapsed, setAsideCollapsed] = useState(false);
   const toggleAside = useCallback(() => setAsideCollapsed((v) => !v), []);
 
+  const pickKid = async () => {
+    const kid = await chooseChild({ title: "Tạo truyện cho bé nào?", filter: (k) => k.status === "Active" });
+    if (kid) { setKidId(kid.id); setRun((n) => n + 1); }
+  };
+  // Vào trang mà chưa biết tạo cho bé nào thì mở hộp chọn bé ngay, chỉ một lần.
+  const asked = useRef(false);
+  useEffect(() => {
+    if (asked.current || resumeTarget || child || activeKids.length < 2) return;
+    asked.current = true;
+    void pickKid();
+  });
+  // Đang mở lại một truyện dở thì không cần chọn bé; bé chỉ dùng làm khoá lưu phiên tạm.
+  const sessionKid = child ?? kids[0] ?? null;
+  if (user && resumeTarget && sessionKid) {
+    const back = () => { removeStorySession(user.id, sessionKid.id); setResumeTarget(null); window.history.replaceState(null,'',workspaceLocation(window.location.href,'studio')); setRun((n) => n + 1); };
+    return <Pipeline resumeStoryId={resumeTarget} key={`${sessionKid.id}:${run}:${resumeTarget}`} userId={user.id} childId={sessionKid.id} prefill={null} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={(next = null) => { setPrefill(next); back(); }} onChangeKid={() => void pickKid()} go={go} />;
+  }
+  if (user && !child && activeKids.length > 0) {
+    return (
+      <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
+        <div className="pane"><div className="empty">
+          <Frog size={100} mood="think" />
+          <b className="display">Tạo truyện cho bé nào?</b>
+          <span>Truyện AI được viết theo mức đọc và chính sách an toàn của từng bé.</span>
+          <button className="btn btn-p" style={{ marginTop: 6 }} onClick={() => void pickKid()}>Chọn bé</button>
+        </div></div>
+      </section>
+    );
+  }
   if (!user || !child) {
     return (
       <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
@@ -128,8 +166,23 @@ export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspacePro
       </section>
     );
   }
-  if (!resumeTarget && !role) return <section className="ws dock"><div className="pane"><p>Đang kiểm tra quyền…</p></div></section>;
-  if (!resumeTarget && !role?.can('GenerateStory')) return <section className="ws dock"><div className="pane"><p>Bạn chưa có quyền tạo truyện AI cho bé này.</p>{role?.can('AssignActivity') && <button className="btn btn-s" onClick={() => go("authoring")}>Làm thủ công</button>}</div></section>;
+  if (!role) return <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}><div className="pane"><div className="empty"><span>Đang kiểm tra quyền…</span></div></div></section>;
+  if (!role.can('GenerateStory')) return (
+    <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
+      <div className="pane">
+        <div className="empty">
+          <Frog size={100} mood="think" />
+          <b className="display">Bạn chưa có quyền tạo truyện AI cho {child.nickname}</b>
+          <span>Hãy xin quyền “Tạo truyện AI” từ người quản lý chính ở mục Hồ sơ bé.</span>
+          <div className="row" style={{ justifyContent: "center", marginTop: 6 }}>
+            {activeKids.length > 1 && <button className="btn btn-p" onClick={() => void pickKid()}>Chọn bé khác</button>}
+            <button className="btn btn-s" onClick={() => go("children")}>Mở Hồ sơ bé</button>
+            {role.can('AssignActivity') && <button className="btn btn-s" onClick={() => go("authoring")}>Làm thủ công</button>}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
   const reset = (next: Prefill = null) => { removeStorySession(user.id, child.id); setResumeTarget(null); window.history.replaceState(null,'',workspaceLocation(window.location.href,'studio')); setPrefill(next); setRun((n) => n + 1); };
-  return <Pipeline resumeStoryId={resumeTarget} key={`${child.id}:${run}:${resumeTarget ?? 'new'}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} go={go} />;
+  return <Pipeline resumeStoryId={resumeTarget} key={`${child.id}:${run}:${resumeTarget ?? 'new'}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} onChangeKid={() => void pickKid()} go={go} />;
 }

@@ -15,13 +15,13 @@ import StudioScenePreview from './StudioScenePreview';
 import StudioCompletion from './StudioCompletion';
 import MediaIssues from './MediaIssues';
 
-type Props = { storyId: number; ageBand:string; media: ReturnType<typeof useMediaProgress>; onFinish: () => void };
+type Props = { storyId: number; childId: number; ageBand:string; media: ReturnType<typeof useMediaProgress>; onFinish: () => void };
 
 /**
  * Sau khi duyệt (Phase 5): xem lại từng cảnh trong lúc hệ thống vẽ tranh và tạo giọng đọc.
  * Luôn trả về đủ hai khung (vùng xem truyện + cột phải), kể cả lúc đang tải, để khung viền không đổi kích thước giữa các state.
  */
-export default function StudioMedia({ storyId, ageBand, media, onFinish }: Props) {
+export default function StudioMedia({ storyId, childId, ageBand, media, onFinish }: Props) {
   const r = useStoryReview(storyId);
   const { bundle, error } = r;
   const [active, setActive] = useState(0);
@@ -68,7 +68,7 @@ export default function StudioMedia({ storyId, ageBand, media, onFinish }: Props
           <span className="grow">{m ? (m.isReady ? "Đã xác nhận media. Bạn có thể giao truyện vào lộ trình của bé." : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi xác nhận để hoàn tất truyện." : "Đang tạo, bạn có thể rời màn hình này.") : media.error ?? "Đang kiểm tra…"}</span>
           {m?.errorCode && <button className="btn btn-s" onClick={() => void api.retryMedia(storyId).then(media.refresh)}>Thử lại</button>}
           <button className="btn btn-s" onClick={onFinish}>Về thư viện</button>
-          {bundle&&<StudioCompletion pack={preview.pack} progress={m} story={{storyId,title:bundle.story.title,ageBand,length:bundle.story.content.trim()?bundle.story.content.trim().split(/\s+/u).length:0}} onChanged={reload}/>}
+          {bundle&&<StudioCompletion childId={childId} pack={preview.pack} progress={m} story={{storyId,title:bundle.story.title,ageBand,length:bundle.story.content.trim()?bundle.story.content.trim().split(/\s+/u).length:0}} onChanged={reload}/>}
         </div>
       </div>
 

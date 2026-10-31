@@ -213,3 +213,14 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 
 /* Vùng chỉ xem: lớp phủ trong suốt bắt cú bấm để báo thiếu quyền */
 .deny-cover { position: absolute; inset: 0; z-index: 5; cursor: not-allowed; }
+
+/* Hộp chọn bé dùng chung (components/ChildPickerHost) */
+.kid-pick-dlg { width: min(440px, 100%); gap: 14px; }
+.kid-pick-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
+.kid-pick { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; border: 1px solid var(--line); background: var(--surface); text-align: left; transition: border-color .15s, transform .15s; }
+.kid-pick:hover { border-color: var(--primary); transform: translateY(-1px); }
+.kid-pick .av { width: 34px; height: 34px; font-size: 20px; }
+.kid-pick .grow { display: flex; flex-direction: column; min-width: 0; }
+.kid-pick b { display: flex; align-items: center; gap: 5px; font-size: 14px; }
+.kid-pick small { color: var(--muted); font-size: 12px; }
+.kid-pick-owner { width: 13px; height: 13px; color: var(--gold-deep, #d9a21b); }

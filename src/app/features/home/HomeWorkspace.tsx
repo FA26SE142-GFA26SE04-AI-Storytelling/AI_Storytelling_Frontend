@@ -50,7 +50,8 @@ function Locked({ title, go }: { title: string; go: WorkspaceProps["go"] }) {
 /** Luồng 4 Bước 4.3c — Dashboard tổng quan của phụ huynh, đầu trang là "Con của tôi" (Luồng 1 Bước 1.9). */
 export default function HomeWorkspace({ go }: WorkspaceProps) {
   const { user } = useAuth();
-  const { children: kids, child, selectChild, stories, reviewQueue, error, reloadChildren } = useWorkspaceData();
+  const { children: kids, stories, reviewQueue, error, reloadChildren } = useWorkspaceData();
+  const child = kids[0] ?? null;
   const role = useMyRole(child);
   const [dash, setDash] = useState<Dashboard | null>(null);
   // Backend chưa có API dashboard / báo cáo tuần: ẩn hẳn các khối đó thay vì hiện "—" hay thông báo lỗi kỹ thuật.
@@ -116,7 +117,7 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
           {/* Tất cả các con, mỗi bé một thẻ gọn. Bấm thẻ để mở hồ sơ của bé. */}
           <section className="kc-row" aria-label="Các con">
             {kids.map((k) => (
-              <ChildCard key={k.id} child={k} onOpenProfile={() => { selectChild(k.id); go("children"); }} />
+              <ChildCard key={k.id} child={k} onOpenProfile={() => go("children")} />
             ))}
           </section>
 
@@ -159,7 +160,7 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
                   {role?.isOwner && requests.map((q) => (
                     <button key={q.id} className="mini-item" onClick={() => go("children")}><span className="grow" style={{ textAlign: "left" }}><b>Người giám sát #{q.requesterUserId} xin quyền {q.permissions.map(permLabel).join(", ")}</b><small>Mở Hồ sơ bé → Người giám sát để xử lý</small></span></button>
                   ))}
-                  <SupervisionTodos child={child} todos={todos} go={go} onOwnerChanged={() => { void reloadChildren(child.id); void load(); }} />
+                  <SupervisionTodos child={child} todos={todos} go={go} onOwnerChanged={() => { void reloadChildren(); void load(); }} />
                   {role && [...awaitingRecs, ...recentRecs].map((r) => <RecommendationCard key={r.id} rec={r} child={child} role={role} go={go} onChanged={() => void load()} />)}
                   {can("ViewProgress") && unseen.length > 0 && <p className="sub">{unseen.length} câu chuyện con vừa đọc xong — xem bên dưới để trò chuyện với con.</p>}
                 </div>

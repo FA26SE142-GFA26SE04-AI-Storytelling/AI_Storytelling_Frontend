@@ -2,13 +2,13 @@
 import { avatarOf } from "@/app/lib/guardian";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { ageLabel } from "@/app/lib/storyView";
 
 /** Nút "Cho bé đọc": một bé thì mở luôn, nhiều bé thì chọn bé trước rồi mới mở chế độ đọc. */
-export default function KidButton({ onKid }: { onKid: () => void }) {
-  const { children: kids, child, selectChild } = useWorkspaceData();
+export default function KidButton({ onKid }: { onKid: (childId: number) => void }) {
+  const { children: kids } = useWorkspaceData();
   const [open, setOpen] = useState(false);
   const boxRef = useRef<HTMLDivElement>(null);
 
@@ -21,8 +21,8 @@ export default function KidButton({ onKid }: { onKid: () => void }) {
     return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
   }, [open]);
 
-  const start = () => { if (kids.length > 1) setOpen((v) => !v); else onKid(); };
-  const pick = (id: number) => { selectChild(id); setOpen(false); onKid(); };
+  const start = () => { if (kids.length > 1) setOpen((v) => !v); else if (kids[0]) onKid(kids[0].id); };
+  const pick = (id: number) => { setOpen(false); onKid(id); };
 
   return (
     <div className="kid-pick" ref={boxRef}>
@@ -33,10 +33,9 @@ export default function KidButton({ onKid }: { onKid: () => void }) {
         <div className="kid-menu" role="menu" aria-label="Chọn bé để đọc">
           <p className="sub">Bé nào sẽ đọc?</p>
           {kids.map((k) => (
-            <button key={k.id} role="menuitem" className={child?.id === k.id ? "on" : ""} onClick={() => pick(k.id)}>
+            <button key={k.id} role="menuitem" onClick={() => pick(k.id)}>
               <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
               <span className="grow">{k.nickname}<small>{ageLabel(k.ageBand)}</small></span>
-              {child?.id === k.id && <Check className="ic" />}
             </button>
           ))}
         </div>

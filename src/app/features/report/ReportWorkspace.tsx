@@ -12,7 +12,7 @@ const SLICES = [
 ] as const;
 
 export default function ReportWorkspace() {
-  const { stories, child, error } = useWorkspaceData();
+  const { stories, error } = useWorkspaceData();
   const rootRef = useRiseIn<HTMLElement>(".kpi, tbody tr", [stories.length], { delay: 35, distance: 10 });
   const donutRef = useDrawDonut<SVGSVGElement>([stories.length]);
   const ai = stories.filter((s) => s.fromAi);
@@ -22,7 +22,7 @@ export default function ReportWorkspace() {
   let acc = 0;
 
   const kpis = [
-    { l: "Tổng số truyện", v: String(stories.length), d: child ? `của ${child.nickname}` : "" },
+    { l: "Tổng số truyện", v: String(stories.length), d: "do bạn tạo" },
     { l: "Do AI tạo", v: String(ai.length), d: `${stories.length ? Math.round((ai.length / stories.length) * 100) : 0}% tổng số` },
     { l: "Đã duyệt", v: String(count("ok")), d: `${approvedRate}% tổng số`, c: "var(--ok-ink)" },
     { l: "Đang chờ duyệt", v: String(count("wait")), d: "cần bạn xem", c: "var(--warn-ink)" },

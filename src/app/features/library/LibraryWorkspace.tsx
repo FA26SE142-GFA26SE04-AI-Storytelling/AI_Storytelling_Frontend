@@ -4,7 +4,6 @@ import "./library.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Archive, ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, Send, WandSparkles, X } from "lucide-react";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
-import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { useAuth } from "@/app/context/AuthContext";
 import type { StoryDto } from "@/app/types/story";
 import { storyService } from "@/app/services/storyService";
@@ -16,7 +15,6 @@ import { ArchiveDialog } from "@/app/features/review/ReviewTools";
 import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
 import { guardianService } from "@/app/services/guardianService";
 import type { CommunitySubmission, ContentReport } from "@/app/types/progress";
-import { useMyRole } from "@/app/features/children/useMyRole";
 import { CommunityDialog, ReportDialog } from "./ModerationDialogs";
 
 const SUB_STATUS: Record<string, string> = { pending: "Đang chờ duyệt", approved: "Đã có trong thư viện cộng đồng", rejected: "Bị từ chối — có thể nộp lại", withdrawn: "Đã rút", removed: "Đã gỡ" };
@@ -139,7 +137,6 @@ const sourceOf = (s: StoryCard) => (s.family ? "family" : s.fromAi ? "ai" : "man
 const SOURCE_LABEL: Record<string, string> = { ai: "Do AI tạo", manual: "Nhập sẵn", family: "Tự soạn gia đình" };
 
 export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
-  const { child } = useWorkspaceData();
   const { user } = useAuth();
   // Thư viện lấy truyện của mọi người dùng qua GET /Story (không lọc theo tác giả), rồi chỉ giữ truyện đã được duyệt.
   const [pub, setPub] = useState<StoryCard[]>([]);
@@ -174,7 +171,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
     }
     setFamily(all);
   }, []);
-  useEffect(() => { void loadPublic(); void loadFamily(); }, [loadPublic, loadFamily, child?.id]);
+  useEffect(() => { void loadPublic(); void loadFamily(); }, [loadPublic, loadFamily]);
   const reload = useCallback(async () => { await Promise.all([loadPublic(), loadFamily()]); }, [loadPublic, loadFamily]);
   const stories = useMemo(() => {
     const seen = new Set(pub.map((s) => s.id));
@@ -201,7 +198,6 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const [selected, setSelected] = useState<number | null>(null);
   const [dialog, setDialog] = useState<"preview" | "archive" | "roadmap" | "report" | "community" | null>(null);
   const [mod, setMod] = useState<{ reports: ContentReport[]; submission: CommunitySubmission | null } | null>(null);
-  const role = useMyRole(child);
   const [toast, setToast] = useState("");
   // Khung "Chi tiết" bên phải thu gọn được; cột lưới co theo bằng CSS (library.css).
   // Mới vào thì thu gọn; bấm vào một truyện sẽ tự mở khung chi tiết.
@@ -215,7 +211,9 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const sorted = useMemo(() => [...stories].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), [stories]);
   const topics = useMemo(() => [...new Set(sorted.map((s) => s.topic).filter(Boolean))], [sorted]);
   const activeTopic = topic && topics.includes(topic) ? topic : topics[0] ?? null;
-  const latest = sorted.slice(0, 10);
+  // Mới nhất: chỉ truyện đã công khai (không hiện truyện riêng), mới ra mắt xếp trước.
+  const released = useMemo(() => sorted.filter((s) => !s.family && s.raw.isPublished), [sorted]);
+  const latest = released.slice(0, 10);
   const inProgress = sorted.filter((s) => IN_PROGRESS.includes(statusOf(s)));
   const byTopic = sorted.filter((s) => s.topic === activeTopic);
   const bySource = sorted.filter((s) => source === "all" || sourceOf(s) === source);
@@ -234,7 +232,6 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
       s.title.toLowerCase().includes(needle));
   }, [sorted, q, status, genreF, ageF, srcF]);
   const activeCount = [status, genreF, ageF, srcF].filter((v) => v !== "all").length;
-  const clearFilters = () => { setQ(""); setStatus("all"); setGenreF("all"); setAgeF("all"); setSrcF("all"); };
 
   // Chưa bấm vào truyện nào thì không chọn sẵn truyện đầu tiên.
   const sel = stories.find((s) => s.id === selected) ?? null;
@@ -316,9 +313,11 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
             </Shelf>
           ) : (
             <>
-              <Shelf title="Mới nhất" items={latest} onAll={sorted.length > latest.length ? () => setExpanded({ title: "Mới nhất", items: sorted }) : undefined}>
-                <ShelfRow>{latest.map((s, i) => card(s, i + 1))}</ShelfRow>
-              </Shelf>
+              {latest.length > 0 && (
+                <Shelf title="Mới nhất" items={latest} onAll={released.length > latest.length ? () => setExpanded({ title: "Mới nhất", items: released }) : undefined}>
+                  <ShelfRow>{latest.map((s, i) => card(s, i + 1))}</ShelfRow>
+                </Shelf>
+              )}
               {inProgress.length > 0 && (
                 <Shelf title="Đang chuẩn bị" items={inProgress} sub="Đã duyệt, đang tạo tranh và giọng đọc" onAll={() => setExpanded({ title: "Đang chuẩn bị", items: inProgress })}>
                   <ShelfRow>{inProgress.map((s) => card(s))}</ShelfRow>
@@ -360,19 +359,19 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
               {selStatus === "review" && <button className="btn btn-p btn-c" onClick={() => sel.fromAi ? go('studio',{storyId:sel.id}) : go('review')}><WandSparkles className="ic" />Mở để duyệt</button>}
               {sel.fromAi && ['draft','generating','outline','review','media','moderation'].includes(selStatus ?? '') && <button className="btn btn-p btn-c" onClick={() => go("studio",{storyId:sel.id})}><WandSparkles className="ic" />Tiếp tục trong Studio</button>}
               {selStatus === "moderation" && <p className="sub">Truyện đang chờ kiểm duyệt viên xem, thường trong 24 giờ.</p>}
-              {selStatus === "ready" && role?.can("AssignActivity") && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình của con</button>}
+              {selStatus === "ready" && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình</button>}
               {selStatus === "ready" && mod?.submission && <p className="sub">Thư viện cộng đồng: {SUB_STATUS[mod.submission.status] ?? mod.submission.status}</p>}
-              {mine && selStatus === "ready" && mod?.submission && ((mod.submission.canWithdraw ?? mod.submission.status === "pending") || (mod.submission.canRemove ?? mod.submission.status === "approved")) && role?.can("ApproveStory") && (
+              {mine && selStatus === "ready" && mod?.submission && ((mod.submission.canWithdraw ?? mod.submission.status === "pending") || (mod.submission.canRemove ?? mod.submission.status === "approved")) && (
                 <button className="btn btn-s btn-c" onClick={() => void (mod.submission!.canRemove ?? mod.submission!.status === "approved" ? guardianService.removeCommunity(mod.submission!.id) : guardianService.withdrawCommunity(mod.submission!.id)).then((r) => { flash(r.success ? r.message : r.message); void loadMod(); })}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
               )}
-              {mine && selStatus === "ready" && role?.can("ApproveStory") && !(mod?.submission && ["pending", "approved"].includes(mod.submission.status)) && (
+              {mine && selStatus === "ready" && !(mod?.submission && ["pending", "approved"].includes(mod.submission.status)) && (
                 <button className="btn btn-s btn-c" disabled={!!mod?.reports.some((r) => r.status === "pending")} title={mod?.reports.some((r) => r.status === "pending") ? "Truyện đang có báo cáo chờ xử lý" : undefined} onClick={() => setDialog("community")}><Send className="ic" />Nộp thư viện cộng đồng</button>
               )}
               {selStatus === "ready" && <button className="btn btn-g btn-c" onClick={() => setDialog("report")}><Flag className="ic" />Báo cáo nội dung</button>}
               {mod?.reports.some((r) => r.status === "pending") && <p className="sub">Đã có báo cáo đang chờ kiểm duyệt viên xử lý.</p>}
               {selStatus !== "archived" && <button className="btn btn-s btn-c" onClick={() => setDialog("preview")}><Eye className="ic" />Xem trước như bé thấy</button>}
               {/* Lưu trữ cần quyền duyệt truyện (Luồng 2 mục 2.1, BR-1.10). */}
-              {mine && selStatus !== "archived" && role?.can("ApproveStory") && <button className="btn btn-no btn-c" onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ</button>}
+              {mine && selStatus !== "archived" && <button className="btn btn-no btn-c" onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ</button>}
               </>}
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
@@ -380,7 +379,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
       {sel && dialog === "preview" && <Preview story={sel} onClose={() => setDialog(null)} />}
       {sel && dialog === "roadmap" && <AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} onClose={() => setDialog(null)} />}
       {sel && dialog === "report" && <ReportDialog story={sel} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
-      {sel && dialog === "community" && <CommunityDialog story={sel} nickname={child?.nickname ?? ""} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
+      {sel && dialog === "community" && <CommunityDialog story={sel} nickname="" onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
       {sel && dialog === "archive" && <ArchiveDialog storyId={sel.id} onClose={() => setDialog(null)} onDone={(msg) => { setDialog(null); setToast(msg); void reload(); setTimeout(() => setToast(""), 3000); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </section>

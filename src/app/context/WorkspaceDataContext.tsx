@@ -8,13 +8,12 @@ import type { ChildProfile } from "@/app/types/childProfile";
 import type { StoryDto } from "@/app/types/story";
 import { toCard, statusKey, type StoryCard } from "@/app/lib/storyView";
 
+/** Dữ liệu dùng chung của khu phụ huynh. Không có "bé đang chọn": trang nào cần bé thì tự giữ lựa chọn hoặc hỏi bằng chooseChild. */
 type DataState = {
   children: ChildProfile[];
   childrenLoading: boolean;
-  child: ChildProfile | null;
-  selectChild: (id: number) => void;
   /** Tải lại danh sách bé (sau khi tạo, sửa, kích hoạt, nhận lời mời). */
-  reloadChildren: (selectId?: number) => Promise<void>;
+  reloadChildren: () => Promise<void>;
   stories: StoryCard[];
   storiesLoading: boolean;
   error: string | null;
@@ -34,16 +33,14 @@ export function WorkspaceDataProvider({ children: node }: { children: React.Reac
   const meId = useAuth().user?.id;
   const [kids, setKids] = useState<ChildProfile[]>([]);
   const [kidsLoading, setKidsLoading] = useState(true);
-  const [childId, setChildId] = useState<number | null>(null);
   const [stories, setStories] = useState<StoryCard[]>([]);
   const [storiesLoading, setStoriesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const reloadChildren = useCallback(async (selectId?: number) => {
+  const reloadChildren = useCallback(async () => {
     const res = await childProfileService.getMyChildProfiles();
     const list = (res.data ?? []).filter((c) => !/archived/i.test(c.status));
     setKids(list);
-    setChildId((cur) => selectId ?? (cur !== null && list.some((c) => c.id === cur) ? cur : list.find((c) => /active/i.test(c.status))?.id ?? list[0]?.id ?? null));
     if (!res.success) setError(res.message);
     setKidsLoading(false);
   }, []);
@@ -53,7 +50,7 @@ export function WorkspaceDataProvider({ children: node }: { children: React.Reac
   }, [reloadChildren]);
 
   const reload = useCallback(async () => {
-    if (childId === null || !meId) { setStories([]); return; }
+    if (!meId) { setStories([]); return; }
     setStoriesLoading(true);
     // Backend chưa lọc được theo hồ sơ bé: tạm lấy truyện do mình tạo (gồm truyện của mọi bé mình quản lý).
     // Mỗi trang tối đa 100 truyện (giới hạn của backend) nên tải lần lượt tới hết.
@@ -69,7 +66,7 @@ export function WorkspaceDataProvider({ children: node }: { children: React.Reac
     setStories(all.map(toCard));
     setError(message);
     setStoriesLoading(false);
-  }, [childId, meId]);
+  }, [meId]);
 
   useEffect(() => {
     void reload();
@@ -78,15 +75,13 @@ export function WorkspaceDataProvider({ children: node }: { children: React.Reac
   const value = useMemo<DataState>(() => ({
     children: kids,
     childrenLoading: kidsLoading,
-    child: kids.find((c) => c.id === childId) ?? null,
-    selectChild: setChildId,
     reloadChildren,
     stories,
     storiesLoading,
     error,
     reload,
     reviewQueue: stories.filter((s) => statusKey(s.raw) === "content_review"),
-  }), [kids, kidsLoading, childId, stories, storiesLoading, error, reload, reloadChildren]);
+  }), [kids, kidsLoading, stories, storiesLoading, error, reload, reloadChildren]);
 
   return <Ctx.Provider value={value}>{node}</Ctx.Provider>;
 }

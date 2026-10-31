@@ -194,6 +194,14 @@ const box = (r: DOMRect) => ({ transform: `translate(${r.left}px, ${r.top}px)`, 
  * cùng khung (tiêu đề, nút, chip, ô nhập… cùng chữ) bay thẳng sang vị trí mới.
  * Khung thừa thì ép dẹt vào mép, khung thiếu thì mở ra từ mép. Không hỗ trợ hoặc bật "giảm chuyển động" thì đổi ngay.
  */
+/** Hiệu ứng chuyển trang đang chạy (nếu có). Lớp ảnh chụp của nó nằm trên mọi thứ, kể cả hộp thoại. */
+let activeTransition: Promise<void> | null = null;
+
+/** Đợi chuyển trang xong; hộp thoại mở ngay khi vào trang cần đợi để không bị ảnh chụp đè lên. */
+export function workspaceTransitionDone(): Promise<void> {
+  return activeTransition ?? Promise.resolve();
+}
+
 export function transitionWorkspace(update: () => void) {
   const doc = document as Document & { startViewTransition?: (cb: () => void) => { ready: Promise<void>; finished: Promise<void> } };
   const panes = () => Array.from(document.querySelectorAll<HTMLElement>(".stage .ws > *"));
@@ -248,5 +256,7 @@ export function transitionWorkspace(update: () => void) {
     root.classList.remove("ws-vt");
     document.querySelectorAll<HTMLElement>("[style*='view-transition-name']").forEach((el) => el.style.removeProperty("view-transition-name"));
   };
-  transition.finished.then(done, done);
+  const finished = transition.finished.then(done, done);
+  activeTransition = finished;
+  void finished.then(() => { if (activeTransition === finished) activeTransition = null; });
 }

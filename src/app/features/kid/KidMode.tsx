@@ -4,9 +4,9 @@ import "./kid.css";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
-import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { childAccessService } from "@/app/services/childAccessService";
 import { childProfileService } from "@/app/services/childProfileService";
+import type { ChildProfile } from "@/app/types/childProfile";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import Frog from "@/app/components/brand/Frog";
 import ParentalGate from "./ParentalGate";
@@ -16,9 +16,8 @@ import KidApp from "./KidApp";
  * "Cho bé đọc" (Luồng 1 Bước 1.10, Luồng 3 Bước 3.0): mở phiên riêng của bé qua ProfileSwitcher.
  * Rời chế độ của bé phải qua cổng xác nhận người lớn nếu cài đặt an toàn bật.
  */
-export default function KidMode({ onExit }: { onExit: () => void }) {
+export default function KidMode({ child, onExit }: { child: ChildProfile; onExit: () => void }) {
   const { user } = useAuth();
-  const { child } = useWorkspaceData();
   const [entry, setEntry] = useState<{ ok: boolean; message?: string } | null>(null);
   const [gateOn, setGateOn] = useState(true);
   const [gateOpen, setGateOpen] = useState(false);

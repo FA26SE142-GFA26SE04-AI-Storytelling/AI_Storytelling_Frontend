@@ -30,25 +30,28 @@ export function useChildRefs(): ChildRef[] {
  * Luồng 4 Bước 4.1 / 4.1c — thêm một truyện hoặc một bộ truyện mẫu vào lộ trình của một hoặc nhiều con.
  * Mỗi bé được kiểm tra riêng; bé không phù hợp bị bỏ qua và liệt kê lại (BR-4.A1).
  */
-export default function AddToRoadmapDialog({ story, template, single, onClose, onDone }: {
+export default function AddToRoadmapDialog({ story, template, childId, single, onClose, onDone }: {
   story?: RoadmapStoryInput;
   template?: RoadmapTemplate;
-  /** Chỉ thêm cho bé đang chọn: ẩn mục chọn bé. */
+  /** Bé chọn sẵn; không truyền thì người dùng tự chọn bé trong hộp thoại. */
+  childId?: number;
+  /** Chỉ thêm cho bé `childId`: ẩn mục chọn bé. */
   single?: boolean;
   onClose: () => void;
   onDone?: () => void;
 }) {
-  const { child } = useWorkspaceData();
+  const { children: kids } = useWorkspaceData();
   const refs = useChildRefs();
   const [preview, setPreview] = useState<RoadmapCopyPlanDto | null>(null);
-  const [picked, setPicked] = useState<number[]>(child ? [child.id] : []);
+  const [picked, setPicked] = useState<number[]>(childId ? [childId] : []);
   const [position, setPosition] = useState<RoadmapPosition>("next");
   const [days, setDays] = useState<number | null>(template?.defaultDaysPerStep ?? null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<RoadmapAddResult | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const forWho = single && child ? ` cho ${child.nickname}` : "";
+  const fixed = single ? kids.find((k) => k.id === childId) : undefined;
+  const forWho = fixed ? ` cho ${fixed.nickname}` : "";
   const title = template ? `Thêm bộ “${template.title}”${forWho}` : `Thêm “${story?.title}”${forWho}`;
 
   const selectionKey = picked.join(',');
