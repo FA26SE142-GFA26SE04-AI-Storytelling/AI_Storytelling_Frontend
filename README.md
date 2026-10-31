@@ -77,7 +77,7 @@ Khung `AppShell` có thanh bên với các không gian làm việc (khai báo tr
 
 ## Chạy trên máy
 
-Cần **Node.js 18+** và npm. Toàn bộ mã nằm trong thư mục `src/`.
+Cần **Node.js `^20.19.0 || ^22.12.0 || >=24.0.0`** (Next 16 và Vitest 4 không chạy trên Node 18; CI dùng Node 22) và npm. Toàn bộ mã nằm trong thư mục `src/`.
 
 ```bash
 cd src
