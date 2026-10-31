@@ -70,19 +70,24 @@ describe('Remaining Core contracts',()=>{
 // Backend endpoints with a wrapper in app/services but no screen calling it yet (SERVICE_ONLY).
 const SERVICE_ONLY_ENDPOINTS=['GET /api/v1/ChildProfile/{id}','POST /api/v1/stories/import','POST /api/v1/stories/import-file','POST /api/v1/stories/{storyId}/existing/evaluate','GET /api/v1/stories/{storyId}/existing/evaluation','POST /api/v1/stories/{storyId}/existing/adapt','PUT /api/v1/stories/{storyId}/existing/content','POST /api/v1/stories/{storyId}/existing/keep-original','POST /api/v1/stories/{storyId}/existing/archive','DELETE /api/v1/LearningProfile/{childProfileId}','POST /api/v1/parent/stories/{storyId}/imports/preview','POST /api/v1/parent/stories/{storyId}/imports/confirm','GET /api/v1/parent/wishes/{wishId}','DELETE /api/v1/SafetyPolicy/{childProfileId}','GET /api/v1/moderation/wish-cards/{id}'];
 // Backend endpoints with no web wrapper at all yet (MISSING).
-const MISSING_ENDPOINTS=[];
-const UNCONNECTED_ENDPOINTS=m=>m.filter(r=>r.disposition==='MISSING'||r.disposition==='SERVICE_ONLY').map(r=>r.method+' '+r.route);
+const MISSING_ENDPOINTS:string[]=[];
+type AuditRow={method:string;route:string;disposition:string};
+const BY_DISPOSITION=(rows:AuditRow[],disposition:string)=>rows.filter(r=>r.disposition===disposition).map(r=>r.method+' '+r.route);
 it('has source evidence for every browser endpoint in the current controllers',()=>{
  if(existsSync('../../AI_Storytelling_Backend/src/Core/StoryPlatform.Api/Controllers')){
   // Without --check: the script exits 1 while any endpoint is unconnected.
   const output=execFileSync(process.execPath,['scripts/audit-core-api.mjs'],{encoding:'utf8',timeout:15000});
   const result=JSON.parse(output);expect(result.total).toBe(329);expect(result.connected).toBe(312);expect(result.excluded).toBe(2);
+  // The script also writes every endpoint with its disposition; check each category on its own so a new
+  // MISSING endpoint cannot hide behind a SERVICE_ONLY one that got a screen (or vice versa).
+  const audit=JSON.parse(readFileSync('out/core-api-audit.json','utf8')) as AuditRow[];
+  expect(BY_DISPOSITION(audit,'SERVICE_ONLY')).toEqual(SERVICE_ONLY_ENDPOINTS);
+  expect(BY_DISPOSITION(audit,'MISSING')).toEqual(MISSING_ENDPOINTS);
   expect([...result.missing].sort()).toEqual([...SERVICE_ONLY_ENDPOINTS,...MISSING_ENDPOINTS].sort());
  }
- const manifest=JSON.parse(readFileSync('docs/core-api-coverage.json','utf8')) as {method:string;route:string;disposition:string}[];
+ const manifest=JSON.parse(readFileSync('docs/core-api-coverage.json','utf8')) as AuditRow[];
  expect(manifest).toHaveLength(329);expect(new Set(manifest.map(r=>r.method+' '+r.route)).size).toBe(329);
- expect(manifest.filter(r=>r.disposition==='SERVICE_ONLY').map(r=>r.method+' '+r.route)).toEqual(SERVICE_ONLY_ENDPOINTS);
- expect(manifest.filter(r=>r.disposition==='MISSING').map(r=>r.method+' '+r.route)).toEqual(MISSING_ENDPOINTS);
- expect(UNCONNECTED_ENDPOINTS(manifest)).toHaveLength(15);
+ expect(BY_DISPOSITION(manifest,'SERVICE_ONLY')).toEqual(SERVICE_ONLY_ENDPOINTS);
+ expect(BY_DISPOSITION(manifest,'MISSING')).toEqual(MISSING_ENDPOINTS);
  expect(manifest.filter(r=>r.disposition==='SERVER_TO_SERVER').map(r=>r.route)).toEqual(['/api/v1/Payment/webhook/sepay']);
 });
