@@ -170,23 +170,3 @@ export function AdminPayments() {
     </Page>
   );
 }
-
-/** Luồng 5 Bước 5.1b — cấp / thu hồi quyền Administrator cho tài khoản có sẵn (API thật /AdminAccount). */
-export function AdminGrant() {
-  const [email, setEmail] = useState("");
-  const [uid, setUid] = useState("");
-  const { note, busy, run } = useAction(async () => undefined);
-  return (
-    <div className="st-card">
-      <h3>Cấp / thu hồi Administrator (API hiện có)</h3>
-      <p className="sub">Backend hiện cấp quyền Administrator cho một email đã có tài khoản. Đặc tả yêu cầu tài khoản Administrator riêng, được mời qua email — xem phần “Mời tài khoản mới”.</p>
-      <Notice note={note} />
-      <div className="row">
-        <input className="inp" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" aria-label="Email cấp quyền" />
-        <button className="btn btn-s" disabled={busy || !email.trim()} onClick={() => void run(() => staffService.grantAdmin(email.trim()))}>Cấp quyền</button>
-        <input className="inp" type="number" value={uid} onChange={(e) => setUid(e.target.value)} placeholder="Mã tài khoản" aria-label="Mã tài khoản thu hồi" style={{ maxWidth: 140 }} />
-        <button className="btn btn-no" disabled={busy || !uid} onClick={() => void run(() => staffService.revokeAdmin(+uid))}>Thu hồi</button>
-      </div>
-    </div>
-  );
-}

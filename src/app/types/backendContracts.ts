@@ -81,14 +81,6 @@ export interface AdaptExistingStoryRequestDto {
   'guideline': string | null;
 }
 
-export interface AdministratorAccountDto {
-  'userId': number;
-  'email': string;
-  'fullName': string;
-  'role': string;
-  'roleBeforeAdmin': string | null;
-}
-
 export type AgeBand = 1 | 2;
 export type AgeBandName = 'Age_6_8' | 'Age_9_10';
 export interface AgePresetDto {
@@ -924,10 +916,11 @@ export interface InvitationPreviewDto {
   'childAgeBand': string;
 }
 
-export interface InviteModeratorRequestDto {
+export interface InviteStaffRequestDto {
+  'role': 'Moderator' | 'Administrator';
   'fullName': string;
   'email': string;
-  'expertise': string;
+  'expertise': string | null;
   'note': string | null;
 }
 
@@ -1060,10 +1053,11 @@ export interface ModerationReviewViewDto {
   'expiresAt': string;
 }
 
-export interface ModeratorAccountDto {
+export interface StaffAccountDto {
   'userId': number;
   'email': string;
   'fullName': string;
+  'role': string;
   'expertise': string | null;
   'status': string;
   'isActivated': boolean;

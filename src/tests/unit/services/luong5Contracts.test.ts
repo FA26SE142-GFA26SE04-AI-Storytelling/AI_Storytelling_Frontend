@@ -15,22 +15,12 @@ describe('Luồng 5 — quản trị và kiểm duyệt', () => {
     ['yêu cầu xoá dữ liệu kèm mật khẩu và biệt danh', () => staffService.createDataRequest(3, 'delete', { currentPassword: 'pw', confirmNickname: 'Na' }), '/DataRequest', { childProfileId: 3, requestType: 'delete', currentPassword: 'pw', confirmNickname: 'Na' }],
     ['từ chối Data Request', () => staffService.rejectDataRequest(9, 'Thiếu thông tin'), '/DataRequest/9/reject', { reason: 'Thiếu thông tin' }],
     ['hạn mức riêng một tài khoản', () => staffService.setQuota({ scope: 'Personal', childProfileId: null, userId: 13, quotaLimit: 5, periodStart: '2026-10-01', periodEnd: '2026-10-31' }), '/TokenQuota/config', { scope: 'Personal', childProfileId: null, userId: 13, quotaLimit: 5, periodStart: '2026-10-01', periodEnd: '2026-10-31' }],
-    ['mời Moderator', () => staffService.inviteModerator('m@x.vn', 'Lê Mod', 'Giáo viên'), '/ModeratorAccount/invite', { email: 'm@x.vn', fullName: 'Lê Mod', expertise: 'Giáo viên', note: null }],
-    ['vô hiệu hoá Moderator kèm lý do', () => staffService.deactivateModerator(5, 'Nghỉ việc'), '/ModeratorAccount/5/deactivate', { reason: 'Nghỉ việc' }],
-    ['cấp Administrator chỉ gửi email', () => staffService.grantAdmin('a@x.vn'), '/AdminAccount/grant', { email: 'a@x.vn' }],
     ['giữ danh sách chặn theo tuổi khi sửa danh mục', () => staffService.updateCategory(2, 'Bạo lực', true, ['Age_6_8', 'Age_9_10']), '/ContentCategory/2', { displayName: 'Bạo lực', isActive: true, defaultBlockedAgeBands: ['Age_6_8', 'Age_9_10'] }],
   ] as const)('%s', async (_name, call, route, payload) => {
     const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody());
     await call();
     expect(String(spy.mock.calls[0][0])).toMatch(new RegExp(`${route.replace(/\//g, '\\/')}$`));
     expect(bodyOf(spy.mock.calls[0][1])).toEqual(payload);
-  });
-
-  it('danh sách Moderator: chưa kích hoạt là lời mời, Suspended là đã vô hiệu hoá', async () => {
-    const dto = (userId: number, isActivated: boolean, status: string) => ({ userId, email: `${userId}@x.vn`, fullName: 'M', expertise: null, status, isActivated, activatedAt: null, lastLoginAt: null, inviteExpiresAt: '2026-10-20T00:00:00Z' });
-    vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody([dto(1, false, 'PasswordResetPending'), dto(2, true, 'Active'), dto(3, true, 'Suspended')]));
-    const r = await staffService.staff();
-    expect(r.data?.map((s) => s.status)).toEqual(['invited', 'active', 'deactivated']);
   });
 
   it('hàng đợi kiểm duyệt gửi bộ lọc dạng query', async () => {
@@ -46,6 +36,61 @@ describe('Luồng 5 — quản trị và kiểm duyệt', () => {
     await accountService.activateStaff({ email: 'm@x.vn', inviteToken: 'tok', newPassword: 'abc12345', confirmPassword: 'abc12345', commitmentAccepted: true });
     expect(String(spy.mock.calls[0][0])).toMatch(/\/Auth\/staff-activation$/);
     expect(bodyOf(spy.mock.calls[0][1])).toMatchObject({ inviteToken: 'tok', commitmentAccepted: true });
+  });
+});
+
+describe('Luồng 5 — tài khoản vận hành (/StaffAccount)', () => {
+  const dto = (userId: number, role: string, isActivated: boolean, status: string) => ({ userId, email: `${userId}@x.vn`, fullName: 'S', role, expertise: role === 'Moderator' ? 'Giáo viên' : null, status, isActivated, activatedAt: null, lastLoginAt: null, inviteExpiresAt: '2026-11-03T00:00:00Z' });
+  const call = (spy: ReturnType<typeof vi.spyOn>) => ({ url: new URL(String(spy.mock.calls[0][0])), init: spy.mock.calls[0][1] as RequestInit | undefined });
+
+  it.each([
+    ['không lọc vai trò', undefined, {}],
+    ['chỉ Moderator', 'Moderator', { role: 'Moderator' }],
+    ['chỉ Administrator', 'Administrator', { role: 'Administrator' }],
+  ] as const)('liệt kê %s bằng GET /StaffAccount', async (_name, role, query) => {
+    const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody([]));
+    await staffService.staff(role);
+    const { url, init } = call(spy);
+    expect(url.pathname.endsWith('/StaffAccount')).toBe(true);
+    expect(Object.fromEntries(url.searchParams)).toEqual(query);
+    expect(init?.method ?? 'GET').toBe('GET');
+  });
+
+  it('danh sách giữ vai trò; chưa kích hoạt là lời mời, Suspended là đã vô hiệu hoá', async () => {
+    vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody([dto(1, 'Moderator', false, 'PasswordResetPending'), dto(2, 'Administrator', true, 'Active'), dto(3, 'Moderator', true, 'Suspended')]));
+    const r = await staffService.staff();
+    expect(r.data?.map((s) => [s.role, s.status])).toEqual([['Moderator', 'invited'], ['Administrator', 'active'], ['Moderator', 'deactivated']]);
+  });
+
+  it.each([
+    ['mời Moderator gửi kèm chuyên môn', () => staffService.invite({ role: 'Moderator', email: 'm@x.vn', fullName: 'Lê Mod', expertise: 'Giáo viên' }), '/StaffAccount/invite', { role: 'Moderator', email: 'm@x.vn', fullName: 'Lê Mod', expertise: 'Giáo viên', note: null }],
+    ['mời Administrator bỏ chuyên môn', () => staffService.invite({ role: 'Administrator', email: 'a@x.vn', fullName: 'Trần Admin', expertise: 'bị bỏ qua', note: 'Ca tối' }), '/StaffAccount/invite', { role: 'Administrator', email: 'a@x.vn', fullName: 'Trần Admin', expertise: null, note: 'Ca tối' }],
+    ['vô hiệu hoá kèm lý do', () => staffService.deactivate(5, 'Nghỉ việc'), '/StaffAccount/5/deactivate', { reason: 'Nghỉ việc' }],
+  ] as const)('%s', async (_name, run, route, payload) => {
+    const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody());
+    await run();
+    const { url, init } = call(spy);
+    expect(url.pathname.endsWith(route)).toBe(true);
+    expect(init?.method).toBe('POST');
+    expect(bodyOf(init)).toEqual(payload);
+  });
+
+  it.each([
+    ['gửi lại lời mời', () => staffService.resendInvite(7), '/StaffAccount/7/resend-invite'],
+    ['huỷ lời mời', () => staffService.cancelInvite(7), '/StaffAccount/7/cancel-invite'],
+    ['kích hoạt lại', () => staffService.reactivate(7), '/StaffAccount/7/reactivate'],
+  ] as const)('%s là POST không có body', async (_name, run, route) => {
+    const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody());
+    await run();
+    const { url, init } = call(spy);
+    expect(url.pathname.endsWith(route)).toBe(true);
+    expect(init?.method).toBe('POST');
+    expect(init?.body).toBeUndefined();
+  });
+
+  it('không còn hàm hay URL của ModeratorAccount / AdminAccount', () => {
+    expect(Object.keys(staffService)).not.toEqual(expect.arrayContaining(['grantAdmin']));
+    for (const name of ['grantAdmin', 'revokeAdmin', 'inviteModerator', 'deactivateModerator', 'reactivateModerator']) expect(name in staffService).toBe(false);
   });
 });
 

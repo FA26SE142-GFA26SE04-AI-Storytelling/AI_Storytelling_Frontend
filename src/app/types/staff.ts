@@ -180,11 +180,16 @@ export interface EvaluationRun {
 // ---------- API backend đã có ----------
 export interface DataRequest { id: number; childProfileId: number; requestType: string; status: string; rejectionReason?: string | null; createdAt: string; resolvedAt: string | null; resolvedByUserId: number | null }
 
-/** `GET /ModeratorAccount` — `status` là AccountStatus của backend (Active / Suspended / PasswordResetPending…). */
-export interface ModeratorAccountDto {
+/** Vai trò quản lý được qua `/StaffAccount`. */
+export type StaffAccountRole = 'Moderator' | 'Administrator';
+
+/** `GET /StaffAccount` — `status` là AccountStatus của backend (Active / Suspended / PasswordResetPending…). */
+export interface StaffAccountDto {
   userId: number;
   email: string;
   fullName: string;
+  role: StaffAccountRole | string;
+  /** Chỉ Moderator có. */
   expertise: string | null;
   status: string;
   isActivated: boolean;
@@ -227,4 +232,5 @@ export interface QueueQuery { itemType?: QueueItemType; status?: QueueItemStatus
 export interface BusinessReport { id: number; periodStart: string; periodEnd: string; storiesGenerated: number; storiesApproved: number; storiesRejected: number; readingSessionsCompleted: number; status: string; publishedAt: string | null }
 export interface TokenQuotaConfig { id: number; scope: string; organizationId: number | null; childProfileId: number | null; userId: number | null; quotaLimit: number; quotaUsed: number; periodStart: string; periodEnd: string }
 export interface PaymentTransaction { id: number; planId: number; planName: string; amount: number; transactionCode: string; qrCodeUrl: string | null; status: string; expiresAt: string; paidAt: string | null; sepayTransactionId: string | null }
-export interface AdministratorAccount { userId: number; email: string; fullName: string; role: string; roleBeforeAdmin: string | null }
+/** Body `POST /StaffAccount/invite`. */
+export interface InviteStaffInput { role: StaffAccountRole; email: string; fullName: string; expertise?: string; note?: string }
