@@ -1,7 +1,8 @@
 "use client";
+import { useTabActions } from "@/app/features/story-workflow/tabActions";
 
 import { useState } from "react";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, UserRoundPen } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
 import BriefForm from "./BriefForm";
@@ -23,6 +24,10 @@ type Props = {
   retryFailed?: () => Promise<{ success: boolean; message: string }>;
   refresh: () => void;
   onOutlineApproved: () => void;
+  /** Tên bé đang được tạo truyện, hiện ở đầu cột phải. */
+  kidName: string;
+  /** Có thì hiện nút đổi bé ở đầu cột phải (chỉ khi chưa gửi ý tưởng và có nhiều bé). */
+  onChangeKid?: () => void;
 };
 
 type View = "brief" | "outline" | "status";
@@ -35,7 +40,7 @@ function autoView(stage: Stage): View {
   return "status";
 }
 
-export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, retryFailed, refresh, onOutlineApproved }: Props) {
+export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, retryFailed, refresh, onOutlineApproved, kidName, onChangeKid }: Props) {
   // Lựa chọn tab chỉ có hiệu lực trong bước đã chọn; sang bước mới thì quay về view mặc định.
   const [choice, setChoice] = useState<{ stage: Stage; view: View } | null>(null);
   const hasOutline = !!snapshot?.outline?.currentVersion && storyId !== null;
@@ -48,6 +53,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
   const blocked = stage === "blocked";
   const statusLabel = blocked ? "Ý tưởng bị chặn" : stage === "stopped" ? "Đã dừng" : "AI đang làm";
 
+  const tabActions = useTabActions();
   return (
     <>
       <div className="center plan-center">
@@ -59,6 +65,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
           {auto === "status" && (
             <button role="tab" aria-selected={view === "status"} className={view === "status" ? "on" : ""} onClick={() => pick("status")}>{statusLabel}</button>
           )}
+          {tabActions && <div className="tab-actions">{tabActions}</div>}
         </div>
         <div className="plan-stage">
           <PondBackdrop />
@@ -86,7 +93,9 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
         </div>
       </div>
 
-      <AsidePane title="Quy tắc an toàn" icon={ShieldCheck}>
+      <AsidePane title={kidName} icon={ShieldCheck} actions={onChangeKid && (
+        <button className="btn btn-g aside-toggle" onClick={onChangeKid} title="Đổi bé" aria-label={`Đổi bé, đang tạo cho ${kidName}`}><UserRoundPen className="ic" /></button>
+      )}>
           {flow.context ? (
             <>
               <div className="kv">

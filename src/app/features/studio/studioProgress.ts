@@ -71,8 +71,10 @@ export interface StudioActions {
   waitReason: string | null;
 }
 
-export function studioActions(stage: Stage): StudioActions {
+export function studioActions(stage: Stage, failed = false): StudioActions {
   const none: StudioActions = { cancelWith: null, editInPlace: false, startNew: false, waitReason: null };
+  // Bước AI bị lỗi hẳn (không còn chạy): cho quay lại hoặc huỷ bằng cách lưu trữ bản nháp, không bắt chờ.
+  if (failed && (stage === "checking" || stage === "outline_wait" || stage === "generating")) return { ...none, cancelWith: "archive" };
   switch (stage) {
     case "brief": return { ...none, waitReason: "Chưa có truyện để quay lại hoặc huỷ." };
     // AI đang chạy: nút vẫn hiện nhưng mờ, không bấm được.

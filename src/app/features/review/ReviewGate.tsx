@@ -1,4 +1,5 @@
 "use client";
+import { useTabActions } from "@/app/features/story-workflow/tabActions";
 
 import "./review.css";
 import { useEffect, useState } from "react";
@@ -39,6 +40,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
   const r = useStoryReview(storyId, actor);
   const { bundle, busy, aiTask, error, validation, proposal } = r;
   const [tab, setTab] = useState<Tab>("story");
+  const tabActions = useTabActions();
   const [selection, setSelection] = useState<StorySelection | null>(null);
   const [editing, setEditing] = useState(false);
   const [dialog, setDialog] = useState<"learning" | "archive" | null>(null);
@@ -97,6 +99,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
         <div className="gate-tabs">
           {tabButton("story", "Truyện")}
           {artifacts.map((k) => tabButton(k, ARTIFACT_LABEL[k], items[k].length))}
+          {tabActions && <div className="tab-actions">{tabActions}</div>}
         </div>
 
         <div ref={docRef} className="gate-body">

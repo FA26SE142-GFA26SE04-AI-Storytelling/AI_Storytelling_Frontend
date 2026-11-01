@@ -6,7 +6,7 @@ import { Eye } from "lucide-react";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { ageLabel } from "@/app/lib/storyView";
 
-/** Nút "Cho bé đọc": một bé thì mở luôn, nhiều bé thì chọn bé trước rồi mới mở chế độ đọc. */
+/** Nút "Vào trang bé": một bé thì mở luôn, nhiều bé thì chọn bé trước rồi mới mở chế độ đọc. */
 export default function KidButton({ onKid }: { onKid: (childId: number) => void }) {
   const { children: kids } = useWorkspaceData();
   const [open, setOpen] = useState(false);
@@ -27,7 +27,7 @@ export default function KidButton({ onKid }: { onKid: (childId: number) => void 
   return (
     <div className="kid-pick" ref={boxRef}>
       <button className="btn btn-kid" onClick={start} disabled={kids.length === 0} aria-haspopup={kids.length > 1 ? "menu" : undefined} aria-expanded={kids.length > 1 ? open : undefined}>
-        <Eye className="ic" />Cho bé đọc
+        <Eye className="ic" />Vào trang bé
       </button>
       {open && (
         <div className="kid-menu" role="menu" aria-label="Chọn bé để đọc">

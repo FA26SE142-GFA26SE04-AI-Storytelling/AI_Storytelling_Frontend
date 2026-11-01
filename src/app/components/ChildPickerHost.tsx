@@ -35,14 +35,14 @@ export default function ChildPickerHost() {
 
   return (
     <div className="dlg-backdrop confirm-backdrop" role="dialog" aria-modal="true" aria-label={req.title} onClick={(e) => { if (e.target === e.currentTarget) close(null); }}>
-      <div className="dlg kid-pick-dlg">
+      <div className="dlg cpick-dlg">
         <div className="row"><b className="display grow" style={{ fontSize: 18 }}>{req.title}</b><button className="btn btn-g" aria-label="Đóng" onClick={() => close(null)}><X className="ic" /></button></div>
         {options.length === 0 ? <p className="sub">Chưa có bé nào phù hợp.</p> : (
-          <div className="kid-pick-list">
+          <div className="cpick-list">
             {options.map((k) => (
-              <button key={k.id} type="button" className="kid-pick" onClick={() => close(k)}>
+              <button key={k.id} type="button" className="cpick" onClick={() => close(k)}>
                 <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
-                <span className="grow"><b>{k.nickname}{k.ownerUserId === meId && <Crown className="ic kid-pick-owner" aria-label="Bạn là người quản lý chính" />}</b><small>{ageLabel(k.ageBand)}</small></span>
+                <span className="grow"><b>{k.nickname}{k.ownerUserId === meId && <Crown className="ic cpick-owner" aria-label="Bạn là người quản lý chính" />}</b><small>{ageLabel(k.ageBand)}</small></span>
               </button>
             ))}
           </div>

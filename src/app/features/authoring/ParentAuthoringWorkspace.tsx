@@ -2,7 +2,7 @@
 import { confirmDialog } from "@/app/lib/confirm";
 import './authoring.css';
 import { useEffect, useRef, useState } from 'react';
-import { Upload } from 'lucide-react';
+import { ShieldCheck, Upload, UserRoundPen } from 'lucide-react';
 import type * as B from '@/app/types/backendContracts';
 import { parentAuthoringService as service } from '@/app/services/parentAuthoringService';
 import { useParentAuthoring } from './useParentAuthoring';
@@ -28,7 +28,7 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
     opened.current = true;
     void h.load(initialStoryId, true);
   }, [h, initialStoryId]);
-  const { children: kids } = useWorkspaceData(); const child = kids.find(k => k.id === childId) ?? null; const role = useMyRole(child);
+  const { children: kids } = useWorkspaceData(); const child = kids.find(k => k.id === childId) ?? null; const kidName = child?.nickname ?? `bé #${childId}`; const role = useMyRole(child);
   const [references, setReferences] = useState<B.AssistanceReference[]>([]);
   const [selection,setSelection]=useState<AssistanceSelection|null>(null);
   const [form, setForm] = useState(empty);
@@ -66,16 +66,15 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
   const step = (n: number) => <span className="pa-num">{n}</span>;
   return <section className="ws dock" style={{ gridTemplateColumns:'1fr' }}><div className="pane st-page">
     <div className="st-body pa-body">
-      <div className="row pa-kid"><span>Soạn truyện cho <b>{child?.nickname ?? `bé #${childId}`}</b></span>{onChangeKid && <button className="btn btn-g" onClick={onChangeKid}>Đổi bé</button>}</div>
       {h.note && <p className="notice" role="status">{h.note}</p>}
       {h.uncertain && <p className="notice warn">Chưa rõ máy chủ đã nhận lệnh. Không tạo thao tác mới. <button className="btn btn-s" disabled={h.busy} onClick={() => void h.retry()}>Thử lại đúng lệnh</button></p>}
 
       {/* Nhóm 1: tạo mới hoặc mở bản nháp */}
       <section className="pa-card" aria-label="Bản nháp">
-        <div className="pa-head"><h3>Bản nháp</h3><button className="btn btn-s" disabled={h.busy || h.uncertain} onClick={h.refreshList}>Tải danh sách</button></div>
+        <div className="pa-head"><h3>Bản nháp</h3><span className="pa-kid"><ShieldCheck className="ic" aria-hidden />{kidName}{onChangeKid && <button className="btn btn-g pa-kid-change" onClick={onChangeKid} title="Đổi bé" aria-label={`Đổi bé, đang soạn cho ${kidName}`}><UserRoundPen className="ic" /></button>}</span><button className="btn btn-s" disabled={h.busy || h.uncertain} onClick={h.refreshList}>Tải danh sách</button></div>
         <div className="pa-new">
           <input className="inp" aria-label="Tên bản nháp mới" value={title} maxLength={200} onChange={e => setTitle(e.target.value)} />
-          <button className="btn btn-p" disabled={h.busy || h.uncertain || !canAssign} onClick={() => void h.create(title)}>Tạo bản nháp cho bé</button>
+          <button className="btn btn-p" disabled={h.busy || h.uncertain || !canAssign} onClick={() => void h.create(title)}>Tạo bản nháp cho {kidName}</button>
         </div>
         <details open={!story}>
           <summary>Bản nháp gia đình của bạn</summary>

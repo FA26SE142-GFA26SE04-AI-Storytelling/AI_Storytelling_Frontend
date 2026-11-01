@@ -17,12 +17,17 @@ type Props = {
   onStartNew: () => void;
   /** Hành động duyệt do màn đang hiện đăng ký (duyệt dàn ý hoặc duyệt truyện); null = chưa tới bước duyệt. */
   approve: ApproveAction | null;
+  /** Bước AI hiện tại đã lỗi hẳn: cho quay lại / huỷ thay vì bắt chờ. */
+  failed?: boolean;
 };
 
 type Pending = "back" | "cancel" | null;
 
 const WHAT_IS_LOST: Partial<Record<Stage, string>> = {
   outline: "Dàn ý hiện tại sẽ bị huỷ.",
+  outline_wait: "Bản nháp bị lỗi này sẽ được lưu trữ.",
+  generating: "Bản nháp bị lỗi này sẽ được lưu trữ.",
+  checking: "Bản nháp bị lỗi này sẽ được lưu trữ.",
   review: "Bản truyện này sẽ được lưu trữ, bé không thấy truyện này.",
   blocked: "Bản nháp này sẽ được lưu trữ.",
 };
@@ -32,12 +37,12 @@ const WHAT_IS_LOST: Partial<Record<Stage, string>> = {
  * Luôn hiện để vị trí cố định; bước đầu và lúc AI đang chạy thì mờ và không bấm được (tooltip nói lý do).
  * Luôn hỏi lại trước khi huỷ.
  */
-export default function StudioControls({ stage, valuesKnown, onEditIdea, onRestart, onStartNew, approve }: Props) {
+export default function StudioControls({ stage, valuesKnown, onEditIdea, onRestart, onStartNew, approve, failed = false }: Props) {
   const [pending, setPending] = useState<Pending>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const popRef = usePop<HTMLDivElement>(pending ?? "", 0.95);
-  const a = studioActions(stage);
+  const a = studioActions(stage, failed);
 
   if (a.startNew) {
     return <div className="ss-actions"><button className="btn btn-s" onClick={onStartNew}><Plus className="ic" />Tạo truyện mới</button></div>;

@@ -1,4 +1,5 @@
 "use client";
+import { useTabActions } from "@/app/features/story-workflow/tabActions";
 
 import { useMemo, useState } from "react";
 import { Check, CircleAlert, Image as ImageIcon, Images, Volume2 } from "lucide-react";
@@ -39,12 +40,14 @@ export default function StudioMedia({ storyId, childId, ageBand, media, onFinish
     <div className="ck"><span className={`st ${done ? "ok" : "warn"}`}>{done ? <Check /> : <Icon />}</span>{label}<small>{detail}</small></div>
   );
 
+  const tabActions = useTabActions();
   return (
     <>
       <div className="center">
         <div className="tools">
           <b style={{ padding: "0 6px" }}>{bundle?.story.title ?? ""}</b>
           <span className="pill ok" style={{ marginLeft: "auto" }}>Đã duyệt</span>
+          {tabActions && <div className="tab-actions" style={{ marginLeft: 8 }}>{tabActions}</div>}
         </div>
         {bundle ? (
           <div className="board">

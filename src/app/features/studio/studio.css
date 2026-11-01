@@ -170,8 +170,8 @@
 .brief-combo > input { flex: 1; min-width: 0; }
 .brief-combo > .brief-suggest { flex: none; width: 140px; }
 /* Thanh nút gửi: dính ở đáy khung cuộn, nằm gọn trong tờ giấy. Nút bên trái, lý do và số lượt bên phải. */
-.brief-submit { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 14px 0 2px; border-top: 1px solid var(--line-2);
-  background: color-mix(in srgb, var(--paper) 96%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+/* Nút gửi nằm cố định ở cuối form, không bám theo khi cuộn. */
+.brief-submit { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; padding: 14px 0 2px; border-top: 1px solid var(--line-2); margin-top: 6px; }
 .brief-submit > .notice { flex-basis: 100%; }
 .brief-go { flex: none; padding: 11px 22px; font-size: 15px; }
 /* Bị khoá: xám rõ ràng thay vì xanh nhạt mờ (trông như lỗi hiển thị). */
@@ -180,7 +180,6 @@
 .brief-why { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--warn-ink); }
 .brief-why svg { width: 15px; height: 15px; flex: none; }
 @media (max-width: 720px) {
-  .brief-submit { position: static; background: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
   .brief-go { flex: 1 1 100%; justify-content: center; }
 }
 @media (max-width: 720px) {
@@ -236,3 +235,14 @@
 @media (prefers-reduced-motion: reduce) {
   .ws.with-steps > *, .ss.done .ss-pad, .pipe-now > :first-child, .pipe-now h3, .beat, .ws.with-steps .chip.on, .ws.with-steps .seg button.on { animation: none; }
 }
+
+/* Cụm nút điều khiển ở góc phải thanh tab của từng khung (story-workflow/tabActions) */
+.tab-actions { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+.tab-actions .ss-icon { width: 32px; height: 32px; padding: 0; margin: 0; border-radius: 50%; border-bottom: 0; justify-content: center; }
+.tab-actions .ss-icon:not(.ss-approve) { color: var(--muted); }
+/* Thanh tab (.tabs, .gate-tabs) có style riêng cho nút tab; trả lại style nút thường cho cụm điều khiển và hộp xác nhận bên trong. */
+.tab-actions .ss-confirm .btn { padding: 6px 12px; margin: 0; font-size: 12.5px; border-radius: 14px; white-space: normal; }
+.tab-actions .ss-confirm .btn-p { color: #fff; border-bottom: 0; }
+.tab-actions .ss-confirm .btn-no { color: var(--danger); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); }
+.tab-actions .ss-approve, .tab-actions .ss-approve:hover { color: #fff; background: var(--primary-strong); }
+.tab-actions .ss-confirm { text-align: left; font-weight: 400; }

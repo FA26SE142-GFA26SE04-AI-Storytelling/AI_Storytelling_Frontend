@@ -4,6 +4,7 @@ import "./studio.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AsideContext } from "@/app/components/shell/AsidePane";
 import { ApproveSlot, type ApproveAction } from "@/app/features/story-workflow/approveSlot";
+import { TabActions } from "@/app/features/story-workflow/tabActions";
 import { useAuth } from "@/app/context/AuthContext";
 import { removeStorySession } from "@/app/features/story-workflow/storyStudioSession";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
@@ -77,11 +78,16 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
     {p.statusError && <p className="notice err" role="alert">{p.statusError}</p>}
     <div className="row"><button className="btn btn-s" onClick={p.refresh}>Tải lại trạng thái truyện</button><button className="btn btn-s" onClick={() => go('library')}>Về thư viện</button></div>
   </div></div></section>;
+  // Cụm nút điều khiển nằm ở góc phải thanh tab của khung đang hiện (xem story-workflow/tabActions).
+  const controls = (
+      <>
+        <StudioControls key={p.stage} stage={p.stage} valuesKnown={p.flow.valuesKnown} onEditIdea={p.flow.editInput} onRestart={restart} onStartNew={() => onNew()} approve={approve} failed={p.errorCode !== null} />
+      </>
+  );
   return (
     <section ref={bodyRef} className="ws with-steps" data-aside={asideCollapsed ? "collapsed" : undefined}>
-      <StudioSteps progress={progress} context={p.resumed ? <><span role="status">Đang tiếp tục: {p.snapshot?.story?.title ?? `truyện #${p.storyId}`}</span><button className="btn btn-g" onClick={() => go('library')}>Về thư viện</button>{p.statusError && <button className="btn btn-s" onClick={p.refresh}>Tải lại trạng thái truyện</button>}</> : p.storyId === null && child ? <><span>Tạo truyện cho <b>{child.nickname}</b></span>{kids.length > 1 && <button className="btn btn-g" onClick={onChangeKid}>Đổi bé</button>}</> : undefined}>
-        <StudioControls key={p.stage} stage={p.stage} valuesKnown={p.flow.valuesKnown} onEditIdea={p.flow.editInput} onRestart={restart} onStartNew={() => onNew()} approve={approve} />
-      </StudioSteps>
+      <StudioSteps progress={progress} context={p.resumed ? <><span role="status">Đang tiếp tục: {p.snapshot?.story?.title ?? `truyện #${p.storyId}`}</span><button className="btn btn-g" onClick={() => go('library')}>Về thư viện</button>{p.statusError && <button className="btn btn-s" onClick={p.refresh}>Tải lại trạng thái truyện</button>}</> : undefined} />
+      <TabActions.Provider value={controls}>
       <AsideContext.Provider value={aside}>
       <ApproveSlot.Provider value={setApprove}>
       {section === "review" && p.storyId !== null ? (
@@ -106,10 +112,13 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           retryFailed={p.retryFailed}
           refresh={p.refresh}
           onOutlineApproved={() => { setApproved(true); p.refresh(); }}
+          kidName={child?.nickname ?? "Bé"}
+          onChangeKid={p.storyId === null && kids.length > 1 ? onChangeKid : undefined}
         />
       )}
       </ApproveSlot.Provider>
       </AsideContext.Provider>
+      </TabActions.Provider>
     </section>
   );
 }

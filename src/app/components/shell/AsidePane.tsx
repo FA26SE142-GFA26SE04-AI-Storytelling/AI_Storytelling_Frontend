@@ -18,6 +18,8 @@ type Props = {
   /** Biểu tượng hiện trên thanh dọc khi thu gọn: người dùng nhận ra khung nào để mở lại. */
   icon?: LucideIcon;
   bodyRef?: Ref<HTMLDivElement>;
+  /** Nút phụ trên thanh tiêu đề, nằm trước nút thu gọn. */
+  actions?: ReactNode;
   children: ReactNode;
 };
 
@@ -25,19 +27,20 @@ type Props = {
  * Khung bên phải có thể thu gọn: tiêu đề + nút `»`, nội dung cuộn được, và thanh dọc có biểu tượng khi đã thu gọn.
  * Nội dung giữ bề rộng cố định trong lúc khung co để không bị bóp lại; khung cha cắt phần thừa.
  */
-export default function AsidePane({ title, icon: Icon = PanelRight, bodyRef, children }: Props) {
+export default function AsidePane({ title, icon: Icon = PanelRight, bodyRef, actions, children }: Props) {
   const aside = useContext(AsideContext);
   const collapsed = !!aside?.collapsed;
   return (
     <div className={`pane aside${collapsed ? " collapsed" : ""}${aside ? " collapsible" : ""}`}>
-      <div className="ph">
-        <span className="aside-title">{title}</span>
-        {aside && (
+      <div className="ph aside-ph">
+        <Icon className="ic aside-icon" aria-hidden /><span className="aside-title">{title}</span>
+        {(aside || actions) && (
           <div className="act">
-            <button className="btn btn-g aside-toggle" onClick={aside.toggle} aria-expanded={!collapsed}
+            {actions && <span className="aside-actions">{actions}</span>}
+            {aside && <button className="btn btn-g aside-toggle" onClick={aside.toggle} aria-expanded={!collapsed}
               aria-label={collapsed ? `Mở rộng khung ${title}` : `Thu gọn khung ${title}`} title={collapsed ? "Mở rộng" : "Thu gọn"}>
               <ChevronsRight className="ic" />
-            </button>
+            </button>}
           </div>
         )}
       </div>

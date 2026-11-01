@@ -11,6 +11,9 @@
 .aside.collapsed .ph { padding: 0; gap: 0; justify-content: center; }
 .aside.collapsed .ph::before { display: none; }
 .aside.collapsed .ph .act { margin-left: 0; }
+/* Thu gọn: chỉ còn nút mở rộng, nút phụ ẩn đi. */
+.aside-actions { display: contents; }
+.aside.collapsed .aside-actions { display: none; }
 .aside-toggle { width: 34px; height: 34px; padding: 0; justify-content: center; border-radius: 50%; }
 .aside-toggle .ic { width: 18px; height: 18px; transition: transform .38s cubic-bezier(.65, 0, .25, 1); }
 .aside.collapsed .aside-toggle .ic { transform: rotate(180deg); }
@@ -28,5 +31,11 @@
   .aside.collapsed .ph { padding: 0 18px; gap: 8px; justify-content: flex-start; }
   .aside.collapsed .ph::before { display: block; }
   .aside.collapsed .ph .act { margin-left: auto; }
+  .aside.collapsed .aside-actions { display: contents; }
   .aside-rail { display: none; }
 }
+
+/* Thanh tiêu đề dùng biểu tượng của khung (ví dụ khiên) thay cho chấm hoa sen chung của .ph */
+.aside-ph::before, .aside.collapsed .aside-ph::before { display: none; }
+.aside-icon { width: 16px; height: 16px; flex: none; color: var(--primary); }
+@media (min-width: 721px) { .aside.collapsed .aside-icon { display: none; } }

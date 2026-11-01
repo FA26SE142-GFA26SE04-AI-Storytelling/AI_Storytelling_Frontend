@@ -50,7 +50,7 @@ export function useStoryPipeline(userId: number, childId: number | null, approve
   const errorCode = failure?.code ?? null;
   /** Huỷ truyện hiện tại trên backend (từ chối dàn ý hoặc lưu trữ) trước khi làm lại. */
   const cancel = async (): Promise<ApiResponse<unknown>> => {
-    const how = studioActions(stage).cancelWith;
+    const how = studioActions(stage, failure !== null).cancelWith;
     if (storyId === null || !how) return { success: false, data: null, message: "Chưa thể huỷ ở bước này." };
     if (how === "reject_outline") {
       const version = status.data?.outline?.currentVersion?.versionNo;

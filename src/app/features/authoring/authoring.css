@@ -47,4 +47,9 @@
 .pa-for { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: 12.5px; background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--warn-ink); border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent); }
 .pa-for b { font-weight: 800; }
 
-.pa-kid { gap: 10px; font-size: 13px; }
+/* Bé đang được soạn truyện, cạnh tiêu đề Bản nháp; nút đổi bé là icon */
+.pa-kid { display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px 2px 10px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 10%, var(--surface)); font-size: 13px; font-weight: 700; }
+.pa-kid > .ic { width: 15px; height: 15px; color: var(--primary); }
+.pa-kid-change { width: 28px; height: 28px; padding: 0; justify-content: center; border-radius: 50%; }
+.pa-kid-change .ic { width: 16px; height: 16px; }
+.pa-kid:not(:has(.pa-kid-change)) { padding: 4px 10px; }
