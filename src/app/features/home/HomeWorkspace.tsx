@@ -5,18 +5,15 @@ import "./dashboard.css";
 import "@/app/features/roadmap/roadmap.css";
 import { useCallback, useEffect, useState } from "react";
 import { BookOpen, Lock, WandSparkles } from "lucide-react";
-import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { guardianService } from "@/app/services/guardianService";
 import { childProfileService } from "@/app/services/childProfileService";
-import { supervisionService } from "@/app/services/supervisionService";
 import { adaptiveService } from "@/app/services/adaptiveService";
 import type { Recommendation } from "@/app/types/adaptive";
 import type { Dashboard, ProgressReport } from "@/app/types/progress";
 import { parentWishService } from "@/app/services/storyWishService";
 import type { ParentWishDto } from "@/app/types/storyWish";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
-import type { PermissionRequest } from "@/app/types/supervision";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import Frog from "@/app/components/brand/Frog";
 import { BADGES } from "@/app/lib/readingRules";
@@ -26,7 +23,6 @@ import HoldPanel from "@/app/features/roadmap/HoldPanel";
 import { useRiseIn } from "@/app/lib/motion";
 import RecommendationCard from "@/app/features/adaptive/RecommendationCard";
 import WishItem from "./WishItem";
-import SupervisionTodos, { useSupervisionTodos } from "./SupervisionTodos";
 import CompletionCard from "./CompletionCard";
 import ReadingFeedback from "./ReadingFeedback";
 import InProgressStories, { needsYouCount } from "./InProgressStories";
@@ -49,8 +45,7 @@ function Locked({ title, go }: { title: string; go: WorkspaceProps["go"] }) {
 
 /** Luồng 4 Bước 4.3c — Dashboard tổng quan của phụ huynh, đầu trang là "Con của tôi" (Luồng 1 Bước 1.9). */
 export default function HomeWorkspace({ go }: WorkspaceProps) {
-  const { user } = useAuth();
-  const { children: kids, stories, reviewQueue, error, reloadChildren } = useWorkspaceData();
+  const { children: kids, stories, reviewQueue, error } = useWorkspaceData();
   const child = kids[0] ?? null;
   const role = useMyRole(child);
   const [dash, setDash] = useState<Dashboard | null>(null);
@@ -60,17 +55,15 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
   const [wishes, setWishes] = useState<ParentWishDto[]>([]);
   const [reports, setReports] = useState<ProgressReport[]>([]);
   const [quota, setQuota] = useState<TokenQuotaStatus | null>(null);
-  const [requests, setRequests] = useState<PermissionRequest[]>([]);
   const [recs, setRecs] = useState<Recommendation[]>([]);
-  const todos = useSupervisionTodos(child, user?.id ?? -1);
   const [openReport, setOpenReport] = useState<number | null>(null);
   const rootRef = useRiseIn<HTMLElement>(".dash-block", [child?.id, dash ? 1 : 0]);
 
   const load = useCallback(async () => {
     if (!child) return;
-    const [d, w, r, q, rels, rc] = await Promise.all([
+    const [d, w, r, q, rc] = await Promise.all([
       guardianService.dashboard(child.id), parentWishService.list(child.id), guardianService.reports(child.id),
-      childProfileService.getTokenQuotaForChild(child.id), supervisionService.listSupervisors(child.id),
+      childProfileService.getTokenQuotaForChild(child.id),
       // Luồng 6 Bước 6.5 — hàng đợi đề xuất chung của bé, tải lại mỗi lần mở Dashboard.
       child.status === "Active" ? adaptiveService.recommendations(child.id) : Promise.resolve({ data: [] as Recommendation[] }),
     ]);
@@ -81,17 +74,13 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
     setWishes((w.data ?? []).filter((x) => x.status === "Pending"));
     setReports(r.data ?? []);
     setQuota(q.success ? q.data : null);
-    // Yêu cầu cấp quyền chỉ Owner xử lý (Luồng 1 Bước G).
-    const others = (rels.data ?? []).filter((x) => x.supervisorRole !== "Owner");
-    const reqs = await Promise.all(others.map((x) => supervisionService.listPermissionRequests(x.id)));
-    setRequests(reqs.flatMap((x) => x.data ?? []).filter((x) => x.status === "Pending"));
   }, [child]);
   useEffect(() => { setDash(null); void load(); }, [load]);
 
   if (!child) {
     return (
       <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
-        <div className="pane"><div className="empty"><Frog size={110} mood="think" /><b className="display">Chưa có hồ sơ bé</b><span>Tạo hồ sơ bé để bắt đầu tạo truyện, hoặc nhập mã mời nếu bố/mẹ của bé đã mời bạn.</span><button className="btn btn-p" onClick={() => openChildCreate(go)}>Thêm hồ sơ bé</button></div></div>
+        <div className="pane"><div className="empty"><Frog size={110} mood="think" /><b className="display">Chưa có hồ sơ bé</b><span>Tạo hồ sơ bé để bắt đầu tạo truyện.</span><button className="btn btn-p" onClick={() => openChildCreate(go)}>Thêm hồ sơ bé</button></div></div>
       </section>
     );
   }
@@ -103,8 +92,7 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
   // Đề xuất hiện cho mọi người giám sát hợp lệ; nhãn quyền tính trên thẻ (Bước 6.5). Đề xuất vừa quyết định giữ lại 3 ngày để xem kết quả.
   const awaitingRecs = recs.filter((r) => r.status === "awaiting_review");
   const recentRecs = recs.filter((r) => r.status !== "awaiting_review" && r.status !== "stale" && r.decidedAt && Date.now() - Date.parse(r.decidedAt) < 3 * 86_400_000);
-  const actionCount = (can("ApproveStory") ? reviewQueue.length + wishes.length : 0) + needsYouCount(stories) + (dash?.holdCase?.needsAttention ? 1 : 0) + (role?.isOwner ? requests.length : 0) + unseen.length + awaitingRecs.length + todos.count;
-  const permLabel = (p: string) => PERMISSIONS.find((x) => x.id === p)?.label ?? p;
+  const actionCount = (can("ApproveStory") ? reviewQueue.length + wishes.length : 0) + needsYouCount(stories) + (dash?.holdCase?.needsAttention ? 1 : 0) + unseen.length + awaitingRecs.length;
 
   return (
     <section ref={rootRef} className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
@@ -157,10 +145,6 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
                   ))}
                   {can("ApproveStory") && wishes.map((w) => <WishItem key={w.wishId} wish={w} nickname={child.nickname} go={go} onChanged={() => void load()} />)}
                   {dash?.holdCase?.needsAttention && <HoldPanel child={child} role={role} onChanged={() => void load()} />}
-                  {role?.isOwner && requests.map((q) => (
-                    <button key={q.id} className="mini-item" onClick={() => go("children")}><span className="grow" style={{ textAlign: "left" }}><b>Người giám sát #{q.requesterUserId} xin quyền {q.permissions.map(permLabel).join(", ")}</b><small>Mở Hồ sơ bé → Người giám sát để xử lý</small></span></button>
-                  ))}
-                  <SupervisionTodos child={child} todos={todos} go={go} onOwnerChanged={() => { void reloadChildren(); void load(); }} />
                   {role && [...awaitingRecs, ...recentRecs].map((r) => <RecommendationCard key={r.id} rec={r} child={child} role={role} go={go} onChanged={() => void load()} />)}
                   {can("ViewProgress") && unseen.length > 0 && <p className="sub">{unseen.length} câu chuyện con vừa đọc xong — xem bên dưới để trò chuyện với con.</p>}
                 </div>

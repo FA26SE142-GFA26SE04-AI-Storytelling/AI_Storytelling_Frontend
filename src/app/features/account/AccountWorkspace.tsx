@@ -119,7 +119,7 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
               <button className="btn btn-no" style={{ width: "fit-content", marginTop: 8 }} onClick={() => void logoutAll()}><LogOut className="ic" />Đăng xuất tất cả</button>
             </section>
 
-            {user?.role === "Parent" && <DeleteAccountSection />}
+            {user?.role === "User" && <DeleteAccountSection />}
             </>}
           </div>
         </div>

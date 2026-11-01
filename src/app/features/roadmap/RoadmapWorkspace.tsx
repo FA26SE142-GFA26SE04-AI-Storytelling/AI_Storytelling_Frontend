@@ -6,9 +6,8 @@ import { confirmDialog } from "@/app/lib/confirm";
 import "./roadmap.css";
 import "@/app/features/review/review-tools.css";
 import { useCallback, useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, BookOpen, Check, Crown, GripVertical, Plus, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, BookOpen, Check, GripVertical, Plus, Trash2, X } from "lucide-react";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
-import { useAuth } from "@/app/context/AuthContext";
 import { guardianService } from "@/app/services/guardianService";
 import type { RoadmapItem, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
@@ -31,7 +30,6 @@ const SOURCE: Record<string, string> = { parent: "Bố mẹ chọn", template: "
 /** Luồng 4 Bước 4.1–4.1d — "Lộ trình của con". */
 export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   const { children: kids, stories } = useWorkspaceData();
-  const meId = useAuth().user?.id ?? -1;
   // Bé chọn ở đây chỉ dùng trong trang Lộ trình. Nhiều bé thì phải bấm chọn trước; chỉ có một bé thì hiện luôn.
   const [picked, setPicked] = useState<number | null>(null);
   const child = kids.find((k) => k.id === picked) ?? (kids.length === 1 ? kids[0] : null);
@@ -61,10 +59,10 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
   const choose = (id: number) => { setPicked(id); setNote(null); setShowHistory(false); };
   const kidsBar = (
     <div className="rm-kids" role="tablist" aria-label="Chọn bé để xem lộ trình">
-      {kids.slice().sort((a, b) => Number(b.ownerUserId === meId) - Number(a.ownerUserId === meId)).map((k) => (
+      {kids.map((k) => (
         <button key={k.id} role="tab" aria-selected={child?.id === k.id} className={`rm-kid${child?.id === k.id ? " on" : ""}`} onClick={() => choose(k.id)}>
           <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
-          <span className="grow"><b>{k.nickname}{k.ownerUserId === meId && <Crown className="ic kid-owner" aria-label="Bạn là người quản lý chính" />}</b><small>{ageLabel(k.ageBand)}</small></span>
+          <span className="grow"><b>{k.nickname}</b><small>{ageLabel(k.ageBand)}</small></span>
           {child?.id === k.id && <Check className="ic" />}
         </button>
       ))}

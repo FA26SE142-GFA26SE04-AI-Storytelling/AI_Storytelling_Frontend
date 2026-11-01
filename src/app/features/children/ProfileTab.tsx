@@ -5,10 +5,8 @@ import { confirmDialog } from "@/app/lib/confirm";
 import { useEffect, useState } from "react";
 import { useFlash } from "@/app/lib/useFlash";
 import ActivitySection from '@/app/features/account/ActivitySection';
-import { Archive, Check, LogOut, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
+import { Archive, Check, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
-import { supervisionService } from "@/app/services/supervisionService";
-import DataRequestSection from "./DataRequestSection";
 import type { ChildProfile } from "@/app/types/childProfile";
 import { AGE_BANDS, AVATARS, avatarOf } from "@/app/lib/guardian";
 
@@ -16,22 +14,13 @@ type Checks = { learning: boolean; policy: boolean; consent: boolean; outdated: 
 type Note = { ok: boolean; text: string } | null;
 
 /** Bước 1.2 (sửa thông tin, avatar), 1.8 (kích hoạt), 1.8b và Mục 7 (tạm dừng, tiếp tục, lưu trữ). */
-export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTab, meId, onLeft }: {
+export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTab }: {
   child: ChildProfile;
   isOwner: boolean;
   onChanged: () => void;
   onArchived: () => void;
   onTab: (tab: "learning" | "safety") => void;
-  meId: number;
-  onLeft: () => void;
 }) {
-  const [myRelId, setMyRelId] = useState<number | null>(null);
-  useEffect(() => {
-    if (isOwner) return;
-    let alive = true;
-    void supervisionService.listSupervisors(child.id).then((r) => { if (alive) setMyRelId((r.data ?? []).find((x) => x.supervisorUserId === meId)?.id ?? null); });
-    return () => { alive = false; };
-  }, [child.id, isOwner, meId]);
   const [nickname, setNickname] = useState(child.nickname);
   const [ageBand, setAgeBand] = useState(child.ageBand);
   const [avatar, setAvatar] = useState(avatarOf(child.avatarId).id);
@@ -155,15 +144,6 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
         </section>
       )}
 
-      {!isOwner && myRelId !== null && (
-        <section className="sec" style={{ gap: 8 }}>
-          <h3 className="display" style={{ margin: 0 }}>Rời hồ sơ</h3>
-          <button className="btn btn-no" style={{ width: "fit-content" }} disabled={busy} onClick={async () => { if (await confirmDialog(`Rời khỏi hồ sơ của ${child.nickname}? Bạn sẽ mất quyền xem ngay.`) && await run(() => supervisionService.revokeSupervisor(myRelId), "Bạn đã rời hồ sơ.")) onLeft(); }}>
-            <LogOut className="ic" />Rời hồ sơ</button>
-        </section>
-      )}
-
-      {isOwner && <DataRequestSection child={child} />}
       <ActivitySection key={`audit:${child.id}`} childId={child.id} />
 
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}

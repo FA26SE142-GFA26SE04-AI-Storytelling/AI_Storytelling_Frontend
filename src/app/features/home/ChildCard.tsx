@@ -1,10 +1,9 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
-import { BookOpen, Headphones, Heart, Lock, LockOpen, Route, ShieldCheck, Users } from "lucide-react";
+import { BookOpen, Headphones, Heart, Lock, LockOpen, Route, ShieldCheck } from "lucide-react";
 import type { ChildProfile, LearningProfile, SafetyPolicy } from "@/app/types/childProfile";
 import { childProfileService } from "@/app/services/childProfileService";
-import { supervisionService } from "@/app/services/supervisionService";
 import { guardianService } from "@/app/services/guardianService";
 import { ageLabel } from "@/app/lib/storyView";
 import { avatarOf, childStatus } from "@/app/lib/guardian";
@@ -12,7 +11,6 @@ import { avatarOf, childStatus } from "@/app/lib/guardian";
 type Detail = {
   learning: LearningProfile | null;
   safety: SafetyPolicy | null;
-  supervisors: number | null;
   roadmap: { completed: number; total: number } | null;
 };
 
@@ -34,14 +32,12 @@ export default function ChildCard({ child, onOpenProfile }: { child: ChildProfil
     void Promise.all([
       childProfileService.getLearningProfile(child.id),
       childProfileService.getSafetyPolicy(child.id),
-      supervisionService.listSupervisors(child.id),
       guardianService.roadmap(child.id),
-    ]).then(([lp, sp, sv, rm]) => {
+    ]).then(([lp, sp, rm]) => {
       if (!alive) return;
       setD({
         learning: lp.success ? lp.data : null,
         safety: sp.success ? sp.data : null,
-        supervisors: sv.success && sv.data ? sv.data.length : null,
         roadmap: rm.success && rm.data ? { completed: rm.counts?.completed ?? 0, total: rm.counts?.total ?? rm.data.length } : null,
       });
     });
@@ -78,7 +74,6 @@ export default function ChildCard({ child, onOpenProfile }: { child: ChildProfil
             {sp && <Stat icon={<ShieldCheck aria-hidden />} value={blocked} label={`${blocked} chủ đề bị chặn, tối đa ${sp.maxStoryLength} tiếng mỗi truyện`} />}
             {sp && <Stat icon={sp.parentalGateEnabled ? <Lock aria-hidden /> : <LockOpen aria-hidden />} value={sp.parentalGateEnabled ? "Bật" : "Tắt"}
               label={`Cổng phụ huynh ${sp.parentalGateEnabled ? "đang bật" : "đang tắt"}`} tone={sp.parentalGateEnabled ? "ok" : "warn"} />}
-            {d.supervisors !== null && <Stat icon={<Users aria-hidden />} value={d.supervisors} label={`${d.supervisors} người giám sát`} />}
           </ul>
         )}
       </button>

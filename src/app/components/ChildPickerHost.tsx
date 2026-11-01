@@ -2,14 +2,14 @@
 
 import "@/app/features/review/review-tools.css";
 import { useEffect, useState } from "react";
-import { Crown, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { subscribeChooseChild, type ChooseChildRequest } from "@/app/lib/chooseChild";
 import { avatarOf } from "@/app/lib/guardian";
 import { ageLabel } from "@/app/lib/storyView";
 
-/** Hiển thị hộp chọn bé cho chooseChild(); bé do mình quản lý chính xếp trước. */
+/** Hiển thị hộp chọn bé cho chooseChild(). */
 export default function ChildPickerHost() {
   const { children: kids } = useWorkspaceData();
   const meId = useAuth().user?.id ?? -1;
@@ -42,7 +42,7 @@ export default function ChildPickerHost() {
             {options.map((k) => (
               <button key={k.id} type="button" className="cpick" onClick={() => close(k)}>
                 <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
-                <span className="grow"><b>{k.nickname}{k.ownerUserId === meId && <Crown className="ic cpick-owner" aria-label="Bạn là người quản lý chính" />}</b><small>{ageLabel(k.ageBand)}</small></span>
+                <span className="grow"><b>{k.nickname}</b><small>{ageLabel(k.ageBand)}</small></span>
               </button>
             ))}
           </div>

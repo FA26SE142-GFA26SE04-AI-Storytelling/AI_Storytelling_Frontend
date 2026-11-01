@@ -15,12 +15,6 @@ export interface AuthResponseData {
   tokenType: string;
   expiresInSeconds: number;
   user: UserProfile;
-  /** Tài khoản vận hành đã bật TOTP: cần nhập mã trước khi có token (Luồng 5 Bước 5.1). */
-  mfaRequired?: boolean;
-  /** Lần đăng nhập đầu: phải thiết lập TOTP bằng mã QR. */
-  mfaSetupRequired?: boolean;
-  mfaChallengeToken?: string | null;
-  mfaProvisioningUri?: string | null;
 }
 
 /** Vai trò vận hành (Luồng 5) — tách khỏi Parent. */

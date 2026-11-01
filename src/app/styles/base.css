@@ -223,4 +223,3 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 .cpick .grow { display: flex; flex-direction: column; min-width: 0; }
 .cpick b { display: flex; align-items: center; gap: 5px; font-size: 14px; }
 .cpick small { color: var(--muted); font-size: 12px; }
-.cpick-owner { width: 13px; height: 13px; color: var(--gold-deep, #d9a21b); }

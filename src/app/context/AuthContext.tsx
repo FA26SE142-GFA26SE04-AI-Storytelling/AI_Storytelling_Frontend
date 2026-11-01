@@ -18,7 +18,6 @@ interface AuthContextType {
   forgotPassword: (data: ForgotPasswordRequest) => Promise<ApiResponse<object | null>>;
   resetPassword: (data: ResetPasswordRequest) => Promise<ApiResponse<object | null>>;
   logout: () => Promise<void>;
-  verifyMfa: (challengeToken: string, code: string) => Promise<ApiResponse<AuthResponseData>>;
   refreshProfile: () => Promise<UserProfile | null>;
   refreshToken: () => Promise<ApiResponse<AuthResponseData>>;
   pingBackend: () => Promise<void>;
@@ -110,10 +109,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const result = await authService.login(credentials);
     setIsLoading(false);
 
-    if (result.success && (result.data?.mfaRequired || result.data?.mfaSetupRequired)) {
-      // Chờ bước nhập mã TOTP (verifyMfa).
-      return result;
-    }
     if (result.success && result.data) {
       setAccessToken(result.data.accessToken);
       setUser(result.data.user);
@@ -166,15 +161,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return result;
   };
 
-  const verifyMfa = async (challengeToken: string, code: string): Promise<ApiResponse<AuthResponseData>> => {
-    const result = await authService.verifyMfa(challengeToken, code);
-    if (result.success && result.data?.accessToken) {
-      setAccessToken(result.data.accessToken);
-      setUser(result.data.user);
-    }
-    return result;
-  };
-
   const logout = async (): Promise<void> => {
     setIsLoading(true);
     clearStorySessions();
@@ -208,7 +194,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         forgotPassword,
         resetPassword,
         logout,
-        verifyMfa,
         refreshProfile,
         refreshToken,
         pingBackend,

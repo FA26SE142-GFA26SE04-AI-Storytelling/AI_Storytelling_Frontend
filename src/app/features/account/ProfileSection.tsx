@@ -7,7 +7,7 @@ import { showToast } from "@/app/lib/toast";
 import { useAuth } from "@/app/context/AuthContext";
 import { accountService } from "@/app/services/accountService";
 
-const ROLE: Record<string, string> = { Parent: "Phụ huynh", Administrator: "Quản trị viên", ContentCreator: "Người tạo nội dung", Moderator: "Kiểm duyệt viên" };
+const ROLE: Record<string, string> = { User: "Phụ huynh", Administrator: "Quản trị viên", ContentCreator: "Người tạo nội dung", Moderator: "Kiểm duyệt viên" };
 type Note = { ok: boolean; text: string } | null;
 
 /** Luồng 1 Bước 1.1b — sửa họ tên, ảnh đại diện; đổi email bằng mã xác thực gửi tới email mới (chỉ Phụ huynh). */
@@ -21,7 +21,7 @@ export default function ProfileSection() {
   const [eNote, setENote] = useState<Note>(null);
   const [emailOpen, setEmailOpen] = useState(false);
   const closeEmail = () => { setEmailOpen(false); setEmail({ password: "", next: "", otp: "", sent: false }); setENote(null); };
-  const isParent = user?.role === "Parent";
+  const isParent = user?.role === "User";
   const dirty = fullName.trim() !== (user?.fullName ?? "") || avatarUrl.trim() !== (user?.avatarUrl ?? "");
 
   const saveProfile = async (e: FormEvent) => {

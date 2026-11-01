@@ -44,7 +44,6 @@
 .rm-kid .ic { width: 16px; height: 16px; color: var(--primary); }
 
 .rm-kid b { display: flex; align-items: center; gap: 5px; }
-.rm-kid .kid-owner { width: 14px; height: 14px; flex: none; color: var(--gold-deep, #d9a21b); }
 
 /* Chọn bé: nội dung đổi theo bé trượt nhẹ vào, thẻ bé vừa chọn nảy lên */
 .rm-swap { animation: rm-swap-in .32s cubic-bezier(.2, .8, .3, 1) both; }

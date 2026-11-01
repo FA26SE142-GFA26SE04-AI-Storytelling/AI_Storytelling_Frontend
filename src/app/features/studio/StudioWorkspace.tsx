@@ -182,7 +182,7 @@ export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspacePro
         <div className="empty">
           <Frog size={100} mood="think" />
           <b className="display">Bạn chưa có quyền tạo truyện AI cho {child.nickname}</b>
-          <span>Hãy xin quyền “Tạo truyện AI” từ người quản lý chính ở mục Hồ sơ bé.</span>
+          <span>Chỉ người tạo hồ sơ của bé mới tạo được truyện AI cho bé.</span>
           <div className="row" style={{ justifyContent: "center", marginTop: 6 }}>
             {activeKids.length > 1 && <button className="btn btn-p" onClick={() => void pickKid()}>Chọn bé khác</button>}
             <button className="btn btn-s" onClick={() => go("children")}>Mở Hồ sơ bé</button>

@@ -27,7 +27,7 @@ import { AdminParents, AdminStaff } from "./AdminPeople";
 import { AdminEvaluation, AdminLogs, AdminOverview } from "./AdminAi";
 import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
-import { AdminBusinessReport, AdminDataRequests, AdminPayments, AdminQuota } from "./AdminSystem";
+import { AdminBusinessReport, AdminPayments, AdminQuota } from "./AdminSystem";
 
 /** Mọi trang nhân viên nhận go (chuyển trang, kèm id truyện cần mở) và target; trang không cần thì bỏ qua. */
 type PageDef = { id: string; label: string; icon: LucideIcon; view: ComponentType<CreatorPageProps>; hint?: string; menuLabel?: string; short?: string };
@@ -58,7 +58,6 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "prompts", label: "Bộ test prompt", icon: FileClock, view: () => <PromptsPage admin /> },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
     { id: "parents", label: "Tài khoản phụ huynh", icon: Users, view: AdminParents },
-    { id: "data", label: "Yêu cầu dữ liệu", icon: FileClock, view: AdminDataRequests },
     { id: "business", label: "Báo cáo nghiệp vụ", icon: ChartColumn, view: AdminBusinessReport },
     { id: "payments", label: "Đối soát thanh toán", icon: Receipt, view: AdminPayments },
     { id: "quota", label: "Token Quota", icon: Coins, view: AdminQuota },
@@ -92,7 +91,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     { label: "Kiểm duyệt", icon: Inbox, items: ["published", "escalated", "rubrics"] },
     { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards", "catalog"] },
     { label: "Chất lượng AI", icon: Activity, items: ["overview", "logs", "eval", "prompts"] },
-    { label: "Người dùng", icon: Users, items: ["staff", "parents", "data"] },
+    { label: "Người dùng", icon: Users, items: ["staff", "parents"] },
     { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "quota"] },
   ],
   Moderator: [

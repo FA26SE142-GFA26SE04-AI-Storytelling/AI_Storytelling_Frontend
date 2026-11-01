@@ -10,9 +10,8 @@ import { useRiseIn } from "@/app/lib/motion";
 import { accountService } from "@/app/services/accountService";
 import { passwordProblem } from "@/app/lib/guardian";
 
-import QrCode from "@/app/components/QrCode";
 
-type Mode = "login" | "register" | "verify" | "forgot" | "reset" | "mfa" | "creator" | "activate";
+type Mode = "login" | "register" | "verify" | "forgot" | "reset" | "creator" | "activate";
 
 const TITLES: Record<Mode, string> = {
   login: "Chào mừng trở lại",
@@ -20,11 +19,10 @@ const TITLES: Record<Mode, string> = {
   verify: "Xác thực email",
   forgot: "Quên mật khẩu",
   reset: "Đặt mật khẩu mới",
-  mfa: "Xác thực hai bước",
   creator: "Đăng ký làm Content Creator",
   activate: "Kích hoạt tài khoản vận hành",
 };
-const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: "Đăng ký", verify: "Xác thực", forgot: "Gửi hướng dẫn", reset: "Đổi mật khẩu", mfa: "Xác nhận", creator: "Nộp đơn", activate: "Kích hoạt" };
+const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: "Đăng ký", verify: "Xác thực", forgot: "Gửi hướng dẫn", reset: "Đổi mật khẩu", creator: "Nộp đơn", activate: "Kích hoạt" };
 
 /**
  * Link trong email được next.config.ts chuyển về "/" kèm tham số:
@@ -46,8 +44,7 @@ function modeFromUrl(params: URLSearchParams): Mode | null {
 /** `initialMode`: mở thẳng biểu mẫu đăng nhập hoặc đăng ký (từ trang giới thiệu). `onHome`: có thì hiện nút về trang giới thiệu. */
 export default function LoginScreen({ initialMode = "login", onHome }: { initialMode?: "login" | "register"; onHome?: () => void } = {}) {
   const cardRef = useRiseIn<HTMLFormElement>(":scope > *", []);
-  const { login, register, forgotPassword, resetPassword, verifyMfa, backendOnline, backendStatusMessage } = useAuth();
-  const [mfa, setMfa] = useState<{ challenge: string; uri: string | null } | null>(null);
+  const { login, register, forgotPassword, resetPassword, backendOnline, backendStatusMessage } = useAuth();
   const [cr, setCr] = useState({ expertise: "", years: 1, note: "", portfolio: "", commit: false });
   const [mode, setMode] = useState<Mode>(initialMode);
   const [busy, setBusy] = useState(false);
@@ -78,16 +75,7 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
     try {
       if (mode === "login") {
         const r = await login({ identifier: f.identifier.trim(), password: f.password });
-        if (r.success && (r.data?.mfaRequired || r.data?.mfaSetupRequired) && r.data.mfaChallengeToken) {
-          // Tài khoản vận hành: bắt buộc mã TOTP (Luồng 5 Bước 5.1).
-          setMfa({ challenge: r.data.mfaChallengeToken, uri: r.data.mfaSetupRequired ? r.data.mfaProvisioningUri ?? null : null });
-          setF((cur) => ({ ...cur, token: "" }));
-          go("mfa");
-        } else if (!r.success) setMsg({ ok: false, text: r.message });
-      } else if (mode === "mfa") {
-        if (!mfa) { go("login"); return; }
-        const r = await verifyMfa(mfa.challenge, f.token.trim());
-        if (!r.success) setMsg({ ok: false, text: r.message || "Mã không đúng." });
+        if (!r.success) setMsg({ ok: false, text: r.message });
       } else if (mode === "creator") {
         setMsg({ok:false,text:'Backend chưa cung cấp API đăng ký Content Creator.'});
       } else if (mode === "register") {
@@ -130,7 +118,7 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
     setMsg({ ok: r.success, text: r.success ? "Đã gửi lại mã xác thực. Hãy kiểm tra hộp thư." : r.message });
   };
 
-  const needsPassword = mode !== "forgot" && mode !== "verify" && mode !== "mfa";
+  const needsPassword = mode !== "forgot" && mode !== "verify";
   const needsConfirm = mode === "register" || mode === "reset" || mode === "creator" || mode === "activate";
 
   return (
@@ -149,17 +137,7 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
         {mode === "register" && (
           <label className="field"><span className="lbl">Tên đăng nhập</span><input className="inp" required value={f.username} onChange={set("username")} autoComplete="username" /></label>
         )}
-        {mode === "mfa" ? (
-          <>
-            {mfa?.uri ? (
-              <div className="sec" style={{ gap: 8, alignItems: "center" }}>
-                <p className="sub">Lần đăng nhập đầu: quét mã này bằng ứng dụng xác thực (Google Authenticator, Microsoft Authenticator…), rồi nhập mã 6 số.</p>
-                <QrCode value={mfa.uri} size={180} label="Mã QR thiết lập xác thực hai bước" />
-              </div>
-            ) : <p className="sub">Nhập mã 6 số trong ứng dụng xác thực của bạn.</p>}
-            <label className="field"><span className="lbl">Mã xác thực</span><input className="inp" required autoFocus inputMode="numeric" maxLength={6} autoComplete="one-time-code" value={f.token} onChange={(e) => setF({ ...f, token: e.target.value.replace(/\D/g, "") })} style={{ letterSpacing: 6, textAlign: "center" }} /></label>
-          </>
-        ) : mode === "login"
+        {mode === "login"
           ? <label className="field"><span className="lbl">Email hoặc tên đăng nhập</span><input className="inp" required value={f.identifier} onChange={set("identifier")} autoComplete="username" /></label>
           : <label className="field"><span className="lbl">Email</span><input className="inp" type="email" required value={f.email} onChange={set("email")} autoComplete="email" /></label>}
         {mode === "creator" && (

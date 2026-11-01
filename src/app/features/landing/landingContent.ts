@@ -1,5 +1,5 @@
 import {
-  BookOpen, Inbox, Lock, NotebookPen, Route, ShieldCheck, Sparkles, Star, Users,
+  BookOpen, Inbox, Lock, NotebookPen, Route, ShieldCheck, Sparkles, Star,
   FileUp, PenLine, WandSparkles, type LucideIcon,
 } from "lucide-react";
 
@@ -19,7 +19,6 @@ export const BENEFITS: { icon: LucideIcon; title: string; text: string }[] = [
   { icon: ShieldCheck, title: "Cài đặt riêng cho từng bé", text: "Chủ đề cho phép, hạn chế hay chặn, độ dài tối đa và cách duyệt, đặt theo từng con." },
   { icon: Inbox, title: "Chưa duyệt thì chưa tới tay bé", text: "Bản nháp không bao giờ hiện trong góc đọc của bé. Bé chỉ thấy truyện bạn đã đồng ý." },
   { icon: Lock, title: "Cổng phụ huynh", text: "Bé không tự thoát khỏi góc đọc hay mở phần cài đặt. Không có trò chuyện tự do với AI." },
-  { icon: Users, title: "Cả nhà cùng giám sát", text: "Mời ông bà, người thân cùng theo dõi, mỗi người một quyền phù hợp." },
 ];
 
 export const KID: { icon: LucideIcon; title: string; text: string }[] = [

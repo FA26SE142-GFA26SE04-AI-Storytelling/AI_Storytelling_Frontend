@@ -1,35 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { useAuth } from "@/app/context/AuthContext";
-import { supervisionService } from "@/app/services/supervisionService";
 import type { ChildProfile } from "@/app/types/childProfile";
 import type { Permission } from "@/app/types/supervision";
 
 export type MyRole = { isOwner: boolean; perms: string[]; can: (p: Permission) => boolean };
 
-/** Đọc vai trò và quyền của người dùng với một bé ngay lúc gọi, không cache (permission LIVE). */
-export async function loadMyRole(child: ChildProfile, meId: number): Promise<MyRole> {
-  const r = await supervisionService.listSupervisors(child.id);
-  const mine = r.data?.find((x) => x.supervisorUserId === meId);
-  const isOwner = mine ? mine.supervisorRole === "Owner" : child.ownerUserId === meId;
-  const perms = mine && !isOwner ? (await supervisionService.listPermissions(mine.id)).data ?? [] : [];
-  return { isOwner, perms, can: (p) => isOwner || perms.includes(p) };
+/** Backend chỉ còn một người quản lý cho mỗi bé (OwnerUserId): chủ hồ sơ làm được mọi việc, người khác không làm được gì. */
+export function roleFor(child: ChildProfile, meId: number): MyRole {
+  const isOwner = child.ownerUserId === meId;
+  return { isOwner, perms: [], can: () => isOwner };
 }
 
-/** Vai trò và quyền của người dùng với một bé — kiểm tra lại mỗi lần đổi bé (permission LIVE). */
+/** Giữ dạng bất đồng bộ cho các chỗ đang gọi; không còn gọi API giám sát. */
+export async function loadMyRole(child: ChildProfile, meId: number): Promise<MyRole> {
+  return roleFor(child, meId);
+}
+
+/** Vai trò của người dùng với một bé. */
 export function useMyRole(child: ChildProfile | null): MyRole | null {
-  const { user } = useAuth();
-  const [role, setRole] = useState<MyRole | null>(null);
-  const meId = user?.id ?? -1;
-
-  useEffect(() => {
-    if (!child) { setRole(null); return; }
-    let alive = true;
-    setRole(null);
-    void loadMyRole(child, meId).then((r) => { if (alive) setRole(r); });
-    return () => { alive = false; };
-  }, [child, meId]);
-
-  return role;
+  const meId = useAuth().user?.id ?? -1;
+  return useMemo(() => (child ? roleFor(child, meId) : null), [child, meId]);
 }

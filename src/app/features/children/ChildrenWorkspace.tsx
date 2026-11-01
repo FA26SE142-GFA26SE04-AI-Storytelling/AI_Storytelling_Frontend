@@ -2,10 +2,9 @@
 
 import "./children.css";
 import { useEffect, useState } from "react";
-import { Crown, Plus, RotateCcw, Ticket } from "lucide-react";
+import { Plus, RotateCcw } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
-import { supervisionService } from "@/app/services/supervisionService";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import Frog from "@/app/components/brand/Frog";
 import { avatarOf, childStatus } from "@/app/lib/guardian";
@@ -16,35 +15,30 @@ import { clearChildIntent, wantsChildCreate } from "./childrenIntent";
 import ProfileTab from "./ProfileTab";
 import LearningTab from "./LearningTab";
 import SafetyTab from "@/app/features/safety/SafetyWorkspace";
-import SupervisorsTab from "./SupervisorsTab";
 import AccessTab from "./AccessTab";
-import JoinInvitation from "./JoinInvitation";
 import { childProfileService } from "@/app/services/childProfileService";
 import { forgetArchived, listArchived, rememberArchived, type ArchivedChild } from "@/app/lib/archivedChildren";
 
-type Tab = "profile" | "learning" | "safety" | "supervisors" | "access";
+type Tab = "profile" | "learning" | "safety" | "access";
 const TABS: { id: Tab; label: string }[] = [
   { id: "profile", label: "Hồ sơ" },
   { id: "learning", label: "Học tập" },
   { id: "safety", label: "An toàn" },
-  { id: "supervisors", label: "Người giám sát" },
   { id: "access", label: "QR đăng nhập" },
 ];
-type Role = { isOwner: boolean; perms: string[] };
 
 /** Luồng 1 — khu quản lý hồ sơ bé ("Con của tôi", Bước 1.9). */
 export default function ChildrenWorkspace(_props: WorkspaceProps) {
   const { user } = useAuth();
   const { children: kids, reloadChildren } = useWorkspaceData();
   // Mở từ nút "+ Thêm bé" ở màn khác thì vào thẳng form tạo hồ sơ.
-  const [mode, setMode] = useState<"view" | "create" | "join">(() => (wantsChildCreate() || !kids.length ? "create" : "view"));
+  const [mode, setMode] = useState<"view" | "create">(() => (wantsChildCreate() || !kids.length ? "create" : "view"));
   useEffect(() => { clearChildIntent(); }, []);
   const [tab, setTab] = useState<Tab>("profile");
-  const [role, setRole] = useState<Role | null>(null);
   const listRef = useRiseIn<HTMLDivElement>(".kid-item", [kids.length]);
   const meId = user?.id ?? -1;
   // Bé chọn ở đây chỉ để xem và sửa trong trang Hồ sơ bé, không đổi bé của các trang khác.
-  const sortedKids = kids.slice().sort((a, b) => Number(b.ownerUserId === meId) - Number(a.ownerUserId === meId));
+  const sortedKids = kids;
   const [selId, setSelId] = useState<number | null>(null);
   const child = kids.find((k) => k.id === selId) ?? sortedKids[0] ?? null;
   const [archived, setArchived] = useState<ArchivedChild[]>([]);
@@ -62,20 +56,6 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
     await restored(c.id);
   };
 
-  // Vai trò và quyền của mình với bé đang chọn — kiểm tra lại mỗi lần đổi bé.
-  useEffect(() => {
-    if (!child) { setRole(null); return; }
-    let alive = true;
-    setRole(null);
-    void supervisionService.listSupervisors(child.id).then(async (r) => {
-      const mine = r.data?.find((x) => x.supervisorUserId === meId);
-      const owner = mine ? mine.supervisorRole === "Owner" : child.ownerUserId === meId;
-      const perms = mine && !owner ? (await supervisionService.listPermissions(mine.id)).data ?? [] : [];
-      if (alive) setRole({ isOwner: owner, perms });
-    });
-    return () => { alive = false; };
-  }, [child, meId]);
-
   const open = async (id: number, nextTab: Tab = "profile") => {
     await reloadChildren();
     setSelId(id);
@@ -83,8 +63,8 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
     setTab(nextTab);
   };
 
-  const canEditLearning = !!role && (role.isOwner || role.perms.includes("ApproveReadingLevel"));
-  const canManageAccess = !!role && (role.isOwner || role.perms.includes("ManageSafetySettings"));
+  // Mỗi bé chỉ còn một người quản lý (chủ hồ sơ), nên chủ hồ sơ làm được mọi việc.
+  const isOwner = !!child && child.ownerUserId === meId;
 
   return (
     <section className="ws dock" style={{ gridTemplateColumns: "250px 1fr" }}>
@@ -95,13 +75,12 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
             return (
               <button key={k.id} className={`kid-item${mode === "view" && child?.id === k.id ? " on" : ""}`} onClick={() => { setSelId(k.id); setMode("view"); }}>
                 <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
-                <span className="grow"><b>{k.nickname}{k.ownerUserId === meId && <Crown className="ic kid-owner" aria-label="Bạn là người quản lý chính" />}</b><small>{ageLabel(k.ageBand)}</small></span>
+                <span className="grow"><b>{k.nickname}</b><small>{ageLabel(k.ageBand)}</small></span>
                 <span className={`pill ${st.tone}`}>{st.label}</span>
               </button>
             );
           })}
           <button className={`btn btn-p btn-c${mode === "create" ? " on" : ""}`} style={{ marginTop: 8 }} onClick={() => setMode("create")}><Plus className="ic" />Thêm bé</button>
-          <button className="btn btn-s btn-c" onClick={() => setMode("join")}><Ticket className="ic" />Nhập mã mời</button>
           {archived.length > 0 && <div className="sec" style={{ gap: 4, marginTop: 12 }}>
             <small className="sub">Vừa lưu trữ</small>
             {archived.map(c => <div key={c.id} className="row" style={{ gap: 6 }}>
@@ -119,9 +98,8 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
             <CreateChildWizard onDone={(id) => void open(id)} onCancel={() => setMode("view")} />
           </>
         )}
-        {mode === "join" && <div className="pb"><JoinInvitation onJoined={(id) => void open(id, "supervisors")} onCancel={() => setMode("view")} /></div>}
         {mode === "view" && !child && (
-          <div className="empty"><Frog size={110} mood="think" /><b className="display">Chưa có hồ sơ bé</b><span>Thêm hồ sơ bé, hoặc nhập mã mời nếu bố/mẹ của bé đã mời bạn.</span></div>
+          <div className="empty"><Frog size={110} mood="think" /><b className="display">Chưa có hồ sơ bé</b><span>Thêm hồ sơ để bắt đầu.</span></div>
         )}
         {mode === "view" && child && (
           <>
@@ -129,17 +107,12 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
               {TABS.map((t) => <button key={t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>{t.label}</button>)}
             </div>
             <div className="pb children-body">
-              {!role ? <p className="sub">Đang tải…</p> : (
-                <div key={`${tab}:${child.id}`} className="tab-pane">
-                  {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={role.isOwner} onChanged={() => void reloadChildren()} onArchived={() => { rememberArchived(meId, child); setArchived(listArchived(meId)); void reloadChildren(); }} meId={meId} onLeft={() => void reloadChildren()} onTab={setTab} />}
-                  {tab === "learning" && <LearningTab key={child.id} child={child} canEdit={canEditLearning} onSaved={() => void reloadChildren()} />}
+              <div key={`${tab}:${child.id}`} className="tab-pane">
+                  {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={isOwner} onChanged={() => void reloadChildren()} onArchived={() => { rememberArchived(meId, child); setArchived(listArchived(meId)); void reloadChildren(); }} onTab={setTab} />}
+                  {tab === "learning" && <LearningTab key={child.id} child={child} canEdit={isOwner} onSaved={() => void reloadChildren()} />}
                   {tab === "safety" && <SafetyTab key={child.id} child={child} />}
-                  {tab === "supervisors" && <SupervisorsTab key={child.id} child={child} meId={meId} />}
-                  {tab === "access" && (canManageAccess
-                    ? <AccessTab key={child.id} child={child} />
-                    : <p className="sub">Chỉ người quản lý chính hoặc người có quyền &quot;Sửa cài đặt an toàn&quot; mới quản lý được cách bé đăng nhập.</p>)}
-                </div>
-              )}
+                  {tab === "access" && <AccessTab key={child.id} child={child} />}
+              </div>
             </div>
           </>
         )}

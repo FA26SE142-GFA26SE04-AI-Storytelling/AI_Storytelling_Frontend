@@ -178,7 +178,6 @@ export interface EvaluationRun {
 }
 
 // ---------- API backend đã có ----------
-export interface DataRequest { id: number; childProfileId: number; requestType: string; status: string; rejectionReason?: string | null; createdAt: string; resolvedAt: string | null; resolvedByUserId: number | null }
 
 /** Vai trò quản lý được qua `/StaffAccount`. */
 export type StaffAccountRole = 'Moderator' | 'Administrator';

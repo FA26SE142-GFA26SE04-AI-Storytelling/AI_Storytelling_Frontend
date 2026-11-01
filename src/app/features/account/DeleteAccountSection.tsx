@@ -44,7 +44,7 @@ export default function DeleteAccountSection() {
       <h3 className="display" style={{ margin: 0 }}>Xoá tài khoản</h3>
       {!preview && <button className="btn btn-no" style={{ width: "fit-content" }} disabled={busy} onClick={() => void check()}><Trash2 className="ic" />Xoá</button>}
       {preview && !preview.canDelete && (
-        <div className="notice err">Chưa xoá được: bạn còn là người quản lý chính của {names(preview.blockingProfiles)}. Hãy chuyển quyền Owner hoặc lưu trữ các hồ sơ này ở mục Hồ sơ bé.</div>
+        <div className="notice err">Chưa xoá được: bạn còn quản lý hồ sơ của {names(preview.blockingProfiles)}. Hãy lưu trữ các hồ sơ này ở mục Hồ sơ bé.</div>
       )}
       {preview?.canDelete && (
         <form className="sec" style={{ gap: 10 }} onSubmit={remove}>

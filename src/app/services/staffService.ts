@@ -1,15 +1,13 @@
 import type { ApiResponse } from '@/app/types/auth';
 import type { ContentCategory } from '@/app/types/childProfile';
 import type { PagedResult } from '@/app/types/story';
-import type { BusinessReport, DataRequest, InviteStaffInput, PaymentTransaction, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, StaffAccountDto, StaffAccountRole, TokenQuotaConfig } from '@/app/types/staff';
+import type { BusinessReport, InviteStaffInput, PaymentTransaction, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, StaffAccountDto, StaffAccountRole, TokenQuotaConfig } from '@/app/types/staff';
 import { apiRequest } from './apiClient';
-import { authService } from './authService';
-import { API_BASE_URL } from './apiConfig';
 
 /**
  * Luồng 5 — Admin Portal và Moderation.
  *
- * API backend đã có → luôn gọi thật: ContentCategory, TokenQuota/config, DataRequest, BusinessReport, Payment, StaffAccount
+ * API backend đã có → luôn gọi thật: ContentCategory, TokenQuota/config, BusinessReport, Payment, StaffAccount
  * (Moderator và Administrator), ModerationQueue (danh sách, nhận xử lý, mở mục). Truyện của Content Creator: xem `creatorService.ts`.
  *
  */
@@ -36,26 +34,6 @@ export const staffService = {
   quotaConfigs: (): Promise<ApiResponse<TokenQuotaConfig[]>> => apiRequest('/TokenQuota/config', 'Không tải được cấu hình quota.'),
   setQuota: (input: QuotaInput): Promise<ApiResponse<TokenQuotaConfig>> =>
     apiRequest('/TokenQuota/config', 'Không lưu được hạn mức.', { method: 'POST', body: input }),
-
-  // ---------- Data Request ----------
-  /** Owner gửi yêu cầu xuất / xoá dữ liệu. Yêu cầu xoá bắt buộc nhập lại mật khẩu và gõ đúng biệt danh của bé. */
-  createDataRequest: (childProfileId: number, requestType: 'export' | 'delete', confirm?: { currentPassword: string; confirmNickname: string }): Promise<ApiResponse<DataRequest>> =>
-    apiRequest('/DataRequest', 'Không gửi được yêu cầu.', { method: 'POST', body: { childProfileId, requestType, ...confirm } }),
-  myDataRequests: (): Promise<ApiResponse<DataRequest[]>> => apiRequest('/DataRequest/mine', 'Không tải được yêu cầu dữ liệu.'),
-  cancelDataRequest: (id: number): Promise<ApiResponse<DataRequest>> => apiRequest(`/DataRequest/${id}/cancel`, 'Không huỷ được yêu cầu.', { method: 'POST' }),
-  pendingDataRequests: (): Promise<ApiResponse<DataRequest[]>> => apiRequest('/DataRequest/pending', 'Không tải được yêu cầu dữ liệu.'),
-  /** Xuất dữ liệu: backend trả file (xlsx/csv) — tải về máy. */
-  async resolveExport(id: number, format: 'xlsx' | 'csv'): Promise<{ ok: boolean; message: string; blob?: Blob; fileName?: string }> {
-    try {
-      const res = await authService.authenticatedFetch(`${API_BASE_URL}/DataRequest/${id}/resolve-export?format=${format}`, { method: 'POST' });
-      if (!res.ok) return { ok: false, message: 'Không xuất được dữ liệu.' };
-      const name = /filename="?([^";]+)/.exec(res.headers.get('content-disposition') ?? '')?.[1] ?? `data-request-${id}.${format}`;
-      return { ok: true, message: 'Đã xuất dữ liệu.', blob: await res.blob(), fileName: name };
-    } catch { return { ok: false, message: 'Không kết nối được.' }; }
-  },
-  resolveDelete: (id: number): Promise<ApiResponse<DataRequest>> => apiRequest(`/DataRequest/${id}/resolve-delete`, 'Không xoá được dữ liệu.', { method: 'POST' }),
-  rejectDataRequest: (id: number, reason: string): Promise<ApiResponse<DataRequest>> =>
-    apiRequest(`/DataRequest/${id}/reject`, 'Không từ chối được yêu cầu.', { method: 'POST', body: { reason } }),
 
   // ---------- Báo cáo nghiệp vụ, thanh toán ----------
   latestReport: (): Promise<ApiResponse<BusinessReport>> => apiRequest('/BusinessReport/latest-published', 'Chưa có báo cáo.'),
