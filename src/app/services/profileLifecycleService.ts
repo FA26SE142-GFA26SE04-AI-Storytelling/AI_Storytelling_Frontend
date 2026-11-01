@@ -2,8 +2,8 @@ import type * as B from '@/app/types/backendContracts';
 import type { LearningProfile, SafetyPolicy, SetLearningProfileRequest, SetSafetyPolicyRequest } from '@/app/types/childProfile';
 import { apiRequest, apiQuery } from './apiClient';
 export const profileLifecycleService = {
-  accountAudit: (pageIndex: number, signal?: AbortSignal) => apiRequest<B.PagedResult<B.AuditLogDto>>(`/Auth/me/audit-log${apiQuery({pageIndex,pageSize:20})}`, 'Không tải được nhật ký.', {signal}),
-  childAudit: (id: number, pageIndex: number, signal?: AbortSignal) => apiRequest<B.PagedResult<B.AuditLogDto>>(`/ChildProfile/${id}/audit-log${apiQuery({pageIndex,pageSize:20})}`, 'Không tải được nhật ký hồ sơ.', {signal}),
+  accountAudit: (pageIndex: number, signal?: AbortSignal) => apiRequest<B.PagedResult<B.AuditLogDto>>(`/Auth/me/audit-log${apiQuery({pageIndex,pageSize:100})}`, 'Không tải được nhật ký.', {signal}),
+  childAudit: (id: number, pageIndex: number, signal?: AbortSignal) => apiRequest<B.PagedResult<B.AuditLogDto>>(`/ChildProfile/${id}/audit-log${apiQuery({pageIndex,pageSize:100})}`, 'Không tải được nhật ký hồ sơ.', {signal}),
   restore: (id: number) => apiRequest<B.ChildProfileDto>(`/ChildProfile/${id}/restore`, 'Không khôi phục được hồ sơ.', {method:'PATCH'}),
   createLearning: (id: number, body: SetLearningProfileRequest) => apiRequest<LearningProfile>(`/LearningProfile/${id}`, 'Không tạo được hồ sơ học tập.', {method:'POST',body}),
   removeLearning: (id: number) => apiRequest<null>(`/LearningProfile/${id}`, 'Không xóa được hồ sơ học tập.', {method:'DELETE'}),

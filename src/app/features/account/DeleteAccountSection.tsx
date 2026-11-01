@@ -42,7 +42,7 @@ export default function DeleteAccountSection() {
   return (
     <section className="acc-card" style={{ gap: 10 }}>
       <h3 className="display" style={{ margin: 0 }}>Xoá tài khoản</h3>
-      {!preview && <button className="btn btn-no" style={{ width: "fit-content" }} disabled={busy} onClick={() => void check()}><Trash2 className="ic" />Xoá tài khoản…</button>}
+      {!preview && <button className="btn btn-no" style={{ width: "fit-content" }} disabled={busy} onClick={() => void check()}><Trash2 className="ic" />Xoá</button>}
       {preview && !preview.canDelete && (
         <div className="notice err">Chưa xoá được: bạn còn là người quản lý chính của {names(preview.blockingProfiles)}. Hãy chuyển quyền Owner hoặc lưu trữ các hồ sơ này ở mục Hồ sơ bé.</div>
       )}
@@ -58,7 +58,7 @@ export default function DeleteAccountSection() {
             <PasswordInput className="inp" required value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" /></label>
           <div className="row">
             <button type="button" className="btn btn-g" disabled={busy} onClick={() => { setPreview(null); setPassword(""); }}>Hủy</button>
-            <button className="btn btn-no" disabled={busy || !password || (preview.draftProfiles.length > 0 && !dropDrafts)}><Trash2 className="ic" />Xoá vĩnh viễn</button>
+            <button className="btn btn-no" disabled={busy || !password || (preview.draftProfiles.length > 0 && !dropDrafts)}><Trash2 className="ic" />Xoá</button>
           </div>
           {preview.draftProfiles.length > 0 && !dropDrafts && <p className="sub">Cần đồng ý xoá các hồ sơ nháp để tiếp tục.</p>}
         </form>

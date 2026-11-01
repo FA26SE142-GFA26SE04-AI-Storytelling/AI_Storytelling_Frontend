@@ -78,7 +78,7 @@ export default function ProfileSection() {
         <section className="sec" style={{ gap: 10 }}>
           <div className="row">
             <h3 className="display grow" style={{ margin: 0 }}>Email</h3>
-            <button className="btn btn-s" onClick={() => setEmailOpen(true)}><Mail className="ic" />Đổi email</button>
+            <button className="btn btn-s" onClick={() => setEmailOpen(true)}><Mail className="ic" />Đổi</button>
           </div>
         </section>
       )}
@@ -96,7 +96,7 @@ export default function ProfileSection() {
                 {eNote && <div className={`notice ${eNote.ok ? "ok" : "err"}`} role="status">{eNote.text}</div>}
                 <div className="row" style={{ justifyContent: "flex-end" }}>
                   <button type="button" className="btn btn-g" onClick={closeEmail}>Hủy</button>
-                  <button className="btn btn-p" disabled={busy}><Mail className="ic" />Gửi mã xác thực</button>
+                  <button className="btn btn-p" disabled={busy}><Mail className="ic" />Gửi mã</button>
                 </div>
               </form>
             ) : (
@@ -107,7 +107,7 @@ export default function ProfileSection() {
                 {eNote && <div className={`notice ${eNote.ok ? "ok" : "err"}`} role="status">{eNote.text}</div>}
                 <div className="row" style={{ justifyContent: "flex-end" }}>
                   <button type="button" className="btn btn-g" disabled={busy} onClick={closeEmail}>Hủy</button>
-                  <button className="btn btn-p" disabled={busy || email.otp.length !== 6}>Xác nhận đổi email</button>
+                  <button className="btn btn-p" disabled={busy || email.otp.length !== 6}>Xác nhận</button>
                 </div>
               </form>
             )}

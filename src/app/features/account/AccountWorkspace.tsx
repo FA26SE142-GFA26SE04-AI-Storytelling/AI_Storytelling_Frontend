@@ -74,16 +74,16 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
     <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
       <div className="pane children-main">
         <div className="pb children-body">
-          <div className={`sec${page === "profile" ? " acc-wrap" : ""}`} style={page === "profile" ? undefined : { gap: 28, maxWidth: page === "payment" ? undefined : 560 }}>
+          <div className={`sec${page === "profile" || page === "activity" ? " acc-wrap" : ""}`} style={page === "profile" || page === "activity" ? undefined : { gap: 28, maxWidth: page === "payment" ? undefined : 560 }}>
             {show("profile") && (page ? <section className="acc-card"><ProfileSection /></section> : <ProfileSection />)}
             {show("payment") && <PaymentSection />}
-            {show("activity") && <><ActivitySection /><ConnectionStatus /></>}
+            {show("activity") && <><section className="acc-card"><ActivitySection /></section><section className="acc-card"><ConnectionStatus /></section></>}
 
             {show("profile") && <>
             <section className="acc-card">
               <div className="row">
                 <h3 className="display grow" style={{ margin: 0 }}>Mật khẩu</h3>
-                <button className="btn btn-s" onClick={() => setPwOpen(true)}><KeyRound className="ic" />Đổi mật khẩu</button>
+                <button className="btn btn-s" onClick={() => setPwOpen(true)}><KeyRound className="ic" />Đổi</button>
               </div>
             </section>
 
@@ -98,7 +98,7 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
                   {pwNote && <div className={`notice ${pwNote.ok ? "ok" : "err"}`} role="status">{pwNote.text}</div>}
                   <div className="row" style={{ justifyContent: "flex-end" }}>
                     <button type="button" className="btn btn-g" onClick={closePw}>Hủy</button>
-                    <button className="btn btn-p" disabled={pwBusy}><KeyRound className="ic" />{pwBusy ? "Đang đổi…" : "Đổi mật khẩu"}</button>
+                    <button className="btn btn-p" disabled={pwBusy}><KeyRound className="ic" />{pwBusy ? "Đang đổi…" : "Đổi"}</button>
                   </div>
                 </form>
               </div>
@@ -116,7 +116,7 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
                 </div>
               ))}
               {sNote && <div className={`notice ${sNote.ok ? "ok" : "err"}`} role="status">{sNote.text}</div>}
-              <button className="btn btn-no" style={{ width: "fit-content", marginTop: 8 }} onClick={() => void logoutAll()}><LogOut className="ic" />Đăng xuất khỏi mọi thiết bị</button>
+              <button className="btn btn-no" style={{ width: "fit-content", marginTop: 8 }} onClick={() => void logoutAll()}><LogOut className="ic" />Đăng xuất tất cả</button>
             </section>
 
             {user?.role === "Parent" && <DeleteAccountSection />}
