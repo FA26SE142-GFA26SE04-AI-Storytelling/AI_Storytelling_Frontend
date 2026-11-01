@@ -4,7 +4,7 @@ import "./staff.css";
 import "@/app/features/children/children.css";
 import { useState, type ComponentType } from "react";
 import {
-  Activity, BookOpenText, ChartColumn, Coins, FileClock, FlaskConical, Inbox, KeyRound, LibraryBig, ListChecks, Moon, PencilLine, Receipt,
+  Activity, BookOpenText, ChartColumn, Coins, FileClock, FlaskConical, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt,
   ScrollText, Shield, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
@@ -39,7 +39,6 @@ const ROLE_LABEL: Record<StaffRole, string> = { Administrator: "Admin Portal", M
 /** Các trang tài khoản, mở từ menu avatar; dùng chung cho mọi vai trò nhân viên (không có mục mua lượt). */
 const ACCOUNT_PAGES: PageDef[] = [
   { id: "account", label: "Thông tin cá nhân", icon: UserRound, view: () => <AccountWorkspace page="profile" /> },
-  { id: "account-security", label: "Bảo mật & đăng nhập", icon: KeyRound, view: () => <AccountWorkspace page="security" /> },
   { id: "account-activity", label: "Lịch sử hoạt động", icon: Activity, view: () => <AccountWorkspace page="activity" /> },
 ];
 

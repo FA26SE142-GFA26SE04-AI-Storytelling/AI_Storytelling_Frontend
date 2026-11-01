@@ -4,10 +4,11 @@ import { confirmDialog } from "@/app/lib/confirm";
 import PasswordInput from "@/app/components/PasswordInput";
 import "../children/children.css";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { KeyRound, LogOut, MonitorSmartphone } from "lucide-react";
+import { KeyRound, LogOut, MonitorSmartphone, X } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { accountService } from "@/app/services/accountService";
 import type { LoginSession } from "@/app/types/supervision";
+import { showToast } from "@/app/lib/toast";
 import { fmtDateTime, passwordProblem } from "@/app/lib/guardian";
 import ProfileSection from "./ProfileSection";
 import DeleteAccountSection from "./DeleteAccountSection";
@@ -17,7 +18,7 @@ import ConnectionStatus from './ConnectionStatus';
 
 type Note = { ok: boolean; text: string } | null;
 /** Mỗi trang tài khoản lo một việc. Không truyền `page` thì hiện tất cả (khu nhân viên). */
-export type AccountPage = "profile" | "security" | "payment" | "activity";
+export type AccountPage = "profile" | "payment" | "activity";
 
 /** Luồng 1 Bước 1.1b — quản lý tài khoản cá nhân: thông tin, email, mật khẩu, phiên đăng nhập, xoá tài khoản. */
 export default function AccountWorkspace({ page }: { page?: AccountPage }) {
@@ -26,6 +27,7 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
   const [pwNote, setPwNote] = useState<Note>(null);
   const [pwBusy, setPwBusy] = useState(false);
+  const [pwOpen, setPwOpen] = useState(false);
   const [sessions, setSessions] = useState<LoginSession[] | null>(null);
   const [sNote, setSNote] = useState<Note>(null);
 
@@ -34,7 +36,7 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
     setSessions(r.data ?? []);
     if (!r.success) setSNote({ ok: false, text: r.message });
   }, []);
-  const needSessions = show("security");
+  const needSessions = show("profile");
   useEffect(() => { if (needSessions) void loadSessions(); }, [loadSessions, needSessions]);
 
   const changePassword = async (e: FormEvent) => {
@@ -45,9 +47,13 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
     setPwNote(null);
     const r = await accountService.changePassword({ currentPassword: pw.current, newPassword: pw.next, confirmPassword: pw.confirm });
     setPwBusy(false);
-    setPwNote({ ok: r.success, text: r.success ? "Đã đổi mật khẩu. Các thiết bị khác đã bị đăng xuất." : r.message });
-    if (r.success) { setPw({ current: "", next: "", confirm: "" }); void loadSessions(); }
+    if (!r.success) { setPwNote({ ok: false, text: r.message }); return; }
+    setPw({ current: "", next: "", confirm: "" });
+    setPwOpen(false);
+    showToast("Đã đổi mật khẩu. Các thiết bị khác đã bị đăng xuất.");
+    void loadSessions();
   };
+  const closePw = () => { setPwOpen(false); setPwNote(null); setPw({ current: "", next: "", confirm: "" }); };
 
   const revoke = async (id: number) => {
     const r = await accountService.revokeSession(id);
@@ -68,23 +74,37 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
     <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
       <div className="pane children-main">
         <div className="pb children-body">
-          <div className="sec" style={{ gap: 28, maxWidth: 560 }}>
-            {show("profile") && <ProfileSection />}
+          <div className={`sec${page === "profile" ? " acc-wrap" : ""}`} style={page === "profile" ? undefined : { gap: 28, maxWidth: page === "payment" ? undefined : 560 }}>
+            {show("profile") && (page ? <section className="acc-card"><ProfileSection /></section> : <ProfileSection />)}
             {show("payment") && <PaymentSection />}
             {show("activity") && <><ActivitySection /><ConnectionStatus /></>}
 
-            {show("security") && <>
-            <form className="sec" style={{ gap: 10 }} onSubmit={changePassword}>
-              <h3 className="display" style={{ margin: 0 }}>Đổi mật khẩu</h3>
-              <label className="field"><span className="lbl">Mật khẩu hiện tại</span><PasswordInput className="inp" required autoComplete="current-password" value={pw.current} onChange={set("current")} /></label>
-              <label className="field"><span className="lbl">Mật khẩu mới</span><PasswordInput className="inp" required autoComplete="new-password" value={pw.next} onChange={set("next")} /></label>
-              <label className="field"><span className="lbl">Nhập lại mật khẩu mới</span><PasswordInput className="inp" required autoComplete="new-password" value={pw.confirm} onChange={set("confirm")} /></label>
-              <p className="sub">Ít nhất 8 ký tự, có cả chữ và số. Đổi xong, các thiết bị khác sẽ bị đăng xuất.</p>
-              {pwNote && <div className={`notice ${pwNote.ok ? "ok" : "err"}`} role="status">{pwNote.text}</div>}
-              <button className="btn btn-p" style={{ width: "fit-content" }} disabled={pwBusy}><KeyRound className="ic" />{pwBusy ? "Đang đổi…" : "Đổi mật khẩu"}</button>
-            </form>
+            {show("profile") && <>
+            <section className="acc-card">
+              <div className="row">
+                <h3 className="display grow" style={{ margin: 0 }}>Mật khẩu</h3>
+                <button className="btn btn-s" onClick={() => setPwOpen(true)}><KeyRound className="ic" />Đổi mật khẩu</button>
+              </div>
+            </section>
 
-            <section className="sec" style={{ gap: 6 }}>
+            {pwOpen && (
+              <div className="dlg-backdrop confirm-backdrop" role="dialog" aria-modal="true" aria-label="Đổi mật khẩu" onClick={(e) => { if (e.target === e.currentTarget) closePw(); }}>
+                <form className="dlg" onSubmit={changePassword} style={{ gap: 12, width: "min(440px, 100%)" }}>
+                  <div className="row"><b className="display grow" style={{ fontSize: 18 }}>Đổi mật khẩu</b><button type="button" className="btn btn-g" aria-label="Đóng" onClick={closePw}><X className="ic" /></button></div>
+                  <label className="field"><span className="lbl">Mật khẩu hiện tại</span><PasswordInput className="inp" required autoComplete="current-password" value={pw.current} onChange={set("current")} /></label>
+                  <label className="field"><span className="lbl">Mật khẩu mới</span><PasswordInput className="inp" required autoComplete="new-password" value={pw.next} onChange={set("next")} /></label>
+                  <label className="field"><span className="lbl">Nhập lại mật khẩu mới</span><PasswordInput className="inp" required autoComplete="new-password" value={pw.confirm} onChange={set("confirm")} /></label>
+                  <p className="sub">Ít nhất 8 ký tự, có cả chữ và số. Đổi xong, các thiết bị khác sẽ bị đăng xuất.</p>
+                  {pwNote && <div className={`notice ${pwNote.ok ? "ok" : "err"}`} role="status">{pwNote.text}</div>}
+                  <div className="row" style={{ justifyContent: "flex-end" }}>
+                    <button type="button" className="btn btn-g" onClick={closePw}>Hủy</button>
+                    <button className="btn btn-p" disabled={pwBusy}><KeyRound className="ic" />{pwBusy ? "Đang đổi…" : "Đổi mật khẩu"}</button>
+                  </div>
+                </form>
+              </div>
+            )}
+
+            <section className="acc-card" style={{ gap: 6 }}>
               <h3 className="display" style={{ margin: 0 }}>Phiên đăng nhập</h3>
               {sessions === null && <p className="sub">Đang tải…</p>}
               {sessions?.length === 0 && <p className="sub">Không có phiên nào khác.</p>}

@@ -1,6 +1,6 @@
-import { Activity, BookOpen, ChartColumn, CreditCard, KeyRound, PencilLine, Inbox, Route, UserRound, Users, WandSparkles, type LucideIcon } from "lucide-react";
+import { Activity, BookOpen, ChartColumn, CreditCard, PencilLine, Inbox, Route, UserRound, Users, WandSparkles, type LucideIcon } from "lucide-react";
 
-export type WorkspaceId = "children" | "studio" | "authoring" | "library" | "roadmap" | "review" | "report" | "account" | "account-security" | "account-payment" | "account-activity";
+export type WorkspaceId = "children" | "studio" | "authoring" | "library" | "roadmap" | "review" | "report" | "account" | "account-payment" | "account-activity";
 
 export type WorkspaceEntry = {
   id: WorkspaceId;
@@ -29,8 +29,7 @@ export const WORKSPACES: WorkspaceEntry[] = [
   { id: "children", label: "Hồ sơ bé", icon: Users, inMenu: "kids" },
   { id: "report", label: "Báo cáo", icon: ChartColumn, inMenu: "kids" },
   { id: "account", label: "Thông tin cá nhân", icon: UserRound, inMenu: "account" },
-  { id: "account-security", label: "Bảo mật & đăng nhập", icon: KeyRound, inMenu: "account" },
-  { id: "account-payment", label: "Mua thêm lượt tạo truyện", icon: CreditCard, inMenu: "account" },
+  { id: "account-payment", label: "Nâng cấp gói", icon: CreditCard, inMenu: "account" },
   { id: "account-activity", label: "Lịch sử hoạt động", icon: Activity, inMenu: "account" },
 ];
 

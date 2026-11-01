@@ -2,7 +2,8 @@
 
 import PasswordInput from "@/app/components/PasswordInput";
 import { useState, type FormEvent } from "react";
-import { Mail, Save } from "lucide-react";
+import { Mail, Save, X } from "lucide-react";
+import { showToast } from "@/app/lib/toast";
 import { useAuth } from "@/app/context/AuthContext";
 import { accountService } from "@/app/services/accountService";
 
@@ -18,6 +19,8 @@ export default function ProfileSection() {
   const [busy, setBusy] = useState(false);
   const [email, setEmail] = useState({ password: "", next: "", otp: "", sent: false });
   const [eNote, setENote] = useState<Note>(null);
+  const [emailOpen, setEmailOpen] = useState(false);
+  const closeEmail = () => { setEmailOpen(false); setEmail({ password: "", next: "", otp: "", sent: false }); setENote(null); };
   const isParent = user?.role === "Parent";
   const dirty = fullName.trim() !== (user?.fullName ?? "") || avatarUrl.trim() !== (user?.avatarUrl ?? "");
 
@@ -48,8 +51,10 @@ export default function ProfileSection() {
     setENote(null);
     const r = await accountService.confirmEmailChange(email.otp);
     setBusy(false);
-    setENote({ ok: r.success, text: r.success ? "Đã đổi email. Lần sau hãy đăng nhập bằng email mới." : r.message });
-    if (r.success) { setEmail({ password: "", next: "", otp: "", sent: false }); await refreshProfile(); }
+    if (!r.success) { setENote({ ok: false, text: r.message }); return; }
+    closeEmail();
+    showToast("Đã đổi email. Lần sau hãy đăng nhập bằng email mới.");
+    await refreshProfile();
   };
 
   return (
@@ -71,28 +76,43 @@ export default function ProfileSection() {
 
       {isParent && (
         <section className="sec" style={{ gap: 10 }}>
-          <h3 className="display" style={{ margin: 0 }}>Đổi email</h3>
-          {!email.sent ? (
-            <form className="sec" style={{ gap: 10 }} onSubmit={requestEmail}>
-              <label className="field"><span className="lbl">Email mới</span>
-                <input className="inp" type="email" required value={email.next} onChange={(e) => setEmail({ ...email, next: e.target.value })} autoComplete="email" /></label>
-              <label className="field"><span className="lbl">Mật khẩu hiện tại</span>
-                <PasswordInput className="inp" required value={email.password} onChange={(e) => setEmail({ ...email, password: e.target.value })} autoComplete="current-password" /></label>
-              <button className="btn btn-s" style={{ width: "fit-content" }} disabled={busy}><Mail className="ic" />Gửi mã xác thực</button>
-            </form>
-          ) : (
-            <form className="sec" style={{ gap: 10 }} onSubmit={confirmEmail}>
-              <label className="field"><span className="lbl">Mã xác thực gửi tới {email.next.trim()}</span>
-                <input className="inp" required autoFocus inputMode="numeric" maxLength={6} autoComplete="one-time-code" value={email.otp}
-                  onChange={(e) => setEmail({ ...email, otp: e.target.value.replace(/\D/g, "") })} style={{ letterSpacing: 6, textAlign: "center", maxWidth: 200 }} /></label>
-              <div className="row">
-                <button type="button" className="btn btn-g" disabled={busy} onClick={() => { setEmail({ password: "", next: "", otp: "", sent: false }); setENote(null); }}>Hủy</button>
-                <button className="btn btn-p" disabled={busy || email.otp.length !== 6}>Xác nhận đổi email</button>
-              </div>
-            </form>
-          )}
-          {eNote && <div className={`notice ${eNote.ok ? "ok" : "err"}`} role="status">{eNote.text}</div>}
+          <div className="row">
+            <h3 className="display grow" style={{ margin: 0 }}>Email</h3>
+            <button className="btn btn-s" onClick={() => setEmailOpen(true)}><Mail className="ic" />Đổi email</button>
+          </div>
         </section>
+      )}
+
+      {isParent && emailOpen && (
+        <div className="dlg-backdrop confirm-backdrop" role="dialog" aria-modal="true" aria-label="Đổi email" onClick={(e) => { if (e.target === e.currentTarget) closeEmail(); }}>
+          <div className="dlg" style={{ gap: 12, width: "min(440px, 100%)" }}>
+            <div className="row"><b className="display grow" style={{ fontSize: 18 }}>Đổi email</b><button type="button" className="btn btn-g" aria-label="Đóng" onClick={closeEmail}><X className="ic" /></button></div>
+            {!email.sent ? (
+              <form className="sec" style={{ gap: 10 }} onSubmit={requestEmail}>
+                <label className="field"><span className="lbl">Email mới</span>
+                  <input className="inp" type="email" required value={email.next} onChange={(e) => setEmail({ ...email, next: e.target.value })} autoComplete="email" /></label>
+                <label className="field"><span className="lbl">Mật khẩu hiện tại</span>
+                  <PasswordInput className="inp" required value={email.password} onChange={(e) => setEmail({ ...email, password: e.target.value })} autoComplete="current-password" /></label>
+                {eNote && <div className={`notice ${eNote.ok ? "ok" : "err"}`} role="status">{eNote.text}</div>}
+                <div className="row" style={{ justifyContent: "flex-end" }}>
+                  <button type="button" className="btn btn-g" onClick={closeEmail}>Hủy</button>
+                  <button className="btn btn-p" disabled={busy}><Mail className="ic" />Gửi mã xác thực</button>
+                </div>
+              </form>
+            ) : (
+              <form className="sec" style={{ gap: 10 }} onSubmit={confirmEmail}>
+                <label className="field"><span className="lbl">Mã xác thực gửi tới {email.next.trim()}</span>
+                  <input className="inp" required autoFocus inputMode="numeric" maxLength={6} autoComplete="one-time-code" value={email.otp}
+                    onChange={(e) => setEmail({ ...email, otp: e.target.value.replace(/D/g, "") })} style={{ letterSpacing: 6, textAlign: "center", maxWidth: 200 }} /></label>
+                {eNote && <div className={`notice ${eNote.ok ? "ok" : "err"}`} role="status">{eNote.text}</div>}
+                <div className="row" style={{ justifyContent: "flex-end" }}>
+                  <button type="button" className="btn btn-g" disabled={busy} onClick={closeEmail}>Hủy</button>
+                  <button className="btn btn-p" disabled={busy || email.otp.length !== 6}>Xác nhận đổi email</button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
       )}
     </>
   );

@@ -40,9 +40,8 @@ export default function DeleteAccountSection() {
   const names = (list: DeleteAccountPreview["blockingProfiles"]) => list.map((p) => p.nickname).join(", ");
 
   return (
-    <section className="sec" style={{ gap: 10 }}>
+    <section className="acc-card" style={{ gap: 10 }}>
       <h3 className="display" style={{ margin: 0 }}>Xoá tài khoản</h3>
-      <p className="sub">Tài khoản bị xoá và ẩn danh hoá. Hồ sơ bé bạn đang quản lý chính cần được chuyển quyền Owner hoặc lưu trữ trước.</p>
       {!preview && <button className="btn btn-no" style={{ width: "fit-content" }} disabled={busy} onClick={() => void check()}><Trash2 className="ic" />Xoá tài khoản…</button>}
       {preview && !preview.canDelete && (
         <div className="notice err">Chưa xoá được: bạn còn là người quản lý chính của {names(preview.blockingProfiles)}. Hãy chuyển quyền Owner hoặc lưu trữ các hồ sơ này ở mục Hồ sơ bé.</div>

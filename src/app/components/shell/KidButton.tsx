@@ -31,7 +31,6 @@ export default function KidButton({ onKid }: { onKid: (childId: number) => void 
       </button>
       {open && (
         <div className="kid-menu" role="menu" aria-label="Chọn bé để đọc">
-          <p className="sub">Bé nào sẽ đọc?</p>
           {kids.map((k) => (
             <button key={k.id} role="menuitem" onClick={() => pick(k.id)}>
               <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>

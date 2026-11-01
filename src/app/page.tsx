@@ -35,7 +35,6 @@ const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
   review: ReviewWorkspace,
   report: ReportWorkspace,
   account: () => <AccountWorkspace page="profile" />,
-  "account-security": () => <AccountWorkspace page="security" />,
   "account-payment": () => <AccountWorkspace page="payment" />,
   "account-activity": () => <AccountWorkspace page="activity" />,
 };
