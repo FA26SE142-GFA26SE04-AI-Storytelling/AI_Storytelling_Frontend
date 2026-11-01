@@ -5,12 +5,13 @@ import { useState } from "react";
 export type Note = { ok: boolean; text: string } | null;
 
 /** Khung một trang trong khu vận hành: tiêu đề, nút phụ, nội dung cuộn. */
-export function Page({ title, sub, actions, children }: { title: string; sub?: string; actions?: React.ReactNode; children: React.ReactNode }) {
+/** `fit`: bỏ thanh tiêu đề và giữ nội dung vừa khung nhìn (các cột tự cuộn bên trong). */
+export function Page({ title, sub, actions, fit, children }: { title: string; sub?: string; actions?: React.ReactNode; fit?: boolean; children: React.ReactNode }) {
   return (
     <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
       <div className="pane st-page">
-        <div className="ph"><span>{title}</span>{actions && <div className="act">{actions}</div>}</div>
-        <div className="st-body">
+        {!fit && <div className="ph"><span>{title}</span>{actions && <div className="act">{actions}</div>}</div>}
+        <div className={`st-body${fit ? " fit" : ""}`} aria-label={fit ? title : undefined}>
           {sub && <p className="sub st-sub">{sub}</p>}
           {children}
         </div>

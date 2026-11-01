@@ -32,3 +32,32 @@
 /* Shared review workspace embedded in the staff document flow. */
 .st-body > .creator-review { position: relative; inset: auto; flex: none; min-height: 600px; height: 75vh; }
 @media (max-width: 900px) { .st-body > .creator-review { grid-template-columns: minmax(0, 1fr); height: auto; } .creator-review .review-doc { min-height: 420px; } }
+
+.st-filters { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.st-filters .sel { width: 210px; flex: none; }
+.st-body.fit { overflow: hidden; }
+.st-split.fill { flex: 1; align-items: stretch; }
+.st-split.fill .st-list { min-height: 0; overflow-y: auto; }
+.st-split.fill > .st-card { min-height: 0; overflow-y: auto; }
+.st-empty { align-items: center; justify-content: center; text-align: center; gap: 8px; }
+.st-empty b { font-size: 20px; }
+.st-item-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.st-prio { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; flex: none; }
+.st-prio .ic { width: 16px; height: 16px; }
+.st-prio.hi { color: #e5594f; background: color-mix(in srgb, #e5594f 16%, transparent); }
+.st-prio.mid { color: #e0a43a; background: color-mix(in srgb, #e0a43a 16%, transparent); }
+.st-prio.lo { color: var(--muted); background: var(--surface-2); }
+.st-due { display: flex; align-items: center; gap: 5px; }
+.st-due .ic { width: 13px; height: 13px; flex: none; }
+.st-due.late { color: #e5594f; font-weight: 700; }
+.st-detail { gap: 18px; padding: 22px 24px; align-self: stretch; justify-content: flex-start; }
+.st-detail-head { display: flex; align-items: center; gap: 14px; }
+.st-detail-head b { display: block; font-size: 22px; }
+.st-detail-head small { color: var(--muted); }
+.st-detail-ic { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 16px; background: color-mix(in srgb, var(--primary) 14%, transparent); color: var(--primary); }
+.st-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+.st-facts > div { display: flex; flex-direction: column; gap: 3px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
+.st-facts small { color: var(--muted); font-size: 12px; }
+.st-facts b { font-size: 15px; }
+.st-late { color: #e5594f; }
+.st-claim { width: fit-content; padding-inline: 22px; }
