@@ -105,7 +105,7 @@
 
 /* Ô nhập và ô chọn nổi hơn nền khung: nền sáng hơn, viền rõ, đổ bóng nhẹ. */
 .st-body .inp, .dlg.st-dlg .inp {
-  background: var(--surface-2);
+  background-color: var(--surface-2);
   border: 1.5px solid var(--line-2);
   box-shadow: 0 2px 6px -2px color-mix(in srgb, #000 35%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 6%, transparent);
   transition: border-color .15s, box-shadow .15s;
@@ -113,3 +113,43 @@
 .st-body .inp:hover:not(:disabled), .dlg.st-dlg .inp:hover:not(:disabled) { border-color: color-mix(in srgb, var(--primary) 45%, var(--line-2)); }
 .st-body .inp:focus, .dlg.st-dlg .inp:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent); }
 .st-body .inp:disabled, .dlg.st-dlg .inp:disabled { opacity: .7; }
+
+/* Khung chi tiết hàng đợi và khung trống: giữ khoảng cách riêng, không theo quy tắc gom nhóm ở trên. */
+.st-split.fill > .st-card.st-detail { gap: 24px; padding: 26px 28px; }
+.st-split.fill > .st-card.st-empty { gap: 10px; padding: 22px; }
+.st-detail-head { gap: 16px; }
+.st-detail-head small { display: block; margin-top: 4px; font-size: 14px; }
+.st-facts { gap: 16px; }
+.st-facts > div { gap: 8px; padding: 18px 20px; }
+.st-facts small { font-size: 13.5px; }
+.st-facts b { font-size: 17px; }
+
+/* Ô chọn xổ xuống: mũi tên rõ ràng, chừa chỗ để chữ không đè lên. */
+.st-body select.inp, .dlg.st-dlg select.inp {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2395ada1' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; cursor: pointer;
+}
+
+/* Nút vừa khít nội dung: không bị co lại hay cắt chữ; nút chỉ có icon là hình vuông. */
+.st-body .btn, .dlg.st-dlg .btn { flex: none; width: auto; white-space: nowrap; max-width: 100%; }
+.st-body .btn.icon-only, .dlg.st-dlg .btn.icon-only { width: 40px; height: 40px; min-width: 40px; }
+.st-list .row, .st-filters, .st-split.fill > .st-card .row { flex-wrap: wrap; gap: 10px; align-items: center; }
+.st-list .row > select.inp { flex: 1 1 150px; min-width: 0; width: auto; }
+.st-group .row > select.inp, .st-group .row > input.inp { flex: 1 1 150px; width: auto; min-width: 0; }
+.st-group .row.st-inline > select.inp { flex: 1 1 0; }
+.st-group details > * + * { margin-top: 12px; }
+
+/* Nhãn cho các ô trước đây không có chữ giải thích. */
+.st-group .row.st-fields { align-items: flex-end; }
+.st-group .row.st-fields .field { flex: 1 1 150px; }
+.st-group .row.st-fields .inp { width: 100%; }
+.st-days { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.st-group .row.st-order > .st-days .inp, .st-days .inp { width: 84px; }
+.st-body .inp::placeholder, .dlg.st-dlg .inp::placeholder { color: var(--muted); opacity: .8; font-weight: 400; }
+
+/* Cột danh sách bên trái: các mục thoáng hơn, dễ phân biệt từng mục. */
+.st-split.fill > .st-list { gap: 14px; padding: 4px 4px 12px; }
+.st-split.fill > .st-list .st-item { gap: 6px; padding: 16px 18px; border-radius: 18px; }
+.st-split.fill > .st-list .st-item b { font-size: 15px; }
+.st-split.fill > .st-list .st-item small { font-size: 13px; }
+.st-split.fill > .st-list .row { padding-top: 4px; }
