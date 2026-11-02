@@ -11,6 +11,8 @@ import KidRewards from './KidRewards';
 import IconButton from '@/app/components/IconButton';
 import './child-reading.css';
 import Frog from '@/app/components/brand/Frog';
+import { Shelf, ShelfRow } from '@/app/features/library/LibraryWorkspace';
+import { gradientFor } from '@/app/lib/storyView';
 import {Award,BookOpen,ChevronLeft,ChevronRight,NotebookPen,RefreshCw,Search,Sparkles,Trash2} from 'lucide-react';
 
 export default function ChildReadingLibrary({childId,community,onReadingChange}:{childId:number;community?:{submissionId:number;title:string}|null;onReadingChange?:(active:boolean)=>void}) {
@@ -69,7 +71,7 @@ export default function ChildReadingLibrary({childId,community,onReadingChange}:
     {loading&&<p role="status">Đang tải thư viện…</p>}
     {stories?.isLocked?<div className="kid-library-invitation"><Frog mood="think" size={100}/><div><h3 className="display">Câu chuyện đang chờ em</h3>{stories.message&&<p>{stories.message}</p>}{stories.unlockStoryId&&<IconButton icon={BookOpen} label="Đọc lại truyện đang mở" iconClassName="" className="kid-listen-primary" disabled={reader.busy} onClick={()=>void reader.open({storyId:stories.unlockStoryId!})}/>}</div></div>:<>
     {stories?.message&&<p>{stories.message}</p>}
-    <div className="kid-story-shelf">{stories?.items.map(s=><article key={s.storyId} className="kid-story-tile"><Frog variant="face" size={52}/><div><h3 className="display">{s.title}</h3>{s.description&&<p>{s.description}</p>}</div><IconButton icon={BookOpen} label={`Đọc truyện ${s.title}`} iconClassName="" className="kid-listen-primary" disabled={reader.busy} onClick={()=>void reader.open({storyId:s.storyId})}/></article>)}</div>
+    {!!stories?.items.length&&<Shelf title={source==='mine'?'Truyện của em':source==='library'?'Thư viện':'Tất cả truyện'} items={stories.items.map(s=>({id:s.storyId}))}><ShelfRow>{stories.items.map(s=><button key={s.storyId} className="bk" disabled={reader.busy} aria-label={`Đọc truyện ${s.title}`} onClick={()=>void reader.open({storyId:s.storyId})}><span className="bk-cover" style={{background:s.coverImageUrl?`center / cover url("${s.coverImageUrl}")`:gradientFor(s.storyId)}}>{!s.coverImageUrl&&<span className="bk-name display">{s.title}</span>}</span><span className="bk-title">{s.title}</span>{s.description&&<span className="bk-meta">{s.description}</span>}</button>)}</ShelfRow></Shelf>}
     {!loading&&stories&&!stories.items.length&&<p>Chưa có truyện phù hợp trong mục này. Em thử mục khác hoặc nhờ bố mẹ chọn truyện nhé.</p>}
     <div className="row"><IconButton icon={ChevronLeft} label="Trang trước" disabled={loading||page===1} onClick={()=>setPage(v=>v-1)}/><span>Trang {page}</span><IconButton icon={ChevronRight} label="Trang sau" disabled={loading||!stories||page*stories.pageSize>=stories.totalCount} onClick={()=>setPage(v=>v+1)}/></div>
     </>}
