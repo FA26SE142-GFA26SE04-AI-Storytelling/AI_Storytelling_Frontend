@@ -82,10 +82,10 @@ function BookCard({ story, rank, on, onPick }: { story: StoryCard; rank?: number
   );
 }
 
-type ShelfProps = { title: string; sub?: string; items: StoryCard[]; pills?: { id: string; label: string }[]; pill?: string; onPill?: (id: string) => void; onAll?: () => void; children: React.ReactNode };
+type ShelfProps = { title: string; sub?: string; items: { id: number }[]; pills?: { id: string; label: string }[]; pill?: string; onPill?: (id: string) => void; onAll?: () => void; children: React.ReactNode };
 
 /** Một kệ truyện: tiêu đề, nút lọc dạng viên thuốc và "Xem tất cả". */
-function Shelf({ title, sub, items, pills, pill, onPill, onAll, children }: ShelfProps) {
+export function Shelf({ title, sub, items, pills, pill, onPill, onAll, children }: ShelfProps) {
   // Mỗi kệ tự chạy hiệu ứng hiện dần, chỉ khi danh sách truyện của chính kệ đó đổi (đổi chủ đề không làm kệ khác nháy lại).
   const animKey = items.map((s) => s.id).join(",");
   const ref = useRiseIn<HTMLElement>(".bk", [animKey], { delay: 22, distance: 12 });
@@ -107,7 +107,7 @@ function Shelf({ title, sub, items, pills, pill, onPill, onAll, children }: Shel
 }
 
 /** Hàng ngang cuộn được, có nút mũi tên hai bên. */
-function ShelfRow({ children }: { children: React.ReactNode }) {
+export function ShelfRow({ children }: { children: React.ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   const [edge, setEdge] = useState({ start: true, end: false });
   const measure = useCallback(() => {
@@ -314,8 +314,8 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
           ) : (
             <>
               {latest.length > 0 && (
-                <Shelf title="Mới nhất" items={latest} onAll={released.length > latest.length ? () => setExpanded({ title: "Mới nhất", items: released }) : undefined}>
-                  <ShelfRow>{latest.map((s, i) => card(s, i + 1))}</ShelfRow>
+                <Shelf title="Mới nhất" items={latest} onAll={released.length > latest.length ? () => setExpanded({ title: "Mới nhất", items: released }) : undefined}>
+                  <ShelfRow>{latest.map((s, i) => card(s, i + 1))}</ShelfRow>
                 </Shelf>
               )}
               {inProgress.length > 0 && (
