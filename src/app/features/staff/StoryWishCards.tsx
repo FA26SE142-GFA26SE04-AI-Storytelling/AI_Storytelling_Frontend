@@ -41,7 +41,7 @@ export default function StoryWishCards({ storyId }: { storyId: number }) {
   };
 
   const taken = new Set(matches?.map((m) => m.wishCardId));
-  return <details className="st-card" open>
+  return <details className="st-card st-group st-wish" open>
     <summary><b>Thẻ ước của truyện</b></summary>
     <p className="sub">Khi bé ước các thẻ này, truyện có thể xuất hiện trong danh sách gợi ý cho bé và bố mẹ.</p>
     {message && <p className={`notice ${message.ok ? "ok" : "err"}`} role="status">{message.text}</p>}
@@ -51,7 +51,7 @@ export default function StoryWishCards({ storyId }: { storyId: number }) {
       {groupLabel(m.group)}: {m.label}{m.source === "Ai" ? " (AI)" : ""}
       <IconButton icon={X} label={`Gỡ thẻ ${m.label}`} className="btn btn-g" style={{ width: 22, height: 22 }} disabled={busy} onClick={() => void act(() => wishCardService.removeFromStory(storyId, m.wishCardId))} />
     </span>)}</div>
-    <div className="row">
+    <div className="row st-inline">
       <select className="inp" aria-label="Nhóm thẻ" value={group} disabled={busy} onChange={(e) => setGroup(e.target.value as WishCardGroup)}>
         {MATCH_GROUPS.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
       </select>
@@ -59,7 +59,7 @@ export default function StoryWishCards({ storyId }: { storyId: number }) {
         <option value="">Chọn thẻ…</option>
         {cards.filter((c) => !taken.has(c.id)).map((c) => <option key={c.id} value={c.id}>{c.label}{c.ageBand ? ` (${c.ageBand} tuổi)` : ""}</option>)}
       </select>
-      <IconButton icon={Plus} label="Gắn thẻ cho truyện" className="btn btn-p" disabled={busy || !cardId} onClick={() => void act(() => wishCardService.addToStory(storyId, Number(cardId)))} />
+      <IconButton icon={Plus} label="Gắn thẻ cho truyện" className="btn btn-p" style={{ flex: "none", minWidth: 44 }} disabled={busy || !cardId} onClick={() => void act(() => wishCardService.addToStory(storyId, Number(cardId)))} />
     </div>
   </details>;
 }

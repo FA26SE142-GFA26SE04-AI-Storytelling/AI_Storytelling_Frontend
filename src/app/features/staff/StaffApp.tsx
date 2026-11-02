@@ -65,18 +65,18 @@ const PAGES: Record<StaffRole, PageDef[]> = {
   ],
   Moderator: [
     { id: "queue", label: "Hàng đợi kiểm duyệt", short: "Hàng đợi", icon: Inbox, view: () => <ModerationQueue /> },
-    { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và bộ mẫu đang công khai" },
-    { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
+    { id: "published", label: "Rà soát thư viện", short: "Rà soát", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và bộ mẫu đang công khai" },
+    { id: "rubrics", label: "Tiêu chí vùng xám", short: "Tiêu chí", icon: ListChecks, view: RubricWorkspace },
     { id: "rating", label: "Đánh giá AI", icon: FlaskConical, view: RatingPage },
-    { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
+    { id: "authoring-guides", label: "Hướng dẫn sáng tác", short: "Hướng dẫn", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
     ...ACCOUNT_PAGES,
   ],
   ContentCreator: [
     { id: "library", label: "Thư viện truyện mẫu", short: "Thư viện", icon: BookOpenText, view: CreatorLibrary },
-    { id: "create-ai", label: "Tạo truyện bằng AI", menuLabel: "Dùng AI", icon: WandSparkles, view: CreatorCreateAi, hint: "AI viết truyện mẫu từ ý tưởng của bạn" },
-    { id: "create-manual", label: "Tạo truyện thủ công", menuLabel: "Thủ công", icon: PencilLine, view: CreatorCreateManual, hint: "Bạn tự viết nội dung, lưu thành từng phiên bản" },
+    { id: "create-ai", label: "Tạo truyện bằng AI", menuLabel: "Dùng AI", short: "Dùng AI", icon: WandSparkles, view: CreatorCreateAi, hint: "AI viết truyện mẫu từ ý tưởng của bạn" },
+    { id: "create-manual", label: "Tạo truyện thủ công", menuLabel: "Thủ công", short: "Thủ công", icon: PencilLine, view: CreatorCreateManual, hint: "Bạn tự viết nội dung, lưu thành từng phiên bản" },
     { id: "prompts", label: "Bộ test prompt", short: "Test prompt", icon: FlaskConical, view: () => <PromptsPage /> },
     ...ACCOUNT_PAGES,
   ],
@@ -94,12 +94,8 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     { label: "Người dùng", icon: Users, items: ["staff", "parents"] },
     { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "quota"] },
   ],
-  Moderator: [
-    "queue",
-    { label: "Rà soát & đánh giá", icon: LibraryBig, items: ["published", "rubrics", "rating"] },
-    { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards"] },
-  ],
-  ContentCreator: ["library", { label: "Tạo truyện", icon: WandSparkles, items: ["create-ai", "create-manual"] }, "prompts"],
+  Moderator: ["queue", "published", "rubrics", "rating", "authoring-guides", "templates", "wish-cards"],
+  ContentCreator: ["library", "create-ai", "create-manual", "prompts"],
 };
 
 function StaffNav({ role, pageId, onPage, upward }: { role: StaffRole; pageId: string; onPage: (id: string) => void; upward?: boolean }) {

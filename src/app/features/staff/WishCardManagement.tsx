@@ -7,6 +7,7 @@ import { staffService } from "@/app/services/staffService";
 import type { ContentCategory } from "@/app/types/childProfile";
 import type { PagedResult } from "@/app/types/backendContracts";
 import type { ManagedWishCardGroup, WishCardDto } from "@/app/types/storyWish";
+import "@/app/features/review/review-tools.css";
 import { Notice, Page, useAction } from "./ui";
 
 export const WISH_GROUPS: { id: ManagedWishCardGroup; label: string; wish: boolean }[] = [
@@ -36,6 +37,7 @@ export default function WishCardManagement() {
   const [loadError, setLoadError] = useState("");
   const [editing, setEditing] = useState<WishCardDto | null>(null);
   const [form, setForm] = useState<Form>(EMPTY);
+  const [dialog, setDialog] = useState(false);
 
   const load = useCallback(async () => {
     const r = await wishCardService.list({ group: group || undefined, isActive: active === "" ? undefined : active === "true", pageIndex: page, pageSize: 20 });
@@ -49,8 +51,9 @@ export default function WishCardManagement() {
   const edit = (c: WishCardDto) => {
     setEditing(c);
     setForm({ group: c.group as ManagedWishCardGroup, label: c.label, imageUrl: c.imageUrl, audioUrl: c.audioUrl ?? "", ageBand: c.ageBand ?? "", contentCategoryId: c.contentCategoryId?.toString() ?? "", sortOrder: String(c.sortOrder) });
+    setDialog(true);
   };
-  const reset = () => { setEditing(null); setForm(EMPTY); };
+  const reset = () => { setEditing(null); setForm(EMPTY); setDialog(false); };
 
   const label = form.label.trim(), image = form.imageUrl.trim(), audio = form.audioUrl.trim();
   const problem = !label ? "Nhập nhãn thẻ." : label.length > LABEL_MAX ? `Nhãn tối đa ${LABEL_MAX} ký tự.`
@@ -75,6 +78,7 @@ export default function WishCardManagement() {
       <select className="inp" aria-label="Lọc theo trạng thái" value={active} onChange={(e) => { setActive(e.target.value as "" | "true" | "false"); setPage(1); }}>
         <option value="">Đang dùng và đã ẩn</option><option value="true">Đang dùng</option><option value="false">Đã ẩn</option>
       </select>
+      <IconButton icon={Plus} label="Thêm thẻ mới" className="btn btn-p" style={{ flex: "none", minWidth: 44 }} disabled={busy} onClick={() => { setEditing(null); setForm(EMPTY); setDialog(true); }} />
     </div>
     <div className="st-card">
       <table className="st-table">
@@ -99,8 +103,9 @@ export default function WishCardManagement() {
       <div className="row"><IconButton icon={ChevronLeft} label="Trang trước" disabled={busy || page === 1} onClick={() => setPage((p) => p - 1)} /><span>Trang {page}{list ? `/${Math.max(1, list.totalPages)}` : ""}</span><IconButton icon={ChevronRight} label="Trang sau" disabled={busy || !list?.hasNextPage} onClick={() => setPage((p) => p + 1)} /></div>
     </div>
 
-    <div className="st-card">
-      <h3>{editing ? `Sửa thẻ "${editing.label}"` : "Thêm thẻ mới"}</h3>
+    {dialog && <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={editing ? "Sửa thẻ" : "Thêm thẻ mới"} onClick={(e) => { if (e.target === e.currentTarget && !busy) reset(); }}>
+    <div className="dlg wide st-dlg">
+      <div className="row"><h3 className="grow">{editing ? `Sửa thẻ "${editing.label}"` : "Thêm thẻ mới"}</h3><IconButton icon={X} label="Đóng" className="btn btn-g" disabled={busy} onClick={reset} /></div>
       <div className="st-form">
         <label className="field">Nhóm
           <select className="inp" value={form.group} disabled={!!editing} onChange={(e) => setForm({ ...form, group: e.target.value as ManagedWishCardGroup })}>
@@ -121,8 +126,8 @@ export default function WishCardManagement() {
       {problem && (label || image) && <small className="sub">{problem}</small>}
       <div className="row">
         <IconButton icon={editing ? Save : Plus} label={editing ? "Lưu thay đổi" : "Thêm thẻ"} className="btn btn-p" disabled={busy || !!problem} onClick={() => void save()} />
-        {editing && <IconButton icon={X} label="Hủy sửa" className="btn btn-g" disabled={busy} onClick={reset} />}
+        <IconButton icon={X} label="Hủy" className="btn btn-g" disabled={busy} onClick={reset} />
       </div>
-    </div>
+    </div></div>}
   </Page>;
 }

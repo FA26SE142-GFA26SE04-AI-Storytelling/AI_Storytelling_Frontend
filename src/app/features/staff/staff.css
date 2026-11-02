@@ -61,3 +61,55 @@
 .st-facts b { font-size: 15px; }
 .st-late { color: #e5594f; }
 .st-claim { width: fit-content; padding-inline: 22px; }
+
+/* Bảng chi tiết: chữ lớn hơn, nhãn và tiêu đề in đậm để dễ quét mắt. */
+.st-split.fill > .st-card, .dlg.st-dlg { font-size: 15px; }
+.st-split.fill > .st-card h3, .dlg.st-dlg h3 { font-size: 21px; font-weight: 800; font-family: var(--font-display); }
+.st-split.fill > .st-card h4 { font-size: 16px; font-weight: 800; }
+.st-split.fill > .st-card .field, .dlg.st-dlg .field { font-size: 14.5px; font-weight: 700; }
+.st-split.fill > .st-card .inp, .dlg.st-dlg .inp { font-size: 15px; font-weight: 500; }
+.st-split.fill > .st-card summary, .dlg.st-dlg summary { font-size: 15.5px; font-weight: 700; }
+.st-split.fill > .st-card .sub { font-size: 14px; }
+.st-split.fill > .st-card .btn { font-size: 14.5px; }
+.st-split.fill > .st-card b { font-weight: 800; }
+
+/* Bảng chi tiết: thông tin liên quan gom thành nhóm (.st-group), giữa các nhóm cách xa và có đường kẻ. */
+.st-split.fill > .st-card, .dlg.st-dlg { gap: 0; }
+.st-split.fill > .st-card { padding: 24px 28px; }
+.st-split.fill > .st-card fieldset, .st-split.fill > .st-card section { display: flex; flex-direction: column; gap: 0; min-width: 0; }
+.st-group { display: flex; flex-direction: column; gap: 10px; padding: 22px 0; }
+.st-group + .st-group, .st-group + fieldset > .st-group:first-child, fieldset + .st-group, fieldset > .st-group + .st-group, section > .st-group + .st-group, .st-card > .st-group + * { border-top: 1px solid var(--line); }
+.st-card > .st-group:first-child, .st-card > section:first-child > .st-group:first-child { padding-top: 0; }
+.st-group-title { font-size: 12.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.st-group h3 { margin: 0; }
+.st-group p { margin: 0; line-height: 1.6; }
+.st-group .field { display: flex; flex-direction: column; gap: 8px; }
+.st-group .field + .field { margin-top: 8px; }
+.st-group .row { flex-wrap: wrap; gap: 10px; }
+.st-group .row.st-inline { flex-wrap: nowrap; }
+.st-group .row.st-inline .inp { flex: 1; min-width: 0; }
+.st-group .row.st-order { flex-wrap: nowrap; align-items: center; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.st-group .row.st-order > span { flex: 1; min-width: 0; font-weight: 700; }
+.st-group .row.st-order > .inp { flex: none; width: 76px; }
+.st-group .st-form { gap: 14px; }
+.st-group .btn { align-self: flex-start; }
+.st-group .row .btn { align-self: auto; }
+.st-group.st-wish { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; }
+.st-acc details { padding: 4px 0; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
+.st-acc details > summary { padding: 10px 14px; }
+.st-acc details > .sec, .st-acc details > p, .st-acc details > textarea { margin: 0 14px 14px; width: calc(100% - 28px); }
+.st-acc details > .sec { display: flex; flex-direction: column; gap: 14px; }
+.dlg.st-dlg { gap: 20px; padding: 22px 24px; }
+.dlg.st-dlg .field { display: flex; flex-direction: column; gap: 8px; }
+.dlg.st-dlg .st-form { gap: 16px; }
+
+/* Ô nhập và ô chọn nổi hơn nền khung: nền sáng hơn, viền rõ, đổ bóng nhẹ. */
+.st-body .inp, .dlg.st-dlg .inp {
+  background: var(--surface-2);
+  border: 1.5px solid var(--line-2);
+  box-shadow: 0 2px 6px -2px color-mix(in srgb, #000 35%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 6%, transparent);
+  transition: border-color .15s, box-shadow .15s;
+}
+.st-body .inp:hover:not(:disabled), .dlg.st-dlg .inp:hover:not(:disabled) { border-color: color-mix(in srgb, var(--primary) 45%, var(--line-2)); }
+.st-body .inp:focus, .dlg.st-dlg .inp:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 25%, transparent); }
+.st-body .inp:disabled, .dlg.st-dlg .inp:disabled { opacity: .7; }

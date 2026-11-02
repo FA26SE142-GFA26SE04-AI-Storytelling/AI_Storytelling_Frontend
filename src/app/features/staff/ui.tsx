@@ -5,14 +5,13 @@ import { useState } from "react";
 export type Note = { ok: boolean; text: string } | null;
 
 /** Khung một trang trong khu vận hành: tiêu đề, nút phụ, nội dung cuộn. */
-/** `fit`: bỏ thanh tiêu đề và giữ nội dung vừa khung nhìn (các cột tự cuộn bên trong). */
-export function Page({ title, sub, actions, fit, children }: { title: string; sub?: string; actions?: React.ReactNode; fit?: boolean; children: React.ReactNode }) {
+/** Không có thanh tiêu đề; nút hành động (`actions`) nằm đầu khung nội dung. `fit`: giữ nội dung vừa khung nhìn (các cột tự cuộn bên trong). */
+export function Page({ title, actions, fit, children }: { title: string; sub?: string; actions?: React.ReactNode; fit?: boolean; children: React.ReactNode }) {
   return (
     <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
       <div className="pane st-page">
-        {!fit && <div className="ph"><span>{title}</span>{actions && <div className="act">{actions}</div>}</div>}
-        <div className={`st-body${fit ? " fit" : ""}`} aria-label={fit ? title : undefined}>
-          {sub && <p className="sub st-sub">{sub}</p>}
+        <div className={`st-body${fit ? " fit" : ""}`} role="region" aria-label={title}>
+          {actions && <div className="row">{actions}</div>}
           {children}
         </div>
       </div>
