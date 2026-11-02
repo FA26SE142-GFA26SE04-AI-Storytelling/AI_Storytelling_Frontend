@@ -159,3 +159,28 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
 .act-head { padding-bottom: 14px; margin-bottom: 4px; border-bottom: 2px solid var(--line-2); }
 .act-head h3 { font-size: 22px; }
 .act-row b { font-size: 13.5px; font-weight: 600; }
+
+/* Ô nhập và các lựa chọn trong các tab của Con của tôi: nổi khỏi nền bằng viền rõ, nền sáng và bóng nhẹ. */
+.tab-pane .inp, .tab-pane .level, .tab-pane .opt, .tab-pane .perm, .tab-pane .chip, .tab-pane .seg {
+  background-color: var(--surface-2);
+  border-color: color-mix(in srgb, var(--faint) 45%, var(--line));
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--shadow) 14%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 35%, transparent);
+}
+.tab-pane .inp { padding: 9px 12px; }
+.tab-pane .inp:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent), 0 2px 6px color-mix(in srgb, var(--shadow) 14%, transparent); }
+.tab-pane .level.on, .tab-pane .opt.on, .tab-pane .perm.on, .tab-pane .chip.on {
+  background-color: color-mix(in srgb, var(--primary) 16%, var(--surface-2));
+  border-color: var(--primary);
+}
+.tab-pane .seg button.on { background: var(--surface); }
+
+/* Tiêu đề của từng ô: to và đậm hơn để dễ nhận biết ô dùng để làm gì. */
+.tab-pane .lbl { font-size: 15px; font-weight: 800; color: var(--text); letter-spacing: .1px; }
+.tab-pane .lbl small, .tab-pane .lbl em { font-size: 12.5px; font-weight: 600; color: var(--muted); }
+
+/* Thẻ bé ở thanh bên: nổi khỏi nền, bé đang chọn nổi rõ hơn. */
+.kid-item { background-color: var(--surface-2); border-color: color-mix(in srgb, var(--faint) 45%, var(--line)); padding: 12px 13px; box-shadow: 0 3px 10px color-mix(in srgb, var(--shadow) 16%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 35%, transparent); }
+.kid-item:hover { box-shadow: 0 5px 14px color-mix(in srgb, var(--shadow) 22%, transparent); }
+.kid-item.on { background-color: color-mix(in srgb, var(--primary) 14%, var(--surface-2)); box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 28%, transparent); }
+.kid-item b { font-size: 14.5px; font-weight: 800; }
+.kid-item small { font-size: 12.5px; }
