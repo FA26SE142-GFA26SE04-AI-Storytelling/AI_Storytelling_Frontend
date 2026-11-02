@@ -40,9 +40,8 @@ export default function AuthoringGuideManagement() {
   const disabled = h.busy || h.blocked || reading || !model;
   const previewValid = preview?.revisionToken === model?.revisionToken && !!preview && !dirty;
   return <Page title="Hướng dẫn sáng tác cho phụ huynh">
-    <p className="sub">Sửa bản nháp, xem trước như phụ huynh rồi phát hành cả bộ. Bản đang dùng chỉ đổi sau khi phát hành thành công.</p>
     {h.note && <p className="notice" role="status">{h.note}</p>}
-    {h.blocked && <p className="notice warn">Dữ liệu đã đổi hoặc chưa rõ kết quả thao tác. Đồng bộ trước khi sửa tiếp; nội dung đang soạn vẫn được giữ.</p>}
+    {h.blocked && <p className="notice" role="status">Dữ liệu đã đổi hoặc chưa rõ kết quả thao tác. Đồng bộ trước khi sửa tiếp; nội dung đang soạn vẫn được giữ.</p>}
     <button className="btn btn-s" disabled={h.busy || reading} onClick={() => void load()}>Đồng bộ bộ hướng dẫn</button>
     {model && <><div className="st-card"><h3>Bản đang phát hành: {model.published?.version.catalogVersion ?? 'Chưa có'}</h3><p>{model.locale} · {model.published?.items.length ?? 0} hướng dẫn</p>
       {!model.draft && <button className="btn btn-p" disabled={disabled || !model.published} onClick={() => void write(() => api.createDraft(null))}>Tạo bản nháp từ bản đang dùng</button>}

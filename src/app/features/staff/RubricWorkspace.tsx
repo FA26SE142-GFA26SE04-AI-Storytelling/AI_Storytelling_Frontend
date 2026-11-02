@@ -4,6 +4,8 @@ import type * as B from '@/app/types/backendContracts';
 import { rubricService as service, type RubricAudit, type RubricEvaluation, type RubricPage } from '@/app/services/rubricService';
 import { useAuth } from '@/app/context/AuthContext';
 import type { ApiResponse } from '@/app/types/auth';
+import { FilePlus2 } from 'lucide-react';
+import IconButton from '@/app/components/IconButton';
 import Frog from '@/app/components/brand/Frog';
 import { Page, fmt } from './ui';
 const emptyDefinition = (): B.RubricDefinition => ({ purpose: '', criteria: [1,2,3,4,5].map(n => ({ code: `GZ0${n}`, name: '', check: '', context: '', levels: { '0': '', '1': '', '2': '', '3': '', '4': '' }, examples: [] })) });
@@ -52,8 +54,7 @@ export default function RubricWorkspace() {
     {note && <div className="notice" role="status">{note}</div>}
     <div className="st-split fill">
     <div className="st-list">
-    <div className="row"><button className="btn btn-p" disabled={busy} onClick={() => { scope.current = Symbol(); setCurrent(null); setVersionNo(''); setName(''); setDefinition(emptyDefinition()); setExamplesText('[]'); setAudit(null); setEvaluation(null); }}>Tạo bản nháp</button></div>
-    <div className="row"><select className="inp" value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}><option value="">Tất cả trạng thái</option>{['Draft','Active','Retired'].map(s => <option key={s}>{s}</option>)}</select><button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.active()).then(r => { if (r?.success && r.data) void open((r.data as B.RubricSnapshot).id); })}>Xem bộ đang dùng</button></div>
+    <div className="row"><select className="inp" value={status} onChange={e => { setStatus(e.target.value); setPage(1); }}><option value="">Tất cả trạng thái</option>{['Draft','Active','Retired'].map(s => <option key={s}>{s}</option>)}</select><button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.active()).then(r => { if (r?.success && r.data) void open((r.data as B.RubricSnapshot).id); })}>Xem bộ đang dùng</button><IconButton icon={FilePlus2} label="Tạo bản nháp" className="btn btn-p" disabled={busy} onClick={() => { scope.current = Symbol(); setCurrent(null); setVersionNo(''); setName(''); setDefinition(emptyDefinition()); setExamplesText('[]'); setAudit(null); setEvaluation(null); }} /></div>
     {catalog?.items.map(r => <button className={`st-item${current?.id === r.id ? ' on' : ''}`} key={r.id} disabled={busy} onClick={() => void open(r.id)}><b>{r.name}</b><small>{r.versionNo} · {r.status} · sửa lần {r.revision}</small></button>)}
     <div className="row"><button className="btn btn-s" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Trước</button><span>Trang {page}</span><button className="btn btn-s" disabled={!catalog || page * catalog.pageSize >= catalog.totalCount} onClick={() => setPage(p => p + 1)}>Tiếp</button></div>
     </div>

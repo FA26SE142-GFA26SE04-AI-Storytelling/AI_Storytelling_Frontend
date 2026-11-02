@@ -153,3 +153,14 @@
 .st-split.fill > .st-list .st-item b { font-size: 15px; }
 .st-split.fill > .st-list .st-item small { font-size: 13px; }
 .st-split.fill > .st-list .row { padding-top: 4px; }
+
+/* Mục trong cột danh sách nổi khỏi nền: viền rõ, đổ bóng, nhích lên khi rê chuột. */
+.st-split.fill > .st-list .st-item {
+  background: var(--panel);
+  border: 1.5px solid var(--line-2);
+  box-shadow: 0 3px 10px -4px color-mix(in srgb, #000 28%, transparent), 0 1px 0 color-mix(in srgb, #fff 8%, transparent) inset;
+  transition: transform .15s, box-shadow .15s, border-color .15s;
+}
+.st-split.fill > .st-list .st-item:hover:not(:disabled) { transform: translateY(-2px); border-color: color-mix(in srgb, var(--primary) 55%, var(--line-2)); box-shadow: 0 8px 18px -6px color-mix(in srgb, #000 35%, transparent); }
+.st-split.fill > .st-list .st-item.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, var(--panel)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent), 0 8px 18px -8px color-mix(in srgb, #000 35%, transparent); }
+@media (prefers-reduced-motion: reduce) { .st-split.fill > .st-list .st-item { transition: none; } .st-split.fill > .st-list .st-item:hover:not(:disabled) { transform: none; } }
