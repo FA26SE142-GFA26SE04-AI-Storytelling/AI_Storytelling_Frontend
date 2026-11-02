@@ -164,3 +164,72 @@
 .st-split.fill > .st-list .st-item:hover:not(:disabled) { transform: translateY(-2px); border-color: color-mix(in srgb, var(--primary) 55%, var(--line-2)); box-shadow: 0 8px 18px -6px color-mix(in srgb, #000 35%, transparent); }
 .st-split.fill > .st-list .st-item.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, var(--panel)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent), 0 8px 18px -8px color-mix(in srgb, #000 35%, transparent); }
 @media (prefers-reduced-motion: reduce) { .st-split.fill > .st-list .st-item { transition: none; } .st-split.fill > .st-list .st-item:hover:not(:disabled) { transform: none; } }
+
+/* Gói duyệt: mỗi cảnh/cờ là một thẻ riêng, checklist xếp nhiều cột để dễ quét mắt. */
+.st-review .st-group { gap: 14px; padding: 26px 0; }
+.st-scene { display: flex; flex-direction: column; gap: 14px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 18px; background: var(--panel); }
+.st-scene > b { font-size: 16px; }
+.st-scene-part { display: flex; flex-direction: column; gap: 12px; padding-top: 14px; border-top: 1px dashed var(--line); }
+.st-seg { display: flex; flex-direction: column; gap: 8px; }
+.st-scene blockquote { margin: 0; padding: 10px 14px; border-left: 3px solid var(--primary); background: color-mix(in srgb, var(--primary) 8%, transparent); border-radius: 0 12px 12px 0; }
+.st-checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px 20px; }
+.st-checks .field { margin-top: 0 !important; }
+.st-labels { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px 16px; }
+.st-review .notice { margin: 0; }
+.st-review details > * + * { margin-top: 12px; }
+
+/* So sánh phiên bản dạng đọc được. */
+.st-compare { display: flex; flex-direction: column; gap: 22px; }
+.st-compare-head { margin: 0; }
+.st-compare-sec { display: flex; flex-direction: column; gap: 10px; }
+.st-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.st-metric { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+.st-metric small { color: var(--muted); font-size: 13px; }
+.st-metric b { font-size: 17px; }
+.st-metric-new { color: var(--primary-strong); }
+.st-diff { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+.st-diff p { margin: 0; }
+.st-diff-before { text-decoration: line-through; color: var(--danger); }
+.st-diff-after { color: var(--text); }
+.st-diff-tag { align-self: flex-start; display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12.5px; font-weight: 800; background: color-mix(in srgb, var(--primary) 16%, transparent); color: var(--primary-strong); }
+.st-diff-tag.removed { background: color-mix(in srgb, var(--danger) 14%, transparent); color: var(--danger); }
+.st-diff-tag.modified { background: color-mix(in srgb, var(--warn, var(--primary)) 18%, transparent); color: var(--text); }
+
+.st-no-audio { color: var(--muted); font-style: italic; font-size: 14px; }
+
+.st-scene-label { font-size: 12.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.st-pics { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 14px; }
+.st-pic { position: relative; display: flex; flex-direction: column; gap: 8px; padding: 10px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); text-decoration: none; color: inherit; transition: transform .15s, box-shadow .15s; }
+.st-pic:hover { transform: translateY(-2px); box-shadow: 0 8px 18px -12px color-mix(in srgb, var(--shadow) 60%, transparent); }
+.st-pic img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; background: var(--panel); }
+.st-pic span { font-size: 13.5px; line-height: 1.45; }
+.st-pic em { font-style: normal; font-size: 13px; font-weight: 800; color: var(--primary-strong); }
+.st-pic-empty { align-items: center; justify-content: center; min-height: 120px; color: var(--muted); }
+
+/* Dấu ! báo mục còn thiếu. */
+.st-warn { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-left: 8px; border-radius: 50%; background: var(--danger); color: #fff; font-size: 13px; font-weight: 800; line-height: 1; text-transform: none; letter-spacing: 0; cursor: help; vertical-align: middle; }
+
+/* Phóng to tranh ngay trên trang. */
+button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
+.st-zoom { flex-direction: column; gap: 16px; cursor: zoom-out; }
+.st-zoom img { max-width: min(92vw, 1100px); max-height: 82vh; object-fit: contain; border-radius: 16px; box-shadow: 0 20px 60px rgba(0, 0, 0, .45); background: var(--surface); }
+
+/* Nhãn ô + dấu ! cùng một dòng, dấu ! đứng sau chữ. */
+.st-flabel { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 0; }
+.st-flabel .st-warn { margin-left: 8px; }
+.st-storylist { display: flex; flex-direction: column; gap: 10px; }
+.st-storyrow { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 14px 18px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+.st-storyrow > span { display: inline-flex; align-items: center; color: var(--muted); font-size: 14px; white-space: nowrap; }
+.st-storyrow.bad > span { color: var(--danger); font-weight: 700; }
+
+/* Khối trích dẫn có nhãn nhỏ (mô tả báo cáo, ghi chú hệ thống, cam kết bản quyền). */
+.st-quote { display: flex; flex-direction: column; gap: 6px; padding: 14px 18px; border-left: 3px solid var(--primary); border-radius: 0 14px 14px 0; background: color-mix(in srgb, var(--primary) 8%, transparent); }
+.st-quote small { color: var(--muted); font-size: 13px; font-weight: 700; }
+.st-quote p { margin: 0; }
+.st-review .lbl small { font-weight: 600; color: var(--muted); }
+
+/* Nhãn dài xuống dòng thì dấu ! đi theo chữ; các ô chọn luôn thẳng hàng ở đáy. */
+.st-flabel { display: block; }
+.st-flabel .st-warn { margin-left: 8px; }
+.st-checks .field { justify-content: space-between; }
+.st-checks .field > .inp { margin-top: auto; }

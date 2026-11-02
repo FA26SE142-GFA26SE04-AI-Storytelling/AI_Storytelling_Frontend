@@ -12,10 +12,14 @@ export function useReviewItem(kind: ReviewKind, id: number, onDecision: () => vo
   const [revision, setRevision] = useState(0);
   const scope = useRef(Symbol());
   const locked = useRef(false);
+  const shownKey = useRef('');
   useEffect(() => {
     const run = Symbol(); scope.current = run;
     const controller = new AbortController();
-    locked.current = false; setBusy(false); setItem(null);
+    locked.current = false; setBusy(false);
+    // Chỉ xoá gói khi đổi mục; tải lại sau khi chấm thì giữ nguyên gói cũ để trang không bị cuộn lên đầu.
+    const key = `${kind}:${id}:${user?.id}`;
+    if (shownKey.current !== key) { shownKey.current = key; setItem(null); }
     void moderationService.package(kind, id, controller.signal).then(r => {
       if (scope.current !== run) return;
       if (r.success && r.data) setItem(r.data); else setMessage(r.message);
