@@ -7,6 +7,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import { useReviewItem } from './useReviewItem';
 import VersionComparison from './VersionComparison';
 import SegmentAudio from './SegmentAudio';
+import LearningMaterials from './LearningMaterials';
 import '@/app/features/review/review-tools.css';
 
 /** Tên tiếng Việt của các phần cần sửa (giá trị gửi lên backend giữ nguyên). */
@@ -100,7 +101,7 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
         {item.data.flags.map(f => <div className="st-scene" key={f.flagId}><b>{f.name}{!f.resolved && <Warn why="Cờ chưa xử lý" />}</b><p>{f.reason}</p>{f.evidenceQuote && <blockquote>{f.evidenceQuote}</blockquote>}{f.contextNote && <p className="sub">{f.contextNote}</p>}<button className="btn btn-s" disabled={busy || f.resolved} onClick={() => { setFlagReason(''); setFlagDialog({ flagId: f.flagId, name: f.name }); }}>{f.resolved ? 'Đã xử lý' : 'Xác nhận an toàn'}</button></div>)}
       </div>}
       <div className="st-group"><b className="st-group-title">Học liệu và so sánh phiên bản</b>
-        <details><summary>Học liệu</summary>{item.data.vocabulary.map((v,i) => <p key={i}>{v.term}: {v.definition}</p>)}{item.data.quizzes.map((q,i) => <p key={i}>{q.question} — {q.correctAnswer}</p>)}{item.data.discussionQuestions.map((q,i) => <p key={i}>{q.question}</p>)}</details>
+        <details open><summary>Học liệu</summary><LearningMaterials vocabulary={item.data.vocabulary} quizzes={item.data.quizzes} discussionQuestions={item.data.discussionQuestions} /></details>
         <div className="row">{(['previous','public'] as const).map(against => <button key={against} className="btn btn-s" disabled={busy} onClick={() => void moderationService.compare(id, against).then(r => { if (r.success) setCompare(r.data); })}>So với {against === 'previous' ? 'bản trước' : 'bản công khai'}</button>)}</div>
         {compare && <details open><summary>So sánh phiên bản</summary><VersionComparison data={compare} /></details>}
       </div>
