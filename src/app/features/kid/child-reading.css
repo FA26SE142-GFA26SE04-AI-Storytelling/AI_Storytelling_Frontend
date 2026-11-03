@@ -113,3 +113,36 @@
 .kid-soft-button.icon-only svg,.kid-listen-primary.icon-only svg { width: 26px; height: 26px; }
 .kid-listen-primary.icon-only svg { width: 32px; height: 32px; }
 .kid-feelings .icon-only { font-size: 30px; }
+
+/* Các kệ sách trên trang đầu của bé: mỗi kệ một thẻ riêng cùng kiểu với khung "Đọc và nghe truyện", chữ to và rõ. */
+.kid .khome > .shelf { background: var(--panel); color: var(--text); border-radius: 28px; padding: 22px 26px 26px; gap: 16px; box-shadow: 0 14px 30px -22px color-mix(in srgb, var(--shadow) 60%, transparent); }
+.kid .khome > .shelf .shelf-h h3 { font-size: 26px; }
+.kid .khome > .shelf > p, .kid .khome > .shelf .sub { font-size: 16px; line-height: 1.5; margin: 0; }
+.kid .shelf-row > .bk { flex-basis: 176px; }
+.kid .bk-name { font-size: 22px; line-height: 1.2; }
+.kid .bk-title { font-size: 17px; font-weight: 800; line-height: 1.3; color: var(--text); }
+.kid .bk-meta { font-size: 14.5px; line-height: 1.35; color: var(--muted); }
+/* Bìa chỉ để xem (chưa mở được): mờ nhẹ, không hiện con trỏ bấm. */
+.kid .bk:disabled { cursor: default; opacity: .72; }
+.kid .bk:disabled .bk-cover { filter: saturate(.6); }
+.kid .khome > .shelf .row { flex-wrap: wrap; gap: 10px; }
+@media (max-width: 640px) {
+  .kid .khome > .shelf { padding: 18px 16px 20px; border-radius: 22px; }
+  .kid .khome > .shelf .shelf-h h3 { font-size: 22px; }
+  .kid .shelf-row > .bk { flex-basis: 150px; }
+  .kid .bk-name { font-size: 18px; }
+}
+
+/* Trang đầu của bé trải hết bề ngang màn hình (chế độ đọc truyện giữ khung hẹp riêng). */
+.kid:not(.kid-focus) .khome { max-width: none; width: 100%; padding-inline: clamp(12px, 3vw, 40px); }
+.kid:not(.kid-focus) .shelf-row > .bk { flex-basis: clamp(150px, 14vw, 230px); }
+
+/* Nhãn trên bìa: Đọc được (xanh) hoặc Chưa mở (ổ khóa, bìa mờ). */
+.kid .bk-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; font-size: 13px; font-weight: 800; box-shadow: 0 2px 6px -2px rgba(0,0,0,.25); background: var(--panel); }
+.kid .bk-badge.ok { color: var(--ok-ink); background: color-mix(in srgb, var(--mint) 35%, var(--panel)); }
+.kid .bk-badge .ic { width: 14px; height: 14px; }
+.kid .bk.cannot-read .bk-cover { filter: grayscale(.55) brightness(.92); }
+.kid .bk.can-read:hover .bk-cover { transform: translateY(-3px); }
+.kid-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; margin: 0; font-size: 15px; line-height: 1.5; }
+.kid-legend .pill { display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 800; padding: 3px 10px; }
+.kid-legend .pill .ic { width: 14px; height: 14px; }
