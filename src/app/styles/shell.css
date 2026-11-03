@@ -144,3 +144,7 @@
 
 /* Thanh tab ở đáy điện thoại không đủ chỗ: chỉ hiện biểu tượng. */
 .rail .nav-txt, .rail .nav-caret { display: none; }
+
+/* Thanh điều hướng cuộn ngang cắt phần nhô ra ngoài nút: chừa lề trên và phải để chấm đếm không bị cắt. */
+.topnav { padding-block: 6px; padding-inline: 10px; }
+.topnav .badge { top: -3px; right: -3px; min-width: 17px; height: 17px; font-size: 10.5px; }
