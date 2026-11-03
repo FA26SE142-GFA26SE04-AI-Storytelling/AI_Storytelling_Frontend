@@ -14,17 +14,17 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
   const index=scenes.findIndex(s=>s.sceneIndex+1===r.page),scene=scenes[index];
   const disabled=r.busy||r.blocked||r.done;
   return <article className="kid-theater" aria-label="Sân khấu kể chuyện">
-    <header className="kid-theater-top"><button className="kid-soft-button" disabled={r.busy} onClick={r.close}><ArrowLeft aria-hidden="true"/>Về danh sách đọc</button><span className="kid-theater-brand"><Frog variant="face" size={32}/>Taletale</span><button className="kid-soft-button" aria-expanded={settings} onClick={()=>setSettings(v=>!v)}><BookOpen aria-hidden="true"/>Cách đọc</button></header>
-    <div className="kid-theater-title"><span className="kid-overline">GIỜ KỂ CHUYỆN CỦA EM</span><h1 className="display">{c.title}</h1><p>Cảnh {index+1} trong {scenes.length}</p></div>
+    <header className="kid-theater-top"><button className="kid-soft-button" disabled={r.busy} onClick={r.close}><ArrowLeft aria-hidden="true"/>Về danh sách đọc</button><button className="kid-soft-button" aria-expanded={settings} onClick={()=>setSettings(v=>!v)}><BookOpen aria-hidden="true"/>Cách đọc</button></header>
+    <div className="kid-theater-title"><h1 className="display">{c.title}</h1></div>
     {r.note&&<p className="kid-reading-note" role="status">{r.note}</p>}
     {settings&&<section className="kid-reading-options"><label>Cách đọc<select className="inp" aria-label="Cách đọc" disabled={disabled} value={r.mode} onChange={e=>void r.save(r.page,e.target.value==='ListenFirst'?'ListenFirst':'ReadFirst')}><option value="ReadFirst">Em tự đọc</option><option value="ListenFirst">Em nghe đọc</option></select></label><button className="kid-soft-button" disabled={disabled} onClick={()=>void r.flag('bookmark')}><Bookmark aria-hidden="true"/>{r.session?.isBookmarked?'Bỏ đánh dấu':'Đánh dấu truyện'}</button><button className="kid-soft-button" disabled={disabled} onClick={()=>void r.save()}>Lưu vị trí đọc</button></section>}
     {scene&&<section className="kid-story-stage" key={scene.sceneIndex}>
-      <div className="kid-story-picture">{scene.illustrationUrl&&failedImage!==scene.illustrationUrl?
-        // Signed media is supplied by the child-authorized content endpoint.
-        // eslint-disable-next-line @next/next/no-img-element
+      {scene.illustrationUrl&&failedImage!==scene.illustrationUrl&&<div className="kid-story-picture">
+        {/* Signed media is supplied by the child-authorized content endpoint. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={scene.illustrationUrl} alt={`Tranh cảnh ${r.page}`} onError={()=>setFailedImage(scene.illustrationUrl)}/>
-        :<div className="kid-no-picture"><Frog mood="happy" size={100}/><p>{failedImage?'Tranh chưa mở được. Em vẫn có thể nghe và đọc truyện.':'Cùng bước vào câu chuyện nhé!'}</p></div>}</div>
-      <div className="kid-story-caption"><span className="kid-overline">LỜI KỂ</span><p>{scene.text}</p></div>
+      </div>}
+      <div className="kid-story-caption"><p>{scene.text}</p></div>
       {!r.done&&<KidNarrator key={`${c.sessionId}:${scene.sceneIndex}`} scene={scene} disabled={disabled} paused={words||settings} onListen={()=>r.mode==='ListenFirst'?Promise.resolve(true):r.save(r.page,'ListenFirst')} onEvent={r.event}/>}
     </section>}
     <nav className="kid-story-navigation" aria-label="Chuyển cảnh"><button className="kid-soft-button" disabled={disabled||index<=0} onClick={()=>void r.save(scenes[index-1].sceneIndex+1)}><ChevronLeft aria-hidden="true"/>Cảnh trước</button><span className="kid-scene-count">Cảnh {index+1}/{scenes.length}</span><button className="kid-soft-button" disabled={disabled||index<0||index>=scenes.length-1} onClick={()=>void r.save(scenes[index+1].sceneIndex+1)}>Cảnh tiếp<ChevronRight aria-hidden="true"/></button></nav>

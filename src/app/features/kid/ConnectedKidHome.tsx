@@ -32,6 +32,7 @@ export default function ConnectedKidHome({ childId, onExit }: { childId: number;
   const [revision, setRevision] = useState(0);
   const [busy, setBusy] = useState(false);
   const [reading,setReading]=useState(false);
+  const [pane, setPane] = useState('stories');
   // Thư viện của bé đang tạm khóa: chỉ đọc được truyện đang mở (backend chặn mọi truyện khác bằng 403).
   const [lock, setLock] = useState<{ locked: boolean; unlockStoryId: number | null }>({ locked: false, unlockStoryId: null });
   const scope = useRef(Symbol());
@@ -70,10 +71,10 @@ export default function ConnectedKidHome({ childId, onExit }: { childId: number;
   return <div className={`kid${reading?' kid-focus':''}`} role="dialog" aria-label="Chế độ của bé">{!reading&&<PondBackdrop />}{!reading&&<div className="ktop"><button className="btn btn-s" onClick={onExit}>Thoát</button><b>{nickname || 'Thư viện của em'}</b><button className="btn btn-s" onClick={() => setRevision(v => v + 1)}>Tải lại</button></div>}
     <div className="kscroll"><div className="khome">
       {ended ? <section className="ksection"><Frog mood="idle" size={90} /><h2 className="display">Phiên đọc đã kết thúc</h2><p>Em nhờ bố mẹ mở lại nhé.</p><button className="btn btn-p" onClick={onExit}>Về với bố mẹ</button></section> : <>
-        <ChildReadingLibrary key={childId} childId={childId} community={selected} unlockTitle={titleOf(lock.unlockStoryId)} onLockChange={setLock} onCommunityOpened={() => setSelected(null)} onReadingChange={setReading}/>
+        <ChildReadingLibrary key={childId} childId={childId} community={selected} unlockTitle={titleOf(lock.unlockStoryId)} onLockChange={setLock} onPaneChange={setPane} onCommunityOpened={() => setSelected(null)} onReadingChange={setReading}/>
         {!reading&&<>
         {errors.map((e,i) => <p className="notice err" role="alert" key={i}>{e}</p>)}
-        {pack ? <article className="ksection"><button className="btn btn-s" onClick={() => setPack(null)}>Về thư viện</button><h2 className="display">{pack.title}</h2>{pack.segments.slice().sort((a,b) => a.order - b.order).map((s,i) => <p key={i} style={{ whiteSpace: 'pre-wrap', fontSize: 20, lineHeight: 1.8 }}>{s.text}</p>)}<FamilyMediaPreview preparation={pack}/><p className="sub">Để lưu vị trí và hoàn thành đọc, em mở truyện trong mục Đọc và nghe truyện.</p></article> : <>
+        {pack ? <article className="ksection"><button className="btn btn-s" onClick={() => setPack(null)}>Về thư viện</button><h2 className="display">{pack.title}</h2>{pack.segments.slice().sort((a,b) => a.order - b.order).map((s,i) => <p key={i} style={{ whiteSpace: 'pre-wrap', fontSize: 20, lineHeight: 1.8 }}>{s.text}</p>)}<FamilyMediaPreview preparation={pack}/><p className="sub">Để lưu vị trí và hoàn thành đọc, em mở truyện trong mục Đọc và nghe truyện.</p></article> : pane === 'stories' ? <>
           <Shelf title="Hành trình của em" items={[...(roadmap?.open ? [{ id: roadmap.open.storyId }] : []), ...(roadmap?.upcoming ?? []).map(s => ({ id: s.storyId }))]}>
             {roadmap && (roadmap.open || roadmap.upcoming.length > 0) ? <ShelfRow>
               {roadmap.open && <Cover id={roadmap.open.storyId} title={roadmap.open.title ?? 'Truyện chưa đặt tên'} meta={roadmap.open.isLocked ? 'Chưa đọc được lúc này' : roadmap.open.note || 'Bố mẹ đã chọn cho em'} label={roadmap.open.isLocked ? 'Đang khóa' : 'Đang mở'} />}
@@ -89,7 +90,7 @@ export default function ConnectedKidHome({ childId, onExit }: { childId: number;
             <div className="row"><button className="btn btn-s" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Trước</button><button className="btn btn-s" disabled={!community?.hasNextPage} onClick={() => setPage(p => p + 1)}>Tiếp</button></div>
           </Shelf>
 
-        </>}
+        </> : null}
         </>}
       </>}
     </div></div>

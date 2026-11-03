@@ -15,7 +15,7 @@ import { Shelf, ShelfRow } from '@/app/features/library/LibraryWorkspace';
 import { gradientFor } from '@/app/lib/storyView';
 import {Award,BookOpen,ChevronLeft,ChevronRight,Lock,NotebookPen,RefreshCw,Search,Sparkles,Trash2} from 'lucide-react';
 
-export default function ChildReadingLibrary({childId,community,unlockTitle,onCommunityOpened,onLockChange,onReadingChange}:{childId:number;community?:{submissionId:number;title:string}|null;unlockTitle?:string;onCommunityOpened?:()=>void;onLockChange?:(lock:{locked:boolean;unlockStoryId:number|null})=>void;onReadingChange?:(active:boolean)=>void}) {
+export default function ChildReadingLibrary({childId,community,unlockTitle,onCommunityOpened,onLockChange,onPaneChange,onReadingChange}:{childId:number;community?:{submissionId:number;title:string}|null;unlockTitle?:string;onCommunityOpened?:()=>void;onLockChange?:(lock:{locked:boolean;unlockStoryId:number|null})=>void;onPaneChange?:(pane:string)=>void;onReadingChange?:(active:boolean)=>void}) {
   const session=childAccessService.readSession();
   const token=session?.childProfileId===childId?session.accessToken:'';
   const [revision,setRevision]=useState(0);
@@ -23,6 +23,8 @@ export default function ChildReadingLibrary({childId,community,unlockTitle,onCom
   const reader=useChildReader(token,refresh);
   const reading=!!reader.content;
   const [pane,setPane]=useState<'stories'|'notebook'|'wishes'|'rewards'>('stories');
+  // Các kệ bên dưới chỉ thuộc tab Truyện của em; báo tab đang chọn cho trang cha.
+  useEffect(()=>{onPaneChange?.(pane);},[pane,onPaneChange]);
   // Bé bấm bìa truyện cộng đồng ở kệ bên dưới thì mở đọc luôn, không cần bấm thêm nút nào.
   useEffect(()=>{
     if(!community)return;
