@@ -2,12 +2,13 @@
 import { confirmDialog } from "@/app/lib/confirm";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, FileUp, History, RotateCcw, Save } from "lucide-react";
+import { ArrowLeft, Check, FileUp, RotateCcw } from "lucide-react";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { ContentSaved, CreatorDraft, CreatorResult, CreatorVersion, SaveVersionInput } from "@/app/types/creator";
 import { detectPii } from "@/app/lib/storyRules";
 import { fmt } from "./ui";
 import CreatorImport from "./CreatorImport";
+import "@/app/features/authoring/authoring.css";
 
 import AssistancePanel from "@/app/features/authoring/AssistancePanel";
 import type { AssistanceReference } from "@/app/types/backendContracts";
@@ -15,6 +16,7 @@ import CreatorPublication from "./CreatorPublication";
 import CreatorManualMedia from "./CreatorManualMedia";
 import type {AssistanceSelection} from '@/app/features/story-workflow/assistanceSelection';
 
+type StepId = 'write' | 'media' | 'publish';
 const ORIGIN: Record<string, string> = { Write: "Viết", Import: "Nhập", Restore: "Khôi phục" };
 const EMPTY: SaveVersionInput = { title: "", content: "", sourceDeclaration: "", rightsDeclaration: "" };
 const same = (a: SaveVersionInput, b: SaveVersionInput) =>
@@ -46,6 +48,7 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note>(null);
   const [conflict, setConflict] = useState(false);
+  const [stepId, setStepId] = useState<StepId>('write');
   // Lệnh ghi chưa rõ kết quả (mất mạng): thử lại nguyên lệnh này, với đúng bản chụp lúc gửi.
   const pending = useRef<Write | null>(null);
   const [hasPending, setHasPending] = useState(false);
@@ -92,19 +95,20 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
       if (replaceForm) setForm(snap);
       apply(r.data, snap);
       setNote({ ok: true, text: `${okText} (phiên bản V${r.data.version.versionNo}).` });
-      return;
+      return true;
     }
     if (r.status === 0) { pending.current = w; setHasPending(true); }
     if (r.status === 409) setConflict(true);
     setNote({ ok: false, text: r.status === 409 ? `${r.message || "Truyện đã thay đổi ở nơi khác."} Nội dung bạn đang sửa vẫn còn.` : r.message });
+    return false;
   };
 
-  const save = () => {
-    if (!draft || editorLocked) return;
+  const save = async (): Promise<boolean> => {
+    if (!draft || editorLocked) return false;
     const snapshot = { ...form, assistanceReferences: references };
     const op = newOperationId("save");
     const { revisionToken, selectedVersionId } = draft;
-    void runWrite({ call: () => creatorService.save(storyId, op, revisionToken, selectedVersionId, snapshot), snapshot, okText: "Đã lưu", replaceForm: false });
+    return runWrite({ call: () => creatorService.save(storyId, op, revisionToken, selectedVersionId, snapshot), snapshot, okText: "Đã lưu", replaceForm: false });
   };
 
   const restore = async (v: CreatorVersion) => {
@@ -126,68 +130,117 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
   if (!draft) return <div className="st-card"><p className="sub">{note?.text ?? "Đang mở truyện…"}</p><button className="btn btn-g" style={{ width: "fit-content" }} onClick={onBack}><ArrowLeft className="ic" />Danh sách</button></div>;
 
   const set = (p: Partial<SaveVersionInput>) => setForm((f) => ({ ...f, ...p }));
+  const isSaved = !dirty && !!draft.selectedVersionId;
+  const mediaDone = draft.status === 'Ready';
+  // Các bước của luồng soạn truyện Creator; bước sau chỉ mở khi đã có phiên bản lưu.
+  const steps: { id: StepId; label: string; note: string; done: boolean; locked: boolean }[] = [
+    { id: 'write', label: 'Soạn nội dung', note: dirty ? 'Có thay đổi chưa lưu' : isSaved ? 'Đã lưu' : 'Chưa lưu', done: isSaved, locked: false },
+    { id: 'media', label: 'Chốt và tạo tranh, giọng đọc', note: mediaDone ? 'Media sẵn sàng' : draft.status === 'Draft' ? 'Chưa chốt bản' : 'Đang xử lý media', done: mediaDone, locked: !isSaved },
+    { id: 'publish', label: 'Phát hành', note: mediaDone ? 'Có thể gửi duyệt' : 'Cần media sẵn sàng', done: false, locked: !isSaved },
+  ];
+  const active = steps.find(s => s.id === stepId && !s.locked) ?? steps[0];
+  const saveThenNext = async () => { if (!dirty || await save()) setStepId('media'); };
+  const nav = (prev: StepId | null, next: StepId | null, nextOk: boolean, label = 'Bước tiếp theo', onNext?: () => void | Promise<void>) => (
+    <div className="pa-actions bar">
+      {prev && <button className="btn btn-g" onClick={() => setStepId(prev)}>Quay lại</button>}
+      {next && <button className="btn btn-p push" disabled={!nextOk} onClick={() => void (onNext ? onNext() : setStepId(next))}>{label}</button>}
+    </div>
+  );
   return (
     <>
-      <div className="st-card">
+      <div className="st-card ce-head">
         <div className="row" style={{ flexWrap: "wrap" }}>
           <button className="btn btn-g" onClick={async () => { if (!dirty || await confirmDialog("Bỏ các thay đổi chưa lưu?")) onBack(); }}><ArrowLeft className="ic" />Danh sách</button>
-          <h3 className="grow">{form.title || "Truyện chưa đặt tên"}</h3>
+          <h3 className="grow ce-title">{form.title || "Truyện chưa đặt tên"}</h3>
           <span className="pill draft">Nháp · {draft.lastVersionNo ? `V${draft.lastVersionNo}` : "chưa lưu"}</span>
           {dirty && <span className="pill wait">Chưa lưu</span>}
         </div>
-        <small className="sub">{draft.ageBand} tuổi · {draft.genre || "chưa có thể loại"} · cập nhật {fmt(draft.updatedAt ?? draft.createdAt)}</small>
+        <small className="sub ce-meta">{draft.ageBand} tuổi · {draft.genre || "chưa có thể loại"} · cập nhật {fmt(draft.updatedAt ?? draft.createdAt)}</small>
         {editorLocked && <p className="notice warn">Bản này đang được mở chỉ để xem. Kiểm tra phần phát hành hoặc tạo phiên bản chỉnh sửa mới.</p>}
-        <fieldset disabled={editorLocked || busy} style={{ border: 0, padding: 0 }}>
-        <label className="field"><span className="lbl">Tên truyện</span><input className="inp" maxLength={200} value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
-        <label className="field"><span className="lbl">Nội dung (mỗi đoạn cách nhau một dòng trống)</span>
-          <textarea className="inp" rows={14} maxLength={200_000} value={form.content} onSelect={e=>setSelection({snapshot:{title:form.title,content:e.currentTarget.value},start:e.currentTarget.selectionStart,length:e.currentTarget.selectionEnd-e.currentTarget.selectionStart})} onChange={(e) => set({ content: e.target.value })} /></label>
-        <div className="st-form">
-          <label className="field"><span className="lbl">Nguồn nội dung</span><input className="inp" maxLength={2000} value={form.sourceDeclaration} onChange={(e) => set({ sourceDeclaration: e.target.value })} placeholder="VD: Tự sáng tác" /></label>
-          <label className="field"><span className="lbl">Cam kết bản quyền</span><input className="inp" maxLength={2000} value={form.rightsDeclaration} onChange={(e) => set({ rightsDeclaration: e.target.value })} placeholder="VD: Tôi có quyền phát hành nội dung này" /></label>
-        </div>
-        {pii.length > 0 && <div className="notice err">Truyện còn thông tin cá nhân ({[...new Set(pii.map((p) => p.kind))].join(", ")}). Hãy bỏ trước khi gửi duyệt.</div>}
-        {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
-        <div className="row" style={{ flexWrap: "wrap" }}>
-          <button className="btn btn-s" disabled={busy} onClick={() => setImporting(true)}><FileUp className="ic" />Nhập văn bản / tệp</button>
-          <span className="grow" />
-          {conflict && <button className="btn btn-g" disabled={busy} onClick={() => void resync()}>Đồng bộ với máy chủ</button>}
-          {hasPending && <button className="btn btn-s" disabled={busy} onClick={retry}>Thử lại lệnh vừa rồi</button>}
-          <button className="btn btn-p" disabled={busy || !dirty || conflict} onClick={save}><Save className="ic" />{busy ? "Đang lưu…" : "Lưu phiên bản mới"}</button>
-        </div>
-        </fieldset>
-        <AssistancePanel key={`${storyId}:${draft.selectedVersionId}`} actor="creator" story={draft} selection={selection} snapshot={{title:form.title,content:form.content}} disabled={busy || editorLocked || hasPending || conflict} onApply={(next,ref) => { setForm(f => ({...f,...next}));setSelection(null);setReferences(v => v.some(r=>r.taskId===ref.taskId&&r.stepId===ref.stepId)?v:[...v,ref]); }} />
-        <p className="sub">Mỗi lần lưu tạo một phiên bản mới; bản đã nộp được giữ nguyên trong lịch sử.</p>
       </div>
-      <CreatorManualMedia key={`media:${storyId}:${draft.selectedVersionId}`} draft={draft} disabled={busy || dirty || conflict || hasPending || publicationLocked} onWorkingChange={setMediaLocked} onStatus={mediaState} />
-      <CreatorPublication storyId={storyId} versionId={draft.selectedVersionId} storyStatus={draft.status} onRevision={() => void open()} onLockChange={setPublicationLocked} />
 
+      <div className="pa-flow">
+        {/* Khung trái: thứ tự các bước; bước chưa mở khoá thì mờ đi. */}
+        <nav className="pa-steps" aria-label="Các bước soạn truyện">
+          <b className="pa-steps-title">Các bước</b>
+          <ol>
+            {steps.map((s, i) => <li key={s.id}>
+              <button className={`pa-stepbtn${active.id === s.id ? ' on' : ''}${s.done ? ' done' : ''}`} disabled={s.locked} aria-current={active.id === s.id ? 'step' : undefined} onClick={() => setStepId(s.id)}>
+                <span className="pa-num">{s.done ? <Check className="ic" aria-hidden /> : i + 1}</span>
+                <span className="pa-steptxt"><b>{s.label}</b><small>{s.note}</small></span>
+              </button>
+            </li>)}
+          </ol>
+        </nav>
+
+        {/* Cả ba bước luôn được dựng, chỉ ẩn bước không chọn: các bước media và phát hành giữ trạng thái và báo khoá soạn cho trình soạn. */}
+        <div className="pa-stage">
+          <div className="pa-stage" hidden={active.id !== 'write'}>
+            <section className="pa-card" aria-label="Soạn nội dung">
+              <div className="pa-head"><h3><span className="pa-num">1</span>Soạn nội dung</h3></div>
+              <fieldset className="pa-fieldset" disabled={editorLocked || busy}>
+                <label className="field"><span className="lbl">Tên truyện</span><input className="inp" maxLength={200} value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
+                <label className="field"><span className="lbl">Nội dung (mỗi đoạn cách nhau một dòng trống)</span>
+                  <textarea className="inp" rows={14} maxLength={200_000} value={form.content} onSelect={e=>setSelection({snapshot:{title:form.title,content:e.currentTarget.value},start:e.currentTarget.selectionStart,length:e.currentTarget.selectionEnd-e.currentTarget.selectionStart})} onChange={(e) => set({ content: e.target.value })} /></label>
+                <div className="pa-fields">
+                  <label className="field"><span className="lbl">Nguồn nội dung</span><input className="inp" maxLength={2000} value={form.sourceDeclaration} onChange={(e) => set({ sourceDeclaration: e.target.value })} placeholder="VD: Tự sáng tác" /></label>
+                  <label className="field"><span className="lbl">Cam kết bản quyền</span><input className="inp" maxLength={2000} value={form.rightsDeclaration} onChange={(e) => set({ rightsDeclaration: e.target.value })} placeholder="VD: Tôi có quyền phát hành nội dung này" /></label>
+                </div>
+                {pii.length > 0 && <div className="notice err">Truyện còn thông tin cá nhân ({[...new Set(pii.map((p) => p.kind))].join(", ")}). Hãy bỏ trước khi gửi duyệt.</div>}
+                {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
+                <div className="pa-actions bar">
+                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting(true)}><FileUp className="ic" />Nhập văn bản / tệp</button>
+                  {conflict && <button className="btn btn-g" disabled={busy} onClick={() => void resync()}>Đồng bộ với máy chủ</button>}
+                  {hasPending && <button className="btn btn-s" disabled={busy} onClick={retry}>Thử lại lệnh vừa rồi</button>}
+                </div>
+              </fieldset>
+            </section>
+            <details className="pa-fold"><summary>AI gợi ý theo bản nháp</summary>
+              <AssistancePanel key={`${storyId}:${draft.selectedVersionId}`} actor="creator" story={draft} selection={selection} snapshot={{title:form.title,content:form.content}} disabled={busy || editorLocked || hasPending || conflict} onApply={(next,ref) => { setForm(f => ({...f,...next}));setSelection(null);setReferences(v => v.some(r=>r.taskId===ref.taskId&&r.stepId===ref.stepId)?v:[...v,ref]); }} />
+            </details>
+            <section className="pa-card" aria-label="Lịch sử phiên bản">
+              <details><summary>Lịch sử phiên bản</summary>
+                {versions === null && <p className="sub">Đang tải…</p>}
+                {versions?.length === 0 && <p className="sub">Chưa có phiên bản nào. Bấm "Lưu và tiếp tục" để tạo V1.</p>}
+                <div className="st-list">
+                  {versions?.map((v) => (
+                    <button key={v.versionId} className={`st-item${viewing?.versionId === v.versionId ? " on" : ""}`} onClick={() => setViewing(viewing?.versionId === v.versionId ? null : v)}>
+                      <span className="row"><b className="grow">V{v.versionNo} · {v.title || "Không tên"}</b>
+                        {v.versionId === draft.selectedVersionId && <span className="pill ok">Bản hiện tại</span>}
+                        <span className="pill draft">{ORIGIN[v.origin] ?? v.origin}{v.restoredFromVersionId ? ` từ #${v.restoredFromVersionId}` : ""}</span></span>
+                      <small>{fmt(v.createdAt)}{v.importFileName ? ` · tệp ${v.importFileName}` : ""}</small>
+                    </button>
+                  ))}
+                </div>
+                {viewing && (
+                  <>
+                    <div className="st-content" style={{ maxHeight: 280, overflowY: "auto" }}>{viewing.content || "Phiên bản này chưa có nội dung."}</div>
+                    {viewing.versionId !== draft.selectedVersionId && (
+                      <button className="btn btn-s" style={{ width: "fit-content" }} disabled={busy || conflict || editorLocked} onClick={() => restore(viewing)}><RotateCcw className="ic" />Khôi phục V{viewing.versionNo} thành bản mới</button>
+                    )}
+                  </>
+                )}
+              </details>
+            </section>
+            {nav(null, 'media', isSaved || (dirty && !!form.content.trim() && !busy && !editorLocked && !conflict), dirty ? 'Lưu và tiếp tục' : 'Bước tiếp theo', dirty ? saveThenNext : undefined)}
+          </div>
+
+          <div className="pa-stage" hidden={active.id !== 'media'}>
+            <CreatorManualMedia key={`media:${storyId}:${draft.selectedVersionId}`} draft={draft} disabled={busy || dirty || conflict || hasPending || publicationLocked} missing={[...(saved.sourceDeclaration.trim() ? [] : ['Nguồn nội dung']), ...(saved.rightsDeclaration.trim() ? [] : ['Cam kết bản quyền'])]} onWorkingChange={setMediaLocked} onStatus={mediaState} />
+            {!mediaDone && <p className="sub">Nút "Bước tiếp theo" mở khi truyện đã có tranh, giọng đọc và bạn đã xác nhận gói media.</p>}
+            {nav('write', 'publish', mediaDone)}
+          </div>
+
+          <div className="pa-stage" hidden={active.id !== 'publish'}>
+            <CreatorPublication storyId={storyId} versionId={draft.selectedVersionId} storyStatus={draft.status} onRevision={() => void open()} onLockChange={setPublicationLocked} />
+            {nav('media', null, false)}
+          </div>
+        </div>
+      </div>
 
       {importing && <CreatorImport draft={draft} defaultTitle={form.title} onClose={() => setImporting(false)}
         onSaved={(r) => { const snap = fromVersion(r.version); setForm(snap); apply(r, snap); setNote({ ok: true, text: `Đã nhập nội dung (phiên bản V${r.version.versionNo}).` }); }} />}
 
-      <div className="st-card">
-        <h3><History className="ic" /> Lịch sử phiên bản</h3>
-        {versions === null && <p className="sub">Đang tải…</p>}
-        {versions?.length === 0 && <p className="sub">Chưa có phiên bản nào. Bấm “Lưu phiên bản mới” để tạo V1.</p>}
-        <div className="st-list">
-          {versions?.map((v) => (
-            <button key={v.versionId} className={`st-item${viewing?.versionId === v.versionId ? " on" : ""}`} onClick={() => setViewing(viewing?.versionId === v.versionId ? null : v)}>
-              <span className="row"><b className="grow">V{v.versionNo} · {v.title || "Không tên"}</b>
-                {v.versionId === draft.selectedVersionId && <span className="pill ok">Bản hiện tại</span>}
-                <span className="pill draft">{ORIGIN[v.origin] ?? v.origin}{v.restoredFromVersionId ? ` từ #${v.restoredFromVersionId}` : ""}</span></span>
-              <small>{fmt(v.createdAt)}{v.importFileName ? ` · tệp ${v.importFileName}` : ""}</small>
-            </button>
-          ))}
-        </div>
-        {viewing && (
-          <>
-            <div className="st-content" style={{ maxHeight: 280, overflowY: "auto" }}>{viewing.content || "Phiên bản này chưa có nội dung."}</div>
-            {viewing.versionId !== draft.selectedVersionId && (
-              <button className="btn btn-s" style={{ width: "fit-content" }} disabled={busy || conflict || editorLocked} onClick={() => restore(viewing)}><RotateCcw className="ic" />Khôi phục V{viewing.versionNo} thành bản mới</button>
-            )}
-          </>
-        )}
-      </div>
     </>
   );
 }

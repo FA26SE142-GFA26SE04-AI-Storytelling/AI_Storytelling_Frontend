@@ -4,6 +4,28 @@ import { creatorPublicationService as service } from '@/app/services/creatorPubl
 import type * as B from '@/app/types/backendContracts';
 import { useAuth } from '@/app/context/AuthContext';
 import type { ApiResponse } from '@/app/types/auth';
+
+/** Trạng thái duyệt của backend là chuỗi tiếng Anh; dịch các giá trị đã biết, giá trị lạ giữ nguyên. */
+const REVIEW: Record<string, string> = {
+  None: 'Chưa gửi duyệt', Pending: 'Đang chờ Moderator duyệt', Approved: 'Đã được duyệt', Rejected: 'Bị từ chối', ChangesRequested: 'Moderator yêu cầu sửa', Withdrawn: 'Đã rút yêu cầu',
+};
+const OPEN_ITEM: Record<string, string> = { Pending: 'đang chờ Moderator nhận', Claimed: 'Moderator đang xem xét', Approved: 'đã duyệt', Rejected: 'bị từ chối' };
+
+/** Ba mức vùng xám của backend: Safe, GrayZone, HardBlock. */
+const ZONE: Record<string, { tone: 'ok' | 'warn' | 'err'; title: string }> = {
+  Safe: { tone: 'ok', title: 'An toàn' },
+  GrayZone: { tone: 'warn', title: 'Vùng xám' },
+  HardBlock: { tone: 'err', title: 'Bị chặn' },
+};
+
+function zoneAdvice(zone: B.GrayZoneContentCheckDto): string {
+  if (zone.status === 'Safe') return 'Nội dung qua kiểm tra an toàn. Bạn có thể chốt media và gửi duyệt.';
+  if (zone.status === 'HardBlock') return 'AI nhận thấy nội dung vi phạm nghiêm trọng với nhóm tuổi này nên không tiếp tục được. Quay lại bước 1, sửa nội dung rồi lưu bản mới và kiểm tra lại.';
+  return zone.waitingForModeration
+    ? 'AI thấy có chỗ có thể gây tranh cãi với nhóm tuổi này. Truyện đã được chuyển cho Moderator xem xét. Bạn chờ quyết định của họ. Nếu muốn, hãy sửa nội dung, lưu bản mới rồi kiểm tra lại.'
+    : 'Nội dung nằm ở vùng xám nhưng hiện không còn chờ Moderator (có thể đã được xử lý trước đó). Nếu bạn sửa nội dung, hãy kiểm tra lại.';
+}
+
 export default function CreatorPublication({ storyId, versionId, storyStatus, onRevision, onLockChange }: { storyId: number; versionId: number | null; storyStatus?: string; onRevision: () => void; onLockChange?: (locked: boolean) => void }) {
   const { user } = useAuth();
   const [status, setStatus] = useState<B.CreatorPublicationStatus | null>(null);
@@ -11,9 +33,12 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [refresh, setRefresh] = useState(0);
+  const [zone, setZone] = useState<B.GrayZoneContentCheckDto | null>(null);
   const scope = useRef(Symbol());
   const knownSubmitted = useRef<number | null>(null);
   const [submittedVersion,setSubmittedVersion] = useState<number | null>(null);
+  // Kết quả kiểm tra vùng xám chỉ đúng cho đúng phiên bản đã kiểm tra.
+  useEffect(() => { setZone(null); }, [versionId]);
   useEffect(() => {
     const controller = new AbortController(); const run = Symbol(); scope.current = run;
     setStatus(null); onLockChange?.(true);
@@ -37,15 +62,66 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     if (r.success) { if (revision) onRevision(); else { if (lockVersion) { knownSubmitted.current = status?.versionId ?? null; setSubmittedVersion(status?.versionId ?? null); onLockChange?.(true); } setRefresh(n => n + 1); } }
     else if (r.status === 409) setRefresh(n => n + 1);
   };
-  return <section className="st-card"><h3>Phát hành và chỉnh sửa</h3>{note && <p className="notice" role="status">{note}</p>}
-    {status && <><p>{status.isPublished ? 'Đang công khai' : 'Chưa công khai'} · duyệt: {status.reviewStatus}{status.openItemStatus ? ` · mục đang mở: ${status.openItemStatus}` : ''}</p><p className="sub">Bản đã nộp giữ nguyên trong lịch sử. Muốn sửa bản sẵn sàng hoặc đã nộp, hãy tạo phiên bản chỉnh sửa mới.</p>
+  const runCheck = async () => {
+    if (busy || !status) return;
+    setBusy(true); setNote(''); setZone(null); const run = scope.current;
+    const r = await service.check(storyId, status.versionId); if (run !== scope.current) return;
+    setBusy(false);
+    if (r.success && r.data) setZone(r.data); else setNote(r.message || 'Không kiểm tra được nội dung.');
+    setRefresh(n => n + 1);
+  };
+
+  const ready = storyStatus === 'Ready';
+  const canSubmit = ready && !!status && !status.isPublished && !status.openItemId && status.reviewStatus === 'None';
+  const pendingReview = !!status && status.openItemType === 'PublicStoryReview' && status.openItemStatus === 'Pending' && !!status.openItemId;
+  const grayWaiting = !!status && status.openItemType === 'GrayZoneStory' && ['Pending', 'Claimed'].includes(status.openItemStatus ?? '');
+  const canRevise = !!status && !status.isPublished && !status.openItemId && storyStatus !== 'Archived' && (ready || status.reviewStatus !== 'None' || submittedVersion === status.versionId);
+  const checkable = !!status && !status.isPublished && !status.openItemId;
+  const headline = !status ? 'Đang tải trạng thái…'
+    : status.isPublished ? 'Đã công khai'
+    : grayWaiting ? 'Đang chờ Moderator xem xét vùng xám'
+    : status.openItemId ? `${REVIEW[status.reviewStatus] ?? status.reviewStatus}${status.openItemStatus ? ` (${OPEN_ITEM[status.openItemStatus] ?? status.openItemStatus})` : ''}`
+    : REVIEW[status.reviewStatus] ?? status.reviewStatus;
+  const blocker = !status ? null
+    : status.isPublished ? 'Truyện đang công khai. Muốn sửa, hãy yêu cầu gỡ ở phần cuối trang.'
+    : pendingReview ? 'Bạn đã gửi duyệt. Hãy chờ Moderator, hoặc rút yêu cầu nếu muốn sửa.'
+    : grayWaiting ? 'Truyện đang chờ Moderator xem xét vùng xám nên chưa gửi duyệt được.'
+    : !ready ? 'Truyện chưa sẵn sàng: hoàn tất bước 2 (media tạo xong và bạn đã xác nhận gói) rồi mới gửi duyệt được.'
+    : status.reviewStatus !== 'None' ? 'Bản này đã từng được gửi duyệt. Muốn gửi lại, hãy tạo phiên bản chỉnh sửa mới.'
+    : null;
+
+  return <section className="pa-card" aria-label="Phát hành"><div className="pa-head"><h3><span className="pa-num">3</span>Phát hành truyện</h3></div>
+    {note && <p className="notice" role="status">{note}</p>}
+    <p style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>{headline}</p>
+    <p className="sub">Gửi bản hiện tại cho Moderator duyệt công khai. Bản đã nộp giữ nguyên trong lịch sử; muốn sửa bản sẵn sàng hoặc đã nộp, hãy tạo phiên bản chỉnh sửa mới.</p>
+
+    <div className="pa-step">
+      <b>Kiểm tra vùng xám (nên làm trước khi gửi)</b>
+      <p className="sub">AI đánh giá nội dung theo nhóm tuổi của truyện và cho ra một trong ba mức: <b>An toàn</b> (qua), <b>Vùng xám</b> (có chỗ gây tranh cãi, cần Moderator xem trước khi tiếp tục) hoặc <b>Bị chặn</b> (vi phạm nghiêm trọng, phải sửa). Kết quả chỉ cho biết mức, không chỉ ra câu cụ thể.</p>
+      <div className="pa-actions"><button className="btn btn-s" disabled={busy || !checkable} onClick={() => void runCheck()}>{busy ? 'Đang kiểm tra…' : 'Kiểm tra vùng xám bằng AI'}</button></div>
+      {zone && zone.storyVersionId === status?.versionId && <div className={`notice ${ZONE[zone.status]?.tone ?? ''}`} role="status">
+        <b>Kết quả: {ZONE[zone.status]?.title ?? zone.status}</b>
+        <p style={{ margin: '6px 0 0' }}>{zoneAdvice(zone)}</p>
+      </div>}
+      {grayWaiting && !zone && <div className="notice warn">Truyện đang ở vùng xám và chờ Moderator xem xét. Bạn chờ quyết định của họ trước khi chốt hay gửi duyệt.</div>}
+    </div>
+
+    <div className="pa-step">
+      <b>Gửi duyệt công khai</b>
+      {blocker && <p className="sub">{blocker}</p>}
+      <div className="pa-actions">
+        {canSubmit && <button className="btn btn-p" disabled={busy} onClick={() => void act(() => service.submit(storyId, status!.versionId))}>Gửi bản hiện tại cho Moderator</button>}
+        {pendingReview && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.withdraw(status!.openItemId!))}>Rút yêu cầu duyệt</button>}
+        {canRevise && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.revision(storyId, status!.versionId), true)}>Tạo phiên bản chỉnh sửa mới</button>}
+        <button className="btn btn-g" disabled={busy} onClick={() => setRefresh(n => n + 1)}>Tải lại trạng thái</button>
+      </div>
+    </div>
+
+    {status?.isPublished && !status.openItemId && <div className="pa-step">
+      <b>Yêu cầu gỡ để chỉnh sửa</b>
+      <p className="sub">Truyện đang công khai nên không sửa trực tiếp được. Gỡ xuống, sửa rồi gửi duyệt lại.</p>
       <label className="field">Lý do yêu cầu gỡ<textarea className="inp" rows={2} maxLength={2000} value={reason} onChange={e => setReason(e.target.value)} /></label>
-      <div className="row"><button className="btn btn-s" disabled={busy} onClick={() => setRefresh(n => n + 1)}>Tải trạng thái</button>
-        {storyStatus === 'Ready' && !status.isPublished && !status.openItemId && status.reviewStatus === 'None' && <button className="btn btn-p" disabled={busy} onClick={() => void act(() => service.submit(storyId, status.versionId))}>Gửi bản hiện tại cho Moderator</button>}
-        {status.openItemType === 'PublicStoryReview' && status.openItemStatus === 'Pending' && status.openItemId && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.withdraw(status.openItemId!))}>Rút yêu cầu duyệt</button>}
-        {status.isPublished && !status.openItemId && <button className="btn btn-s" disabled={busy || !reason.trim()} onClick={() => void act(() => service.remove(storyId, reason))}>Yêu cầu gỡ để chỉnh sửa</button>}
-        {!status.isPublished && !status.openItemId && storyStatus !== 'Archived' && (storyStatus === 'Ready' || status.reviewStatus !== 'None' || submittedVersion === status.versionId) && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.revision(storyId, status.versionId), true)}>Tạo phiên bản chỉnh sửa mới</button>}
-        <button className="btn btn-s" disabled={busy || !!status.openItemId || status.isPublished} onClick={() => void act(() => service.check(storyId, status.versionId), false, false)}>Kiểm tra vùng xám</button>
-      </div></>}
+      <div className="pa-actions"><button className="btn btn-s" disabled={busy || !reason.trim()} onClick={() => void act(() => service.remove(storyId, reason))}>Yêu cầu gỡ</button></div>
+    </div>}
   </section>;
 }
