@@ -41,3 +41,8 @@
 
 .safety-tab .setbody { position: relative; }
 .safety-deny { position: absolute; inset: 0; z-index: 5; cursor: not-allowed; }
+
+/* Công tắc quan trọng (hỏi mật khẩu khi bé thoát): tách khỏi thanh trên và làm nổi bật bằng khung riêng. */
+.trow.strong { margin-top: 22px; padding: 14px 16px; border: 1px solid var(--primary); border-radius: 16px; background: color-mix(in srgb, var(--primary) 10%, var(--surface)); font-size: 15px; font-weight: 800; }
+.trow.strong small { margin-top: 4px; font-size: 13px; }
+.safety-tab .setbody .trow.strong:last-child { padding-bottom: 14px; border-bottom: 1px solid var(--primary); }
