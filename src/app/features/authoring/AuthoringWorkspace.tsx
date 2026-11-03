@@ -12,7 +12,7 @@ import ParentAuthoringWorkspace from "./ParentAuthoringWorkspace";
  * Trang Thủ công: phụ huynh tự soạn truyện gia đình, tự kiểm tra và giao cho bé.
  * Bé được chọn riêng cho trang này. Có `resumeStoryId` thì lấy đúng bé của bản nháp đó rồi mở thẳng.
  */
-export default function AuthoringWorkspace({ resumeStoryId }: Pick<WorkspaceProps, "resumeStoryId">) {
+export default function AuthoringWorkspace({ go, resumeStoryId }: Pick<WorkspaceProps, "go" | "resumeStoryId">) {
   const { children: kids } = useWorkspaceData();
   const [kidId, setKidId] = useState<number | null>(null);
   const [resolving, setResolving] = useState(resumeStoryId != null);
@@ -60,5 +60,5 @@ export default function AuthoringWorkspace({ resumeStoryId }: Pick<WorkspaceProp
       </section>
     );
   }
-  return <ParentAuthoringWorkspace key={child.id} childId={child.id} initialStoryId={resumeStoryId ?? null} onChangeKid={kids.length > 1 ? () => void pickKid() : undefined} />;
+  return <ParentAuthoringWorkspace key={child.id} childId={child.id} initialStoryId={resumeStoryId ?? null} onChangeKid={kids.length > 1 ? () => void pickKid() : undefined} onDone={() => go("created")} />;
 }

@@ -36,10 +36,19 @@ const STATUS_GROUPS: { id: string; label: string; keys: string[] }[] = [
 const statusOf = (s: StoryCard) => STATUS_GROUPS.find((g) => g.keys.includes(statusKey(s.raw)))?.id ?? "draft";
 
 /** Xem trước truyện như bé thấy — không ghi nhận lượt đọc, không cộng điểm. */
-function Preview({ story, onClose }: { story: StoryCard; onClose: () => void }) {
+export function Preview({ story, onClose }: { story: StoryCard; onClose: () => void }) {
   const [pages, setPages] = useState<string[] | null>(null);
   const [page, setPage] = useState(0);
   useEffect(() => {
+    // Bản nháp thủ công không nằm trong GET /Story: lấy nội dung của phiên bản đang chọn qua API của phụ huynh.
+    if (story.family) {
+      void parentAuthoringService.get(story.id).then(async (d) => {
+        const versionId = d.data?.story.selectedVersionId;
+        const v = versionId ? await parentAuthoringService.version(story.id, versionId) : null;
+        setPages(splitScenes(v?.data?.content ?? ""));
+      });
+      return;
+    }
     void storyService.getStoryById(story.id).then((r) => {
       setPages(splitScenes(r.data?.content ?? story.raw.content ?? ""));
     });

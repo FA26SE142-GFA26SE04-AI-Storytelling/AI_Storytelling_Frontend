@@ -3,13 +3,15 @@
 import "@/app/features/library/library.css";
 import "./created.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Info, PencilLine, RefreshCw, WandSparkles } from "lucide-react";
+import { Eye, Info, PencilLine, RefreshCw, WandSparkles } from "lucide-react";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import Frog from "@/app/components/brand/Frog";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useAuth } from "@/app/context/AuthContext";
+import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { storyService } from "@/app/services/storyService";
 import { parentAuthoringService } from "@/app/services/parentAuthoringService";
+import { Preview } from "@/app/features/library/LibraryWorkspace";
 import { ageLabel, familyToCard, statusKey, toCard, type StoryCard } from "@/app/lib/storyView";
 
 /** Nhóm trạng thái hiển thị trên trang: gom các trạng thái chi tiết của backend thành vài nhóm dễ hiểu. */
@@ -26,6 +28,7 @@ const SOURCES = [{ id: "all", label: "Tất cả" }, { id: "ai", label: "Do AI t
 /** Trang "Truyện đã tạo": mọi truyện phụ huynh đã tạo (AI và thủ công), kể cả bản nháp chưa vào Thư viện. */
 export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
   const { user } = useAuth();
+  const { children: kids } = useWorkspaceData();
   const [ai, setAi] = useState<StoryCard[]>([]);
   const [manual, setManual] = useState<StoryCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -66,9 +69,20 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
   // Khung Chi tiết bên phải thu gọn được; mới vào thì thu gọn, bấm vào một truyện sẽ tự mở.
   const [selected, setSelected] = useState<number | null>(null);
   const [collapsed, setCollapsed] = useState(true);
+  const [reading, setReading] = useState(false);
   const aside = useMemo(() => ({ collapsed, toggle: () => setCollapsed((v) => !v) }), [collapsed]);
   const sel = all.find((s) => s.id === selected) ?? null;
   const pick = (s: StoryCard) => { setSelected(s.id); if (collapsed) setCollapsed(false); };
+  // Bé mà truyện dành cho: danh sách truyện không trả hồ sơ bé, nên với truyện thủ công lấy từ chi tiết bản nháp (GET /parent/stories/{id}).
+  // Truyện AI chưa có API trả hồ sơ bé nên không biết được.
+  const [kidOf, setKidOf] = useState<Record<number, number | null>>({});
+  useEffect(() => {
+    if (!sel?.family || sel.id in kidOf) return;
+    let alive = true;
+    void parentAuthoringService.get(sel.id).then((r) => { if (alive) setKidOf((m) => ({ ...m, [sel.id]: r.data?.childProfileId ?? null })); });
+    return () => { alive = false; };
+  }, [sel, kidOf]);
+  const kidName = !sel ? "" : !sel.family ? "Chưa có thông tin" : !(sel.id in kidOf) ? "Đang tải…" : kids.find((k) => k.id === kidOf[sel.id])?.nickname ?? "Chưa có thông tin";
   const open = (s: StoryCard) => (s.family ? go("authoring", { storyId: s.id }) : go("studio", { storyId: s.id }));
 
   return (
@@ -123,6 +137,7 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
             {sel.raw.description && <p className="sub">{sel.raw.description}</p>}
             <div className="meta">
               <span>Cách tạo</span><b>{sel.family ? "Thủ công" : "Do AI tạo"}</b>
+              <span>Dành cho bé</span><b>{kidName}</b>
               <span>Độ tuổi</span><b>{ageLabel(sel.ageBand)}</b>
               <span>Thể loại</span><b>{sel.topic}</b>
               {sel.words > 0 && <><span>Độ dài</span><b>khoảng {sel.words} từ</b></>}
@@ -130,10 +145,12 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
               {sel.raw.updatedAt && <><span>Cập nhật</span><b>{when(sel.raw.updatedAt)}</b></>}
               <span>Trạng thái</span><span className={`pill ${sel.tone}`} style={{ width: "fit-content" }}>{sel.statusLabel}</span>
             </div>
+            <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
             <button className="btn btn-p btn-c" onClick={() => open(sel)}>{sel.family ? <PencilLine className="ic" /> : <WandSparkles className="ic" />}Mở để soạn tiếp</button>
           </>
         ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
       </AsidePane>
+      {sel && reading && <Preview story={sel} onClose={() => setReading(false)} />}
     </section>
     </AsideContext.Provider>
   );
