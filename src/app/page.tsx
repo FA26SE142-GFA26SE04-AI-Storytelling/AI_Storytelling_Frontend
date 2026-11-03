@@ -11,6 +11,7 @@ import { DEFAULT_WORKSPACE, readWorkspaceLocation, takesStoryId, workspaceLocati
 import StudioWorkspace from "@/app/features/studio/StudioWorkspace";
 import AuthoringWorkspace from "@/app/features/authoring/AuthoringWorkspace";
 import LibraryWorkspace from "@/app/features/library/LibraryWorkspace";
+import CreatedStories from "@/app/features/created/CreatedStories";
 import ReviewWorkspace from "@/app/features/review/ReviewWorkspace";
 import ReportWorkspace from "@/app/features/report/ReportWorkspace";
 import KidMode from "@/app/features/kid/KidMode";
@@ -31,6 +32,7 @@ const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
   studio: StudioWorkspace,
   authoring: AuthoringWorkspace,
   library: LibraryWorkspace,
+  created: CreatedStories,
   roadmap: RoadmapWorkspace,
   review: ReviewWorkspace,
   report: ReportWorkspace,

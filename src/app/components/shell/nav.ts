@@ -1,6 +1,6 @@
-import { Activity, BookOpen, ChartColumn, CreditCard, PencilLine, Inbox, Route, UserRound, Users, WandSparkles, type LucideIcon } from "lucide-react";
+import { Activity, BookOpen, FolderOpen, ChartColumn, CreditCard, PencilLine, Inbox, Route, UserRound, Users, WandSparkles, type LucideIcon } from "lucide-react";
 
-export type WorkspaceId = "children" | "studio" | "authoring" | "library" | "roadmap" | "review" | "report" | "account" | "account-payment" | "account-activity";
+export type WorkspaceId = "children" | "studio" | "authoring" | "created" | "library" | "roadmap" | "review" | "report" | "account" | "account-payment" | "account-activity";
 
 export type WorkspaceEntry = {
   id: WorkspaceId;
@@ -23,6 +23,7 @@ export const WORKSPACES: WorkspaceEntry[] = [
   // Nút Studio xổ ra hai cách tạo truyện: Dùng AI (chính Studio) và Thủ công.
   { id: "studio", label: "Studio tạo truyện", short: "Tạo truyện", icon: WandSparkles, under: "studio", menuLabel: "Dùng AI", hint: "AI viết truyện từ ý tưởng của bạn, bạn duyệt từng bước" },
   { id: "authoring", label: "Thủ công", icon: PencilLine, under: "studio", hint: "Bạn tự viết truyện (có thể tải tệp lên), tự kiểm tra rồi giao cho bé" },
+  { id: "created", label: "Truyện của tôi", icon: FolderOpen, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở" },
   { id: "roadmap", label: "Lộ trình của con", short: "Lộ trình", icon: Route },
   { id: "review", label: "Duyệt nội dung", short: "Duyệt", icon: Inbox },
   // Mở từ menu avatar: nhóm của bé (ít dùng hằng ngày), rồi nhóm tài khoản.

@@ -53,3 +53,19 @@
 .pa-kid-change { width: 28px; height: 28px; padding: 0; justify-content: center; border-radius: 50%; }
 .pa-kid-change .ic { width: 16px; height: 16px; }
 .pa-kid:not(:has(.pa-kid-change)) { padding: 4px 10px; }
+
+/* AI gợi ý theo bản nháp: thoáng hơn, các nhóm cách nhau rõ, nhãn to đậm, nút không dính ô nhập. */
+.st-card.pa-assist { padding: 22px 24px; gap: 18px; }
+.pa-assist h3 { margin: 0; font-size: 19px; font-weight: 800; }
+.pa-assist > .sub { margin: 0; line-height: 1.65; font-size: 14.5px; }
+.pa-assist fieldset { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.pa-assist .field { display: flex; flex-direction: column; gap: 8px; font-size: 15px; font-weight: 800; }
+.pa-assist .field .inp { font-weight: 500; }
+.pa-assist textarea.inp { min-height: 96px; }
+.pa-assist .btn { align-self: flex-start; }
+.pa-assist .row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.pa-assist details { padding-top: 16px; border-top: 1px solid var(--line); }
+.pa-assist details > summary { font-size: 15.5px; font-weight: 800; }
+.pa-assist details > * + * { margin-top: 12px; }
+.pa-assist .sec { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--panel); }
+.pa-assist .notice { margin: 0; }

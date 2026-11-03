@@ -125,7 +125,8 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
               <div className="pa-actions"><button className="btn btn-s" disabled={!saved} onClick={() => void h.write((id,cmd) => service.check(id,cmd))}>Kiểm tra bản đã lưu</button></div>
               {check && <><p style={{ margin:0 }}>{check.coverage}</p>{check.errors.map(e => <p className="notice err" key={e}>{e}</p>)}{check.warnings.map(e => <p className="notice warn" key={e}>{e}</p>)}</>}
             </div>
-            {saved && check?.canPrepare && canWrite && <div className="pa-step">
+            {saved && confirmation && <div className="pa-step"><h4>{step(2)}Xác nhận nội dung cho bé</h4><p className="sub">Đã xác nhận nội dung của bản này.</p></div>}
+            {saved && !confirmation && check?.canPrepare && canWrite && <div className="pa-step">
               <h4>{step(2)}Xác nhận nội dung cho bé</h4>
               {(Object.keys(checklist) as (keyof B.ParentChecklist)[]).map(k => <label className="pa-check" key={k}><input type="checkbox" checked={checklist[k]} onChange={e => setChecklist(c => ({ ...c,[k]:e.target.checked }))} />{({ intendedMeaning:'Đúng ý định của tôi',suitableForChild:'Phù hợp với bé',privacyChecked:'Đã kiểm tra thông tin riêng tư',endingChecked:'Đã đọc phần kết' })[k]}</label>)}
               <div className="pa-actions"><button className="btn btn-p" disabled={!Object.values(checklist).every(Boolean) || !canApprove} onClick={() => void h.write((id,cmd) => service.confirmContent(id,{ ...cmd,checkId:check.checkId,checklist }))}>Xác nhận nội dung</button></div>
