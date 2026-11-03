@@ -437,3 +437,6 @@
 .kid-wish .kid-library-invitation { padding: 22px 26px; }
 .kid-wish .kcard { padding: 22px 26px; }
 .kid .khome > .shelf { border-color: color-mix(in srgb, var(--primary) 60%, transparent); }
+
+/* Không còn tiêu đề: con ếch nằm bên phải hàng tab. */
+.kid-library-frog { margin-left: auto; display: inline-flex; }

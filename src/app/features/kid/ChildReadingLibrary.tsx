@@ -64,12 +64,12 @@ export default function ChildReadingLibrary({childId,community,unlockTitle,onCom
   if(!token)return <p className="notice">Phiên của bé đã hết hạn. Em nhờ bố mẹ mở lại nhé.</p>;
   if(reader.content)return <ChildReader reader={reader}/>;
   return <section className="ksection kid-reading">
-    <header className="kid-library-heading"><div><h2 className="display">Đọc và nghe truyện</h2></div><Frog mood="happy" size={76}/></header>
     <div className="kid-library-tabs" aria-label="Thư viện của em">
       <IconButton icon={BookOpen} label="Truyện của em" iconClassName="" className="kid-soft-button" aria-pressed={pane==='stories'} onClick={()=>setPane('stories')}/>
       <IconButton icon={NotebookPen} label="Sổ tay của em" iconClassName="" className="kid-soft-button" aria-pressed={pane==='notebook'} onClick={()=>setPane('notebook')}/>
       <IconButton icon={Sparkles} label="Em ước" iconClassName="" className="kid-soft-button" aria-pressed={pane==='wishes'} onClick={()=>setPane('wishes')}/>
       <IconButton icon={Award} label="Phần thưởng" iconClassName="" className="kid-soft-button" aria-pressed={pane==='rewards'} onClick={()=>setPane('rewards')}/>
+      <span className="kid-library-frog" aria-hidden="true"><Frog mood="happy" size={64}/></span>
     </div>
     {reader.note&&<p role="status" className="kid-toast">{reader.note}</p>}
     {note&&<p role="status" className="kid-toast">{note}</p>}
