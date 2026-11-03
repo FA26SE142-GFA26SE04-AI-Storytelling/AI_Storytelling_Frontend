@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationService';
 import { ApiResponse } from '@/app/types/auth';
-import { AIProposalDto, DiscussionReviewDto, PartialEditRequestDto, QuizReviewDto, ReviewArtifact, ReviewPackageDto, StoryReviewDto, ValidationResultDto, VocabularyReviewDto } from '@/app/types/aiStory';
+import { AIProposalDto, PartialEditRequestDto, QuizReviewDto, ReviewArtifact, ReviewPackageDto, StoryReviewDto, ValidationResultDto, VocabularyReviewDto } from '@/app/types/aiStory';
 import { hasMissingLearning, missingLearning } from './storyReviewLearning';
 import { isReadingOnly } from '@/app/lib/storyRules';
 
@@ -17,7 +17,6 @@ export interface StoryReviewBundle {
   story: StoryReviewDto;
   vocabulary: VocabularyReviewDto;
   quiz: QuizReviewDto;
-  discussion: DiscussionReviewDto;
 }
 
 export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'parent') {
@@ -37,13 +36,13 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
     const story = requireData(s);
     // Truyện "Chỉ để đọc": backend từ chối mọi API học liệu (409), nên không gọi và dùng danh sách rỗng.
     const empty = { storyId, versionId: summary.storyVersionId, items: [] };
-    const [v, q, d] = isReadingOnly(summary.outputMode)
-      ? [{ ...empty }, { ...empty }, { ...empty }]
-      : await Promise.all([api.getVocabularyReview(storyId, signal), api.getQuizReview(storyId, signal), api.getDiscussionReview(storyId, signal)])
-        .then(([vr, qr, dr]) => [requireData(vr), requireData(qr), requireData(dr)] as const);
+    const [v, q] = isReadingOnly(summary.outputMode)
+      ? [{ ...empty }, { ...empty }]
+      : await Promise.all([api.getVocabularyReview(storyId, signal), api.getQuizReview(storyId, signal)])
+        .then(([vr, qr]) => [requireData(vr), requireData(qr)] as const);
     if (signal.aborted) return;
-    const next = { summary, story, vocabulary: v, quiz: q, discussion: d } as StoryReviewBundle;
-    if ([next.story, next.vocabulary, next.quiz, next.discussion].some(item => item.versionId !== next.summary.storyVersionId)) {
+    const next = { summary, story, vocabulary: v, quiz: q } as StoryReviewBundle;
+    if ([next.story, next.vocabulary, next.quiz].some(item => item.versionId !== next.summary.storyVersionId)) {
       throw new Error('Bản thảo đã thay đổi trong lúc tải. Vui lòng kiểm tra lại.');
     }
     setBundle(next); setValidation(null);
@@ -83,7 +82,7 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
 
   const approve = (onApproved: () => void) => run(async signal => {
     if (!bundle || hasMissingLearning(bundle)) throw new Error('Hãy tạo đủ học liệu cho bản thảo hiện tại trước khi phê duyệt.');
-    const artifacts = isReadingOnly(bundle.summary.outputMode) ? (['story'] as const) : (['story', 'vocabulary', 'quiz', 'discussion'] as const);
+    const artifacts = isReadingOnly(bundle.summary.outputMode) ? (['story'] as const) : (['story', 'vocabulary', 'quiz'] as const);
     for (const artifact of artifacts) {
       const completed = requireData(await api.completeReview(storyId, artifact, signal));
       if (signal.aborted) return;

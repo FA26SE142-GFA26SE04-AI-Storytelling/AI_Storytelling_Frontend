@@ -240,7 +240,6 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
                             <div><small>Truyện con thích nhất</small><b>{r.favoriteStory ?? "—"}</b></div>
                             <div><small>Điều ước đã gửi / thành truyện</small><b>{r.wishesSubmitted} / {r.wishesFulfilled}</b></div>
                             <div><small>Tạm khoá thư viện</small><b>{r.holdMode ? "Có" : "Không"}</b></div>
-                            <div><small>Câu hỏi thảo luận chưa xem</small><b>{r.unseenDiscussions}</b></div>
                           </div>
                         )}
                       </div>

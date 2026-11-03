@@ -21,7 +21,7 @@ import { ArchiveDialog, LearningEditor } from "./ReviewTools";
 import AutoPublishAction from './AutoPublishAction';
 
 type Tab = "story" | ArtifactKind;
-const ARTIFACTS: ArtifactKind[] = ["vocabulary", "quiz", "discussion"];
+const ARTIFACTS: ArtifactKind[] = ["vocabulary", "quiz"];
 
 type Props = {
   actor?: 'parent' | 'creator';
@@ -77,9 +77,9 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
   }
 
   const { summary, story } = bundle;
-  const items: Record<ArtifactKind, unknown[]> = { vocabulary: bundle.vocabulary.items, quiz: bundle.quiz.items, discussion: bundle.discussion.items };
+  const items: Record<ArtifactKind, unknown[]> = { vocabulary: bundle.vocabulary.items, quiz: bundle.quiz.items };
   const missing = hasMissingLearning(bundle);
-  // Truyện "Chỉ để đọc" không có từ vựng / câu đố / thảo luận (backend từ chối mọi thao tác học liệu).
+  // Truyện "Chỉ để đọc" không có từ vựng / câu đố (backend từ chối mọi thao tác học liệu).
   const learning = !isReadingOnly(summary.outputMode);
   const artifacts = learning ? ARTIFACTS : [];
   const canEdit = summary.canEdit && !proposal && !editing;

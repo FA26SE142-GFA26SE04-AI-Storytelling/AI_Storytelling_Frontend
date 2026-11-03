@@ -125,7 +125,6 @@ export interface ContentGenerationProgressDto {
   content: string;
   vocabulary: string;
   quiz: string;
-  discussion: string;
   isComplete: boolean;
   lastErrorCode: string | null;
   qualityFailure: ContentQualityFailureDto | null;
@@ -144,15 +143,13 @@ export interface StoryReviewDto {
 }
 export interface VocabularyItemDto { id?: number | null; term: string; definition: string }
 export interface QuizQuestionDto { id?: number | null; type: string; question: string; correctAnswer?: string | null; choices?: string[] | null }
-export interface DiscussionPromptDto { id?: number | null; question: string; isMoralLesson: boolean }
 export interface VocabularyReviewDto { storyId: number; versionId: number; items: VocabularyItemDto[] }
 export interface QuizReviewDto { storyId: number; versionId: number; items: QuizQuestionDto[] }
-export interface DiscussionReviewDto { storyId: number; versionId: number; items: DiscussionPromptDto[] }
 export interface ArtifactStatusDto { state: string; itemCount: number }
 export interface ReviewPackageDto {
   assistanceRevisionToken?: string | null;
   storyId: number;
-  /** 'reading_media_only': truyện chỉ để đọc, không có từ vựng / câu đố / thảo luận. */
+  /** 'reading_media_only': truyện chỉ để đọc, không có từ vựng / câu đố. */
   outputMode?: StoryOutputMode | string;
   storyVersionId: number;
   storyStatus: string;
@@ -164,7 +161,6 @@ export interface ReviewPackageDto {
   readabilityFre: number | null;
   vocabulary: ArtifactStatusDto;
   quiz: ArtifactStatusDto;
-  discussion: ArtifactStatusDto;
   canEdit: boolean;
   canApprove: boolean;
   canConfirmContent?: boolean;
@@ -197,15 +193,13 @@ export interface PartialEditRequestDto {
 export interface UpdateStoryReviewRequestDto { versionId: number; title: string; content: string; lesson: string; assistanceReferences?: import('./backendContracts').AssistanceReference[] }
 export interface UpdateVocabularyRequestDto { versionId: number; items: VocabularyItemDto[] }
 export interface UpdateQuizRequestDto { versionId: number; items: QuizQuestionDto[] }
-export interface UpdateDiscussionRequestDto { versionId: number; items: DiscussionPromptDto[] }
 export interface GenerateArtifactsRequestDto {
   storyVersionId?: number;
   includeVocabulary?: boolean;
   includeQuiz?: boolean;
-  includeDiscussion?: boolean;
 }
 export interface ArtifactGenerationResultDto {
-  storyId: number; storyVersionId: number; vocabularyCount: number; quizCount: number; discussionCount: number; success: boolean; message: string;
+  storyId: number; storyVersionId: number; vocabularyCount: number; quizCount: number; success: boolean; message: string;
 }
 export interface ApproveResponseDto { success: boolean; storyId: number; status: string; approvedAt: string }
 export interface ArchiveRequestDto { reason?: string }
@@ -259,7 +253,7 @@ export interface StoryMediaPackage extends MediaPackageState {
     }[];
   }[];
 }
-export type ReviewArtifact = 'story' | 'vocabulary' | 'quiz' | 'discussion';
+export type ReviewArtifact = 'story' | 'vocabulary' | 'quiz';
 export interface CreateProposalResponseDto { proposalId: string; message: string }
 export interface ApplyDiscardResponseDto { success: boolean; message: string }
 
