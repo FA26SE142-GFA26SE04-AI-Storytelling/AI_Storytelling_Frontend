@@ -79,7 +79,7 @@ export default function KidWish({ token, busy, onRead }: { token: string; busy: 
 
   if (draft) return <section className="kid-wish">
     <div className="kid-wish-steps" aria-label="Các bước ước">{STEPS.map((s, i) => <IconButton key={s.group} icon={s.icon} label={`Bước ${i + 1}: ${s.question}`} iconClassName="" className="kid-soft-button" aria-pressed={i === step} disabled={disabled} onClick={() => setStep(i)} />)}</div>
-    <h3 className="display">{current.question}{current.optional && <small> (không bắt buộc)</small>}</h3>
+    <h3 className="display">{current.question}</h3>
     {note && <p role="status" className="notice">{note}</p>}
     {!cards && <p role="status">Đang tải thẻ…</p>}
     {cards && !cards.length && <p>Chưa có thẻ nào cho bước này.</p>}
@@ -87,33 +87,31 @@ export default function KidWish({ token, busy, onRead }: { token: string; busy: 
       {c.imageUrl && <img src={c.imageUrl} alt="" />}<span>{c.label}</span>
     </button>)}</div>
     <div className="kid-library-tabs">
-      {step > 0 && <IconButton icon={ArrowLeft} label="Quay lại" iconClassName="" className="kid-soft-button" disabled={disabled} onClick={() => setStep(step - 1)} />}
-      {current.group === 'Lesson' && <IconButton icon={UsersRound} label="Để bố mẹ chọn" iconClassName="" className="kid-soft-button" aria-pressed={draft.lessonLeftToParent} disabled={disabled} onClick={() => void pick(null, true)} />}
-      {current.optional && step < STEPS.length - 1 && <IconButton icon={SkipForward} label="Bỏ qua" iconClassName="" className="kid-soft-button" disabled={disabled} onClick={() => setStep(step + 1)} />}
+      {step > 0 && <button type="button" className="kid-soft-button" disabled={disabled} onClick={() => setStep(step - 1)}><ArrowLeft aria-hidden="true" />Quay lại</button>}
+      {current.group === 'Lesson' && <button type="button" className="kid-soft-button" aria-pressed={draft.lessonLeftToParent} disabled={disabled} onClick={() => void pick(null, true)}><UsersRound aria-hidden="true" />Để bố mẹ chọn</button>}
+      {current.optional && step < STEPS.length - 1 && <button type="button" className="kid-soft-button" disabled={disabled} onClick={() => setStep(step + 1)}><SkipForward aria-hidden="true" />Bỏ qua</button>}
     </div>
-    <p className="sub">Em đã chọn: {draft.cards.map(c => c.label).join(', ') || 'chưa có thẻ nào'}{draft.lessonLeftToParent ? ' · bài học để bố mẹ chọn' : ''}</p>
     <div className="kid-library-tabs">
-      <IconButton icon={Send} label="Gửi điều ước cho bố mẹ" iconClassName="" className="kid-listen-primary" disabled={disabled || !draft.canSubmit} onClick={() => void submit()} />
-      <IconButton icon={X} label="Để sau" iconClassName="" className="kid-soft-button" disabled={disabled} onClick={() => setDraft(null)} />
+      <button type="button" className="kid-listen-primary" disabled={disabled || !draft.canSubmit} onClick={() => void submit()}><Send aria-hidden="true" />Gửi điều ước</button>
+      <button type="button" className="kid-soft-button" disabled={disabled} onClick={() => setDraft(null)}><X aria-hidden="true" />Để sau</button>
     </div>
-    {!draft.canSubmit && <p className="sub">Em chọn nhân vật và nơi chốn nhé!</p>}
+    
   </section>;
 
   return <section className="kid-wish">
     <div className="kid-library-invitation"><Frog mood="happy" size={90} /><div>
       <h3 className="display">Em muốn nghe truyện gì?</h3>
-      <p>Chọn vài tấm thẻ, bố mẹ sẽ tìm hoặc viết truyện cho em.</p>
-      <IconButton icon={Sparkles} label="Em ước một câu chuyện" iconClassName="" className="kid-listen-primary" disabled={disabled} onClick={() => void start()} />
+      <button type="button" className="kid-listen-primary" disabled={disabled} onClick={() => void start()}><Sparkles aria-hidden="true" />Em ước một câu chuyện</button>
     </div></div>
     {note && <p role="status" className="notice">{note}</p>}
     {!wishes && !note && <p role="status">Đang tải điều ước…</p>}
-    {wishes?.map(w => <article className="kcard" key={w.wishId}>
+    <div className="kid-wish-list">{wishes?.map(w => <article className="kcard" key={w.wishId}>
       <h3>{w.cards.map(c => c.label).join(' · ') || 'Điều ước của em'}</h3>
-      <p>{w.message}</p>
-      {w.fulfilledStoryId != null && <IconButton icon={BookOpen} label="Đọc truyện" iconClassName="" className="kid-listen-primary" disabled={disabled} onClick={() => onRead({ storyId: w.fulfilledStoryId! })} />}
-      {w.suggestions.length > 0 && <><p className="sub">Trong lúc chờ, em đọc thử nhé:</p>
+      <p className="kid-wish-status">{w.message}</p>
+      {w.fulfilledStoryId != null && <button type="button" className="kid-listen-primary" disabled={disabled} onClick={() => onRead({ storyId: w.fulfilledStoryId! })}><BookOpen aria-hidden="true" />Đọc truyện</button>}
+      {w.suggestions.length > 0 && <>
         <div className="kid-library-tabs">{w.suggestions.filter(s => s.storyId != null || s.communitySubmissionId != null).map(s => <button key={s.rank} className="kid-soft-button" disabled={disabled}
           onClick={() => onRead(s.storyId != null ? { storyId: s.storyId } : { communitySubmissionId: s.communitySubmissionId! })}><BookOpen aria-hidden="true" />{s.title}</button>)}</div></>}
-    </article>)}
+    </article>)}</div>
   </section>;
 }

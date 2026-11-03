@@ -87,7 +87,7 @@ export default function ConnectedKidHome({ childId, onExit }: { childId: number;
           </Shelf>
           <Shelf title="Khám phá truyện cộng đồng" items={(community?.items ?? []).map(s => ({ id: s.submissionId }))}>
             {community?.items.length ? <ShelfRow>{community.items.map(s => <Cover key={s.submissionId} id={s.submissionId} title={s.title} meta={lock.locked ? 'Em đọc lại truyện đang mở trước nhé' : s.author} label="Đang khóa" disabled={busy} onOpen={lock.locked ? undefined : () => void openCommunity(s.submissionId)} />)}</ShelfRow> : <p>Chưa có truyện cộng đồng.</p>}
-            <div className="row"><button className="btn btn-s" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Trước</button><button className="btn btn-s" disabled={!community?.hasNextPage} onClick={() => setPage(p => p + 1)}>Tiếp</button></div>
+            {(page > 1 || community?.hasNextPage) && <div className="row"><button className="btn btn-s" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Trước</button><button className="btn btn-s" disabled={!community?.hasNextPage} onClick={() => setPage(p => p + 1)}>Tiếp</button></div>}
           </Shelf>
 
         </> : null}

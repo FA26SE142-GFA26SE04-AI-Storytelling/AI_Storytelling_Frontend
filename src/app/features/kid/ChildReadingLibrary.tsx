@@ -64,16 +64,15 @@ export default function ChildReadingLibrary({childId,community,unlockTitle,onCom
   if(!token)return <p className="notice">Phiên của bé đã hết hạn. Em nhờ bố mẹ mở lại nhé.</p>;
   if(reader.content)return <ChildReader reader={reader}/>;
   return <section className="ksection kid-reading">
-    <header className="kid-library-heading"><div><span className="kid-overline">MỖI CÂU CHUYỆN, MỘT CHUYẾN ĐI</span><h2 className="display">Đọc và nghe truyện</h2></div><Frog mood="happy" size={76}/></header>
+    <header className="kid-library-heading"><div><h2 className="display">Đọc và nghe truyện</h2></div><Frog mood="happy" size={76}/></header>
     <div className="kid-library-tabs" aria-label="Thư viện của em">
       <IconButton icon={BookOpen} label="Truyện của em" iconClassName="" className="kid-soft-button" aria-pressed={pane==='stories'} onClick={()=>setPane('stories')}/>
       <IconButton icon={NotebookPen} label="Sổ tay của em" iconClassName="" className="kid-soft-button" aria-pressed={pane==='notebook'} onClick={()=>setPane('notebook')}/>
       <IconButton icon={Sparkles} label="Em ước" iconClassName="" className="kid-soft-button" aria-pressed={pane==='wishes'} onClick={()=>setPane('wishes')}/>
       <IconButton icon={Award} label="Phần thưởng" iconClassName="" className="kid-soft-button" aria-pressed={pane==='rewards'} onClick={()=>setPane('rewards')}/>
     </div>
-    {pane==='stories'&&<p className="kid-legend"><span className="pill ok"><BookOpen className="ic" aria-hidden="true"/>Đọc được</span> Em bấm vào là đọc ngay. <span className="pill draft"><Lock className="ic" aria-hidden="true"/>Chưa mở</span> Bìa mờ, em chưa đọc được lúc này.</p>}
-    {reader.note&&<p role="status" className="notice">{reader.note}</p>}
-    {note&&<p role="status" className="notice">{note}</p>}
+    {reader.note&&<p role="status" className="kid-toast">{reader.note}</p>}
+    {note&&<p role="status" className="kid-toast">{note}</p>}
     {pane==='stories'&&<>
     {!stories?.isLocked&&<form className="row kid-story-search" onSubmit={e=>{e.preventDefault();setPage(1);setQuery(search.trim());}}>
       <input className="inp" aria-label="Tìm truyện" value={search} onChange={e=>setSearch(e.target.value)}/>
@@ -89,9 +88,8 @@ export default function ChildReadingLibrary({childId,community,unlockTitle,onCom
     </>}
     </>}
     {pane==='notebook'&&<>
-    <h2 className="display">Sổ tay từ vựng của em</h2>
-    {!loading&&!entries.length&&<p>Chưa có từ được lưu.</p>}
-    {entries.map(e=><article className="kcard" key={e.entryId}><h3>{e.term}</h3><p>{e.definition}</p><p>{e.storyTitle}</p><div className="row"><IconButton icon={BookOpen} label={`Đọc lại đoạn có từ ${e.term}`} disabled={reader.busy} onClick={()=>void reader.open({storyId:e.storyId},e.sceneIndex==null?undefined:e.sceneIndex+1)}/><IconButton icon={Trash2} label={`Xóa từ ${e.term} khỏi sổ tay`} className="btn btn-no" disabled={removing} onClick={()=>void remove(e.entryId)}/></div></article>)}
+    {!loading&&!entries.length&&<p className="kid-empty">Chưa có từ nào trong sổ tay.</p>}
+    <div className="kid-notebook">{entries.map(e=><article className="kcard kid-word-card" key={e.entryId}><h3>{e.term}</h3><p>{e.definition}</p><div className="row"><IconButton icon={BookOpen} label={`Đọc lại đoạn có từ ${e.term}`} disabled={reader.busy} onClick={()=>void reader.open({storyId:e.storyId},e.sceneIndex==null?undefined:e.sceneIndex+1)}/><IconButton icon={Trash2} label={`Xóa từ ${e.term} khỏi sổ tay`} className="btn btn-no" disabled={removing} onClick={()=>void remove(e.entryId)}/></div></article>)}</div>
     </>}
     {pane==='rewards'&&<KidRewards key={revision} token={token}/>}
     {pane==='wishes'&&<KidWish key={revision} token={token} busy={reader.busy} onRead={target=>void reader.open(target)}/>}

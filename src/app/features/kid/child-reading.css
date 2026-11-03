@@ -353,3 +353,87 @@
 .kid-mode-switch.listen .kid-mode-opt:nth-child(2) { color: #fff; }
 .kid-mode-switch.listen .kid-mode-thumb { transform: translateX(100%); }
 @media (max-width: 640px) { .kid-mode-switch { min-width: 0; } .kid-mode-opt { padding: 8px 10px; font-size: 14px; } .kid-mode-opt svg { width: 16px; height: 16px; } }
+
+/* Thông báo ở thư viện của bé: nổi phía trên rồi tự ẩn, không chiếm chỗ. */
+.kid-reading .kid-toast { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 250; margin: 0; max-width: min(92vw, 560px); padding: 10px 20px; border-radius: 999px; background: var(--text); color: var(--bg); font-size: 15px; font-weight: 700; text-align: center; box-shadow: 0 12px 30px -10px rgba(0,0,0,.5); pointer-events: none; animation: kid-note 3.2s ease forwards; }
+
+/* Bìa sách của bé chỉ có tên truyện: bỏ các dòng chữ nhỏ bên dưới. */
+.kid .bk-meta { display: none; }
+
+/* Sổ tay từ vựng: chỉ có từ và nghĩa, chữ lớn đậm; các thẻ xếp lưới. */
+.kid-notebook { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 16px; }
+.kid-word-card { display: flex; flex-direction: column; gap: 10px; padding: 22px 24px; box-shadow: none; }
+.kid-word-card h3 { margin: 0; font-size: clamp(28px, 3vw, 38px); font-weight: 800; color: var(--primary-strong); line-height: 1.2; }
+.kid-word-card p { margin: 0; font-size: clamp(20px, 2.1vw, 26px); font-weight: 700; line-height: 1.45; }
+.kid-word-card .row { margin-top: 6px; }
+.kid-empty { font-size: 20px; font-weight: 700; margin: 8px 0; }
+
+/* Thẻ từ vựng cân đối hơn: chữ bên trái, hai nút bên phải cùng cỡ với chữ, thẻ rộng vừa phải. */
+.kid-notebook { grid-template-columns: repeat(auto-fill, minmax(min(440px, 100%), 1fr)); }
+.kid-word-card { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "term actions" "meaning actions"; align-items: center; column-gap: 20px; row-gap: 6px; padding: 22px 26px; border-radius: 26px; }
+.kid-word-card h3 { grid-area: term; font-size: clamp(26px, 2.6vw, 34px); }
+.kid-word-card p { grid-area: meaning; font-size: clamp(19px, 1.9vw, 23px); }
+.kid-word-card .row { grid-area: actions; margin: 0; flex-direction: column; flex-wrap: nowrap; gap: 10px; }
+.kid-theater .kid-word-card .icon-only, .kid-word-card .icon-only { width: 52px; height: 52px; min-height: 52px; padding: 0; border-radius: 16px; }
+.kid-word-card .icon-only svg { width: 24px; height: 24px; }
+@media (max-width: 420px) { .kid-word-card { grid-template-columns: 1fr; grid-template-areas: "term" "meaning" "actions"; } .kid-word-card .row { flex-direction: row; } }
+
+/* Tab Em ước: bỏ chữ phụ, chữ chính to đậm, nút có chữ. */
+.kid-wish .kid-library-invitation h3 { font-size: clamp(26px, 3vw, 34px); font-weight: 800; margin: 0 0 12px; }
+.kid-wish .kcard { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 22px 26px; max-width: 760px; }
+.kid-wish .kcard h3 { margin: 0; font-size: clamp(24px, 2.6vw, 32px); font-weight: 800; line-height: 1.3; }
+.kid-wish-status { margin: 0; padding: 6px 16px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 16%, var(--panel)); color: var(--primary-strong); font-size: clamp(17px, 1.8vw, 20px); font-weight: 800; }
+.kid-wish > h3.display { font-size: clamp(26px, 3vw, 34px); font-weight: 800; margin: 4px 0; }
+.kid-wish-card { font-size: clamp(18px, 2vw, 22px); font-weight: 800; }
+
+/* Phần thưởng: EXP là thanh tiến độ tới mốc kế tiếp; huy hiệu là hàng biểu tượng (đã nhận sáng, chưa nhận mờ). */
+.kid-exp { gap: 10px; }
+.kid-exp-line { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.kid-exp-line b { font-size: 34px; }
+.kid-exp-line span { font-size: 18px; font-weight: 800; }
+.kid-exp-line em { margin-left: auto; font-style: normal; font-size: 15px; font-weight: 700; color: var(--muted); }
+.kid-exp-bar { width: 100%; height: 18px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 16%, var(--panel)); overflow: hidden; }
+.kid-exp-bar > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--primary), var(--primary-strong)); transition: width .5s ease; }
+.kid-badge-icons { display: flex; flex-wrap: wrap; gap: 8px; }
+.kid-badge-icon { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--faint) 22%, var(--panel)); color: var(--faint); }
+.kid-badge-icon svg { width: 24px; height: 24px; }
+.kid-badge-icon.on { background: var(--primary-strong); color: #fff; box-shadow: 0 6px 14px -6px rgba(0,0,0,.4); }
+.kid-badge-row > span { font-size: 18px; font-weight: 800; }
+
+/* Huy hiệu chỉ còn một danh sách: đã nhận có dấu tích và nền xanh, chưa nhận mờ. */
+.kid-reward-stats { grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); }
+.kid-badge-count { margin-left: 10px; font-size: 20px; font-weight: 800; color: var(--primary-strong); }
+.kid-badge b { font-size: 19px; font-weight: 800; }
+.kid-badge p { margin: 4px 0 0; font-size: 16px; line-height: 1.4; }
+.kid-badge.on svg { color: #fff; background: var(--primary-strong); border-radius: 50%; padding: 5px; width: 36px; height: 36px; flex: none; }
+
+/* Hai thẻ phần thưởng nổi bật: viền màu, biểu tượng lớn, số to; thanh EXP dày và sáng. */
+.kid-reward-stats { gap: 18px; }
+.kid-reward-stats .kcard { padding: 22px 26px; border-radius: 28px; border: 3px solid var(--primary); background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 16%, var(--panel)), var(--panel) 70%); box-shadow: 0 16px 30px -18px color-mix(in srgb, var(--primary-strong) 70%, transparent); gap: 8px; }
+.kid-reward-stats .kcard > svg { width: 40px; height: 40px; padding: 8px; border-radius: 14px; background: var(--primary-strong); color: #fff; }
+.kid-reward-stats .kcard:not(.kid-exp) > svg { background: #f08a24; }
+.kid-reward-stats .kcard:not(.kid-exp) b { font-size: 48px; line-height: 1.1; }
+.kid-reward-stats .kcard:not(.kid-exp) span { font-size: 20px; font-weight: 800; }
+.kid-exp-line b { font-size: 48px; line-height: 1.1; }
+.kid-exp-line span { font-size: 22px; }
+.kid-exp-line em { font-size: 17px; font-weight: 800; color: var(--primary-strong); }
+.kid-exp-bar { height: 28px; border: 3px solid var(--primary); background: var(--panel); }
+.kid-exp-bar > span { background: repeating-linear-gradient(135deg, var(--primary) 0 12px, var(--primary-strong) 12px 24px); box-shadow: inset 0 -4px 0 rgba(0,0,0,.12); }
+
+/* Tab Em ước trải đều hết bề ngang: các điều ước xếp lưới nhiều cột, không dồn về bên trái. */
+.kid-wish { width: 100%; }
+.kid-wish-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(420px, 100%), 1fr)); gap: 16px; align-items: start; }
+.kid-wish .kcard { max-width: none; width: 100%; }
+.kid-wish .kid-library-invitation { width: 100%; }
+
+/* Cùng kiểu thẻ nổi như trang Phần thưởng cho các thẻ ở Sổ tay, Em ước, Huy hiệu và các kệ sách: viền xanh dày, nền chuyển nhẹ, bóng đổ. */
+.kid-word-card, .kid-wish .kcard, .kid-wish .kid-library-invitation, .kid-badge.on, .kid .khome > .shelf {
+  border: 3px solid var(--primary);
+  border-radius: 28px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 16%, var(--panel)), var(--panel) 70%);
+  box-shadow: 0 16px 30px -18px color-mix(in srgb, var(--primary-strong) 70%, transparent);
+}
+.kid-badge:not(.on) { border: 3px solid var(--line-2); border-radius: 24px; }
+.kid-wish .kid-library-invitation { padding: 22px 26px; }
+.kid-wish .kcard { padding: 22px 26px; }
+.kid .khome > .shelf { border-color: color-mix(in srgb, var(--primary) 60%, transparent); }
