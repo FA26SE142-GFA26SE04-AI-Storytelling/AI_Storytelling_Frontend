@@ -69,7 +69,7 @@ export default function KidQuiz({ token, sessionId, onDone }: { token: string; s
     <h3 className="display">{q.question}</h3>
     {note && <p className="notice" role="status">{note}</p>}
     {!answer && (q.choices.length
-      ? <div className="kid-quiz-choices">{q.choices.map(c => <button key={c} className="kid-soft-button" disabled={busy} onClick={() => void send(c)}>{c}</button>)}</div>
+      ? <div className="kid-quiz-choices">{q.choices.map((c, i) => <button key={c} className="kid-choice" disabled={busy} onClick={() => void send(c)}><span className="kid-choice-letter" aria-hidden="true">{String.fromCharCode(65 + i)}</span><span className="kid-choice-text">{c}</span></button>)}</div>
       : <form className="row" onSubmit={e => { e.preventDefault(); void send(text); }}>
         <input className="inp" aria-label="Câu trả lời của em" maxLength={200} value={text} onChange={e => setText(e.target.value)} />
         <IconButton icon={Check} label="Trả lời" type="submit" iconClassName="" className="kid-soft-button" disabled={busy || !text.trim()} />
@@ -78,10 +78,10 @@ export default function KidQuiz({ token, sessionId, onDone }: { token: string; s
       <Frog mood={answer.isCorrect ? 'happy' : 'think'} size={56} />
       <p>{answer.feedback || (answer.isCorrect ? 'Đúng rồi!' : 'Mình thử nghĩ lại nhé.')}{answer.expGained > 0 ? ` +${answer.expGained} EXP` : ''}</p>
     </div>}
-    <div className="kid-library-tabs">
+    <div className="kid-quiz-footer">
       {index < quiz.questions.length - 1
-        ? <IconButton icon={answer ? ChevronRight : SkipForward} label={answer ? 'Câu tiếp' : 'Bỏ qua câu này'} iconClassName="" className={answer ? 'kid-listen-primary' : 'kid-soft-button'} disabled={busy} onClick={next} />
-        : <IconButton icon={Flag} label="Xem kết quả" iconClassName="" className={answer ? 'kid-listen-primary' : 'kid-soft-button'} disabled={busy} onClick={next} />}
+        ? <button type="button" className={answer ? 'kid-listen-primary' : 'kid-soft-button'} disabled={busy} onClick={next}>{answer ? <>Câu tiếp<ChevronRight aria-hidden="true" /></> : <><SkipForward aria-hidden="true" />Bỏ qua câu này</>}</button>
+        : <button type="button" className={answer ? 'kid-listen-primary' : 'kid-soft-button'} disabled={busy} onClick={next}><Flag aria-hidden="true" />{answer ? 'Xem kết quả' : 'Bỏ qua và xem kết quả'}</button>}
     </div>
   </section>;
 }
