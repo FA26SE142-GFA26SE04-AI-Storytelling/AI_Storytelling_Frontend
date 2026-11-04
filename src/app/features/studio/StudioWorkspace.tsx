@@ -92,7 +92,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
   );
   return (
     <section ref={bodyRef} className="ws with-steps" data-aside={asideCollapsed ? "collapsed" : undefined}>
-      <StudioSteps progress={progress} context={p.resumed ? <><span role="status">Đang tiếp tục: {p.snapshot?.story?.title ?? `truyện #${p.storyId}`}</span><button className="btn btn-g" onClick={() => go('library')}>Về thư viện</button>{p.statusError && <button className="btn btn-s" onClick={p.refresh}>Tải lại trạng thái truyện</button>}</> : undefined} />
+      <StudioSteps progress={progress} context={p.resumed && p.statusError ? <button className="btn btn-s" onClick={p.refresh}>Tải lại trạng thái truyện</button> : undefined} />
       <TabActions.Provider value={controls}>
       <AsideContext.Provider value={aside}>
       <ApproveSlot.Provider value={setApprove}>

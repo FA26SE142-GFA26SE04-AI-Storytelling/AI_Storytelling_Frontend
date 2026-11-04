@@ -7,19 +7,25 @@
 
 .center { display: flex; flex-direction: column; min-width: 0; min-height: 0; position: relative; background: color-mix(in srgb, var(--bg) 60%, var(--panel)); }
 .tools { height: 38px; flex: none; display: flex; align-items: center; gap: 2px; padding: 0 8px; border-bottom: 1px solid var(--line); }
-.board { flex: 1; position: relative; overflow: auto; min-height: 0; display: flex; align-items: center; justify-content: center; padding: 36px 28px 92px; background-image: radial-gradient(var(--line-2) 1px, transparent 1px); background-size: 20px 20px; }
+.board { flex: 1; position: relative; overflow: auto; min-height: 0; display: flex; align-items: safe center; justify-content: center; padding: 36px 28px 92px; background-image: radial-gradient(var(--line-2) 1px, transparent 1px); background-size: 20px 20px; }
 
 /* Khung cảnh truyện và hộp chữ */
 .artwrap { position: relative; transform-origin: center; transition: transform .25s; }
 .artlabel { position: absolute; top: -22px; left: 0; font-size: 11.5px; color: var(--muted); display: flex; gap: 10px; width: 100%; }
 .artlabel em { font-style: normal; margin-left: auto; color: var(--faint); }
 .art { width: min(720px, 52vw); aspect-ratio: 16/10; border-radius: 16px; position: relative; overflow: hidden; box-shadow: 0 30px 60px -24px color-mix(in srgb, var(--shadow) 45%, transparent); outline: 1px solid var(--line-2); transition: background .4s; }
-.studio-media-art { background: var(--surface); }
+/* Bố cục cảnh: hình bên trái; bên phải là chữ của cảnh ở trên, nút chọn tranh + nghe giọng đọc ở dưới. */
+.studio-media-art { background: var(--surface); aspect-ratio: auto; }
+/* Khung cha tự co theo nội dung nên làm 2 cột bị dồn thành 1: cho khung chứa cảnh rộng ra để hình và chữ đứng cạnh nhau. */
+.artwrap:has(> .studio-scene) { width: 100%; max-width: 1040px; }
+.studio-scene { display: flex; align-items: flex-start; justify-content: center; gap: 24px; flex-wrap: wrap; }
+.studio-scene .studio-media-art { width: min(560px, 100%); flex: none; }
+.studio-media-frame { position: relative; aspect-ratio: 16/10; background: color-mix(in srgb, var(--surface-2) 60%, transparent); }
 .studio-media-image { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
-.studio-media-art .tbox { width: 86%; left: 7%; outline: none; cursor: default; max-height: 46%; overflow: auto; background: color-mix(in srgb, var(--panel) 88%, transparent); }
-.studio-media-art .txt { font-size: 19px; color: var(--text); }
 .studio-media-placeholder { position: absolute; inset: 12px 16px auto; color: var(--muted); }
-.studio-scene-controls { display: grid; gap: 10px; margin-top: 14px; max-width: 720px; }
+.studio-scene-side { flex: 1 1 300px; min-width: 260px; max-width: 420px; display: flex; flex-direction: column; gap: 14px; }
+.studio-media-text { padding: 14px 18px 16px; font-family: var(--font-display); font-weight: 600; font-size: 17px; line-height: 1.55; color: var(--text); max-height: 300px; overflow: auto; background: var(--surface); border: 1px solid var(--line-2); border-radius: 16px; }
+.studio-scene-controls { display: grid; gap: 10px; width: 100%; align-content: start; }
 .studio-scene-controls .row { flex-wrap: wrap; }
 .studio-scene-controls audio { width: 100%; max-width: 100%; }
 .tbox { position: absolute; left: 4%; bottom: 7%; width: 52%; background: rgba(14, 34, 24, .5); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); border: 1px solid rgba(255,255,255,.25); border-radius: 14px; padding: 12px 16px; cursor: text; outline: 1.5px solid var(--primary); outline-offset: 4px; }
@@ -246,3 +252,14 @@
 .tab-actions .ss-confirm .btn-no { color: var(--danger); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); }
 .tab-actions .ss-approve, .tab-actions .ss-approve:hover { color: #fff; background: var(--primary-strong); }
 .tab-actions .ss-confirm { text-align: left; font-weight: 400; }
+
+/* Danh sách media cần kiểm tra: các mục đang chờ thử lại gom thành một khối, mục lỗi hẳn là thẻ riêng. */
+.media-issues { display: flex; flex-direction: column; gap: 8px; }
+.media-issues > b { font-size: 13px; }
+.media-issues ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.media-issues .notice { display: flex; flex-direction: column; gap: 6px; margin: 0; }
+.media-issues .notice p { margin: 0; }
+.media-issues .notice small { opacity: .85; }
+.media-issues .media-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.media-issues .media-chips .chip { font-size: 11.5px; padding: 3px 9px; }
+.media-issues details summary { cursor: pointer; font-size: 11.5px; opacity: .8; }
