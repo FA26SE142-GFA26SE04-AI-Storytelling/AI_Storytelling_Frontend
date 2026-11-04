@@ -2,6 +2,9 @@
 
 import "./library.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { aiStoryCreationService } from "@/app/services/aiStoryCreationService";
+import AudioRing from "./AudioRing";
 import { Archive, ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, Send, WandSparkles, X } from "lucide-react";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useAuth } from "@/app/context/AuthContext";
@@ -35,37 +38,85 @@ const STATUS_GROUPS: { id: string; label: string; keys: string[] }[] = [
 
 const statusOf = (s: StoryCard) => STATUS_GROUPS.find((g) => g.keys.includes(statusKey(s.raw)))?.id ?? "draft";
 
-/** Xem trước truyện như bé thấy — không ghi nhận lượt đọc, không cộng điểm. */
+/** Một trang khi đọc: chữ của cảnh, các tranh và đoạn giọng đọc (đã sẵn sàng, có URL) của cảnh đó. */
+type PreviewPage = { text: string; images: string[]; audio: { url: string; label: string }[] };
+
+/**
+ * Xem trước truyện như bé thấy — không ghi nhận lượt đọc, không cộng điểm.
+ * Truyện AI lấy từng cảnh từ gói media của backend (GET /stories/{id}/media/package: chữ, tranh, giọng đọc);
+ * chưa có gói media (hoặc truyện thủ công) thì chỉ hiện chữ, chia đoạn theo nội dung truyện.
+ */
 export function Preview({ story, onClose }: { story: StoryCard; onClose: () => void }) {
-  const [pages, setPages] = useState<string[] | null>(null);
+  const [pages, setPages] = useState<PreviewPage[] | null>(null);
   const [page, setPage] = useState(0);
+  const [shot, setShot] = useState(0);
+  const [broken, setBroken] = useState<string | null>(null);
   useEffect(() => {
-    // Bản nháp thủ công không nằm trong GET /Story: lấy nội dung của phiên bản đang chọn qua API của phụ huynh.
-    if (story.family) {
-      void parentAuthoringService.get(story.id).then(async (d) => {
+    const c = new AbortController();
+    const textOnly = (content: string): PreviewPage[] => splitScenes(content).map((text) => ({ text, images: [], audio: [] }));
+    const load = async (): Promise<PreviewPage[]> => {
+      // Bản nháp thủ công không nằm trong GET /Story: lấy nội dung của phiên bản đang chọn qua API của phụ huynh.
+      if (story.family) {
+        const d = await parentAuthoringService.get(story.id);
         const versionId = d.data?.story.selectedVersionId;
         const v = versionId ? await parentAuthoringService.version(story.id, versionId) : null;
-        setPages(splitScenes(v?.data?.content ?? ""));
+        return textOnly(v?.data?.content ?? "");
+      }
+      const [content, pack] = await Promise.all([
+        storyService.getStoryById(story.id).then((r) => r.data?.content ?? story.raw.content ?? ""),
+        aiStoryCreationService.getMediaPackage(story.id, c.signal).then((r) => (r.success ? r.data : null)).catch(() => null),
+      ]);
+      const texts = splitScenes(content);
+      const scenes = pack?.scenes?.slice().sort((a, b) => a.sceneIndex - b.sceneIndex) ?? [];
+      if (!scenes.length) return textOnly(content);
+      return scenes.map((scene, i) => {
+        const audio = (scene.audio ?? []).slice().sort((a, b) => a.segmentOrder - b.segmentOrder);
+        return {
+          text: scene.text?.trim() || audio.map((a) => a.text).join(" ").trim() || texts[i] || "",
+          images: scene.illustrations.slice().sort((a, b) => a.beatOrder - b.beatOrder)
+            .flatMap((x) => (x.status === "Ready" && x.url ? [x.url] : [])),
+          audio: audio.flatMap((a) => (a.status === "Ready" && a.url ? [{ url: a.url, label: `Đoạn ${a.segmentOrder + 1}` }] : [])),
+        };
       });
-      return;
-    }
-    void storyService.getStoryById(story.id).then((r) => {
-      setPages(splitScenes(r.data?.content ?? story.raw.content ?? ""));
-    });
+    };
+    void load().then((p) => { if (!c.signal.aborted) setPages(p); }).catch(() => { if (!c.signal.aborted) setPages([]); });
+    return () => c.abort();
   }, [story]);
-  return (
+  const go = (to: number) => { setPage(to); setShot(0); setBroken(null); };
+  const current = pages?.[page];
+  const image = current?.images[shot];
+  const shown = image && broken !== image ? image : null;
+  // Phát qua portal ra <body>: nếu để trong vùng nội dung, thanh điều hướng trên cùng sẽ đè lên hộp thoại.
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={`Xem trước ${story.title}`} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="dlg wide preview">
         <div className="row"><b className="display grow" style={{ fontSize: 18 }}>{story.title}</b><span className="pill draft">Xem trước — không tính lượt đọc</span><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
-        <div className="cover" style={{ aspectRatio: "16/7", borderRadius: 16, background: story.gradient }} />
-        <p className="display preview-text">{pages === null ? "Đang mở truyện…" : pages[page] ?? "Truyện chưa có nội dung."}</p>
+        <div className="preview-body">
+          <div className="preview-media">
+            {shown
+              // Ảnh là URL có chữ ký của backend, nên dùng thẻ img thường.
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img className="preview-img" src={shown} alt={`Tranh minh hoạ trang ${page + 1}`} onError={() => setBroken(shown)} />
+              : <div className="cover" style={{ aspectRatio: "16/9", borderRadius: 16, background: story.gradient }} role="img" aria-label="Chưa có tranh minh hoạ cho trang này" />}
+            {/* Nút nghe tròn ở góc phải trên của hình; key theo trang để đổi trang thì dừng tiếng và chạy lại từ đầu. */}
+            {current && current.audio.length > 0 && <AudioRing key={page} urls={current.audio.map((a) => a.url)} label={`Nghe giọng đọc trang ${page + 1}`} />}
+          </div>
+          {current && current.images.length > 1 && (
+            <div className="row preview-shots" aria-label="Chọn tranh trong trang">
+              {current.images.map((u, i) => <button key={u} className="btn btn-s" aria-pressed={i === shot} onClick={() => { setShot(i); setBroken(null); }}>Tranh {i + 1}</button>)}
+            </div>
+          )}
+          <p className="display preview-text">{pages === null ? "Đang mở truyện…" : current?.text || "Truyện chưa có nội dung."}</p>
+        </div>
         <div className="row">
-          <button className="btn btn-s" disabled={page === 0} onClick={() => setPage(page - 1)} aria-label="Trang trước"><ChevronLeft className="ic" /></button>
-          <span className="grow sub" style={{ textAlign: "center" }}>{pages ? `Trang ${page + 1} / ${pages.length}` : ""}</span>
-          <button className="btn btn-s" disabled={!pages || page >= pages.length - 1} onClick={() => setPage(page + 1)} aria-label="Trang sau"><ChevronRight className="ic" /></button>
+          <button className="btn btn-s" disabled={page === 0} onClick={() => go(page - 1)} aria-label="Trang trước"><ChevronLeft className="ic" /></button>
+          <span className="grow sub" style={{ textAlign: "center" }}>{pages?.length ? `Trang ${page + 1} / ${pages.length}` : ""}</span>
+          <button className="btn btn-s" disabled={!pages || page >= pages.length - 1} onClick={() => go(page + 1)} aria-label="Trang sau"><ChevronRight className="ic" /></button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

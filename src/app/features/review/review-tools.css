@@ -8,6 +8,24 @@
 .edit-item { display: flex; gap: 8px; align-items: flex-start; padding: 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
 
 /* Xem trước như bé thấy */
+.dlg.preview { overflow: hidden; }
+.preview-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+.preview-img { width: 100%; aspect-ratio: 16/9; max-height: 42vh; object-fit: contain; border-radius: 16px; background: var(--surface-2); flex: none; }
+.preview-shots { flex-wrap: wrap; flex: none; }
+.preview-media { position: relative; flex: none; }
+/* Nút nghe tròn: nền mờ để thấy rõ trên mọi tranh, vòng tròn là tiến trình, nút play ở giữa. */
+.audio-ring { position: absolute; top: 12px; right: 12px; z-index: 2; }
+.audio-ring-btn { position: relative; width: 60px; height: 60px; padding: 0; border: 0; border-radius: 50%; cursor: pointer; color: #fff; background: rgba(14, 34, 24, .62); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 8px 20px -8px rgba(0, 0, 0, .55); transition: transform .15s; }
+.audio-ring-btn:hover { transform: scale(1.06); }
+.audio-ring-btn:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+.audio-ring-btn.bad { opacity: .6; cursor: not-allowed; }
+.audio-ring-btn svg { position: absolute; inset: 0; }
+.audio-ring-btn .ring-track { stroke: rgba(255, 255, 255, .28); }
+.audio-ring-btn .ring-bar { stroke: #fff; transition: stroke-dashoffset .25s linear; }
+.audio-ring-btn.on .ring-bar { stroke: var(--mint, #7ee0b0); }
+.audio-ring-btn .ring-icon { position: absolute; inset: 0; display: grid; place-items: center; }
+.audio-ring-btn .ring-icon svg { position: static; width: 24px; height: 24px; fill: currentColor; }
+@media (prefers-reduced-motion: reduce) { .audio-ring-btn, .audio-ring-btn .ring-bar { transition: none; } }
 .preview-text { font-size: 19px; line-height: 1.7; min-height: 140px; margin: 4px 0; color: var(--ink-warm, var(--text)); }
 
 /* 3. Hộp thoại: nền mờ dần hiện, hộp phóng nhẹ từ 96% lên 100%. */
