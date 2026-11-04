@@ -5,13 +5,13 @@ import { useState } from "react";
 import { Archive, Check, Plus, RefreshCw, Trash2, X } from "lucide-react";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import type { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
-import type { DiscussionPromptDto, QuizQuestionDto, VocabularyItemDto } from "@/app/types/aiStory";
+import type { QuizQuestionDto, VocabularyItemDto } from "@/app/types/aiStory";
 import type { ApiResponse } from "@/app/types/auth";
 import { ARCHIVE_REASONS, quizTypesFor, type ArchiveReason } from "@/app/lib/storyRules";
 
 type Review = ReturnType<typeof useStoryReview>;
-type Artifact = "vocabulary" | "quiz" | "discussion";
-const ARTIFACT_LABEL: Record<Artifact, string> = { vocabulary: "Từ vựng", quiz: "Câu đố", discussion: "Thảo luận" };
+type Artifact = "vocabulary" | "quiz";
+const ARTIFACT_LABEL: Record<Artifact, string> = { vocabulary: "Từ vựng", quiz: "Câu đố" };
 
 /** Hộp thoại dùng chung. */
 function Dialog({ title, onClose, children, wide }: { title: string; onClose: () => void; children: React.ReactNode; wide?: boolean }) {
@@ -25,13 +25,13 @@ function Dialog({ title, onClose, children, wide }: { title: string; onClose: ()
   );
 }
 
-type Item = VocabularyItemDto | QuizQuestionDto | DiscussionPromptDto;
+type Item = VocabularyItemDto | QuizQuestionDto;
 
 /** Sửa học liệu: thêm / sửa / xoá, hoặc nhờ AI tạo lại (Luồng 2 mục 6.2–6.4). */
 export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: string; onClose: () => void }) {
   const [tab, setTab] = useState<Artifact>("vocabulary");
   const b = r.bundle!;
-  const [draft, setDraft] = useState<Record<Artifact, Item[]>>({ vocabulary: b.vocabulary.items, quiz: b.quiz.items, discussion: b.discussion.items });
+  const [draft, setDraft] = useState<Record<Artifact, Item[]>>({ vocabulary: b.vocabulary.items, quiz: b.quiz.items });
   const [saved, setSaved] = useState<string | null>(null);
   const items = draft[tab];
   const set = (next: Item[]) => setDraft({ ...draft, [tab]: next });
@@ -41,7 +41,6 @@ export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: st
 
   const problem = (): string | null => {
     if (tab === "vocabulary") return (draft.vocabulary as VocabularyItemDto[]).some((v) => !v.term.trim() || !v.definition.trim()) ? "Mỗi từ cần có cả từ và nghĩa." : null;
-    if (tab === "discussion") return (draft.discussion as DiscussionPromptDto[]).some((d) => !d.question.trim()) ? "Câu hỏi thảo luận không được để trống." : null;
     const qs = draft.quiz as QuizQuestionDto[];
     if (qs.some((q) => !q.question.trim() || !q.correctAnswer?.trim())) return "Mỗi câu hỏi cần có nội dung và đáp án đúng.";
     if (qs.some((q) => q.type === "multiple_choice" && (q.choices ?? []).filter((c) => c.trim()).length < 2)) return "Câu trắc nghiệm cần ít nhất 2 phương án.";
@@ -53,8 +52,7 @@ export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: st
     if (bad) throw new Error(bad);
     const versionId = b.summary.storyVersionId;
     const res: ApiResponse<unknown> = tab === "vocabulary" ? await api.updateVocabularyReview(b.summary.storyId, { versionId, items: draft.vocabulary as VocabularyItemDto[] }, signal)
-      : tab === "quiz" ? await api.updateQuizReview(b.summary.storyId, { versionId, items: (draft.quiz as QuizQuestionDto[]).map((q) => ({ ...q, choices: q.choices?.filter((c) => c.trim()) ?? null })) }, signal)
-      : await api.updateDiscussionReview(b.summary.storyId, { versionId, items: draft.discussion as DiscussionPromptDto[] }, signal);
+      : await api.updateQuizReview(b.summary.storyId, { versionId, items: (draft.quiz as QuizQuestionDto[]).map((q) => ({ ...q, choices: q.choices?.filter((c) => c.trim()) ?? null })) }, signal);
     r.requireData(res);
     await r.load(signal);
     setSaved(`Đã lưu ${ARTIFACT_LABEL[tab].toLowerCase()}.`);
@@ -68,7 +66,6 @@ export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: st
   const blank: Record<Artifact, Item> = {
     vocabulary: { term: "", definition: "" },
     quiz: { type: types[0].id, question: "", correctAnswer: "", choices: types[0].id === "multiple_choice" ? ["", "", ""] : null },
-    discussion: { question: "", isMoralLesson: false },
   };
 
   return (
@@ -116,12 +113,6 @@ export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: st
                   <input className="inp" value={q.correctAnswer ?? ""} onChange={(e) => patch(i, { correctAnswer: e.target.value })} placeholder="Đáp án chấp nhận" aria-label="Đáp án" />
                 )}
               </div>
-            ); })()}
-            {tab === "discussion" && (() => { const d = it as DiscussionPromptDto; return (
-              <>
-                <input className="inp" value={d.question} onChange={(e) => patch(i, { question: e.target.value })} placeholder="Câu hỏi cho bố mẹ trò chuyện với con" aria-label="Câu hỏi thảo luận" />
-                <label className="row" style={{ whiteSpace: "nowrap", fontSize: 12 }}><input type="checkbox" checked={d.isMoralLesson} onChange={(e) => patch(i, { isMoralLesson: e.target.checked })} />Về bài học</label>
-              </>
             ); })()}
             <button className="btn btn-g" aria-label="Xoá" onClick={() => set(items.filter((_, k) => k !== i))}><Trash2 className="ic" /></button>
           </div>

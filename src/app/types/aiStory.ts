@@ -148,6 +148,21 @@ export interface DiscussionPromptDto { id?: number | null; question: string; isM
 export interface VocabularyReviewDto { storyId: number; versionId: number; items: VocabularyItemDto[] }
 export interface QuizReviewDto { storyId: number; versionId: number; items: QuizQuestionDto[] }
 export interface DiscussionReviewDto { storyId: number; versionId: number; items: DiscussionPromptDto[] }
+export interface ListeningReviewDto {
+  storyId: number; versionId: number; required: boolean; reviewed: boolean;
+  plan: { type: string; count: number; zones: string[][] }[];
+  items: ListeningInteractionReviewDto[];
+  issues: { code: string; type: string | null; itemIndex: number | null; field: string | null }[];
+}
+export interface ListeningInteractionReviewDto {
+  id: number; type: string; anchorBlockId: string; anchorOffset: number; isStale: boolean;
+  kind: string | null; prompt: string | null; sourceQuote: string | null; characterName: string | null;
+  hiddenWord: string | null; hint: string | null; revealBlockId: string | null; explanation: string | null;
+  matchFeedback: string | null; noMatchFeedback: string | null; waitFeedback: string | null;
+  options: { id: number; sortOrder: number; text: string; feedback: string | null; isMatch: boolean;
+    correctOrder: number | null; blockId: string | null; sourceQuote: string | null; imageDescription: string | null }[];
+}
+export interface ConfirmStoryPackageResponseDto { storyId: number; versionId: number; status: string; confirmedAt: string }
 export interface ArtifactStatusDto { state: string; itemCount: number }
 export interface ReviewPackageDto {
   assistanceRevisionToken?: string | null;
@@ -164,7 +179,7 @@ export interface ReviewPackageDto {
   readabilityFre: number | null;
   vocabulary: ArtifactStatusDto;
   quiz: ArtifactStatusDto;
-  discussion: ArtifactStatusDto;
+  listening: ArtifactStatusDto;
   canEdit: boolean;
   canApprove: boolean;
   canConfirmContent?: boolean;
@@ -202,10 +217,10 @@ export interface GenerateArtifactsRequestDto {
   storyVersionId?: number;
   includeVocabulary?: boolean;
   includeQuiz?: boolean;
-  includeDiscussion?: boolean;
+  includeListening?: boolean;
 }
 export interface ArtifactGenerationResultDto {
-  storyId: number; storyVersionId: number; vocabularyCount: number; quizCount: number; discussionCount: number; success: boolean; message: string;
+  storyId: number; storyVersionId: number; vocabularyCount: number; quizCount: number; listeningCount: number; success: boolean; message: string;
 }
 export interface ApproveResponseDto { success: boolean; storyId: number; status: string; approvedAt: string }
 export interface ArchiveRequestDto { reason?: string }
@@ -221,7 +236,21 @@ export interface MediaPackageState {
 export interface ConfirmMediaPackageRequest { storyVersionId: number; packageRevision: number }
 export interface RegenerateMediaRequest extends ConfirmMediaPackageRequest { expectedConfirmed: boolean; operationId: string }
 export interface KeepCurrentMediaRequest extends ConfirmMediaPackageRequest { operationId: string }
+export interface MediaBranchProgress {
+  status: string;
+  requiredCount: number;
+  readyCount: number;
+  errorCode: string | null;
+  nextRetryAt: string | null;
+  queuedCount: number;
+  runningCount: number;
+  failedCount: number;
+}
 export interface MediaProgressDto extends MediaPackageState {
+  images?: MediaBranchProgress;
+  audio?: MediaBranchProgress;
+  mediaMode?: string;
+  isAwaitingSelection?: boolean;
   issues?: MediaGenerationIssue[];
   storyId: number;
   approvedStoryVersionId: number | null;
@@ -259,7 +288,7 @@ export interface StoryMediaPackage extends MediaPackageState {
     }[];
   }[];
 }
-export type ReviewArtifact = 'story' | 'vocabulary' | 'quiz' | 'discussion';
+export type ReviewArtifact = 'story' | 'vocabulary' | 'quiz';
 export interface CreateProposalResponseDto { proposalId: string; message: string }
 export interface ApplyDiscardResponseDto { success: boolean; message: string }
 

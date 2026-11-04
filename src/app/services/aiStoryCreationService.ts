@@ -120,8 +120,9 @@ export const aiStoryCreationService = {
   updateVocabularyReview: (id: number, input: D.UpdateVocabularyRequestDto, signal?: AbortSignal) => request<D.VocabularyReviewDto>(`${review(id)}/vocabulary`, 'PUT', input, signal),
   getQuizReview: (id: number, signal?: AbortSignal) => request<D.QuizReviewDto>(`${review(id)}/quiz`, 'GET', undefined, signal),
   updateQuizReview: (id: number, input: D.UpdateQuizRequestDto, signal?: AbortSignal) => request<D.QuizReviewDto>(`${review(id)}/quiz`, 'PUT', input, signal),
-  getDiscussionReview: (id: number, signal?: AbortSignal) => request<D.DiscussionReviewDto>(`${review(id)}/discussion`, 'GET', undefined, signal),
-  updateDiscussionReview: (id: number, input: D.UpdateDiscussionRequestDto, signal?: AbortSignal) => request<D.DiscussionReviewDto>(`${review(id)}/discussion`, 'PUT', input, signal),
+  getListeningReview: (id: number, signal?: AbortSignal) => request<D.ListeningReviewDto>(`${review(id)}/listening`, 'GET', undefined, signal),
+  confirmPackage: (id: number, input: { versionId: number; operationId: string }, signal?: AbortSignal) =>
+    request<D.ConfirmStoryPackageResponseDto | D.ContentGenerationProgressDto>(`${review(id)}/confirm-package`, 'POST', input, signal),
   completeStoryReview: (id: number, signal?: AbortSignal) => request<boolean>(`${review(id)}/story/complete`, 'POST', undefined, signal),
   completeReview: (id: number, artifact: D.ReviewArtifact, signal?: AbortSignal) => request<boolean>(`${review(id)}/${artifact}/complete`, 'POST', undefined, signal),
   validateReview: (id: number, signal?: AbortSignal) => request<D.ValidationResultDto>(`${review(id)}/validation`, 'GET', undefined, signal),

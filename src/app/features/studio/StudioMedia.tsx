@@ -95,7 +95,7 @@ export default function StudioMedia({ storyId, childId, ageBand, media, onFinish
               <>
                 <div><small>Từ vựng</small><b>{count(bundle?.vocabulary.items.length)}</b></div>
                 <div><small>Câu hỏi</small><b>{count(bundle?.quiz.items.length)}</b></div>
-                <div><small>Thảo luận</small><b>{count(bundle?.discussion.items.length)}</b></div>
+                <div><small>Tương tác lúc nghe</small><b>{count(bundle?.listening?.items.length)}</b></div>
               </>
             )}
             <div><small>Bài học</small><b style={{ fontSize: 12 }}>{bundle ? bundle.story.lesson || "—" : "…"}</b></div>

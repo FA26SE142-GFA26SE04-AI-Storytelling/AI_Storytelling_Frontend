@@ -1,14 +1,13 @@
 "use client";
 
-import { Check, Sparkles } from "lucide-react";
-import type { DiscussionPromptDto, QuizQuestionDto, ReviewArtifact, VocabularyItemDto } from "@/app/types/aiStory";
+import { Check } from "lucide-react";
+import type { QuizQuestionDto, ReviewArtifact, VocabularyItemDto } from "@/app/types/aiStory";
 
 export type ArtifactKind = Exclude<ReviewArtifact, "story">;
 
 export const ARTIFACT_LABEL: Record<ArtifactKind, string> = {
   vocabulary: "Từ vựng",
   quiz: "Câu hỏi đọc hiểu",
-  discussion: "Gợi ý thảo luận",
 };
 
 const QUIZ_TYPE: Record<string, string> = {
@@ -45,11 +44,5 @@ export function ArtifactItems({ kind, items }: { kind: ArtifactKind; items: unkn
       </ol>
     );
   }
-  return (
-    <ul className="art-list disc-list">
-      {(items as DiscussionPromptDto[]).map((d, i) => (
-        <li key={d.id ?? i}>{d.question}{d.isMoralLesson && <span className="pill ai"><Sparkles />Bài học</span>}</li>
-      ))}
-    </ul>
-  );
+  return null;
 }

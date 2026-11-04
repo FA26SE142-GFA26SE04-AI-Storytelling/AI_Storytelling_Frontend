@@ -7,7 +7,9 @@ export function missingLearning(bundle: StoryReviewBundle): GenerateArtifactsReq
     storyVersionId: bundle.summary.storyVersionId,
     includeVocabulary: bundle.vocabulary.items.length === 0,
     includeQuiz: bundle.quiz.items.length === 0,
-    includeDiscussion: bundle.discussion.items.length === 0,
+    includeListening: !bundle.listening || bundle.listening.required &&
+      (bundle.listening.issues.length > 0 || bundle.listening.items.some(item => item.isStale) ||
+        bundle.listening.items.length !== bundle.listening.plan.reduce((sum, item) => sum + item.count, 0)),
   };
 }
 
@@ -15,5 +17,5 @@ export function missingLearning(bundle: StoryReviewBundle): GenerateArtifactsReq
 export function hasMissingLearning(bundle: StoryReviewBundle): boolean {
   if (isReadingOnly(bundle.summary.outputMode)) return false;
   const missing = missingLearning(bundle);
-  return !!(missing.includeVocabulary || missing.includeQuiz || missing.includeDiscussion);
+  return !!(missing.includeVocabulary || missing.includeQuiz || missing.includeListening);
 }

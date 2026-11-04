@@ -19,9 +19,10 @@ import RevisionPanel from "./RevisionPanel";
 import { StoryEditor, StoryView } from "./StoryTab";
 import { ArchiveDialog, LearningEditor } from "./ReviewTools";
 import AutoPublishAction from './AutoPublishAction';
+import ListeningReview from './ListeningReview';
 
-type Tab = "story" | ArtifactKind;
-const ARTIFACTS: ArtifactKind[] = ["vocabulary", "quiz", "discussion"];
+type Tab = "story" | "listening" | ArtifactKind;
+const ARTIFACTS: ArtifactKind[] = ["vocabulary", "quiz"];
 
 type Props = {
   actor?: 'parent' | 'creator';
@@ -77,9 +78,9 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
   }
 
   const { summary, story } = bundle;
-  const items: Record<ArtifactKind, unknown[]> = { vocabulary: bundle.vocabulary.items, quiz: bundle.quiz.items, discussion: bundle.discussion.items };
+  const items: Record<ArtifactKind, unknown[]> = { vocabulary: bundle.vocabulary.items, quiz: bundle.quiz.items };
   const missing = hasMissingLearning(bundle);
-  // Truyện "Chỉ để đọc" không có từ vựng / câu đố / thảo luận (backend từ chối mọi thao tác học liệu).
+  // Truyện "Chỉ để đọc" không yêu cầu học liệu hoặc tương tác lúc nghe.
   const learning = !isReadingOnly(summary.outputMode);
   const artifacts = learning ? ARTIFACTS : [];
   const canEdit = summary.canEdit && !proposal && !editing;
@@ -99,6 +100,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
         <div className="gate-tabs">
           {tabButton("story", "Truyện")}
           {artifacts.map((k) => tabButton(k, ARTIFACT_LABEL[k], items[k].length))}
+          {learning && bundle.listening && tabButton('listening', 'Tương tác lúc nghe', bundle.listening.items.length)}
           {tabActions && <div className="tab-actions">{tabActions}</div>}
         </div>
 
@@ -129,7 +131,9 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
                 </>
               )}
             </article>
-          ) : (
+          ) : tab === "listening" && bundle.listening ? (
+            <article className="sheet"><ListeningReview data={bundle.listening} /></article>
+          ) : tab !== "listening" ? (
             <article className="sheet">
               <div className="row">
                 <h3 className="display grow" style={{ margin: 0 }}>{ARTIFACT_LABEL[tab]}</h3>
@@ -141,7 +145,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
               </div>
               <ArtifactItems kind={tab} items={items[tab]} />
             </article>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -151,13 +155,17 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
             <button className="ck ck-link" onClick={() => setTab("story")}>
               <span className="st ok"><BookOpenText /></span>Truyện<small>{countWords(content)} tiếng{summary.readabilityFkgl !== null && ` · FKGL ${summary.readabilityFkgl.toFixed(1)}`}</small>
             </button>
-            {!learning && <p className="hint">Truyện chỉ để đọc: không có từ vựng, câu đố hay câu hỏi thảo luận.</p>}
+            {!learning && <p className="hint">Truyện chỉ để đọc: không yêu cầu học liệu hay tương tác lúc nghe.</p>}
             {artifacts.map((k) => (
               <button key={k} className="ck ck-link" onClick={() => setTab(k)}>
                 <span className={`st ${items[k].length > 0 ? "ok" : "warn"}`}>{items[k].length > 0 ? <Check /> : <CircleAlert />}</span>
                 {ARTIFACT_LABEL[k]}<small>{items[k].length > 0 ? `${items[k].length} mục` : "Chưa có"}</small>
               </button>
             ))}
+            {learning && bundle.listening && <button className="ck ck-link" onClick={() => setTab('listening')}>
+              <span className={`st ${bundle.listening.issues.length ? 'warn' : 'ok'}`}>{bundle.listening.issues.length ? <CircleAlert /> : <Check />}</span>
+              Tương tác lúc nghe<small>{bundle.listening.required ? `${bundle.listening.items.length} mục` : 'Không yêu cầu'}</small>
+            </button>}
             {validation?.checks.map((c) => (
               <div key={c.name} className="ck"><span className={`st ${c.passed ? "ok" : "warn"}`}>{c.passed ? <Check /> : <CircleAlert />}</span>{c.name}<small>{c.message ?? ""}</small></div>
             ))}
