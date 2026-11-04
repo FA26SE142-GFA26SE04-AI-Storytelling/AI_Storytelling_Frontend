@@ -3,7 +3,8 @@
 import "@/app/features/library/library.css";
 import "./created.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, Info, PencilLine, RefreshCw, WandSparkles } from "lucide-react";
+import { Eye, Info, PencilLine, RefreshCw, Trash2, WandSparkles } from "lucide-react";
+import { confirmDialog } from "@/app/lib/confirm";
 import Select from "@/app/components/Select";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import Frog from "@/app/components/brand/Frog";
@@ -86,6 +87,19 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
   const kidName = !sel ? "" : !sel.family ? "Chưa có thông tin" : !(sel.id in kidOf) ? "Đang tải…" : kids.find((k) => k.id === kidOf[sel.id])?.nickname ?? "Chưa có thông tin";
   const open = (s: StoryCard) => (s.family ? go("authoring", { storyId: s.id }) : go("studio", { storyId: s.id }));
 
+  // Xóa: backend chỉ xóa được truyện AI (xóa mềm, chỉ tác giả). Không cho xóa khi đang tạo media hoặc đã xuất bản.
+  const [deleting, setDeleting] = useState(false);
+  const canDelete = (s: StoryCard) => !s.family && !["media_processing", "published"].includes(statusKey(s.raw));
+  const remove = async (s: StoryCard) => {
+    if (deleting || !(await confirmDialog(`Xóa truyện "${s.title || "chưa đặt tên"}"? Truyện sẽ biến mất khỏi danh sách và Thư viện. Bạn không hoàn tác được thao tác này.`))) return;
+    setDeleting(true); setError("");
+    const r = await storyService.deleteStory(s.id);
+    setDeleting(false);
+    if (!r.success) { setError(r.message || "Không xóa được truyện."); return; }
+    setSelected(null); setReading(false);
+    await load();
+  };
+
   return (
     <AsideContext.Provider value={aside}>
     <section className="ws dock lib" data-aside={collapsed ? "collapsed" : undefined}>
@@ -146,6 +160,7 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
             </div>
             <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
             <button className="btn btn-p btn-c" onClick={() => open(sel)}>{sel.family ? <PencilLine className="ic" /> : <WandSparkles className="ic" />}Mở để soạn tiếp</button>
+            {canDelete(sel) && <button className="btn btn-no btn-c" disabled={deleting} onClick={() => void remove(sel)}><Trash2 className="ic" />{deleting ? "Đang xóa…" : "Xóa truyện"}</button>}
           </>
         ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
       </AsidePane>
