@@ -46,7 +46,10 @@ type PreviewPage = { text: string; images: string[]; audio: { url: string; label
  * Truyện AI lấy từng cảnh từ gói media của backend (GET /stories/{id}/media/package: chữ, tranh, giọng đọc);
  * chưa có gói media (hoặc truyện thủ công) thì chỉ hiện chữ, chia đoạn theo nội dung truyện.
  */
-export function Preview({ story, onClose }: { story: StoryCard; onClose: () => void }) {
+export type PreviewStory = Pick<StoryCard, "id" | "title" | "gradient"> & { family?: boolean; raw?: Pick<StoryDto, "content"> };
+
+/** `loadContent`: nguồn chữ riêng (Content Creator đọc qua /creator/stories); không truyền thì dùng API của phụ huynh. */
+export function Preview({ story, onClose, loadContent }: { story: PreviewStory; onClose: () => void; loadContent?: () => Promise<string> }) {
   const [pages, setPages] = useState<PreviewPage[] | null>(null);
   const [page, setPage] = useState(0);
   const [shot, setShot] = useState(0);
@@ -55,15 +58,15 @@ export function Preview({ story, onClose }: { story: StoryCard; onClose: () => v
     const c = new AbortController();
     const textOnly = (content: string): PreviewPage[] => splitScenes(content).map((text) => ({ text, images: [], audio: [] }));
     const load = async (): Promise<PreviewPage[]> => {
-      // Bản nháp thủ công không nằm trong GET /Story: lấy nội dung của phiên bản đang chọn qua API của phụ huynh.
-      if (story.family) {
+      // Bản nháp thủ công của phụ huynh không nằm trong GET /Story và không có gói media: chỉ hiện chữ.
+      if (story.family && !loadContent) {
         const d = await parentAuthoringService.get(story.id);
         const versionId = d.data?.story.selectedVersionId;
         const v = versionId ? await parentAuthoringService.version(story.id, versionId) : null;
         return textOnly(v?.data?.content ?? "");
       }
       const [content, pack] = await Promise.all([
-        storyService.getStoryById(story.id).then((r) => r.data?.content ?? story.raw.content ?? ""),
+        loadContent ? loadContent() : storyService.getStoryById(story.id).then((r) => r.data?.content ?? story.raw?.content ?? ""),
         aiStoryCreationService.getMediaPackage(story.id, c.signal).then((r) => (r.success ? r.data : null)).catch(() => null),
       ]);
       const texts = splitScenes(content);
@@ -81,8 +84,8 @@ export function Preview({ story, onClose }: { story: StoryCard; onClose: () => v
     };
     void load().then((p) => { if (!c.signal.aborted) setPages(p); }).catch(() => { if (!c.signal.aborted) setPages([]); });
     return () => c.abort();
-  }, [story]);
-  const go = (to: number) => { setPage(to); setShot(0); setBroken(null); };
+  }, [story]); // eslint-disable-line react-hooks/exhaustive-deps -- loadContent đổi theo từng lần vẽ; chỉ tải lại khi đổi truyện
+  const go =(to: number) => { setPage(to); setShot(0); setBroken(null); };
   const current = pages?.[page];
   const image = current?.images[shot];
   const shown = image && broken !== image ? image : null;
