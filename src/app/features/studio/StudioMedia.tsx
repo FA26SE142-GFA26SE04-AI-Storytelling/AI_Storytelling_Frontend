@@ -44,11 +44,6 @@ export default function StudioMedia({ storyId, childId, ageBand, media, onFinish
   return (
     <>
       <div className="center">
-        <div className="tools">
-          <b style={{ padding: "0 6px" }}>{bundle?.story.title ?? ""}</b>
-          <span className="pill ok" style={{ marginLeft: "auto" }}>Đã duyệt</span>
-          {tabActions && <div className="tab-actions" style={{ marginLeft: 8 }}>{tabActions}</div>}
-        </div>
         {bundle ? (
           <div className="board">
             <div className="artwrap">
@@ -71,6 +66,7 @@ export default function StudioMedia({ storyId, childId, ageBand, media, onFinish
           <span className="grow">{m ? (m.isReady ? "Đã xác nhận media. Bạn có thể giao truyện vào lộ trình của bé." : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi xác nhận để hoàn tất truyện." : "Đang tạo, bạn có thể rời màn hình này.") : media.error ?? "Đang kiểm tra…"}</span>
           {m?.errorCode && <button className="btn btn-s" onClick={() => void api.retryMedia(storyId).then(media.refresh)}>Thử lại</button>}
           <button className="btn btn-s" onClick={onFinish}>Về thư viện</button>
+          {tabActions && <div className="tab-actions">{tabActions}</div>}
           {bundle&&<StudioCompletion childId={childId} pack={preview.pack} progress={m} story={{storyId,title:bundle.story.title,ageBand,length:bundle.story.content.trim()?bundle.story.content.trim().split(/\s+/u).length:0}} onChanged={reload}/>}
         </div>
       </div>

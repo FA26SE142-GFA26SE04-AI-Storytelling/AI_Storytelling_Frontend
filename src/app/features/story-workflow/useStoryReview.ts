@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationService';
 import { ApiResponse } from '@/app/types/auth';
 import { normalizeQuizType } from '@/app/lib/storyRules';
-import { AIProposalDto, PartialEditRequestDto, QuizQuestionDto, QuizReviewDto, ReviewArtifact, ReviewPackageDto, StoryReviewDto, ValidationResultDto, VocabularyReviewDto } from '@/app/types/aiStory';
+import { AIProposalDto, ListeningReviewDto, PartialEditRequestDto, QuizQuestionDto, QuizReviewDto, ReviewArtifact, ReviewPackageDto, StoryReviewDto, ValidationResultDto, VocabularyReviewDto } from '@/app/types/aiStory';
 import { hasMissingLearning, missingLearning } from './storyReviewLearning';
 import { isReadingOnly } from '@/app/lib/storyRules';
 
@@ -35,6 +35,8 @@ export interface StoryReviewBundle {
   story: StoryReviewDto;
   vocabulary: VocabularyReviewDto;
   quiz: QuizReviewDto;
+  /** Tương tác khi nghe; null khi truyện chỉ để đọc hoặc không tải được. */
+  listening: ListeningReviewDto | null;
 }
 
 export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'parent') {
@@ -54,13 +56,15 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
     const story = requireData(s);
     // Truyện "Chỉ để đọc": backend từ chối mọi API học liệu (409), nên không gọi và dùng danh sách rỗng.
     const empty = { storyId, versionId: summary.storyVersionId, items: [] };
-    const [v, q] = isReadingOnly(summary.outputMode)
-      ? [{ ...empty }, { ...empty }]
-      : await Promise.all([api.getVocabularyReview(storyId, signal), api.getQuizReview(storyId, signal)])
-        .then(([vr, qr]) => [requireData(vr), requireData(qr)] as const);
+    const [v, q, l] = isReadingOnly(summary.outputMode)
+      ? [{ ...empty }, { ...empty }, null]
+      // Tương tác khi nghe lỗi tải thì không chặn cả màn duyệt: tab nghe chỉ không hiện, backend vẫn là nơi quyết định cho duyệt.
+      : await Promise.all([api.getVocabularyReview(storyId, signal), api.getQuizReview(storyId, signal),
+          api.getListeningReview(storyId, signal).then(lr => (lr.success && lr.data ? lr.data : null)).catch(() => null)])
+        .then(([vr, qr, lr]) => [requireData(vr), requireData(qr), lr] as const);
     if (signal.aborted) return;
-    const next = { summary, story, vocabulary: v, quiz: q } as StoryReviewBundle;
-    if ([next.story, next.vocabulary, next.quiz].some(item => item.versionId !== next.summary.storyVersionId)) {
+    const next = { summary, story, vocabulary: v, quiz: q, listening: l } as StoryReviewBundle;
+    if ([next.story, next.vocabulary, next.quiz, ...(next.listening ? [next.listening] : [])].some(item => item.versionId !== next.summary.storyVersionId)) {
       throw new Error('Bản thảo đã thay đổi trong lúc tải. Vui lòng kiểm tra lại.');
     }
     setBundle(next); setValidation(null);
@@ -134,6 +138,14 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
     else if (!signal.aborted) throw new Error('Máy chủ chưa xác nhận phê duyệt.');
   });
 
+  /** Người duyệt xác nhận các tương tác khi nghe (POST /review/listening/complete), rồi tải lại để cập nhật trạng thái. */
+  const confirmListening = () => run(async signal => {
+    if (!bundle?.listening?.required) return;
+    requireData(await api.completeListening(storyId, signal));
+    if (signal.aborted) return;
+    await load(signal);
+  });
+
   /** Gọi AI tạo đề xuất; aiTask là nhãn hiển thị trong lúc chờ (AI có thể mất vài giây). */
   const askAi = (label: string, call: (signal: AbortSignal) => Promise<ApiResponse<{ proposalId: string }>>) => run(async signal => {
     if (!bundle || proposal) return;
@@ -141,6 +153,10 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
     try { await createProposal(await call(signal), signal); }
     finally { if (!signal.aborted) setAiTask(null); }
   });
+
+  /** Sinh lại một loại tương tác khi nghe (loại bị lỗi thời hoặc thiếu); ra đề xuất để xem trước rồi mới áp dụng. */
+  const regenerateListening = (type: string) =>
+    askAi('AI đang soạn lại tương tác khi nghe…', signal => api.regenerateListening(storyId, type, signal));
 
   const reviseStory = (selection: PartialEditRequestDto['selection'], instruction: string) =>
     askAi('AI đang viết lại đoạn đã chọn…', signal => api.partialEditStory(storyId, { versionId: bundle!.story.versionId, selection, instruction }, signal));
@@ -170,7 +186,7 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
     if (!result.success) throw new Error(result.message || 'Chưa thể tạo đủ học liệu.');
   });
 
-  return { bundle, proposal, validation, busy, aiTask, error, run, load, requireData, createProposal, decideProposal, approve, generateMissingLearning,
+  return { bundle, proposal, validation, busy, aiTask, error, run, load, requireData, createProposal, decideProposal, approve, generateMissingLearning, confirmListening, regenerateListening,
     reviseStory, regenerateArtifact, saveStory, archive,
     refresh: () => run(load), clearProposal: () => setProposal(null) };
 }
