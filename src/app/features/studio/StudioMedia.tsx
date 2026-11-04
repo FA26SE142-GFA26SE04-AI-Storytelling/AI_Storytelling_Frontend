@@ -1,7 +1,7 @@
 "use client";
 import { useTabActions } from "@/app/features/story-workflow/tabActions";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Check, CircleAlert, Image as ImageIcon, Images, Volume2 } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
@@ -15,6 +15,7 @@ import MediaAssets from './MediaAssets';
 import StudioScenePreview from './StudioScenePreview';
 import StudioCompletion from './StudioCompletion';
 import MediaIssues from './MediaIssues';
+import { audioBranchDisplay, mediaBranchError, mediaPackageDisplay } from '@/app/features/story-workflow/studioMediaState';
 
 type Props = { storyId: number; childId: number; ageBand:string; media: ReturnType<typeof useMediaProgress>; onFinish: () => void };
 
@@ -26,14 +27,28 @@ export default function StudioMedia({ storyId, childId, ageBand, media, onFinish
   const r = useStoryReview(storyId);
   const { bundle, error } = r;
   const [active, setActive] = useState(0);
+  const [retryBusy,setRetryBusy]=useState(false);
+  const [retryNote,setRetryNote]=useState('');
+  const retryLock=useRef(false);
   const sideRef = useRiseIn<HTMLDivElement>(".kv > div, .ck, .scene-list button", [bundle ? 1 : 0], { delay: 35, distance: 10 });
   const m = media.data;
+  const display=mediaPackageDisplay(m);
+  const audio=audioBranchDisplay(m);
   const preview=useStudioMediaPreview(storyId,bundle?.summary.storyVersionId??m?.approvedStoryVersionId??null,m);
   const mediaScenes=useMemo(()=>preview.pack?.scenes.slice().sort((a,b)=>a.sceneIndex-b.sceneIndex)??[],[preview.pack]);
   const scenes=useMemo(()=>mediaScenes.length?mediaScenes.map(s=>s.text??''):(bundle?splitScenes(bundle.story.content):[]),[mediaScenes,bundle]);
   const sceneIndex=Math.min(active,Math.max(0,scenes.length-1));
   const currentScene=mediaScenes[sceneIndex];
   const reload=()=>{preview.refresh();media.refresh();};
+  const retry=async()=>{
+    if(retryLock.current)return;
+    retryLock.current=true;setRetryBusy(true);setRetryNote('');
+    try {
+      const response=await api.retryMedia(storyId);
+      setRetryNote(response.success?'Đã yêu cầu thử lại các mục chưa hoàn tất.':response.message||'Chưa gửi được yêu cầu. Hãy tải lại trạng thái trước khi thử tiếp.');
+      reload();
+    } finally {retryLock.current=false;setRetryBusy(false);}
+  };
   const total = m ? m.requiredIllustrations || m.sceneCount : 0;
   const count = (n: number | undefined) => (bundle && n !== undefined ? n : "…");
   const step = (done: boolean, label: string, detail: string, Icon: typeof Check) => (
@@ -54,7 +69,7 @@ export default function StudioMedia({ storyId, childId, ageBand, media, onFinish
             <div className="artwrap">
               <div className="artlabel"><span>Cảnh {sceneIndex + 1} / {scenes.length}</span><em>{preview.pack?'Bản media từ backend':'Đang tải bản media'}</em></div>
               {preview.error&&<p className="notice err" role="alert">{preview.error}</p>}
-              <StudioScenePreview key={`${storyId}:${preview.pack?.storyVersionId}:${preview.pack?.packageRevision}:${currentScene?.sceneId}:${sceneIndex}:${currentScene?.illustrations.map(i=>i.url).join('|')}`} scene={currentScene} text={scenes[sceneIndex]??''} loading={preview.loading} onReload={reload}/>
+              <StudioScenePreview key={`${storyId}:${preview.pack?.storyVersionId}:${preview.pack?.packageRevision}:${currentScene?.sceneId}:${sceneIndex}:${currentScene?.illustrations.map(i=>i.url).join('|')}:${currentScene?.audio?.map(a=>a.url).join('|')}`} scene={currentScene} text={scenes[sceneIndex]??''} loading={preview.loading} onReload={reload}/>
             </div>
           </div>
         ) : (
@@ -68,20 +83,24 @@ export default function StudioMedia({ storyId, childId, ageBand, media, onFinish
         )}
         <div className="media-bar">
           <b>Minh hoạ và giọng đọc</b>
-          <span className="grow">{m ? (m.isReady ? "Đã xác nhận media. Bạn có thể giao truyện vào lộ trình của bé." : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi xác nhận để hoàn tất truyện." : "Đang tạo, bạn có thể rời màn hình này.") : media.error ?? "Đang kiểm tra…"}</span>
-          {m?.errorCode && <button className="btn btn-s" onClick={() => void api.retryMedia(storyId).then(media.refresh)}>Thử lại</button>}
+          <span className="grow" role="status">{display.label}</span>
+          {display.kind==='failed' && m?.jobStatus==='Failed' && <button className="btn btn-s" disabled={retryBusy} onClick={()=>void retry()}>{retryBusy?'Đang gửi…':'Thử lại media chưa hoàn tất'}</button>}
+          {(media.timedOut||media.error)&&<p className="notice warn" role="status">{media.timedOut?'Chưa nhận được kết quả cuối cùng. Việc tạo media có thể vẫn đang chạy.':media.error}<button className="btn btn-s" onClick={reload}>Tiếp tục theo dõi</button></p>}
+          {retryNote&&<p className="notice" role="status">{retryNote}</p>}
           <button className="btn btn-s" onClick={onFinish}>Về thư viện</button>
-          {bundle&&<StudioCompletion childId={childId} pack={preview.pack} progress={m} story={{storyId,title:bundle.story.title,ageBand,length:bundle.story.content.trim()?bundle.story.content.trim().split(/\s+/u).length:0}} onChanged={reload}/>}
+          {bundle&&<StudioCompletion childId={childId} pack={preview.loading?null:preview.pack} progress={m} story={{storyId,title:bundle.story.title,ageBand,length:bundle.story.content.trim()?bundle.story.content.trim().split(/\s+/u).length:0}} onChanged={reload}/>}
         </div>
       </div>
 
       <AsidePane title="Chuẩn bị cho bé" icon={Images} bodyRef={sideRef}>
-          <MediaAssets key={storyId} storyId={storyId} versionId={m?.approvedStoryVersionId} onChanged={reload}/>
+          <MediaAssets key={storyId} storyId={storyId} versionId={m?.approvedStoryVersionId} onChanged={reload} showConfirmation={false}/>
           <div className="sec">
             {step(true, "Đã duyệt nội dung", "", Check)}
             {step(!!m && total > 0 && m.readyIllustrations >= total, "Tranh minh hoạ", m ? `${m.readyIllustrations}/${total}` : "…", ImageIcon)}
-            {step(!!m?.isGenerated, "Giọng đọc", m ? `${m.readyAudio} đoạn` : "…", Volume2)}
-            {step(!!m?.isConfirmed, m?.isConfirmed ? "Đã xác nhận gói media" : "Chờ xác nhận gói media", "", Check)}
+            {step(audio.done, audio.label, audio.detail, Volume2)}
+            {audio.errorCode&&<p className="notice warn" role="status">Giọng đọc: {audio.errorCode}{audio.nextRetryAt&&` · Thử lại lúc ${new Date(audio.nextRetryAt).toLocaleString('vi-VN')}`}</p>}
+            {step(display.kind==='ready', display.label, "", Check)}
+            {display.kind==='failed'&&mediaBranchError(m)&&<p className="notice err" role="alert">Mã lỗi: {mediaBranchError(m)}</p>}
             <MediaIssues progress={m} pack={preview.pack} onSelectScene={(id, index) => {
               const position = mediaScenes.findIndex(s => s.sceneId === id);
               if (position >= 0) setActive(position);

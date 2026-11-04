@@ -1,8 +1,8 @@
 'use client';
 import { useMediaPackage } from '@/app/features/story-workflow/useMediaPackage';
 
-export default function MediaAssets({ storyId, versionId, onChanged, disabled = false }: {
-  storyId: number; versionId?: number | null; onChanged: () => void; disabled?: boolean;
+export default function MediaAssets({ storyId, versionId, onChanged, disabled = false, showConfirmation = true }: {
+  storyId: number; versionId?: number | null; onChanged: () => void; disabled?: boolean; showConfirmation?: boolean;
 }) {
   const { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm, keepCurrent } = useMediaPackage({storyId,versionId,onChanged,disabled});
   return <details><summary>Ảnh và âm thanh thực tế</summary>
@@ -22,7 +22,7 @@ export default function MediaAssets({ storyId, versionId, onChanged, disabled = 
       </div>)}
     </article>)}
     {pack?.replacements?.filter(r=>['Failed','ManualReview'].includes(r.status)).map(r=><div className="notice" key={r.candidateAssetId}><p>Bản tạo lại {r.type === 'Illustration' ? 'tranh' : 'âm thanh'} chưa đạt yêu cầu.</p><button className="btn btn-s" disabled={busy||disabled||uncertain} onClick={()=>void keepCurrent(r.candidateAssetId)}>Giữ media trước đó</button></div>)}
-    {pack?.isAwaitingConfirmation && <div className="sec"><label className="row"><input type="checkbox" checked={reviewed} disabled={busy || disabled || uncertain} onChange={e => setReviewed(e.target.checked)} />Tôi đã xem tranh và nghe các đoạn âm thanh của gói này</label>
+    {showConfirmation && pack?.isAwaitingConfirmation && <div className="sec"><label className="row"><input type="checkbox" checked={reviewed} disabled={busy || disabled || uncertain} onChange={e => setReviewed(e.target.checked)} />Tôi đã xem tranh và nghe các đoạn âm thanh của gói này</label>
       <button className="btn btn-ok" disabled={busy || disabled || uncertain || !reviewed} onClick={() => void confirm()}>Xác nhận tranh và giọng đọc</button>
     </div>}
   </details>;
