@@ -21,6 +21,11 @@ type Props = {
   approve: ApproveAction | null;
   /** Bước AI hiện tại đã lỗi hẳn: cho quay lại / huỷ thay vì bắt chờ. */
   failed?: boolean;
+  /**
+   * Huỷ chỉ làm mới form ở giao diện, không huỷ hay lưu trữ gì trên máy chủ (Content Creator không có API huỷ):
+   * bản nháp vẫn nằm trong Thư viện nên chữ trong hộp xác nhận nói đúng như vậy.
+   */
+  localOnly?: boolean;
 };
 
 type Pending = "back" | "cancel" | null;
@@ -39,7 +44,7 @@ const WHAT_IS_LOST: Partial<Record<Stage, string>> = {
  * Luôn hiện để vị trí cố định; bước đầu và lúc AI đang chạy thì mờ và không bấm được (tooltip nói lý do).
  * Luôn hỏi lại trước khi huỷ.
  */
-export default function StudioControls({ stage, valuesKnown, onEditIdea, onRestart, onLeave, onStartNew, approve, failed = false }: Props) {
+export default function StudioControls({ stage, valuesKnown, onEditIdea, onRestart, onLeave, onStartNew, approve, failed = false, localOnly = false }: Props) {
   const [pending, setPending] = useState<Pending>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -61,7 +66,8 @@ export default function StudioControls({ stage, valuesKnown, onEditIdea, onResta
 
   const canBack = a.editInPlace || a.cancelWith !== null;
   const backLabel = a.editInPlace ? "Sửa ý tưởng" : "Quay lại ý tưởng";
-  const cancelLabel = "Huỷ truyện và bắt đầu lại";
+  const cancelLabel = localOnly ? "Bỏ truyện này và bắt đầu lại" : "Huỷ truyện và bắt đầu lại";
+  const lostText = localOnly ? "Bản nháp vẫn nằm trong Thư viện của bạn, có thể mở lại để soạn tiếp." : WHAT_IS_LOST[stage];
   const approveLabel = approve?.label ?? "Duyệt";
   const ApproveIcon = approve?.icon === "sparkles" ? Sparkles : Check;
   const approveReady = !!approve && !approve.disabled;
@@ -85,9 +91,9 @@ export default function StudioControls({ stage, valuesKnown, onEditIdea, onResta
 
       {pending && (
         <div ref={popRef} className="ss-confirm" role="alertdialog" aria-label="Xác nhận">
-          <b>{pending === "back" ? "Quay lại sửa ý tưởng?" : "Huỷ truyện này?"}</b>
+          <b>{pending === "back" ? "Quay lại sửa ý tưởng?" : localOnly ? "Bỏ truyện này?" : "Huỷ truyện này?"}</b>
           <p>
-            {WHAT_IS_LOST[stage]}{" "}
+            {lostText}{" "}
             {pending === "back"
               ? valuesKnown ? "Bạn sẽ về form Ý tưởng với nội dung cũ để sửa và gửi lại." : "Trang đã được tải lại nên không còn ý tưởng cũ, form sẽ để trống."
               : "Bạn sẽ bắt đầu một truyện mới với form trống."}
@@ -97,7 +103,7 @@ export default function StudioControls({ stage, valuesKnown, onEditIdea, onResta
           <div className="row">
             <button className="btn btn-g grow btn-c" disabled={busy} onClick={() => { setPending(null); setErr(null); }}>Không</button>
             <button className={`btn grow btn-c ${pending === "back" ? "btn-p" : "btn-no"}`} disabled={busy} onClick={() => void confirm()}>
-              {busy ? "Đang huỷ…" : pending === "back" ? "Quay lại" : "Huỷ truyện"}
+              {busy ? (localOnly ? "Đang xử lý…" : "Đang huỷ…") : pending === "back" ? "Quay lại" : localOnly ? "Bỏ truyện" : "Huỷ truyện"}
             </button>
           </div>
         </div>

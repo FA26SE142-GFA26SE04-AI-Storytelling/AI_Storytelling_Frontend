@@ -26,7 +26,7 @@ function zoneAdvice(zone: B.GrayZoneContentCheckDto): string {
     : 'Nội dung nằm ở vùng xám nhưng hiện không còn chờ Moderator (có thể đã được xử lý trước đó). Nếu bạn sửa nội dung, hãy kiểm tra lại.';
 }
 
-export default function CreatorPublication({ storyId, versionId, storyStatus, onRevision, onLockChange }: { storyId: number; versionId: number | null; storyStatus?: string; onRevision: () => void; onLockChange?: (locked: boolean) => void }) {
+export default function CreatorPublication({ storyId, versionId, storyStatus, onRevision, onLockChange, hidden = false }: { storyId: number; versionId: number | null; storyStatus?: string; onRevision: () => void; onLockChange?: (locked: boolean) => void; hidden?: boolean }) {
   const { user } = useAuth();
   const [status, setStatus] = useState<B.CreatorPublicationStatus | null>(null);
   const [reason, setReason] = useState('');
@@ -90,6 +90,8 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     : status.reviewStatus !== 'None' ? 'Bản này đã từng được gửi duyệt. Muốn gửi lại, hãy tạo phiên bản chỉnh sửa mới.'
     : null;
 
+  // Ẩn phần giao diện ở các bước trước media (vẫn chạy ở trên để tính trạng thái khóa chỉnh sửa cho màn cha).
+  if (hidden) return null;
   return <section className="pa-card" aria-label="Phát hành"><div className="pa-head"><h3><span className="pa-num">3</span>Phát hành truyện</h3></div>
     {note && <p className="notice" role="status">{note}</p>}
     <p style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>{headline}</p>
