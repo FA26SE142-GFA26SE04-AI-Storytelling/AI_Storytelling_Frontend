@@ -14,13 +14,14 @@ import { statusBadge } from "@/app/lib/storyView";
 import { isReadingOnly } from "@/app/lib/storyRules";
 import { useRiseIn, useSwap } from "@/app/lib/motion";
 import { ArtifactItems, ARTIFACT_LABEL, type ArtifactKind } from "./ArtifactList";
+import ListeningPanel from "./ListeningPanel";
 import ProposalCard from "./ProposalCard";
 import RevisionPanel from "./RevisionPanel";
 import { StoryEditor, StoryView } from "./StoryTab";
 import { ArchiveDialog, LearningEditor } from "./ReviewTools";
 import AutoPublishAction from './AutoPublishAction';
 
-type Tab = "story" | ArtifactKind;
+type Tab = "story" | "listening" | ArtifactKind;
 /** Lý do chưa duyệt được do backend trả về bằng tiếng Anh, nối bằng " • ": dịch các câu đã biết, câu lạ giữ nguyên. */
 const ISSUE_VI: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^Quiz needs at least 3 valid questions/, () => 'Câu hỏi đọc hiểu cần ít nhất 3 câu hợp lệ, có đủ mọi loại câu hỏi và đáp án đúng.'],
@@ -62,6 +63,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
     : proposal ? "Hãy áp dụng hoặc bỏ đề xuất của AI trước khi duyệt."
     : editing ? "Hãy lưu hoặc huỷ bản sửa tay trước khi duyệt."
     : hasMissingLearning(bundle) ? "Còn thiếu học liệu cho bản thảo này."
+    : bundle.listening?.required && !bundle.listening.reviewed ? "Hãy xem và xác nhận các tương tác khi nghe (tab \"Khi nghe\") trước khi duyệt."
     : !(actor === 'creator' ? bundle.summary.canConfirmContent : bundle.summary.canApprove) ? "Bạn chưa thể duyệt truyện này."
     : null;
   // Trong Studio, nút duyệt nằm trên thanh tiến trình (cạnh nút huỷ); ở màn "Duyệt nội dung" thì tự vẽ trong cột phải.
@@ -87,6 +89,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
 
   const { summary, story } = bundle;
   const items: Record<ArtifactKind, unknown[]> = { vocabulary: bundle.vocabulary.items, quiz: bundle.quiz.items };
+  const listening = bundle.listening;
   const missing = hasMissingLearning(bundle);
   // Truyện "Chỉ để đọc" không có từ vựng / câu đố (backend từ chối mọi thao tác học liệu).
   const learning = !isReadingOnly(summary.outputMode);
@@ -108,6 +111,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
         <div className="gate-tabs">
           {tabButton("story", "Truyện")}
           {artifacts.map((k) => tabButton(k, ARTIFACT_LABEL[k], items[k].length))}
+          {listening?.required && tabButton("listening", "Khi nghe", listening.items.length)}
           {tabActions && <div className="tab-actions">{tabActions}</div>}
         </div>
 
@@ -138,6 +142,9 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
                 </>
               )}
             </article>
+          ) : tab === "listening" ? (
+            listening && <ListeningPanel listening={listening} busy={busy || !!proposal || editing} canConfirm={!!(summary.canEdit || summary.canApprove || summary.canConfirmContent)}
+              onConfirm={() => void r.confirmListening()} onRegenerate={(t) => void r.regenerateListening(t)} />
           ) : (
             <article className="sheet">
               <div className="row">
@@ -167,6 +174,12 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
                 {ARTIFACT_LABEL[k]}<small>{items[k].length > 0 ? `${items[k].length} mục` : "Chưa có"}</small>
               </button>
             ))}
+            {listening?.required && (
+              <button className="ck ck-link" onClick={() => setTab("listening")}>
+                <span className={`st ${listening.reviewed ? "ok" : "warn"}`}>{listening.reviewed ? <Check /> : <CircleAlert />}</span>
+                Khi nghe<small>{listening.reviewed ? "Đã xác nhận" : `${listening.items.length} tương tác · chờ xác nhận`}</small>
+              </button>
+            )}
             {validation?.checks.map((c) => (
               <div key={c.name} className="ck"><span className={`st ${c.passed ? "ok" : "warn"}`}>{c.passed ? <Check /> : <CircleAlert />}</span>{c.name}<small>{c.message ?? ""}</small></div>
             ))}
