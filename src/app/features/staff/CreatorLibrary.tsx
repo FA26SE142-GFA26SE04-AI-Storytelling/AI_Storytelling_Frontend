@@ -2,10 +2,12 @@
 
 import "@/app/features/library/library.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, Info, PencilLine, Search, SlidersHorizontal, WandSparkles, X } from "lucide-react";
+import { ChevronLeft, Eye, Info, PencilLine, Search, SlidersHorizontal, WandSparkles, X } from "lucide-react";
+import CreatorPreview from "./CreatorPreview";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { Shelf, ShelfRow } from "@/app/features/library/LibraryWorkspace";
 import { creatorService } from "@/app/services/creatorService";
+import { creatorPublicationService } from "@/app/services/creatorPublicationService";
 import type { CreatorDraft } from "@/app/types/creator";
 import { gradientFor } from "@/app/lib/storyView";
 import { Notice, fmt } from "./ui";
@@ -33,13 +35,15 @@ const NEW_DAYS = 3;
 const isNew = (s: CreatorDraft) => Date.now() - new Date(s.createdAt).getTime() < NEW_DAYS * 86_400_000;
 
 /** Thẻ truyện bìa đứng, giống Thư viện của phụ huynh: bấm để xem chi tiết ở khung bên phải. */
-function BookCard({ story, rank, on, onPick }: { story: CreatorDraft; rank?: number; on: boolean; onPick: () => void }) {
+function BookCard({ story, rank, on, onPick, published }: { story: CreatorDraft; rank?: number; on: boolean; onPick: () => void; published: boolean }) {
   const name = story.title || "Truyện chưa đặt tên";
-  const ready = shelfOf(story) === "ready";
+  // "Sẵn sàng" chỉ nghĩa là creator đã chốt nội dung và media; chỉ khi Moderator duyệt công khai mới là truyện đã xuất bản.
+  const ready = shelfOf(story) === "ready" && published;
+  const label = `${SHELVES.find((g) => g.id === shelfOf(story))?.title}${shelfOf(story) === "ready" && !published ? " · chưa công khai" : ""}`;
   return (
     <button className={`bk${on ? " on" : ""}`} onClick={onPick} aria-pressed={on}>
       <span className="bk-cover" style={{ background: gradientFor(story.storyId) }}>
-        {!ready ? <span className="pill draft bk-badge">{SHELVES.find((g) => g.id === shelfOf(story))?.title}</span> : isNew(story) && <span className="bk-badge bk-new">Mới</span>}
+        {!ready ? <span className="pill draft bk-badge">{label}</span> : isNew(story) && <span className="bk-badge bk-new">Mới</span>}
         <span className="bk-name display">{name}</span>
         {rank !== undefined && <span className="bk-rank display" aria-hidden>{rank}</span>}
       </span>
@@ -62,17 +66,32 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
   const [topic, setTopic] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<{ title: string; items: CreatorDraft[] } | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
+  const [reading, setReading] = useState(false);
   const [asideCollapsed, setAsideCollapsed] = useState(true);
   const toggleAside = useCallback(() => setAsideCollapsed((v) => !v), []);
   const aside = useMemo(() => ({ collapsed: asideCollapsed, toggle: toggleAside }), [asideCollapsed, toggleAside]);
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
 
+  // Danh sách truyện của creator không có cờ "đã công khai" (Ready cả khi chưa gửi duyệt), nên hỏi trạng thái phát hành của từng truyện Ready.
+  const [published, setPublished] = useState<Record<number, boolean>>({});
   const load = useCallback(async () => {
     const r = await creatorService.list();
-    setList(r.ok ? r.data?.items ?? [] : []);
+    const items = r.ok ? r.data?.items ?? [] : [];
+    setList(items);
     setNote(r.ok ? null : { ok: false, text: r.message });
+    const ids = items.filter((s) => shelfOf(s) === "ready").map((s) => s.storyId);
+    const next: Record<number, boolean> = {};
+    for (let i = 0; i < ids.length; i += 6) {
+      await Promise.all(ids.slice(i, i + 6).map(async (id) => {
+        const p = await creatorPublicationService.status(id).catch(() => null);
+        next[id] = !!(p?.success && p.data?.isPublished);
+      }));
+    }
+    setPublished(next);
   }, []);
+  // Truyện Ready nhưng chưa được Moderator duyệt công khai (hoặc chưa biết) thì không hiện ở các kệ thư viện, chỉ ở kệ "Chưa công khai".
+  const libShelf = useCallback((s: CreatorDraft) => (shelfOf(s) === "ready" && !published[s.storyId] ? "unpublished" : shelfOf(s)), [published]);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
     if (!filterOpen) return;
@@ -84,13 +103,13 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
 
   const sorted = useMemo(() => [...(list ?? [])].sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime()), [list]);
   const activeCount = [status, genre, age, src].filter((v) => v !== "all").length;
-  const topics = useMemo(() => [...new Set(sorted.filter((s) => !["draft", "review"].includes(shelfOf(s))).map((s) => s.genre || "Khác"))], [sorted]);
+  const topics = useMemo(() => [...new Set(sorted.filter((s) => !["draft", "review", "unpublished"].includes(libShelf(s))).map((s) => s.genre || "Khác"))], [sorted, libShelf]);
   const activeTopic = topic && topics.includes(topic) ? topic : topics[0] ?? null;
-  const released = sorted.filter((s) => shelfOf(s) === "ready");
+  const released = sorted.filter((s) => libShelf(s) === "ready");
   const latest = released.slice(0, 10);
-  // Truyện đang soạn hoặc chưa công khai tách riêng; các kệ còn lại chỉ gồm truyện đã qua duyệt (hoặc đã lưu trữ).
-  const unpublished = sorted.filter((s) => ["draft", "review"].includes(shelfOf(s)));
-  const rest = sorted.filter((s) => !["draft", "review"].includes(shelfOf(s)));
+  // Truyện đang soạn hoặc chưa công khai tách riêng; các kệ còn lại chỉ gồm truyện đã được Moderator duyệt công khai (hoặc đã lưu trữ).
+  const unpublished = sorted.filter((s) => ["draft", "review", "unpublished"].includes(libShelf(s)));
+  const rest = sorted.filter((s) => !["draft", "review", "unpublished"].includes(libShelf(s)));
   const byTopic = rest.filter((s) => (s.genre || "Khác") === activeTopic);
   const bySource = rest.filter((s) => source === "all" || sourceOf(s) === source);
   const searching = q.trim() !== "" || activeCount > 0;
@@ -101,9 +120,9 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
 
   const sel = sorted.find((s) => s.storyId === selected) ?? null;
   const pick = (id: number) => { setSelected(id); if (asideCollapsed) setAsideCollapsed(false); };
-  const card = (s: CreatorDraft, rank?: number) => <BookCard key={s.storyId} story={s} rank={rank} on={sel?.storyId === s.storyId} onPick={() => pick(s.storyId)} />;
+  const card = (s: CreatorDraft, rank?: number) => <BookCard key={s.storyId} story={s} rank={rank} on={sel?.storyId === s.storyId} onPick={() => pick(s.storyId)} published={!!published[s.storyId]} />;
   const open = (s: CreatorDraft) => go(isAi(s) ? "create-ai" : "create-manual", s.storyId);
-  const shelfLabel = (s: CreatorDraft) => SHELVES.find((g) => g.id === shelfOf(s))?.title ?? "";
+  const shelfLabel = (s: CreatorDraft) => `${SHELVES.find((g) => g.id === shelfOf(s))?.title ?? ""}${libShelf(s) === "unpublished" ? " · chưa công khai" : ""}`;
 
   return (
     <AsideContext.Provider value={aside}>
@@ -186,7 +205,7 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                     {bySource.length > 0 ? <div className="shelf-grid">{bySource.map((s) => card(s))}</div> : <p className="sub">Chưa có truyện nào trong nhóm này.</p>}
                   </Shelf>
                   {unpublished.length > 0 && (
-                    <Shelf title="Đang soạn" sub={`Bản nháp và truyện đang chờ duyệt · ${unpublished.length} truyện`} items={unpublished.map((s) => ({ id: s.storyId }))} onAll={() => setExpanded({ title: "Đang soạn", items: unpublished })}>
+                    <Shelf title="Chưa công khai" sub={`Bản nháp, truyện đang chờ duyệt và truyện sẵn sàng nhưng Moderator chưa duyệt công khai · ${unpublished.length} truyện`} items={unpublished.map((s) => ({ id: s.storyId }))} onAll={() => setExpanded({ title: "Chưa công khai", items: unpublished })}>
                       <ShelfRow>{unpublished.map((s) => card(s))}</ShelfRow>
                     </Shelf>
                   )}
@@ -210,10 +229,12 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                 <span>Cập nhật</span><b>{fmt(sel.updatedAt ?? sel.createdAt)}</b>
                 <span>Trạng thái</span><span className="pill draft" style={{ width: "fit-content" }}>{shelfLabel(sel)}</span>
               </div>
+              <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
               <button className="btn btn-p btn-c" onClick={() => open(sel)}>{isAi(sel) ? <WandSparkles className="ic" /> : <PencilLine className="ic" />}Mở để soạn tiếp</button>
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
         </AsidePane>
+        {sel && reading && <CreatorPreview story={sel} onClose={() => setReading(false)} />}
       </section>
     </AsideContext.Provider>
   );
