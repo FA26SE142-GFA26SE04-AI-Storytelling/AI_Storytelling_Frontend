@@ -1,4 +1,5 @@
 import type { ReadingMode, ReadingQuizItem } from "@/app/types/reading";
+import { normalizeQuizType } from "@/app/lib/storyRules";
 
 /** Quy tắc Luồng 3 — chấm câu đố, EXP, Cây tri thức, chuỗi ngày đọc, huy hiệu. */
 
@@ -33,7 +34,7 @@ export function isAnswerCorrect(item: Pick<ReadingQuizItem, "type" | "acceptedAn
   return item.acceptedAnswers.some((a) => {
     const n = normalizeAnswer(a);
     if (n === g) return true;
-    return item.type === "short_answer" && n.length >= 4 && editDistanceAtMostOne(n, g);
+    return normalizeQuizType(item.type) === "ShortAnswer" && n.length >= 4 && editDistanceAtMostOne(n, g);
   });
 }
 

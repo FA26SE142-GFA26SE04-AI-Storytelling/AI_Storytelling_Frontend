@@ -16,3 +16,14 @@
 @keyframes dlg-fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes dlg-pop { from { opacity: 0; transform: translateY(8px) scale(.96); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .dlg-backdrop, .dlg { animation: none; } }
+
+/* Khung "Tự sửa bản thảo": nhãn các ô nhập là tiêu đề quan trọng, chữ to và đậm; khoảng cách rộng hơn. */
+.story-editor { gap: 20px; }
+.story-editor > .field { gap: 8px; }
+.story-editor > .field > .lbl { font-size: 17px; font-weight: 800; color: var(--text); }
+.story-editor > .field > .inp { font-size: 16px; font-weight: 500; }
+.story-editor > .field > .inp.display { font-size: 20px; font-weight: 800; }
+.story-editor > .field > textarea.inp { line-height: 1.7; font-size: 16.5px; }
+.story-editor .pa-assist h3 { font-size: 20px; font-weight: 800; }
+.story-editor .pa-assist .field, .story-editor .pa-assist .field > .lbl { font-size: 16px; font-weight: 800; color: var(--text); }
+.story-editor .pa-assist > .sub { font-size: 14.5px; }

@@ -4,6 +4,7 @@ import "@/app/features/library/library.css";
 import "./created.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Eye, Info, PencilLine, RefreshCw, WandSparkles } from "lucide-react";
+import Select from "@/app/components/Select";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import Frog from "@/app/components/brand/Frog";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
@@ -95,13 +96,11 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
             {GROUPS.map((g) => <button key={g.id} role="tab" aria-selected={group === g.id} className={group === g.id ? "on" : ""} onClick={() => setGroup(g.id)}>{g.label}<em>{count(g.id)}</em></button>)}
           </div>
           <div className="created-actions">
+            <Select<string> className="created-select" ariaLabel="Lọc theo nguồn" value={source} options={SOURCES.map((s) => ({ value: s.id, label: s.label }))} onChange={setSource} />
             <button className="btn btn-g" onClick={() => void load()} disabled={loading} aria-label="Tải lại" title="Tải lại"><RefreshCw className="ic" /></button>
-            <button className="btn btn-s" onClick={() => go("authoring")}><PencilLine className="ic" />Viết thủ công</button>
-            <button className="btn btn-p" onClick={() => go("studio")}><WandSparkles className="ic" />Dùng AI tạo truyện</button>
+            <button className="btn btn-s" onClick={() => go("authoring")}><PencilLine className="ic" />Thủ công</button>
+            <button className="btn btn-p" onClick={() => go("studio")}><WandSparkles className="ic" />Dùng AI</button>
           </div>
-        </div>
-        <div className="created-pills small" role="tablist" aria-label="Lọc theo nguồn">
-          {SOURCES.map((s) => <button key={s.id} role="tab" aria-selected={source === s.id} className={source === s.id ? "on" : ""} onClick={() => setSource(s.id)}>{s.label}</button>)}
         </div>
 
         {error && <p className="notice err" role="alert">{error}</p>}

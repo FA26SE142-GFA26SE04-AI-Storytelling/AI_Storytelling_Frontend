@@ -23,9 +23,9 @@ const SUB_STATUS: Record<string, string> = { pending: "Đang chờ duyệt", app
 const STATUS_GROUPS: { id: string; label: string; keys: string[] }[] = [
   { id: "draft", label: "Nháp", keys: ["draft"] },
   { id: "generating", label: "Đang sinh", keys: ["input_accepted", "generating"] },
-  { id: "outline", label: "Chờ duyệt dàn ý", keys: ["outline_review"] },
+  { id: "outline", label: "Chờ bạn duyệt dàn ý", keys: ["outline_review"] },
   { id: "moderation", label: "Đang kiểm duyệt an toàn", keys: ["moderation_review"] },
-  { id: "review", label: "Chờ duyệt", keys: ["content_review"] },
+  { id: "review", label: "Chờ bạn duyệt", keys: ["content_review"] },
   { id: "media", label: "Đang chuẩn bị media", keys: ["approved", "media_processing", "media_review"] },
   { id: "ready", label: "Sẵn sàng", keys: ["ready", "published"] },
   { id: "blocked", label: "Bị chặn", keys: ["blocked"] },

@@ -37,8 +37,8 @@ const STATUS: Record<string, [StoryTone, string]> = {
   approved: ["ok", "Đã duyệt"],
   media_processing: ["wait", "Đang tạo minh hoạ"],
   media_review: ["wait", "Chờ xác nhận tranh và giọng đọc"],
-  content_review: ["wait", "Chờ duyệt"],
-  outline_review: ["wait", "Chờ duyệt dàn ý"],
+  content_review: ["wait", "Chờ bạn duyệt"],
+  outline_review: ["wait", "Chờ bạn duyệt dàn ý"],
   input_accepted: ["wait", "Đang xử lý"],
   generating: ["wait", "Đang viết truyện"],
   // Phụ huynh chỉ thấy "đang kiểm duyệt", không thấy điểm rủi ro hay lý do (Luồng 2 mục 3.4).

@@ -3,9 +3,27 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationService';
 import { ApiResponse } from '@/app/types/auth';
-import { AIProposalDto, PartialEditRequestDto, QuizReviewDto, ReviewArtifact, ReviewPackageDto, StoryReviewDto, ValidationResultDto, VocabularyReviewDto } from '@/app/types/aiStory';
+import { normalizeQuizType } from '@/app/lib/storyRules';
+import { AIProposalDto, PartialEditRequestDto, QuizQuestionDto, QuizReviewDto, ReviewArtifact, ReviewPackageDto, StoryReviewDto, ValidationResultDto, VocabularyReviewDto } from '@/app/types/aiStory';
 import { hasMissingLearning, missingLearning } from './storyReviewLearning';
 import { isReadingOnly } from '@/app/lib/storyRules';
+
+/** Các câu hỏi trong nội dung đề xuất của AI (`{ items: [...] }`), loại câu hỏi đưa về mã của backend; sai dạng thì trả null. */
+function quizItemsOf(content: unknown): QuizQuestionDto[] | null {
+  const raw = (content as { items?: unknown } | null)?.items;
+  if (!Array.isArray(raw) || raw.length === 0) return null;
+  const items: QuizQuestionDto[] = [];
+  for (const it of raw as Record<string, unknown>[]) {
+    if (typeof it?.type !== 'string' || typeof it.question !== 'string') return null;
+    items.push({
+      type: normalizeQuizType(it.type) ?? it.type,
+      question: it.question,
+      correctAnswer: typeof it.correctAnswer === 'string' ? it.correctAnswer : null,
+      choices: Array.isArray(it.choices) ? it.choices.filter((c): c is string => typeof c === 'string') : null,
+    });
+  }
+  return items;
+}
 
 function requireData<T>(result: ApiResponse<T>): T {
   if (!result.success || result.data === null || result.data === undefined) throw new Error(result.message || 'Phản hồi chưa hợp lệ.');
@@ -74,9 +92,23 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
 
   const decideProposal = (apply: boolean) => run(async signal => {
     if (!proposal) return;
-    const result = requireData(await (apply ? api.applyProposal(storyId, proposal.proposalId, signal) : api.discardProposal(storyId, proposal.proposalId, signal)));
+    if (!apply) {
+      const result = requireData(await api.discardProposal(storyId, proposal.proposalId, signal));
+      if (signal.aborted) return;
+      if (!result.success) throw new Error(result.message);
+      setProposal(null); await load(signal);
+      return;
+    }
+    const applied = await api.applyProposal(storyId, proposal.proposalId, signal);
     if (signal.aborted) return;
-    if (!result.success) throw new Error(result.message);
+    if (applied.success && applied.data?.success) { setProposal(null); await load(signal); return; }
+    // Backend lỗi 500 khi áp dụng đề xuất câu hỏi (ProposalService đọc loại "multiple_choice" bằng Enum.Parse): tự lưu đúng các câu hỏi
+    // của đề xuất bằng đường lưu học liệu rồi đóng đề xuất. Chỉ dùng khi áp dụng thường bị lỗi máy chủ.
+    const items = proposal.artifactType === 'quiz' && (applied.status ?? 0) >= 500 ? quizItemsOf(proposal.suggestedContent) : null;
+    if (!items) throw new Error(applied.data?.message || applied.message || 'Chưa áp dụng được đề xuất.');
+    requireData(await api.updateQuizReview(storyId, { versionId: proposal.storyVersionId, items }, signal));
+    if (signal.aborted) return;
+    await api.discardProposal(storyId, proposal.proposalId, signal);
     setProposal(null); await load(signal);
   });
 

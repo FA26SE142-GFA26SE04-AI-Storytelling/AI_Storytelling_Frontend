@@ -4,7 +4,7 @@ import "./staff.css";
 import "@/app/features/children/children.css";
 import { useState, type ComponentType } from "react";
 import {
-  Activity, BookOpenText, ChartColumn, Coins, FileClock, FlaskConical, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt,
+  Activity, BookOpenText, ChartColumn, Coins, FileClock, FlaskConical, FolderOpen, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt,
   ScrollText, Shield, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
@@ -24,6 +24,8 @@ import AuthoringGuideManagement from "./AuthoringGuideManagement";
 import { PromptsPage } from "./Creator";
 import { CreatorCreateAi, CreatorCreateManual, type CreatorPageProps } from "./CreatorStories";
 import { CreatorLibrary } from "./CreatorLibrary";
+import { CreatorMyStories } from "./CreatorMyStories";
+import { CreatorEarnings } from "./CreatorEarnings";
 import { AdminParents, AdminStaff } from "./AdminPeople";
 import { AdminEvaluation, AdminLogs, AdminOverview } from "./AdminAi";
 import AdminCatalog from "./AdminCatalog";
@@ -41,6 +43,12 @@ const ROLE_LABEL: Record<StaffRole, string> = { Administrator: "Admin Portal", M
 const ACCOUNT_PAGES: PageDef[] = [
   { id: "account", label: "Thông tin cá nhân", icon: UserRound, view: () => <AccountWorkspace page="profile" /> },
   { id: "account-activity", label: "Lịch sử hoạt động", icon: Activity, view: () => <AccountWorkspace page="activity" /> },
+];
+
+/** Trang riêng của Content Creator trong menu avatar: doanh thu và thống kê theo tháng. */
+const CREATOR_ACCOUNT_PAGES: PageDef[] = [
+  { id: "earnings", label: "Doanh thu và thống kê", icon: ChartColumn, view: CreatorEarnings },
+  ...ACCOUNT_PAGES,
 ];
 
 /** Luồng 5 — ba khu tách biệt theo vai trò; mỗi tài khoản đúng một vai trò (BR-5.7a). */
@@ -78,8 +86,9 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "library", label: "Thư viện truyện mẫu", short: "Thư viện", icon: BookOpenText, view: CreatorLibrary },
     { id: "create-ai", label: "Tạo truyện bằng AI", menuLabel: "Dùng AI", short: "Dùng AI", icon: WandSparkles, view: CreatorCreateAi, hint: "AI viết truyện mẫu từ ý tưởng của bạn" },
     { id: "create-manual", label: "Tạo truyện thủ công", menuLabel: "Thủ công", short: "Thủ công", icon: PencilLine, view: CreatorCreateManual, hint: "Bạn tự viết nội dung, lưu thành từng phiên bản" },
+    { id: "my-stories", label: "Truyện của tôi", short: "Truyện của tôi", icon: FolderOpen, view: CreatorMyStories, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở" },
     { id: "prompts", label: "Bộ test prompt", short: "Test prompt", icon: FlaskConical, view: () => <PromptsPage /> },
-    ...ACCOUNT_PAGES,
+    ...CREATOR_ACCOUNT_PAGES,
   ],
 };
 
@@ -96,7 +105,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "quota"] },
   ],
   Moderator: ["queue", "published", "rubrics", "rating", "authoring-guides", "templates", "wish-cards"],
-  ContentCreator: ["library", "create-ai", "create-manual", "prompts"],
+  ContentCreator: ["library", "create-ai", "create-manual", "my-stories", "prompts"],
 };
 
 function StaffNav({ role, pageId, onPage, upward }: { role: StaffRole; pageId: string; onPage: (id: string) => void; upward?: boolean }) {
@@ -137,7 +146,7 @@ export default function StaffApp({ role }: { role: StaffRole }) {
 
         <button className="btn btn-g" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Giao diện sáng" : "Giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
         <NotificationBell />
-        <AccountMenu ws={pageId} onWs={(id) => go(id)} groups={[ACCOUNT_PAGES]} />
+        <AccountMenu ws={pageId} onWs={(id) => go(id)} groups={[role === "ContentCreator" ? CREATOR_ACCOUNT_PAGES : ACCOUNT_PAGES]} />
       </header>
 
       {/* Điện thoại: header không đủ chỗ nên điều hướng nằm ở thanh tab dưới đáy. */}

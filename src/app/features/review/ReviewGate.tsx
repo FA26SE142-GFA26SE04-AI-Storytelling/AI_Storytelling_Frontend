@@ -21,6 +21,15 @@ import { ArchiveDialog, LearningEditor } from "./ReviewTools";
 import AutoPublishAction from './AutoPublishAction';
 
 type Tab = "story" | ArtifactKind;
+/** Lý do chưa duyệt được do backend trả về bằng tiếng Anh, nối bằng " • ": dịch các câu đã biết, câu lạ giữ nguyên. */
+const ISSUE_VI: [RegExp, (m: RegExpMatchArray) => string][] = [
+  [/^Quiz needs at least 3 valid questions/, () => 'Câu hỏi đọc hiểu cần ít nhất 3 câu hợp lệ, có đủ mọi loại câu hỏi và đáp án đúng.'],
+  [/^Listening interactions must be confirmed/, () => 'Cần xác nhận các tương tác khi nghe.'],
+  [/^Listening interactions must match the plan/, () => 'Các tương tác khi nghe chưa khớp kế hoạch, hãy tạo lại loại bị lỗi thời.'],
+  [/^Vocabulary needs at least 5 unique.*(current: (d+))/, (m) => `Từ vựng cần ít nhất 5 từ không trùng và đều xuất hiện trong truyện (hiện có ${m[1]}).`],
+  [/^Artifacts must be bound to the current story version/, () => 'Học liệu chưa gắn với bản truyện hiện tại.'],
+];
+const viIssues = (text: string) => text.split(' • ').map((s) => { for (const [re, fn] of ISSUE_VI) { const m = s.match(re); if (m) return fn(m); } return s; }).join(' • ');
 const ARTIFACTS: ArtifactKind[] = ["vocabulary", "quiz"];
 
 type Props = {
@@ -176,7 +185,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
             </>
           )}
 
-          {error && !dialog && <div className="notice err" role="alert">{error}</div>}
+          {error && !dialog && <div className="notice err" role="status">{viIssues(error)}</div>}
 
           <div className="sec">
             <div className="sec-h">Quyết định</div>

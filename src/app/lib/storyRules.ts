@@ -103,10 +103,27 @@ export const ARCHIVE_REASONS = [
 ] as const;
 export type ArchiveReason = (typeof ARCHIVE_REASONS)[number]["id"];
 
-/** Luồng 2 mục 6.3 — loại câu hỏi đọc hiểu; nhóm 6–8 tuổi không có tự luận ngắn. */
+/**
+ * Luồng 2 mục 6.3 — loại câu hỏi đọc hiểu; nhóm 6–8 tuổi không có tự luận ngắn.
+ * Mã loại theo enum `QuizType` của backend (MultipleChoice, TrueFalse, ShortAnswer): backend đọc/ghi đúng dạng này
+ * và `Enum.Parse` không nhận `multiple_choice`. Dữ liệu AI hoặc dữ liệu cũ có thể ở dạng snake_case nên luôn qua `normalizeQuizType`.
+ */
 export const QUIZ_TYPES = [
-  { id: "multiple_choice", label: "Trắc nghiệm" },
-  { id: "true_false", label: "Đúng / Sai" },
-  { id: "short_answer", label: "Tự luận ngắn" },
+  { id: "MultipleChoice", label: "Trắc nghiệm" },
+  { id: "TrueFalse", label: "Đúng / Sai" },
+  { id: "ShortAnswer", label: "Tự luận ngắn" },
 ] as const;
-export const quizTypesFor = (ageBand: string) => QUIZ_TYPES.filter((t) => ageBand !== "Age_6_8" || t.id !== "short_answer");
+export type QuizTypeId = (typeof QUIZ_TYPES)[number]["id"];
+/** Đưa mọi cách viết (multiple_choice, MultipleChoice, multiple-choice…) về mã của backend; không nhận ra thì trả null. */
+export function normalizeQuizType(type?: string | null): QuizTypeId | null {
+  const key = (type ?? "").toLowerCase().replace(/[^a-z]/g, "");
+  return key === "multiplechoice" ? "MultipleChoice" : key === "truefalse" ? "TrueFalse" : key === "shortanswer" ? "ShortAnswer" : null;
+}
+/** Đáp án Đúng/Sai backend lưu là "true"/"false" (kiểm tra bằng bool.TryParse); AI hoặc dữ liệu cũ có thể là "Đúng"/"Sai". */
+export function normalizeTrueFalse(answer?: string | null): "true" | "false" | null {
+  const a = (answer ?? "").trim().toLowerCase();
+  if (a === "true" || a === "đúng" || a === "dung") return "true";
+  if (a === "false" || a === "sai") return "false";
+  return null;
+}
+export const quizTypesFor = (ageBand: string) => QUIZ_TYPES.filter((t) => ageBand !== "Age_6_8" || t.id !== "ShortAnswer");

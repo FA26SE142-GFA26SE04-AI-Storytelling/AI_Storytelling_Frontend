@@ -39,7 +39,7 @@ export default function ProposalCard({ proposal, busy, onApply, onDiscard }: Pro
       )}
       <div className="row proposal-act">
         <button className="btn btn-g" disabled={busy} onClick={onDiscard}><X className="ic" />Bỏ đề xuất</button>
-        <button className="btn btn-p" disabled={busy} onClick={onApply}><Check className="ic" />Áp dụng</button>
+        <button className="btn btn-p" disabled={busy} onClick={onApply}><Check className="ic" />Đồng ý</button>
       </div>
     </div>
   );

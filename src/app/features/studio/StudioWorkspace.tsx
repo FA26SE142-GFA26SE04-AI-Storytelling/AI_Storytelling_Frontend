@@ -68,6 +68,12 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
     onNew(idea);
     return null;
   };
+  // Máy chủ không cho huỷ truyện đang kẹt do AI lỗi: vẫn cho người dùng rời đi và làm truyện mới (bản nháp lỗi còn trong "Truyện của tôi").
+  const leave = (keepIdea: boolean) => {
+    const idea = keepIdea && p.flow.valuesKnown ? p.flow.values : null;
+    void reload();
+    onNew(idea);
+  };
   // Lỗi cũ của bước viết truyện không áp cho bước media.
   const progress = useSteppedProgress(studioProgress(p.stage, p.snapshot, media.data, p.stage === "media" ? null : p.errorCode));
 
@@ -81,7 +87,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
   // Cụm nút điều khiển nằm ở góc phải thanh tab của khung đang hiện (xem story-workflow/tabActions).
   const controls = (
       <>
-        <StudioControls key={p.stage} stage={p.stage} valuesKnown={p.flow.valuesKnown} onEditIdea={p.flow.editInput} onRestart={restart} onStartNew={() => onNew()} approve={approve} failed={p.errorCode !== null} />
+        <StudioControls key={p.stage} stage={p.stage} valuesKnown={p.flow.valuesKnown} onEditIdea={p.flow.editInput} onRestart={restart} onLeave={leave} onStartNew={() => onNew()} approve={approve} failed={p.errorCode !== null} />
       </>
   );
   return (

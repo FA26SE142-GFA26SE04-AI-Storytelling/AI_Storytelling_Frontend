@@ -257,3 +257,19 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 .ce-todo li { position: relative; padding-left: 38px; counter-increment: todo; }
 .ce-todo li::before { content: counter(todo); position: absolute; left: 0; top: 0; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 13px; font-weight: 800; background: var(--surface-2); border: 1px solid var(--line-2); }
 .ce-todo li.done::before { content: "✓"; background: var(--primary-strong); color: #fff; border-color: var(--primary-strong); }
+
+/* Doanh thu và thống kê của Creator: ba thẻ tổng chọn được và biểu đồ cột theo tháng. */
+.ce-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 16px; }
+.ce-stat { display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 20px 22px; border-radius: 24px; border: 3px solid var(--line-2); background: var(--surface); text-align: left; transition: border-color .15s, box-shadow .15s; }
+.ce-stat.on { border-color: var(--primary); background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 14%, var(--surface)), var(--surface) 70%); box-shadow: 0 14px 28px -18px color-mix(in srgb, var(--primary-strong) 70%, transparent); }
+.ce-stat-ic { width: 40px; height: 40px; border-radius: 14px; display: grid; place-items: center; background: var(--primary-strong); color: #fff; }
+.ce-stat-ic svg { width: 22px; height: 22px; }
+.ce-stat-name { font-size: 15px; font-weight: 800; color: var(--muted); }
+.ce-stat b { font-size: 34px; font-weight: 800; line-height: 1.15; }
+.ce-stat-sub { font-size: 14px; font-weight: 700; color: var(--muted); }
+.ce-chart h3 { display: flex; align-items: center; gap: 8px; font-size: 18px; }
+.ce-bars { display: flex; align-items: stretch; gap: clamp(8px, 2vw, 24px); height: 320px; padding-top: 12px; }
+.ce-bar { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 8px; }
+.ce-bar-fill { width: min(64px, 80%); border-radius: 12px 12px 4px 4px; background: linear-gradient(180deg, var(--primary), var(--primary-strong)); min-height: 2px; transition: height .4s ease; }
+.ce-bar-val { font-size: 13px; font-weight: 800; white-space: nowrap; }
+.ce-bar-month { font-size: 14px; font-weight: 800; color: var(--muted); }

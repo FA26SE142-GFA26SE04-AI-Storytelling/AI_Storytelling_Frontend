@@ -14,6 +14,8 @@ type Props = {
   onEditIdea: () => void;
   /** Huỷ truyện hiện tại rồi mở form; keepIdea = điền lại ý tưởng cũ. Trả về thông báo lỗi nếu không huỷ được. */
   onRestart: (keepIdea: boolean) => Promise<string | null>;
+  /** Rời truyện đang lỗi mà không huỷ trên máy chủ (khi máy chủ không cho huỷ): mở form mới, giữ ý tưởng nếu `keepIdea`. */
+  onLeave: (keepIdea: boolean) => void;
   onStartNew: () => void;
   /** Hành động duyệt do màn đang hiện đăng ký (duyệt dàn ý hoặc duyệt truyện); null = chưa tới bước duyệt. */
   approve: ApproveAction | null;
@@ -37,7 +39,7 @@ const WHAT_IS_LOST: Partial<Record<Stage, string>> = {
  * Luôn hiện để vị trí cố định; bước đầu và lúc AI đang chạy thì mờ và không bấm được (tooltip nói lý do).
  * Luôn hỏi lại trước khi huỷ.
  */
-export default function StudioControls({ stage, valuesKnown, onEditIdea, onRestart, onStartNew, approve, failed = false }: Props) {
+export default function StudioControls({ stage, valuesKnown, onEditIdea, onRestart, onLeave, onStartNew, approve, failed = false }: Props) {
   const [pending, setPending] = useState<Pending>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -91,6 +93,7 @@ export default function StudioControls({ stage, valuesKnown, onEditIdea, onResta
               : "Bạn sẽ bắt đầu một truyện mới với form trống."}
           </p>
           {err && <div className="notice err" role="alert">{err}</div>}
+          {err && failed && <button className="btn btn-s btn-c" disabled={busy} onClick={() => { onLeave(pending === "back"); setPending(null); setErr(null); }}>{pending === "back" ? "Rời truyện lỗi và sửa ý tưởng" : "Rời truyện lỗi, làm truyện mới"}</button>}
           <div className="row">
             <button className="btn btn-g grow btn-c" disabled={busy} onClick={() => { setPending(null); setErr(null); }}>Không</button>
             <button className={`btn grow btn-c ${pending === "back" ? "btn-p" : "btn-no"}`} disabled={busy} onClick={() => void confirm()}>

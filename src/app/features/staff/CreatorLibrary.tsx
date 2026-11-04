@@ -21,14 +21,14 @@ const sourceOf = (s: CreatorDraft) => (isAi(s) ? "ai" : "manual");
 const statusKey = (s: CreatorDraft) => (s.status ?? "draft").toLowerCase().replace(/[^a-z]/g, "");
 
 /** Kệ theo trạng thái; mỗi truyện chỉ nằm ở đúng một kệ. */
-const SHELVES: { id: string; title: string; sub: string; keys: string[] }[] = [
+export const SHELVES: { id: string; title: string; sub: string; keys: string[] }[] = [
   { id: "draft", title: "Đang soạn", sub: "Bản nháp chưa gửi duyệt", keys: ["draft"] },
   { id: "review", title: "Đang duyệt & chuẩn bị", sub: "Chờ Moderator duyệt hoặc đang tạo tranh và giọng đọc",
     keys: ["inputaccepted", "generating", "outlinereview", "moderationreview", "contentreview", "approved", "mediaprocessing", "mediareview"] },
   { id: "ready", title: "Sẵn sàng", sub: "Đã duyệt, có thể công khai vào Thư viện chung", keys: ["ready", "published"] },
   { id: "archived", title: "Đã lưu trữ", sub: "Không còn dùng", keys: ["archived"] },
 ];
-const shelfOf = (s: CreatorDraft) => SHELVES.find((g) => g.keys.includes(statusKey(s)))?.id ?? "draft";
+export const shelfOf = (s: CreatorDraft) => SHELVES.find((g) => g.keys.includes(statusKey(s)))?.id ?? "draft";
 const NEW_DAYS = 3;
 const isNew = (s: CreatorDraft) => Date.now() - new Date(s.createdAt).getTime() < NEW_DAYS * 86_400_000;
 

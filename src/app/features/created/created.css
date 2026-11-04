@@ -11,3 +11,21 @@
 /* Bìa rộng cố định: khi khung Chi tiết co/giãn, bìa không bị kéo giãn theo từng khung hình (trông như tải lại trang). */
 .created-grid { display: grid; grid-template-columns: repeat(auto-fill, 190px); justify-content: start; gap: 24px 20px; }
 .created-grid > .bk { min-width: 0; }
+
+/* Bộ lọc gọn trong một hàng: các nhãn trạng thái nhỏ hơn, nguồn là ô chọn nằm cạnh các nút. */
+.created { gap: 16px; }
+.created-bar { gap: 10px 14px; }
+.created-pills { gap: 6px; }
+.created-pills button { padding: 5px 12px; font-size: 14px; gap: 6px; }
+.created-pills button em { font-size: 12px; padding: 0 7px; }
+.created-actions { gap: 8px; }
+.created-select { width: auto; min-width: 130px; height: 36px; padding: 0 12px; font-size: 14px; font-weight: 700; }
+.created-actions .btn { height: 36px; font-size: 14px; padding: 0 14px; }
+
+/* Một hàng duy nhất: nhãn trạng thái bên trái co giãn, ô chọn nguồn và các nút bên phải; ô chọn cùng kiểu với các nút. */
+.created-bar { flex-wrap: nowrap; align-items: center; }
+.created-bar .created-pills { flex: 1 1 auto; min-width: 0; flex-wrap: wrap; }
+.created-bar .created-actions { flex: none; flex-wrap: nowrap; }
+.created-actions .sel { flex: none; width: 140px; }
+.created-actions .sel-btn { min-height: 36px; height: 36px; padding: 0 12px; border-radius: 999px; font-size: 14px; font-weight: 700; background: var(--surface-2); }
+@media (max-width: 900px) { .created-bar { flex-wrap: wrap; } .created-bar .created-actions { flex-wrap: wrap; } }

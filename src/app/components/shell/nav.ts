@@ -25,7 +25,7 @@ export const WORKSPACES: WorkspaceEntry[] = [
   { id: "authoring", label: "Thủ công", icon: PencilLine, under: "studio", hint: "Bạn tự viết truyện (có thể tải tệp lên), tự kiểm tra rồi giao cho bé" },
   { id: "created", label: "Truyện của tôi", icon: FolderOpen, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở" },
   { id: "roadmap", label: "Lộ trình của con", short: "Lộ trình", icon: Route },
-  { id: "review", label: "Duyệt nội dung", short: "Duyệt", icon: Inbox },
+  { id: "review", label: "Duyệt nội dung", short: "Xem và duyệt", icon: Inbox },
   // Mở từ menu avatar: nhóm của bé (ít dùng hằng ngày), rồi nhóm tài khoản.
   { id: "children", label: "Hồ sơ bé", icon: Users, inMenu: "kids" },
   { id: "report", label: "Báo cáo", icon: ChartColumn, inMenu: "kids" },

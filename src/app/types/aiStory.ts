@@ -257,3 +257,28 @@ export type ReviewArtifact = 'story' | 'vocabulary' | 'quiz';
 export interface CreateProposalResponseDto { proposalId: string; message: string }
 export interface ApplyDiscardResponseDto { success: boolean; message: string }
 
+
+/** Tương tác khi nghe (GET /review/listening). `required` = false thì truyện không có tương tác nào. */
+export type ListeningType = 'Checkpoint' | 'RolePlay' | 'FillBlank' | 'EventOrdering' | 'PicturePrediction';
+export interface ListeningOptionDto {
+  id: number; sortOrder: number; text: string; feedback: string | null; isMatch: boolean;
+  correctOrder: number | null; blockId: string | null; sourceQuote: string | null; imageDescription: string | null;
+}
+export interface ListeningInteractionDto {
+  id: number; type: ListeningType | string; anchorBlockId: string; anchorOffset: number; kind: string | null;
+  prompt: string | null; sourceQuote: string | null; characterName: string | null; hiddenWord: string | null; hint: string | null;
+  revealBlockId: string | null; explanation: string | null; matchFeedback: string | null; noMatchFeedback: string | null;
+  waitFeedback: string | null; isStale: boolean; options: ListeningOptionDto[];
+}
+export interface ListeningIssueDto { code: string; type: string | null; itemIndex: number | null; field: string | null }
+export interface ListeningReviewDto {
+  storyId: number; versionId: number; required: boolean; reviewed: boolean;
+  plan: { type: ListeningType | string; count: number; zones: string[][] }[];
+  items: ListeningInteractionDto[];
+  issues: ListeningIssueDto[];
+}
+export interface UpdateListeningInteractionRequestDto {
+  versionId: number; prompt?: string | null; hint?: string | null; explanation?: string | null;
+  matchFeedback?: string | null; noMatchFeedback?: string | null; waitFeedback?: string | null;
+  options?: { id: number; text?: string | null; feedback?: string | null }[];
+}
