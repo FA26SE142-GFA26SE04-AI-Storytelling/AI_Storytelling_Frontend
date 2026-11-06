@@ -425,7 +425,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
       <AsidePane title="Chi tiết" icon={Info}>
           {sel ? (
             <>
-              <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: sel.cover }} />
+              <div className="cover cover-portrait" style={{ background: sel.cover }} />
               <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title}</h3>
               {sel.raw.description && <p className="sub">{sel.raw.description}</p>}
               <div className="meta">

@@ -1,5 +1,7 @@
 /* Khung bên phải thu gọn được (AsidePane). Cột lưới co giãn do từng màn khai báo: features/studio/studio.css, features/library/library.css. */
 .aside { position: relative; }
+/* Thân khung là cột flex có cuộn: không cho nút, bìa, tiêu đề, đoạn chữ bị ép thấp lại khi nội dung dài (ép lại làm nút dẹt và ảnh méo). */
+.aside-body > :is(.btn, .meta, .cover, h3, p) { flex-shrink: 0; }
 /* Nội dung giữ bề rộng cố định để không bị bóp lại trong lúc khung co; khung cha cắt phần thừa. */
 /* Bề rộng cột phải do màn quyết định qua --aside-w (Studio 300px, Thư viện 290px); trừ 2px viền. */
 .aside.collapsible .aside-body { width: calc(var(--aside-w, 300px) - 2px); transition: opacity .25s ease, transform .38s cubic-bezier(.65, 0, .25, 1), visibility 0s; }

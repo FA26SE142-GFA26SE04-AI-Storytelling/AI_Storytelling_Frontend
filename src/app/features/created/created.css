@@ -29,3 +29,24 @@
 .created-actions .sel { flex: none; width: 140px; }
 .created-actions .sel-btn { min-height: 36px; height: 36px; padding: 0 12px; border-radius: 999px; font-size: var(--fs-md); font-weight: 700; background: var(--surface-2); }
 @media (max-width: 900px) { .created-bar { flex-wrap: wrap; } .created-bar .created-actions { flex-wrap: wrap; } }
+
+/* Popup sửa thông tin truyện: các ô xếp dọc có khoảng cách, nút nằm bên phải. */
+.edit-story { display: flex; flex-direction: column; gap: 8px; }
+.edit-story .lbl { margin-top: 6px; font-size: var(--fs-md); color: var(--text); }
+.edit-story textarea.inp { resize: vertical; min-height: 110px; }
+.edit-story-actions { justify-content: flex-end; margin-top: 12px; }
+
+/* Ảnh bìa trong popup sửa: ô đường dẫn, rồi khung chọn vùng ảnh bên trái và bản xem trước đúng tỉ lệ bìa bên phải. */
+.edit-story-cover-url { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.edit-story-cover-url .inp { flex: 1 1 220px; min-width: 0; }
+.edit-story-cover { display: flex; gap: 16px; align-items: flex-start; }
+.edit-story-cover-preview { flex: none; width: 120px; aspect-ratio: 3 / 4; border-radius: 16px; border: 2px solid var(--line-2); box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--shadow) 70%, transparent); }
+.cover-cropper { flex: 1; min-width: 0; max-width: 320px; display: flex; flex-direction: column; gap: 10px; }
+.cover-cropper-stage { position: relative; line-height: 0; overflow: hidden; border-radius: 14px; border: 2px solid var(--line-2); background: var(--surface-2); user-select: none; }
+.cover-cropper-stage img { display: block; width: 100%; height: auto; pointer-events: none; }
+.cover-cropper-frame { position: absolute; border: 3px solid var(--on-primary); border-radius: 6px; box-shadow: 0 0 0 9999px color-mix(in srgb, var(--shadow) 55%, transparent); cursor: grab; touch-action: none; }
+.cover-cropper-frame:active { cursor: grabbing; }
+.cover-cropper-frame:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+.cover-cropper-zoom { display: flex; align-items: center; gap: 10px; }
+.cover-cropper-zoom input { flex: 1; accent-color: var(--primary-strong); }
+@media (max-width: 520px) { .edit-story-cover { flex-direction: column; } }

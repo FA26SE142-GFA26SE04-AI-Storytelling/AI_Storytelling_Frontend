@@ -75,3 +75,6 @@
 .lfilter-pop label { display: flex; flex-direction: column; gap: 6px; font-size: var(--fs-sm); font-weight: 600; color: var(--muted); }
 .lfilter-pop .inp { width: 100%; min-width: 0; border-radius: 12px; }
 .lfilter-pop .inp.on { border-color: var(--primary); font-weight: 700; }
+
+/* Ảnh bìa ở khung Chi tiết: dọc 3:4 như thẻ truyện, nằm giữa khung. flex: none vì khung cuộn là cột flex, không có thì bìa bị ép thấp xuống và ảnh bị méo. */
+.cover-portrait { flex: none; aspect-ratio: 3 / 4; width: min(100%, 190px); margin-inline: auto; border-radius: 16px; }

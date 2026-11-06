@@ -3,7 +3,7 @@
 import "@/app/features/library/library.css";
 import "./created.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, Info, PencilLine, RefreshCw, Trash2, WandSparkles } from "lucide-react";
+import { Eye, Info, PencilLine, RefreshCw, SquarePen, Trash2, WandSparkles } from "lucide-react";
 import { confirmDialog } from "@/app/lib/confirm";
 import Select from "@/app/components/Select";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
@@ -14,6 +14,8 @@ import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { storyService } from "@/app/services/storyService";
 import { parentAuthoringService } from "@/app/services/parentAuthoringService";
 import { Preview } from "@/app/features/library/LibraryWorkspace";
+import { showToast } from "@/app/lib/toast";
+import EditStoryDialog, { type StoryInfoEdit } from "./EditStoryDialog";
 import { ageLabel, familyToCard, statusKey, toCard, type StoryCard } from "@/app/lib/storyView";
 
 /** Nhóm trạng thái hiển thị trên trang: gom các trạng thái chi tiết của backend thành vài nhóm dễ hiểu. */
@@ -87,6 +89,20 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
   const kidName = !sel ? "" : !sel.family ? "Chưa có thông tin" : !(sel.id in kidOf) ? "Đang tải…" : kids.find((k) => k.id === kidOf[sel.id])?.nickname ?? "Chưa có thông tin";
   const open = (s: StoryCard) => (s.family ? go("authoring", { storyId: s.id }) : go("studio", { storyId: s.id }));
 
+  // Sửa thông tin chung (tên, mô tả, thể loại): backend chỉ cho sửa truyện AI của chính phụ huynh.
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const canEdit = (s: StoryCard) => !s.family;
+  const saveInfo = async (s: StoryCard, v: StoryInfoEdit) => {
+    if (saving) return;
+    setSaving(true); setError("");
+    const r = await storyService.updateStoryInfo(s.raw, v);
+    setSaving(false);
+    if (!r.success) { setError(r.message || "Không lưu được thông tin truyện."); return; }
+    setEditing(false); showToast("Đã lưu thông tin truyện.");
+    await load();
+  };
+
   // Xóa: backend chỉ xóa được truyện AI (xóa mềm, chỉ tác giả). Không cho xóa khi đang tạo media hoặc đã xuất bản.
   const [deleting, setDeleting] = useState(false);
   const canDelete = (s: StoryCard) => !s.family && !["media_processing", "published"].includes(statusKey(s.raw));
@@ -145,7 +161,7 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
       <AsidePane title="Chi tiết" icon={Info}>
         {sel ? (
           <>
-            <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: sel.cover }} />
+            <div className="cover cover-portrait" style={{ background: sel.cover }} />
             <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
             {sel.raw.description && <p className="sub">{sel.raw.description}</p>}
             <div className="meta">
@@ -159,11 +175,13 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
               <span>Trạng thái</span><span className={`pill ${sel.tone}`} style={{ width: "fit-content" }}>{sel.statusLabel}</span>
             </div>
             <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
+            {canEdit(sel) && <button className="btn btn-s btn-c" onClick={() => setEditing(true)}><SquarePen className="ic" />Sửa thông tin</button>}
             <button className="btn btn-p btn-c" onClick={() => open(sel)}>{sel.family ? <PencilLine className="ic" /> : <WandSparkles className="ic" />}Mở để soạn tiếp</button>
             {canDelete(sel) && <button className="btn btn-no btn-c" disabled={deleting} onClick={() => void remove(sel)}><Trash2 className="ic" />{deleting ? "Đang xóa…" : "Xóa truyện"}</button>}
           </>
         ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
       </AsidePane>
+      {sel && editing && canEdit(sel) && <EditStoryDialog key={sel.id} story={sel.raw} saving={saving} onSave={(v) => void saveInfo(sel, v)} onClose={() => setEditing(false)} />}
       {sel && reading && <Preview story={sel} onClose={() => setReading(false)} />}
     </section>
     </AsideContext.Provider>

@@ -25,6 +25,17 @@ export const storyService = {
     return apiRequest(`/Story/${id}`, 'Không tìm thấy truyện.', {signal});
   },
 
+  /**
+   * `PUT /Story/{id}`: sửa thông tin chung của truyện AI do chính phụ huynh tạo. Gửi tên, mô tả, thể loại, ảnh bìa, độ tuổi, ngôn ngữ;
+   * ảnh bìa chỉ gửi khi đổi (chuỗi rỗng = gỡ ảnh, backend coi null là giữ nguyên); nội dung và bài học để null nên backend giữ nguyên (nội dung phải sửa qua màn duyệt để tạo phiên bản mới).
+   */
+  updateStoryInfo(story: Pick<StoryDto, 'id' | 'ageBand' | 'language' | 'coverImageUrl'>, info: { title: string; description: string; genre: string; cover: string }): Promise<ApiResponse<StoryDto>> {
+    return apiRequest(`/Story/${story.id}`, 'Không lưu được thông tin truyện.', {
+      method: 'PUT',
+      body: { title: info.title, description: info.description || null, genre: info.genre || null, content: null, coverImageUrl: info.cover === (story.coverImageUrl ?? '') ? null : info.cover, moralLesson: null, ageBand: story.ageBand, language: story.language || 'vi' },
+    });
+  },
+
   deleteStory(id: number): Promise<ApiResponse<boolean>> {
     return apiRequest(`/Story/${id}`, 'Không xóa được truyện.', { method: 'DELETE' });
   },

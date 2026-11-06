@@ -24,8 +24,42 @@ export type StoryCard = {
 /** Ảnh bìa mẫu dùng chung cho mọi truyện chưa có ảnh bìa (public/default-cover.svg). */
 export const DEFAULT_COVER = 'center / cover no-repeat url("/default-cover.svg")';
 
-/** Giá trị CSS `background` của bìa truyện: ảnh bìa thật nếu có, không thì (hoặc khi ảnh lỗi) dùng ảnh mẫu chung. */
-export const coverFor = (url?: string | null) => (url ? `center / cover no-repeat url("${url}"), ${DEFAULT_COVER}` : DEFAULT_COVER);
+/** Tỉ lệ khung bìa truyện (rộng/cao): thẻ truyện và khung chi tiết đều dùng 3:4 (dọc). */
+export const COVER_RATIO = 3 / 4;
+
+/**
+ * Vùng ảnh được giữ làm bìa, tính theo tỉ lệ của cả tấm ảnh (0–1): góc trái-trên (x, y) và kích thước (w, h).
+ * Backend chỉ lưu một chuỗi đường dẫn nên vùng cắt được ghi ngay sau dấu # của đường dẫn (phần sau # không gửi lên máy chủ ảnh):
+ * `https://…/anh.jpg#crop=0.1,0.05,0.6,0.8`.
+ */
+export type CoverCrop = { x: number; y: number; w: number; h: number };
+const CROP_TAIL = /#crop=(-?[\d.]+),(-?[\d.]+),([\d.]+),([\d.]+)$/;
+
+export function splitCover(value?: string | null): { src: string; crop: CoverCrop | null } {
+  const v = (value ?? "").trim();
+  const m = CROP_TAIL.exec(v);
+  if (!m) return { src: v, crop: null };
+  const [x, y, w, h] = m.slice(1).map(Number);
+  const ok = [x, y, w, h].every(Number.isFinite) && w > 0 && h > 0 && w <= 1 && h <= 1;
+  return { src: v.slice(0, m.index), crop: ok ? { x: Math.min(Math.max(x, 0), 1 - w), y: Math.min(Math.max(y, 0), 1 - h), w, h } : null };
+}
+
+export function joinCover(src: string, crop: CoverCrop | null): string {
+  if (!src || !crop) return src;
+  const f = (n: number) => String(Math.round(n * 10000) / 10000);
+  return `${src}#crop=${f(crop.x)},${f(crop.y)},${f(crop.w)},${f(crop.h)}`;
+}
+
+/** Giá trị CSS `background` của bìa truyện: ảnh bìa thật (có vùng cắt thì phóng đúng vùng đó) nếu có, không thì (hoặc khi ảnh lỗi) dùng ảnh mẫu chung. */
+export const coverFor = (url?: string | null) => {
+  const { src, crop } = splitCover(url);
+  if (!src) return DEFAULT_COVER;
+  const pct = (n: number) => `${Math.round(Math.min(Math.max(n, 0), 1) * 10000) / 100}%`;
+  const layout = crop
+    ? `${crop.w >= 1 ? "0%" : pct(crop.x / (1 - crop.w))} ${crop.h >= 1 ? "0%" : pct(crop.y / (1 - crop.h))} / ${Math.round(10000 / crop.w) / 100}% ${Math.round(10000 / crop.h) / 100}% no-repeat`
+    : "center / cover no-repeat";
+  return `${layout} url("${src}"), ${DEFAULT_COVER}`;
+};
 
 const STATUS: Record<string, [StoryTone, string]> = {
   published: ["ok", "Đã xuất bản"],
