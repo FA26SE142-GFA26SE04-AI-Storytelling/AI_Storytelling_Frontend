@@ -613,3 +613,9 @@
 .kid-rewards-split .kid-badge { padding: 12px; gap: 10px; }
 .kid-rewards-split .kid-badge p { font-size: var(--fs-sm); }
 .kid-rewards-split h3 { margin: 0; }
+
+/* Nút đổi giao diện sáng/tối ở thanh trên cùng của bé, nằm sát lề phải. */
+.ktop .kid-theme-btn { margin-left: auto; display: inline-flex; align-items: center; justify-content: center; padding: 8px 12px; }
+
+/* Nội dung mỗi tab của bé: cột dọc, khoảng cách do PaneSwap truyền vào. */
+.kid-pane { display: flex; flex-direction: column; min-width: 0; }

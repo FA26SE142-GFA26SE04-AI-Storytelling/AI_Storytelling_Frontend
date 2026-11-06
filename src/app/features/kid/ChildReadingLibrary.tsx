@@ -14,6 +14,7 @@ import Frog from '@/app/components/brand/Frog';
 import { Shelf, ShelfRow } from '@/app/features/library/LibraryWorkspace';
 import { coverFor } from '@/app/lib/storyView';
 import {ArrowRight,Award,BookOpen,ChevronLeft,ChevronRight,NotebookPen,RefreshCw,Search,Sparkles,Trash2} from 'lucide-react';
+import PaneSwap from './PaneSwap';
 
 const SOURCES=[{id:'',label:'Tất cả'},{id:'mine',label:'Của em'},{id:'library',label:'Thư viện'}];
 
@@ -25,6 +26,10 @@ export default function ChildReadingLibrary({childId,community,story,unlockTitle
   const reader=useChildReader(token,refresh);
   const reading=!!reader.content;
   const [pane,setPane]=useState<'stories'|'notebook'|'wishes'|'rewards'>('stories');
+  // Hướng trượt theo thứ tự tab: sang tab bên phải thì nội dung trượt vào từ phải, về tab bên trái thì từ trái.
+  const PANE_ORDER=['stories','notebook','wishes','rewards'];
+  const prevPane=useRef(pane); const dir:1|-1=PANE_ORDER.indexOf(pane)>=PANE_ORDER.indexOf(prevPane.current)?1:-1;
+  useEffect(()=>{prevPane.current=pane;},[pane]);
   // Các kệ bên dưới chỉ thuộc tab Truyện của em; báo tab đang chọn cho trang cha.
   useEffect(()=>{onPaneChange?.(pane);},[pane,onPaneChange]);
   // Bé bấm bìa truyện cộng đồng ở kệ bên dưới thì mở đọc luôn, không cần bấm thêm nút nào.
@@ -84,6 +89,7 @@ export default function ChildReadingLibrary({childId,community,story,unlockTitle
     </div>
     {reader.note&&<p role="status" className="kid-toast">{reader.note}</p>}
     {note&&<p role="status" className="kid-toast">{note}</p>}
+    <PaneSwap key={pane} dir={dir}>
     {pane==='stories'&&<>
     {!stories?.isLocked&&<div className="kid-toolbar">
       <form className="kid-search" role="search" onSubmit={e=>{e.preventDefault();setPage(1);setQuery(search.trim());}}>
@@ -113,5 +119,6 @@ export default function ChildReadingLibrary({childId,community,story,unlockTitle
     </>}
     {pane==='rewards'&&<KidRewards key={revision} token={token}/>}
     {pane==='wishes'&&<KidWish key={revision} token={token} busy={reader.busy} onRead={target=>void reader.open(target)}/>}
+    </PaneSwap>
   </section>;
 }

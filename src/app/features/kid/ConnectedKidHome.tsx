@@ -10,9 +10,12 @@ import PondBackdrop from '@/app/components/brand/PondBackdrop';
 import Frog from '@/app/components/brand/Frog';
 import FamilyMediaPreview from '@/app/features/authoring/FamilyMediaPreview';
 import ChildReadingLibrary from './ChildReadingLibrary';
+import PaneSwap from './PaneSwap';
 import { Shelf, ShelfRow } from '@/app/features/library/LibraryWorkspace';
 import { coverFor } from '@/app/lib/storyView';
-import { BookOpen, Lock } from 'lucide-react';
+import { BookOpen, Lock, Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/app/context/ThemeContext';
+import { circleReveal } from '@/app/lib/motion';
 
 /** Bìa sách trên kệ của bé: tên truyện in trên bìa. */
 function Cover({ coverUrl, title, meta, disabled, onOpen, label }: { id: number; coverUrl?: string | null; title: string; meta?: string; disabled?: boolean; onOpen?: () => void; label?: string }) {
@@ -21,6 +24,7 @@ function Cover({ coverUrl, title, meta, disabled, onOpen, label }: { id: number;
 }
 export default function ConnectedKidHome({ childId, onExit }: { childId: number; onExit: () => void }) {
   const ended = useKidSession();
+  const { theme, toggleTheme } = useTheme();
   const [roadmap, setRoadmap] = useState<B.MyRoadmapDto | null>(null);
   const [library, setLibrary] = useState<B.ParentFamilyConfirmationDto[]>([]);
   const [community, setCommunity] = useState<B.PagedResult<B.CommunityStoryDto> | null>(null);
@@ -70,13 +74,13 @@ export default function ConnectedKidHome({ childId, onExit }: { childId: number;
     if (scope.current !== run) return;
     setBusy(false); if (r.success) setSelected(r.data); else setErrors(v => [...v,r.message]);
   };
-  return <div className={`kid${reading?' kid-focus':''}`} role="dialog" aria-label="Chế độ của bé">{!reading&&<PondBackdrop />}{!reading&&<div className="ktop"><button className="btn btn-s" onClick={onExit}>Thoát</button><b>{nickname || 'Thư viện của em'}</b><button className="btn btn-s" onClick={() => setRevision(v => v + 1)}>Tải lại</button></div>}
+  return <div className={`kid${reading?' kid-focus':''}`} role="dialog" aria-label="Chế độ của bé">{!reading&&<PondBackdrop />}{!reading&&<div className="ktop"><button className="btn btn-s" onClick={onExit}>Thoát</button><b>{nickname || 'Thư viện của em'}</b><button className="btn btn-s" onClick={() => setRevision(v => v + 1)}>Tải lại</button><button className="btn btn-s kid-theme-btn" onClick={e => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'} title={theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}>{theme === 'dark' ? <Sun className="ic" aria-hidden /> : <Moon className="ic" aria-hidden />}</button></div>}
     <div className="kscroll"><div className="khome">
       {ended ? <section className="ksection"><Frog mood="idle" size={90} /><h2 className="display">Phiên đọc đã kết thúc</h2><p>Em nhờ bố mẹ mở lại nhé.</p><button className="btn btn-p" onClick={onExit}>Về với bố mẹ</button></section> : <>
         <ChildReadingLibrary key={childId} childId={childId} community={selected} story={startStory} onStoryOpened={() => setStartStory(null)} unlockTitle={titleOf(lock.unlockStoryId)} onLockChange={setLock} onPaneChange={setPane} onCommunityOpened={() => setSelected(null)} onReadingChange={setReading}/>
         {!reading&&<>
         {errors.map((e,i) => <p className="notice err" role="alert" key={i}>{e}</p>)}
-        {pack ? <article className="ksection"><button className="btn btn-s" onClick={() => setPack(null)}>Về thư viện</button><h2 className="display">{pack.title}</h2>{pack.segments.slice().sort((a,b) => a.order - b.order).map((s,i) => <p key={i} style={{ whiteSpace: 'pre-wrap', fontSize: "var(--fs-xl)", lineHeight: 1.8 }}>{s.text}</p>)}<FamilyMediaPreview preparation={pack}/><p className="sub">Để lưu vị trí và hoàn thành đọc, em mở truyện trong mục Đọc và nghe truyện.</p></article> : pane === 'stories' ? <>
+        {pack ? <article className="ksection"><button className="btn btn-s" onClick={() => setPack(null)}>Về thư viện</button><h2 className="display">{pack.title}</h2>{pack.segments.slice().sort((a,b) => a.order - b.order).map((s,i) => <p key={i} style={{ whiteSpace: 'pre-wrap', fontSize: "var(--fs-xl)", lineHeight: 1.8 }}>{s.text}</p>)}<FamilyMediaPreview preparation={pack}/><p className="sub">Để lưu vị trí và hoàn thành đọc, em mở truyện trong mục Đọc và nghe truyện.</p></article> : pane === 'stories' ? <PaneSwap gap={18} dir={-1}>
           <Shelf title="Hành trình của em" items={[...(roadmap?.open ? [{ id: roadmap.open.storyId }] : []), ...(roadmap?.upcoming ?? []).map(s => ({ id: s.storyId }))]}>
             {roadmap && (roadmap.open || roadmap.upcoming.length > 0) ? <ShelfRow>
               {roadmap.open && <Cover id={roadmap.open.storyId} title={roadmap.open.title ?? 'Truyện chưa đặt tên'} meta={roadmap.open.isLocked ? 'Chưa đọc được lúc này' : roadmap.open.note || 'Bố mẹ đã chọn cho em'} label={roadmap.open.isLocked ? 'Đang khóa' : 'Đang mở'} disabled={busy} onOpen={roadmap.open.isLocked ? undefined : () => setStartStory({ storyId: roadmap.open!.storyId })} />}
@@ -92,7 +96,7 @@ export default function ConnectedKidHome({ childId, onExit }: { childId: number;
             {(page > 1 || community?.hasNextPage) && <div className="row"><button className="btn btn-s" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Trước</button><button className="btn btn-s" disabled={!community?.hasNextPage} onClick={() => setPage(p => p + 1)}>Tiếp</button></div>}
           </Shelf>
 
-        </> : null}
+        </PaneSwap> : null}
         </>}
       </>}
     </div></div>
