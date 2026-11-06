@@ -5,7 +5,8 @@ import { apiRequest } from './apiClient';
 /**
  * Luồng 2 — danh sách và chi tiết truyện (`/Story`).
  * Tạo / sửa / duyệt truyện đi qua `ai-story-input`, `stories/import` và `stories/{id}/review`;
- * các API cũ `POST/PUT/DELETE /Story`, `PATCH /Story/{id}/publish` không còn dùng.
+ * các API cũ `POST/PUT /Story`, `PATCH /Story/{id}/publish` không còn dùng.
+ * `DELETE /Story/{id}` vẫn còn: xóa mềm truyện AI của phụ huynh (chỉ tác giả; truyện thủ công không xóa được qua API này).
  */
 export const storyService = {
   /**
@@ -23,5 +24,9 @@ export const storyService = {
 
   getStoryById(id: number, signal?: AbortSignal): Promise<ApiResponse<StoryDto>> {
     return apiRequest(`/Story/${id}`, 'Không tìm thấy truyện.', {signal});
+  },
+
+  deleteStory(id: number): Promise<ApiResponse<boolean>> {
+    return apiRequest(`/Story/${id}`, 'Không xóa được truyện.', { method: 'DELETE' });
   },
 };

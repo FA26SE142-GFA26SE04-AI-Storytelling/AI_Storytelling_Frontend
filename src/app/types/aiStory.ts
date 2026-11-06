@@ -125,7 +125,6 @@ export interface ContentGenerationProgressDto {
   content: string;
   vocabulary: string;
   quiz: string;
-  discussion: string;
   isComplete: boolean;
   lastErrorCode: string | null;
   qualityFailure: ContentQualityFailureDto | null;
@@ -144,30 +143,14 @@ export interface StoryReviewDto {
 }
 export interface VocabularyItemDto { id?: number | null; term: string; definition: string }
 export interface QuizQuestionDto { id?: number | null; type: string; question: string; correctAnswer?: string | null; choices?: string[] | null }
-export interface DiscussionPromptDto { id?: number | null; question: string; isMoralLesson: boolean }
 export interface VocabularyReviewDto { storyId: number; versionId: number; items: VocabularyItemDto[] }
 export interface QuizReviewDto { storyId: number; versionId: number; items: QuizQuestionDto[] }
-export interface DiscussionReviewDto { storyId: number; versionId: number; items: DiscussionPromptDto[] }
-export interface ListeningReviewDto {
-  storyId: number; versionId: number; required: boolean; reviewed: boolean;
-  plan: { type: string; count: number; zones: string[][] }[];
-  items: ListeningInteractionReviewDto[];
-  issues: { code: string; type: string | null; itemIndex: number | null; field: string | null }[];
-}
-export interface ListeningInteractionReviewDto {
-  id: number; type: string; anchorBlockId: string; anchorOffset: number; isStale: boolean;
-  kind: string | null; prompt: string | null; sourceQuote: string | null; characterName: string | null;
-  hiddenWord: string | null; hint: string | null; revealBlockId: string | null; explanation: string | null;
-  matchFeedback: string | null; noMatchFeedback: string | null; waitFeedback: string | null;
-  options: { id: number; sortOrder: number; text: string; feedback: string | null; isMatch: boolean;
-    correctOrder: number | null; blockId: string | null; sourceQuote: string | null; imageDescription: string | null }[];
-}
 export interface ConfirmStoryPackageResponseDto { storyId: number; versionId: number; status: string; confirmedAt: string }
 export interface ArtifactStatusDto { state: string; itemCount: number }
 export interface ReviewPackageDto {
   assistanceRevisionToken?: string | null;
   storyId: number;
-  /** 'reading_media_only': truyện chỉ để đọc, không có từ vựng / câu đố / thảo luận. */
+  /** 'reading_media_only': truyện chỉ để đọc, không có từ vựng / câu đố. */
   outputMode?: StoryOutputMode | string;
   storyVersionId: number;
   storyStatus: string;
@@ -212,7 +195,6 @@ export interface PartialEditRequestDto {
 export interface UpdateStoryReviewRequestDto { versionId: number; title: string; content: string; lesson: string; assistanceReferences?: import('./backendContracts').AssistanceReference[] }
 export interface UpdateVocabularyRequestDto { versionId: number; items: VocabularyItemDto[] }
 export interface UpdateQuizRequestDto { versionId: number; items: QuizQuestionDto[] }
-export interface UpdateDiscussionRequestDto { versionId: number; items: DiscussionPromptDto[] }
 export interface GenerateArtifactsRequestDto {
   storyVersionId?: number;
   includeVocabulary?: boolean;
@@ -292,3 +274,28 @@ export type ReviewArtifact = 'story' | 'vocabulary' | 'quiz';
 export interface CreateProposalResponseDto { proposalId: string; message: string }
 export interface ApplyDiscardResponseDto { success: boolean; message: string }
 
+
+/** Tương tác khi nghe (GET /review/listening). `required` = false thì truyện không có tương tác nào. */
+export type ListeningType = 'Checkpoint' | 'RolePlay' | 'FillBlank' | 'EventOrdering' | 'PicturePrediction';
+export interface ListeningOptionDto {
+  id: number; sortOrder: number; text: string; feedback: string | null; isMatch: boolean;
+  correctOrder: number | null; blockId: string | null; sourceQuote: string | null; imageDescription: string | null;
+}
+export interface ListeningInteractionDto {
+  id: number; type: ListeningType | string; anchorBlockId: string; anchorOffset: number; kind: string | null;
+  prompt: string | null; sourceQuote: string | null; characterName: string | null; hiddenWord: string | null; hint: string | null;
+  revealBlockId: string | null; explanation: string | null; matchFeedback: string | null; noMatchFeedback: string | null;
+  waitFeedback: string | null; isStale: boolean; options: ListeningOptionDto[];
+}
+export interface ListeningIssueDto { code: string; type: string | null; itemIndex: number | null; field: string | null }
+export interface ListeningReviewDto {
+  storyId: number; versionId: number; required: boolean; reviewed: boolean;
+  plan: { type: ListeningType | string; count: number; zones: string[][] }[];
+  items: ListeningInteractionDto[];
+  issues: ListeningIssueDto[];
+}
+export interface UpdateListeningInteractionRequestDto {
+  versionId: number; prompt?: string | null; hint?: string | null; explanation?: string | null;
+  matchFeedback?: string | null; noMatchFeedback?: string | null; waitFeedback?: string | null;
+  options?: { id: number; text?: string | null; feedback?: string | null }[];
+}

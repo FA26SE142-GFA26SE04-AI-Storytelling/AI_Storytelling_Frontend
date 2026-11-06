@@ -1,10 +1,21 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Puzzle } from 'lucide-react';
+import { Puzzle, X } from 'lucide-react';
 import { childReadingService, childRewardsService } from '@/app/services/childReadingService';
 import type { ChildBadge, ReadingCompleted, ReadingFeeling } from '@/app/types/childReading';
 import KidQuiz from './KidQuiz';
-import IconButton from '@/app/components/IconButton';
+import { useDialog } from './useDialog';
+
+/** Câu đố hiện trong cửa sổ nổi giữa màn hình: đóng bằng nút X, Esc hoặc bấm ra ngoài. */
+function QuizPopup({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
+  const ref = useDialog<HTMLDivElement>(onClose);
+  return <div className="kid-quiz-backdrop" onClick={e => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className="kid-quiz-modal" role="dialog" aria-modal="true" aria-label="Câu đố về truyện" ref={ref} tabIndex={-1}>
+      <button type="button" className="kid-soft-button icon-only kid-quiz-close" aria-label="Đóng câu đố" onClick={onClose}><X aria-hidden="true" /></button>
+      {children}
+    </div>
+  </div>;
+}
 
 const FEELINGS: { id: ReadingFeeling; label: string; face: string }[] = [
   { id: 'VeryLike', label: 'Rất thích', face: '😍' },
@@ -14,7 +25,7 @@ const FEELINGS: { id: ReadingFeeling; label: string; face: string }[] = [
 ];
 
 /** Sau khi bé đọc xong: phần thưởng vừa nhận, chọn cảm nhận và làm câu đố. */
-export default function KidAfterReading({ token, completed }: { token: string; completed: ReadingCompleted }) {
+export default function KidAfterReading({ token, completed, onLibrary }: { token: string; completed: ReadingCompleted; onLibrary?: () => void }) {
   const [feeling, setFeeling] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
@@ -51,11 +62,11 @@ export default function KidAfterReading({ token, completed }: { token: string; c
       <div className="kid-feelings">{FEELINGS.map(f => <button key={f.id} type="button" className="kid-soft-button icon-only" aria-label={f.label} title={f.label} aria-pressed={feeling === f.id} disabled={busy} onClick={() => void choose(f.id)}>
         <span aria-hidden="true">{f.face}</span>
       </button>)}</div>
-      {feeling && <p className="sub">Cảm ơn em đã chia sẻ, bố mẹ sẽ biết em {FEELINGS.find(f => f.id === feeling)?.label.toLowerCase()} truyện này.</p>}
       {note && <p className="notice" role="status">{note}</p>}
     </section>
-    {quiz
-      ? <KidQuiz token={token} sessionId={completed.sessionId} onDone={(gained, codes) => { setExp(v => v + gained); setBadgeCodes(v => [...v, ...codes]); }} />
-      : <IconButton icon={Puzzle} label="Làm câu đố về truyện" iconClassName="" className="kid-listen-primary" onClick={() => setQuiz(true)} />}
+    <button type="button" className="kid-soft-button kid-quiz-open" onClick={() => setQuiz(true)}><Puzzle aria-hidden="true" />Làm câu đố về truyện</button>
+    {quiz && <QuizPopup onClose={() => setQuiz(false)}>
+      <KidQuiz token={token} sessionId={completed.sessionId} onLibrary={onLibrary} onDone={(gained, codes) => { setExp(v => v + gained); setBadgeCodes(v => [...v, ...codes]); }} />
+    </QuizPopup>}
   </div>;
 }

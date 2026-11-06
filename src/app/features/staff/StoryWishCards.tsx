@@ -5,6 +5,7 @@ import IconButton from "@/app/components/IconButton";
 import { wishCardService } from "@/app/services/wishCardService";
 import type { WishCardDto, WishCardGroup, WishCardMatchDto } from "@/app/types/storyWish";
 import { groupLabel, WISH_GROUPS } from "./WishCardManagement";
+import { confirmDialog } from "@/app/lib/confirm";
 
 const MATCH_GROUPS = WISH_GROUPS.filter((g) => g.wish);
 
@@ -49,7 +50,7 @@ export default function StoryWishCards({ storyId }: { storyId: number }) {
     {matches && !matches.length && <p className="sub">Truyện chưa được gắn thẻ nào.</p>}
     <div className="chips">{matches?.map((m) => <span key={m.wishCardId} className="chip sm on">
       {groupLabel(m.group)}: {m.label}{m.source === "Ai" ? " (AI)" : ""}
-      <IconButton icon={X} label={`Gỡ thẻ ${m.label}`} className="btn btn-g" style={{ width: 22, height: 22 }} disabled={busy} onClick={() => void act(() => wishCardService.removeFromStory(storyId, m.wishCardId))} />
+      <IconButton icon={X} label={`Gỡ thẻ ${m.label}`} className="btn btn-g" style={{ width: 22, height: 22 }} disabled={busy} onClick={async () => { if (!(await confirmDialog(`Gỡ thẻ ước “${m.label}” khỏi truyện?`))) return; void act(() => wishCardService.removeFromStory(storyId, m.wishCardId)); }} />
     </span>)}</div>
     <div className="row st-inline">
       <select className="inp" aria-label="Nhóm thẻ" value={group} disabled={busy} onChange={(e) => setGroup(e.target.value as WishCardGroup)}>

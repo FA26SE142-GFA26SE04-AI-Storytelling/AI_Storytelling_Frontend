@@ -59,11 +59,6 @@ export default function StudioMedia({ storyId, childId, ageBand, media, onFinish
   return (
     <>
       <div className="center">
-        <div className="tools">
-          <b style={{ padding: "0 6px" }}>{bundle?.story.title ?? ""}</b>
-          <span className="pill ok" style={{ marginLeft: "auto" }}>Đã duyệt</span>
-          {tabActions && <div className="tab-actions" style={{ marginLeft: 8 }}>{tabActions}</div>}
-        </div>
         {bundle ? (
           <div className="board">
             <div className="artwrap">
@@ -88,6 +83,7 @@ export default function StudioMedia({ storyId, childId, ageBand, media, onFinish
           {(media.timedOut||media.error)&&<p className="notice warn" role="status">{media.timedOut?'Chưa nhận được kết quả cuối cùng. Việc tạo media có thể vẫn đang chạy.':media.error}<button className="btn btn-s" onClick={reload}>Tiếp tục theo dõi</button></p>}
           {retryNote&&<p className="notice" role="status">{retryNote}</p>}
           <button className="btn btn-s" onClick={onFinish}>Về thư viện</button>
+          {tabActions && <div className="tab-actions">{tabActions}</div>}
           {bundle&&<StudioCompletion childId={childId} pack={preview.loading?null:preview.pack} progress={m} story={{storyId,title:bundle.story.title,ageBand,length:bundle.story.content.trim()?bundle.story.content.trim().split(/\s+/u).length:0}} onChanged={reload}/>}
         </div>
       </div>
@@ -117,7 +113,7 @@ export default function StudioMedia({ storyId, childId, ageBand, media, onFinish
                 <div><small>Tương tác lúc nghe</small><b>{count(bundle?.listening?.items.length)}</b></div>
               </>
             )}
-            <div><small>Bài học</small><b style={{ fontSize: 12 }}>{bundle ? bundle.story.lesson || "—" : "…"}</b></div>
+            <div><small>Bài học</small><b style={{ fontSize: "var(--fs-xs)" }}>{bundle ? bundle.story.lesson || "—" : "…"}</b></div>
           </div>
           <div className="sec">
             <div className="sec-h"><span>Cảnh trong truyện</span><span className="pill ai">{bundle ? `${scenes.length} cảnh` : "…"}</span></div>

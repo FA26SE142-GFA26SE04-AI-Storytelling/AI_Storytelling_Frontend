@@ -16,7 +16,7 @@ export interface AIStoryInputFormValues {
   setting: string;
   vocabularyLevel: VocabularyLevel;
   targetLength: number;
-  /** Kèm học liệu (từ vựng, câu đố, thảo luận) hoặc chỉ để đọc. */
+  /** Kèm học liệu (từ vựng, câu đố) hoặc chỉ để đọc. */
   outputMode: StoryOutputMode;
 }
 

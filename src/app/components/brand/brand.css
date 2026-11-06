@@ -25,11 +25,11 @@
 .lily-frog > div { width: 64px; }
 .lily-row { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; }
 .lily { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; min-width: 0; }
-.lily-pad { width: 46px; height: 32px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; display: grid; place-items: center; font-weight: 800; font-size: 13px; color: var(--muted); background: var(--surface-2); border: 2px solid var(--line-2); transition: background .3s, color .3s, border-color .3s; }
+.lily-pad { width: 46px; height: 32px; border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%; display: grid; place-items: center; font-weight: 800; font-size: var(--fs-sm); color: var(--muted); background: var(--surface-2); border: 2px solid var(--line-2); transition: background .3s, color .3s, border-color .3s; }
 .lily-pad svg { width: 14px; height: 14px; stroke-width: 3; }
 .lily.done .lily-pad { background: var(--primary); border-color: var(--primary-strong); color: #fff; }
 .lily.run .lily-pad { border-color: var(--primary); color: var(--text); animation: padbob 1.6s ease-in-out infinite; }
-.lily-label { font-size: 11.5px; color: var(--faint); line-height: 1.25; }
+.lily-label { font-size: var(--fs-xs); color: var(--faint); line-height: 1.25; }
 .lily.done .lily-label, .lily.run .lily-label { color: var(--text); font-weight: 700; }
 @keyframes padbob { 50% { transform: translateY(3px); } }
 

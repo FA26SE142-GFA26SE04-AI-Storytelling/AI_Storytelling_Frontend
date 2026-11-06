@@ -3,7 +3,6 @@ import { execFileSync } from 'node:child_process';
 import { readFileSync,existsSync } from 'node:fs';
 import { authService } from '@/app/services/authService';
 import { profileLifecycleService as profiles } from '@/app/services/profileLifecycleService';
-import { permissionService as permissions } from '@/app/services/permissionService';
 import { paymentService as payments } from '@/app/services/paymentService';
 import { storyManagementService as stories } from '@/app/services/storyManagementService';
 import { contentCategoryService as categories } from '@/app/services/contentCategoryService';
@@ -19,10 +18,6 @@ describe('Remaining Core contracts',()=>{
   ['DELETE','/LearningProfile/10',()=>profiles.removeLearning(10)],
   ['DELETE','/SafetyPolicy/10',()=>profiles.removeSafety(10)],
   ['GET','/SafetyPolicy/10/age-preset',()=>profiles.agePreset(10)],
-  ['GET','/Permission',()=>permissions.catalog()],
-  ['GET','/Permission/relationships/3',()=>permissions.list(3)],
-  ['POST','/Permission/relationships/3/GenerateStory',()=>permissions.grant(3,'GenerateStory')],
-  ['DELETE','/Permission/relationships/3/GenerateStory',()=>permissions.revoke(3,'GenerateStory')],
   ['GET','/ContentCategory/4',()=>categories.get(4)],
   ['DELETE','/ContentCategory/4',()=>categories.remove(4)],
   ['GET','/Payment/plans',()=>payments.plans()],
@@ -36,8 +31,8 @@ describe('Remaining Core contracts',()=>{
  });
  it('paginates account and child audit separately and forwards cancellation',async()=>{
   const signal=new AbortController().signal;await profiles.accountAudit(2,signal);await profiles.childAudit(10,3,signal);
-  expect(fetcher.mock.calls[0][0]).toMatch(/\/Auth\/me\/audit-log\?pageIndex=2&pageSize=20$/);
-  expect(fetcher.mock.calls[1][0]).toMatch(/\/ChildProfile\/10\/audit-log\?pageIndex=3&pageSize=20$/);
+  expect(fetcher.mock.calls[0][0]).toMatch(/\/Auth\/me\/audit-log\?pageIndex=2&pageSize=100$/);
+  expect(fetcher.mock.calls[1][0]).toMatch(/\/ChildProfile\/10\/audit-log\?pageIndex=3&pageSize=100$/);
   expect(fetcher.mock.calls[1][1].signal).toBe(signal);
  });
  it('creates configuration with POST, distinct from existing PUT updates',async()=>{

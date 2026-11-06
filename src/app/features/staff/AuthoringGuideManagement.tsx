@@ -44,7 +44,7 @@ export default function AuthoringGuideManagement() {
     {h.blocked && <p className="notice" role="status">Dữ liệu đã đổi hoặc chưa rõ kết quả thao tác. Đồng bộ trước khi sửa tiếp; nội dung đang soạn vẫn được giữ.</p>}
     <button className="btn btn-s" disabled={h.busy || reading} onClick={() => void load()}>Đồng bộ bộ hướng dẫn</button>
     {model && <><div className="st-card"><h3>Bản đang phát hành: {model.published?.version.catalogVersion ?? 'Chưa có'}</h3><p>{model.locale} · {model.published?.items.length ?? 0} hướng dẫn</p>
-      {!model.draft && <button className="btn btn-p" disabled={disabled || !model.published} onClick={() => void write(() => api.createDraft(null))}>Tạo bản nháp từ bản đang dùng</button>}
+      {!model.draft && <button className="btn btn-p" disabled={disabled || !model.published} onClick={() => void write(() => api.createDraft(null))}title="Tạo bản nháp từ bản đang dùng">Tạo bản nháp</button>}
     </div>
     {model.draft && <><div className="st-card"><h3>Bản nháp: {model.draft.version.catalogVersion}</h3>
       <div className="row"><button className="btn btn-s" disabled={disabled} onClick={() => select(null)}>Thêm hướng dẫn</button>
@@ -57,11 +57,11 @@ export default function AuthoringGuideManagement() {
         <select className="inp" aria-label="Lọc mục đích" value={purpose} onChange={e => { setPurpose(e.target.value); setPreview(null); setPreviewPage(1); }}><option value="">Mọi mục đích</option>{Object.entries(GUIDE_PURPOSES).map(([id,label]) => <option key={id} value={id}>{label}</option>)}</select>
         <select className="inp" aria-label="Lọc nhóm" value={group} onChange={e => { setGroup(e.target.value); setPreview(null); setPreviewPage(1); }}><option value="">Mọi nhóm</option>{Object.entries(GUIDE_GROUPS).map(([id,label]) => <option key={id} value={id}>{label}</option>)}</select>
         <input className="inp" aria-label="Trang xem trước" type="number" min={1} value={previewPage} onChange={e => { setPreviewPage(Math.max(1,Number(e.target.value))); setPreview(null); }}/>
-        <button className="btn btn-s" onClick={() => void runPreview()}>Xem trước danh sách</button></div>
-        {item && <><h4>Điền thử: {item.title}</h4>{item.placeholderDefinitions.map(key => <label className="field" key={key}>{key}<input className="inp" value={values[key] ?? ''} onChange={e => { setValues(v => ({...v,[key]:e.target.value})); setPreview(null); }}/></label>)}<button className="btn btn-s" onClick={() => void runPreview(true)}>Xem trước hướng dẫn đã điền</button></>}
+        <button className="btn btn-s" onClick={() => void runPreview()}>Xem danh sách</button></div>
+        {item && <><h4>Điền thử: {item.title}</h4>{item.placeholderDefinitions.map(key => <label className="field" key={key}>{key}<input className="inp" value={values[key] ?? ''} onChange={e => { setValues(v => ({...v,[key]:e.target.value})); setPreview(null); }}/></label>)}<button className="btn btn-s" onClick={() => void runPreview(true)}title="Xem trước hướng dẫn đã điền">Xem trước</button></>}
       </fieldset>
       {previewValid && <>{preview.page?.items.map(g => <article key={g.id}><h4>{g.title}</h4><p>{g.instruction}</p><p>{g.example}</p></article>)}{preview.render && <p style={{whiteSpace:'pre-wrap'}}>{preview.render.text}</p>}</>}
-      <button className="btn btn-ok" disabled={disabled || !previewValid} onClick={async () => { if (await confirmDialog('Phát hành cả bộ hướng dẫn này cho phụ huynh?')) void write(() => api.publish(model.revisionToken)); }}>Phát hành bộ đã xem trước</button></section>
+      <button className="btn btn-ok" disabled={disabled || !previewValid} onClick={async () => { if (await confirmDialog('Phát hành cả bộ hướng dẫn này cho phụ huynh?')) void write(() => api.publish(model.revisionToken)); }}>Phát hành</button></section>
     </>}
     </>}
     <section className="st-card"><h3>Lịch sử bộ hướng dẫn</h3>{history?.items.map(v => <button className="btn btn-s" key={v.versionId} disabled={disabled} onClick={() => { setReading(true); void api.version(v.versionId).then(r => { setReading(false); if (r.success) setVersion(r.data); else h.setNote(r.message); }); }}>{v.catalogVersion} · {v.status}</button>)}

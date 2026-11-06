@@ -23,6 +23,14 @@ export function mediaIssuesOf(progress: MediaProgressDto | null, pack: StoryMedi
 export const mediaIssueLabel = (issue: MediaGenerationIssue): string =>
   `Cảnh ${issue.sceneIndex + 1} · ${issue.type === 'Illustration' ? 'Tranh' : 'Giọng đọc đoạn'} ${issue.itemNumber}`;
 
+/** Vì sao mục đang chờ thử lại, theo mã lỗi của lần thất bại gần nhất; null khi không có thông tin hữu ích. */
+export function mediaIssueReason(errorCode: string): string | null {
+  if (errorCode.endsWith('_HTTP_429')) return 'Dịch vụ AI đang giới hạn lượt yêu cầu.';
+  if (errorCode === 'MEDIA_PROVIDER_COOLDOWN') return 'Dịch vụ AI đang nghỉ ngắn sau nhiều lần bị giới hạn.';
+  if (errorCode === 'MEDIA_PROVIDER_TIMEOUT') return 'Dịch vụ AI phản hồi quá chậm.';
+  return null;
+}
+
 export function mediaIssueMessage(issue: MediaGenerationIssue): string {
   if (issue.status === 'Processing') return 'Đang xử lý lại mục này.';
   if (issue.status === 'Pending') return 'Đang chờ hệ thống tự thử lại.';

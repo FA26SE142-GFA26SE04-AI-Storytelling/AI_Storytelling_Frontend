@@ -19,7 +19,7 @@ const toStaff = (m: StaffAccountDto): StaffAccount => ({
   createdAt: m.activatedAt ?? m.inviteExpiresAt ?? '',
 });
 
-export type QuotaInput = { scope: 'System' | 'Child' | 'Personal'; childProfileId: number | null; userId: number | null; quotaLimit: number; periodStart: string; periodEnd: string };
+export type QuotaInput = { scope: 'System' | 'Personal'; userId: number | null; quotaLimit: number; periodStart: string; periodEnd: string };
 
 export const staffService = {
   // ---------- Danh mục nội dung ----------

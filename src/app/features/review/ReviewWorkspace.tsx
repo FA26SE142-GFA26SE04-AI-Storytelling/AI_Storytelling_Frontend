@@ -27,11 +27,11 @@ export default function ReviewWorkspace({ go }: { go: (id: WorkspaceId) => void 
   return (
     <section className="ws dock" style={{ gridTemplateColumns: "250px 1fr 300px" }}>
       <div className="pane">
-        <div className="ph"><span>Hàng chờ duyệt</span><div className="act"><span className="pill wait">{reviewQueue.length} truyện</span></div></div>
+        <div className="sec-h"><span>Hàng chờ duyệt</span><div className="act"><span className="pill wait">{reviewQueue.length} truyện</span></div></div>
         <div ref={queueRef} className="pb" style={{ gap: 7 }}>
           {reviewQueue.map((s) => (
             <button key={s.id} className={`queue-item${active?.id === s.id ? " on" : ""}`} onClick={() => setActiveId(s.id)}>
-              <span className="cover-sm" style={{ background: s.gradient }} />
+              <span className="cover-sm" style={{ background: s.cover }} />
               <span><b>{s.title}</b><small>{s.by} · {ageLabel(s.ageBand)}</small></span>
             </button>
           ))}
@@ -41,8 +41,7 @@ export default function ReviewWorkspace({ go }: { go: (id: WorkspaceId) => void 
 
       {active ? (
         <ReviewGate key={active.id} storyId={active.id} ageBand={active.ageBand}
-          onApproved={() => done("Đã duyệt, hệ thống đang tạo minh hoạ và giọng đọc")}
-          onArchived={() => done("Đã lưu trữ truyện")} />
+          onApproved={() => done("Đã duyệt, hệ thống đang tạo minh hoạ và giọng đọc")} />
       ) : (
         <>
           <div className="review-doc">

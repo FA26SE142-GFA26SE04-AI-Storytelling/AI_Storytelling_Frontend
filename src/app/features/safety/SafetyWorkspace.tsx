@@ -3,7 +3,7 @@ import { confirmDialog } from "@/app/lib/confirm";
 
 import "./safety.css";
 import "../children/children.css";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { Clock, FileCheck, Inbox, CirclePause, ShieldCheck, Sparkles } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ApprovalMode, ContentCategory, PolicyRule, SafetyPolicy } from "@/app/types/childProfile";
@@ -28,9 +28,9 @@ const NAV = [
   { id: "s-consent", label: "Đồng ý của phụ huynh", icon: FileCheck },
 ];
 
-function Toggle({ on, label, hint, disabled, onChange }: { on: boolean; label: string; hint: string; disabled?: boolean; onChange: (v: boolean) => void }) {
+function Toggle({ on, label, hint, disabled, strong, onChange }: { on: boolean; label: string; hint: string; disabled?: boolean; strong?: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="trow" title={hint}><span>{label}</span>
+    <div className={`trow${strong ? " strong" : ""}`} title={hint}><span>{label}<small>{hint}</small></span>
       <button type="button" className={`tog${on ? " on" : ""}`} disabled={disabled} role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} /></div>
   );
 }
@@ -56,11 +56,16 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
   const [loading, setLoading] = useState(true);
   const bodyRef = useRiseIn<HTMLDivElement>("section", [child?.id, loading], { delay: 70 });
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
+  // Tự lưu: mỗi khi cài đặt khác với lần tải/lưu gần nhất thì chờ một lúc rồi lưu, không có nút Lưu.
+  const baseline = useRef<string | null>(null);
+  const lastTried = useRef<string | null>(null);
+  const saveRef = useRef<() => Promise<void>>(async () => {});
   const [denied, setDenied] = useState(0);
   const deny = () => { setDenied((n) => n + 1); setTimeout(() => setDenied(0), 3500); };
   const [saving, setSaving] = useState(false);
 
   const apply = useCallback((pol: SafetyPolicy | null, active: ContentCategory[], ageBand: string) => {
+    baseline.current = null; lastTried.current = null;
     setPolicy(pol);
     if (pol) {
       setMode(pol.requiredApprovalMode === "AutoPublishOnThreshold" ? "AutoPublishOnThreshold" : "AlwaysManual");
@@ -79,20 +84,34 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
     }
   }, []);
 
+  // Chỉ tải lại khi đổi bé (theo id), không tải lại khi danh sách bé được làm mới sau khi lưu: nếu không trang sẽ nháy và cuộn về đầu.
+  const childId = child?.id;
+  const childAge = child?.ageBand;
   useEffect(() => {
-    if (!child) return;
+    if (childId === undefined) return;
     let alive = true;
     setLoading(true);
     setNote(null);
-    void Promise.all([childProfileService.getContentCategories(), childProfileService.getSafetyPolicy(child.id)]).then(([c, p]) => {
+    void Promise.all([childProfileService.getContentCategories(), childProfileService.getSafetyPolicy(childId)]).then(([c, p]) => {
       if (!alive) return;
       const active = (c.data ?? []).filter((x) => x.isActive);
       setCats(active);
-      apply(p.success ? p.data : null, active, child.ageBand);
+      apply(p.success ? p.data : null, active, childAge ?? "");
       setLoading(false);
     });
     return () => { alive = false; };
-  }, [child, apply]);
+  }, [childId, childAge, apply]);
+
+  const settingsKey = JSON.stringify([mode, len, gate, wishes, interactive, threshold, windowSize, rules, consent]);
+  useEffect(() => {
+    if (loading || !canEdit || saving) return;
+    if (baseline.current === null) { baseline.current = settingsKey; return; }
+    if (settingsKey === baseline.current || settingsKey === lastTried.current) return;
+    // Lần đầu (hoặc điều khoản đã đổi) backend bắt buộc Owner đồng ý trước; chưa đồng ý thì chưa lưu.
+    if ((!policy?.consentRecorded || policy.consentOutdated) && !consent) return;
+    const id = setTimeout(() => { lastTried.current = settingsKey; void saveRef.current(); }, 600);
+    return () => clearTimeout(id);
+  }, [settingsKey, loading, canEdit, saving, policy, consent]);
 
   if (!child) return <p className="sub">Chưa có hồ sơ bé.</p>;
 
@@ -134,6 +153,8 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
       void reloadChildren();
     }
   };
+
+  saveRef.current = save;
 
   const reapplyPreset = async () => {
     setSaving(true);
@@ -189,7 +210,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
                 <span className="lbl row" style={{ justifyContent: "space-between" }}>Độ dài tối đa của truyện <b style={{ color: "var(--text)" }}>{len.toLocaleString("vi-VN")} tiếng</b></span>
                 <input type="range" className="range" disabled={!canEdit} min={200} max={5000} step={100} value={len} onChange={(e) => setLen(+e.target.value)} aria-label="Độ dài tối đa" />
               </div>
-              <Toggle on={gate} disabled={!canEdit} onChange={setGate} label="Cổng xác nhận người lớn" hint="Hỏi mật khẩu của bạn trước khi rời chế độ của bé" />
+              <Toggle strong on={gate} disabled={!canEdit} onChange={setGate} label="Hỏi mật khẩu khi bé thoát chế độ của bé" hint="Cổng xác nhận người lớn: bé muốn thoát ra phải nhập mật khẩu của bạn" />
             </section>
 
             <section id="s-feature">
@@ -214,6 +235,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
 
             <section id="s-consent">
               <h2 className="display">Đồng ý của phụ huynh</h2>
+              {(!policy?.consentRecorded || outdated) && <p className="sub" style={{ marginBottom: 10 }}>Tích đồng ý bên dưới để các cài đặt được lưu tự động.</p>}
               {policy?.consentRecorded && !outdated && <p className="sub" style={{ marginBottom: 10 }}>{`Đã đồng ý ngày ${fmtDate(policy.consentRecordedAt)}.`}</p>}
               <ConsentBlock checked={consent} onChange={setConsent} disabled={!isOwner || (!!policy?.consentRecorded && !outdated)} />
             </section>
@@ -221,10 +243,9 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
         )}
       </div>
 
-      {canEdit && !loading && (
+      {canEdit && !loading && (saving || note) && (
         <div className="safety-savebar">
-          <button className="btn btn-p" disabled={saving} onClick={() => void save()}>{saving ? "Đang lưu…" : "Lưu cài đặt an toàn"}</button>
-          {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
+          {saving ? <div className="notice" role="status">Đang lưu…</div> : note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
         </div>
       )}
     </div>

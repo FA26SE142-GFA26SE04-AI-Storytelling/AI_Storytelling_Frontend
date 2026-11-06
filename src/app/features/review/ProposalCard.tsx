@@ -15,15 +15,22 @@ export default function ProposalCard({ proposal, busy, onApply, onDiscard }: Pro
   const story = storyProposalView(proposal);
   const kind = proposal.artifactType as ArtifactKind;
   const artifact = story ? null : artifactProposalItems(proposal);
+  const listening = proposal.artifactType.startsWith("listening:");
+  const listeningItems = listening && artifact ? (artifact.after as { prompt?: string | null }[]) : [];
 
   return (
     <div ref={ref} className="proposal" role="region" aria-label="Đề xuất của AI">
       <div className="proposal-h">
         <Sparkles className="ic" />
-        <b>{story ? "AI đề xuất sửa đoạn này" : `AI đề xuất ${ARTIFACT_LABEL[kind]?.toLowerCase() ?? "học liệu"} mới`}</b>
+        <b>{listening ? "AI đề xuất tương tác khi nghe mới" : story ? "AI đề xuất sửa đoạn này" : `AI đề xuất ${ARTIFACT_LABEL[kind]?.toLowerCase() ?? "học liệu"} mới`}</b>
         <span className="hint">Chưa thay đổi gì cho tới khi bạn áp dụng</span>
       </div>
-      {story ? (
+      {listening ? (
+        <div className="proposal-body">
+          <p className="sub">{listeningItems.length} tương tác mới sẽ thay các tương tác cùng loại hiện tại.</p>
+          <ol className="art-list">{listeningItems.map((it, i) => <li key={i}>{it.prompt || `Tương tác ${i + 1}`}</li>)}</ol>
+        </div>
+      ) : story ? (
         <>
           <div className="diff">
             <div className="del"><small>Bản hiện tại · {countWords(story.selectedText)} từ</small><p>{story.selectedText}</p></div>
@@ -39,7 +46,7 @@ export default function ProposalCard({ proposal, busy, onApply, onDiscard }: Pro
       )}
       <div className="row proposal-act">
         <button className="btn btn-g" disabled={busy} onClick={onDiscard}><X className="ic" />Bỏ đề xuất</button>
-        <button className="btn btn-p" disabled={busy} onClick={onApply}><Check className="ic" />Áp dụng</button>
+        <button className="btn btn-p" disabled={busy} onClick={onApply}><Check className="ic" />Đồng ý</button>
       </div>
     </div>
   );

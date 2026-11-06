@@ -32,18 +32,15 @@ export default function AsidePane({ title, icon: Icon = PanelRight, bodyRef, act
   const collapsed = !!aside?.collapsed;
   return (
     <div className={`pane aside${collapsed ? " collapsed" : ""}${aside ? " collapsible" : ""}`}>
-      <div className="ph aside-ph">
-        <Icon className="ic aside-icon" aria-hidden /><span className="aside-title">{title}</span>
-        {(aside || actions) && (
-          <div className="act">
-            {actions && <span className="aside-actions">{actions}</span>}
-            {aside && <button className="btn btn-g aside-toggle" onClick={aside.toggle} aria-expanded={!collapsed}
-              aria-label={collapsed ? `Mở rộng khung ${title}` : `Thu gọn khung ${title}`} title={collapsed ? "Mở rộng" : "Thu gọn"}>
-              <ChevronsRight className="ic" />
-            </button>}
-          </div>
-        )}
-      </div>
+      {(aside || actions) && (
+        <div className="pane-tools">
+          {actions && <span className="aside-actions">{actions}</span>}
+          {aside && <button className="btn btn-g aside-toggle" onClick={aside.toggle} aria-expanded={!collapsed}
+            aria-label={collapsed ? `Mở rộng khung ${title}` : `Thu gọn khung ${title}`} title={collapsed ? "Mở rộng" : "Thu gọn"}>
+            <ChevronsRight className="ic" />
+          </button>}
+        </div>
+      )}
       {aside && (
         // Thanh dọc hiện khi thu gọn; bấm vào đâu trên thanh cũng mở lại.
         <button className="aside-rail" onClick={aside.toggle} tabIndex={collapsed ? 0 : -1} aria-hidden={!collapsed} aria-label={`Mở rộng khung ${title}`}>

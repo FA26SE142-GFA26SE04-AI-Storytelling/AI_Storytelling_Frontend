@@ -2,7 +2,7 @@ import type * as B from '@/app/types/backendContracts';
 
 const AGAINST: Record<string, string> = { previous: 'bản trước', public: 'bản công khai' };
 const CHANGE: Record<string, string> = { added: 'Thêm mới', removed: 'Đã bỏ', modified: 'Đã sửa' };
-const KIND: Record<string, string> = { quiz: 'Câu đố', vocabulary: 'Từ vựng', discussion: 'Câu hỏi thảo luận' };
+const KIND: Record<string, string> = { quiz: 'Câu đố', vocabulary: 'Từ vựng' };
 const FIELD: Record<string, string> = {
   lesson: 'Bài học', title: 'Tiêu đề', content: 'Nội dung', outlineOpening: 'Dàn ý: mở đầu', outlineDevelopment: 'Dàn ý: diễn biến', outlineEnding: 'Dàn ý: kết thúc',
 };

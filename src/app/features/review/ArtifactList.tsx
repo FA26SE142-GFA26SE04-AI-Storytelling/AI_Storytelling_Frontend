@@ -1,6 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { normalizeQuizType, normalizeTrueFalse } from "@/app/lib/storyRules";
 import type { QuizQuestionDto, ReviewArtifact, VocabularyItemDto } from "@/app/types/aiStory";
 
 export type ArtifactKind = Exclude<ReviewArtifact, "story">;
@@ -11,9 +12,9 @@ export const ARTIFACT_LABEL: Record<ArtifactKind, string> = {
 };
 
 const QUIZ_TYPE: Record<string, string> = {
-  multiple_choice: "Trắc nghiệm",
-  true_false: "Đúng / Sai",
-  short_answer: "Trả lời ngắn",
+  MultipleChoice: "Trắc nghiệm",
+  TrueFalse: "Đúng / Sai",
+  ShortAnswer: "Trả lời ngắn",
 };
 
 const same = (a?: string | null, b?: string | null) => !!a && !!b && a.trim().toLowerCase() === b.trim().toLowerCase();
@@ -28,21 +29,18 @@ export function ArtifactItems({ kind, items }: { kind: ArtifactKind; items: unkn
       </div>
     );
   }
-  if (kind === "quiz") {
-    return (
-      <ol className="art-list quiz-list">
-        {(items as QuizQuestionDto[]).map((q, i) => (
-          <li key={q.id ?? i}>
-            <div className="row"><b className="grow">{q.question}</b><span className="pill draft">{QUIZ_TYPE[q.type] ?? q.type}</span></div>
-            {q.choices && q.choices.length > 0 ? (
-              <ul className="choices">
-                {q.choices.map((c, j) => <li key={j} className={same(c, q.correctAnswer) ? "right" : ""}>{same(c, q.correctAnswer) && <Check />}{c}</li>)}
-              </ul>
-            ) : q.correctAnswer && <p className="sub">Đáp án: {q.correctAnswer}</p>}
-          </li>
-        ))}
-      </ol>
-    );
-  }
-  return null;
+  return (
+    <ol className="art-list quiz-list">
+      {(items as QuizQuestionDto[]).map((q, i) => (
+        <li key={q.id ?? i}>
+          <div className="row"><b className="grow">{q.question}</b><span className="pill draft">{QUIZ_TYPE[normalizeQuizType(q.type) ?? ""] ?? q.type}</span></div>
+          {q.choices && q.choices.length > 0 ? (
+            <ul className="choices">
+              {q.choices.map((c, j) => { const right = normalizeQuizType(q.type) === "TrueFalse" ? normalizeTrueFalse(q.correctAnswer) !== null && normalizeTrueFalse(c) === normalizeTrueFalse(q.correctAnswer) : same(c, q.correctAnswer); return <li key={j} className={right ? "right" : ""}>{right && <Check />}{c}</li>; })}
+            </ul>
+          ) : q.correctAnswer && <p className="sub">Đáp án: {q.correctAnswer}</p>}
+        </li>
+      ))}
+    </ol>
+  );
 }

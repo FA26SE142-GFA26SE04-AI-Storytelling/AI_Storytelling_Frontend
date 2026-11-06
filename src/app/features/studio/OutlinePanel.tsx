@@ -79,7 +79,7 @@ export default function OutlinePanel({ storyId, version, editable, visible, onRe
     <div className="pb">
       <div className="row"><span className="pill ai">Dàn ý bản {version.versionNo}</span>{dirty && <span className="pill wait">Chưa lưu</span>}</div>
       <label className="field"><span className="lbl">Tiêu đề</span>
-        <input className="inp display" style={{ fontSize: 15, fontWeight: 700 }} disabled={!editable || busy} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label>
+        <input className="inp display" style={{ fontSize: "var(--fs-md)", fontWeight: 700 }} disabled={!editable || busy} value={draft.title} onChange={(e) => setDraft({ ...draft, title: e.target.value })} /></label>
       <div className="beats">
         {BEATS.map(([k, label, hint, Icon]) => (
           <div key={k} className={`beat${k === "ending" ? " end" : ""}`}>

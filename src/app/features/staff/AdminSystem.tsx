@@ -2,12 +2,13 @@
 import { confirmDialog } from "@/app/lib/confirm";
 
 import { useCallback, useEffect, useState } from "react";
-import { Plus } from "lucide-react";
+import { Plus, SlidersHorizontal } from "lucide-react";
+import Dialog from "@/app/components/Dialog";
 import { staffService, type QuotaInput } from "@/app/services/staffService";
 import type { BusinessReport, PaymentTransaction, TokenQuotaConfig } from "@/app/types/staff";
 import { Notice, Page, fmt, fmtDay, useAction } from "./ui";
 
-const SCOPE: Record<string, string> = { System: "Mặc định toàn hệ thống", Personal: "Riêng một tài khoản", Child: "Riêng một bé" };
+const SCOPE: Record<string, string> = { System: "Mặc định toàn hệ thống", Personal: "Riêng một tài khoản" };
 type QuotaScope = QuotaInput["scope"];
 const monthStart = () => new Date().toISOString().slice(0, 8) + "01";
 const monthEnd = () => { const d = new Date(); return new Date(Date.UTC(d.getFullYear(), d.getMonth() + 1, 0)).toISOString().slice(0, 10); };
@@ -16,39 +17,40 @@ const monthEnd = () => { const d = new Date(); return new Date(Date.UTC(d.getFul
 export function AdminQuota() {
   const [list, setList] = useState<TokenQuotaConfig[]>([]);
   const [f, setF] = useState({ scope: "System" as QuotaScope, targetId: "", quotaLimit: 30, periodStart: monthStart(), periodEnd: monthEnd() });
+  const [quotaOpen, setQuotaOpen] = useState(false);
   const needsTarget = f.scope !== "System";
   const load = useCallback(async () => { setList((await staffService.quotaConfigs()).data ?? []); }, []);
   useEffect(() => { void load(); }, [load]);
   const { note, busy, run } = useAction(load);
   return (
-    <Page title="Token Quota" sub="Số lượt tạo truyện mỗi kỳ. Truyện mới = 1 lượt, truyện nhiều lựa chọn = 2 lượt; mỗi truyện có 3 lần sửa bằng AI miễn phí. Hết lượt chỉ chặn tạm thời, không khoá tài khoản.">
+    <Page title="Token Quota" sub="Số lượt tạo truyện mỗi kỳ.">
       <Notice note={note} />
       <div className="st-card st-scroll">
         <table className="st-table">
           <thead><tr><th>Phạm vi</th><th>Áp cho</th><th>Hạn mức</th><th>Đã dùng</th><th>Kỳ</th></tr></thead>
           <tbody>
             {list.map((q) => (
-              <tr key={q.id}><td>{SCOPE[q.scope] ?? q.scope}</td><td>{q.userId ? `Tài khoản #${q.userId}` : q.childProfileId ? `Bé #${q.childProfileId}` : "—"}</td>
+              <tr key={q.id}><td>{SCOPE[q.scope] ?? q.scope}</td><td>{q.userId ? `Tài khoản #${q.userId}` : "—"}</td>
                 <td>{q.quotaLimit}</td><td>{q.quotaUsed}{q.quotaUsed > q.quotaLimit && <span className="pill flag" style={{ marginLeft: 6 }}>Vượt</span>}</td><td>{fmtDay(q.periodStart)} – {fmtDay(q.periodEnd)}</td></tr>
             ))}
           </tbody>
         </table>
       </div>
-      <div className="st-card">
-        <h3>Đặt hạn mức</h3>
+      <div className="row"><button className="btn btn-p" onClick={() => setQuotaOpen(true)}><SlidersHorizontal className="ic" />Đặt hạn mức</button></div>
+      {quotaOpen && <Dialog title="Đặt hạn mức" onClose={() => setQuotaOpen(false)}>
         <div className="st-form">
           <label className="field"><span className="lbl">Phạm vi</span><select className="inp" value={f.scope} onChange={(e) => setF({ ...f, scope: e.target.value as QuotaScope })}>
-            <option value="System">Mặc định toàn hệ thống</option><option value="Personal">Riêng một tài khoản (ghi đè)</option><option value="Child">Riêng một bé (ghi đè)</option></select></label>
-          {needsTarget && <label className="field"><span className="lbl">{f.scope === "Child" ? "Mã hồ sơ bé" : "Mã tài khoản"}</span><input className="inp" type="number" value={f.targetId} onChange={(e) => setF({ ...f, targetId: e.target.value })} /></label>}
+            <option value="System">Mặc định toàn hệ thống</option><option value="Personal">Riêng một tài khoản (ghi đè)</option></select></label>
+          {needsTarget && <label className="field"><span className="lbl">Mã tài khoản</span><input className="inp" type="number" value={f.targetId} onChange={(e) => setF({ ...f, targetId: e.target.value })} /></label>}
           <label className="field"><span className="lbl">Số lượt</span><input className="inp" type="number" min={0} value={f.quotaLimit} onChange={(e) => setF({ ...f, quotaLimit: +e.target.value })} /></label>
           <label className="field"><span className="lbl">Từ ngày</span><input className="inp" type="date" value={f.periodStart} onChange={(e) => setF({ ...f, periodStart: e.target.value })} /></label>
           <label className="field"><span className="lbl">Đến ngày</span><input className="inp" type="date" value={f.periodEnd} onChange={(e) => setF({ ...f, periodEnd: e.target.value })} /></label>
           <button className="btn btn-p" disabled={busy || (needsTarget && !f.targetId)} onClick={() => void run(() => staffService.setQuota({
-            scope: f.scope, childProfileId: f.scope === "Child" ? +f.targetId : null, userId: f.scope === "Personal" ? +f.targetId : null,
+            scope: f.scope, userId: f.scope === "Personal" ? +f.targetId : null,
             quotaLimit: f.quotaLimit, periodStart: f.periodStart, periodEnd: f.periodEnd,
-          }))}><Plus className="ic" />Lưu</button>
+          })).then((ok) => { if (ok) setQuotaOpen(false); })}><Plus className="ic" />Lưu</button>
         </div>
-      </div>
+      </Dialog>}
     </Page>
   );
 }

@@ -1,15 +1,18 @@
 "use client";
 import {useCallback,useEffect,useState} from 'react';
 import {Plus} from 'lucide-react';
+import Dialog from '@/app/components/Dialog';
 import {staffService} from '@/app/services/staffService';
 import type {ContentCategory} from '@/app/types/childProfile';
 import {AGE_BANDS} from '@/app/lib/guardian';
 import {Notice,Page,useAction} from './ui';
 import CategoryDetails from './CategoryDetails';
+import { confirmDialog } from "@/app/lib/confirm";
 export default function AdminCatalog(){
  const [cats,setCats]=useState<ContentCategory[]>([]);
  const [newCat,setNewCat]=useState({code:'',displayName:''});
  const [loadError,setLoadError]=useState('');
+ const [addOpen,setAddOpen]=useState(false);
  const load=useCallback(async()=>{const r=await staffService.categories();setCats(r.data??[]);setLoadError(r.success?'':r.message);},[]);
  useEffect(()=>{void load();},[load]);
  const {note,busy,run}=useAction(load);
@@ -31,17 +34,18 @@ export default function AdminCatalog(){
                     onClick={() => void run(() => staffService.updateCategory(c.id, c.displayName, c.isActive, next))}>{a.label}</button>;
                 })}</div></td>
                 <td><span className={`pill ${c.isActive ? "ok" : "draft"}`}>{c.isActive ? "Đang dùng" : "Đã ẩn"}</span></td>
-                <td><button className="btn btn-g" disabled={busy} onClick={() => void run(() => staffService.updateCategory(c.id, c.displayName, !c.isActive))}>{c.isActive ? "Ẩn" : "Hiện lại"}</button></td>
+                <td><button className="btn btn-g" disabled={busy} onClick={async () => { if (c.isActive && !(await confirmDialog(`Ẩn danh mục “${c.displayName}”? Danh mục ẩn sẽ không còn chọn được trong chính sách an toàn.`))) return; void run(() => staffService.updateCategory(c.id, c.displayName, !c.isActive)); }}>{c.isActive ? "Ẩn" : "Hiện lại"}</button></td>
               </tr>
             ))}
           </tbody>
         </table>
-        <div className="row">
-          <input className="inp" style={{ maxWidth: 180 }} value={newCat.code} onChange={(e) => setNewCat({ ...newCat, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} placeholder="MÃ_DANH_MỤC" aria-label="Mã" />
+        <div className="row"><button className="btn btn-p" onClick={() => setAddOpen(true)}><Plus className="ic" />Thêm danh mục</button></div>
+        {addOpen && <Dialog title="Thêm danh mục" onClose={() => setAddOpen(false)}>
+          <input className="inp" value={newCat.code} onChange={(e) => setNewCat({ ...newCat, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_]/g, "") })} placeholder="MÃ_DANH_MỤC" aria-label="Mã" />
           <input className="inp" value={newCat.displayName} onChange={(e) => setNewCat({ ...newCat, displayName: e.target.value })} placeholder="Tên hiển thị" aria-label="Tên hiển thị" />
-          <button className="btn btn-p" disabled={busy || !newCat.code || !newCat.displayName.trim()} onClick={() => void run(() => staffService.createCategory(newCat.code, newCat.displayName.trim(), true)).then((ok) => ok && setNewCat({ code: "", displayName: "" }))}><Plus className="ic" />Thêm</button>
-        </div>
+          <button className="btn btn-p" disabled={busy || !newCat.code || !newCat.displayName.trim()} onClick={() => void run(() => staffService.createCategory(newCat.code, newCat.displayName.trim(), true)).then((ok) => { if (ok) { setNewCat({ code: "", displayName: "" }); setAddOpen(false); } })}><Plus className="ic" />Thêm</button>
+        </Dialog>}
       </div>
 
-<p className="notice">Backend chưa cung cấp API Prompt Catalog, bài học gợi ý và nhân vật mẫu. Thẻ ước được quản lý ở mục Thẻ ước.</p></Page>;
+</Page>;
 }

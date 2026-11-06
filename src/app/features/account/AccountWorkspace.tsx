@@ -90,14 +90,14 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
             {pwOpen && (
               <div className="dlg-backdrop confirm-backdrop" role="dialog" aria-modal="true" aria-label="Đổi mật khẩu" onClick={(e) => { if (e.target === e.currentTarget) closePw(); }}>
                 <form className="dlg" onSubmit={changePassword} style={{ gap: 12, width: "min(440px, 100%)" }}>
-                  <div className="row"><b className="display grow" style={{ fontSize: 18 }}>Đổi mật khẩu</b><button type="button" className="btn btn-g" aria-label="Đóng" onClick={closePw}><X className="ic" /></button></div>
+                  <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>Đổi mật khẩu</b><button type="button" className="btn btn-g" aria-label="Đóng" onClick={closePw}><X className="ic" /></button></div>
                   <label className="field"><span className="lbl">Mật khẩu hiện tại</span><PasswordInput className="inp" required autoComplete="current-password" value={pw.current} onChange={set("current")} /></label>
                   <label className="field"><span className="lbl">Mật khẩu mới</span><PasswordInput className="inp" required autoComplete="new-password" value={pw.next} onChange={set("next")} /></label>
                   <label className="field"><span className="lbl">Nhập lại mật khẩu mới</span><PasswordInput className="inp" required autoComplete="new-password" value={pw.confirm} onChange={set("confirm")} /></label>
                   <p className="sub">Ít nhất 8 ký tự, có cả chữ và số. Đổi xong, các thiết bị khác sẽ bị đăng xuất.</p>
                   {pwNote && <div className={`notice ${pwNote.ok ? "ok" : "err"}`} role="status">{pwNote.text}</div>}
                   <div className="row" style={{ justifyContent: "flex-end" }}>
-                    <button type="button" className="btn btn-g" onClick={closePw}>Hủy</button>
+                    <button type="button" className="btn btn-g" onClick={closePw}><X className="ic" />Hủy</button>
                     <button className="btn btn-p" disabled={pwBusy}><KeyRound className="ic" />{pwBusy ? "Đang đổi…" : "Đổi"}</button>
                   </div>
                 </form>

@@ -17,7 +17,6 @@ import { OUTPUT_MODE } from "@/app/lib/storyRules";
 import { detectPii, piiMessage } from "@/app/features/story-workflow/piiHints";
 import { useRiseIn } from "@/app/lib/motion";
 
-const LESSONS = ["Trung thực", "Biết chia sẻ", "Dũng cảm", "Kiên trì", "Lễ phép", "Yêu thương gia đình"];
 const LENGTHS: [LengthPreset, string][] = [["short", "Ngắn"], ["medium", "Vừa"], ["long", "Dài"]];
 const TONE_LABEL = { familiar: "Quen thuộc", default: "Theo trình độ", extended: "Mở rộng" } as const;
 const TONE_HINT = {
@@ -148,8 +147,6 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
             </div>
             {text("lesson", "Bài học muốn gửi tới con", "Ví dụ: Biết chia sẻ cùng bạn bè…", {
               required: true,
-              suggestions: LESSONS,
-              onPick: (l) => updateValues({ lesson: l }),
             })}
           </fieldset>
 
@@ -211,9 +208,9 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
 
           {!locked && (
             <div className="brief-submit">
-              {topicTooLong && <div className="notice err" role="alert">Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
+              {topicTooLong && <div className="notice err" role="alert" data-inline-notice>Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
               {errorMessage && <div className="notice err" role="alert">{errorMessage}</div>}
-              {outOfQuota && <div className="notice err" role="alert">Bạn đã dùng hết lượt tạo truyện của kỳ này.</div>}
+              {outOfQuota && <div className="notice err" role="alert" data-inline-notice>Bạn đã dùng hết lượt tạo truyện của kỳ này.</div>}
               <button type="submit" className="btn btn-p brief-go" disabled={submitDisabled} aria-describedby="brief-go-why">
                 <Sparkles className="ic" aria-hidden />{isBusy ? "Đang gửi ý tưởng…" : "Viết dàn ý"}
               </button>

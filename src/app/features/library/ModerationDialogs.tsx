@@ -15,7 +15,7 @@ function Shell({ title, onClose, children }: { title: string; onClose: () => voi
   return (
     <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="dlg">
-        <div className="row"><b className="display grow" style={{ fontSize: 18 }}>{title}</b><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
+        <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>{title}</b><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
         {children}
       </div>
     </div>
@@ -56,7 +56,7 @@ export function ReportDialog({ story, onClose, onDone }: { story: StoryCard; onC
       <textarea className="inp" rows={3} maxLength={FREE_TEXT_MAX * 2} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="Mô tả thêm (không bắt buộc)" aria-label="Mô tả" />
       {err && <div className="notice err" role="alert">{err}</div>}
       <div className="row" style={{ justifyContent: "flex-end" }}>
-        <button className="btn btn-g" onClick={onClose}>Hủy</button>
+        <button className="btn btn-g" onClick={onClose}><X className="ic" />Hủy</button>
         <button className="btn btn-no" disabled={busy} onClick={() => void submit()}><Flag className="ic" />Gửi báo cáo</button>
       </div>
     </Shell>
@@ -107,19 +107,19 @@ export function CommunityDialog({ story, nickname, onClose, onDone }: { story: S
         </div>
       )}
       {!story.fromAi && (
-        <label className="row" style={{ alignItems: "flex-start", fontSize: 13 }}>
+        <label className="row" style={{ alignItems: "flex-start", fontSize: "var(--fs-sm)" }}>
           <input type="checkbox" checked={ownWork} onChange={(e) => setOwnWork(e.target.checked)} style={{ marginTop: 3 }} />
           <span>Đây là tác phẩm do tôi sáng tác. (Truyện chỉ có quyền dùng trong gia đình thì không nộp được.)</span>
         </label>
       )}
-      <label className="row" style={{ alignItems: "flex-start", fontSize: 13 }}>
+      <label className="row" style={{ alignItems: "flex-start", fontSize: "var(--fs-sm)" }}>
         <input type="checkbox" checked={noPii} onChange={(e) => setNoPii(e.target.checked)} style={{ marginTop: 3 }} />
         <span>Tôi xác nhận truyện không chứa thông tin định danh của bé hay gia đình.</span>
       </label>
       {eligibility && !eligibility.canSubmit && <div className="notice err">{eligibility.blockers.map(b => <p key={b.code}>{b.message}</p>)}</div>}
       {err && <div className="notice err" role="alert">{err}</div>}
       <div className="row" style={{ justifyContent: "flex-end" }}>
-        <button className="btn btn-g" onClick={onClose}>Hủy</button>
+        <button className="btn btn-g" onClick={onClose}><X className="ic" />Hủy</button>
         <button className="btn btn-p" disabled={busy || pii === null || blocked || !noPii || (!story.fromAi && !ownWork) || !eligibility?.canSubmit} onClick={() => void submit()}><Send className="ic" />Nộp</button>
       </div>
     </Shell>

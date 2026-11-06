@@ -8,8 +8,6 @@ import { BookOpen, Lock, WandSparkles } from "lucide-react";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { guardianService } from "@/app/services/guardianService";
 import { childProfileService } from "@/app/services/childProfileService";
-import { adaptiveService } from "@/app/services/adaptiveService";
-import type { Recommendation } from "@/app/types/adaptive";
 import type { Dashboard, ProgressReport } from "@/app/types/progress";
 import { parentWishService } from "@/app/services/storyWishService";
 import type { ParentWishDto } from "@/app/types/storyWish";
@@ -21,7 +19,6 @@ import { fmtDate, PERMISSIONS } from "@/app/lib/guardian";
 import { useMyRole } from "@/app/features/children/useMyRole";
 import HoldPanel from "@/app/features/roadmap/HoldPanel";
 import { useRiseIn } from "@/app/lib/motion";
-import RecommendationCard from "@/app/features/adaptive/RecommendationCard";
 import WishItem from "./WishItem";
 import CompletionCard from "./CompletionCard";
 import ReadingFeedback from "./ReadingFeedback";
@@ -55,22 +52,18 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
   const [wishes, setWishes] = useState<ParentWishDto[]>([]);
   const [reports, setReports] = useState<ProgressReport[]>([]);
   const [quota, setQuota] = useState<TokenQuotaStatus | null>(null);
-  const [recs, setRecs] = useState<Recommendation[]>([]);
   const [openReport, setOpenReport] = useState<number | null>(null);
   const rootRef = useRiseIn<HTMLElement>(".dash-block", [child?.id, dash ? 1 : 0]);
 
   const load = useCallback(async () => {
     if (!child) return;
-    const [d, w, r, q, rc] = await Promise.all([
+    const [d, w, r, q] = await Promise.all([
       guardianService.dashboard(child.id), parentWishService.list(child.id), guardianService.reports(child.id),
       childProfileService.getTokenQuotaForChild(child.id),
-      // Luồng 6 Bước 6.5 — hàng đợi đề xuất chung của bé, tải lại mỗi lần mở Dashboard.
-      child.status === "Active" ? adaptiveService.recommendations(child.id) : Promise.resolve({ data: [] as Recommendation[] }),
     ]);
     setDash(d.data);
     setDashOk(d.success && !!d.data);
     setReportsOk(r.success);
-    setRecs(rc.data ?? []);
     setWishes((w.data ?? []).filter((x) => x.status === "Pending"));
     setReports(r.data ?? []);
     setQuota(q.success ? q.data : null);
@@ -90,9 +83,7 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
   const maxMin = Math.max(1, ...(dash?.minutesByDay.map((d) => d.minutes) ?? [0]));
   const unseen = dash?.completions.filter((c) => !c.seen) ?? [];
   // Đề xuất hiện cho mọi người giám sát hợp lệ; nhãn quyền tính trên thẻ (Bước 6.5). Đề xuất vừa quyết định giữ lại 3 ngày để xem kết quả.
-  const awaitingRecs = recs.filter((r) => r.status === "awaiting_review");
-  const recentRecs = recs.filter((r) => r.status !== "awaiting_review" && r.status !== "stale" && r.decidedAt && Date.now() - Date.parse(r.decidedAt) < 3 * 86_400_000);
-  const actionCount = (can("ApproveStory") ? reviewQueue.length + wishes.length : 0) + needsYouCount(stories) + (dash?.holdCase?.needsAttention ? 1 : 0) + unseen.length + awaitingRecs.length;
+  const actionCount = (can("ApproveStory") ? reviewQueue.length + wishes.length : 0) + needsYouCount(stories) + (dash?.holdCase?.needsAttention ? 1 : 0) + unseen.length;
 
   return (
     <section ref={rootRef} className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
@@ -141,11 +132,10 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
                   <h3>Cần xử lý <span className="pill wait">{actionCount}</span></h3>
                   {actionCount === 0 && <p className="sub">Không có việc gì cần xử lý.</p>}
                   {can("ApproveStory") && reviewQueue.map((s) => (
-                    <button key={s.id} className="mini-item" onClick={() => go("review")}><span className="cover-sm" style={{ background: s.gradient }} /><span className="grow" style={{ textAlign: "left" }}><b>{s.title}</b><small>Truyện chờ duyệt</small></span></button>
+                    <button key={s.id} className="mini-item" onClick={() => go("review")}><span className="cover-sm" style={{ background: s.cover }} /><span className="grow" style={{ textAlign: "left" }}><b>{s.title}</b><small>Truyện chờ duyệt</small></span></button>
                   ))}
                   {can("ApproveStory") && wishes.map((w) => <WishItem key={w.wishId} wish={w} nickname={child.nickname} go={go} onChanged={() => void load()} />)}
                   {dash?.holdCase?.needsAttention && <HoldPanel child={child} role={role} onChanged={() => void load()} />}
-                  {role && [...awaitingRecs, ...recentRecs].map((r) => <RecommendationCard key={r.id} rec={r} child={child} role={role} go={go} onChanged={() => void load()} />)}
                   {can("ViewProgress") && unseen.length > 0 && <p className="sub">{unseen.length} câu chuyện con vừa đọc xong — xem bên dưới để trò chuyện với con.</p>}
                 </div>
 
@@ -240,7 +230,6 @@ export default function HomeWorkspace({ go }: WorkspaceProps) {
                             <div><small>Truyện con thích nhất</small><b>{r.favoriteStory ?? "—"}</b></div>
                             <div><small>Điều ước đã gửi / thành truyện</small><b>{r.wishesSubmitted} / {r.wishesFulfilled}</b></div>
                             <div><small>Tạm khoá thư viện</small><b>{r.holdMode ? "Có" : "Không"}</b></div>
-                            <div><small>Câu hỏi thảo luận chưa xem</small><b>{r.unseenDiscussions}</b></div>
                           </div>
                         )}
                       </div>

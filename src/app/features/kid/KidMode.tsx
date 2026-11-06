@@ -49,7 +49,7 @@ export default function KidMode({ child, onExit }: { child: ChildProfile; onExit
           <div className="kcard" style={{ alignItems: "center", textAlign: "center" }}>
             <Frog size={120} mood="think" />
             <h2 className="display">{child.nickname} chưa vào đọc được lúc này</h2>
-            <p className="sub" style={{ fontSize: 14 }}>{child.status === "Active" ? entry.message : "Hồ sơ của bé chưa được kích hoạt. Hãy hoàn tất hồ sơ ở mục Hồ sơ bé."}</p>
+            <p className="sub" style={{ fontSize: "var(--fs-md)" }}>{child.status === "Active" ? entry.message : "Hồ sơ của bé chưa được kích hoạt. Hãy hoàn tất hồ sơ ở mục Hồ sơ bé."}</p>
             <button className="btn btn-p" onClick={leave}><ArrowLeft className="ic" />Về khu người lớn</button>
           </div>
         </div>

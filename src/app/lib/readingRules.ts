@@ -1,4 +1,5 @@
 import type { ReadingMode, ReadingQuizItem } from "@/app/types/reading";
+import { normalizeQuizType } from "@/app/lib/storyRules";
 
 /** Quy tắc Luồng 3 — chấm câu đố, EXP, Cây tri thức, chuỗi ngày đọc, huy hiệu. */
 
@@ -33,7 +34,7 @@ export function isAnswerCorrect(item: Pick<ReadingQuizItem, "type" | "acceptedAn
   return item.acceptedAnswers.some((a) => {
     const n = normalizeAnswer(a);
     if (n === g) return true;
-    return item.type === "short_answer" && n.length >= 4 && editDistanceAtMostOne(n, g);
+    return normalizeQuizType(item.type) === "ShortAnswer" && n.length >= 4 && editDistanceAtMostOne(n, g);
   });
 }
 
@@ -46,7 +47,7 @@ export const TREE_STAGES = [
   { min: 20, label: "Mầm non", emoji: "🌱" },
   { min: 60, label: "Cây non", emoji: "🌿" },
   { min: 120, label: "Cây lớn", emoji: "🌳" },
-  { min: 200, label: "Cây ra hoa", emoji: "🌸" },
+  { min: 500, label: "Cây ra hoa", emoji: "🌸" },
 ];
 export function treeStage(exp: number) {
   let index = 0;
@@ -72,8 +73,8 @@ export const BADGES: Record<string, { label: string; emoji: string; hint: string
   streak_7: { label: "7 ngày chăm chỉ", emoji: "🔥", hint: "Đọc truyện 7 ngày liên tiếp" },
   word_collector_50: { label: "Nhà sưu tầm từ", emoji: "📝", hint: "Lưu 50 từ mới vào sổ tay" },
   roadmap_finisher: { label: "Đọc hết lộ trình", emoji: "🗺️", hint: "Đọc hết truyện bố mẹ chọn" },
-  story_explorer: { label: "Nhà thám hiểm", emoji: "🧭", hint: "Khám phá mọi kết thúc của một truyện" },
-  little_detective: { label: "Thám tử nhí", emoji: "🔍", hint: "Đoán đúng diễn biến 10 lần" },
+  bookworm: { label: "Mọt sách", emoji: "📚", hint: "Đọc xong 5 truyện" },
+  streak_3: { label: "3 ngày chăm chỉ", emoji: "✨", hint: "Đọc truyện 3 ngày liên tiếp" },
   wish_maker: { label: "Điều ước thành thật", emoji: "🌟", hint: "Điều ước đầu tiên thành truyện" },
 };
 
@@ -81,6 +82,8 @@ export const BADGES: Record<string, { label: string; emoji: string; hint: string
 export function earnedBadges(stats: { storiesCompleted: number; streakDays: number; wordsCollected: number; roadmapFinished: boolean; wishFulfilled: boolean }, owned: string[]): string[] {
   const rules: [string, boolean][] = [
     ["first_story", stats.storiesCompleted >= 1],
+    ["bookworm", stats.storiesCompleted >= 5],
+    ["streak_3", stats.streakDays >= 3],
     ["streak_7", stats.streakDays >= 7],
     ["word_collector_50", stats.wordsCollected >= 50],
     ["roadmap_finisher", stats.roadmapFinished],

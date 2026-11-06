@@ -14,22 +14,29 @@ type Props = {
   onEditIdea: () => void;
   /** Huỷ truyện hiện tại rồi mở form; keepIdea = điền lại ý tưởng cũ. Trả về thông báo lỗi nếu không huỷ được. */
   onRestart: (keepIdea: boolean) => Promise<string | null>;
+  /** Rời truyện đang lỗi mà không huỷ trên máy chủ (khi máy chủ không cho huỷ): mở form mới, giữ ý tưởng nếu `keepIdea`. */
+  onLeave: (keepIdea: boolean) => void;
   onStartNew: () => void;
   /** Hành động duyệt do màn đang hiện đăng ký (duyệt dàn ý hoặc duyệt truyện); null = chưa tới bước duyệt. */
   approve: ApproveAction | null;
   /** Bước AI hiện tại đã lỗi hẳn: cho quay lại / huỷ thay vì bắt chờ. */
   failed?: boolean;
+  /**
+   * Huỷ chỉ làm mới form ở giao diện, không huỷ hay lưu trữ gì trên máy chủ (Content Creator không có API huỷ):
+   * bản nháp vẫn nằm trong Thư viện nên chữ trong hộp xác nhận nói đúng như vậy.
+   */
+  localOnly?: boolean;
 };
 
 type Pending = "back" | "cancel" | null;
 
 const WHAT_IS_LOST: Partial<Record<Stage, string>> = {
   outline: "Dàn ý hiện tại sẽ bị huỷ.",
-  outline_wait: "Bản nháp bị lỗi này sẽ được lưu trữ.",
-  generating: "Bản nháp bị lỗi này sẽ được lưu trữ.",
-  checking: "Bản nháp bị lỗi này sẽ được lưu trữ.",
-  review: "Bản truyện này sẽ được lưu trữ, bé không thấy truyện này.",
-  blocked: "Bản nháp này sẽ được lưu trữ.",
+  outline_wait: "Bản nháp bị lỗi này sẽ bị huỷ.",
+  generating: "Bản nháp bị lỗi này sẽ bị huỷ.",
+  checking: "Bản nháp bị lỗi này sẽ bị huỷ.",
+  review: "Bản truyện này sẽ bị huỷ, bé không thấy truyện này.",
+  blocked: "Bản nháp này sẽ bị huỷ.",
 };
 
 /**
@@ -37,7 +44,7 @@ const WHAT_IS_LOST: Partial<Record<Stage, string>> = {
  * Luôn hiện để vị trí cố định; bước đầu và lúc AI đang chạy thì mờ và không bấm được (tooltip nói lý do).
  * Luôn hỏi lại trước khi huỷ.
  */
-export default function StudioControls({ stage, valuesKnown, onEditIdea, onRestart, onStartNew, approve, failed = false }: Props) {
+export default function StudioControls({ stage, valuesKnown, onEditIdea, onRestart, onLeave, onStartNew, approve, failed = false, localOnly = false }: Props) {
   const [pending, setPending] = useState<Pending>(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -59,7 +66,8 @@ export default function StudioControls({ stage, valuesKnown, onEditIdea, onResta
 
   const canBack = a.editInPlace || a.cancelWith !== null;
   const backLabel = a.editInPlace ? "Sửa ý tưởng" : "Quay lại ý tưởng";
-  const cancelLabel = "Huỷ truyện và bắt đầu lại";
+  const cancelLabel = localOnly ? "Bỏ truyện này và bắt đầu lại" : "Huỷ truyện và bắt đầu lại";
+  const lostText = localOnly ? "Bản nháp vẫn nằm trong Thư viện của bạn, có thể mở lại để soạn tiếp." : WHAT_IS_LOST[stage];
   const approveLabel = approve?.label ?? "Duyệt";
   const ApproveIcon = approve?.icon === "sparkles" ? Sparkles : Check;
   const approveReady = !!approve && !approve.disabled;
@@ -83,18 +91,19 @@ export default function StudioControls({ stage, valuesKnown, onEditIdea, onResta
 
       {pending && (
         <div ref={popRef} className="ss-confirm" role="alertdialog" aria-label="Xác nhận">
-          <b>{pending === "back" ? "Quay lại sửa ý tưởng?" : "Huỷ truyện này?"}</b>
+          <b>{pending === "back" ? "Quay lại sửa ý tưởng?" : localOnly ? "Bỏ truyện này?" : "Huỷ truyện này?"}</b>
           <p>
-            {WHAT_IS_LOST[stage]}{" "}
+            {lostText}{" "}
             {pending === "back"
               ? valuesKnown ? "Bạn sẽ về form Ý tưởng với nội dung cũ để sửa và gửi lại." : "Trang đã được tải lại nên không còn ý tưởng cũ, form sẽ để trống."
               : "Bạn sẽ bắt đầu một truyện mới với form trống."}
           </p>
           {err && <div className="notice err" role="alert">{err}</div>}
+          {err && failed && <button className="btn btn-s btn-c" disabled={busy} onClick={() => { onLeave(pending === "back"); setPending(null); setErr(null); }}>{pending === "back" ? "Rời truyện lỗi và sửa ý tưởng" : "Rời truyện lỗi, làm truyện mới"}</button>}
           <div className="row">
             <button className="btn btn-g grow btn-c" disabled={busy} onClick={() => { setPending(null); setErr(null); }}>Không</button>
             <button className={`btn grow btn-c ${pending === "back" ? "btn-p" : "btn-no"}`} disabled={busy} onClick={() => void confirm()}>
-              {busy ? "Đang huỷ…" : pending === "back" ? "Quay lại" : "Huỷ truyện"}
+              {busy ? (localOnly ? "Đang xử lý…" : "Đang huỷ…") : pending === "back" ? "Quay lại" : localOnly ? "Bỏ truyện" : "Huỷ truyện"}
             </button>
           </div>
         </div>

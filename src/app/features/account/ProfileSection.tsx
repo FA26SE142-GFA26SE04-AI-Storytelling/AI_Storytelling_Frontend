@@ -86,7 +86,7 @@ export default function ProfileSection() {
       {isParent && emailOpen && (
         <div className="dlg-backdrop confirm-backdrop" role="dialog" aria-modal="true" aria-label="Đổi email" onClick={(e) => { if (e.target === e.currentTarget) closeEmail(); }}>
           <div className="dlg" style={{ gap: 12, width: "min(440px, 100%)" }}>
-            <div className="row"><b className="display grow" style={{ fontSize: 18 }}>Đổi email</b><button type="button" className="btn btn-g" aria-label="Đóng" onClick={closeEmail}><X className="ic" /></button></div>
+            <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>Đổi email</b><button type="button" className="btn btn-g" aria-label="Đóng" onClick={closeEmail}><X className="ic" /></button></div>
             {!email.sent ? (
               <form className="sec" style={{ gap: 10 }} onSubmit={requestEmail}>
                 <label className="field"><span className="lbl">Email mới</span>
@@ -95,7 +95,7 @@ export default function ProfileSection() {
                   <PasswordInput className="inp" required value={email.password} onChange={(e) => setEmail({ ...email, password: e.target.value })} autoComplete="current-password" /></label>
                 {eNote && <div className={`notice ${eNote.ok ? "ok" : "err"}`} role="status">{eNote.text}</div>}
                 <div className="row" style={{ justifyContent: "flex-end" }}>
-                  <button type="button" className="btn btn-g" onClick={closeEmail}>Hủy</button>
+                  <button type="button" className="btn btn-g" onClick={closeEmail}><X className="ic" />Hủy</button>
                   <button className="btn btn-p" disabled={busy}><Mail className="ic" />Gửi mã</button>
                 </div>
               </form>
@@ -106,7 +106,7 @@ export default function ProfileSection() {
                     onChange={(e) => setEmail({ ...email, otp: e.target.value.replace(/D/g, "") })} style={{ letterSpacing: 6, textAlign: "center", maxWidth: 200 }} /></label>
                 {eNote && <div className={`notice ${eNote.ok ? "ok" : "err"}`} role="status">{eNote.text}</div>}
                 <div className="row" style={{ justifyContent: "flex-end" }}>
-                  <button type="button" className="btn btn-g" disabled={busy} onClick={closeEmail}>Hủy</button>
+                  <button type="button" className="btn btn-g" disabled={busy} onClick={closeEmail}><X className="ic" />Hủy</button>
                   <button className="btn btn-p" disabled={busy || email.otp.length !== 6}>Xác nhận</button>
                 </div>
               </form>

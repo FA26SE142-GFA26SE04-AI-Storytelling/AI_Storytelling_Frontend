@@ -11,7 +11,7 @@ export const STEPS: Step[] = [
   { id: "idea", label: "Ý tưởng", title: "Bạn kể một ý tưởng", text: "Chủ đề, nhân vật và bài học muốn gửi tới con. Để trống phần nào thì AI tự nghĩ phần đó. Độ tuổi và mức đọc lấy từ hồ sơ của bé." },
   { id: "safety", label: "Kiểm tra an toàn", title: "Ý tưởng được kiểm tra trước khi viết", text: "Ý tưởng được đối chiếu với cài đặt an toàn của bé: chủ đề bị chặn, thông tin cá nhân, nhân vật có bản quyền. Có nghi ngờ thì hệ thống dừng lại và hỏi bạn." },
   { id: "outline", label: "Duyệt dàn ý", title: "Bạn duyệt dàn ý", text: "AI đề xuất mở đầu, diễn biến và kết thúc. Bạn sửa từng đoạn hoặc nhờ viết lại, rồi mới cho AI viết truyện." },
-  { id: "story", label: "Duyệt truyện", title: "Bạn đọc và duyệt truyện", text: "Đọc bản thảo kèm từ vựng, câu đố và câu hỏi thảo luận. Sửa tay, hoặc nhờ AI sửa đúng đoạn bạn chọn." },
+  { id: "story", label: "Duyệt truyện", title: "Bạn đọc và duyệt truyện", text: "Đọc bản thảo kèm từ vựng và câu đố. Sửa tay, hoặc nhờ AI sửa đúng đoạn bạn chọn." },
   { id: "media", label: "Tranh và giọng đọc", title: "Tranh, giọng đọc, rồi mới tới tay bé", text: "Bạn duyệt xong, hệ thống vẽ tranh và tạo giọng đọc. Lúc này truyện mới xuất hiện trong góc đọc của bé." },
 ];
 
@@ -37,7 +37,7 @@ export const WAYS: { icon: LucideIcon; title: string; text: string }[] = [
 
 export const FAQ: { q: string; a: string }[] = [
   { q: "Taletale khác gì các ứng dụng tạo truyện bằng AI khác?", a: "Bạn đứng ở giữa mọi bước. Ý tưởng được kiểm tra an toàn trước khi viết, dàn ý và nội dung đều chờ bạn duyệt, và bé chỉ thấy truyện ở bước cuối cùng." },
-  { q: "Truyện phù hợp với bé mấy tuổi?", a: "Bé từ 3 đến 10 tuổi. Độ dài, từ vựng và câu đố được điều chỉnh theo độ tuổi và mức đọc trong hồ sơ của từng bé." },
+  { q: "Truyện phù hợp với bé mấy tuổi?", a: "Bé từ 6 đến 10 tuổi (hai nhóm: 6–8 và 9–10). Độ dài, từ vựng và câu đố được điều chỉnh theo độ tuổi và mức đọc trong hồ sơ của từng bé." },
   { q: "Bé có trò chuyện với AI không?", a: "Không. Bé chỉ đọc, nghe và trả lời câu đố trong những truyện bạn đã duyệt. Góc đọc của bé không có ô trò chuyện." },
   { q: "Làm sao để bé không tự ra khỏi góc đọc?", a: "Khi bật cổng phụ huynh, muốn rời góc đọc phải nhập lại mật khẩu của người lớn." },
   { q: "Tôi có sửa được truyện AI viết không?", a: "Có. Bạn sửa dàn ý hoặc nhờ viết lại trước khi AI viết truyện, rồi sửa tay hoặc nhờ AI sửa đúng đoạn bạn chọn trong bản thảo." },

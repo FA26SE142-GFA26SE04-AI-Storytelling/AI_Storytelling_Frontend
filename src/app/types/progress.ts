@@ -115,7 +115,6 @@ export interface ProgressReport {
   favoriteStory: string | null;
   wishesSubmitted: number;
   wishesFulfilled: number;
-  unseenDiscussions: number;
 }
 
 export type ReportReason = 'safety_concern' | 'inappropriate' | 'wrong_age_band' | 'copyright' | 'cultural' | 'other';

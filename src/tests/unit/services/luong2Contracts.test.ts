@@ -46,7 +46,7 @@ describe('Luồng 2 — hợp đồng API', () => {
 
   it('truyện "Chỉ để đọc" không bị coi là thiếu học liệu', () => {
     const empty = { storyId: 1, versionId: 5, items: [] };
-    const bundle = (outputMode: string) => ({ summary: { storyVersionId: 5, outputMode }, vocabulary: empty, quiz: empty, discussion: empty }) as unknown as StoryReviewBundle;
+    const bundle = (outputMode: string) => ({ summary: { storyVersionId: 5, outputMode }, vocabulary: empty, quiz: empty }) as unknown as StoryReviewBundle;
     expect(hasMissingLearning(bundle('reading_media_only'))).toBe(false);
     expect(hasMissingLearning(bundle('learning'))).toBe(true);
   });

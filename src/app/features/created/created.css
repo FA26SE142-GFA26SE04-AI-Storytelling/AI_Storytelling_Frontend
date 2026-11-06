@@ -3,11 +3,29 @@
 .created-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 14px; }
 .created-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .created-pills { display: flex; flex-wrap: wrap; gap: 8px; }
-.created-pills button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--faint) 45%, var(--line)); background: var(--surface-2); font-weight: 700; font-size: 14.5px; color: var(--muted); transition: all .15s; }
+.created-pills button { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; border: 1px solid color-mix(in srgb, var(--faint) 45%, var(--line)); background: var(--surface-2); font-weight: 700; font-size: var(--fs-md); color: var(--muted); transition: all .15s; }
 .created-pills button:hover { color: var(--text); }
 .created-pills button.on { background: color-mix(in srgb, var(--primary) 16%, var(--surface-2)); border-color: var(--primary); color: var(--text); }
-.created-pills button em { font-style: normal; font-size: 12.5px; font-weight: 800; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 14%, transparent); }
-.created-pills.small button { padding: 5px 13px; font-size: 13.5px; }
+.created-pills button em { font-style: normal; font-size: var(--fs-sm); font-weight: 800; padding: 1px 8px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 14%, transparent); }
+.created-pills.small button { padding: 5px 13px; font-size: var(--fs-sm); }
 /* Bìa rộng cố định: khi khung Chi tiết co/giãn, bìa không bị kéo giãn theo từng khung hình (trông như tải lại trang). */
 .created-grid { display: grid; grid-template-columns: repeat(auto-fill, 190px); justify-content: start; gap: 24px 20px; }
 .created-grid > .bk { min-width: 0; }
+
+/* Bộ lọc gọn trong một hàng: các nhãn trạng thái nhỏ hơn, nguồn là ô chọn nằm cạnh các nút. */
+.created { gap: 16px; }
+.created-bar { gap: 10px 14px; }
+.created-pills { gap: 6px; }
+.created-pills button { padding: 5px 12px; font-size: var(--fs-md); gap: 6px; }
+.created-pills button em { font-size: var(--fs-xs); padding: 0 7px; }
+.created-actions { gap: 8px; }
+.created-select { width: auto; min-width: 130px; height: 36px; padding: 0 12px; font-size: var(--fs-md); font-weight: 700; }
+.created-actions .btn { height: 36px; font-size: var(--fs-md); padding: 0 14px; }
+
+/* Một hàng duy nhất: nhãn trạng thái bên trái co giãn, ô chọn nguồn và các nút bên phải; ô chọn cùng kiểu với các nút. */
+.created-bar { flex-wrap: nowrap; align-items: center; }
+.created-bar .created-pills { flex: 1 1 auto; min-width: 0; flex-wrap: wrap; }
+.created-bar .created-actions { flex: none; flex-wrap: nowrap; }
+.created-actions .sel { flex: none; width: 140px; }
+.created-actions .sel-btn { min-height: 36px; height: 36px; padding: 0 12px; border-radius: 999px; font-size: var(--fs-md); font-weight: 700; background: var(--surface-2); }
+@media (max-width: 900px) { .created-bar { flex-wrap: wrap; } .created-bar .created-actions { flex-wrap: wrap; } }

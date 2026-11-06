@@ -12,8 +12,8 @@
   --surface: #ebf7f0;
   --surface-2: #dcf0e5;
   --paper: #fcfffc;
-  --line: #dcebe1;
-  --line-2: #c3dccc;
+  --line: #b3cfbf;
+  --line-2: #8fb9a0;
 
   /* Chữ */
   --text: #1f2f27;
@@ -44,6 +44,14 @@
   --kid-bg: linear-gradient(180deg, #c9ecff 0%, #f3fbd9 60%, #bdebcf 100%);
   --login-bg: radial-gradient(circle at 20% 10%, #d4f3e0 0, transparent 40%), radial-gradient(circle at 85% 90%, #fff0c2 0, transparent 45%), #f4fbf6;
 
+  /* Thang cỡ chữ duy nhất của dự án */
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-md: 15px;
+  --fs-lg: 18px;
+  --fs-xl: 22px;
+  --fs-2xl: 28px;
+
   /* Chữ viết */
   --font-ui: var(--font-nunito), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display: var(--font-baloo), var(--font-nunito), system-ui, sans-serif;
@@ -63,8 +71,8 @@
   --surface: #1d2b24;
   --surface-2: #263830;
   --paper: #1a271f;
-  --line: #26372e;
-  --line-2: #365044;
+  --line: #3b5548;
+  --line-2: #54775f;
 
   --text: #e8f4ec;
   --muted: #a3bdb0;

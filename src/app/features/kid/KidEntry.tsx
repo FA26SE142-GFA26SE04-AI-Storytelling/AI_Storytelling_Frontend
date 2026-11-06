@@ -47,7 +47,7 @@ export default function KidEntry({ code, onDone }: { code: string; onDone: () =>
             <>
               <Frog size={120} mood="think" />
               <h2 className="display">Ôi, chưa vào được rồi!</h2>
-              <p className="sub" style={{ fontSize: 15 }}>{state.message}</p>
+              <p className="sub" style={{ fontSize: "var(--fs-md)" }}>{state.message}</p>
               <button className="btn btn-p" onClick={exit}>Về trang đầu</button>
             </>
           )}

@@ -47,7 +47,10 @@ tests/unit/        Vitest, cấu trúc thư mục giống app/
 
 - **Màu**: chỉ dùng biến trong `styles/tokens.css` (`--primary`, `--surface`, `--line`…). Không viết mã màu cứng trong component; cần tông nhạt thì dùng `color-mix(in srgb, var(--primary) 14%, transparent)`.
 - **Theme tối**: tự có khi dùng biến. Kiểm tra cả hai theme khi thêm giao diện.
-- **Khung**: vùng lớn dùng `.pane` (có `.ph` tiêu đề, `.pb` nội dung cuộn). Nút dùng `.btn` + `.btn-p|s|g|ok|no|k`, đã có sẵn vân lá.
+- **Khung**: vùng lớn dùng `.pane` (`.pb` nội dung cuộn). Không dùng thanh tên ở đầu khung; tiêu đề mục dùng `.sec-h`, hàng nút của khung dùng `.pane-tools`. Nút dùng `.btn` + `.btn-p|s|g|ok|no|k`, đã có sẵn vân lá.
+- **Cỡ chữ**: chỉ dùng thang `--fs-xs|sm|md|lg|xl|2xl` trong `styles/tokens.css`, không ghi px trực tiếp.
+- **Ảnh**: dùng `components/SafeImage` thay cho `<img>`, ảnh lỗi tự hiện `public/default-image.svg`.
+- **Form và xác nhận**: form điền thông tin dùng `components/Dialog` (popup); xoá, gỡ, lưu trữ phải qua `confirmDialog`; thông báo kết quả/lỗi sau thao tác hiện dạng toast (ToastHost tự chuyển `.notice`, thêm `data-inline-notice` nếu cần giữ tại chỗ); nút Lưu chỉ hiện khi form có thay đổi.
 - **Chữ**: tiêu đề `.display` (Baloo 2), nội dung Nunito. Toàn bộ chữ hiển thị bằng tiếng Việt.
 - **Icon**: `lucide-react`. Linh vật: `<Frog mood="idle|happy|think" />`.
 

@@ -2,7 +2,6 @@ import {readFileSync,readdirSync} from 'node:fs';
 import path from 'node:path';
 import {afterEach,expect,it,vi} from 'vitest';
 import {guardianService} from '@/app/services/guardianService';
-import {adaptiveService} from '@/app/services/adaptiveService';
 import {roadmapService} from '@/app/services/roadmapService';
 import {staffService} from '@/app/services/staffService';
 import {authService} from '@/app/services/authService';
@@ -15,7 +14,7 @@ it('ships no runtime data simulators, imports or mock switch',()=>{
 });
 it('does not simulate unsupported progress or recommendations',async()=>{
  const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);
- const result=await Promise.all([guardianService.dashboard(10),guardianService.reports(10),adaptiveService.recommendations(10),adaptiveService.versions(10)]);
+ const result=await Promise.all([guardianService.dashboard(10),guardianService.reports(10)]);
  for(const r of result){expect(r.success).toBe(false);expect(r.status).toBe(501);expect(r.data).toBeNull();}
  expect(fetcher).not.toHaveBeenCalled();
  expect('metrics' in staffService).toBe(false);expect('applications' in staffService).toBe(false);

@@ -48,12 +48,15 @@ export function useParentAuthoring(childId: number) {
   const create = async (title: string) => {
     const body: B.CreateParentDraftRequest = { operationId: crypto.randomUUID(), childProfileId: childId, title, language: 'vi', purpose: 'free', experienceMode: 'reading' };
     const r = await execute(() => api.create(body));
-    if (r?.success && r.data) await load(r.data.story.storyId, true);
+    if (r?.success && r.data) { await load(r.data.story.storyId, true); return true; }
+    return false;
   };
   const save = async (input: Pick<B.SaveCreatorContentRequest,'title'|'content'|'sourceDeclaration'|'rightsDeclaration'|'assistanceReferences'>) => {
     if (!draft || uncertain) return;
     const id = draft.story.storyId; const body = { ...command(), ...input };
-    const r = await execute(() => api.save(id, body)); if (r?.success && r.data) { setVersion(r.data.version); await load(id); }
+    const r = await execute(() => api.save(id, body));
+    if (r?.success && r.data) { setVersion(r.data.version); await load(id); return true; }
+    return false;
   };
   const write = async <T,>(fn: (id: number, cmd: B.CreatorVersionCommand) => Promise<ApiResponse<T>>) => {
     if (!draft || uncertain) return;

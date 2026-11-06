@@ -8,9 +8,10 @@ import type { StoryMediaPackage } from '@/app/types/aiStory';
 import type { ConfirmManualContentRequest } from '@/app/types/backendContracts';
 import MediaAssets from '@/app/features/studio/MediaAssets';
 import { mediaNeedsPolling as continuePolling } from '@/app/features/story-workflow/mediaPackage';
+import SafeImage from "@/app/components/SafeImage";
 
-export default function CreatorManualMedia({ draft, disabled, onWorkingChange, onStatus }: {
-  draft: CreatorDraft; disabled: boolean; onWorkingChange: (value: boolean) => void; onStatus: (value: string) => void;
+export default function CreatorManualMedia({ draft, disabled, missing = [], onWorkingChange, onStatus }: {
+  draft: CreatorDraft; disabled: boolean; /** Ô bắt buộc của bản đã lưu còn trống; backend từ chối chốt khi thiếu. */ missing?: string[]; onWorkingChange: (value: boolean) => void; onStatus: (value: string) => void;
 }) {
   const [queued, setQueued] = useState(['MediaProcessing','MediaReview','Ready'].includes(draft.status ?? ''));
   const [busy, setBusy] = useState(false);
@@ -52,9 +53,16 @@ export default function CreatorManualMedia({ draft, disabled, onWorkingChange, o
     else setNote(r.message || 'Gói media không còn khớp bản hiện tại. Hãy tải lại trạng thái.');
   };
   return <section className="st-card"><h3>Chốt nội dung và tạo ảnh, giọng đọc</h3>
-    <p className="sub">Lưu bản cuối cùng trước khi chốt. Bước này tạo media cho đúng phiên bản, sau đó bạn mới gửi Moderator duyệt công khai.</p>
+    <p className="sub">Bước này chốt nội dung và nhờ AI vẽ tranh, tạo giọng đọc cho truyện. Làm theo thứ tự:</p>
+    <ol className="ce-todo">
+      <li className={queued ? 'done' : ''}><b>Chốt bản đã lưu.</b> Bấm nút bên dưới. Sau khi chốt bạn không sửa nội dung được nữa.</li>
+      <li className={current?.isReady || current?.isGenerated ? 'done' : ''}><b>Chờ AI tạo tranh và giọng đọc.</b> Mất vài phút, trang tự cập nhật tiến trình.</li>
+      <li className={current?.isReady ? 'done' : ''}><b>Xem ảnh, nghe thử và xác nhận.</b> Mục "Ảnh và âm thanh thực tế" cho tạo lại từng tranh, từng đoạn nếu chưa ưng, rồi tích xác nhận gói.</li>
+      <li><b>Sang bước Phát hành</b> để gửi Moderator duyệt công khai.</li>
+    </ol>
+    {draft.status === 'Draft' && !queued && missing.length > 0 && <p className="notice warn">Còn thiếu: {missing.join(', ')}. Quay lại bước 1 điền đủ rồi lưu, nếu không backend sẽ từ chối chốt.</p>}
     {(note || progress.error) && <p className="notice" role="status">{note || progress.error}</p>}
-    {draft.status === 'Draft' && !queued && <button className="btn btn-p" disabled={busy || !pending && disabled || !draft.selectedVersionId} onClick={() => void confirm()}>{pending ? 'Thử lại chốt đúng bản vừa gửi' : 'Chốt bản đã lưu và tạo media'}</button>}
+    {draft.status === 'Draft' && !queued && <button className="btn btn-p" disabled={busy || !pending && disabled || !draft.selectedVersionId || missing.length > 0} onClick={() => void confirm()}>{pending ? 'Thử lại chốt đúng bản vừa gửi' : 'Chốt bản này và nhờ AI tạo tranh, giọng đọc'}</button>}
     {queued && <><p>{current?.isReady ? 'Media đã sẵn sàng' : current?.jobStatus ?? 'Đang lấy trạng thái media…'} · {current?.readyIllustrations ?? 0} tranh · {current?.readyAudio ?? 0} đoạn âm thanh</p>
       {progress.timedOut && <p className="notice warn">Đã dừng theo dõi tự động. Hãy kiểm tra lại trạng thái.</p>}
       <div className="row"><button className="btn btn-s" disabled={busy} onClick={progress.refresh}>Kiểm tra media</button>
@@ -66,8 +74,7 @@ export default function CreatorManualMedia({ draft, disabled, onWorkingChange, o
     {pack?.scenes.map(scene => <article key={scene.sceneId}><h4>Cảnh {scene.sceneIndex + 1}</h4><p style={{ whiteSpace:'pre-wrap' }}>{scene.text}</p>
       {scene.illustrations.map(i => i.url && i.status === 'Ready' ?
         // Signed asset URLs are supplied by the API; native image supports arbitrary storage hosts.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img key={i.beatId} src={i.url} alt={i.visualFocus} style={{ maxWidth:'100%', maxHeight:420, objectFit:'contain' }} /> : <p key={i.beatId}>{i.status}</p>)}
+        <SafeImage key={i.beatId} src={i.url} alt={i.visualFocus} style={{ maxWidth:'100%', maxHeight:420, objectFit:'contain' }} /> : <p key={i.beatId}>{i.status}</p>)}
       {scene.audio?.map(a => <div key={a.segmentId}><p>{a.text}</p>{a.url && a.status === 'Ready' ? <audio controls preload="none" src={a.url} aria-label={`Nghe đoạn ${a.segmentOrder + 1}`} /> : <p>{a.status}</p>}</div>)}
     </article>)}
   </section>;

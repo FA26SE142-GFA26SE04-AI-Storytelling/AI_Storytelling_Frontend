@@ -18,6 +18,8 @@ interface ProblemDetails {
   errors?: Record<string, string[]> | string[];
 }
 
+const ARCHIVE_REASON_TEXT: Record<string, string> = { supervisor_preference: 'Không muốn dùng truyện này nữa', safety_concern: 'Nội dung chưa an toàn' };
+
 const HTTP_ERROR_MESSAGES: Record<number, string> = {
   400: 'Dữ liệu tạo truyện chưa hợp lệ. Vui lòng kiểm tra lại các trường đã nhập.',
   401: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
@@ -123,12 +125,16 @@ export const aiStoryCreationService = {
   getListeningReview: (id: number, signal?: AbortSignal) => request<D.ListeningReviewDto>(`${review(id)}/listening`, 'GET', undefined, signal),
   confirmPackage: (id: number, input: { versionId: number; operationId: string }, signal?: AbortSignal) =>
     request<D.ConfirmStoryPackageResponseDto | D.ContentGenerationProgressDto>(`${review(id)}/confirm-package`, 'POST', input, signal),
+  updateListeningInteraction: (id: number, interactionId: number, input: D.UpdateListeningInteractionRequestDto, signal?: AbortSignal) => request<D.ListeningReviewDto>(`${review(id)}/listening/${interactionId}`, 'PUT', input, signal),
+  regenerateListening: (id: number, type: string, signal?: AbortSignal) => request<D.CreateProposalResponseDto>(`${review(id)}/listening/${type}/ai/regenerate`, 'POST', undefined, signal),
+  completeListening: (id: number, signal?: AbortSignal) => request<boolean>(`${review(id)}/listening/complete`, 'POST', undefined, signal),
   completeStoryReview: (id: number, signal?: AbortSignal) => request<boolean>(`${review(id)}/story/complete`, 'POST', undefined, signal),
   completeReview: (id: number, artifact: D.ReviewArtifact, signal?: AbortSignal) => request<boolean>(`${review(id)}/${artifact}/complete`, 'POST', undefined, signal),
   validateReview: (id: number, signal?: AbortSignal) => request<D.ValidationResultDto>(`${review(id)}/validation`, 'GET', undefined, signal),
   confirmCreatorContent: (id: number, versionId: number, signal?: AbortSignal) => apiRequest<ConfirmCreatorContentResponseDto>(`/creator/stories/${id}/generation/confirm-content`, 'Không xác nhận được nội dung.', { method: 'POST', body: { versionId }, signal }),
   approveStory: (id: number, signal?: AbortSignal) => request<D.ApproveResponseDto>(`${review(id)}/approve`, 'POST', undefined, signal),
-  archiveStory: (id: number, input: D.ArchiveRequestDto, signal?: AbortSignal) => request<D.ArchiveResponseDto>(`${review(id)}/archive`, 'POST', input, signal),
+  /** Backend đã bỏ /review/archive (trạng thái Archived đổi thành Rejected): huỷ truyện giờ là POST /review/reject kèm lý do, chỉ làm được khi truyện đang ở bước duyệt nội dung. */
+  archiveStory: (id: number, input: D.ArchiveRequestDto, signal?: AbortSignal) => request<D.ArchiveResponseDto>(`${review(id)}/reject`, 'POST', { reason: ARCHIVE_REASON_TEXT[input.reason ?? ''] ?? input.reason ?? null }, signal),
   partialEditStory: (id: number, input: D.PartialEditRequestDto, signal?: AbortSignal) => request<D.CreateProposalResponseDto>(`${review(id)}/story/ai/partial-edit`, 'POST', input, signal),
   regenerateReviewArtifact: (id: number, artifact: Exclude<D.ReviewArtifact, 'story'>, signal?: AbortSignal) => request<D.CreateProposalResponseDto>(`${review(id)}/${artifact}/ai/regenerate`, 'POST', undefined, signal),
   getProposal: (id: number, proposalId: string, signal?: AbortSignal) => request<D.AIProposalDto>(`${review(id)}/proposals/${encodeURIComponent(proposalId)}`, 'GET', undefined, signal),

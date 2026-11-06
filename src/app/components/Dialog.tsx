@@ -1,0 +1,19 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { X } from "lucide-react";
+
+/** Popup dùng chung cho form điền thông tin: bấm nền tối hoặc nút X để đóng. */
+export default function Dialog({ title, onClose, children, wide }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean }) {
+  return (
+    <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className={`dlg${wide ? " wide" : ""}`}>
+        <div className="row">
+          <b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>{title}</b>
+          <button type="button" className="btn btn-g" aria-label="Đóng" title="Đóng" onClick={onClose}><X className="ic" /></button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}

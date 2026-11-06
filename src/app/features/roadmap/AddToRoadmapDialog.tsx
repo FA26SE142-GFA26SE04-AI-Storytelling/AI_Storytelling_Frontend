@@ -86,7 +86,7 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
   return (
     <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="dlg">
-        <div className="row"><b className="display grow" style={{ fontSize: 18 }}>{title}</b><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
+        <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>{title}</b><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
         {result ? (
           <>
             {result.added.length > 0 && <div className="notice ok">Đã thêm cho {[...new Set(result.added.map((a) => nameOf(a.childProfileId)))].join(", ")}{result.added.some((a) => a.moved) ? " (truyện đã có được chuyển lên đọc tiếp theo)" : ""}.</div>}
@@ -104,7 +104,7 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
             {template && (
               <div className="sec" style={{ gap: 4 }}>
                 <span className="sub">{template.description}</span>
-                <ol style={{ margin: 0, paddingLeft: 18, fontSize: 13 }}>{template.stories.map((s) => <li key={s.storyId}>{s.title}</li>)}</ol>
+                <ol style={{ margin: 0, paddingLeft: 18, fontSize: "var(--fs-sm)" }}>{template.stories.map((s) => <li key={s.storyId}>{s.title}</li>)}</ol>
               </div>
             )}
             {!single && <div className="field">
@@ -138,7 +138,7 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
             {preview && <div className="sec"><b>Kế hoạch sao chép</b>{preview.children.map(c => <div key={c.childProfileId}><b>{nameOf(c.childProfileId)}</b><p>{c.message ?? c.outcome}</p>{c.steps.map(s => <p key={s.storyId}>{s.title ?? s.storyId}: {s.action === 'Copy' ? 'Sẽ thêm' : s.message ?? s.skipCode ?? 'Bỏ qua'}</p>)}{c.warnings.map(w => <p key={w}>{w}</p>)}</div>)}<p className="sub">Điều kiện sẽ được kiểm tra lại khi xác nhận.</p></div>}
             {err && <div className="notice err" role="alert">{err}</div>}
             <div className="row" style={{ justifyContent: "flex-end" }}>
-              <button className="btn btn-g" onClick={onClose}>Hủy</button>
+              <button className="btn btn-g" onClick={onClose}><X className="ic" />Hủy</button>
               <button className="btn btn-p" disabled={busy || !refs.length} onClick={() => void submit()}><Route className="ic" />{busy ? "Đang xử lý…" : template && !preview ? "Xem trước kế hoạch" : "Thêm"}</button>
             </div>
           </>

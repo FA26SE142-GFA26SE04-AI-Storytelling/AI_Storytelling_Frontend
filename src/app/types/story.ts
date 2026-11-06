@@ -1,4 +1,4 @@
-/** Chế độ đầu ra của truyện: kèm học liệu, hoặc chỉ để đọc (không tạo từ vựng / câu đố / thảo luận). */
+/** Chế độ đầu ra của truyện: kèm học liệu, hoặc chỉ để đọc (không tạo từ vựng / câu đố). */
 export type StoryOutputMode = 'learning' | 'reading_media_only';
 
 /** Theo `StoryDto` của backend (`GET /Story`, `GET /Story/{id}`). */

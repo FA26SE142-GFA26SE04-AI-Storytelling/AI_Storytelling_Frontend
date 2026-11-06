@@ -1,28 +1,28 @@
 /* Cài đặt an toàn */
-.setnav button:not(.btn) { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 8px; color: var(--muted); font-size: 12.5px; font-weight: 600; text-align: left; width: 100%; }
+.setnav button:not(.btn) { display: flex; align-items: center; gap: 8px; padding: 7px 9px; border-radius: 8px; color: var(--muted); font-size: var(--fs-sm); font-weight: 600; text-align: left; width: 100%; }
 .setnav button:not(.btn):hover { background: var(--surface); color: var(--text); }
 
 .setbody { background: var(--panel); overflow-y: auto; padding: 28px 36px 60px; display: flex; flex-direction: column; gap: 34px; scroll-behavior: smooth; }
 .setbody section { max-width: 640px; }
-.setbody h2 { margin: 0 0 2px; font-size: 22px; }
+.setbody h2 { margin: 0 0 2px; font-size: var(--fs-xl); }
 
 .opt { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); cursor: pointer; transition: border-color .15s; }
 .opt.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 7%, transparent); }
 .opt input { accent-color: var(--primary); margin-top: 3px; }
-.opt b { display: block; font-size: 13px; }
-.opt small { color: var(--muted); font-size: 12px; }
+.opt b { display: block; font-size: var(--fs-sm); }
+.opt small { color: var(--muted); font-size: var(--fs-xs); }
 
-.trow { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-weight: 700; font-size: 13px; }
-.trow small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; }
+.trow { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 0; border-bottom: 1px solid var(--line); font-weight: 700; font-size: var(--fs-sm); }
+.trow small { display: block; color: var(--muted); font-weight: 400; font-size: var(--fs-xs); }
 
 /* Cài đặt an toàn nằm trong tab "An toàn" của Hồ sơ bé. */
 .safety-tab { display: flex; flex-direction: column; gap: 20px; }
 .safety-jump { display: flex; flex-wrap: wrap; gap: 6px; }
-.safety-jump button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); color: var(--muted); font-size: 12.5px; font-weight: 600; transition: color .15s, border-color .15s; }
+.safety-jump button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); color: var(--muted); font-size: var(--fs-sm); font-weight: 600; transition: color .15s, border-color .15s; }
 .safety-jump button:hover { color: var(--text); border-color: var(--primary); }
 .safety-tab .setbody { background: transparent; padding: 0; overflow: visible; gap: 28px; }
 .safety-tab .setbody section { max-width: none; scroll-margin-top: 12px; }
-.safety-tab .setbody h2 { font-size: 18px; }
+.safety-tab .setbody h2 { font-size: var(--fs-lg); }
 .safety-savebar { display: flex; align-items: center; gap: 12px; padding: 4px 0 8px; }
 
 /* Bố cục thẻ: mỗi mục là một thẻ có đệm; màn rộng chia hai cột, mục dài chiếm cả hàng. */
@@ -41,3 +41,8 @@
 
 .safety-tab .setbody { position: relative; }
 .safety-deny { position: absolute; inset: 0; z-index: 5; cursor: not-allowed; }
+
+/* Công tắc quan trọng (hỏi mật khẩu khi bé thoát): tách khỏi thanh trên và làm nổi bật bằng khung riêng. */
+.trow.strong { margin-top: 22px; padding: 14px 16px; border: 1px solid var(--primary); border-radius: 16px; background: color-mix(in srgb, var(--primary) 10%, var(--surface)); font-size: var(--fs-md); font-weight: 800; }
+.trow.strong small { margin-top: 4px; font-size: var(--fs-sm); }
+.safety-tab .setbody .trow.strong:last-child { padding-bottom: 14px; border-bottom: 1px solid var(--primary); }

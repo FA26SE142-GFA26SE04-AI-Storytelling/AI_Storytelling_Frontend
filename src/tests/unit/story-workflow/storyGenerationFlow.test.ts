@@ -4,7 +4,7 @@ import { contentDestination, generationDisplayPhase, normalizeStoryStatus, outli
 
 const content: ContentGenerationProgressDto = {
   storyId: 7, storyStatus: 'outline_review', currentStep: 'generating_vocabulary', content: 'stable',
-  vocabulary: 'processing', quiz: 'not_started', discussion: 'not_started', isComplete: false,
+  vocabulary: 'processing', quiz: 'not_started', isComplete: false,
   stableStoryVersionId: 2, lastErrorCode: null, qualityFailure: null,
 };
 const outline: OutlineProgressDto = {

@@ -58,7 +58,10 @@ export function useStoryPipeline(userId: number, childId: number | null, approve
       if (!version) return { success: false, data: null, message: "Chưa tải được dàn ý để huỷ." };
       return api.rejectOutline(storyId, version, { reason: "Phụ huynh huỷ để làm lại từ ý tưởng" });
     }
-    return api.archiveStory(storyId, { reason: "supervisor_preference" });
+    const r = await api.archiveStory(storyId, { reason: "supervisor_preference" });
+    // 409: backend chỉ cho huỷ khi truyện đang ở bước duyệt nội dung; lúc AI vừa lỗi thì chưa huỷ được.
+    if (!r.success && r.status === 409) return { ...r, message: "Truyện chưa huỷ được ở bước này. Bấm Thử lại để AI làm tiếp, hoặc huỷ khi truyện tới bước Duyệt." };
+    return r;
   };
 
   /**

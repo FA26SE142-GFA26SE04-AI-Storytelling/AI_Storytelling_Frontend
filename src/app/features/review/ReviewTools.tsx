@@ -2,12 +2,12 @@
 
 import "./review-tools.css";
 import { useState } from "react";
-import { Archive, Check, Plus, RefreshCw, Trash2, X } from "lucide-react";
+import { Check, Plus, RefreshCw, Trash2, X } from "lucide-react";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import type { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
 import type { QuizQuestionDto, VocabularyItemDto } from "@/app/types/aiStory";
 import type { ApiResponse } from "@/app/types/auth";
-import { ARCHIVE_REASONS, quizTypesFor, type ArchiveReason } from "@/app/lib/storyRules";
+import { normalizeQuizType, normalizeTrueFalse, quizTypesFor } from "@/app/lib/storyRules";
 
 type Review = ReturnType<typeof useStoryReview>;
 type Artifact = "vocabulary" | "quiz";
@@ -18,7 +18,7 @@ function Dialog({ title, onClose, children, wide }: { title: string; onClose: ()
   return (
     <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className={`dlg${wide ? " wide" : ""}`}>
-        <div className="row"><b className="display grow" style={{ fontSize: 18 }}>{title}</b><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
+        <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>{title}</b><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
         {children}
       </div>
     </div>
@@ -43,7 +43,7 @@ export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: st
     if (tab === "vocabulary") return (draft.vocabulary as VocabularyItemDto[]).some((v) => !v.term.trim() || !v.definition.trim()) ? "Mỗi từ cần có cả từ và nghĩa." : null;
     const qs = draft.quiz as QuizQuestionDto[];
     if (qs.some((q) => !q.question.trim() || !q.correctAnswer?.trim())) return "Mỗi câu hỏi cần có nội dung và đáp án đúng.";
-    if (qs.some((q) => q.type === "multiple_choice" && (q.choices ?? []).filter((c) => c.trim()).length < 2)) return "Câu trắc nghiệm cần ít nhất 2 phương án.";
+    if (qs.some((q) => normalizeQuizType(q.type) === "MultipleChoice" && (q.choices ?? []).filter((c) => c.trim()).length < 2)) return "Câu trắc nghiệm cần ít nhất 2 phương án.";
     return null;
   };
 
@@ -52,7 +52,7 @@ export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: st
     if (bad) throw new Error(bad);
     const versionId = b.summary.storyVersionId;
     const res: ApiResponse<unknown> = tab === "vocabulary" ? await api.updateVocabularyReview(b.summary.storyId, { versionId, items: draft.vocabulary as VocabularyItemDto[] }, signal)
-      : await api.updateQuizReview(b.summary.storyId, { versionId, items: (draft.quiz as QuizQuestionDto[]).map((q) => ({ ...q, choices: q.choices?.filter((c) => c.trim()) ?? null })) }, signal);
+      : await api.updateQuizReview(b.summary.storyId, { versionId, items: (draft.quiz as QuizQuestionDto[]).map((q) => ({ ...q, type: normalizeQuizType(q.type) ?? q.type, correctAnswer: normalizeQuizType(q.type) === "TrueFalse" ? (normalizeTrueFalse(q.correctAnswer) ?? q.correctAnswer) : q.correctAnswer, choices: q.choices?.filter((c) => c.trim()) ?? null })) }, signal);
     r.requireData(res);
     await r.load(signal);
     setSaved(`Đã lưu ${ARTIFACT_LABEL[tab].toLowerCase()}.`);
@@ -65,7 +65,7 @@ export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: st
 
   const blank: Record<Artifact, Item> = {
     vocabulary: { term: "", definition: "" },
-    quiz: { type: types[0].id, question: "", correctAnswer: "", choices: types[0].id === "multiple_choice" ? ["", "", ""] : null },
+    quiz: { type: types[0].id, question: "", correctAnswer: "", choices: types[0].id === "MultipleChoice" ? ["", "", ""] : null },
   };
 
   return (
@@ -85,15 +85,15 @@ export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: st
             {tab === "quiz" && (() => { const q = it as QuizQuestionDto; return (
               <div className="sec grow" style={{ gap: 6 }}>
                 <div className="row">
-                  <select className="inp" style={{ width: "auto" }} value={q.type} aria-label="Loại câu hỏi" onChange={(e) => {
+                  <select className="inp" style={{ width: "auto" }} value={normalizeQuizType(q.type) ?? q.type} aria-label="Loại câu hỏi" onChange={(e) => {
                     const type = e.target.value;
-                    patch(i, { type, choices: type === "multiple_choice" ? q.choices?.length ? q.choices : ["", "", ""] : type === "true_false" ? ["Đúng", "Sai"] : null });
+                    patch(i, { type, choices: type === "MultipleChoice" ? q.choices?.length ? q.choices : ["", "", ""] : type === "TrueFalse" ? ["Đúng", "Sai"] : null });
                   }}>
                     {types.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                   <input className="inp" value={q.question} onChange={(e) => patch(i, { question: e.target.value })} placeholder="Câu hỏi" aria-label="Câu hỏi" />
                 </div>
-                {q.type === "multiple_choice" && (
+                {normalizeQuizType(q.type) === "MultipleChoice" && (
                   <div className="row" style={{ flexWrap: "wrap" }}>
                     {(q.choices ?? []).map((c, k) => (
                       <label key={k} className="row" style={{ gap: 4 }}>
@@ -106,10 +106,10 @@ export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: st
                     ))}
                   </div>
                 )}
-                {q.type === "true_false" && (
-                  <div className="seg" style={{ maxWidth: 200 }}>{["Đúng", "Sai"].map((v) => <button key={v} type="button" className={q.correctAnswer === v ? "on" : ""} onClick={() => patch(i, { correctAnswer: v })}>{v}</button>)}</div>
+                {normalizeQuizType(q.type) === "TrueFalse" && (
+                  <div className="seg" style={{ maxWidth: 200 }}>{([["true", "Đúng"], ["false", "Sai"]] as const).map(([v, label]) => <button key={v} type="button" className={normalizeTrueFalse(q.correctAnswer) === v ? "on" : ""} onClick={() => patch(i, { correctAnswer: v })}>{label}</button>)}</div>
                 )}
-                {q.type === "short_answer" && (
+                {normalizeQuizType(q.type) === "ShortAnswer" && (
                   <input className="inp" value={q.correctAnswer ?? ""} onChange={(e) => patch(i, { correctAnswer: e.target.value })} placeholder="Đáp án chấp nhận" aria-label="Đáp án" />
                 )}
               </div>
@@ -127,39 +127,6 @@ export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: st
         <button className="btn btn-s" disabled={r.busy || !!r.proposal} onClick={() => void regenerate()}><RefreshCw className="ic" />AI tạo lại</button>
         <span className="grow" />
         <button className="btn btn-p" disabled={r.busy || !dirty} onClick={() => void save()}><Check className="ic" />Lưu {ARTIFACT_LABEL[tab].toLowerCase()}</button>
-      </div>
-    </Dialog>
-  );
-}
-
-/** Lưu trữ truyện, bắt buộc chọn lý do (Luồng 2 mục 6.6). */
-export function ArchiveDialog({ storyId, onClose, onDone }: { storyId: number; onClose: () => void; onDone: (msg: string) => void }) {
-  const [reason, setReason] = useState<ArchiveReason>("supervisor_preference");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const submit = async () => {
-    setBusy(true);
-    setErr(null);
-    const res = await api.archiveStory(storyId, { reason });
-    setBusy(false);
-    if (res.success) onDone("Đã lưu trữ truyện");
-    else setErr(res.message);
-  };
-  return (
-    <Dialog title="Lưu trữ truyện" onClose={onClose}>
-      <p className="sub">Truyện sẽ không hiện với bé nữa. Truyện không bị xoá hẳn.</p>
-      <div className="sec" style={{ gap: 7 }}>
-        {ARCHIVE_REASONS.map((a) => (
-          <label key={a.id} className={`opt${reason === a.id ? " on" : ""}`}>
-            <input type="radio" name="archive" checked={reason === a.id} onChange={() => setReason(a.id)} />
-            <span><b>{a.label}</b><small>{a.hint}</small></span>
-          </label>
-        ))}
-      </div>
-      {err && <div className="notice err" role="alert">{err}</div>}
-      <div className="row" style={{ justifyContent: "flex-end" }}>
-        <button className="btn btn-g" onClick={onClose}>Hủy</button>
-        <button className="btn btn-no" disabled={busy} onClick={() => void submit()}><Archive className="ic" />Lưu trữ</button>
       </div>
     </Dialog>
   );

@@ -9,6 +9,7 @@ import type { PagedResult } from "@/app/types/backendContracts";
 import type { ManagedWishCardGroup, WishCardDto } from "@/app/types/storyWish";
 import "@/app/features/review/review-tools.css";
 import { Notice, Page, useAction } from "./ui";
+import SafeImage from "@/app/components/SafeImage";
 
 export const WISH_GROUPS: { id: ManagedWishCardGroup; label: string; wish: boolean }[] = [
   { id: "Character", label: "Nhân vật", wish: true },
@@ -85,7 +86,7 @@ export default function WishCardManagement() {
         <thead><tr><th>Hình</th><th>Nhãn</th><th>Nhóm</th><th>Tuổi</th><th>Nhãn nội dung</th><th>Thứ tự</th><th>Trạng thái</th><th /></tr></thead>
         <tbody>
           {list?.items.map((c) => <tr key={c.id} className={editing?.id === c.id ? "on" : undefined}>
-            <td><img src={c.imageUrl} alt="" width={44} height={44} style={{ objectFit: "contain", borderRadius: 8 }} /></td>
+            <td><SafeImage src={c.imageUrl} alt="" width={44} height={44} style={{ objectFit: "contain", borderRadius: 8 }} /></td>
             <td><b>{c.label}</b>{c.audioUrl && <div><audio controls preload="none" src={c.audioUrl} style={{ height: 28, maxWidth: 180 }} /></div>}</td>
             <td>{groupLabel(c.group)}</td>
             <td>{c.ageBand ?? "Mọi tuổi"}</td>
@@ -122,7 +123,7 @@ export default function WishCardManagement() {
         <label className="field">Thứ tự hiển thị<input className="inp" inputMode="numeric" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: e.target.value })} /></label>
       </div>
       {editing && <small className="sub">Không đổi được nhóm của thẻ đã tạo. Muốn đổi nhóm, hãy tạo thẻ mới rồi ẩn thẻ này.</small>}
-      {isUrl(image) && <div className="row"><img src={image} alt="Xem trước hình thẻ" width={88} height={88} style={{ objectFit: "contain", borderRadius: 12 }} /><span className="sub">Xem trước hình thẻ</span></div>}
+      {isUrl(image) && <div className="row"><SafeImage src={image} alt="Xem trước hình thẻ" width={88} height={88} style={{ objectFit: "contain", borderRadius: 12 }} /><span className="sub">Xem trước hình thẻ</span></div>}
       {problem && (label || image) && <small className="sub">{problem}</small>}
       <div className="row">
         <IconButton icon={editing ? Save : Plus} label={editing ? "Lưu thay đổi" : "Thêm thẻ"} className="btn btn-p" disabled={busy || !!problem} onClick={() => void save()} />

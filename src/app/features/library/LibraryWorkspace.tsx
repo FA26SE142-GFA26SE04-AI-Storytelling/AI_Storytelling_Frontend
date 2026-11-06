@@ -2,7 +2,10 @@
 
 import "./library.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Archive, ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, Send, WandSparkles, X } from "lucide-react";
+import { createPortal } from "react-dom";
+import { aiStoryCreationService } from "@/app/services/aiStoryCreationService";
+import AudioRing from "./AudioRing";
+import { ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, Send, WandSparkles, X } from "lucide-react";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useAuth } from "@/app/context/AuthContext";
 import type { StoryDto } from "@/app/types/story";
@@ -11,11 +14,11 @@ import { ageLabel, familyToCard, splitScenes, statusKey, toCard, type StoryCard 
 import { parentAuthoringService } from "@/app/services/parentAuthoringService";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useRiseIn } from "@/app/lib/motion";
-import { ArchiveDialog } from "@/app/features/review/ReviewTools";
 import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
 import { guardianService } from "@/app/services/guardianService";
 import type { CommunitySubmission, ContentReport } from "@/app/types/progress";
 import { CommunityDialog, ReportDialog } from "./ModerationDialogs";
+import { confirmDialog } from "@/app/lib/confirm";
 
 const SUB_STATUS: Record<string, string> = { pending: "Đang chờ duyệt", approved: "Đã có trong thư viện cộng đồng", rejected: "Bị từ chối — có thể nộp lại", withdrawn: "Đã rút", removed: "Đã gỡ" };
 
@@ -23,40 +26,99 @@ const SUB_STATUS: Record<string, string> = { pending: "Đang chờ duyệt", app
 const STATUS_GROUPS: { id: string; label: string; keys: string[] }[] = [
   { id: "draft", label: "Nháp", keys: ["draft"] },
   { id: "generating", label: "Đang sinh", keys: ["input_accepted", "generating"] },
-  { id: "outline", label: "Chờ duyệt dàn ý", keys: ["outline_review"] },
+  { id: "outline", label: "Chờ bạn duyệt dàn ý", keys: ["outline_review"] },
   { id: "moderation", label: "Đang kiểm duyệt an toàn", keys: ["moderation_review"] },
-  { id: "review", label: "Chờ duyệt", keys: ["content_review"] },
+  { id: "review", label: "Chờ bạn duyệt", keys: ["content_review"] },
   { id: "media", label: "Đang chuẩn bị media", keys: ["approved", "media_processing", "media_review"] },
   { id: "ready", label: "Sẵn sàng", keys: ["ready", "published"] },
   { id: "blocked", label: "Bị chặn", keys: ["blocked"] },
   { id: "rejected", label: "Bị từ chối", keys: ["rejected"] },
-  { id: "archived", label: "Đã lưu trữ", keys: ["archived"] },
 ];
 
 const statusOf = (s: StoryCard) => STATUS_GROUPS.find((g) => g.keys.includes(statusKey(s.raw)))?.id ?? "draft";
 
-/** Xem trước truyện như bé thấy — không ghi nhận lượt đọc, không cộng điểm. */
-function Preview({ story, onClose }: { story: StoryCard; onClose: () => void }) {
-  const [pages, setPages] = useState<string[] | null>(null);
+/** Một trang khi đọc: chữ của cảnh, các tranh và đoạn giọng đọc (đã sẵn sàng, có URL) của cảnh đó. */
+type PreviewPage = { text: string; images: string[]; audio: { url: string; label: string }[] };
+
+/**
+ * Xem trước truyện như bé thấy — không ghi nhận lượt đọc, không cộng điểm.
+ * Truyện AI lấy từng cảnh từ gói media của backend (GET /stories/{id}/media/package: chữ, tranh, giọng đọc);
+ * chưa có gói media (hoặc truyện thủ công) thì chỉ hiện chữ, chia đoạn theo nội dung truyện.
+ */
+export type PreviewStory = Pick<StoryCard, "id" | "title" | "cover"> & { family?: boolean; raw?: Pick<StoryDto, "content"> };
+
+/** `loadContent`: nguồn chữ riêng (Content Creator đọc qua /creator/stories); không truyền thì dùng API của phụ huynh. */
+export function Preview({ story, onClose, loadContent }: { story: PreviewStory; onClose: () => void; loadContent?: () => Promise<string> }) {
+  const [pages, setPages] = useState<PreviewPage[] | null>(null);
   const [page, setPage] = useState(0);
+  const [shot, setShot] = useState(0);
+  const [broken, setBroken] = useState<string | null>(null);
   useEffect(() => {
-    void storyService.getStoryById(story.id).then((r) => {
-      setPages(splitScenes(r.data?.content ?? story.raw.content ?? ""));
-    });
-  }, [story]);
-  return (
+    const c = new AbortController();
+    const textOnly = (content: string): PreviewPage[] => splitScenes(content).map((text) => ({ text, images: [], audio: [] }));
+    const load = async (): Promise<PreviewPage[]> => {
+      // Bản nháp thủ công của phụ huynh không nằm trong GET /Story và không có gói media: chỉ hiện chữ.
+      if (story.family && !loadContent) {
+        const d = await parentAuthoringService.get(story.id);
+        const versionId = d.data?.story.selectedVersionId;
+        const v = versionId ? await parentAuthoringService.version(story.id, versionId) : null;
+        return textOnly(v?.data?.content ?? "");
+      }
+      const [content, pack] = await Promise.all([
+        loadContent ? loadContent() : storyService.getStoryById(story.id).then((r) => r.data?.content ?? story.raw?.content ?? ""),
+        aiStoryCreationService.getMediaPackage(story.id, c.signal).then((r) => (r.success ? r.data : null)).catch(() => null),
+      ]);
+      const texts = splitScenes(content);
+      const scenes = pack?.scenes?.slice().sort((a, b) => a.sceneIndex - b.sceneIndex) ?? [];
+      if (!scenes.length) return textOnly(content);
+      return scenes.map((scene, i) => {
+        const audio = (scene.audio ?? []).slice().sort((a, b) => a.segmentOrder - b.segmentOrder);
+        return {
+          text: scene.text?.trim() || audio.map((a) => a.text).join(" ").trim() || texts[i] || "",
+          images: scene.illustrations.slice().sort((a, b) => a.beatOrder - b.beatOrder)
+            .flatMap((x) => (x.status === "Ready" && x.url ? [x.url] : [])),
+          audio: audio.flatMap((a) => (a.status === "Ready" && a.url ? [{ url: a.url, label: `Đoạn ${a.segmentOrder + 1}` }] : [])),
+        };
+      });
+    };
+    void load().then((p) => { if (!c.signal.aborted) setPages(p); }).catch(() => { if (!c.signal.aborted) setPages([]); });
+    return () => c.abort();
+  }, [story]); // eslint-disable-line react-hooks/exhaustive-deps -- loadContent đổi theo từng lần vẽ; chỉ tải lại khi đổi truyện
+  const go =(to: number) => { setPage(to); setShot(0); setBroken(null); };
+  const current = pages?.[page];
+  const image = current?.images[shot];
+  const shown = image && broken !== image ? image : null;
+  // Phát qua portal ra <body>: nếu để trong vùng nội dung, thanh điều hướng trên cùng sẽ đè lên hộp thoại.
+  if (typeof document === "undefined") return null;
+  return createPortal(
     <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={`Xem trước ${story.title}`} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="dlg wide preview">
-        <div className="row"><b className="display grow" style={{ fontSize: 18 }}>{story.title}</b><span className="pill draft">Xem trước — không tính lượt đọc</span><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
-        <div className="cover" style={{ aspectRatio: "16/7", borderRadius: 16, background: story.gradient }} />
-        <p className="display preview-text">{pages === null ? "Đang mở truyện…" : pages[page] ?? "Truyện chưa có nội dung."}</p>
+        <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>{story.title}</b><span className="pill draft">Xem trước — không tính lượt đọc</span><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
+        <div className="preview-body">
+          <div className="preview-media">
+            {shown
+              // Ảnh là URL có chữ ký của backend, nên dùng thẻ img thường.
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img className="preview-img" src={shown} alt={`Tranh minh hoạ trang ${page + 1}`} onError={() => setBroken(shown)} />
+              : <div className="cover" style={{ aspectRatio: "16/9", borderRadius: 16, background: story.cover }} role="img" aria-label="Chưa có tranh minh hoạ cho trang này" />}
+            {/* Nút nghe tròn ở góc phải trên của hình; key theo trang để đổi trang thì dừng tiếng và chạy lại từ đầu. */}
+            {current && current.audio.length > 0 && <AudioRing key={page} urls={current.audio.map((a) => a.url)} label={`Nghe giọng đọc trang ${page + 1}`} />}
+          </div>
+          {current && current.images.length > 1 && (
+            <div className="row preview-shots" aria-label="Chọn tranh trong trang">
+              {current.images.map((u, i) => <button key={u} className="btn btn-s" aria-pressed={i === shot} onClick={() => { setShot(i); setBroken(null); }}>Tranh {i + 1}</button>)}
+            </div>
+          )}
+          <p className="display preview-text">{pages === null ? "Đang mở truyện…" : current?.text || "Truyện chưa có nội dung."}</p>
+        </div>
         <div className="row">
-          <button className="btn btn-s" disabled={page === 0} onClick={() => setPage(page - 1)} aria-label="Trang trước"><ChevronLeft className="ic" /></button>
-          <span className="grow sub" style={{ textAlign: "center" }}>{pages ? `Trang ${page + 1} / ${pages.length}` : ""}</span>
-          <button className="btn btn-s" disabled={!pages || page >= pages.length - 1} onClick={() => setPage(page + 1)} aria-label="Trang sau"><ChevronRight className="ic" /></button>
+          <button className="btn btn-s" disabled={page === 0} onClick={() => go(page - 1)} aria-label="Trang trước"><ChevronLeft className="ic" /></button>
+          <span className="grow sub" style={{ textAlign: "center" }}>{pages?.length ? `Trang ${page + 1} / ${pages.length}` : ""}</span>
+          <button className="btn btn-s" disabled={!pages || page >= pages.length - 1} onClick={() => go(page + 1)} aria-label="Trang sau"><ChevronRight className="ic" /></button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 
@@ -71,7 +133,7 @@ function BookCard({ story, rank, on, onPick }: { story: StoryCard; rank?: number
   const ready = statusOf(story) === "ready";
   return (
     <button className={`bk${on ? " on" : ""}`} onClick={onPick} aria-pressed={on}>
-      <span className="bk-cover" style={{ background: story.gradient }}>
+      <span className="bk-cover" style={{ background: story.cover }}>
         {!ready ? <span className={`pill ${story.tone} bk-badge`}>{story.statusLabel}</span> : isNew(story) && <span className="bk-badge bk-new">Mới</span>}
         <span className="bk-name display">{story.title}</span>
         {rank !== undefined && <span className="bk-rank display" aria-hidden>{rank}</span>}
@@ -172,7 +234,6 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
     setFamily(all);
   }, []);
   useEffect(() => { void loadPublic(); void loadFamily(); }, [loadPublic, loadFamily]);
-  const reload = useCallback(async () => { await Promise.all([loadPublic(), loadFamily()]); }, [loadPublic, loadFamily]);
   const stories = useMemo(() => {
     const seen = new Set(pub.map((s) => s.id));
     return [...pub, ...family.filter((s) => !seen.has(s.id))].filter((s) => SHOWN_GROUPS.includes(statusOf(s)));
@@ -196,7 +257,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const [srcF, setSrcF] = useState("all");
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
-  const [dialog, setDialog] = useState<"preview" | "archive" | "roadmap" | "report" | "community" | null>(null);
+  const [dialog, setDialog] = useState<"preview" | "roadmap" | "report" | "community" | null>(null);
   const [mod, setMod] = useState<{ reports: ContentReport[]; submission: CommunitySubmission | null } | null>(null);
   const [toast, setToast] = useState("");
   // Khung "Chi tiết" bên phải thu gọn được; cột lưới co theo bằng CSS (library.css).
@@ -238,7 +299,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const pick = (id: number) => { setSelected(id); if (asideCollapsed) setAsideCollapsed(false); };
   const card = (s: StoryCard, rank?: number) => <BookCard key={s.id} story={s} rank={rank} on={sel?.id === s.id} onPick={() => pick(s.id)} />;
   const selStatus = sel ? statusOf(sel) : null;
-  // Quản lý (nộp thư viện cộng đồng, rút, lưu trữ) chỉ dành cho truyện của chính bạn; truyện của người khác chỉ xem, xem trước, báo cáo hoặc thêm vào lộ trình.
+  // Quản lý (nộp thư viện cộng đồng, rút) chỉ dành cho truyện của chính bạn; truyện của người khác chỉ xem, xem trước, báo cáo hoặc thêm vào lộ trình.
   const mine = !!sel && sel.raw.authorUserId === user?.id;
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(""), 3200); };
   const loadMod = async () => { if (sel) setMod((await guardianService.storyModeration(sel.id)).data); };
@@ -339,8 +400,8 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
       <AsidePane title="Chi tiết" icon={Info}>
           {sel ? (
             <>
-              <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: sel.gradient }} />
-              <h3 className="display" style={{ fontSize: 20, margin: 0, lineHeight: 1.2 }}>{sel.title}</h3>
+              <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: sel.cover }} />
+              <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title}</h3>
               {sel.raw.description && <p className="sub">{sel.raw.description}</p>}
               <div className="meta">
                 <span>Nguồn</span><b>{SOURCE_LABEL[sourceOf(sel)]}</b>
@@ -362,7 +423,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
               {selStatus === "ready" && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình</button>}
               {selStatus === "ready" && mod?.submission && <p className="sub">Thư viện cộng đồng: {SUB_STATUS[mod.submission.status] ?? mod.submission.status}</p>}
               {mine && selStatus === "ready" && mod?.submission && ((mod.submission.canWithdraw ?? mod.submission.status === "pending") || (mod.submission.canRemove ?? mod.submission.status === "approved")) && (
-                <button className="btn btn-s btn-c" onClick={() => void (mod.submission!.canRemove ?? mod.submission!.status === "approved" ? guardianService.removeCommunity(mod.submission!.id) : guardianService.withdrawCommunity(mod.submission!.id)).then((r) => { flash(r.success ? r.message : r.message); void loadMod(); })}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
+                <button className="btn btn-s btn-c" onClick={async () => { const withdraw = mod.submission!.status === "pending"; if (!(await confirmDialog(withdraw ? "Rút yêu cầu nộp thư viện cộng đồng? Truyện sẽ không còn chờ duyệt." : "Gỡ truyện khỏi thư viện cộng đồng? Mọi người sẽ không còn thấy truyện này."))) return; void (mod.submission!.canRemove ?? mod.submission!.status === "approved" ? guardianService.removeCommunity(mod.submission!.id) : guardianService.withdrawCommunity(mod.submission!.id)).then((r) => { flash(r.message); void loadMod(); }); }}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
               )}
               {mine && selStatus === "ready" && !(mod?.submission && ["pending", "approved"].includes(mod.submission.status)) && (
                 <button className="btn btn-s btn-c" disabled={!!mod?.reports.some((r) => r.status === "pending")} title={mod?.reports.some((r) => r.status === "pending") ? "Truyện đang có báo cáo chờ xử lý" : undefined} onClick={() => setDialog("community")}><Send className="ic" />Nộp thư viện cộng đồng</button>
@@ -370,8 +431,6 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
               {selStatus === "ready" && <button className="btn btn-g btn-c" onClick={() => setDialog("report")}><Flag className="ic" />Báo cáo nội dung</button>}
               {mod?.reports.some((r) => r.status === "pending") && <p className="sub">Đã có báo cáo đang chờ kiểm duyệt viên xử lý.</p>}
               {selStatus !== "archived" && <button className="btn btn-s btn-c" onClick={() => setDialog("preview")}><Eye className="ic" />Xem trước như bé thấy</button>}
-              {/* Lưu trữ cần quyền duyệt truyện (Luồng 2 mục 2.1, BR-1.10). */}
-              {mine && selStatus !== "archived" && <button className="btn btn-no btn-c" onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ</button>}
               </>}
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
@@ -380,7 +439,6 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
       {sel && dialog === "roadmap" && <AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} onClose={() => setDialog(null)} />}
       {sel && dialog === "report" && <ReportDialog story={sel} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
       {sel && dialog === "community" && <CommunityDialog story={sel} nickname="" onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
-      {sel && dialog === "archive" && <ArchiveDialog storyId={sel.id} onClose={() => setDialog(null)} onDone={(msg) => { setDialog(null); setToast(msg); void reload(); setTimeout(() => setToast(""), 3000); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </section>
     </AsideContext.Provider>

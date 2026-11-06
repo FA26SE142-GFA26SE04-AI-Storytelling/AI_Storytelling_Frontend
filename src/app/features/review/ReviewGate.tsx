@@ -3,7 +3,7 @@ import { useTabActions } from "@/app/features/story-workflow/tabActions";
 
 import "./review.css";
 import { useEffect, useState } from "react";
-import { Archive, BookOpenText, Check, CircleAlert, ClipboardCheck, PencilLine, PenLine, RefreshCw, WandSparkles } from "lucide-react";
+import { BookOpenText, Check, CircleAlert, ClipboardCheck, PencilLine, PenLine, RefreshCw, WandSparkles } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
 import { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
 import { hasMissingLearning } from "@/app/features/story-workflow/storyReviewLearning";
@@ -14,14 +14,23 @@ import { statusBadge } from "@/app/lib/storyView";
 import { isReadingOnly } from "@/app/lib/storyRules";
 import { useRiseIn, useSwap } from "@/app/lib/motion";
 import { ArtifactItems, ARTIFACT_LABEL, type ArtifactKind } from "./ArtifactList";
+import ListeningPanel from "./ListeningPanel";
 import ProposalCard from "./ProposalCard";
 import RevisionPanel from "./RevisionPanel";
 import { StoryEditor, StoryView } from "./StoryTab";
-import { ArchiveDialog, LearningEditor } from "./ReviewTools";
+import { LearningEditor } from "./ReviewTools";
 import AutoPublishAction from './AutoPublishAction';
-import ListeningReview from './ListeningReview';
 
 type Tab = "story" | "listening" | ArtifactKind;
+/** Lý do chưa duyệt được do backend trả về bằng tiếng Anh, nối bằng " • ": dịch các câu đã biết, câu lạ giữ nguyên. */
+const ISSUE_VI: [RegExp, (m: RegExpMatchArray) => string][] = [
+  [/^Quiz needs at least 3 valid questions/, () => 'Câu hỏi đọc hiểu cần ít nhất 3 câu hợp lệ, có đủ mọi loại câu hỏi và đáp án đúng.'],
+  [/^Listening interactions must be confirmed/, () => 'Cần xác nhận các tương tác khi nghe.'],
+  [/^Listening interactions must match the plan/, () => 'Các tương tác khi nghe chưa khớp kế hoạch, hãy tạo lại loại bị lỗi thời.'],
+  [/^Vocabulary needs at least 5 unique.*(current: (d+))/, (m) => `Từ vựng cần ít nhất 5 từ không trùng và đều xuất hiện trong truyện (hiện có ${m[1]}).`],
+  [/^Artifacts must be bound to the current story version/, () => 'Học liệu chưa gắn với bản truyện hiện tại.'],
+];
+const viIssues = (text: string) => text.split(' • ').map((s) => { for (const [re, fn] of ISSUE_VI) { const m = s.match(re); if (m) return fn(m); } return s; }).join(' • ');
 const ARTIFACTS: ArtifactKind[] = ["vocabulary", "quiz"];
 
 type Props = {
@@ -30,21 +39,20 @@ type Props = {
   /** Nhóm tuổi của bé, quyết định dạng câu đố khi sửa học liệu. */
   ageBand: string;
   onApproved: () => void;
-  onArchived: () => void;
 };
 
 /**
  * Cổng duyệt (Luồng 2 mục 6.6): đọc bản thảo và học liệu, chỉnh sửa theo chủ đích hoặc sửa tay,
- * sinh lại học liệu có xem trước, rồi Duyệt hoặc Lưu trữ. Trả về 2 cột: vùng đọc và cột quyết định.
+ * sinh lại học liệu có xem trước, rồi Duyệt. Trả về 2 cột: vùng đọc và cột quyết định.
  */
-export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, actor = 'parent' }: Props) {
+export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'parent' }: Props) {
   const r = useStoryReview(storyId, actor);
   const { bundle, busy, aiTask, error, validation, proposal } = r;
   const [tab, setTab] = useState<Tab>("story");
   const tabActions = useTabActions();
   const [selection, setSelection] = useState<StorySelection | null>(null);
   const [editing, setEditing] = useState(false);
-  const [dialog, setDialog] = useState<"learning" | "archive" | null>(null);
+  const [dialog, setDialog] = useState<"learning" | null>(null);
   const docRef = useSwap<HTMLDivElement>(tab);
   const sideRef = useRiseIn<HTMLDivElement>(".sec", [bundle ? 1 : 0], { delay: 35, distance: 10 });
 
@@ -54,6 +62,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
     : proposal ? "Hãy áp dụng hoặc bỏ đề xuất của AI trước khi duyệt."
     : editing ? "Hãy lưu hoặc huỷ bản sửa tay trước khi duyệt."
     : hasMissingLearning(bundle) ? "Còn thiếu học liệu cho bản thảo này."
+    : bundle.listening?.required && !bundle.listening.reviewed ? "Hãy xem và xác nhận các tương tác khi nghe (tab \"Khi nghe\") trước khi duyệt."
     : !(actor === 'creator' ? bundle.summary.canConfirmContent : bundle.summary.canApprove) ? "Bạn chưa thể duyệt truyện này."
     : null;
   // Trong Studio, nút duyệt nằm trên thanh tiến trình (cạnh nút huỷ); ở màn "Duyệt nội dung" thì tự vẽ trong cột phải.
@@ -79,8 +88,9 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
 
   const { summary, story } = bundle;
   const items: Record<ArtifactKind, unknown[]> = { vocabulary: bundle.vocabulary.items, quiz: bundle.quiz.items };
+  const listening = bundle.listening;
   const missing = hasMissingLearning(bundle);
-  // Truyện "Chỉ để đọc" không yêu cầu học liệu hoặc tương tác lúc nghe.
+  // Truyện "Chỉ để đọc" không có từ vựng / câu đố (backend từ chối mọi thao tác học liệu).
   const learning = !isReadingOnly(summary.outputMode);
   const artifacts = learning ? ARTIFACTS : [];
   const canEdit = summary.canEdit && !proposal && !editing;
@@ -100,7 +110,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
         <div className="gate-tabs">
           {tabButton("story", "Truyện")}
           {artifacts.map((k) => tabButton(k, ARTIFACT_LABEL[k], items[k].length))}
-          {learning && bundle.listening && tabButton('listening', 'Tương tác lúc nghe', bundle.listening.items.length)}
+          {listening?.required && tabButton("listening", "Khi nghe", listening.items.length)}
           {tabActions && <div className="tab-actions">{tabActions}</div>}
         </div>
 
@@ -131,9 +141,10 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
                 </>
               )}
             </article>
-          ) : tab === "listening" && bundle.listening ? (
-            <article className="sheet"><ListeningReview data={bundle.listening} /></article>
-          ) : tab !== "listening" ? (
+          ) : tab === "listening" ? (
+            listening && <ListeningPanel listening={listening} busy={busy || !!proposal || editing} canConfirm={!!(summary.canEdit || summary.canApprove || summary.canConfirmContent)}
+              onConfirm={() => void r.confirmListening()} onRegenerate={(t) => void r.regenerateListening(t)} />
+          ) : (
             <article className="sheet">
               <div className="row">
                 <h3 className="display grow" style={{ margin: 0 }}>{ARTIFACT_LABEL[tab]}</h3>
@@ -145,7 +156,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
               </div>
               <ArtifactItems kind={tab} items={items[tab]} />
             </article>
-          ) : null}
+          )}
         </div>
       </div>
 
@@ -155,17 +166,19 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
             <button className="ck ck-link" onClick={() => setTab("story")}>
               <span className="st ok"><BookOpenText /></span>Truyện<small>{countWords(content)} tiếng{summary.readabilityFkgl !== null && ` · FKGL ${summary.readabilityFkgl.toFixed(1)}`}</small>
             </button>
-            {!learning && <p className="hint">Truyện chỉ để đọc: không yêu cầu học liệu hay tương tác lúc nghe.</p>}
+            {!learning && <p className="hint">Truyện chỉ để đọc: không có từ vựng hay câu đố.</p>}
             {artifacts.map((k) => (
               <button key={k} className="ck ck-link" onClick={() => setTab(k)}>
                 <span className={`st ${items[k].length > 0 ? "ok" : "warn"}`}>{items[k].length > 0 ? <Check /> : <CircleAlert />}</span>
                 {ARTIFACT_LABEL[k]}<small>{items[k].length > 0 ? `${items[k].length} mục` : "Chưa có"}</small>
               </button>
             ))}
-            {learning && bundle.listening && <button className="ck ck-link" onClick={() => setTab('listening')}>
-              <span className={`st ${bundle.listening.issues.length ? 'warn' : 'ok'}`}>{bundle.listening.issues.length ? <CircleAlert /> : <Check />}</span>
-              Tương tác lúc nghe<small>{bundle.listening.required ? `${bundle.listening.items.length} mục` : 'Không yêu cầu'}</small>
-            </button>}
+            {listening?.required && (
+              <button className="ck ck-link" onClick={() => setTab("listening")}>
+                <span className={`st ${listening.reviewed ? "ok" : "warn"}`}>{listening.reviewed ? <Check /> : <CircleAlert />}</span>
+                Khi nghe<small>{listening.reviewed ? "Đã xác nhận" : `${listening.items.length} tương tác · chờ xác nhận`}</small>
+              </button>
+            )}
             {validation?.checks.map((c) => (
               <div key={c.name} className="ck"><span className={`st ${c.passed ? "ok" : "warn"}`}>{c.passed ? <Check /> : <CircleAlert />}</span>{c.name}<small>{c.message ?? ""}</small></div>
             ))}
@@ -184,7 +197,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
             </>
           )}
 
-          {error && !dialog && <div className="notice err" role="alert">{error}</div>}
+          {error && !dialog && <div className="notice err" role="status">{viIssues(error)}</div>}
 
           <div className="sec">
             <div className="sec-h">Quyết định</div>
@@ -199,11 +212,8 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
             <p className="hint">
               {approveBlock ?? (approveInBar ? "Bấm dấu ✓ trên thanh tiến trình để duyệt. " : "") + (actor === 'creator' ? 'Xác nhận nội dung để chuẩn bị media. Gửi duyệt công khai là bước riêng sau khi sẵn sàng.' : 'Sau khi duyệt, hệ thống vẽ tranh và tạo giọng đọc. Bé thấy truyện khi mọi thứ sẵn sàng.')}
             </p>
-            {actor === 'parent' && <button className="btn btn-g btn-c" disabled={busy || !summary.canArchive} onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ truyện</button>}
           </div>
           {dialog === "learning" && <LearningEditor r={r} ageBand={ageBand} onClose={() => setDialog(null)} />}
-          {/* Lưu trữ bắt buộc chọn lý do (Luồng 2 mục 6.6). */}
-          {dialog === "archive" && <ArchiveDialog storyId={storyId} onClose={() => setDialog(null)} onDone={() => { setDialog(null); onArchived(); }} />}
       </AsidePane>
     </>
   );

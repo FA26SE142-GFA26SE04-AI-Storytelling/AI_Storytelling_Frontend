@@ -8,7 +8,8 @@ import { useNarrator } from "@/app/features/kid/useNarrator";
 const REACTION: Record<string, string> = { love: "😍 Rất thích", like: "🙂 Thích", neutral: "😐 Bình thường", dislike: "🙁 Chưa thích" };
 
 /**
- * Thẻ "Con vừa đọc xong": bài học, cảm nhận của con và điểm câu đố khi có quyền xem kết quả.
+ * Luồng 4 Bước 4.3b — thẻ "Con vừa đọc xong": bài học, cảm nhận của con, điểm câu đố (nếu có quyền xem kết quả)
+ * để bố mẹ trò chuyện với con. Không hiển thị cho bé.
  */
 export default function CompletionCard({ item, nickname, lesson, showResults, onSeen }: {
   item: ReadCompletion;
@@ -18,7 +19,6 @@ export default function CompletionCard({ item, nickname, lesson, showResults, on
   onSeen: () => void;
 }) {
   const narrator = useNarrator();
-
 
   const summary = `${nickname} vừa đọc xong truyện ${item.title}.${lesson ? ` Bài học của truyện: ${lesson}.` : ""}`;
 

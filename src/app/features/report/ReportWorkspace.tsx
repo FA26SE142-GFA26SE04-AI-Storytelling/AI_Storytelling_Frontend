@@ -8,7 +8,7 @@ import { useRiseIn, useDrawDonut } from "@/app/lib/motion";
 const SLICES = [
   { key: "ok", label: "Đã duyệt / sẵn sàng", color: "var(--mint)" },
   { key: "wait", label: "Đang chờ duyệt", color: "var(--gold)" },
-  { key: "draft", label: "Nháp / lưu trữ / từ chối", color: "var(--faint)" },
+  { key: "draft", label: "Nháp / từ chối", color: "var(--faint)" },
 ] as const;
 
 export default function ReportWorkspace() {
@@ -26,7 +26,7 @@ export default function ReportWorkspace() {
     { l: "Do AI tạo", v: String(ai.length), d: `${stories.length ? Math.round((ai.length / stories.length) * 100) : 0}% tổng số` },
     { l: "Đã duyệt", v: String(count("ok")), d: `${approvedRate}% tổng số`, c: "var(--ok-ink)" },
     { l: "Đang chờ duyệt", v: String(count("wait")), d: "cần bạn xem", c: "var(--warn-ink)" },
-    { l: "Nháp / lưu trữ", v: String(count("draft")), d: "chưa đến tay bé", muted: true },
+    { l: "Nháp / từ chối", v: String(count("draft")), d: "chưa đến tay bé", muted: true },
   ];
 
   return (
@@ -43,7 +43,7 @@ export default function ReportWorkspace() {
       {error && <div className="err-banner" style={{ gridColumn: "1/-1" }} role="alert">{error}</div>}
 
       <div className="pane" style={{ gridColumn: "1/-1" }}>
-        <div className="ph"><span>Trạng thái truyện</span><span className="sub" style={{ fontWeight: 400 }}>{stories.length} truyện</span></div>
+        <div className="sec-h"><span>Trạng thái truyện</span><span className="sub" style={{ fontWeight: 400 }}>{stories.length} truyện</span></div>
         <div className="pb" style={{ flexDirection: "row", alignItems: "center", gap: 28, flexWrap: "wrap" }}>
           <svg ref={donutRef} width="130" height="130" viewBox="0 0 42 42" style={{ transform: "rotate(-90deg)" }} role="img" aria-label="Biểu đồ tròn trạng thái truyện">
             <circle cx="21" cy="21" r="15.9" fill="none" style={{ stroke: "var(--line)" }} strokeWidth="6" />
@@ -61,7 +61,7 @@ export default function ReportWorkspace() {
       </div>
 
       <div className="pane" style={{ gridColumn: "1/-1" }}>
-        <div className="ph"><span>Nhật ký truyện gần đây</span><span className="sub" style={{ fontWeight: 400 }}>Dữ liệu từ danh sách truyện của bé</span></div>
+        <div className="sec-h"><span>Nhật ký truyện gần đây</span><span className="sub" style={{ fontWeight: 400 }}>Dữ liệu từ danh sách truyện của bé</span></div>
         <div style={{ overflowX: "auto" }}>
           <table>
             <thead><tr><th>Ngày tạo</th><th>Tên truyện</th><th>Nguồn</th><th>Độ tuổi</th><th>Trạng thái</th></tr></thead>
