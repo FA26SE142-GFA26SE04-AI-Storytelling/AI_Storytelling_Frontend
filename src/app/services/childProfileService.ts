@@ -109,8 +109,8 @@ export const childProfileService = {
     return apiRequest(`/SafetyPolicy/${childProfileId}/age-preset/apply`, 'Không áp dụng được danh sách chặn mặc định.', { method: 'POST' });
   },
 
-  getContentCategories(): Promise<ApiResponse<ContentCategory[]>> {
-    return apiRequest('/ContentCategory', 'Không tải được danh mục nội dung.');
+  getContentCategories(signal?: AbortSignal): Promise<ApiResponse<ContentCategory[]>> {
+    return apiRequest('/ContentCategory', 'Không tải được danh mục nội dung.', { signal });
   },
 
   getTokenQuotaForChild(childProfileId: number): Promise<ApiResponse<TokenQuotaStatus>> {

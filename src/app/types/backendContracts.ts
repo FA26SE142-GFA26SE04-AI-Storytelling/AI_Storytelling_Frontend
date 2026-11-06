@@ -1926,6 +1926,7 @@ export interface SubmitCreatorAIStoryInputRequestDto {
 export interface SubmitPublicStoryRequestDto {
   'storyId': number;
   'storyVersionId': number;
+  'contentCategoryIds': (number)[];
 }
 
 export interface SubscriptionPlanDto {
@@ -2289,6 +2290,9 @@ export interface CreatorPublicationStatus {
   'openItemId': number | null;
   'openItemType': string | null;
   'openItemStatus': string | null;
+  'labels'?: PublicReviewLabelDto[];
+  'lastProposedLabels'?: PublicReviewLabelDto[];
+  'canResubmitLabels'?: boolean;
 }
 
 export interface CreatorRemovalRequest {

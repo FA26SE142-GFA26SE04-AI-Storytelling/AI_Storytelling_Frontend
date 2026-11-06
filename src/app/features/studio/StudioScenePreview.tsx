@@ -7,6 +7,7 @@ export default function StudioScenePreview({scene,text,loading,onReload}:{scene:
   const [selected,setSelected]=useState(0);
   const [failed,setFailed]=useState<string|null>(null);
   const [audioFailed,setAudioFailed]=useState(false);
+  const [audioReload,setAudioReload]=useState(0);
   const illustrations=scene?.illustrations.slice().sort((a,b)=>a.beatOrder-b.beatOrder)??[];
   const image=illustrations[selected];
   const url=image?.status==='Ready'?image.url:null;
@@ -26,11 +27,11 @@ export default function StudioScenePreview({scene,text,loading,onReload}:{scene:
     <div className="studio-scene-controls">
       {illustrations.length>1&&<div className="row" aria-label="Chọn tranh trong cảnh">{illustrations.map((i,index)=><button className="btn btn-s" key={i.beatId} aria-pressed={index===selected} onClick={()=>{setSelected(index);setFailed(null);}}>Tranh {index+1}</button>)}</div>}
       {scene?.audio?.slice().sort((a,b)=>a.segmentOrder-b.segmentOrder).map(a=><div key={a.segmentId}>
-        {a.url&&a.status==='Ready'?<audio controls preload="none" src={a.url} aria-label={`Nghe cảnh ${(scene?.sceneIndex??0)+1}, đoạn ${a.segmentOrder+1}`} onError={()=>setAudioFailed(true)}/>:<p className="sub">{a.status==='Ready'?'Giọng đọc đã tạo nhưng chưa có URL nghe.':'Đoạn giọng đọc này chưa sẵn sàng.'}</p>}
+        {a.url&&a.status==='Ready'?<audio key={`${a.url}:${audioReload}`} controls preload="none" src={a.url} aria-label={`Nghe cảnh ${(scene?.sceneIndex??0)+1}, đoạn ${a.segmentOrder+1}`} onError={()=>setAudioFailed(true)}/>:<p className={a.status==='Ready'?'notice err':'sub'} role="status">{a.status==='Ready'?'Giọng đọc đã tạo nhưng chưa có URL nghe. Hãy tải lại ảnh và giọng đọc.':'Đoạn giọng đọc này chưa sẵn sàng.'}</p>}
       </div>)}
       {scene&&!scene.audio?.length&&<p className="sub">Gói media chưa có giọng đọc cho cảnh này.</p>}
       {audioFailed&&<p className="notice err" role="alert">Không mở được giọng đọc. Hãy tải lại URL media và thử nghe lại.</p>}
-      <button className="btn btn-s" disabled={loading} onClick={onReload}>Tải lại ảnh và giọng đọc</button>
+      <button className="btn btn-s" disabled={loading} onClick={()=>{setAudioFailed(false);setAudioReload(n=>n+1);onReload();}}>Tải lại ảnh và giọng đọc</button>
     </div>
     </div>
   </div>;

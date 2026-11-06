@@ -5,4 +5,4 @@ export function mediaMutationSnapshot(pack: StoryMediaPackage, versionId?: numbe
       typeof pack.isConfirmed !== 'boolean' || versionId != null && pack.storyVersionId !== versionId) return null;
   return { storyVersionId:pack.storyVersionId, packageRevision:pack.packageRevision, expectedConfirmed:pack.isConfirmed };
 }
-export const mediaNeedsPolling = (p: MediaProgressDto) => !p.isReady && !p.isAwaitingConfirmation && !p.errorCode && !['Failed','Cancelled'].includes(p.jobStatus);
+export const mediaNeedsPolling = (p: MediaProgressDto) => !p.isReady && !p.isAwaitingConfirmation && !['Failed','Cancelled'].includes(p.jobStatus);

@@ -17,6 +17,15 @@ import CreatorManualMedia from "./CreatorManualMedia";
 import type {AssistanceSelection} from '@/app/features/story-workflow/assistanceSelection';
 
 type StepId = 'write' | 'media' | 'publish';
+function EditorNavigation({ prev, next, nextOk, label = 'Bước tiếp theo', onNext, onNavigate }: {
+  prev: StepId | null; next: StepId | null; nextOk: boolean; label?: string;
+  onNext?: () => void | Promise<void>; onNavigate: (step: StepId) => void;
+}) {
+  return <div className="pa-actions bar">
+    {prev && <button className="btn btn-g" onClick={() => onNavigate(prev)}>Quay lại</button>}
+    {next && <button className="btn btn-p push" disabled={!nextOk} onClick={() => void (onNext ? onNext() : onNavigate(next))}>{label}</button>}
+  </div>;
+}
 const ORIGIN: Record<string, string> = { Write: "Viết", Import: "Nhập", Restore: "Khôi phục" };
 const EMPTY: SaveVersionInput = { title: "", content: "", sourceDeclaration: "", rightsDeclaration: "" };
 const same = (a: SaveVersionInput, b: SaveVersionInput) =>
@@ -140,12 +149,6 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
   ];
   const active = steps.find(s => s.id === stepId && !s.locked) ?? steps[0];
   const saveThenNext = async () => { if (!dirty || await save()) setStepId('media'); };
-  const nav = (prev: StepId | null, next: StepId | null, nextOk: boolean, label = 'Bước tiếp theo', onNext?: () => void | Promise<void>) => (
-    <div className="pa-actions bar">
-      {prev && <button className="btn btn-g" onClick={() => setStepId(prev)}>Quay lại</button>}
-      {next && <button className="btn btn-p push" disabled={!nextOk} onClick={() => void (onNext ? onNext() : setStepId(next))}>{label}</button>}
-    </div>
-  );
   return (
     <>
       <div className="st-card ce-head">
@@ -222,18 +225,18 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
                 )}
               </details>
             </section>
-            {nav(null, 'media', isSaved || (dirty && !!form.content.trim() && !busy && !editorLocked && !conflict), dirty ? 'Lưu và tiếp tục' : 'Bước tiếp theo', dirty ? saveThenNext : undefined)}
+            <EditorNavigation prev={null} next="media" nextOk={isSaved || (dirty && !!form.content.trim() && !busy && !editorLocked && !conflict)} label={dirty ? 'Lưu và tiếp tục' : 'Bước tiếp theo'} onNext={dirty ? saveThenNext : undefined} onNavigate={setStepId}/>
           </div>
 
           <div className="pa-stage" hidden={active.id !== 'media'}>
             <CreatorManualMedia key={`media:${storyId}:${draft.selectedVersionId}`} draft={draft} disabled={busy || dirty || conflict || hasPending || publicationLocked} missing={[...(saved.sourceDeclaration.trim() ? [] : ['Nguồn nội dung']), ...(saved.rightsDeclaration.trim() ? [] : ['Cam kết bản quyền'])]} onWorkingChange={setMediaLocked} onStatus={mediaState} />
             {!mediaDone && <p className="sub">Nút "Bước tiếp theo" mở khi truyện đã có tranh, giọng đọc và bạn đã xác nhận gói media.</p>}
-            {nav('write', 'publish', mediaDone)}
+            <EditorNavigation prev="write" next="publish" nextOk={mediaDone} onNavigate={setStepId}/>
           </div>
 
           <div className="pa-stage" hidden={active.id !== 'publish'}>
             <CreatorPublication storyId={storyId} versionId={draft.selectedVersionId} storyStatus={draft.status} onRevision={() => void open()} onLockChange={setPublicationLocked} />
-            {nav('media', null, false)}
+            <EditorNavigation prev="media" next={null} nextOk={false} onNavigate={setStepId}/>
           </div>
         </div>
       </div>

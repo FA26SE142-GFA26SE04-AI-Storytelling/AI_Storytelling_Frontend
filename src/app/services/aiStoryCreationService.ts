@@ -123,6 +123,8 @@ export const aiStoryCreationService = {
   getQuizReview: (id: number, signal?: AbortSignal) => request<D.QuizReviewDto>(`${review(id)}/quiz`, 'GET', undefined, signal),
   updateQuizReview: (id: number, input: D.UpdateQuizRequestDto, signal?: AbortSignal) => request<D.QuizReviewDto>(`${review(id)}/quiz`, 'PUT', input, signal),
   getListeningReview: (id: number, signal?: AbortSignal) => request<D.ListeningReviewDto>(`${review(id)}/listening`, 'GET', undefined, signal),
+  confirmPackage: (id: number, input: { versionId: number; operationId: string }, signal?: AbortSignal) =>
+    request<D.ConfirmStoryPackageResponseDto | D.ContentGenerationProgressDto>(`${review(id)}/confirm-package`, 'POST', input, signal),
   updateListeningInteraction: (id: number, interactionId: number, input: D.UpdateListeningInteractionRequestDto, signal?: AbortSignal) => request<D.ListeningReviewDto>(`${review(id)}/listening/${interactionId}`, 'PUT', input, signal),
   regenerateListening: (id: number, type: string, signal?: AbortSignal) => request<D.CreateProposalResponseDto>(`${review(id)}/listening/${type}/ai/regenerate`, 'POST', undefined, signal),
   completeListening: (id: number, signal?: AbortSignal) => request<boolean>(`${review(id)}/listening/complete`, 'POST', undefined, signal),

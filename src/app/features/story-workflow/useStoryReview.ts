@@ -4,9 +4,10 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationService';
 import { ApiResponse } from '@/app/types/auth';
 import { normalizeQuizType } from '@/app/lib/storyRules';
-import { AIProposalDto, ListeningReviewDto, PartialEditRequestDto, QuizQuestionDto, QuizReviewDto, ReviewArtifact, ReviewPackageDto, StoryReviewDto, ValidationResultDto, VocabularyReviewDto } from '@/app/types/aiStory';
+import { AIProposalDto, PartialEditRequestDto, QuizQuestionDto, ReviewArtifact, ValidationResultDto } from '@/app/types/aiStory';
 import { hasMissingLearning, missingLearning } from './storyReviewLearning';
-import { isReadingOnly } from '@/app/lib/storyRules';
+import { loadStoryReviewBundle, requireReviewData as requireData, type StoryReviewBundle } from './storyReviewBundle';
+export type { StoryReviewBundle } from './storyReviewBundle';
 
 /** Các câu hỏi trong nội dung đề xuất của AI (`{ items: [...] }`), loại câu hỏi đưa về mã của backend; sai dạng thì trả null. */
 function quizItemsOf(content: unknown): QuizQuestionDto[] | null {
@@ -25,19 +26,6 @@ function quizItemsOf(content: unknown): QuizQuestionDto[] | null {
   return items;
 }
 
-function requireData<T>(result: ApiResponse<T>): T {
-  if (!result.success || result.data === null || result.data === undefined) throw new Error(result.message || 'Phản hồi chưa hợp lệ.');
-  return result.data;
-}
-
-export interface StoryReviewBundle {
-  summary: ReviewPackageDto;
-  story: StoryReviewDto;
-  vocabulary: VocabularyReviewDto;
-  quiz: QuizReviewDto;
-  /** Tương tác khi nghe; null khi truyện chỉ để đọc hoặc không tải được. */
-  listening: ListeningReviewDto | null;
-}
 
 export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'parent') {
   const [bundle, setBundle] = useState<StoryReviewBundle | null>(null);
@@ -48,25 +36,11 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
   const [error, setError] = useState<string | null>(null);
   const lock = useRef(false);
   const controller = useRef<AbortController | null>(null);
+  const confirmation = useRef<{ versionId: number; operationId: string } | null>(null);
 
   const load = useCallback(async (signal: AbortSignal) => {
-    const [p, s] = await Promise.all([api.getReviewPackage(storyId, signal), api.getStoryReview(storyId, signal)]);
+    const next = await loadStoryReviewBundle(storyId, signal);
     if (signal.aborted) return;
-    const summary = requireData(p);
-    const story = requireData(s);
-    // Truyện "Chỉ để đọc": backend từ chối mọi API học liệu (409), nên không gọi và dùng danh sách rỗng.
-    const empty = { storyId, versionId: summary.storyVersionId, items: [] };
-    const [v, q, l] = isReadingOnly(summary.outputMode)
-      ? [{ ...empty }, { ...empty }, null]
-      // Tương tác khi nghe lỗi tải thì không chặn cả màn duyệt: tab nghe chỉ không hiện, backend vẫn là nơi quyết định cho duyệt.
-      : await Promise.all([api.getVocabularyReview(storyId, signal), api.getQuizReview(storyId, signal),
-          api.getListeningReview(storyId, signal).then(lr => (lr.success && lr.data ? lr.data : null)).catch(() => null)])
-        .then(([vr, qr, lr]) => [requireData(vr), requireData(qr), lr] as const);
-    if (signal.aborted) return;
-    const next = { summary, story, vocabulary: v, quiz: q, listening: l } as StoryReviewBundle;
-    if ([next.story, next.vocabulary, next.quiz, ...(next.listening ? [next.listening] : [])].some(item => item.versionId !== next.summary.storyVersionId)) {
-      throw new Error('Bản thảo đã thay đổi trong lúc tải. Vui lòng kiểm tra lại.');
-    }
     setBundle(next); setValidation(null);
   }, [storyId]);
 
@@ -118,24 +92,16 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
 
   const approve = (onApproved: () => void) => run(async signal => {
     if (!bundle || hasMissingLearning(bundle)) throw new Error('Hãy tạo đủ học liệu cho bản thảo hiện tại trước khi phê duyệt.');
-    const artifacts = isReadingOnly(bundle.summary.outputMode) ? (['story'] as const) : (['story', 'vocabulary', 'quiz'] as const);
-    for (const artifact of artifacts) {
-      const completed = requireData(await api.completeReview(storyId, artifact, signal));
-      if (signal.aborted) return;
-      if (!completed) throw new Error('Chưa thể hoàn tất kiểm duyệt học liệu.');
-    }
-    const checks = requireData(await api.validateReview(storyId, signal));
+    const versionId = bundle.summary.storyVersionId;
+    if (confirmation.current?.versionId !== versionId)
+      confirmation.current = { versionId, operationId: `review-${actor}-${crypto.randomUUID()}` };
+    const response = await api.confirmPackage(storyId, confirmation.current, signal);
+    const result = requireData(response);
     if (signal.aborted) return;
-    setValidation(checks);
-    if (!(actor === 'creator' ? checks.canConfirmContent : checks.canApprove)) throw new Error(checks.issues.join(' • ') || 'Nội dung chưa đủ điều kiện phê duyệt.');
-    if (actor === 'creator') {
-      const result = requireData(await api.confirmCreatorContent(storyId, bundle.summary.storyVersionId, signal));
-      if (!signal.aborted && result.versionId === bundle.summary.storyVersionId) onApproved();
-      return;
-    }
-    const result = requireData(await api.approveStory(storyId, signal));
-    if (!signal.aborted && result.success) onApproved();
-    else if (!signal.aborted) throw new Error('Máy chủ chưa xác nhận phê duyệt.');
+    if (result.storyId !== storyId || ('versionId' in result && result.versionId !== versionId))
+      throw new Error('Máy chủ trả kết quả cho bản thảo khác. Hãy tải lại trạng thái truyện.');
+    confirmation.current = null;
+    onApproved();
   });
 
   /** Người duyệt xác nhận các tương tác khi nghe (POST /review/listening/complete), rồi tải lại để cập nhật trạng thái. */
