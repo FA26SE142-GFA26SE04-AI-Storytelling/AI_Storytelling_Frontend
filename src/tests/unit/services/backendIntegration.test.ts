@@ -67,7 +67,7 @@ describe('Backend flow contracts', () => {
     await communityService.remove(9); expect(fetcher.mock.calls[3][0]).toMatch(/\/CommunitySubmission\/9\/remove$/);
   });
   it('pins version for Creator submission and uses separate confirmation/removal APIs', async () => {
-    fetcher.mockResolvedValue(response(null)); await creatorPublicationService.submit(7,12); expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({storyId:7,storyVersionId:12});
+    fetcher.mockResolvedValue(response(null)); await creatorPublicationService.submit(7,12,[1,5]); expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({storyId:7,storyVersionId:12,contentCategoryIds:[1,5]});
     await creatorPublicationService.revision(7,12); expect(fetcher.mock.calls[1][0]).toMatch(/\/creator\/stories\/7\/revisions$/); expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual({sourceVersionId:12});
     await moderationService.removalDecision(9,{approve:true,reason:'Gỡ',rowVersion:4}); expect(fetcher.mock.calls[2][0]).toMatch(/\/moderation\/public-story-removals\/9\/decision$/);
   });

@@ -5,6 +5,8 @@ import type * as B from '@/app/types/backendContracts';
 import { useAuth } from '@/app/context/AuthContext';
 import type { ApiResponse } from '@/app/types/auth';
 import { confirmDialog } from "@/app/lib/confirm";
+import { creatorLabelSubmission, useCreatorPublicationLabels } from '@/app/features/story-workflow/useCreatorPublicationLabels';
+import CreatorPublicationLabels from './CreatorPublicationLabels';
 
 /** Trạng thái duyệt của backend là chuỗi tiếng Anh; dịch các giá trị đã biết, giá trị lạ giữ nguyên. */
 const REVIEW: Record<string, string> = {
@@ -38,6 +40,9 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
   const scope = useRef(Symbol());
   const knownSubmitted = useRef<number | null>(null);
   const [submittedVersion,setSubmittedVersion] = useState<number | null>(null);
+  const suggestedLabels = status?.storyId === storyId && status.versionId === versionId
+    ? (status.lastProposedLabels?.length ? status.lastProposedLabels : status.labels ?? []).map(label => label.contentCategoryId) : [];
+  const labels = useCreatorPublicationLabels(storyId, versionId, user?.id, !hidden, suggestedLabels);
   // Kết quả kiểm tra vùng xám chỉ đúng cho đúng phiên bản đã kiểm tra.
   useEffect(() => { setZone(null); }, [versionId]);
   useEffect(() => {
@@ -48,6 +53,9 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
       if (scope.current !== run) return;
       if (!r.success || !r.data) { setNote(r.message); return; }
       const s = r.data; setStatus(s);
+      if (s.storyId !== storyId || s.versionId !== versionId) {
+        setStatus(null); setNote('Trạng thái phát hành không khớp bản truyện hiện tại. Hãy tải lại trạng thái.'); return;
+      }
       if (s.reviewStatus !== 'None' || s.openItemId) { knownSubmitted.current = s.versionId; setSubmittedVersion(s.versionId); }
       // Status does not expose past withdrawn submissions. Keep Ready versions read-only; revision is supported for Ready stories.
       const locked = s.isPublished || !!s.openItemId || s.reviewStatus !== 'None' || knownSubmitted.current === s.versionId || ['Ready','Archived'].includes(storyStatus ?? '');
@@ -73,7 +81,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
   };
 
   const ready = storyStatus === 'Ready';
-  const canSubmit = ready && !!status && !status.isPublished && !status.openItemId && status.reviewStatus === 'None';
+  const { labelsOnly, canSubmit, labelsChanged } = creatorLabelSubmission(status, ready, labels.selectedIds);
   const pendingReview = !!status && status.openItemType === 'PublicStoryReview' && status.openItemStatus === 'Pending' && !!status.openItemId;
   const grayWaiting = !!status && status.openItemType === 'GrayZoneStory' && ['Pending', 'Claimed'].includes(status.openItemStatus ?? '');
   const canRevise = !!status && !status.isPublished && !status.openItemId && storyStatus !== 'Archived' && (ready || status.reviewStatus !== 'None' || submittedVersion === status.versionId);
@@ -88,6 +96,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     : pendingReview ? 'Bạn đã gửi duyệt. Hãy chờ Moderator, hoặc rút yêu cầu nếu muốn sửa.'
     : grayWaiting ? 'Truyện đang chờ Moderator xem xét vùng xám nên chưa gửi duyệt được.'
     : !ready ? 'Truyện chưa sẵn sàng: hoàn tất bước 2 (media tạo xong và bạn đã xác nhận gói) rồi mới gửi duyệt được.'
+    : labelsOnly ? 'Moderator chỉ yêu cầu sửa nhãn. Hãy đổi bộ nhãn rồi gửi lại; giữ nguyên nội dung và media đã xác nhận.'
     : status.reviewStatus !== 'None' ? 'Bản này đã từng được gửi duyệt. Muốn gửi lại, hãy tạo phiên bản chỉnh sửa mới.'
     : null;
 
@@ -112,8 +121,14 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     <div className="pa-step">
       <b>Gửi duyệt công khai</b>
       {blocker && <p className="sub">{blocker}</p>}
+      <CreatorPublicationLabels key={`${user?.id}:${storyId}:${versionId}`} categories={labels.categories} selectedIds={labels.selectedIds}
+        loading={labels.loading} error={labels.error} disabled={busy || !status || status.isPublished || !!status.openItemId || (status.reviewStatus !== 'None' && !labelsOnly)}
+        onChange={labels.setSelected} onReload={labels.reload}/>
       <div className="pa-actions">
-        {canSubmit && <button className="btn btn-p" disabled={busy} onClick={() => void act(() => service.submit(storyId, status!.versionId))}>Gửi bản hiện tại cho Moderator</button>}
+        {canSubmit && <button className="btn btn-p" disabled={busy || !labels.canSubmit || (labelsOnly && !labelsChanged)} onClick={() => {
+          if (!labels.canSubmit || (labelsOnly && !labelsChanged) || !status || status.storyId !== storyId || status.versionId !== versionId) return;
+          void act(() => service.submit(storyId, status.versionId, labels.selectedIds));
+        }}>{labelsOnly ? 'Gửi lại bộ nhãn cho Moderator' : 'Gửi bản hiện tại cho Moderator'}</button>}
         {pendingReview && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Rút yêu cầu duyệt? Lượt đăng bài sẽ được hoàn lại nếu yêu cầu còn chờ duyệt."))) return; void act(() => service.withdraw(status!.openItemId!)); }}>Rút yêu cầu duyệt</button>}
         {canRevise && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.revision(storyId, status!.versionId), true)}>Tạo phiên bản chỉnh sửa mới</button>}
         <button className="btn btn-g" disabled={busy} onClick={() => setRefresh(n => n + 1)}>Tải lại trạng thái</button>
