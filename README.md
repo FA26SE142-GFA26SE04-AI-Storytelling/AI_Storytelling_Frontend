@@ -5,7 +5,7 @@
 [![React](https://img.shields.io/badge/React-19.2-20232a?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-Giao diện web của **Taletale**, nền tảng kể chuyện bằng AI cho trẻ 3–10 tuổi, có phụ huynh đồng hành. Phụ huynh nhập ý tưởng, AI kiểm tra an toàn rồi viết dàn ý và truyện. Phụ huynh duyệt từng bước, sau đó hệ thống mới tạo tranh và giọng đọc. Bé chỉ thấy truyện đã được duyệt, trong một góc đọc riêng có chú ếch đồng hành trên đầm sen.
+Giao diện web của **Taletale**, nền tảng kể chuyện bằng AI cho trẻ 6–10 tuổi, có phụ huynh đồng hành. Phụ huynh nhập ý tưởng, AI kiểm tra an toàn rồi viết dàn ý và truyện. Phụ huynh duyệt từng bước, sau đó hệ thống mới tạo tranh và giọng đọc. Bé chỉ thấy truyện đã được duyệt, trong một góc đọc riêng có chú ếch đồng hành trên đầm sen.
 
 Trang chạy thật: <https://www.taletale.site/> · Backend: `https://api.taletale.site/api/v1`
 
@@ -34,14 +34,14 @@ Khung `AppShell` có thanh bên với các không gian làm việc (khai báo tr
 
 | Không gian | Thư mục | Nội dung |
 | :--- | :--- | :--- |
-| Tổng quan | `features/home` | Tiến độ đọc, việc cần làm, điều ước của bé, Hold Mode |
-| Hồ sơ bé | `features/children` | Tạo hồ sơ, hồ sơ học tập, người cùng giám sát, quyền truy cập, yêu cầu dữ liệu |
+| Tổng quan | `features/home` | Tiến độ đọc, việc cần làm, điều ước của bé |
+| Hồ sơ bé | `features/children` | Tạo hồ sơ, hồ sơ học tập, chính sách an toàn, mã vào cho bé (QR) |
 | Studio tạo truyện | `features/studio` | Nhập ý tưởng, theo dõi tiến trình AI, duyệt dàn ý, tranh và giọng đọc, nhập truyện có sẵn |
-| Thư viện truyện | `features/library` | Lọc, xem trước như bé thấy, lưu trữ, báo cáo nội dung, nộp thư viện cộng đồng |
+| Thư viện truyện | `features/library` | Lọc, xem trước như bé thấy, báo cáo nội dung, nộp thư viện cộng đồng |
 | Lộ trình của con | `features/roadmap` | Danh sách truyện bé đọc lần lượt, kho bộ truyện mẫu |
-| Duyệt nội dung | `features/review` | Duyệt bản thảo, từ vựng, câu đố, câu hỏi thảo luận, đề xuất sửa của AI |
+| Duyệt nội dung | `features/review` | Duyệt bản thảo, từ vựng, câu đố, tương tác khi nghe, đề xuất sửa của AI |
 | Báo cáo | `features/report` | KPI, biểu đồ, nhật ký |
-| Cài đặt an toàn | `features/safety` | Chủ đề cho phép / hạn chế / chặn, độ dài tối đa, chế độ duyệt |
+| Cài đặt an toàn | `features/safety` | Chủ đề cho phép / chặn, độ dài tối đa, chế độ duyệt (tự lưu) |
 | Tài khoản | `features/account` | Hồ sơ, đổi mật khẩu, xoá tài khoản |
 
 ### Bé (Chế độ của bé)
@@ -50,13 +50,12 @@ Khung `AppShell` có thanh bên với các không gian làm việc (khai báo tr
 
 ### Nhân viên vận hành
 
-`features/staff/StaffApp.tsx`. Đăng nhập có xác thực hai lớp (TOTP).
-
+`features/staff/StaffApp.tsx`. 
 | Vai trò | Màn chính |
 | :--- | :--- |
-| Administrator | Chất lượng AI, ca kiểm duyệt chuyển lên, tài khoản vận hành và phụ huynh, danh mục và Prompt Catalog, nhật ký sinh truyện, Token Quota, yêu cầu dữ liệu, báo cáo nghiệp vụ, đối soát thanh toán |
-| Moderator | Hàng đợi kiểm duyệt (nhận xử lý rồi ra quyết định theo từng loại mục), chấm điểm AI |
-| Content Creator | Truyện mẫu tự soạn hoặc nhập, bộ truyện mẫu, bộ test prompt |
+| Administrator | Rà soát thư viện, ca kiểm duyệt chuyển lên, tiêu chí vùng xám, hướng dẫn sáng tác, bộ truyện mẫu, thẻ ước, danh mục nội dung, tài khoản vận hành, báo cáo nghiệp vụ, đối soát thanh toán, Token Quota |
+| Moderator | Hàng đợi kiểm duyệt (nhận xử lý rồi ra quyết định theo từng loại mục), rà soát thư viện, tiêu chí vùng xám, hướng dẫn sáng tác, bộ truyện mẫu, thẻ ước |
+| Content Creator | Thư viện truyện mẫu, tạo truyện bằng AI hoặc thủ công, truyện của tôi, gửi duyệt công khai |
 
 ---
 
@@ -109,8 +108,8 @@ Quy tắc dữ liệu:
 
 - API backend **đã có** thì luôn gọi thật.
 - Chức năng chưa có API hiển thị trạng thái chưa hỗ trợ; không mô phỏng dữ liệu hoặc chuyển sang fallback local khi gọi API thất bại.
-- Fixture và network doubles chỉ dùng trong `tests/`. Xem kết quả đối chiếu và giới hạn kiểm chứng tại [`src/docs/core-api-completion.md`](src/docs/core-api-completion.md).
-- Tình trạng từng API ghi ở [`src/docs/FRONTEND_PROGRESS.md`](src/docs/FRONTEND_PROGRESS.md) và [`src/docs/BACKEND_API_STATUS.md`](src/docs/BACKEND_API_STATUS.md).
+- Fixture và network doubles chỉ dùng trong `tests/`. Danh sách endpoint đã nối nằm ở [`src/docs/core-api-coverage.json`](src/docs/core-api-coverage.json), tạo bằng `node scripts/audit-core-api.mjs` (chạy trong `src/`).
+- Việc còn phải làm ghi ở [`TASKS.md`](TASKS.md).
 
 Link trong email (`/reset-password`, `/forgot-password`) được `next.config.ts` chuyển về `/?auth=...` để màn đăng nhập xử lý.
 
@@ -132,7 +131,7 @@ src/
 │   ├── services/      Gọi API, mỗi nhóm endpoint một file
 │   ├── lib/           motion.ts, storyView.ts, quy tắc nghiệp vụ (storyRules, readingRules…)
 │   └── types/         Kiểu dữ liệu theo DTO backend
-├── docs/              Tiến độ frontend, trạng thái API backend, kế hoạch tích hợp
+├── docs/              core-api-coverage.json (kết quả đối soát endpoint)
 └── tests/unit/        Vitest, cấu trúc giống app/
 ```
 
@@ -167,11 +166,11 @@ Chỉ dùng biến CSS (`var(--primary)`…), không viết mã màu cứng tron
 | `--primary-strong` | `#1f8a55` | `#1f8a55` | Nền nút chính (chữ trắng đạt AA) |
 | `--mint` / `--ok-ink` | `#14b8a6` / `#0f766e` | `#2dd4bf` / `#5eead4` | An toàn, đã duyệt, kiểm tra đạt |
 | `--gold` / `--warn-ink` | `#ffd166` / `#8f5200` | `#ffd166` / `#ffc857` | Chờ duyệt, cảnh báo nhẹ, sao thưởng |
-| `--danger` | `#b42318` | `#ff8a80` | Lỗi, chủ đề bị chặn, lưu trữ (luôn trên nền nhạt 10–12%) |
+| `--danger` | `#b42318` | `#ff8a80` | Lỗi, chủ đề bị chặn (luôn trên nền nhạt 10–12%) |
 | `--lotus` | `#f6a9c4` | `#e98aaf` | Hoa sen, **chỉ để trang trí**, không dùng cho trạng thái |
 | `--rose` | `#ff8fa3` | `#ff8fa3` | Đáp án sai trong câu đố của bé (mềm, không gây sợ) |
 | `--bg` / `--text` | `#f4fbf6` / `#1f2f27` | `#0f1713` / `#e8f4ec` | Nền và chữ chính |
-| `--surface`, `--line` | `#ebf7f0`, `#dcebe1` | `#1d2b24`, `#26372e` | Ô nhập, lớp bề mặt, viền |
+| `--surface`, `--line` | `#ebf7f0`, `#b3cfbf` | `#1d2b24`, `#3b5548` | Ô nhập, lớp bề mặt, viền (viền phải nhìn thấy rõ) |
 | `--paper` / `--ink-warm` | `#fcfffc` / `#1f3a2d` | `#1a271f` / `#e3f2e9` | Trang sách của bé, bản thảo |
 
 Nhãn trạng thái `.pill`:
@@ -180,14 +179,14 @@ Nhãn trạng thái `.pill`:
 | :--- | :--- |
 | `.pill.ok` | Đã duyệt, sẵn sàng đọc |
 | `.pill.wait` | Chờ duyệt |
-| `.pill.draft` | Nháp, lưu trữ, từ chối |
+| `.pill.draft` | Nháp, từ chối |
 | `.pill.flag` | Lỗi tạo media, bị chặn |
 | `.pill.ai` | Do AI tạo, số cảnh, số câu |
 
 ### Chữ
 
 - **Baloo 2** (`.display`, độ đậm 600–800): logo, tiêu đề màn, tên truyện, chữ truyện của bé, con số KPI.
-- **Nunito** (400–800): nhãn, form, bản thảo, mô tả. Web desktop dùng body 13px vì mật độ thông tin cao.
+- **Nunito** (400–800): nhãn, form, bản thảo, mô tả. Web desktop dùng body 13px vì mật độ thông tin cao. Cỡ chữ chỉ lấy từ thang `--fs-xs|sm|md|lg|xl|2xl` trong `tokens.css`.
 - Không dùng chữ gradient, không viết HOA toàn bộ câu tiếng Việt. Ô nhập trên điện thoại tối thiểu 16px.
 
 ### Hình khối và bề mặt
@@ -195,14 +194,15 @@ Nhãn trạng thái `.pill`:
 - **Bo góc mềm**, không có phần tử tương tác góc vuông: ô nhập 12px, chip 14px hoặc tròn hẳn, thẻ 18–24px, sách của bé 44px.
 - **Nút chính hình lá** (`border-radius: 18px 7px 18px 7px`) kèm **vân lá** chìm (`--vein`). Đây là dấu hiệu nhận diện của Taletale.
 - Nền màn hình là lớp **mặt nước** (`--water`). Thẻ là `--panel` có viền `--line` và bóng rất nhẹ. Thanh trên và thanh bên dùng kính mờ (blur 18px).
-- Ảnh bìa tạm khi chưa có tranh là gradient theo id truyện, có mặt trăng và mặt nước.
+- Truyện chưa có ảnh bìa dùng chung một ảnh mẫu (`public/default-cover.svg`, hàm `coverFor`); ảnh lỗi dùng `public/default-image.svg` qua `SafeImage`.
 
 ### Thành phần dùng chung (`base.css`, `shell.css`)
 
 | Class | Ý nghĩa |
 | :--- | :--- |
-| `.pane` › `.ph` (tiêu đề) + `.pb` (nội dung cuộn) | Khung một cột trong không gian làm việc |
-| `.btn` + `.btn-p` / `.btn-s` / `.btn-g` / `.btn-ok` / `.btn-no` / `.btn-kid` | Nút chính / phụ / chỉ chữ hoặc icon / duyệt / lưu trữ, xoá / mở Chế độ của bé. `.btn-c` kéo hết chiều ngang |
+| `.pane` › `.pb` (nội dung cuộn), `.sec-h` (tiêu đề mục), `.pane-tools` (hàng nút của khung) | Khung một cột trong không gian làm việc. Không dùng thanh tên ở đầu khung |
+| `Dialog`, `SafeImage` (`components/`) | Popup cho form điền thông tin; ảnh có hình mặc định khi lỗi |
+| `.btn` + `.btn-p` / `.btn-s` / `.btn-g` / `.btn-ok` / `.btn-no` / `.btn-kid` | Nút chính / phụ / chỉ chữ hoặc icon / duyệt / xoá, gỡ / mở Chế độ của bé. `.btn-c` kéo hết chiều ngang |
 | `.inp`, `.field` + `.lbl` | Ô nhập và nhãn |
 | `.chip` trong `.chips`, `.seg` | Bộ lọc hoặc lựa chọn nhiều; nhóm 2–4 lựa chọn ngang |
 | `.tog` | Công tắc |
@@ -251,7 +251,7 @@ npm run lint
 npx tsc --noEmit
 ```
 
-Test nằm trong `tests/unit/`, chia theo nhóm: `story-workflow`, `studio`, `services`, `guardian`, `reading`, `adaptive`, `staff`.
+Test nằm trong `tests/unit/`, chia theo nhóm: `story-workflow`, `studio`, `services`, `guardian`, `reading`, `staff`.
 
 ---
 
@@ -260,6 +260,6 @@ Test nằm trong `tests/unit/`, chia theo nhóm: `story-workflow`, `studio`, `se
 | Tài liệu | Nội dung |
 | :--- | :--- |
 | [`src/AGENTS.md`](src/AGENTS.md) | Quy tắc kiến trúc và giao diện frontend |
-| [`src/docs/FRONTEND_PROGRESS.md`](src/docs/FRONTEND_PROGRESS.md) | Tiến độ theo từng luồng nghiệp vụ, phần còn chờ backend |
-| [`src/docs/BACKEND_API_STATUS.md`](src/docs/BACKEND_API_STATUS.md) | Trạng thái các API backend |
+| [`TASKS.md`](TASKS.md) | Việc còn phải làm của frontend |
+| [`src/docs/core-api-coverage.json`](src/docs/core-api-coverage.json) | Kết quả đối soát endpoint Backend với frontend |
 | `../DESIGN.md`, `../PRODUCT.md` (thư mục gốc dự án) | Hệ thống thiết kế và định hướng sản phẩm |

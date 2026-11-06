@@ -25,8 +25,7 @@ NEXT_PUBLIC_API_URL=http://localhost:5259
 | `npm test` | Vitest (`tests/unit`) |
 | `npx tsc --noEmit` | Kiểm tra kiểu |
 
-## Tài liệu trong `docs/`
+## Tài liệu
 
-- `FRONTEND_PROGRESS.md`: tiến độ từng luồng, phần còn chờ backend
-- `BACKEND_API_STATUS.md`: trạng thái API backend
-- `ai-story-generation-api-integration-plan.md`: kế hoạch tích hợp luồng tạo truyện AI
+- [`../TASKS.md`](../TASKS.md): việc còn phải làm
+- `docs/core-api-coverage.json`: kết quả đối soát endpoint (tạo bằng `node scripts/audit-core-api.mjs`)

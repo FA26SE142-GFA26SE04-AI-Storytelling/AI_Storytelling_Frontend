@@ -11,8 +11,7 @@ import { apiRequest } from './apiClient';
 export const storyService = {
   /**
    * Backend chưa có bộ lọc theo hồ sơ bé (`StoryDto` không có `childProfileId`), nên gọi theo người tạo truyện.
-   * Xem docs/BACKEND_API_STATUS.md, Luồng 2.
-   */
+     */
   getStories(filter: StoryFilterRequest = {}): Promise<ApiResponse<PagedResult<StoryDto>>> {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(filter)) {
