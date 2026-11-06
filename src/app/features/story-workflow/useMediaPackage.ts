@@ -5,10 +5,12 @@ import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationSer
 import type { StoryMediaPackage } from '@/app/types/aiStory';
 import { mediaMutationSnapshot } from '@/app/features/story-workflow/mediaPackage';
 
-export function useMediaPackage({ storyId, versionId, onChanged, disabled = false }: {
-  storyId: number; versionId?: number | null; onChanged: () => void; disabled?: boolean;
+/** `source`: gói media mà màn hình đã có sẵn (vd. bản xem trước của Studio); truyền vào thì tạo lại / giữ bản cũ dùng luôn gói đó, không cần bấm tải riêng. */
+export function useMediaPackage({ storyId, versionId, onChanged, disabled = false, source = null }: {
+  storyId: number; versionId?: number | null; onChanged: () => void; disabled?: boolean; source?: StoryMediaPackage | null;
 }) {
-  const [pack, setPack] = useState<StoryMediaPackage | null>(null);
+  const [loadedPack, setPack] = useState<StoryMediaPackage | null>(null);
+  const pack = source ?? loadedPack;
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
   const [reviewed, setReviewed] = useState(false);
