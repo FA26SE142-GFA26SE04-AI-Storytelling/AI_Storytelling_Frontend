@@ -52,11 +52,11 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
     switch (q.type) {
       case 'Checkpoint':
       case 'PicturePrediction':
-        return <div className={`kid-pick-grid${q.type === 'PicturePrediction' ? ' pics' : ''}`}>
-          {options.map((o, i) => <button key={o.id} type="button" className={`kid-pick${q.type === 'PicturePrediction' ? ' pic' : ''}`} aria-pressed={chosen === o.id} disabled={busy || !!result}
+        return <div className={`kid-answer-grid${q.type === 'PicturePrediction' ? ' pics' : ''}`}>
+          {options.map((o, i) => <button key={o.id} type="button" className={`kid-answer${q.type === 'PicturePrediction' ? ' pic' : ''}`} aria-pressed={chosen === o.id} disabled={busy || !!result}
             onClick={() => { setChosen(o.id); play(o.audioUrl); void send({ optionId: o.id }); }}>
             {q.type === 'PicturePrediction' && <SafeImage src={o.imageUrl} alt="" />}
-            <span className="kid-pick-body"><span className="kid-pick-mark" aria-hidden="true">{String.fromCharCode(65 + i)}</span><span className="kid-pick-text">{o.text}</span></span>
+            <span className="kid-answer-body"><span className="kid-answer-mark" aria-hidden="true">{String.fromCharCode(65 + i)}</span><span className="kid-answer-text">{o.text}</span></span>
           </button>)}
         </div>;
       case 'RolePlay':
@@ -77,12 +77,12 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
         </div>;
       case 'EventOrdering':
         return <div className="kid-order">
-          <div className="kid-pick-grid">
+          <div className="kid-answer-grid">
             {options.map(o => {
               const at = order.indexOf(o.id);
-              return <button key={o.id} type="button" className="kid-pick" aria-pressed={at >= 0} disabled={busy || finished}
+              return <button key={o.id} type="button" className="kid-answer" aria-pressed={at >= 0} disabled={busy || finished}
                 onClick={() => { setResult(null); setOrder(v => at >= 0 ? v.filter(x => x !== o.id) : [...v, o.id]); }}>
-                <span className="kid-pick-body"><span className={`kid-pick-mark${at >= 0 ? ' on' : ''}`} aria-hidden="true">{at >= 0 ? at + 1 : ''}</span><span className="kid-pick-text">{o.text}</span></span>
+                <span className="kid-answer-body"><span className={`kid-answer-mark${at >= 0 ? ' on' : ''}`} aria-hidden="true">{at >= 0 ? at + 1 : ''}</span><span className="kid-answer-text">{o.text}</span></span>
               </button>;
             })}
           </div>

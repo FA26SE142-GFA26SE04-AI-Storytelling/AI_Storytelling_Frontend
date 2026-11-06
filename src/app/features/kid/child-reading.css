@@ -445,18 +445,18 @@
 .kid-interaction { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
 .kid-interaction h2 { margin: 0; font-size: var(--fs-xl); }
 /* Đáp án của tương tác khi nghe: lưới 2 cột, chữ cái ở bên trái, chữ canh giữa theo chiều dọc */
-.kid-pick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 12px; width: 100%; }
-.kid-pick-grid.pics { grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); }
-.kid-pick { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 10px; min-height: 72px; padding: 12px 16px; border: 2px solid var(--line-2); border-radius: 20px; background: var(--surface); color: var(--text); text-align: left; transition: transform .15s, border-color .15s, background .15s; }
-.kid-pick:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--surface)); }
-.kid-pick[aria-pressed="true"] { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 18%, var(--surface)); }
-.kid-pick:disabled { cursor: default; }
-.kid-pick:disabled:not([aria-pressed="true"]) { opacity: .55; }
-.kid-pick-body { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.kid-pick-mark { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--panel); font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; }
-.kid-pick-mark.on, .kid-pick[aria-pressed="true"] .kid-pick-mark { background: var(--primary-strong); border-color: var(--primary-strong); color: var(--on-primary); }
-.kid-pick-text { min-width: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
-.kid-pick.pic img { width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; object-fit: cover; }
+.kid-answer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 12px; width: 100%; }
+.kid-answer-grid.pics { grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); }
+.kid-answer { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 10px; min-height: 72px; padding: 12px 16px; border: 2px solid var(--line-2); border-radius: 20px; background: var(--surface); color: var(--text); text-align: left; transition: transform .15s, border-color .15s, background .15s; }
+.kid-answer:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--surface)); }
+.kid-answer[aria-pressed="true"] { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 18%, var(--surface)); }
+.kid-answer:disabled { cursor: default; }
+.kid-answer:disabled:not([aria-pressed="true"]) { opacity: .55; }
+.kid-answer-body { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.kid-answer-mark { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--panel); font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; }
+.kid-answer-mark.on, .kid-answer[aria-pressed="true"] .kid-answer-mark { background: var(--primary-strong); border-color: var(--primary-strong); color: var(--on-primary); }
+.kid-answer-text { min-width: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.kid-answer.pic img { width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; object-fit: cover; }
 .kid-roleplay, .kid-fill { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
 .kid-roleplay-line { margin: 0; font-family: var(--font-story); font-size: var(--fs-xl); line-height: 1.4; }
 .kid-hint { margin: 0; color: var(--muted); font-size: var(--fs-md); }
@@ -469,7 +469,7 @@
 .kid-flag-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 .kid-tree { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .kid-tree p { margin: 2px 0 0; }
-@media (prefers-reduced-motion: reduce) { .kid-feedback { animation: none; } .kid-pick { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .kid-feedback { animation: none; } .kid-answer { transition: none; } }
 
 /* Thanh tìm truyện của bé: ô tìm bo tròn, nguồn truyện là các nút chọn, phân trang gọn ở giữa */
 .kid-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
