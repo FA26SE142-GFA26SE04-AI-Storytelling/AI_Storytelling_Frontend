@@ -17,7 +17,7 @@ import { BookOpen, Lock } from 'lucide-react';
 /** Bìa sách trên kệ của bé: tên truyện in trên bìa. */
 function Cover({ coverUrl, title, meta, disabled, onOpen, label }: { id: number; coverUrl?: string | null; title: string; meta?: string; disabled?: boolean; onOpen?: () => void; label?: string }) {
   const canRead = !!onOpen;
-  return <button className={`bk${canRead ? ' can-read' : ' cannot-read'}`} disabled={disabled || !canRead} aria-label={canRead ? `Đọc truyện ${title}` : `${title}: ${label ?? 'chưa mở'}`} onClick={onOpen}><span className="bk-cover" style={{ background: coverFor(coverUrl) }}>{canRead ? <span className="pill ok bk-badge"><BookOpen className="ic" aria-hidden />Đọc được</span> : <span className="pill draft bk-badge"><Lock className="ic" aria-hidden />{label ?? 'Chưa mở'}</span>}<span className="bk-name display">{title}</span></span><span className="bk-title">{title}</span>{meta && <span className="bk-meta">{meta}</span>}</button>;
+  return <button className={`bk${canRead ? ' can-read' : ' cannot-read'}`} disabled={disabled || !canRead} aria-label={canRead ? `Đọc truyện ${title}` : `${title}: ${label ?? 'chưa mở'}`} onClick={onOpen}><span className="bk-cover" style={{ background: coverFor(coverUrl) }}>{canRead ? <span className="pill ok bk-badge"><BookOpen className="ic" aria-hidden />Đọc được</span> : <span className="pill draft bk-badge"><Lock className="ic" aria-hidden />{label ?? 'Chưa mở'}</span>}<span className="bk-name display">{title}</span></span>{meta && <span className="bk-meta">{meta}</span>}</button>;
 }
 export default function ConnectedKidHome({ childId, onExit }: { childId: number; onExit: () => void }) {
   const ended = useKidSession();

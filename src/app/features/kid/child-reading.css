@@ -525,3 +525,91 @@
 .kid-order .kid-actions { margin-top: 4px; }
 .kid-interaction .kid-feedback { margin-top: 4px; }
 .kid-interaction > .kid-actions { margin-top: 6px; }
+
+/* Cây tri thức: hình cây đổi theo giai đoạn, thanh EXP tới giai đoạn kế, hàng bước lớn lên. */
+.kid-reading .kid-tree, .kid-tree { flex-direction: row; flex-wrap: wrap; justify-content: center; align-items: center; gap: 24px; padding: 24px 26px; border: 3px solid var(--primary); border-radius: 28px; background: linear-gradient(180deg, color-mix(in srgb, var(--sky) 14%, transparent), color-mix(in srgb, var(--primary) 14%, transparent)); }
+.kid-tree-art { flex: 0 0 auto; display: grid; place-items: center; }
+.kid-tree-art .tree-art { filter: drop-shadow(0 10px 14px color-mix(in srgb, var(--shadow) 30%, transparent)); }
+.tree-sway { animation: tree-sway 4s ease-in-out infinite; }
+@keyframes tree-sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+.kid-tree-side { flex: 1 1 280px; display: flex; flex-direction: column; align-items: flex-start; gap: 16px; min-width: 0; }
+.kid-tree-info { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: 100%; }
+.kid-tree .notice { flex-basis: 100%; }
+.kid-tree-info b { font-size: var(--fs-xl); }
+.kid-tree-exp { font-size: var(--fs-md); font-weight: 800; color: var(--primary-strong); }
+.kid-tree-steps { display: flex; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.kid-tree-steps li { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--panel); color: var(--faint); }
+.kid-tree-steps li svg { width: 18px; height: 18px; }
+.kid-tree-steps li.done { background: var(--primary-strong); border-color: var(--primary-strong); color: var(--on-primary); }
+.kid-tree-steps li.now { border-color: var(--primary); color: var(--primary-strong); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 28%, transparent); }
+@media (prefers-reduced-motion: reduce) { .tree-sway { animation: none; } }
+
+/* Tưới cây: thanh EXP chạy dài ra có ánh sáng quét qua, "+N EXP" bay lên rồi mờ dần. */
+.kid-tree .kid-exp-bar > span { transition: width 1.2s cubic-bezier(.22, 1, .36, 1); position: relative; }
+.kid-tree .kid-exp-bar.filling { animation: kid-bar-glow 1.4s ease-out; }
+.kid-tree .kid-exp-bar.filling > span::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--on-primary) 55%, transparent), transparent); animation: kid-bar-shine 1.2s ease-out; }
+.kid-tree-exp { position: relative; display: inline-block; }
+.kid-tree-gain { position: absolute; left: calc(100% + 12px); top: -4px; white-space: nowrap; font-style: normal; font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 800; color: var(--gold); text-shadow: 0 2px 8px color-mix(in srgb, var(--shadow) 60%, transparent); pointer-events: none; animation: kid-gain-float 1.6s ease-out forwards; }
+@keyframes kid-gain-float { 0% { opacity: 0; transform: translateY(8px) scale(.7); } 20% { opacity: 1; transform: translateY(-4px) scale(1.15); } 100% { opacity: 0; transform: translateY(-34px) scale(1); } }
+@keyframes kid-bar-shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes kid-bar-glow { 0%, 100% { box-shadow: none; } 30% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--primary) 35%, transparent), 0 0 22px color-mix(in srgb, var(--primary) 60%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .kid-tree .kid-exp-bar > span { transition: none; } .kid-tree .kid-exp-bar.filling, .kid-tree .kid-exp-bar.filling > span::after { animation: none; } .kid-tree-gain { animation-duration: 1.6s; transform: none; } }
+
+/* Thẻ gộp EXP + cây: dòng EXP to ở trên, "+N EXP" bay lên ngay trên dòng đó. */
+.kid-reward-stats .kid-tree { flex-direction: row; align-items: center; }
+.kid-reward-stats .kid-tree .kid-exp-line b { font-size: 48px; line-height: 1.1; }
+.kid-reward-stats .kid-tree .kid-exp-line em { margin-left: 0; font-family: var(--font-display); font-size: var(--fs-xl); }
+.kid-exp-line { position: relative; }
+.kid-exp-line .kid-tree-gain { left: auto; right: 0; top: -14px; }
+
+/* Chuỗi ngày đọc: chỉ còn đốm lửa + số, nằm góc phải thẻ. */
+.kid-reward-stats .kid-tree { position: relative; }
+.kid-streak { position: absolute; top: 16px; right: 20px; display: flex; align-items: center; gap: 6px; padding: 6px 14px 6px 10px; border-radius: 999px; border: 2px solid var(--gold-deep); background: color-mix(in srgb, var(--gold-deep) 18%, transparent); }
+.kid-streak svg { width: 24px; height: 24px; color: var(--gold-deep); fill: color-mix(in srgb, var(--gold) 70%, transparent); }
+.kid-reward-stats .kid-streak b { font-size: var(--fs-xl); line-height: 1; }
+
+/* Chia đôi màn Phần thưởng: cây ở bên trái, thông tin EXP và huy hiệu ở bên phải. */
+.kid-rewards-split { display: grid; grid-template-columns: minmax(240px, 2fr) 3fr; gap: 24px; align-items: stretch; }
+.kid-rewards-right { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.kid-reward-left, .kid-reward-left .kid-tree { height: 100%; }
+.kid-reward-stats .kid-reward-left .kid-tree, .kid-reward-stats .kid-tree { flex-direction: column; justify-content: center; }
+.kid-reward-stats .kid-info-card { position: relative; align-items: stretch; gap: 16px; }
+.kid-info-card .kid-tree-info { padding-right: 90px; }
+.kid-info-card .kid-exp-line em { margin-left: 0; font-family: var(--font-display); font-size: var(--fs-xl); }
+.kid-info-card .kid-listen-primary { align-self: flex-start; }
+@media (max-width: 820px) { .kid-rewards-split { grid-template-columns: 1fr; } .kid-info-card .kid-tree-info { padding-right: 0; padding-top: 44px; } }
+
+/* Cây không có khung: bỏ viền, nền và bóng; cây đứng thẳng trên nền trang. */
+.kid-reward-stats .kid-reward-left .kid-tree { border: 0; background: transparent; box-shadow: none; padding: 0; }
+
+/* Thanh chuyển tab: bốn tab gọn bên trái trong một thanh có viền, tab đang chọn tô đặc; Tải lại và ếch dồn sang phải. */
+.kid-library-tabs { gap: 8px; }
+.kid-library-tabs .kid-soft-button { border: 2px solid var(--line-2); }
+.kid-library-tabs .kid-soft-button[aria-pressed=true] { background: var(--primary-strong); color: var(--on-primary); border-color: var(--primary); outline: 0; box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 28%, transparent); }
+.kid-library-tabs .kid-library-refresh { margin-left: auto; }
+.kid-library-tabs .kid-library-frog { margin-left: 4px; }
+
+/* Cây thật sự không khung (bộ chọn trước đó không khớp vì hai class nằm trên cùng một phần tử). */
+.kid-reward-stats.kid-reward-left .kcard.kid-tree { border: 0; background: transparent; box-shadow: none; padding: 0; }
+
+/* Trang của bé trong suốt như khung của phụ huynh: nhìn thấy nền đầm sen phía sau, các thẻ bên trong cũng mờ nhẹ. */
+.kid .ksection.kid-reading { background: color-mix(in srgb, var(--panel) 55%, transparent); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); }
+.kid-reading .kcard { background: color-mix(in srgb, var(--surface) 60%, transparent); }
+.kid-reading .kid-reward-stats .kcard.kid-info-card { background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 16%, transparent), color-mix(in srgb, var(--panel) 40%, transparent) 70%); }
+.kid-badge { background: color-mix(in srgb, var(--surface) 60%, transparent); }
+.kid-story-tile { background: color-mix(in srgb, var(--surface) 60%, transparent); }
+
+/* Cây lớn: vừa chiều ngang cột trái, không vượt khung trên màn hẹp. */
+.kid-reward-left .tree-art { width: min(100%, 420px); height: auto; }
+
+/* Màn Phần thưởng gọn trong một màn hình: cột phải rộng hơn, huy hiệu xếp 4 cột, thẻ EXP và cây thu gọn theo chiều cao màn hình. */
+.kid-rewards-split { grid-template-columns: minmax(240px, 1fr) 2fr; gap: 20px; align-items: center; }
+.kid-rewards-split .kid-rewards-right { gap: 12px; }
+.kid-reward-left, .kid-reward-left .kid-tree { height: auto; }
+.kid-reward-left .tree-art { width: min(100%, 420px, 52vh); }
+.kid-reward-stats .kid-info-card { padding: 16px 24px; gap: 12px; }
+.kid-info-card .kid-tree-info { gap: 8px; }
+.kid-rewards-split .kid-badges { grid-template-columns: repeat(auto-fill, minmax(min(210px, 100%), 1fr)); gap: 10px; }
+.kid-rewards-split .kid-badge { padding: 12px; gap: 10px; }
+.kid-rewards-split .kid-badge p { font-size: var(--fs-sm); }
+.kid-rewards-split h3 { margin: 0; }
