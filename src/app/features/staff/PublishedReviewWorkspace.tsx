@@ -6,7 +6,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import Frog from '@/app/components/brand/Frog';
 import Select from '@/app/components/Select';
 import { ArrowLeft } from 'lucide-react';
-import { gradientFor } from '@/app/lib/storyView';
+import { coverFor } from '@/app/lib/storyView';
 import '@/app/features/library/library.css';
 import '@/app/features/created/created.css';
 import { Page } from './ui';
@@ -60,7 +60,7 @@ export default function PublishedReviewWorkspace() {
     {inDetail ? <>
       <div className="row"><button className="btn btn-g" onClick={() => { setStory(null); setRoadmap(null); setMessage(''); }}><ArrowLeft className="ic" />Về thư viện</button></div>
       <div className="st-card">
-          <div className="st-group"><div className="row"><button className="btn btn-s" disabled={busy} onClick={()=>void grantView()}>Ghi nhận lượt xem để rà soát</button></div></div>
+          <div className="st-group"><div className="row"><button className="btn btn-s" disabled={busy} onClick={()=>void grantView()}title="Ghi nhận lượt xem để rà soát">Bắt đầu rà soát</button></div></div>
           {roadmap && <section><div className="st-group"><h3>{roadmap.name}</h3><p>{roadmap.description}</p></div><div className="st-group"><b className="st-group-title">Truyện trong bộ</b><div className="row">{roadmap.stories.map(s => <button className="btn btn-s" disabled={busy} key={s.storyId} onClick={() => void openStory(s.storyId)}>{s.title}</button>)}</div></div></section>}
           {story && <section><div className="st-group"><h3>{story.story.title}</h3><p style={{whiteSpace:'pre-wrap'}}>{story.version?.content}</p></div><div className="st-group"><details open><summary>Học liệu</summary><LearningMaterials vocabulary={story.vocabulary} quizzes={story.quizzes} /></details></div>
             {(user?.role==='Moderator'||user?.role==='Administrator') && <StoryWishCards key={story.story.storyId} storyId={story.story.storyId}/>}
@@ -78,7 +78,7 @@ export default function PublishedReviewWorkspace() {
       </div>
       {list && list.items.length > 0 ? <div className="created-grid">
         {list.items.map(i => <button className="bk" key={`${i.source}:${i.id}`} disabled={busy} onClick={() => void open(i)} aria-label={`Xem ${i.title}`}>
-          <span className="bk-cover" style={{ background: gradientFor(i.id) }}>
+          <span className="bk-cover" style={{ background: coverFor() }}>
             {i.needsUpdate && <span className="pill wait bk-badge">Cần cập nhật</span>}
             <span className="bk-name display">{i.title}</span>
           </span>

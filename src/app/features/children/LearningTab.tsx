@@ -6,7 +6,6 @@ import { Check, Save } from "lucide-react";
 import { useFlash } from "@/app/lib/useFlash";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ChildProfile } from "@/app/types/childProfile";
-import LearningHistory from "@/app/features/adaptive/LearningHistory";
 import LearningForm, { learningFrom, learningRequest, type LearningValue } from "./LearningForm";
 import { profileLifecycleService } from '@/app/services/profileLifecycleService';
 
@@ -15,7 +14,6 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
   const [value, setValue] = useState<LearningValue | null>(null);
   const [exists, setExists] = useState(false);
   const [saved, setSaved] = useState("");
-  const [historyKey, setHistoryKey] = useState(0);
   const [busy, setBusy] = useState(false);
   const [saved2, flashSaved] = useFlash();
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
@@ -41,7 +39,6 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
     setBusy(false);
     setNote({ ok: r.success, text: r.success ? "Đã lưu hồ sơ học tập. Truyện tạo sau sẽ theo cấu hình mới." : r.message || "Không lưu được." });
     if (r.success) {
-      setHistoryKey((k) => k + 1);
       flashSaved();
       setExists(true);
       setSaved(JSON.stringify(value));
@@ -59,9 +56,8 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
         <LearningForm value={value} onChange={setValue} disabled={!canEdit} ageBand={child.ageBand} />
         <DenyCover active={!canEdit} text="Bạn không đủ quyền hạn để sửa hồ sơ học tập của bé." />
       </div>
-      {canEdit && <button className={`btn btn-p${saved2 ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={busy || !dirty} onClick={() => void save()}>{saved2 ? <Check className="ic" /> : <Save className="ic" />}{busy ? "Đang lưu…" : saved2 ? "Đã lưu" : "Lưu hồ sơ học tập"}</button>}
+      {canEdit && (dirty || saved2) && <button className={`btn btn-p${saved2 ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={busy || !dirty} onClick={() => void save()}>{saved2 ? <Check className="ic" /> : <Save className="ic" />}{busy ? "Đang lưu…" : saved2 ? "Đã lưu" : "Lưu hồ sơ học tập"}</button>}
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
-      {child.status === "Active" && <LearningHistory child={child} refreshKey={historyKey} />}
     </div>
   );
 }

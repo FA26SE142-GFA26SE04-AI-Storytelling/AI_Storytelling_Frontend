@@ -2,12 +2,12 @@
 
 import "./review-tools.css";
 import { useState } from "react";
-import { Archive, Check, Plus, RefreshCw, Trash2, X } from "lucide-react";
+import { Check, Plus, RefreshCw, Trash2, X } from "lucide-react";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import type { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
 import type { QuizQuestionDto, VocabularyItemDto } from "@/app/types/aiStory";
 import type { ApiResponse } from "@/app/types/auth";
-import { ARCHIVE_REASONS, normalizeQuizType, normalizeTrueFalse, quizTypesFor, type ArchiveReason } from "@/app/lib/storyRules";
+import { normalizeQuizType, normalizeTrueFalse, quizTypesFor } from "@/app/lib/storyRules";
 
 type Review = ReturnType<typeof useStoryReview>;
 type Artifact = "vocabulary" | "quiz";
@@ -18,7 +18,7 @@ function Dialog({ title, onClose, children, wide }: { title: string; onClose: ()
   return (
     <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className={`dlg${wide ? " wide" : ""}`}>
-        <div className="row"><b className="display grow" style={{ fontSize: 18 }}>{title}</b><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
+        <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>{title}</b><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
         {children}
       </div>
     </div>
@@ -127,39 +127,6 @@ export function LearningEditor({ r, ageBand, onClose }: { r: Review; ageBand: st
         <button className="btn btn-s" disabled={r.busy || !!r.proposal} onClick={() => void regenerate()}><RefreshCw className="ic" />AI tạo lại</button>
         <span className="grow" />
         <button className="btn btn-p" disabled={r.busy || !dirty} onClick={() => void save()}><Check className="ic" />Lưu {ARTIFACT_LABEL[tab].toLowerCase()}</button>
-      </div>
-    </Dialog>
-  );
-}
-
-/** Lưu trữ truyện, bắt buộc chọn lý do (Luồng 2 mục 6.6). */
-export function ArchiveDialog({ storyId, onClose, onDone }: { storyId: number; onClose: () => void; onDone: (msg: string) => void }) {
-  const [reason, setReason] = useState<ArchiveReason>("supervisor_preference");
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const submit = async () => {
-    setBusy(true);
-    setErr(null);
-    const res = await api.archiveStory(storyId, { reason });
-    setBusy(false);
-    if (res.success) onDone("Đã lưu trữ truyện");
-    else setErr(res.message);
-  };
-  return (
-    <Dialog title="Lưu trữ truyện" onClose={onClose}>
-      <p className="sub">Truyện sẽ không hiện với bé nữa. Truyện không bị xoá hẳn.</p>
-      <div className="sec" style={{ gap: 7 }}>
-        {ARCHIVE_REASONS.map((a) => (
-          <label key={a.id} className={`opt${reason === a.id ? " on" : ""}`}>
-            <input type="radio" name="archive" checked={reason === a.id} onChange={() => setReason(a.id)} />
-            <span><b>{a.label}</b><small>{a.hint}</small></span>
-          </label>
-        ))}
-      </div>
-      {err && <div className="notice err" role="alert">{err}</div>}
-      <div className="row" style={{ justifyContent: "flex-end" }}>
-        <button className="btn btn-g" onClick={onClose}>Hủy</button>
-        <button className="btn btn-no" disabled={busy} onClick={() => void submit()}><Archive className="ic" />Lưu trữ</button>
       </div>
     </Dialog>
   );

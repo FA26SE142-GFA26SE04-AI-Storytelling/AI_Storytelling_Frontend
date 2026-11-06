@@ -9,7 +9,7 @@ import { Shelf, ShelfRow } from "@/app/features/library/LibraryWorkspace";
 import { creatorService } from "@/app/services/creatorService";
 import { creatorPublicationService } from "@/app/services/creatorPublicationService";
 import type { CreatorDraft } from "@/app/types/creator";
-import { gradientFor } from "@/app/lib/storyView";
+import { coverFor } from "@/app/lib/storyView";
 import { Notice, fmt } from "./ui";
 import type { CreatorPageProps } from "./CreatorStories";
 
@@ -28,7 +28,6 @@ export const SHELVES: { id: string; title: string; sub: string; keys: string[] }
   { id: "review", title: "Đang duyệt & chuẩn bị", sub: "Chờ Moderator duyệt hoặc đang tạo tranh và giọng đọc",
     keys: ["inputaccepted", "generating", "outlinereview", "moderationreview", "contentreview", "approved", "mediaprocessing", "mediareview"] },
   { id: "ready", title: "Sẵn sàng", sub: "Đã duyệt, có thể công khai vào Thư viện chung", keys: ["ready", "published"] },
-  { id: "archived", title: "Đã lưu trữ", sub: "Không còn dùng", keys: ["archived"] },
 ];
 export const shelfOf = (s: CreatorDraft) => SHELVES.find((g) => g.keys.includes(statusKey(s)))?.id ?? "draft";
 const NEW_DAYS = 3;
@@ -42,7 +41,7 @@ function BookCard({ story, rank, on, onPick, published }: { story: CreatorDraft;
   const label = `${SHELVES.find((g) => g.id === shelfOf(story))?.title}${shelfOf(story) === "ready" && !published ? " · chưa công khai" : ""}`;
   return (
     <button className={`bk${on ? " on" : ""}`} onClick={onPick} aria-pressed={on}>
-      <span className="bk-cover" style={{ background: gradientFor(story.storyId) }}>
+      <span className="bk-cover" style={{ background: coverFor() }}>
         {!ready ? <span className="pill draft bk-badge">{label}</span> : isNew(story) && <span className="bk-badge bk-new">Mới</span>}
         <span className="bk-name display">{name}</span>
         {rank !== undefined && <span className="bk-rank display" aria-hidden>{rank}</span>}
@@ -217,8 +216,8 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
         <AsidePane title="Chi tiết" icon={Info}>
           {sel ? (
             <>
-              <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: gradientFor(sel.storyId) }} />
-              <h3 className="display" style={{ fontSize: 20, margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
+              <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: coverFor() }} />
+              <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
               {sel.description && <p className="sub">{sel.description}</p>}
               <div className="meta">
                 <span>Cách tạo</span><b>{SOURCE[sourceOf(sel)]}</b>

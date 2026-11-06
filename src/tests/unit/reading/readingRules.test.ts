@@ -33,8 +33,8 @@ describe('Cây tri thức (Bước 3.4)', () => {
   it('lớn theo các mốc cố định', () => {
     expect(treeStage(0).label).toBe('Hạt giống');
     expect(treeStage(20).label).toBe('Mầm non');
-    expect(treeStage(250).label).toBe('Cây ra hoa');
-    expect(treeStage(250).next).toBeNull();
+    expect(treeStage(500).label).toBe('Cây ra hoa');
+    expect(treeStage(500).next).toBeNull();
   });
 
   it('tính phần trăm tới mốc kế', () => {
@@ -54,8 +54,8 @@ describe('chuỗi ngày đọc', () => {
 describe('huy hiệu', () => {
   it('chỉ trao huy hiệu chưa có', () => {
     const stats = { storiesCompleted: 1, streakDays: 7, wordsCollected: 3, roadmapFinished: false, wishFulfilled: false };
-    expect(earnedBadges(stats, [])).toEqual(['first_story', 'streak_7']);
-    expect(earnedBadges(stats, ['first_story'])).toEqual(['streak_7']);
+    expect(earnedBadges(stats, [])).toEqual(['first_story', 'streak_3', 'streak_7']);
+    expect(earnedBadges(stats, ['first_story'])).toEqual(['streak_3', 'streak_7']);
   });
 });
 

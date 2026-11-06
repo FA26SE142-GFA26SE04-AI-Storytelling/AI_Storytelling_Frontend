@@ -12,9 +12,7 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('Luồng 5 — quản trị và kiểm duyệt', () => {
   it.each([
-    ['yêu cầu xoá dữ liệu kèm mật khẩu và biệt danh', () => staffService.createDataRequest(3, 'delete', { currentPassword: 'pw', confirmNickname: 'Na' }), '/DataRequest', { childProfileId: 3, requestType: 'delete', currentPassword: 'pw', confirmNickname: 'Na' }],
-    ['từ chối Data Request', () => staffService.rejectDataRequest(9, 'Thiếu thông tin'), '/DataRequest/9/reject', { reason: 'Thiếu thông tin' }],
-    ['hạn mức riêng một tài khoản', () => staffService.setQuota({ scope: 'Personal', childProfileId: null, userId: 13, quotaLimit: 5, periodStart: '2026-10-01', periodEnd: '2026-10-31' }), '/TokenQuota/config', { scope: 'Personal', childProfileId: null, userId: 13, quotaLimit: 5, periodStart: '2026-10-01', periodEnd: '2026-10-31' }],
+    ['hạn mức riêng một tài khoản', () => staffService.setQuota({ scope: 'Personal', userId: 13, quotaLimit: 5, periodStart: '2026-10-01', periodEnd: '2026-10-31' }), '/TokenQuota/config', { scope: 'Personal', userId: 13, quotaLimit: 5, periodStart: '2026-10-01', periodEnd: '2026-10-31' }],
     ['giữ danh sách chặn theo tuổi khi sửa danh mục', () => staffService.updateCategory(2, 'Bạo lực', true, ['Age_6_8', 'Age_9_10']), '/ContentCategory/2', { displayName: 'Bạo lực', isActive: true, defaultBlockedAgeBands: ['Age_6_8', 'Age_9_10'] }],
   ] as const)('%s', async (_name, call, route, payload) => {
     const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody());

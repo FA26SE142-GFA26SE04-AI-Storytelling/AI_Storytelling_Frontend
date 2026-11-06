@@ -66,7 +66,7 @@ export default function AccessTab({ child }: { child: ChildProfile }) {
           <div className="qr-card">
             <QrCode value={kidLink(fresh.secret)} label={`Mã QR đăng nhập của ${child.nickname}`} />
             <div className="sec" style={{ gap: 6 }}>
-              <b className="display" style={{ fontSize: 18 }}>{av.emoji} {child.nickname}</b>
+              <b className="display" style={{ fontSize: "var(--fs-lg)" }}>{av.emoji} {child.nickname}</b>
               <span className="sub">Vì an toàn, mã chỉ hiện một lần. Hãy quét ngay trên máy của bé, hoặc in / chụp lại và cất cẩn thận.</span>
               <button className="btn btn-s" style={{ width: "fit-content" }} disabled={busy} onClick={() => void makeQr()}><RefreshCw className="ic" />Tạo mã mới</button>
             </div>

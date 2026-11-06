@@ -93,7 +93,7 @@ export default function StudioMedia({ storyId, childId, ageBand, media, onFinish
                 <div><small>Câu hỏi</small><b>{count(bundle?.quiz.items.length)}</b></div>
               </>
             )}
-            <div><small>Bài học</small><b style={{ fontSize: 12 }}>{bundle ? bundle.story.lesson || "—" : "…"}</b></div>
+            <div><small>Bài học</small><b style={{ fontSize: "var(--fs-xs)" }}>{bundle ? bundle.story.lesson || "—" : "…"}</b></div>
           </div>
           <div className="sec">
             <div className="sec-h"><span>Cảnh trong truyện</span><span className="pill ai">{bundle ? `${scenes.length} cảnh` : "…"}</span></div>

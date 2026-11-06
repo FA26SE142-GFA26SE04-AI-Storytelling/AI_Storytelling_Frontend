@@ -26,7 +26,7 @@
 .audio-ring-btn .ring-icon { position: absolute; inset: 0; display: grid; place-items: center; }
 .audio-ring-btn .ring-icon svg { position: static; width: 24px; height: 24px; fill: currentColor; }
 @media (prefers-reduced-motion: reduce) { .audio-ring-btn, .audio-ring-btn .ring-bar { transition: none; } }
-.preview-text { font-size: 19px; line-height: 1.7; min-height: 140px; margin: 4px 0; color: var(--ink-warm, var(--text)); }
+.preview-text { font-size: var(--fs-lg); line-height: 1.7; min-height: 140px; margin: 4px 0; color: var(--ink-warm, var(--text)); }
 
 /* 3. Hộp thoại: nền mờ dần hiện, hộp phóng nhẹ từ 96% lên 100%. */
 .dlg-backdrop { animation: dlg-fade .18s ease-out; }
@@ -38,10 +38,10 @@
 /* Khung "Tự sửa bản thảo": nhãn các ô nhập là tiêu đề quan trọng, chữ to và đậm; khoảng cách rộng hơn. */
 .story-editor { gap: 20px; }
 .story-editor > .field { gap: 8px; }
-.story-editor > .field > .lbl { font-size: 17px; font-weight: 800; color: var(--text); }
-.story-editor > .field > .inp { font-size: 16px; font-weight: 500; }
-.story-editor > .field > .inp.display { font-size: 20px; font-weight: 800; }
-.story-editor > .field > textarea.inp { line-height: 1.7; font-size: 16.5px; }
-.story-editor .pa-assist h3 { font-size: 20px; font-weight: 800; }
-.story-editor .pa-assist .field, .story-editor .pa-assist .field > .lbl { font-size: 16px; font-weight: 800; color: var(--text); }
-.story-editor .pa-assist > .sub { font-size: 14.5px; }
+.story-editor > .field > .lbl { font-size: var(--fs-lg); font-weight: 800; color: var(--text); }
+.story-editor > .field > .inp { font-size: var(--fs-md); font-weight: 500; }
+.story-editor > .field > .inp.display { font-size: var(--fs-xl); font-weight: 800; }
+.story-editor > .field > textarea.inp { line-height: 1.7; font-size: var(--fs-md); }
+.story-editor .pa-assist h3 { font-size: var(--fs-xl); font-weight: 800; }
+.story-editor .pa-assist .field, .story-editor .pa-assist .field > .lbl { font-size: var(--fs-md); font-weight: 800; color: var(--text); }
+.story-editor .pa-assist > .sub { font-size: var(--fs-md); }

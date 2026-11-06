@@ -4,8 +4,8 @@ import "./staff.css";
 import "@/app/features/children/children.css";
 import { useState, type ComponentType } from "react";
 import {
-  Activity, BookOpenText, ChartColumn, Coins, FileClock, FlaskConical, FolderOpen, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt,
-  ScrollText, Shield, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
+  Activity, BookOpenText, ChartColumn, Coins, FolderOpen, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt,
+  Shield, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import type { StaffRole } from "@/app/types/auth";
@@ -16,18 +16,15 @@ import NavMenuButton from "@/app/components/shell/NavMenuButton";
 import AccountMenu from "@/app/components/shell/AccountMenu";
 import { circleReveal, useRiseIn } from "@/app/lib/motion";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
-import { ModerationQueue, RatingPage } from "./Moderation";
+import { ModerationQueue } from "./Moderation";
 import RoadmapTemplates from "./RoadmapTemplates";
 import PublishedReviewWorkspace from "./PublishedReviewWorkspace";
 import RubricWorkspace from "./RubricWorkspace";
 import AuthoringGuideManagement from "./AuthoringGuideManagement";
-import { PromptsPage } from "./Creator";
 import { CreatorCreateAi, CreatorCreateManual, type CreatorPageProps } from "./CreatorStories";
 import { CreatorLibrary } from "./CreatorLibrary";
 import { CreatorMyStories } from "./CreatorMyStories";
-import { CreatorEarnings } from "./CreatorEarnings";
-import { AdminParents, AdminStaff } from "./AdminPeople";
-import { AdminEvaluation, AdminLogs, AdminOverview } from "./AdminAi";
+import { AdminStaff } from "./AdminPeople";
 import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
 import { AdminBusinessReport, AdminPayments, AdminQuota } from "./AdminSystem";
@@ -47,7 +44,6 @@ const ACCOUNT_PAGES: PageDef[] = [
 
 /** Trang riêng của Content Creator trong menu avatar: doanh thu và thống kê theo tháng. */
 const CREATOR_ACCOUNT_PAGES: PageDef[] = [
-  { id: "earnings", label: "Doanh thu và thống kê", icon: ChartColumn, view: CreatorEarnings },
   ...ACCOUNT_PAGES,
 ];
 
@@ -60,13 +56,8 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Xem bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
-    { id: "catalog", label: "Danh mục & Prompt Catalog", icon: ListChecks, view: AdminCatalog },
-    { id: "overview", label: "Chất lượng AI", icon: Activity, view: AdminOverview },
-    { id: "logs", label: "Nhật ký sinh truyện", icon: ScrollText, view: AdminLogs },
-    { id: "eval", label: "Đánh giá AI", icon: FlaskConical, view: AdminEvaluation },
-    { id: "prompts", label: "Bộ test prompt", icon: FileClock, view: () => <PromptsPage admin /> },
+    { id: "catalog", label: "Danh mục nội dung", icon: ListChecks, view: AdminCatalog },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
-    { id: "parents", label: "Tài khoản phụ huynh", icon: Users, view: AdminParents },
     { id: "business", label: "Báo cáo nghiệp vụ", icon: ChartColumn, view: AdminBusinessReport },
     { id: "payments", label: "Đối soát thanh toán", icon: Receipt, view: AdminPayments },
     { id: "quota", label: "Token Quota", icon: Coins, view: AdminQuota },
@@ -76,7 +67,6 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "queue", label: "Hàng đợi kiểm duyệt", short: "Hàng đợi duyệt", icon: Inbox, view: () => <ModerationQueue /> },
     { id: "published", label: "Rà soát thư viện", short: "Rà soát truyện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và bộ mẫu đang công khai" },
     { id: "rubrics", label: "Tiêu chí vùng xám", short: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
-    { id: "rating", label: "Đánh giá AI", icon: FlaskConical, view: RatingPage },
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", short: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
@@ -87,7 +77,6 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "create-ai", label: "Tạo truyện bằng AI", menuLabel: "Dùng AI", short: "Dùng AI", icon: WandSparkles, view: CreatorCreateAi, hint: "AI viết truyện mẫu từ ý tưởng của bạn" },
     { id: "create-manual", label: "Tạo truyện thủ công", menuLabel: "Thủ công", short: "Thủ công", icon: PencilLine, view: CreatorCreateManual, hint: "Bạn tự viết nội dung, lưu thành từng phiên bản" },
     { id: "my-stories", label: "Truyện của tôi", short: "Truyện của tôi", icon: FolderOpen, view: CreatorMyStories, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở" },
-    { id: "prompts", label: "Bộ test prompt", short: "Test prompt", icon: FlaskConical, view: () => <PromptsPage /> },
     ...CREATOR_ACCOUNT_PAGES,
   ],
 };
@@ -100,12 +89,11 @@ const NAV: Record<StaffRole, NavEntry[]> = {
   Administrator: [
     { label: "Kiểm duyệt", icon: Inbox, items: ["published", "escalated", "rubrics"] },
     { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards", "catalog"] },
-    { label: "Chất lượng AI", icon: Activity, items: ["overview", "logs", "eval", "prompts"] },
-    { label: "Người dùng", icon: Users, items: ["staff", "parents"] },
+        { label: "Người dùng", icon: Users, items: ["staff"] },
     { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "quota"] },
   ],
-  Moderator: ["queue", "published", "rubrics", "rating", "authoring-guides", "templates", "wish-cards"],
-  ContentCreator: ["library", "create-ai", "create-manual", "my-stories", "prompts"],
+  Moderator: ["queue", "published", "rubrics", "authoring-guides", "templates", "wish-cards"],
+  ContentCreator: ["library", "create-ai", "create-manual", "my-stories"],
 };
 
 function StaffNav({ role, pageId, onPage, upward }: { role: StaffRole; pageId: string; onPage: (id: string) => void; upward?: boolean }) {
@@ -136,7 +124,7 @@ export default function StaffApp({ role }: { role: StaffRole }) {
       <PondBackdrop rich />
       <header className="top">
         <div className="logo" aria-label="Taletale"><Frog variant="face" size={46} /></div>
-        <b className="display" style={{ fontSize: 17, fontWeight: 800 }}>Taletale</b>
+        <b className="display" style={{ fontSize: "var(--fs-lg)", fontWeight: 800 }}>Taletale</b>
         <span className="top-role">{ROLE_LABEL[role]}</span>
 
         <nav ref={navRef} className="topnav" aria-label={ROLE_LABEL[role]}>

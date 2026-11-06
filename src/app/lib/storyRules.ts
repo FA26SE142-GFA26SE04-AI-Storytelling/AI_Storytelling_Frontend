@@ -8,8 +8,8 @@ export const GENRES = ["Cổ tích", "Phiêu lưu", "Động vật", "Khoa học
 
 /** Chế độ đầu ra của truyện (Studio và Nhập truyện có sẵn). */
 export const OUTPUT_MODE: Record<StoryOutputMode, { label: string; hint: string }> = {
-  learning: { label: "Kèm học liệu", hint: "AI tạo thêm từ vựng, câu đố và câu hỏi thảo luận để bé học sau khi đọc." },
-  reading_media_only: { label: "Chỉ để đọc", hint: "Chỉ có truyện, tranh và giọng đọc; không có từ vựng, câu đố hay thảo luận." },
+  learning: { label: "Kèm học liệu", hint: "AI tạo thêm từ vựng và câu đố để bé học sau khi đọc." },
+  reading_media_only: { label: "Chỉ để đọc", hint: "Chỉ có truyện, tranh và giọng đọc; không có từ vựng hay câu đố." },
 };
 export const isReadingOnly = (mode?: string | null) => mode === "reading_media_only";
 
@@ -95,13 +95,6 @@ export function revisionInstruction(intent: RevisionIntent, note: string): strin
   const extra = note.trim().slice(0, FREE_TEXT_MAX);
   return [base, extra && `Ghi chú của phụ huynh: ${extra}`].filter(Boolean).join(" ");
 }
-
-/** Luồng 2 mục 6.6 — lý do lưu trữ quyết định có ngắt phiên đọc đang chạy hay không. */
-export const ARCHIVE_REASONS = [
-  { id: "supervisor_preference", label: "Không muốn dùng truyện này nữa", hint: "Ẩn khỏi thư viện của bé. Bé đang đọc dở vẫn đọc tiếp được." },
-  { id: "safety_concern", label: "Nội dung chưa an toàn", hint: "Bé đang đọc sẽ được đưa ra ngay. Không khôi phục được." },
-] as const;
-export type ArchiveReason = (typeof ARCHIVE_REASONS)[number]["id"];
 
 /**
  * Luồng 2 mục 6.3 — loại câu hỏi đọc hiểu; nhóm 6–8 tuổi không có tự luận ngắn.

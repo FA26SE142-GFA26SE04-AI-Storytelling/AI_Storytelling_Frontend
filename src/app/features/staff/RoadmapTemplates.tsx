@@ -7,6 +7,8 @@ import { useAuth } from '@/app/context/AuthContext';
 import type { ApiResponse } from '@/app/types/auth';
 import Frog from '@/app/components/brand/Frog';
 import { Page, fmt } from './ui';
+import { confirmDialog } from "@/app/lib/confirm";
+import { RefreshCw } from "lucide-react";
 const blank = (): B.SaveRoadmapRequestDto => ({ name: '', description: null, ageBand: '6-8', mainCategoryId: 0, readingLevelMin: 1, readingLevelMax: 3, defaultDaysPerStory: 3 });
 const groups: Record<B.RoadmapListGroupName, string> = { Drafts: 'Bản nháp', Pending: 'Đang chờ duyệt', Published: 'Đang công khai', Archived: 'Đã lưu trữ', Orphaned: 'Nháp cần tiếp quản' };
 export default function RoadmapTemplates() {
@@ -65,11 +67,11 @@ export default function RoadmapTemplates() {
   const writable = moderator && (!detail || detail.isMine && detail.status === 'Draft');
   const move = (index: number, delta: number) => { const next = [...items]; const target = index + delta; if (target < 0 || target >= next.length) return; [next[index],next[target]] = [next[target],next[index]]; setItems(next); };
   return <Page fit title="Bộ truyện mẫu">
-    {note && <div className="notice" role="status">{note}</div>}{uncertainCreate && <button className="btn btn-s" onClick={() => { setUncertainCreate(false); reload(); }}>Tải lại để đối chiếu bộ vừa tạo</button>}
+    {note && <div className="notice" role="status">{note}</div>}{uncertainCreate && <button className="btn btn-s" onClick={() => { setUncertainCreate(false); reload(); }}title="Tải lại để đối chiếu bộ vừa tạo">Tải lại</button>}
     <div className="st-split fill">
     <div className="st-list">
     {moderator && <div className="row"><button className="btn btn-p" disabled={busy || uncertainCreate} onClick={() => { scope.current = Symbol(); setDetail(null); setItems([]); setForm(blank()); }}>Tạo bộ mới</button></div>}
-    <div className="row"><select className="inp" value={group} onChange={e => { setGroup(e.target.value as B.RoadmapListGroupName); setPage(1); }}>{Object.entries(groups).map(([k,v]) => <option value={k} key={k}>{v}</option>)}</select><button className="btn btn-s" disabled={busy} onClick={reload}>Tải lại</button></div>
+    <div className="row"><select className="inp" value={group} onChange={e => { setGroup(e.target.value as B.RoadmapListGroupName); setPage(1); }}>{Object.entries(groups).map(([k,v]) => <option value={k} key={k}>{v}</option>)}</select><button className="btn btn-s" disabled={busy} onClick={reload}><RefreshCw className="ic" />Tải lại</button></div>
     {list?.items.map(d => <button className={`st-item${detail?.id === d.id ? ' on' : ''}`} key={d.id} onClick={() => void open(d.id)}><b>{d.name}</b><span>{d.storyCount} truyện · {d.status}</span><small>{fmt(d.publishedAt ?? d.submittedAt)}{d.needsUpdate ? ' · Có truyện cần cập nhật' : ''}</small></button>)}
     <div className="row"><button className="btn btn-s" disabled={page === 1} onClick={() => setPage(v => v - 1)}>Trước</button><span>Trang {page}</span><button className="btn btn-s" disabled={!list?.hasNextPage} onClick={() => setPage(v => v + 1)}>Tiếp</button></div>
     </div>
@@ -92,9 +94,9 @@ export default function RoadmapTemplates() {
       {detail?.lastReview && <p className="notice">Phản hồi: {detail.lastReview.generalNote ?? detail.lastReview.reason ?? detail.lastReview.decision}</p>}</div>}
       {moderator && detail && <div className="st-group"><b className="st-group-title">Gửi duyệt và lưu trữ</b><label className="field">Lý do lưu trữ<input className="inp" maxLength={500} value={reason} onChange={e => setReason(e.target.value)} /></label><div className="row">
         {detail.isMine && detail.canSubmit && <button className="btn btn-p" disabled={busy} onClick={() => void act(() => service.submit(detail.id))}>Gửi duyệt</button>}
-        {detail.isMine && detail.status === 'PendingReview' && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.withdraw(detail.id))}>Rút yêu cầu duyệt</button>}
+        {detail.isMine && detail.status === 'PendingReview' && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Rút yêu cầu duyệt bộ truyện này?"))) return; void act(() => service.withdraw(detail.id)); }}>Rút yêu cầu duyệt</button>}
         {(detail.status === 'Published' || group === 'Orphaned') && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.clone(detail.id))}>Nhân bản để sửa</button>}
-        {detail.status === 'Published' && <button className="btn btn-no" disabled={busy || reason.trim().length < 3} onClick={() => void act(() => service.archive(detail.id, reason))}>Lưu trữ bộ</button>}
+        {detail.status === 'Published' && <button className="btn btn-no" disabled={busy || reason.trim().length < 3} onClick={async () => { if (!(await confirmDialog("Lưu trữ bộ truyện này? Bộ truyện sẽ không còn hiện trong thư viện lộ trình."))) return; void act(() => service.archive(detail.id, reason)); }}>Lưu trữ bộ</button>}
       </div></div>}
     </section> :<div className="st-card st-empty"><Frog size={120} mood="think" /><b className="display">Chọn một bộ truyện để xem</b></div>}
     </div>

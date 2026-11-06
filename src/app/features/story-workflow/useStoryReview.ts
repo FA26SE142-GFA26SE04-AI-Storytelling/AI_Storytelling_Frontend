@@ -172,12 +172,6 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
     onSaved?.();
   });
 
-  const archive = (onArchived: () => void) => run(async signal => {
-    // Backend hiện chưa lưu lý do; mặc định là phụ huynh không muốn dùng nữa (không ngắt phiên đọc).
-    const result = requireData(await api.archiveStory(storyId, { reason: 'supervisor_preference' }, signal));
-    if (!signal.aborted && result.success) onArchived();
-  });
-
   const generateMissingLearning = () => run(async signal => {
     if (!bundle || proposal || !bundle.summary.canEdit) return;
     const result = requireData(await api.generateArtifacts(storyId, missingLearning(bundle), signal));
@@ -187,6 +181,6 @@ export function useStoryReview(storyId: number, actor: 'parent' | 'creator' = 'p
   });
 
   return { bundle, proposal, validation, busy, aiTask, error, run, load, requireData, createProposal, decideProposal, approve, generateMissingLearning, confirmListening, regenerateListening,
-    reviseStory, regenerateArtifact, saveStory, archive,
+    reviseStory, regenerateArtifact, saveStory,
     refresh: () => run(load), clearProposal: () => setProposal(null) };
 }

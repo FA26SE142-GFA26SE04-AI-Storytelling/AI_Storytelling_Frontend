@@ -81,7 +81,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
   const aside = useMemo(() => ({ collapsed: asideCollapsed, toggle: onToggleAside }), [asideCollapsed, onToggleAside]);
   if (p.resumed && !p.snapshot) return <section className="ws dock"><div className="pane"><div className="pb">
     <h2 className="display">{p.statusError ? 'Chưa mở được truyện đang tạo' : 'Đang mở lại truyện đang tạo…'}</h2>
-    {p.statusError && <p className="notice err" role="alert">{p.statusError}</p>}
+    {p.statusError && <p className="notice err" role="alert" data-inline-notice>{p.statusError}</p>}
     <div className="row"><button className="btn btn-s" onClick={p.refresh}>Tải lại trạng thái truyện</button><button className="btn btn-s" onClick={() => go('library')}>Về thư viện</button></div>
   </div></div></section>;
   // Cụm nút điều khiển nằm ở góc phải thanh tab của khung đang hiện (xem story-workflow/tabActions).
@@ -102,7 +102,6 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           storyId={p.storyId}
           ageBand={p.snapshot?.story?.ageBand ?? child?.ageBand ?? ""}
           onApproved={() => { p.refresh(); void reload(); }}
-          onArchived={() => { void reload(); onNew(); }}
         />
       ) : section === "media" && p.storyId !== null ? (
         <StudioMedia key={p.storyId} storyId={p.storyId} childId={childId} ageBand={p.snapshot?.story?.ageBand??''} media={media} onFinish={() => { void reload(); onNew(); go("library"); }} />

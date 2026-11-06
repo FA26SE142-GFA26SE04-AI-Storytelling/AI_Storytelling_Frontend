@@ -125,7 +125,7 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
       <div className="pane rm-kids-pane"><div className="pb">{kidsBar}</div></div>
       <div className="pane rm-main">
         <div key={child.id} className="pb rm-body rm-swap">
-          {loadError && <div className="notice err" role="alert">{loadError}</div>}
+          {loadError && <div className="notice err" role="alert" data-inline-notice>{loadError}</div>}
           <div className="rm-actions">
             <div className="rm-actions-edit">
               <DenyCover active={!!role && !canEdit} text="Bạn không đủ quyền hạn để thêm, gỡ hoặc sắp xếp lộ trình." />
@@ -147,7 +147,7 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
                 {open.note && <small>💌 {open.note}</small>}
                 {overdue && <small className="warn">Đã qua ngày mong đọc xong — có thể nhắc nhẹ {child.nickname} nhé.</small>}
               </div>
-              {canEdit && <button className="btn btn-g" aria-label="Gỡ" onClick={() => void act(() => guardianService.removeFromRoadmap(child.id, open.id), "Đã gỡ, truyện kế tiếp được mở.")}><Trash2 className="ic" /></button>}
+              {canEdit && <button className="btn btn-g" aria-label="Gỡ" onClick={async () => { if (!(await confirmDialog("Gỡ truyện này khỏi lộ trình? Truyện kế tiếp sẽ được mở cho bé."))) return; void act(() => guardianService.removeFromRoadmap(child.id, open.id), "Đã gỡ, truyện kế tiếp được mở."); }}><Trash2 className="ic" /></button>}
             </div>
           ) : (
             <div className="empty" style={{ height: "auto", padding: 20 }}>
@@ -169,7 +169,7 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
                 {canEdit && <>
                   <button className="btn btn-g" aria-label="Lên" disabled={i === 0} onClick={() => move(q.id, -1)}><ArrowUp className="ic" /></button>
                   <button className="btn btn-g" aria-label="Xuống" disabled={i === queued.length - 1} onClick={() => move(q.id, 1)}><ArrowDown className="ic" /></button>
-                  <button className="btn btn-g" aria-label="Gỡ" onClick={() => void act(() => guardianService.removeFromRoadmap(child.id, q.id), "Đã gỡ truyện.")}><Trash2 className="ic" /></button>
+                  <button className="btn btn-g" aria-label="Gỡ" onClick={async () => { if (!(await confirmDialog("Gỡ truyện này khỏi lộ trình?"))) return; void act(() => guardianService.removeFromRoadmap(child.id, q.id), "Đã gỡ truyện."); }}><Trash2 className="ic" /></button>
                 </>}
               </li>
             ))}
@@ -192,7 +192,7 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
       {dialog?.kind === "pick" && (
         <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label="Thêm truyện" onClick={(e) => { if (e.target === e.currentTarget) setDialog(null); }}>
           <div className="dlg wide">
-            <div className="row"><b className="display grow" style={{ fontSize: 18 }}>Thêm truyện cho {child.nickname}</b><button className="btn btn-g" aria-label="Đóng" onClick={() => setDialog(null)}><X className="ic" /></button></div>
+            <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>Thêm truyện cho {child.nickname}</b><button className="btn btn-g" aria-label="Đóng" onClick={() => setDialog(null)}><X className="ic" /></button></div>
             <div className="seg" role="tablist">
               <button type="button" role="tab" aria-selected={pickTab === "mine"} className={pickTab === "mine" ? "on" : ""} onClick={() => setPickTab("mine")}>Truyện của tôi</button>
               <button type="button" role="tab" aria-selected={pickTab === "sets"} className={pickTab === "sets" ? "on" : ""} onClick={() => void showSets()}>Bộ truyện mẫu</button>
@@ -203,7 +203,7 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
                 <div className="sec" style={{ gap: 6 }}>
                   {ready.map((s) => (
                     <button key={s.id} className="rm-pick" onClick={() => setDialog({ kind: "add", story: { storyId: s.id, title: s.title, ageBand: s.ageBand, length: s.words } })}>
-                      <span className="cover-sm" style={{ background: s.gradient }} />
+                      <span className="cover-sm" style={{ background: s.cover }} />
                       <span className="grow"><b>{s.title}</b><small>{ageLabel(s.ageBand)} · {s.words} tiếng</small></span>
                     </button>
                   ))}

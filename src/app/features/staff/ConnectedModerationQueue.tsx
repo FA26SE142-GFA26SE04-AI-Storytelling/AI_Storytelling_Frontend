@@ -77,7 +77,7 @@ export default function ConnectedModerationQueue({ admin }: { admin?: boolean })
   const current = items.find(i => i.id === selected);
   const canOpen = current && current.itemType in types && ((current.status === 'Claimed' && current.claimedByUserId === user?.id) || (current.status === 'Escalated' && current.itemType === 'ContentReport' && user?.role === 'Administrator'));
   return <Page fit title="Hàng đợi kiểm duyệt">
-    <Notice note={note} />{error && <div className="notice err" role="alert">{error}</div>}
+    <Notice note={note} />{error && <div className="notice err" role="alert" data-inline-notice>{error}</div>}
     <div className="st-filters">
       <Select<QueueItemStatus> ariaLabel="Trạng thái" value={status} options={statuses.map(s => ({ value: s, label: labels[s] }))} onChange={v => { setStatus(v); setPageIndex(1); }} />
       <Select<QueueItemType | ''> ariaLabel="Loại mục" value={kind} options={[{ value: '', label: 'Tất cả loại mục' }, ...Object.entries(types).map(([k, v]) => ({ value: k as QueueItemType, label: v }))]} onChange={v => { setKind(v); setPageIndex(1); }} />

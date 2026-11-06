@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
-import { Check, Image as ImageIcon, Images, Volume2 } from "lucide-react";
+import { Check, Image as ImageIcon, Images, Volume2, RefreshCw } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
 import Frog from "@/app/components/brand/Frog";
 import { useRiseIn } from "@/app/lib/motion";
@@ -66,14 +66,14 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
               <Frog size={96} mood="think" />
               <b className="display">{preview.loading ? "Đang tải tranh và giọng đọc…" : "Chưa có cảnh nào trong gói media"}</b>
               <span>{preview.error ?? (preview.loading ? "Vài giây là xong." : "Gói media chưa có ảnh hoặc giọng đọc để hiển thị.")}</span>
-              {!preview.loading && <button className="btn btn-s" onClick={reload}>Tải lại</button>}
+              {!preview.loading && <button className="btn btn-s" onClick={reload}><RefreshCw className="ic" />Tải lại</button>}
             </div>
           )}
         </div>
         <div className="media-bar">
           <b>Minh hoạ và giọng đọc</b>
           <span className="grow">{status}</span>
-          {m?.errorCode && <button className="btn btn-s" disabled={busy} onClick={onRetry}>Thử lại</button>}
+          {m?.errorCode && <button className="btn btn-s" disabled={busy} onClick={onRetry}><RefreshCw className="ic" />Thử lại</button>}
           {/* Nút xác nhận nằm ngay thanh dưới như phụ huynh (trước đây chỉ có trong mục thu gọn ở cột phải nên không thấy). */}
           <div className="studio-completion">
             {c.note && <p className="notice" role="status">{c.note}</p>}

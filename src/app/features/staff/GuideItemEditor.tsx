@@ -10,6 +10,7 @@ export default function GuideItemEditor({ item, disabled, onSave, onDirty }: {
 }) {
   const [form, setForm] = useState(item ?? blank);
   const set = (value:Partial<AuthoringGuide>) => { onDirty(); setForm(f => ({...f,...value})); };
+  const changed = JSON.stringify(form) !== JSON.stringify(item ?? blank);
   const valid = /^[A-Za-z0-9_-]{1,100}$/.test(form.id) && form.title.trim() && form.instruction.trim() && form.purposes.length && (form.itemType !== 'template' || form.templateText?.trim());
   const save = () => {
     const { id, audienceRole: _audience, ...value } = form;
@@ -27,6 +28,6 @@ export default function GuideItemEditor({ item, disabled, onSave, onDirty }: {
       <label className="field">Thứ tự<input className="inp" type="number" value={form.order} onChange={e => set({order:Number(e.target.value)})}/></label></div>
     <label className="field">Ví dụ<textarea className="inp" value={form.example ?? ''} onChange={e => set({example:e.target.value || null})}/></label>
     {form.itemType === 'template' && <label className="field">Mẫu điền (chỗ trống dạng {'{{ten_bien}}'})<textarea className="inp" rows={4} value={form.templateText ?? ''} onChange={e => set({templateText:e.target.value})}/></label>}
-    <button className="btn btn-p" disabled={!valid} onClick={save}>Lưu hướng dẫn vào bản nháp</button>
+    {changed && <button className="btn btn-p" disabled={!valid} onClick={save}>Lưu</button>}
   </fieldset>;
 }

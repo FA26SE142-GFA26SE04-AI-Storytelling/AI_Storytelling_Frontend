@@ -4,6 +4,7 @@ import { creatorPublicationService as service } from '@/app/services/creatorPubl
 import type * as B from '@/app/types/backendContracts';
 import { useAuth } from '@/app/context/AuthContext';
 import type { ApiResponse } from '@/app/types/auth';
+import { confirmDialog } from "@/app/lib/confirm";
 
 /** Trạng thái duyệt của backend là chuỗi tiếng Anh; dịch các giá trị đã biết, giá trị lạ giữ nguyên. */
 const REVIEW: Record<string, string> = {
@@ -94,7 +95,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
   if (hidden) return null;
   return <section className="pa-card" aria-label="Phát hành"><div className="pa-head"><h3><span className="pa-num">3</span>Phát hành truyện</h3></div>
     {note && <p className="notice" role="status">{note}</p>}
-    <p style={{ margin: 0, fontWeight: 800, fontSize: 16 }}>{headline}</p>
+    <p style={{ margin: 0, fontWeight: 800, fontSize: "var(--fs-md)" }}>{headline}</p>
     <p className="sub">Gửi bản hiện tại cho Moderator duyệt công khai. Bản đã nộp giữ nguyên trong lịch sử; muốn sửa bản sẵn sàng hoặc đã nộp, hãy tạo phiên bản chỉnh sửa mới.</p>
 
     <div className="pa-step">
@@ -113,7 +114,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
       {blocker && <p className="sub">{blocker}</p>}
       <div className="pa-actions">
         {canSubmit && <button className="btn btn-p" disabled={busy} onClick={() => void act(() => service.submit(storyId, status!.versionId))}>Gửi bản hiện tại cho Moderator</button>}
-        {pendingReview && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.withdraw(status!.openItemId!))}>Rút yêu cầu duyệt</button>}
+        {pendingReview && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Rút yêu cầu duyệt? Lượt đăng bài sẽ được hoàn lại nếu yêu cầu còn chờ duyệt."))) return; void act(() => service.withdraw(status!.openItemId!)); }}>Rút yêu cầu duyệt</button>}
         {canRevise && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.revision(storyId, status!.versionId), true)}>Tạo phiên bản chỉnh sửa mới</button>}
         <button className="btn btn-g" disabled={busy} onClick={() => setRefresh(n => n + 1)}>Tải lại trạng thái</button>
       </div>
@@ -123,7 +124,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
       <b>Yêu cầu gỡ để chỉnh sửa</b>
       <p className="sub">Truyện đang công khai nên không sửa trực tiếp được. Gỡ xuống, sửa rồi gửi duyệt lại.</p>
       <label className="field">Lý do yêu cầu gỡ<textarea className="inp" rows={2} maxLength={2000} value={reason} onChange={e => setReason(e.target.value)} /></label>
-      <div className="pa-actions"><button className="btn btn-s" disabled={busy || !reason.trim()} onClick={() => void act(() => service.remove(storyId, reason))}>Yêu cầu gỡ</button></div>
+      <div className="pa-actions"><button className="btn btn-s" disabled={busy || !reason.trim()} onClick={async () => { if (!(await confirmDialog("Gửi yêu cầu gỡ truyện? Moderator sẽ xem xét việc gỡ truyện khỏi thư viện công khai."))) return; void act(() => service.remove(storyId, reason)); }}>Yêu cầu gỡ</button></div>
     </div>}
   </section>;
 }

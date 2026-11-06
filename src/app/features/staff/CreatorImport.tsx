@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { FileUp } from "lucide-react";
+import { FileUp, X } from "lucide-react";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { ContentSaved, CreatorDraft, ImportPreview } from "@/app/types/creator";
 import { fmt } from "./ui";
@@ -57,7 +57,7 @@ export default function CreatorImport({ draft, defaultTitle, onSaved, onClose }:
 
   return (
     <div className="st-card">
-      <div className="row"><h3 className="grow">Nhập nội dung</h3><button className="btn btn-g" onClick={onClose}>Đóng</button></div>
+      <div className="row"><h3 className="grow">Nhập nội dung</h3><button className="btn btn-g" onClick={onClose} aria-label="Đóng" title="Đóng"><X className="ic" /></button></div>
       {!pending ? (
         <>
           <div className="seg" style={{ maxWidth: 320 }}>

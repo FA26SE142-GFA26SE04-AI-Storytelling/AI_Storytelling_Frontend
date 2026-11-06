@@ -53,7 +53,7 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
       <PondBackdrop rich />
       <header className="top">
         <div className="logo" aria-label="Taletale"><Frog variant="face" size={46} /></div>
-        <b className="display" style={{ fontSize: 17, fontWeight: 800 }}>Taletale</b>
+        <b className="display" style={{ fontSize: "var(--fs-lg)", fontWeight: 800 }}>Taletale</b>
 
         <nav ref={navRef} className="topnav" aria-label="Không gian làm việc">
           <NavButtons ws={ws} onWs={onWs} reviewCount={reviewQueue.length} />

@@ -113,7 +113,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
             ))}
           </div>
         </div>
-        {isOwner && <button className={`btn btn-s${savedInfo ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={!dirty || busy || !nickname.trim()} onClick={() => void save()}>{savedInfo ? <Check className="ic" /> : <Save className="ic" />}{savedInfo ? "Đã lưu" : "Lưu thông tin"}</button>}
+        {isOwner && (dirty || savedInfo) && <button className={`btn btn-s${savedInfo ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={!dirty || busy || !nickname.trim()} onClick={() => void save()}>{savedInfo ? <Check className="ic" /> : <Save className="ic" />}{savedInfo ? "Đã lưu" : "Lưu thông tin"}</button>}
         {hint && <div className="notice ok" role="status">{hint}</div>}
       </section>
 

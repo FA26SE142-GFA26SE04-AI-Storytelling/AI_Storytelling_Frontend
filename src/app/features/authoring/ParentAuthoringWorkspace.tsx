@@ -115,7 +115,7 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
   return <section className="ws dock" style={{ gridTemplateColumns:'1fr' }}><div className="pane st-page">
     <div className="st-body pa-body">
       {h.note && <p className="notice" role="status">{h.note}</p>}
-      {h.uncertain && <p className="notice warn">Chưa rõ máy chủ đã nhận lệnh. Không tạo thao tác mới. <button className="btn btn-s" disabled={h.busy} onClick={() => void h.retry()}>Thử lại đúng lệnh</button></p>}
+      {h.uncertain && <p className="notice warn">Chưa rõ máy chủ đã nhận lệnh. Không tạo thao tác mới. <button className="btn btn-s" disabled={h.busy} onClick={() => void h.retry()}>Thử lại</button></p>}
 
       {/* Bé đang soạn cho, và nút tạo bản nháp khác; bản nháp đã có mở từ trang "Truyện của tôi". */}
       <div className="pa-top">
@@ -125,7 +125,7 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
 
       {naming && <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label="Tạo bản nháp" onClick={e => { if (e.target === e.currentTarget && story) setNaming(false); }}>
         <form className="dlg pa-namedlg" onSubmit={async e => { e.preventDefault(); if (await h.create(title.trim() || 'Truyện của gia đình')) setNaming(false); }}>
-          <b className="display" style={{ fontSize: 18 }}>Tạo bản nháp cho {kidName}</b>
+          <b className="display" style={{ fontSize: "var(--fs-lg)" }}>Tạo bản nháp cho {kidName}</b>
           <label className="field">Tên bản nháp<input className="inp" autoFocus maxLength={200} value={title} onChange={e => setTitle(e.target.value)} /></label>
           {h.note && <p className="notice" role="status">{h.note}</p>}
           <div className="pa-actions">
@@ -156,7 +156,7 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
                 <h3>{step(1)}Soạn nội dung</h3>
                 {h.draft && <span className="pa-for" title="Bản nháp này được tạo cho bé này và sẽ giao cho bé này">Dành cho: <b>{kids.find(k => k.id === h.draft!.childProfileId)?.nickname ?? `bé #${h.draft.childProfileId}`}</b></span>}
                 <span className="sub">Truyện #{story.storyId} · bản {story.selectedVersionId ?? 'chưa lưu'}{dirty ? ' · Có thay đổi chưa lưu' : ''}</span>
-                <button className="btn btn-g" disabled={h.busy || h.uncertain} onClick={() => void h.load(story.storyId)}>Đồng bộ quyền và trạng thái (giữ bản đang sửa)</button>
+                <button className="btn btn-g" disabled={h.busy || h.uncertain} onClick={() => void h.load(story.storyId)}title="Đồng bộ quyền và trạng thái, giữ bản đang sửa">Đồng bộ</button>
               </div>
               {h.draft?.isReadOnly && <p className="notice warn">Bản này đã được giao cho bé; thu hồi quyền đọc trước khi sửa.</p>}
               <fieldset className="pa-fieldset" disabled={!canWrite}>

@@ -11,13 +11,13 @@ import Frog from '@/app/components/brand/Frog';
 import FamilyMediaPreview from '@/app/features/authoring/FamilyMediaPreview';
 import ChildReadingLibrary from './ChildReadingLibrary';
 import { Shelf, ShelfRow } from '@/app/features/library/LibraryWorkspace';
-import { gradientFor } from '@/app/lib/storyView';
+import { coverFor } from '@/app/lib/storyView';
 import { BookOpen, Lock } from 'lucide-react';
 
 /** Bìa sách trên kệ của bé: tên truyện in trên bìa. */
-function Cover({ id, title, meta, disabled, onOpen, label }: { id: number; title: string; meta?: string; disabled?: boolean; onOpen?: () => void; label?: string }) {
+function Cover({ coverUrl, title, meta, disabled, onOpen, label }: { id: number; coverUrl?: string | null; title: string; meta?: string; disabled?: boolean; onOpen?: () => void; label?: string }) {
   const canRead = !!onOpen;
-  return <button className={`bk${canRead ? ' can-read' : ' cannot-read'}`} disabled={disabled || !canRead} aria-label={canRead ? `Đọc truyện ${title}` : `${title}: ${label ?? 'chưa mở'}`} onClick={onOpen}><span className="bk-cover" style={{ background: gradientFor(id) }}>{canRead ? <span className="pill ok bk-badge"><BookOpen className="ic" aria-hidden />Đọc được</span> : <span className="pill draft bk-badge"><Lock className="ic" aria-hidden />{label ?? 'Chưa mở'}</span>}<span className="bk-name display">{title}</span></span><span className="bk-title">{title}</span>{meta && <span className="bk-meta">{meta}</span>}</button>;
+  return <button className={`bk${canRead ? ' can-read' : ' cannot-read'}`} disabled={disabled || !canRead} aria-label={canRead ? `Đọc truyện ${title}` : `${title}: ${label ?? 'chưa mở'}`} onClick={onOpen}><span className="bk-cover" style={{ background: coverFor(coverUrl) }}>{canRead ? <span className="pill ok bk-badge"><BookOpen className="ic" aria-hidden />Đọc được</span> : <span className="pill draft bk-badge"><Lock className="ic" aria-hidden />{label ?? 'Chưa mở'}</span>}<span className="bk-name display">{title}</span></span><span className="bk-title">{title}</span>{meta && <span className="bk-meta">{meta}</span>}</button>;
 }
 export default function ConnectedKidHome({ childId, onExit }: { childId: number; onExit: () => void }) {
   const ended = useKidSession();
@@ -74,7 +74,7 @@ export default function ConnectedKidHome({ childId, onExit }: { childId: number;
         <ChildReadingLibrary key={childId} childId={childId} community={selected} unlockTitle={titleOf(lock.unlockStoryId)} onLockChange={setLock} onPaneChange={setPane} onCommunityOpened={() => setSelected(null)} onReadingChange={setReading}/>
         {!reading&&<>
         {errors.map((e,i) => <p className="notice err" role="alert" key={i}>{e}</p>)}
-        {pack ? <article className="ksection"><button className="btn btn-s" onClick={() => setPack(null)}>Về thư viện</button><h2 className="display">{pack.title}</h2>{pack.segments.slice().sort((a,b) => a.order - b.order).map((s,i) => <p key={i} style={{ whiteSpace: 'pre-wrap', fontSize: 20, lineHeight: 1.8 }}>{s.text}</p>)}<FamilyMediaPreview preparation={pack}/><p className="sub">Để lưu vị trí và hoàn thành đọc, em mở truyện trong mục Đọc và nghe truyện.</p></article> : pane === 'stories' ? <>
+        {pack ? <article className="ksection"><button className="btn btn-s" onClick={() => setPack(null)}>Về thư viện</button><h2 className="display">{pack.title}</h2>{pack.segments.slice().sort((a,b) => a.order - b.order).map((s,i) => <p key={i} style={{ whiteSpace: 'pre-wrap', fontSize: "var(--fs-xl)", lineHeight: 1.8 }}>{s.text}</p>)}<FamilyMediaPreview preparation={pack}/><p className="sub">Để lưu vị trí và hoàn thành đọc, em mở truyện trong mục Đọc và nghe truyện.</p></article> : pane === 'stories' ? <>
           <Shelf title="Hành trình của em" items={[...(roadmap?.open ? [{ id: roadmap.open.storyId }] : []), ...(roadmap?.upcoming ?? []).map(s => ({ id: s.storyId }))]}>
             {roadmap && (roadmap.open || roadmap.upcoming.length > 0) ? <ShelfRow>
               {roadmap.open && <Cover id={roadmap.open.storyId} title={roadmap.open.title ?? 'Truyện chưa đặt tên'} meta={roadmap.open.isLocked ? 'Chưa đọc được lúc này' : roadmap.open.note || 'Bố mẹ đã chọn cho em'} label={roadmap.open.isLocked ? 'Đang khóa' : 'Đang mở'} />}

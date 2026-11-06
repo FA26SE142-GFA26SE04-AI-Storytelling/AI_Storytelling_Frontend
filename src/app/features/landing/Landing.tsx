@@ -6,7 +6,7 @@ import Frog from "@/app/components/brand/Frog";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import { useTheme } from "@/app/context/ThemeContext";
 import { circleReveal, useRiseIn } from "@/app/lib/motion";
-import StoryBookDemo from "./StoryBookDemo";
+import HeroPond from "@/app/components/brand/HeroPond";
 import IdeaBox from "./IdeaBox";
 import HowItWorks from "./HowItWorks";
 import { BENEFITS, FAQ, KID, WAYS } from "./landingContent";
@@ -43,7 +43,7 @@ export default function Landing({ onStart }: { onStart: (mode: "login" | "regist
         <section ref={heroRef} className="ld-hero">
           <div className="ld-hero-text">
             <h1 className="display ld-rise">Câu chuyện cho con, qua tay bố mẹ trước</h1>
-            <p className="ld-lead ld-rise">Bạn kể một ý tưởng, AI viết thành truyện có tranh và giọng đọc cho bé 3–10 tuổi. Mỗi bước đều chờ bạn đồng ý, và bé chỉ thấy truyện bạn đã duyệt.</p>
+            <p className="ld-lead ld-rise">Bạn kể một ý tưởng, AI viết thành truyện có tranh và giọng đọc cho bé 6–10 tuổi. Mỗi bước đều chờ bạn đồng ý, và bé chỉ thấy truyện bạn đã duyệt.</p>
             <div className="ld-cta ld-rise">
               <button className="btn btn-p ld-big" onClick={() => onStart("register")}>Bắt đầu cho con</button>
               <button className="btn btn-s ld-big" onClick={() => onStart("login")}>Tôi đã có tài khoản</button>
@@ -54,7 +54,7 @@ export default function Landing({ onStart }: { onStart: (mode: "login" | "regist
               <li><Check className="ic" aria-hidden />Cài đặt riêng cho từng bé</li>
             </ul>
           </div>
-          <div className="ld-rise ld-hero-book"><StoryBookDemo /></div>
+          <div className="ld-rise ld-hero-book"><HeroPond /></div>
         </section>
 
         <section className="ld-idea-band" aria-label="Thử một ý tưởng">

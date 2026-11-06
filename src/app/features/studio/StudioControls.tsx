@@ -32,11 +32,11 @@ type Pending = "back" | "cancel" | null;
 
 const WHAT_IS_LOST: Partial<Record<Stage, string>> = {
   outline: "Dàn ý hiện tại sẽ bị huỷ.",
-  outline_wait: "Bản nháp bị lỗi này sẽ được lưu trữ.",
-  generating: "Bản nháp bị lỗi này sẽ được lưu trữ.",
-  checking: "Bản nháp bị lỗi này sẽ được lưu trữ.",
-  review: "Bản truyện này sẽ được lưu trữ, bé không thấy truyện này.",
-  blocked: "Bản nháp này sẽ được lưu trữ.",
+  outline_wait: "Bản nháp bị lỗi này sẽ bị huỷ.",
+  generating: "Bản nháp bị lỗi này sẽ bị huỷ.",
+  checking: "Bản nháp bị lỗi này sẽ bị huỷ.",
+  review: "Bản truyện này sẽ bị huỷ, bé không thấy truyện này.",
+  blocked: "Bản nháp này sẽ bị huỷ.",
 };
 
 /**

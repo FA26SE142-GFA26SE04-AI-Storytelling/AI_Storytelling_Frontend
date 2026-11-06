@@ -138,7 +138,7 @@ function CreatorGenerationRun({ initialId, seed, onBack, onReset }: { initialId:
     </StudioSteps>
     <TabActions.Provider value={controls}>
     <ApproveSlot.Provider value={setApprove}>
-      {reviewing && <ReviewGate key={`${flow.id}:${refresh}`} storyId={flow.id!} ageBand={ageBand} actor="creator" onApproved={refreshState} onArchived={onBack} />}
+      {reviewing && <ReviewGate key={`${flow.id}:${refresh}`} storyId={flow.id!} ageBand={ageBand} actor="creator" onApproved={refreshState} />}
       {mediaStage && flow.id !== null && (
         <CreatorMedia storyId={flow.id} versionId={versionId} media={media} locked={locked} busy={flow.busy}
           onRetry={() => void flow.command(() => api.retryMedia(flow.id!)).then(() => media.refresh())}

@@ -13,23 +13,19 @@ export type StoryCard = {
   tone: StoryTone;
   statusLabel: string;
   by: string;
-  gradient: string;
+  /** Giá trị CSS background của bìa truyện (xem coverFor). */
+  cover: string;
   createdAt: string;
   raw: StoryDto;
   /** Truyện tự soạn (trang "Thủ công"): chỉ mở và sửa qua API /parent/stories. */
   family?: boolean;
 };
 
-const GRADIENTS = [
-  "linear-gradient(170deg,#2FA866,#6FD39A 60%,#D2F5E0)",
-  "linear-gradient(170deg,#2D9CDB,#6FC8F0 60%,#BDEBFF)",
-  "linear-gradient(170deg,#F59E0B,#FFC85C 60%,#FFE9A8)",
-  "linear-gradient(170deg,#FF6B6B,#FFA07A 60%,#FFD9A8)",
-  "linear-gradient(170deg,#E0568A,#F59BB6 60%,#FFD6E2)",
-  "linear-gradient(170deg,#3B3A8C,#7A6FD6 60%,#F0A6C0)",
-];
+/** Ảnh bìa mẫu dùng chung cho mọi truyện chưa có ảnh bìa (public/default-cover.svg). */
+export const DEFAULT_COVER = 'center / cover no-repeat url("/default-cover.svg")';
 
-export const gradientFor = (n: number) => GRADIENTS[Math.abs(n) % GRADIENTS.length];
+/** Giá trị CSS `background` của bìa truyện: ảnh bìa thật nếu có, không thì (hoặc khi ảnh lỗi) dùng ảnh mẫu chung. */
+export const coverFor = (url?: string | null) => (url ? `center / cover no-repeat url("${url}"), ${DEFAULT_COVER}` : DEFAULT_COVER);
 
 const STATUS: Record<string, [StoryTone, string]> = {
   published: ["ok", "Đã xuất bản"],
@@ -71,7 +67,7 @@ export function toCard(s: StoryDto): StoryCard {
     tone,
     statusLabel,
     by: s.authorName || "Bạn",
-    gradient: gradientFor(s.id),
+    cover: coverFor(s.coverImageUrl),
     createdAt: s.createdAt,
     raw: s,
   };

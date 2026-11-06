@@ -8,6 +8,7 @@ import { FilePlus2 } from 'lucide-react';
 import IconButton from '@/app/components/IconButton';
 import Frog from '@/app/components/brand/Frog';
 import { Page, fmt } from './ui';
+import { confirmDialog } from "@/app/lib/confirm";
 const emptyDefinition = (): B.RubricDefinition => ({ purpose: '', criteria: [1,2,3,4,5].map(n => ({ code: `GZ0${n}`, name: '', check: '', context: '', levels: { '0': '', '1': '', '2': '', '3': '', '4': '' }, examples: [] })) });
 export default function RubricWorkspace() {
   const { user } = useAuth();
@@ -33,6 +34,9 @@ export default function RubricWorkspace() {
     void service.list(status || undefined, page, controller.signal).then(r => { if (alive) { setCatalog(r.data); if (!r.success) setNote(r.message); } });
     return () => { alive = false; scope.current = Symbol(); controller.abort(); };
   }, [status, page, revision, user?.id]);
+  const examplesOf = (d: B.RubricDefinition) => JSON.stringify(d.criteria.map(c => ({ code: c.code, examples: c.examples })), null, 2);
+  const dirty = !current || !definition || versionNo !== current.versionNo || name !== current.name
+    || JSON.stringify(definition) !== JSON.stringify(current.definition) || examplesText !== examplesOf(current.definition);
   const select = (r: B.RubricDto) => { scope.current = Symbol(); setCurrent(r); setVersionNo(r.versionNo); setName(r.name); setDefinition(r.definition); setExamplesText(JSON.stringify(r.definition.criteria.map(c => ({ code: c.code, examples: c.examples })), null, 2)); setAudit(null); setEvaluation(null); setNote(''); };
   const open = async (id: number) => { const run = Symbol(); scope.current = run; const r = await service.get(id); if (scope.current !== run) return; if (r.success && r.data) select(r.data); else setNote(r.message); };
   const act = async (fn: () => Promise<ApiResponse<unknown>>) => { if (busy) return; const run = scope.current; setBusy(true); setNote(''); const r = await fn(); if (scope.current !== run) return; setBusy(false); setNote(r.message || (r.success ? 'Đã thực hiện.' : 'Thao tác chưa hoàn tất.')); return r; };
@@ -71,9 +75,9 @@ export default function RubricWorkspace() {
         {[0,1,2,3,4].map(level => <label className="field" key={level}>Mô tả mức {level}<textarea className="inp" maxLength={2000} value={c.levels[String(level)] ?? ''} onChange={e => updateCriterion(index, { levels: { ...c.levels, [level]: e.target.value } })} /></label>)}
       </div></details>)}
       </div>
-      <div className="st-group"><div className="row"><button className="btn btn-p" disabled={!name.trim() || !versionNo.trim()} onClick={() => void save()}>Lưu bản nháp</button></div></div></fieldset>
+      <div className="st-group">{dirty && <div className="row"><button className="btn btn-p" disabled={!name.trim() || !versionNo.trim()} onClick={() => void save()}>Lưu</button></div>}</div></fieldset>
       {current && <><div className="st-group"><b className="st-group-title">Thao tác với bộ này</b><div className="row"><button className="btn btn-s" disabled={busy} onClick={() => void open(current.id)}>Tải lại bản máy chủ</button><button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.clone(current.id, { versionNo, name })).then(r => { if (r?.success && r.data) select(r.data as B.RubricDto); })}>Nhân bản với tên phiên bản mới</button><button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.validate(current.id, current.revision))}>Kiểm tra cấu trúc</button>
-        {current.status === 'Draft' && <button className="btn btn-no" disabled={busy} onClick={() => void act(() => service.remove(current.id, current.revision)).then(r => { if (r?.success) setRevision(v => v + 1); })}>Xóa bản nháp</button>}
+        {current.status === 'Draft' && <button className="btn btn-no" disabled={busy} onClick={async () => { if (!(await confirmDialog("Xóa bản nháp tiêu chí? Thao tác này không hoàn tác được."))) return; void act(() => service.remove(current.id, current.revision)).then(r => { if (r?.success) setRevision(v => v + 1); }); }}>Xóa bản nháp</button>}
         {user?.role === 'Administrator' && current.status === 'Draft' && <button className="btn btn-ok" disabled={busy} onClick={() => void act(() => service.activate(current.id, current.revision)).then(r => { if (r?.success && r.data) select(r.data as B.RubricDto); })}>Kích hoạt thay bộ đang dùng</button>}
       </div></div>
       <div className="st-group"><details><summary>Thử đánh giá nội dung</summary><p className="sub">Thao tác này gọi AI thật và ghi lịch sử.</p><div className="row st-fields">{(['phase','ageBand','language'] as const).map(key => <label className="field" key={key}>{({ phase: 'Giai đoạn', ageBand: 'Độ tuổi', language: 'Ngôn ngữ' })[key]}<select className="inp" value={trial[key]} onChange={e => setTrial({ ...trial, [key]: e.target.value })}>{(key === 'phase' ? ['phase1','phase2','phase3','phase4'] : key === 'ageBand' ? ['6-8','9-10'] : ['vi','en']).map(v => <option key={v}>{v}</option>)}</select></label>)}</div><label className="field">Tên truyện thử<input className="inp" placeholder="Nhập tên truyện cần thử đánh giá" value={trial.title} onChange={e => setTrial({ ...trial, title: e.target.value })} /></label><label className="field">Nội dung truyện thử<textarea className="inp" rows={6} placeholder="Dán nội dung truyện để AI thử đánh giá theo bộ tiêu chí này" value={trial.content} onChange={e => setTrial({ ...trial, content: e.target.value })} /></label><button className="btn btn-s" disabled={busy || !trial.title.trim() || !trial.content.trim()} onClick={() => void act(() => service.evaluate(current.id, { ...trial, revision: current.revision })).then(r => { if (r?.success) setEvaluation(r.data as RubricEvaluation); })}>Chạy thử trên phiên bản đã lưu</button>

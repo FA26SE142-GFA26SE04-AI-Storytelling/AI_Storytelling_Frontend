@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { aiStoryCreationService } from "@/app/services/aiStoryCreationService";
 import AudioRing from "./AudioRing";
-import { Archive, ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, Send, WandSparkles, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, Send, WandSparkles, X } from "lucide-react";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useAuth } from "@/app/context/AuthContext";
 import type { StoryDto } from "@/app/types/story";
@@ -14,11 +14,11 @@ import { ageLabel, familyToCard, splitScenes, statusKey, toCard, type StoryCard 
 import { parentAuthoringService } from "@/app/services/parentAuthoringService";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useRiseIn } from "@/app/lib/motion";
-import { ArchiveDialog } from "@/app/features/review/ReviewTools";
 import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
 import { guardianService } from "@/app/services/guardianService";
 import type { CommunitySubmission, ContentReport } from "@/app/types/progress";
 import { CommunityDialog, ReportDialog } from "./ModerationDialogs";
+import { confirmDialog } from "@/app/lib/confirm";
 
 const SUB_STATUS: Record<string, string> = { pending: "Đang chờ duyệt", approved: "Đã có trong thư viện cộng đồng", rejected: "Bị từ chối — có thể nộp lại", withdrawn: "Đã rút", removed: "Đã gỡ" };
 
@@ -33,7 +33,6 @@ const STATUS_GROUPS: { id: string; label: string; keys: string[] }[] = [
   { id: "ready", label: "Sẵn sàng", keys: ["ready", "published"] },
   { id: "blocked", label: "Bị chặn", keys: ["blocked"] },
   { id: "rejected", label: "Bị từ chối", keys: ["rejected"] },
-  { id: "archived", label: "Đã lưu trữ", keys: ["archived"] },
 ];
 
 const statusOf = (s: StoryCard) => STATUS_GROUPS.find((g) => g.keys.includes(statusKey(s.raw)))?.id ?? "draft";
@@ -46,7 +45,7 @@ type PreviewPage = { text: string; images: string[]; audio: { url: string; label
  * Truyện AI lấy từng cảnh từ gói media của backend (GET /stories/{id}/media/package: chữ, tranh, giọng đọc);
  * chưa có gói media (hoặc truyện thủ công) thì chỉ hiện chữ, chia đoạn theo nội dung truyện.
  */
-export type PreviewStory = Pick<StoryCard, "id" | "title" | "gradient"> & { family?: boolean; raw?: Pick<StoryDto, "content"> };
+export type PreviewStory = Pick<StoryCard, "id" | "title" | "cover"> & { family?: boolean; raw?: Pick<StoryDto, "content"> };
 
 /** `loadContent`: nguồn chữ riêng (Content Creator đọc qua /creator/stories); không truyền thì dùng API của phụ huynh. */
 export function Preview({ story, onClose, loadContent }: { story: PreviewStory; onClose: () => void; loadContent?: () => Promise<string> }) {
@@ -94,14 +93,14 @@ export function Preview({ story, onClose, loadContent }: { story: PreviewStory; 
   return createPortal(
     <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={`Xem trước ${story.title}`} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="dlg wide preview">
-        <div className="row"><b className="display grow" style={{ fontSize: 18 }}>{story.title}</b><span className="pill draft">Xem trước — không tính lượt đọc</span><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
+        <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>{story.title}</b><span className="pill draft">Xem trước — không tính lượt đọc</span><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
         <div className="preview-body">
           <div className="preview-media">
             {shown
               // Ảnh là URL có chữ ký của backend, nên dùng thẻ img thường.
               // eslint-disable-next-line @next/next/no-img-element
               ? <img className="preview-img" src={shown} alt={`Tranh minh hoạ trang ${page + 1}`} onError={() => setBroken(shown)} />
-              : <div className="cover" style={{ aspectRatio: "16/9", borderRadius: 16, background: story.gradient }} role="img" aria-label="Chưa có tranh minh hoạ cho trang này" />}
+              : <div className="cover" style={{ aspectRatio: "16/9", borderRadius: 16, background: story.cover }} role="img" aria-label="Chưa có tranh minh hoạ cho trang này" />}
             {/* Nút nghe tròn ở góc phải trên của hình; key theo trang để đổi trang thì dừng tiếng và chạy lại từ đầu. */}
             {current && current.audio.length > 0 && <AudioRing key={page} urls={current.audio.map((a) => a.url)} label={`Nghe giọng đọc trang ${page + 1}`} />}
           </div>
@@ -134,7 +133,7 @@ function BookCard({ story, rank, on, onPick }: { story: StoryCard; rank?: number
   const ready = statusOf(story) === "ready";
   return (
     <button className={`bk${on ? " on" : ""}`} onClick={onPick} aria-pressed={on}>
-      <span className="bk-cover" style={{ background: story.gradient }}>
+      <span className="bk-cover" style={{ background: story.cover }}>
         {!ready ? <span className={`pill ${story.tone} bk-badge`}>{story.statusLabel}</span> : isNew(story) && <span className="bk-badge bk-new">Mới</span>}
         <span className="bk-name display">{story.title}</span>
         {rank !== undefined && <span className="bk-rank display" aria-hidden>{rank}</span>}
@@ -235,7 +234,6 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
     setFamily(all);
   }, []);
   useEffect(() => { void loadPublic(); void loadFamily(); }, [loadPublic, loadFamily]);
-  const reload = useCallback(async () => { await Promise.all([loadPublic(), loadFamily()]); }, [loadPublic, loadFamily]);
   const stories = useMemo(() => {
     const seen = new Set(pub.map((s) => s.id));
     return [...pub, ...family.filter((s) => !seen.has(s.id))].filter((s) => SHOWN_GROUPS.includes(statusOf(s)));
@@ -259,7 +257,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const [srcF, setSrcF] = useState("all");
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
-  const [dialog, setDialog] = useState<"preview" | "archive" | "roadmap" | "report" | "community" | null>(null);
+  const [dialog, setDialog] = useState<"preview" | "roadmap" | "report" | "community" | null>(null);
   const [mod, setMod] = useState<{ reports: ContentReport[]; submission: CommunitySubmission | null } | null>(null);
   const [toast, setToast] = useState("");
   // Khung "Chi tiết" bên phải thu gọn được; cột lưới co theo bằng CSS (library.css).
@@ -301,7 +299,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const pick = (id: number) => { setSelected(id); if (asideCollapsed) setAsideCollapsed(false); };
   const card = (s: StoryCard, rank?: number) => <BookCard key={s.id} story={s} rank={rank} on={sel?.id === s.id} onPick={() => pick(s.id)} />;
   const selStatus = sel ? statusOf(sel) : null;
-  // Quản lý (nộp thư viện cộng đồng, rút, lưu trữ) chỉ dành cho truyện của chính bạn; truyện của người khác chỉ xem, xem trước, báo cáo hoặc thêm vào lộ trình.
+  // Quản lý (nộp thư viện cộng đồng, rút) chỉ dành cho truyện của chính bạn; truyện của người khác chỉ xem, xem trước, báo cáo hoặc thêm vào lộ trình.
   const mine = !!sel && sel.raw.authorUserId === user?.id;
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(""), 3200); };
   const loadMod = async () => { if (sel) setMod((await guardianService.storyModeration(sel.id)).data); };
@@ -402,8 +400,8 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
       <AsidePane title="Chi tiết" icon={Info}>
           {sel ? (
             <>
-              <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: sel.gradient }} />
-              <h3 className="display" style={{ fontSize: 20, margin: 0, lineHeight: 1.2 }}>{sel.title}</h3>
+              <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: sel.cover }} />
+              <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title}</h3>
               {sel.raw.description && <p className="sub">{sel.raw.description}</p>}
               <div className="meta">
                 <span>Nguồn</span><b>{SOURCE_LABEL[sourceOf(sel)]}</b>
@@ -425,7 +423,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
               {selStatus === "ready" && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình</button>}
               {selStatus === "ready" && mod?.submission && <p className="sub">Thư viện cộng đồng: {SUB_STATUS[mod.submission.status] ?? mod.submission.status}</p>}
               {mine && selStatus === "ready" && mod?.submission && ((mod.submission.canWithdraw ?? mod.submission.status === "pending") || (mod.submission.canRemove ?? mod.submission.status === "approved")) && (
-                <button className="btn btn-s btn-c" onClick={() => void (mod.submission!.canRemove ?? mod.submission!.status === "approved" ? guardianService.removeCommunity(mod.submission!.id) : guardianService.withdrawCommunity(mod.submission!.id)).then((r) => { flash(r.success ? r.message : r.message); void loadMod(); })}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
+                <button className="btn btn-s btn-c" onClick={async () => { const withdraw = mod.submission!.status === "pending"; if (!(await confirmDialog(withdraw ? "Rút yêu cầu nộp thư viện cộng đồng? Truyện sẽ không còn chờ duyệt." : "Gỡ truyện khỏi thư viện cộng đồng? Mọi người sẽ không còn thấy truyện này."))) return; void (mod.submission!.canRemove ?? mod.submission!.status === "approved" ? guardianService.removeCommunity(mod.submission!.id) : guardianService.withdrawCommunity(mod.submission!.id)).then((r) => { flash(r.message); void loadMod(); }); }}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
               )}
               {mine && selStatus === "ready" && !(mod?.submission && ["pending", "approved"].includes(mod.submission.status)) && (
                 <button className="btn btn-s btn-c" disabled={!!mod?.reports.some((r) => r.status === "pending")} title={mod?.reports.some((r) => r.status === "pending") ? "Truyện đang có báo cáo chờ xử lý" : undefined} onClick={() => setDialog("community")}><Send className="ic" />Nộp thư viện cộng đồng</button>
@@ -433,8 +431,6 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
               {selStatus === "ready" && <button className="btn btn-g btn-c" onClick={() => setDialog("report")}><Flag className="ic" />Báo cáo nội dung</button>}
               {mod?.reports.some((r) => r.status === "pending") && <p className="sub">Đã có báo cáo đang chờ kiểm duyệt viên xử lý.</p>}
               {selStatus !== "archived" && <button className="btn btn-s btn-c" onClick={() => setDialog("preview")}><Eye className="ic" />Xem trước như bé thấy</button>}
-              {/* Lưu trữ cần quyền duyệt truyện (Luồng 2 mục 2.1, BR-1.10). */}
-              {mine && selStatus !== "archived" && <button className="btn btn-no btn-c" onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ</button>}
               </>}
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
@@ -443,7 +439,6 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
       {sel && dialog === "roadmap" && <AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} onClose={() => setDialog(null)} />}
       {sel && dialog === "report" && <ReportDialog story={sel} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
       {sel && dialog === "community" && <CommunityDialog story={sel} nickname="" onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
-      {sel && dialog === "archive" && <ArchiveDialog storyId={sel.id} onClose={() => setDialog(null)} onDone={(msg) => { setDialog(null); setToast(msg); void reload(); setTimeout(() => setToast(""), 3000); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </section>
     </AsideContext.Provider>

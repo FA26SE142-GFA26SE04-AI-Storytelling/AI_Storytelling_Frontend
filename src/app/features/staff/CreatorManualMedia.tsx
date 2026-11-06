@@ -8,6 +8,7 @@ import type { StoryMediaPackage } from '@/app/types/aiStory';
 import type { ConfirmManualContentRequest } from '@/app/types/backendContracts';
 import MediaAssets from '@/app/features/studio/MediaAssets';
 import { mediaNeedsPolling as continuePolling } from '@/app/features/story-workflow/mediaPackage';
+import SafeImage from "@/app/components/SafeImage";
 
 export default function CreatorManualMedia({ draft, disabled, missing = [], onWorkingChange, onStatus }: {
   draft: CreatorDraft; disabled: boolean; /** Ô bắt buộc của bản đã lưu còn trống; backend từ chối chốt khi thiếu. */ missing?: string[]; onWorkingChange: (value: boolean) => void; onStatus: (value: string) => void;
@@ -73,8 +74,7 @@ export default function CreatorManualMedia({ draft, disabled, missing = [], onWo
     {pack?.scenes.map(scene => <article key={scene.sceneId}><h4>Cảnh {scene.sceneIndex + 1}</h4><p style={{ whiteSpace:'pre-wrap' }}>{scene.text}</p>
       {scene.illustrations.map(i => i.url && i.status === 'Ready' ?
         // Signed asset URLs are supplied by the API; native image supports arbitrary storage hosts.
-        // eslint-disable-next-line @next/next/no-img-element
-        <img key={i.beatId} src={i.url} alt={i.visualFocus} style={{ maxWidth:'100%', maxHeight:420, objectFit:'contain' }} /> : <p key={i.beatId}>{i.status}</p>)}
+        <SafeImage key={i.beatId} src={i.url} alt={i.visualFocus} style={{ maxWidth:'100%', maxHeight:420, objectFit:'contain' }} /> : <p key={i.beatId}>{i.status}</p>)}
       {scene.audio?.map(a => <div key={a.segmentId}><p>{a.text}</p>{a.url && a.status === 'Ready' ? <audio controls preload="none" src={a.url} aria-label={`Nghe đoạn ${a.segmentOrder + 1}`} /> : <p>{a.status}</p>}</div>)}
     </article>)}
   </section>;

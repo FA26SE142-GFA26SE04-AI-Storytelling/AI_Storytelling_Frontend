@@ -6,6 +6,7 @@ import type { ReadingStart } from '@/app/types/childReading';
 import type { ChildWishCardDto, ChildWishDto, WishCardGroup, WishDraftDto } from '@/app/types/storyWish';
 import Frog from '@/app/components/brand/Frog';
 import IconButton from '@/app/components/IconButton';
+import SafeImage from "@/app/components/SafeImage";
 
 const STEPS: { group: WishCardGroup; question: string; optional: boolean; icon: LucideIcon }[] = [
   { group: 'Character', question: 'Ai là nhân vật chính?', optional: false, icon: UserRound },
@@ -84,7 +85,7 @@ export default function KidWish({ token, busy, onRead }: { token: string; busy: 
     {!cards && <p role="status">Đang tải thẻ…</p>}
     {cards && !cards.length && <p>Chưa có thẻ nào cho bước này.</p>}
     <div className="kid-wish-cards">{cards?.map(c => <button key={c.id} className="kid-wish-card" aria-pressed={chosen?.id === c.id} disabled={disabled} onClick={() => void pick(c)}>
-      {c.imageUrl && <img src={c.imageUrl} alt="" />}<span>{c.label}</span>
+      {c.imageUrl && <SafeImage src={c.imageUrl} alt="" />}<span>{c.label}</span>
     </button>)}</div>
     <div className="kid-library-tabs">
       {step > 0 && <button type="button" className="kid-soft-button" disabled={disabled} onClick={() => setStep(step - 1)}><ArrowLeft aria-hidden="true" />Quay lại</button>}

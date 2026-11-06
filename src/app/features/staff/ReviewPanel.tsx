@@ -9,6 +9,8 @@ import VersionComparison from './VersionComparison';
 import SegmentAudio from './SegmentAudio';
 import LearningMaterials from './LearningMaterials';
 import '@/app/features/review/review-tools.css';
+import SafeImage from "@/app/components/SafeImage";
+import { RefreshCw } from "lucide-react";
 
 /** Tên tiếng Việt của các phần cần sửa (giá trị gửi lên backend giữ nguyên). */
 const PART_LABEL: Record<string, string> = {
@@ -54,7 +56,7 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
     return () => window.removeEventListener('keydown', onKey);
   }, [zoom]);
   const usableReason = !!reason.trim();
-  if (!item) return <div className="st-card"><p role="status">{message || 'Đang tải gói kiểm duyệt…'}</p><button className="btn btn-s" onClick={refresh}>Tải lại</button></div>;
+  if (!item) return <div className="st-card"><p role="status">{message || 'Đang tải gói kiểm duyệt…'}</p><button className="btn btn-s" onClick={refresh}><RefreshCw className="ic" />Tải lại</button></div>;
   const data = item.data;
   const canApprove = 'canApprove' in data && data.canApprove;
   const blockers = 'approveBlockers' in data ? data.approveBlockers : 'blockers' in data ? data.blockers : [];
@@ -88,7 +90,7 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
       <div className="st-group"><b className="st-group-title">Các cảnh cần xem và nghe{has('views_incomplete') && <Warn why="Chưa xem đủ các cảnh hoặc chưa nghe audio" />}</b>
         {item.data.scenes.map(scene => <section className="st-scene" key={scene.sceneId}>
           <b>Cảnh {scene.sceneIndex + 1}{!scene.viewed && <Warn why="Chưa xác nhận đã xem cảnh này" />}</b><p>{scene.sceneText}</p>
-          {scene.illustrations.length > 0 && <div className="st-scene-part"><b className="st-scene-label">Tranh minh hoạ</b><div className="st-pics">{scene.illustrations.map(i => i.url ? <button type="button" key={i.beatOrder} className="st-pic" onClick={() => setZoom({ url: i.url!, alt: i.visualFocus })} title="Phóng to tranh"><img src={i.url} alt={i.visualFocus} loading="lazy" /><span>{i.visualFocus}</span><em>Phóng to</em></button> : <div key={i.beatOrder} className="st-pic st-pic-empty"><span>Tranh chưa sẵn sàng</span></div>)}</div></div>}
+          {scene.illustrations.length > 0 && <div className="st-scene-part"><b className="st-scene-label">Tranh minh hoạ</b><div className="st-pics">{scene.illustrations.map(i => i.url ? <button type="button" key={i.beatOrder} className="st-pic" onClick={() => setZoom({ url: i.url!, alt: i.visualFocus })} title="Phóng to tranh"><SafeImage src={i.url} alt={i.visualFocus} loading="lazy" /><span>{i.visualFocus}</span><em>Phóng to</em></button> : <div key={i.beatOrder} className="st-pic st-pic-empty"><span>Tranh chưa sẵn sàng</span></div>)}</div></div>}
           {scene.segments.length > 0 && <div className="st-scene-part"><b className="st-scene-label">Âm thanh</b>{scene.segments.map(s => <div key={s.segmentId} className="st-seg">{!scene.sceneText.includes(s.text.trim()) && <p>{s.text}</p>}<SegmentAudio url={s.audioUrl} heard={s.heard} onHeard={() => void act(() => moderationService.view(id, 'audio', s.segmentId))} /></div>)}</div>}
           <button className="btn btn-s" disabled={busy || scene.viewed} onClick={() => void act(() => moderationService.view(id, 'scene', scene.sceneId))}>{scene.viewed ? 'Đã xem cảnh' : 'Xác nhận đã xem cảnh'}</button>
         </section>)}
@@ -136,7 +138,7 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
       </div>
     </div>}
     {zoom && <div className="dlg-backdrop st-zoom" role="dialog" aria-modal="true" aria-label="Tranh phóng to" onClick={() => setZoom(null)}>
-      <img src={zoom.url} alt={zoom.alt} />
+      <SafeImage src={zoom.url} alt={zoom.alt} />
       <button type="button" className="btn btn-s st-zoom-close" onClick={() => setZoom(null)}>Đóng</button>
     </div>}
   </div>;

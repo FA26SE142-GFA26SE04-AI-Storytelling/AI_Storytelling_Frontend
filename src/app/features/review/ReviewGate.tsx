@@ -3,7 +3,7 @@ import { useTabActions } from "@/app/features/story-workflow/tabActions";
 
 import "./review.css";
 import { useEffect, useState } from "react";
-import { Archive, BookOpenText, Check, CircleAlert, ClipboardCheck, PencilLine, PenLine, RefreshCw, WandSparkles } from "lucide-react";
+import { BookOpenText, Check, CircleAlert, ClipboardCheck, PencilLine, PenLine, RefreshCw, WandSparkles } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
 import { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
 import { hasMissingLearning } from "@/app/features/story-workflow/storyReviewLearning";
@@ -18,7 +18,7 @@ import ListeningPanel from "./ListeningPanel";
 import ProposalCard from "./ProposalCard";
 import RevisionPanel from "./RevisionPanel";
 import { StoryEditor, StoryView } from "./StoryTab";
-import { ArchiveDialog, LearningEditor } from "./ReviewTools";
+import { LearningEditor } from "./ReviewTools";
 import AutoPublishAction from './AutoPublishAction';
 
 type Tab = "story" | "listening" | ArtifactKind;
@@ -39,21 +39,20 @@ type Props = {
   /** Nhóm tuổi của bé, quyết định dạng câu đố khi sửa học liệu. */
   ageBand: string;
   onApproved: () => void;
-  onArchived: () => void;
 };
 
 /**
  * Cổng duyệt (Luồng 2 mục 6.6): đọc bản thảo và học liệu, chỉnh sửa theo chủ đích hoặc sửa tay,
- * sinh lại học liệu có xem trước, rồi Duyệt hoặc Lưu trữ. Trả về 2 cột: vùng đọc và cột quyết định.
+ * sinh lại học liệu có xem trước, rồi Duyệt. Trả về 2 cột: vùng đọc và cột quyết định.
  */
-export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, actor = 'parent' }: Props) {
+export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'parent' }: Props) {
   const r = useStoryReview(storyId, actor);
   const { bundle, busy, aiTask, error, validation, proposal } = r;
   const [tab, setTab] = useState<Tab>("story");
   const tabActions = useTabActions();
   const [selection, setSelection] = useState<StorySelection | null>(null);
   const [editing, setEditing] = useState(false);
-  const [dialog, setDialog] = useState<"learning" | "archive" | null>(null);
+  const [dialog, setDialog] = useState<"learning" | null>(null);
   const docRef = useSwap<HTMLDivElement>(tab);
   const sideRef = useRiseIn<HTMLDivElement>(".sec", [bundle ? 1 : 0], { delay: 35, distance: 10 });
 
@@ -167,7 +166,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
             <button className="ck ck-link" onClick={() => setTab("story")}>
               <span className="st ok"><BookOpenText /></span>Truyện<small>{countWords(content)} tiếng{summary.readabilityFkgl !== null && ` · FKGL ${summary.readabilityFkgl.toFixed(1)}`}</small>
             </button>
-            {!learning && <p className="hint">Truyện chỉ để đọc: không có từ vựng, câu đố hay câu hỏi thảo luận.</p>}
+            {!learning && <p className="hint">Truyện chỉ để đọc: không có từ vựng hay câu đố.</p>}
             {artifacts.map((k) => (
               <button key={k} className="ck ck-link" onClick={() => setTab(k)}>
                 <span className={`st ${items[k].length > 0 ? "ok" : "warn"}`}>{items[k].length > 0 ? <Check /> : <CircleAlert />}</span>
@@ -213,11 +212,8 @@ export default function ReviewGate({ storyId, ageBand, onApproved, onArchived, a
             <p className="hint">
               {approveBlock ?? (approveInBar ? "Bấm dấu ✓ trên thanh tiến trình để duyệt. " : "") + (actor === 'creator' ? 'Xác nhận nội dung để chuẩn bị media. Gửi duyệt công khai là bước riêng sau khi sẵn sàng.' : 'Sau khi duyệt, hệ thống vẽ tranh và tạo giọng đọc. Bé thấy truyện khi mọi thứ sẵn sàng.')}
             </p>
-            {actor === 'parent' && <button className="btn btn-g btn-c" disabled={busy || !summary.canArchive} onClick={() => setDialog("archive")}><Archive className="ic" />Lưu trữ truyện</button>}
           </div>
           {dialog === "learning" && <LearningEditor r={r} ageBand={ageBand} onClose={() => setDialog(null)} />}
-          {/* Lưu trữ bắt buộc chọn lý do (Luồng 2 mục 6.6). */}
-          {dialog === "archive" && <ArchiveDialog storyId={storyId} onClose={() => setDialog(null)} onDone={() => { setDialog(null); onArchived(); }} />}
       </AsidePane>
     </>
   );

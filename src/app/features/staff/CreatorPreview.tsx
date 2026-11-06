@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from "react";
 import { Preview } from "@/app/features/library/LibraryWorkspace";
 import { creatorService } from "@/app/services/creatorService";
-import { gradientFor } from "@/app/lib/storyView";
+import { coverFor } from "@/app/lib/storyView";
 import type { CreatorDraft } from "@/app/types/creator";
 
 /**
@@ -11,7 +11,7 @@ import type { CreatorDraft } from "@/app/types/creator";
  * nhưng chữ lấy qua API /creator/stories của chính creator.
  */
 export default function CreatorPreview({ story, onClose }: { story: CreatorDraft; onClose: () => void }) {
-  const preview = useMemo(() => ({ id: story.storyId, title: story.title || "Truyện chưa đặt tên", gradient: gradientFor(story.storyId) }), [story.storyId, story.title]);
+  const preview = useMemo(() => ({ id: story.storyId, title: story.title || "Truyện chưa đặt tên", cover: coverFor() }), [story.storyId, story.title]);
   const loadContent = useCallback(async () => {
     const draft = await creatorService.get(story.storyId);
     const versionId = draft.ok ? draft.data?.selectedVersionId : null;

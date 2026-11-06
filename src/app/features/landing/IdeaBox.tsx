@@ -6,7 +6,6 @@ import { GENRES } from "@/app/lib/storyRules";
 import { saveLandingIdea } from "./landingIdea";
 
 const MAX = 200;
-const SAMPLES = ["Rùa Bông mang đèn lồng đến hội Trung thu", "Bé Na lần đầu tự đánh răng", "Chú voi con sợ bóng tối"];
 
 /** Ô thử ý tưởng ngay trên trang giới thiệu. Gửi thì mở form đăng ký; ý tưởng được giữ lại để điền sẵn vào Studio. */
 export default function IdeaBox({ onStart }: { onStart: () => void }) {
@@ -34,13 +33,7 @@ export default function IdeaBox({ onStart }: { onStart: () => void }) {
           <button type="submit" className="btn btn-p ld-idea-go"><Sparkles className="ic" aria-hidden />Viết thử truyện này</button>
         </div>
       </div>
-      <p className="ld-idea-hint">
-        Chưa nghĩ ra?{" "}
-        {SAMPLES.map((s, i) => (
-          <span key={s}>{i > 0 && ", "}<button type="button" className="ld-link" onClick={() => setTopic(s)}>{s}</button></span>
-        ))}
-        . Tạo tài khoản xong, ý tưởng này được điền sẵn trong Studio để bạn duyệt từng bước.
-      </p>
+      <p className="ld-idea-hint">Tạo tài khoản xong, ý tưởng này được điền sẵn trong Studio để bạn duyệt từng bước.</p>
     </form>
   );
 }

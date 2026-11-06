@@ -1,8 +1,8 @@
 "use client";
-import UnavailableFeature from "./UnavailableFeature";
 
 import { useCallback, useEffect, useState } from "react";
-import { Mail } from "lucide-react";
+import { Mail, UserPlus, UserX } from "lucide-react";
+import Dialog from "@/app/components/Dialog";
 import { useAuth } from "@/app/context/AuthContext";
 import { confirmDialog } from "@/app/lib/confirm";
 import { staffService } from "@/app/services/staffService";
@@ -22,6 +22,9 @@ export function AdminStaff() {
   const [staff, setStaff] = useState<StaffAccount[]>([]);
   const [filter, setFilter] = useState<StaffAccountRole | "all">("all");
   const [inv, setInv] = useState(EMPTY_INVITE);
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [deact, setDeact] = useState<StaffAccount | null>(null);
+  const [deactReason, setDeactReason] = useState("");
   const load = useCallback(async () => {
     const s = await staffService.staff(filter === "all" ? undefined : filter);
     setStaff(s.data ?? []);
@@ -34,8 +37,8 @@ export function AdminStaff() {
   return (
     <Page title="Tài khoản vận hành" sub="Moderator và Administrator được mời qua email: email chứa mã mời 72 giờ, dùng 1 lần; người được mời mở trang đăng nhập → “Kích hoạt tài khoản vận hành” để đặt mật khẩu và xác nhận cam kết. Content Creator tự đăng ký, Administrator duyệt.">
       <Notice note={note} />
-      <div className="st-card">
-        <h3>Mời tài khoản vận hành</h3>
+      <div className="row"><button className="btn btn-p" onClick={() => setInviteOpen(true)}><UserPlus className="ic" />Mời nhân sự</button></div>
+      {inviteOpen && <Dialog title="Mời tài khoản vận hành" onClose={() => setInviteOpen(false)}>
         <div className="st-form">
           <div className="field">
             <span className="lbl">Vai trò</span>
@@ -51,9 +54,17 @@ export function AdminStaff() {
           <label className="field"><span className="lbl">Ghi chú (không bắt buộc)</span><input className="inp" value={inv.note} onChange={(e) => setInv({ ...inv, note: e.target.value })} /></label>
           <button className="btn btn-p" disabled={busy || !canInvite}
             onClick={() => void run(() => staffService.invite({ role: inv.role, email: inv.email.trim(), fullName: inv.fullName.trim(), expertise: inv.expertise.trim(), note: inv.note.trim() }), `Đã gửi mã mời ${ROLE[inv.role]} tới ${inv.email.trim()}.`)
-              .then((ok) => ok && setInv({ ...EMPTY_INVITE, role: inv.role }))}><Mail className="ic" />Gửi lời mời</button>
+              .then((ok) => { if (ok) { setInv({ ...EMPTY_INVITE, role: inv.role }); setInviteOpen(false); } })}><Mail className="ic" />Gửi lời mời</button>
         </div>
-      </div>
+      </Dialog>}
+      {deact && <Dialog title={`Vô hiệu hoá ${deact.fullName}`} onClose={() => setDeact(null)}>
+        <p>Tài khoản bị đăng xuất khỏi mọi thiết bị; mục kiểm duyệt đang nhận được trả về hàng đợi.</p>
+        <label className="field"><span className="lbl">Lý do (ít nhất 3 ký tự)</span><input className="inp" value={deactReason} onChange={(e) => setDeactReason(e.target.value)} /></label>
+        <div className="row"><button className="btn btn-no" disabled={busy || deactReason.trim().length < 3} onClick={() => {
+          const target = deact;
+          void run(() => staffService.deactivate(target.userId, deactReason.trim()), "Đã vô hiệu hoá.").then((ok) => { if (ok) { setDeact(null); setDeactReason(""); } });
+        }}><UserX className="ic" />Vô hiệu hoá</button></div>
+      </Dialog>}
 
       <p className="notice">Backend chưa cung cấp API đăng ký và duyệt đơn Content Creator.</p>
       <div className="st-card st-scroll">
@@ -84,10 +95,7 @@ export function AdminStaff() {
                       void run(() => staffService.cancelInvite(s.userId), "Đã huỷ lời mời.");
                     }}>Huỷ lời mời</button>
                   </>}
-                  {s.status === "active" && s.userId !== me && <button className="btn btn-g" disabled={busy} onClick={() => {
-                    const reason = prompt(`Lý do vô hiệu hoá ${s.fullName} (ít nhất 3 ký tự). Tài khoản bị đăng xuất khỏi mọi thiết bị; mục kiểm duyệt đang nhận trả về hàng đợi.`)?.trim();
-                    if (reason) void run(() => staffService.deactivate(s.userId, reason), "Đã vô hiệu hoá.");
-                  }}>Vô hiệu hoá</button>}
+                  {s.status === "active" && s.userId !== me && <button className="btn btn-g" disabled={busy} onClick={() => { setDeactReason(""); setDeact(s); }}><UserX className="ic" />Vô hiệu hoá</button>}
                   {s.status === "deactivated" && <button className="btn btn-g" disabled={busy} onClick={() => void run(() => staffService.reactivate(s.userId), "Đã kích hoạt lại.")}>Kích hoạt lại</button>}
                 </td>
               </tr>
@@ -102,4 +110,4 @@ export function AdminStaff() {
 
 
 /** Luồng 5 Bước 5.1e — quản lý tài khoản Parent ở mức tài khoản; không xem dữ liệu của trẻ (BR-5.1g). */
-export function AdminParents(){return <UnavailableFeature title="Quản lý tài khoản phụ huynh"/>;}
+

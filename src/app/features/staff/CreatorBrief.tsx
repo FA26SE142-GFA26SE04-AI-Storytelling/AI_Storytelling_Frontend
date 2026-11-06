@@ -6,7 +6,6 @@ import { copyrightHits, GENRES, OUTPUT_MODE } from "@/app/lib/storyRules";
 import { clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, type LengthPreset } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
 import { detectPii, piiMessage } from "@/app/features/story-workflow/piiHints";
 
-const LESSONS = ["Trung thực", "Biết chia sẻ", "Dũng cảm", "Kiên trì", "Lễ phép", "Yêu thương gia đình"];
 const LENGTHS: [LengthPreset, string][] = [["short", "Ngắn"], ["medium", "Vừa"], ["long", "Dài"]];
 
 export type CreatorBriefValues = { topic: string; lesson: string; genre: string; charactersText: string; setting: string; targetLength: number; vocabularyLevel: string; outputMode: string };
@@ -43,7 +42,7 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
         <span className="brief-tag"><Lock aria-hidden />{ageBand.replace("-", "–")} tuổi</span>
         <span className="brief-tag"><Lock aria-hidden />Mức đọc {readingLevel}</span>
       </div>
-      {contextError && <div className="notice err" role="alert">{contextError}</div>}
+      {contextError && <div className="notice err" role="alert" data-inline-notice>{contextError}</div>}
 
       <div className="brief-flow">
         <fieldset className="brief-group">
@@ -56,10 +55,6 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
             <label className="lbl row" htmlFor="cbrief-lesson" style={{ justifyContent: "space-between" }}>Bài học muốn gửi tới các bé<em className="count">{values.lesson.length}/{FREE_TEXT_MAX}</em></label>
             <div className="brief-combo">
               <input id="cbrief-lesson" autoComplete="off" className="inp" required maxLength={FREE_TEXT_MAX} value={values.lesson} placeholder="Ví dụ: Biết chia sẻ cùng bạn bè…" onChange={(e) => onChange({ lesson: e.target.value })} />
-              <select className="inp brief-suggest" aria-label="Gợi ý bài học" value="" onChange={(e) => e.target.value && onChange({ lesson: e.target.value })}>
-                <option value="" disabled>Gợi ý…</option>
-                {LESSONS.map((l) => <option key={l} value={l}>{l}</option>)}
-              </select>
             </div>
           </div>
         </fieldset>
@@ -131,7 +126,7 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
         </fieldset>
 
         <div className="brief-submit">
-          {topicTooLong && <div className="notice err" role="alert">Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
+          {topicTooLong && <div className="notice err" role="alert" data-inline-notice>Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
           <button type="submit" className="btn btn-p brief-go" disabled={disabled} aria-describedby="cbrief-go-why">
             <Sparkles className="ic" aria-hidden />{busy ? "Đang gửi ý tưởng…" : "Viết dàn ý"}
           </button>

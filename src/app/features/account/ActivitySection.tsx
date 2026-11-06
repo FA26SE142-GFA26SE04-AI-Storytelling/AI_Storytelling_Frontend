@@ -7,12 +7,6 @@ import { fmtDateTime } from '@/app/lib/guardian';
 import type { AuditLogDto } from '@/app/types/backendContracts';
 
 const ACTION: Record<string, string> = {
-  CREATE_SUPERVISION_INVITATION: 'Tạo lời mời',
-  REGENERATE_SUPERVISION_INVITATION_CODE: 'Đổi mã mời',
-  CANCEL_OWNERSHIP_TRANSFER: 'Hủy chuyển quyền',
-  REQUEST_OWNERSHIP_TRANSFER: 'Chuyển quyền',
-  REVOKE_SUPERVISION_PERMISSION: 'Thu hồi quyền',
-  GRANT_SUPERVISION_PERMISSION: 'Cấp quyền',
   RESTORE_CHILD_PROFILE: 'Khôi phục hồ sơ',
   ARCHIVE_CHILD_PROFILE: 'Lưu trữ hồ sơ',
   RESUME_CHILD_PROFILE: 'Mở lại hồ sơ',
@@ -20,9 +14,6 @@ const ACTION: Record<string, string> = {
   DataRequestCancelled: 'Hủy yêu cầu',
 };
 const ENTITY: Record<string, string> = {
-  SupervisionInvitation: 'Lời mời',
-  OwnershipTransferRequest: 'Yêu cầu',
-  SupervisionRelationship: 'Quan hệ giám sát',
   ChildProfile: 'Hồ sơ bé',
   DataRequest: 'Yêu cầu dữ liệu',
 };
@@ -32,9 +23,6 @@ const MAX_PAGES = 5;
 /** Nhóm lọc theo loại đối tượng; backend chưa lọc được nên lọc trên nhật ký đã tải. */
 const GROUPS = [
   { value: 'all', label: 'Tất cả', types: null },
-  { value: 'invite', label: 'Lời mời', types: ['SupervisionInvitation'] },
-  { value: 'perm', label: 'Quyền giám sát', types: ['SupervisionRelationship'] },
-  { value: 'owner', label: 'Chuyển quyền', types: ['OwnershipTransferRequest'] },
   { value: 'profile', label: 'Hồ sơ bé', types: ['ChildProfile'] },
   { value: 'data', label: 'Dữ liệu', types: ['DataRequest'] },
 ] as const;
@@ -73,7 +61,7 @@ export default function ActivitySection({ childId }: { childId?: number }) {
     <div className="row act-head"><h3 className="display grow" style={{ margin: 0 }}>Lịch sử hoạt động</h3>
       <Select<Group> className="act-filter" ariaLabel="Lọc lịch sử" value={group} options={GROUPS.map(g => ({ value: g.value, label: g.label }))} onChange={(v) => { setGroup(v); setPage(1); }} />
       <button className="btn btn-g" aria-label="Tải lại nhật ký" onClick={()=>setRefresh(n=>n+1)}><RefreshCw className="ic" /></button></div>
-    {error && <p className="notice err" role="alert">{error}</p>}
+    {error && <p className="notice err" role="alert" data-inline-notice>{error}</p>}
     {items === null && !error && <p className="sub">Đang tải…</p>}
     {rows.map(item => <div className="act-row" key={item.id}>
       <b>{ACTION[item.action] ?? item.action}</b>

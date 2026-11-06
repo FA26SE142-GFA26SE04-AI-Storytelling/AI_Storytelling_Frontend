@@ -43,7 +43,7 @@ export default function PaymentSection() {
     </div>
     {transaction&&<div className="dlg-backdrop confirm-backdrop" role="dialog" aria-modal="true" aria-label="Thanh toán" onClick={(e)=>{if(e.target===e.currentTarget)setTransaction(null);}}>
       <div className="dlg" style={{ gap: 12, width: "min(440px, 100%)" }}>
-        <div className="row"><b className="display grow" style={{ fontSize: 18 }}>{transaction.planName}</b><button className="btn btn-g" aria-label="Đóng" onClick={()=>setTransaction(null)}><X className="ic" /></button></div>
+        <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>{transaction.planName}</b><button className="btn btn-g" aria-label="Đóng" onClick={()=>setTransaction(null)}><X className="ic" /></button></div>
         <p>Số tiền: <b>{transaction.amount.toLocaleString('vi-VN')} đồng</b></p>
         <p>Nội dung chuyển khoản: <strong>{transaction.transactionCode}</strong></p>
         <p>Trạng thái: {transaction.status} · Hạn: {new Date(transaction.expiresAt).toLocaleString('vi-VN')}</p>

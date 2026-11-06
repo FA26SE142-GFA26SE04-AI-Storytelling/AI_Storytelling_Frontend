@@ -31,7 +31,7 @@ export default function InProgressStories({ stories, go }: { stories: StoryCard[
           const mine = NEEDS_YOU.has(statusKey(s.raw));
           return (
             <button key={s.id} className="mini-item" onClick={() => go("studio", { storyId: s.id })}>
-              <span className="cover-sm" style={{ background: s.gradient }} aria-hidden />
+              <span className="cover-sm" style={{ background: s.cover }} aria-hidden />
               <span className="grow" style={{ textAlign: "left", minWidth: 0 }}>
                 <b className="wip-title">{s.title || "Truyện chưa đặt tên"}</b>
                 <small><span className={`pill ${mine ? "wait" : "ai"}`}>{s.statusLabel}</span></small>

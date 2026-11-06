@@ -166,7 +166,7 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
           <>
             <label className="field"><span className="lbl">Mã mời trong email</span><input className="inp" required value={f.token} onChange={set("token")} autoComplete="off" spellCheck={false} /></label>
             <p className="sub">Mã có hiệu lực 72 giờ và chỉ dùng được một lần. Hết hạn thì nhờ Administrator gửi lại lời mời.</p>
-            <label className="row" style={{ alignItems: "flex-start", fontSize: 13 }}>
+            <label className="row" style={{ alignItems: "flex-start", fontSize: "var(--fs-sm)" }}>
               <input type="checkbox" checked={cr.commit} onChange={(e) => setCr({ ...cr, commit: e.target.checked })} style={{ marginTop: 3 }} />
               <span>Tôi cam kết bảo mật dữ liệu trẻ em và tuân thủ quy tắc kiểm duyệt nội dung của nền tảng.</span>
             </label>
@@ -174,7 +174,7 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
         )}
 
         {mode === "creator" && (
-          <label className="row" style={{ alignItems: "flex-start", fontSize: 13 }}>
+          <label className="row" style={{ alignItems: "flex-start", fontSize: "var(--fs-sm)" }}>
             <input type="checkbox" checked={cr.commit} onChange={(e) => setCr({ ...cr, commit: e.target.checked })} style={{ marginTop: 3 }} />
             <span>Tôi cam kết bảo mật dữ liệu trẻ em, chỉ đăng nội dung do tôi sáng tác hoặc có quyền phát hành, và tuân thủ quy tắc nội dung của nền tảng.</span>
           </label>

@@ -10,7 +10,7 @@ import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import Frog from "@/app/components/brand/Frog";
 import { creatorService } from "@/app/services/creatorService";
 import type { CreatorDraft } from "@/app/types/creator";
-import { gradientFor } from "@/app/lib/storyView";
+import { coverFor } from "@/app/lib/storyView";
 import { fmt } from "./ui";
 import { SHELVES, shelfOf } from "./CreatorLibrary";
 import type { CreatorPageProps } from "./CreatorStories";
@@ -70,7 +70,7 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
             </div>
           </div>
 
-          {error && <p className="notice err" role="alert">{error}</p>}
+          {error && <p className="notice err" role="alert" data-inline-notice>{error}</p>}
           {loading && !all.length && <p className="sub" role="status">Đang tải truyện…</p>}
 
           {shown.length > 0 ? (
@@ -79,7 +79,7 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
                 const name = s.title || "Truyện chưa đặt tên";
                 return (
                   <button className={`bk${selected === s.storyId ? " on" : ""}`} key={s.storyId} onClick={() => pick(s)} aria-pressed={selected === s.storyId} aria-label={`Xem chi tiết truyện ${name}`}>
-                    <span className="bk-cover" style={{ background: gradientFor(s.storyId) }}>
+                    <span className="bk-cover" style={{ background: coverFor() }}>
                       <span className="pill draft bk-badge">{SHELVES.find((g) => g.id === shelfOf(s))?.title}</span>
                       <span className="bk-name display">{name}</span>
                     </span>
@@ -101,8 +101,8 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
         <AsidePane title="Chi tiết" icon={Info}>
           {sel ? (
             <>
-              <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: gradientFor(sel.storyId) }} />
-              <h3 className="display" style={{ fontSize: 20, margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
+              <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: coverFor() }} />
+              <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
               {sel.description && <p className="sub">{sel.description}</p>}
               <div className="meta">
                 <span>Cách tạo</span><b>{isAi(sel) ? "Do AI tạo" : "Thủ công"}</b>

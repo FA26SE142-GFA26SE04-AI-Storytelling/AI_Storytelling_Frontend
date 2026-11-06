@@ -60,7 +60,7 @@ export function CreatorCreateManual({ go, target }: CreatorPageProps) {
     <Page title="Tạo truyện thủ công" sub="Điền thông tin truyện mới rồi mở trình soạn để tự viết nội dung.">
       <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label="Tạo bản nháp">
         <form className="dlg wide" onSubmit={(e) => { e.preventDefault(); void create(); }}>
-          <b className="display" style={{ fontSize: 18 }}>Tạo bản nháp truyện mới</b>
+          <b className="display" style={{ fontSize: "var(--fs-lg)" }}>Tạo bản nháp truyện mới</b>
           <Notice note={note} />
           <div className="st-form">
             <label className="field"><span className="lbl">Tên truyện</span><input className="inp" autoFocus maxLength={200} value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>

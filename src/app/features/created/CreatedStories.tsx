@@ -21,7 +21,7 @@ const GROUPS: { id: string; label: string; keys: string[] }[] = [
   { id: "doing", label: "Đang soạn", keys: ["draft", "input_accepted", "generating", "outline_review", "moderation_review", "content_review"] },
   { id: "media", label: "Đang chuẩn bị", keys: ["approved", "media_processing", "media_review"] },
   { id: "done", label: "Đã xong", keys: ["ready", "published"] },
-  { id: "other", label: "Bị chặn / lưu trữ", keys: ["blocked", "rejected", "archived"] },
+  { id: "other", label: "Bị chặn / từ chối", keys: ["blocked", "rejected", "archived"] },
 ];
 const groupOf = (s: StoryCard) => GROUPS.find((g) => g.keys.includes(statusKey(s.raw)))?.id ?? "doing";
 const when = (iso: string) => new Date(iso).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
@@ -117,14 +117,14 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
           </div>
         </div>
 
-        {error && <p className="notice err" role="alert">{error}</p>}
+        {error && <p className="notice err" role="alert" data-inline-notice>{error}</p>}
         {loading && !all.length && <p className="sub" role="status">Đang tải truyện đã tạo…</p>}
 
         {shown.length > 0 ? (
           <div className="created-grid">
             {shown.map((s) => (
               <button className={`bk${selected === s.id ? " on" : ""}`} key={`${s.family ? "m" : "a"}${s.id}`} onClick={() => pick(s)} aria-pressed={selected === s.id} aria-label={`Xem chi tiết truyện ${s.title}`}>
-                <span className="bk-cover" style={{ background: s.gradient }}>
+                <span className="bk-cover" style={{ background: s.cover }}>
                   <span className={`pill ${s.tone} bk-badge`}>{s.statusLabel}</span>
                   <span className="bk-name display">{s.title}</span>
                 </span>
@@ -145,8 +145,8 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
       <AsidePane title="Chi tiết" icon={Info}>
         {sel ? (
           <>
-            <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: sel.gradient }} />
-            <h3 className="display" style={{ fontSize: 20, margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
+            <div className="cover" style={{ aspectRatio: "16/10", borderRadius: 12, background: sel.cover }} />
+            <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
             {sel.raw.description && <p className="sub">{sel.raw.description}</p>}
             <div className="meta">
               <span>Cách tạo</span><b>{sel.family ? "Thủ công" : "Do AI tạo"}</b>

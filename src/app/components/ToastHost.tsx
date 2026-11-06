@@ -8,13 +8,13 @@ type Toast = { id: number; text: string; tone: Tone };
 
 /** Thông báo nằm trong các vùng này vẫn hiện tại chỗ: hộp thoại, màn đăng nhập, chế độ của bé. */
 const INLINE_ZONES = ".dlg, .login, .kid, .parental-gate-backdrop, [data-inline-notice]";
-const NOTICE = '.notice[role="status"]';
+const NOTICE = '.notice[role="status"], .notice[role="alert"]';
 const MAX_VISIBLE = 3;
 
 const toneOf = (el: Element): Tone => (el.classList.contains("err") ? "err" : el.classList.contains("ok") ? "ok" : el.classList.contains("warn") ? "warn" : "info");
 
 /**
- * Chuyển mọi thông báo kết quả (“Đã lưu…”, “Đã xoá…”, “Đã gửi…”) từ khung nằm trong trang
+ * Chuyển mọi thông báo kết quả/lỗi sau thao tác (“Đã lưu…”, “Đã xoá…”, “Đã gửi…”) từ khung nằm trong trang
  * thành thông báo trượt xuống từ phía trên. Các nơi cũ vẫn render `.notice[role="status"]`;
  * component này ẩn khung đó và hiện cùng nội dung dưới dạng toast.
  */
