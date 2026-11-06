@@ -64,7 +64,8 @@ export function Preview({ story, onClose, loadContent }: { story: PreviewStory; 
   const [loaded, setLoaded] = useState<string | null>(null);
   const cacheKey = `${story.id}:${story.family ? "f" : "s"}:${loadContent ? "c" : "p"}:${story.raw?.content?.length ?? 0}`;
   useEffect(() => {
-    const hit = PREVIEW_CACHE.get(cacheKey);
+    // Creator sửa nội dung liên tục và nguồn chữ riêng không có dấu hiệu đổi, nên không dùng bộ nhớ tạm cho họ.
+    const hit = loadContent ? undefined : PREVIEW_CACHE.get(cacheKey);
     if (hit && Date.now() - hit.at < PREVIEW_TTL_MS) { setPages(hit.pages); return; }
     const c = new AbortController();
     const textOnly = (content: string): PreviewPage[] => splitScenes(content).map((text) => ({ text, images: [], audio: [] }));
@@ -93,7 +94,7 @@ export function Preview({ story, onClose, loadContent }: { story: PreviewStory; 
         };
       });
     };
-    void load().then((p) => { if (c.signal.aborted) return; PREVIEW_CACHE.set(cacheKey, { pages: p, at: Date.now() }); setPages(p); }).catch(() => { if (!c.signal.aborted) setPages([]); });
+    void load().then((p) => { if (c.signal.aborted) return; if (!loadContent) PREVIEW_CACHE.set(cacheKey, { pages: p, at: Date.now() }); setPages(p); }).catch(() => { if (!c.signal.aborted) setPages([]); });
     return () => c.abort();
   }, [story]); // eslint-disable-line react-hooks/exhaustive-deps -- loadContent đổi theo từng lần vẽ; chỉ tải lại khi đổi truyện
   const go =(to: number) => { setPage(to); setShot(0); setBroken(null); };

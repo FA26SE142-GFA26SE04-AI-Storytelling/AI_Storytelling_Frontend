@@ -25,11 +25,12 @@ export default function ChildReadingLibrary({childId,community,story,unlockTitle
   const refresh=useCallback(()=>setRevision(v=>v+1),[]);
   const reader=useChildReader(token,refresh);
   const reading=!!reader.content;
-  const [pane,setPane]=useState<'stories'|'notebook'|'wishes'|'rewards'>('stories');
+  type Pane='stories'|'notebook'|'wishes'|'rewards';
   // Hướng trượt theo thứ tự tab: sang tab bên phải thì nội dung trượt vào từ phải, về tab bên trái thì từ trái.
-  const PANE_ORDER=['stories','notebook','wishes','rewards'];
-  const prevPane=useRef(pane); const dir:1|-1=PANE_ORDER.indexOf(pane)>=PANE_ORDER.indexOf(prevPane.current)?1:-1;
-  useEffect(()=>{prevPane.current=pane;},[pane]);
+  const PANE_ORDER:Pane[]=['stories','notebook','wishes','rewards'];
+  const [nav,setNav]=useState<{pane:Pane;dir:1|-1}>({pane:'stories',dir:1});
+  const {pane,dir}=nav;
+  const setPane=(next:Pane)=>setNav(cur=>({pane:next,dir:PANE_ORDER.indexOf(next)>=PANE_ORDER.indexOf(cur.pane)?1:-1}));
   // Các kệ bên dưới chỉ thuộc tab Truyện của em; báo tab đang chọn cho trang cha.
   useEffect(()=>{onPaneChange?.(pane);},[pane,onPaneChange]);
   // Bé bấm bìa truyện cộng đồng ở kệ bên dưới thì mở đọc luôn, không cần bấm thêm nút nào.

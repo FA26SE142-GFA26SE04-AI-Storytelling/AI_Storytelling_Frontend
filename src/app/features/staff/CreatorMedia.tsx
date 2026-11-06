@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
-import { Check, Image as ImageIcon, Images, Volume2, RefreshCw } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { Check, CircleAlert, Image as ImageIcon, Images, Volume2, RefreshCw } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
 import Frog from "@/app/components/brand/Frog";
 import { useRiseIn } from "@/app/lib/motion";
 import { useStudioMediaPreview } from "@/app/features/story-workflow/useStudioMediaPreview";
 import { useStudioCompletion } from "@/app/features/story-workflow/useStudioCompletion";
-import MediaAssets from "@/app/features/studio/MediaAssets";
+import { useMediaPackage } from "@/app/features/story-workflow/useMediaPackage";
 import MediaIssues from "@/app/features/studio/MediaIssues";
 import StudioScenePreview from "@/app/features/studio/StudioScenePreview";
 import type { MediaProgressDto } from "@/app/types/aiStory";
@@ -27,7 +27,7 @@ type Props = {
 
 /**
  * Bước "Tranh & giọng đọc" của Content Creator, cùng bố cục với phụ huynh (StudioMedia):
- * khung giữa là cảnh đang xem (hình trái, chữ và nút nghe phải) + thanh trạng thái; cột phải là khung "Chuẩn bị" cuộn riêng.
+ * khung giữa là cảnh đang xem (hình trái; chữ, nút nghe và nút tạo lại phải); cột phải chia nhóm Tiến độ, Cảnh trong truyện, rồi phần phát hành.
  */
 export default function CreatorMedia({ storyId, versionId, media, locked, busy, onRetry, onChanged, children }: Props) {
   const m = media.data;
@@ -36,16 +36,36 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
   const [active, setActive] = useState(0);
   const index = Math.min(active, Math.max(0, scenes.length - 1));
   const scene = scenes[index];
-  const sideRef = useRiseIn<HTMLDivElement>(".ck, .scene-list button", [scenes.length ? 1 : 0], { delay: 35, distance: 10 });
+  const sideRef = useRiseIn<HTMLDivElement>(".ck, .prep-scene", [scenes.length ? 1 : 0], { delay: 35, distance: 10 });
   const reload = () => { preview.refresh(); media.refresh(); };
   const c = useStudioCompletion(preview.pack, m, onChanged);
+  // Tạo lại tranh / giọng đọc và giữ bản cũ dùng luôn gói media đang xem (không cần bấm tải gói riêng).
+  const mp = useMediaPackage({ storyId, versionId: m?.approvedStoryVersionId ?? versionId, disabled: locked, onChanged: () => { reload(); onChanged(); }, source: preview.pack });
+  // Gói media đã xác nhận / truyện sẵn sàng thì ẩn nút tạo lại: gói đã chốt.
+  const sceneActions = preview.pack && !m?.isConfirmed && !m?.isReady ? {
+    busy: mp.busy, locked: locked || mp.uncertain, replacements: preview.pack.replacements ?? [],
+    regenerate: (k: "illustration" | "audio", id: number) => void mp.regenerate(k, id),
+    keepCurrent: (id: number) => void mp.keepCurrent(id),
+  } : undefined;
+  // Tải sẵn tranh và giọng đọc của cảnh đang xem và cảnh kế để đổi cảnh không phải chờ.
+  const warm = useRef<(HTMLImageElement | HTMLAudioElement)[]>([]);
+  useEffect(() => {
+    const items: (HTMLImageElement | HTMLAudioElement)[] = [];
+    for (const s of [scenes[index], scenes[index + 1]]) {
+      if (!s) continue;
+      for (const x of s.illustrations) { if (x.status === "Ready" && x.url) { const im = new Image(); im.src = x.url; items.push(im); } }
+      const au = s.audio?.find((a) => a.status === "Ready" && a.url);
+      if (au?.url) { const el = new Audio(); el.preload = "auto"; el.src = au.url; items.push(el); }
+    }
+    warm.current = items;
+  }, [scenes, index]);
   const total = m ? m.requiredIllustrations || m.sceneCount : 0;
   const step = (done: boolean, label: string, detail: string, Icon: typeof Check) => (
     <div className="ck"><span className={`st ${done ? "ok" : "warn"}`}>{done ? <Check /> : <Icon />}</span>{label}<small>{detail}</small></div>
   );
-  const status = m
-    ? m.isReady ? "Đã xác nhận media. Bạn có thể gửi duyệt công khai ở khung bên phải."
-      : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi tick ô xác nhận và bấm nút bên cạnh."
+  const statusText = m
+    ? m.isReady ? ""
+      : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi tick ô xác nhận và bấm nút bên dưới."
       : "Đang tạo, bạn có thể rời màn hình này."
     : media.error ?? "Đang kiểm tra…";
 
@@ -55,10 +75,9 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
         <div className="board">
           {scenes.length > 0 ? (
             <div className="artwrap">
-              <div className="artlabel"><span>Cảnh {index + 1} / {scenes.length}</span><em>Bản media từ backend</em></div>
               {preview.error && <p className="notice err" role="alert">{preview.error}</p>}
               <StudioScenePreview key={`${storyId}:${preview.pack?.packageRevision}:${scene?.sceneId}:${scene?.illustrations.map((x) => x.url).join("|")}`}
-                scene={scene} text={scene?.text ?? ""} loading={preview.loading} onReload={reload} />
+                scene={scene} text={scene?.text ?? ""} loading={preview.loading} onReload={reload} actions={sceneActions} />
             </div>
           ) : (
             // Chưa có cảnh: khối chờ ở giữa (không dùng khung cảnh vì nó co hẹp và nhãn bị chồng lên chữ).
@@ -70,11 +89,14 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
             </div>
           )}
         </div>
-        <div className="media-bar">
-          <b>Minh hoạ và giọng đọc</b>
-          <span className="grow">{status}</span>
+      </div>
+
+      <AsidePane title="Chuẩn bị media" icon={Images} bodyRef={sideRef}>
+        <div className="studio-actions">
+          {statusText && <p role="status">{statusText}</p>}
+          {mp.note && <p className="notice" role="status">{mp.note}</p>}
+          {mp.uncertain && <p className="notice warn" role="status">Chưa rõ kết quả thao tác. Hãy tải lại ảnh và giọng đọc rồi mới thử lại.</p>}
           {m?.errorCode && <button className="btn btn-s" disabled={busy} onClick={onRetry}><RefreshCw className="ic" />Thử lại</button>}
-          {/* Nút xác nhận nằm ngay thanh dưới như phụ huynh (trước đây chỉ có trong mục thu gọn ở cột phải nên không thấy). */}
           <div className="studio-completion">
             {c.note && <p className="notice" role="status">{c.note}</p>}
             {c.canConfirm && <>
@@ -84,33 +106,36 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
             {c.blocked && <button className="btn btn-s" onClick={reload}>Tải lại trạng thái hoàn tất</button>}
           </div>
         </div>
-      </div>
-
-      <AsidePane title="Chuẩn bị media" icon={Images} bodyRef={sideRef}>
-        <MediaAssets key={storyId} storyId={storyId} versionId={m?.approvedStoryVersionId ?? versionId} disabled={locked} onChanged={onChanged} />
-        <div className="sec">
-          {step(true, "Đã duyệt nội dung", "", Check)}
-          {step(!!m && total > 0 && m.readyIllustrations >= total, "Tranh minh hoạ", m ? `${m.readyIllustrations}/${total}` : "…", ImageIcon)}
-          {step(!!m?.isGenerated, "Giọng đọc", m ? `${m.readyAudio} đoạn` : "…", Volume2)}
-          {step(!!m?.isConfirmed, m?.isConfirmed ? "Đã xác nhận gói media" : "Chờ xác nhận gói media", "", Check)}
+        <section className="prep-group" aria-label="Tiến độ">
+          <div className="sec-h"><span>Tiến độ</span></div>
+          <div className="prep-list">
+            {step(true, "Đã duyệt nội dung", "", Check)}
+            {step(!!m && total > 0 && m.readyIllustrations >= total, "Tranh minh hoạ", m ? `${m.readyIllustrations}/${total}` : "…", ImageIcon)}
+            {step(!!m?.isGenerated, "Giọng đọc", m ? `${m.readyAudio} đoạn` : "…", Volume2)}
+            {step(!!m?.isConfirmed, m?.isConfirmed ? "Đã xác nhận gói media" : "Chờ xác nhận gói media", "", Check)}
+          </div>
           <MediaIssues progress={m} pack={preview.pack} onSelectScene={(id, i) => {
             const position = scenes.findIndex((s) => s.sceneId === id);
             if (position >= 0) setActive(position);
             else if (i >= 0 && i < scenes.length) setActive(i);
           }} />
-        </div>
+        </section>
         {scenes.length > 0 && (
-          <div className="sec">
+          <section className="prep-group" aria-label="Cảnh trong truyện">
             <div className="sec-h"><span>Cảnh trong truyện</span><span className="pill ai">{scenes.length} cảnh</span></div>
-            <div className="scene-list">
-              {scenes.map((s, i) => (
-                <button key={s.sceneId} className={index === i ? "on" : ""} onClick={() => setActive(i)}>
-                  <b>Cảnh {i + 1}{m?.issues?.some((issue) => issue.sceneIndex === s.sceneIndex) ? " · Cần kiểm tra" : ""}</b>
-                  <small>{(s.text ?? "").slice(0, 60)}…</small>
-                </button>
-              ))}
+            <div className="prep-scenes">
+              {scenes.map((s, i) => {
+                const flagged = m?.issues?.some((issue) => issue.sceneIndex === s.sceneIndex);
+                return (
+                  <button key={s.sceneId} className={`prep-scene${index === i ? " on" : ""}`} aria-pressed={index === i} aria-label={`Cảnh ${i + 1}${flagged ? ", cần kiểm tra" : ""}`} onClick={() => setActive(i)}>
+                    <span className="num">{i + 1}</span>
+                    <span className="txt">{s.text ?? ""}</span>
+                    {flagged && <CircleAlert className="flag" aria-hidden="true" />}
+                  </button>
+                );
+              })}
             </div>
-          </div>
+          </section>
         )}
         {children}
       </AsidePane>

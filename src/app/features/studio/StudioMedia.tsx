@@ -33,7 +33,8 @@ export default function StudioMedia({ storyId, media }: Props) {
   const currentScene=mediaScenes[sceneIndex];
   const reload=()=>{preview.refresh();media.refresh();};
   const mp=useMediaPackage({storyId,versionId:m?.approvedStoryVersionId,onChanged:reload,source:preview.pack});
-  const sceneActions=preview.pack?{busy:mp.busy,locked:mp.uncertain,replacements:preview.pack.replacements??[],regenerate:(k:'illustration'|'audio',id:number)=>void mp.regenerate(k,id),keepCurrent:(id:number)=>void mp.keepCurrent(id)}:undefined;
+  // Truyện đã sẵn sàng (gói media đã xác nhận) thì không hiện nút tạo lại nữa: gói đã chốt, muốn đổi phải làm lại từ bước duyệt.
+  const sceneActions=preview.pack&&!m?.isConfirmed&&!m?.isReady?{busy:mp.busy,locked:mp.uncertain,replacements:preview.pack.replacements??[],regenerate:(k:'illustration'|'audio',id:number)=>void mp.regenerate(k,id),keepCurrent:(id:number)=>void mp.keepCurrent(id)}:undefined;
   const statusText=m ? (m.isReady ? "" : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi xác nhận để hoàn tất truyện." : "Đang tạo, bạn có thể rời màn hình này.") : media.error ?? "Đang kiểm tra…";
   // Tải sẵn tranh và giọng đọc của cảnh đang xem và cảnh kế để đổi cảnh không phải chờ.
   const warm=useRef<(HTMLImageElement|HTMLAudioElement)[]>([]);

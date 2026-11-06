@@ -292,3 +292,10 @@
 .prep-scene .txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .prep-scene .flag { flex: none; width: 20px; height: 20px; color: var(--gold-deep); }
 .studio-actions:not(:has(p, button, label)) { display: none; }
+
+/* Nút tạo lại tranh nằm trên góc ảnh, nút tạo lại giọng đọc nằm cùng hàng với trình phát; nút tải lại chỉ là biểu tượng nhỏ ở cuối. Ba nút khác biểu tượng để không nhầm. */
+.studio-media-regen { position: absolute; top: 12px; right: 12px; z-index: 2; background: color-mix(in srgb, var(--panel) 80%, transparent); backdrop-filter: blur(8px); }
+.studio-scene-controls .studio-audio-row { flex-wrap: nowrap; align-items: center; gap: 10px; }
+.studio-scene-controls .studio-audio-row audio { flex: 1 1 auto; min-width: 0; width: auto; }
+.studio-scene-controls .studio-audio-row .icon-only { flex: none; }
+.studio-reload { display: flex; justify-content: flex-end; }
