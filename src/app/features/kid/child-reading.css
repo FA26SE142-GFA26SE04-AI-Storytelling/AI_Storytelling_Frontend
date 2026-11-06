@@ -619,3 +619,13 @@
 
 /* Nội dung mỗi tab của bé: cột dọc, khoảng cách do PaneSwap truyền vào. */
 .kid-pane { display: flex; flex-direction: column; min-width: 0; }
+
+/* Màn "Phiên đọc đã kết thúc": thẻ nhỏ giữa trang, có viền nổi, ếch lớn, nút gọn vừa chữ. */
+.kid .ksection.kid-ended { align-self: center; align-items: center; text-align: center; gap: 14px; width: min(520px, 100%); margin-top: 6vh; padding: 36px 32px; border: 3px solid var(--primary); border-radius: 32px; background: color-mix(in srgb, var(--panel) 55%, transparent); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); box-shadow: 0 18px 40px -26px color-mix(in srgb, var(--primary-strong) 70%, transparent); }
+.kid-ended h2 { margin: 0; font-size: var(--fs-2xl); }
+.kid-ended p { margin: 0; font-size: var(--fs-lg); color: var(--muted); }
+.kid-ended .btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: auto; min-height: 48px; padding: 10px 24px; margin-top: 6px; font-size: var(--fs-lg); }
+.kid-ended .btn .ic { width: 22px; height: 22px; }
+.kid-ended svg:first-child { animation: kid-ended-bob 3.2s ease-in-out infinite; }
+@keyframes kid-ended-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .kid-ended svg:first-child { animation: none; } }

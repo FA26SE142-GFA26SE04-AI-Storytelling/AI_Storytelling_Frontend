@@ -13,9 +13,9 @@ import ChildReadingLibrary from './ChildReadingLibrary';
 import PaneSwap from './PaneSwap';
 import { Shelf, ShelfRow } from '@/app/features/library/LibraryWorkspace';
 import { coverFor } from '@/app/lib/storyView';
-import { BookOpen, Lock, Moon, Sun } from 'lucide-react';
+import { BookOpen, Home, Lock, Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/app/context/ThemeContext';
-import { circleReveal } from '@/app/lib/motion';
+import { circleReveal, usePop } from '@/app/lib/motion';
 
 /** Bìa sách trên kệ của bé: tên truyện in trên bìa. */
 function Cover({ coverUrl, title, meta, disabled, onOpen, label }: { id: number; coverUrl?: string | null; title: string; meta?: string; disabled?: boolean; onOpen?: () => void; label?: string }) {
@@ -25,6 +25,7 @@ function Cover({ coverUrl, title, meta, disabled, onOpen, label }: { id: number;
 export default function ConnectedKidHome({ childId, onExit }: { childId: number; onExit: () => void }) {
   const ended = useKidSession();
   const { theme, toggleTheme } = useTheme();
+  const endedRef = usePop<HTMLElement>(ended, 0.9);
   const [roadmap, setRoadmap] = useState<B.MyRoadmapDto | null>(null);
   const [library, setLibrary] = useState<B.ParentFamilyConfirmationDto[]>([]);
   const [community, setCommunity] = useState<B.PagedResult<B.CommunityStoryDto> | null>(null);
@@ -76,7 +77,7 @@ export default function ConnectedKidHome({ childId, onExit }: { childId: number;
   };
   return <div className={`kid${reading?' kid-focus':''}`} role="dialog" aria-label="Chế độ của bé">{!reading&&<PondBackdrop />}{!reading&&<div className="ktop"><button className="btn btn-s" onClick={onExit}>Thoát</button><b>{nickname || 'Thư viện của em'}</b><button className="btn btn-s" onClick={() => setRevision(v => v + 1)}>Tải lại</button><button className="btn btn-s kid-theme-btn" onClick={e => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'} title={theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}>{theme === 'dark' ? <Sun className="ic" aria-hidden /> : <Moon className="ic" aria-hidden />}</button></div>}
     <div className="kscroll"><div className="khome">
-      {ended ? <section className="ksection"><Frog mood="idle" size={90} /><h2 className="display">Phiên đọc đã kết thúc</h2><p>Em nhờ bố mẹ mở lại nhé.</p><button className="btn btn-p" onClick={onExit}>Về với bố mẹ</button></section> : <>
+      {ended ? <section ref={endedRef} className="ksection kid-ended" role="status"><Frog mood="idle" size={150} /><h2 className="display">Phiên đọc đã kết thúc</h2><p>Em nhờ bố mẹ mở lại nhé.</p><button className="btn btn-p" onClick={onExit}><Home className="ic" aria-hidden />Về với bố mẹ</button></section> : <>
         <ChildReadingLibrary key={childId} childId={childId} community={selected} story={startStory} onStoryOpened={() => setStartStory(null)} unlockTitle={titleOf(lock.unlockStoryId)} onLockChange={setLock} onPaneChange={setPane} onCommunityOpened={() => setSelected(null)} onReadingChange={setReading}/>
         {!reading&&<>
         {errors.map((e,i) => <p className="notice err" role="alert" key={i}>{e}</p>)}
