@@ -440,3 +440,88 @@
 
 /* Không còn tiêu đề: con ếch nằm bên phải hàng tab. */
 .kid-library-frog { margin-left: auto; display: inline-flex; }
+
+/* Tương tác khi nghe, tóm tắt cuối truyện, cây tri thức */
+.kid-interaction { display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center; }
+.kid-interaction h2 { margin: 0; font-size: var(--fs-xl); }
+/* Đáp án của tương tác khi nghe: lưới 2 cột, chữ cái ở bên trái, chữ canh giữa theo chiều dọc */
+.kid-pick-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 12px; width: 100%; }
+.kid-pick-grid.pics { grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); }
+.kid-pick { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 10px; min-height: 72px; padding: 12px 16px; border: 2px solid var(--line-2); border-radius: 20px; background: var(--surface); color: var(--text); text-align: left; transition: transform .15s, border-color .15s, background .15s; }
+.kid-pick:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--surface)); }
+.kid-pick[aria-pressed="true"] { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 18%, var(--surface)); }
+.kid-pick:disabled { cursor: default; }
+.kid-pick:disabled:not([aria-pressed="true"]) { opacity: .55; }
+.kid-pick-body { display: flex; align-items: center; gap: 14px; min-width: 0; }
+.kid-pick-mark { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--panel); font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; }
+.kid-pick-mark.on, .kid-pick[aria-pressed="true"] .kid-pick-mark { background: var(--primary-strong); border-color: var(--primary-strong); color: var(--on-primary); }
+.kid-pick-text { min-width: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
+.kid-pick.pic img { width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; object-fit: cover; }
+.kid-roleplay, .kid-fill { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
+.kid-roleplay-line { margin: 0; font-family: var(--font-story); font-size: var(--fs-xl); line-height: 1.4; }
+.kid-hint { margin: 0; color: var(--muted); font-size: var(--fs-md); }
+.kid-feedback { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 16px; background: color-mix(in srgb, var(--mint) 14%, transparent); font-size: var(--fs-md); animation: block-in .3s ease both; }
+.kid-feedback p { margin: 0; }
+.kid-order-answer { margin: 0; padding-left: 22px; text-align: left; }
+.kid-actions { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; }
+.kid-summary { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 14px; border: 2px solid var(--line); border-radius: 20px; }
+.kid-summary h3 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: var(--fs-lg); }
+.kid-flag-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.kid-tree { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.kid-tree p { margin: 2px 0 0; }
+@media (prefers-reduced-motion: reduce) { .kid-feedback { animation: none; } .kid-pick { transition: none; } }
+
+/* Thanh tìm truyện của bé: ô tìm bo tròn, nguồn truyện là các nút chọn, phân trang gọn ở giữa */
+.kid-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; }
+.kid-search { position: relative; flex: 1 1 280px; display: flex; align-items: center; min-width: 0; }
+.kid-search > svg { position: absolute; left: 16px; width: 22px; height: 22px; color: var(--muted); pointer-events: none; }
+.kid-reading .kid-search .inp { width: 100%; min-height: 52px; padding: 0 58px 0 48px; border: 2px solid var(--line-2); border-radius: 999px; background: var(--surface); color: var(--text); font-size: var(--fs-lg); }
+.kid-reading .kid-search .inp:focus { border-color: var(--primary); outline: 0; }
+.kid-search-go { position: absolute; right: 6px; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; background: var(--primary-strong); color: var(--on-primary); }
+.kid-search-go svg { width: 20px; height: 20px; }
+.kid-source { display: flex; flex-wrap: wrap; gap: 8px; }
+.kid-source .kid-soft-button { min-height: 44px; padding: 8px 16px; border: 2px solid var(--line-2); font-size: var(--fs-md); }
+.kid-pager { display: flex; align-items: center; justify-content: center; gap: 14px; font-weight: 700; }
+.kid-library-tabs .kid-library-refresh { margin-left: auto; align-self: center; }
+
+/* Màn đọc hai cột: ảnh bên trái; chữ truyện, điều hướng cảnh và các nút còn lại bên phải */
+.kid-theater .kid-reader { flex: 1; min-height: 0; width: 100%; max-width: 1480px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(16px, 3vw, 44px); align-items: stretch; }
+.kid-reader-visual { min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
+.kid-reader .kid-story-picture { position: relative; width: 100%; height: auto; max-height: 100%; aspect-ratio: 4 / 3; margin: 0; display: block; border: 0; border-radius: 28px; background: var(--surface); overflow: hidden; box-shadow: 0 18px 40px -22px rgba(0, 0, 0, .55); }
+.kid-reader .kid-story-picture img { width: 100%; height: 100%; max-height: none; min-height: 0; object-fit: cover; display: block; }
+.kid-reader-side { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 16px; }
+/* margin-block: auto canh giữa khi đủ chỗ, còn chữ dài thì bắt đầu từ trên cùng và cuộn được (canh giữa bằng align-items sẽ cắt mất phần đầu). */
+.kid-reader-side .kid-story-caption { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; padding: 8px 8px 8px 4px; background: transparent; text-align: left; }
+.kid-reader-side .kid-story-caption p { margin: auto 0; font-size: clamp(20px, 2.1vw, 34px); line-height: 1.55; text-align: left; }
+.kid-reader-side .kid-story-navigation { flex: none; margin: 0; padding: 12px 0 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 10px 12px; }
+.kid-reader-side .kid-side-nav { width: 48px; height: 48px; align-self: auto; }
+.kid-reader-side .kid-side-nav svg { width: 24px; height: 24px; }
+.kid-reader-side .kid-scene-count { min-width: 64px; text-align: center; font-weight: 700; }
+.kid-reader-side .kid-bar-actions { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.kid-reader-side .kid-listen-primary { margin-left: auto; }
+.kid-reader-side .kid-word-panel { flex: none; max-height: 30dvh; overflow-y: auto; }
+@media (max-width: 900px) {
+  .kid-theater .kid-reader { grid-template-columns: minmax(0, 1fr); overflow-y: auto; align-items: start; }
+  .kid-reader .kid-story-picture { aspect-ratio: 16 / 10; }
+  .kid-reader-side .kid-story-caption { overflow: visible; }
+  .kid-reader-side .kid-story-caption p { font-size: clamp(20px, 5vw, 28px); }
+}
+
+/* Màn hình chờ khi đang mở truyện, khung chờ khi tranh đang tải, và trạng thái truyện chưa có cảnh */
+.kid-loading { position: fixed; inset: 0; z-index: 300; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: blur(6px); color: var(--text); font-size: var(--fs-xl); font-weight: 800; font-family: var(--font-display); }
+.kid-loading p { margin: 0; }
+.kid-spinner { width: 44px; height: 44px; border: 5px solid var(--line-2); border-top-color: var(--primary); border-radius: 50%; animation: kid-spin .9s linear infinite; }
+@keyframes kid-spin { to { transform: rotate(360deg); } }
+.kid-story-picture.loading img { opacity: 0; }
+.kid-skeleton { position: absolute; inset: 0; background: linear-gradient(100deg, var(--surface) 30%, var(--surface-2) 50%, var(--surface) 70%); background-size: 200% 100%; animation: kid-shimmer 1.3s ease-in-out infinite; }
+@keyframes kid-shimmer { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+.kid-reader-empty { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; text-align: center; }
+.kid-reader-empty h2 { margin: 0; font-size: var(--fs-2xl); }
+.kid-reader-empty p { margin: 0; font-size: var(--fs-lg); color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { .kid-spinner, .kid-skeleton { animation: none; } }
+
+/* Khối xếp thứ tự: lưới đáp án và hàng nút Xếp lại / Xong cách nhau rõ ràng */
+.kid-order { display: flex; flex-direction: column; align-items: center; gap: 22px; width: 100%; }
+.kid-order .kid-actions { margin-top: 4px; }
+.kid-interaction .kid-feedback { margin-top: 4px; }
+.kid-interaction > .kid-actions { margin-top: 6px; }

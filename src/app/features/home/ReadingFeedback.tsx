@@ -4,6 +4,7 @@ import { parentReadingFeedbackService } from "@/app/services/childReadingService
 import type { PagedReadingFeedback } from "@/app/types/childReading";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import IconButton from "@/app/components/IconButton";
+import StorySummaries from "./StorySummaries";
 
 const FACE: Record<string, string> = { VeryLike: "😍", Like: "🙂", Neutral: "😐", Dislike: "🙁" };
 
@@ -27,6 +28,7 @@ export default function ReadingFeedback({ childId, nickname, showResults }: { ch
 
   if (!data && !error) return null;
   return (
+    <>
     <div className="dash-block wide">
       <h3>{nickname} đã đọc gì</h3>
       {error && <p className="notice err">{error}</p>}
@@ -54,5 +56,7 @@ export default function ReadingFeedback({ childId, nickname, showResults }: { ch
         </div>
       )}
     </div>
+    <StorySummaries childId={childId} nickname={nickname} />
+    </>
   );
 }

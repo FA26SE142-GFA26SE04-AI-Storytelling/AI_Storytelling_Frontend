@@ -1,10 +1,33 @@
 export interface ChildStory { storyId:number; title:string; coverImageUrl:string|null; description:string|null; source:string }
 export interface ChildStoryPage { isLocked:boolean; unlockStoryId:number|null; message:string|null; items:ChildStory[]; totalCount:number; pageIndex:number; pageSize:number }
 export interface ReadingStart { storyId?:number; communitySubmissionId?:number }
-export interface ReadingFlags { isBookmarked:boolean; isFavorited:boolean }
+export interface ReadingFlags { isBookmarked:boolean; isFavorited:boolean; listenOnly?:boolean }
 export interface ReadingStarted extends ReadingFlags { sessionId:number; storyId:number; resumed:boolean; lastPage:number; lastReadingMode:string|null }
-export interface ReadingScene { sceneIndex:number; text:string; illustrationUrl:string|null; segments:{segmentOrder:number; text:string; audioUrl:string|null; wordTimingsJson:string|null}[] }
-export interface ReadingContent { sessionId:number; storyId:number; title:string; lesson:string|null; scenes:ReadingScene[]; vocabulary:{id:number; term:string}[] }
+// ---------- Tương tác khi nghe (5 loại) ----------
+export type InteractionType = 'Checkpoint'|'RolePlay'|'FillBlank'|'EventOrdering'|'PicturePrediction';
+export interface InteractionOption { id:number; text:string; imageUrl:string|null; audioUrl:string|null; feedback:string|null; feedbackAudioUrl:string|null }
+/** Không kèm đáp án: backend chỉ chấm khi bé gửi câu trả lời. */
+export interface ReadingInteraction {
+  id:number; type:InteractionType|string; kind:string|null; prompt:string|null;
+  characterName:string|null; modelSentence:string|null; modelAudioUrl:string|null;
+  maskedSentence:string|null; hint:string|null; waitFeedback:string|null; revealSceneIndex:number|null;
+  audioUrls:Record<string,string>; options:InteractionOption[];
+}
+/** Chỉ gửi trường của đúng loại: Checkpoint/PicturePrediction gửi optionId, FillBlank gửi answer, EventOrdering gửi orderedOptionIds. */
+export interface ListeningAttemptRequest { optionId?:number; answer?:string; orderedOptionIds?:number[] }
+export interface ListeningAttemptResult {
+  interactionId:number; type:string; matched:boolean|null; feedback:string|null; feedbackAudioUrl:string|null;
+  suggestedAnswer:string|null; replaySceneIndexes:number[]; revealed:boolean; correctOrderOptionIds:number[]|null;
+}
+export interface ReadingScene {
+  sceneId:number; sceneIndex:number; text:string; illustrationUrl:string|null;
+  segments:{segmentOrder:number; text:string; audioUrl:string|null; wordTimingsJson:string|null}[];
+  /** Hiện khi bé nghe hết cảnh này; null nếu không có. */
+  interaction:ReadingInteraction|null;
+  /** Bé đã thử tương tác này trong phiên hiện tại nên không hỏi lại. */
+  attemptedInSession:boolean;
+}
+export interface ReadingContent { sessionId:number; storyId:number; title:string; lesson:string|null; listenOnly:boolean; scenes:ReadingScene[]; vocabulary:{id:number; term:string}[] }
 export type ReadingMode = 'ReadFirst'|'ListenFirst';
 export interface ReadingProgress { sessionId:number; page:number; readingMode:string|null; timeSpentSeconds:number }
 /** expGained = 0 khi đọc lại hoặc gọi lần hai; newBadges là mã huy hiệu vừa mở. */
@@ -22,7 +45,19 @@ export interface ChildQuizResult { sessionId:number; totalQuestions:number; answ
 
 // ---------- Phần thưởng (/child/rewards) ----------
 export interface ChildBadge { code:string; name:string; description:string; earned:boolean; earnedAt:string|null }
-export interface ChildRewards { expTotal:number; streakDays:number; badges:ChildBadge[] }
+/** expToWater: EXP chưa tưới, bé bấm "Tưới cây" để dùng. nextStageAt = null khi cây đã ra hoa. */
+export interface KnowledgeTree { stage:string; stageName:string; currentTreeExp:number; nextStageAt:number|null; flowerAt:number; floweredTreeCount:number; expToWater:number }
+export interface ChildRewards { expTotal:number; streakDays:number; badges:ChildBadge[]; knowledgeTree:KnowledgeTree }
+export interface WaterTreeResult { expPoured:number; newTreePlanted:boolean; previousStage:string; tree:KnowledgeTree }
+
+// ---------- Tóm tắt cuối truyện (ghi âm gửi bố mẹ, đánh dấu chỗ còn thắc mắc) ----------
+/** Giới hạn của backend: ghi âm tối đa 3 MB, đánh dấu tối đa 5 cảnh. */
+export const SUMMARY_MAX_BYTES = 3_000_000;
+export const SUMMARY_MAX_FLAGS = 5;
+export interface StorySummarySent { summaryId:number; message:string }
+export interface ParentSummaryFlag { sceneId:number; sceneIndex:number; sceneText:string; illustrationUrl:string|null }
+export interface ParentSummaryItem { summaryId:number; sessionId:number; storyId:number; title:string; createdAt:string; recordingUrl:string|null; recordingSentAt:string|null; flagsSentAt:string|null; flags:ParentSummaryFlag[] }
+export interface PagedParentSummaries { items:ParentSummaryItem[]; pageIndex:number; pageSize:number; totalCount:number; totalPages:number; hasNextPage:boolean; hasPreviousPage:boolean }
 
 // ---------- Phụ huynh xem con đã đọc gì (/ParentReadingFeedback) ----------
 export interface PagedReadingFeedback { items:ParentReadingFeedbackItem[]; pageIndex:number; pageSize:number; totalCount:number; totalPages:number; hasNextPage:boolean; hasPreviousPage:boolean }

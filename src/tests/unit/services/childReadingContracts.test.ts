@@ -1,5 +1,5 @@
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
-import {childReadingService as reading,childNotebookService as notebook} from '@/app/services/childReadingService';
+import {childReadingService as reading,childNotebookService as notebook,childRewardsService as rewards,parentStorySummaryService as summaries} from '@/app/services/childReadingService';
 import {aiStoryCreationService as media} from '@/app/services/aiStoryCreationService';
 import {authService} from '@/app/services/authService';
 let fetcher:ReturnType<typeof vi.fn>;
@@ -19,6 +19,11 @@ it.each([
  ['POST','/child/notebook/sessions/4/words',()=>notebook.collect('child',4,8),{vocabularyId:8}],
  ['GET','/child/notebook',()=>notebook.list('child'),undefined],
  ['DELETE','/child/notebook/3',()=>notebook.remove('child',3),undefined],
+ ['PUT','/child/reading/sessions/4/listen-only',()=>reading.listenOnly('child',4,true),{value:true}],
+ ['POST','/child/reading/sessions/4/interactions/6/attempts',()=>reading.attempt('child',4,6,{optionId:12}),{optionId:12}],
+ ['POST','/child/reading/sessions/4/interactions/7/attempts',()=>reading.attempt('child',4,7,{orderedOptionIds:[3,1,2]}),{orderedOptionIds:[3,1,2]}],
+ ['POST','/child/reading/sessions/4/summary/flags',()=>reading.summaryFlags('child',4,[11,12]),{sceneIds:[11,12]}],
+ ['POST','/child/rewards/knowledge-tree/water',()=>rewards.water('child'),undefined],
 ] as const)('%s %s uses the child session exclusively',async(method,path,call,body)=>{
  const adult=vi.spyOn(authService,'refreshToken');await call();
  const [url,options]=fetcher.mock.calls[0];expect(url.endsWith(path)).toBe(true);expect(options.method).toBe(method);
@@ -37,4 +42,17 @@ it('keeps current media with the exact candidate, snapshot and operation ID, pre
  const r=await media.keepCurrentMedia(7,88,body);
  expect(fetcher.mock.calls[0][0]).toMatch(/\/stories\/7\/media\/replacements\/88\/keep-current$/);
  expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual(body);expect(r.status).toBe(409);expect(fetcher).toHaveBeenCalledTimes(1);
+});
+it('sends the summary recording as multipart form data with the child session',async()=>{
+ await reading.summaryRecording('child',4,new Blob(['x'],{type:'audio/webm'}));
+ const [url,options]=fetcher.mock.calls[0];
+ expect(url.endsWith('/child/reading/sessions/4/summary/recording')).toBe(true);expect(options.method).toBe('POST');
+ expect(options.body).toBeInstanceOf(FormData);expect((options.body as FormData).get('audio')).toBeInstanceOf(Blob);
+ expect(new Headers(options.headers).get('Authorization')).toBe('Bearer child');
+});
+it('lets a parent list and delete story summaries with the adult session',async()=>{
+ vi.spyOn(authService,'getStoredAccessToken').mockReturnValue('adult');
+ await summaries.list(3,2,10);await summaries.remove(3,9);
+ expect(fetcher.mock.calls[0][0].endsWith('/ParentStorySummary/3?pageIndex=2&pageSize=10')).toBe(true);
+ expect(fetcher.mock.calls[1][0].endsWith('/ParentStorySummary/3/9')).toBe(true);expect(fetcher.mock.calls[1][1].method).toBe('DELETE');
 });

@@ -4,7 +4,7 @@ import {Volume1,Volume2,VolumeX} from 'lucide-react';
 import type {ReadingScene,ReadingEvent} from '@/app/types/childReading';
 import {markKidActivity} from '@/app/lib/kidActivity';
 
-export default function KidNarrator({scene,disabled,onListen,onEvent,paused}:{scene:ReadingScene;disabled:boolean;onListen:()=>Promise<boolean>;onEvent:(type:ReadingEvent,payload?:string)=>Promise<void>;paused:boolean}) {
+export default function KidNarrator({scene,disabled,onListen,onEvent,onSceneEnd,paused}:{scene:ReadingScene;disabled:boolean;onListen:()=>Promise<boolean>;onEvent:(type:ReadingEvent,payload?:string)=>Promise<void>;onSceneEnd?:()=>void;paused:boolean}) {
   const segments=scene.segments.slice().sort((a,b)=>a.segmentOrder-b.segmentOrder);
   const [part,setPart]=useState(0),[playing,setPlaying]=useState(false),[busy,setBusy]=useState(false);
   const [failed,setFailed]=useState(false);
@@ -30,7 +30,7 @@ export default function KidNarrator({scene,disabled,onListen,onEvent,paused}:{sc
   const unavailable=disabled||busy||!current?.audioUrl||paused||failed;
   // Một nút biểu tượng ở góc tranh: chưa có giọng hoặc không tải được thì nút mờ đi, không hiện chữ.
   return <div className="kid-narrator-corner" aria-label="Giọng kể">
-    {current?.audioUrl&&<audio ref={audio} src={current.audioUrl} preload="metadata" aria-label={`Nghe đoạn ${current.segmentOrder+1}`} onPlay={()=>{setPlaying(true);markKidActivity();void onEvent('TtsStarted',JSON.stringify({page:scene.sceneIndex+1,segmentOrder:current.segmentOrder}));}} onPause={()=>setPlaying(false)} onEnded={()=>{setPlaying(false);void onEvent('TtsCompleted',JSON.stringify({page:scene.sceneIndex+1,segmentOrder:current.segmentOrder}));if(part<segments.length-1&&segments[part+1].audioUrl&&!disabled&&!paused){auto.current=true;setPart(v=>v+1);}}} onError={()=>{setPlaying(false);setFailed(true);}}/>}
+    {current?.audioUrl&&<audio ref={audio} src={current.audioUrl} preload="metadata" aria-label={`Nghe đoạn ${current.segmentOrder+1}`} onPlay={()=>{setPlaying(true);markKidActivity();void onEvent('TtsStarted',JSON.stringify({page:scene.sceneIndex+1,segmentOrder:current.segmentOrder}));}} onPause={()=>setPlaying(false)} onEnded={()=>{setPlaying(false);void onEvent('TtsCompleted',JSON.stringify({page:scene.sceneIndex+1,segmentOrder:current.segmentOrder}));if(part<segments.length-1&&segments[part+1].audioUrl&&!disabled&&!paused){auto.current=true;setPart(v=>v+1);}else if(part>=segments.length-1)onSceneEnd?.();}} onError={()=>{setPlaying(false);setFailed(true);}}/>}
     <button type="button" className={`kid-narrate-btn${failed||!current?.audioUrl?' off':''}${playing?' on':''}`} aria-label={playing?'Tạm dừng':'Nghe truyện'} title={playing?'Tạm dừng':'Nghe truyện'} aria-pressed={playing} disabled={unavailable} onClick={()=>void toggle()}>{failed||!current?.audioUrl?<VolumeX aria-hidden="true"/>:playing?<Volume2 aria-hidden="true"/>:<Volume1 aria-hidden="true"/>}</button>
   </div>;
 }

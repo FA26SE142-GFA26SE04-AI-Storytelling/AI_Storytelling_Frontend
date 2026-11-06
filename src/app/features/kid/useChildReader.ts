@@ -15,6 +15,8 @@ export function useChildReader(token:string, onLibrary:()=>void) {
   const [done,setDone] = useState(false);
   const [completed,setCompleted] = useState<D.ReadingCompleted|null>(null);
   const [note,setNote] = useState('');
+  /** Tương tác bé đã trả lời trong phiên này (backend cũng đánh dấu attemptedInSession khi mở lại). */
+  const [attempted,setAttempted] = useState<number[]>([]);
   const scope = useRef(0), lock = useRef(false);
   const activeSeconds=useRef(0);
   const close = () => { scope.current++; lock.current=false; setBusy(false); setContent(null); setSession(null); setDefinition(null); onLibrary(); };
@@ -56,7 +58,7 @@ export function useChildReader(token:string, onLibrary:()=>void) {
   };
   const open = async (target:D.ReadingStart, targetPage?:number) => {
     if (lock.current) return;
-    setBlocked(false); setDone(false); setCompleted(null); setContent(null); setSession(null); setDefinition(null);
+    setBlocked(false); setDone(false); setCompleted(null); setContent(null); setSession(null); setDefinition(null); setAttempted([]);
     activeSeconds.current=0;
     lock.current=true; setBusy(true); setNote(''); const run=++scope.current;
     const started=await api.start(token,target);
@@ -82,10 +84,23 @@ export function useChildReader(token:string, onLibrary:()=>void) {
     if (!session || done || !await save()) return;
     await execute(()=>api.complete(token,session.sessionId),r=>{setDone(true);setCompleted(r);setNote('Em đã hoàn thành truyện!');onLibrary();});
   };
-  const flag = async (kind:'bookmark'|'favorite') => {
+  /** "Chỉ nghe truyện": bật thì app không dừng lại để hỏi tương tác. */
+  const listenOnly = session?.listenOnly ?? content?.listenOnly ?? false;
+  const flag = async (kind:'bookmark'|'favorite'|'listenOnly') => {
     if (!session) return;
-    const value=kind==='bookmark'?!session.isBookmarked:!session.isFavorited;
-    await execute(()=>kind==='bookmark'?api.bookmark(token,session.sessionId,value):api.favorite(token,session.sessionId,value),r=>setSession(s=>s?{...s,...r}:s));
+    const call = kind==='bookmark' ? api.bookmark(token,session.sessionId,!session.isBookmarked)
+      : kind==='favorite' ? api.favorite(token,session.sessionId,!session.isFavorited)
+      : api.listenOnly(token,session.sessionId,!listenOnly);
+    await execute(()=>call,r=>setSession(s=>s?{...s,...r}:s));
+  };
+  /** Tương tác đang chờ bé trả lời ở cảnh này (chưa thử, và bé không bật "chỉ nghe"). */
+  const pending = (scene:D.ReadingScene) => !!scene.interaction && !scene.attemptedInSession && !attempted.includes(scene.interaction.id) && !listenOnly;
+  /** Gửi câu trả lời; trả về kết quả của backend hoặc null khi gửi không được. */
+  const attempt = async (interactionId:number, body:D.ListeningAttemptRequest) => {
+    if (!session) return null;
+    const box:{value:D.ListeningAttemptResult|null} = {value:null};
+    await execute(()=>api.attempt(token,session.sessionId,interactionId,body),r=>{ box.value=r; setAttempted(v=>v.includes(interactionId)?v:[...v,interactionId]); });
+    return box.value;
   };
   const lookup = async (id:number) => { if(session) {setDefinition(null); await execute(()=>api.definition(token,session.sessionId,id),setDefinition);} };
   const collect = async () => { if(session&&definition) await execute(()=>notebook.collect(token,session.sessionId,definition.vocabularyId),()=>setDefinition(d=>d?{...d,isCollected:true}:d)); };
@@ -94,5 +109,5 @@ export function useChildReader(token:string, onLibrary:()=>void) {
     const run=scope.current; const r=await api.event(token,session.sessionId,type,payload);
     if(run===scope.current&&!r.success)setNote(r.message);
   };
-  return {token,session,content,page,mode,definition,busy,blocked,done,completed,note,open,close,save,complete,flag,lookup,collect,event};
+  return {token,session,content,page,mode,definition,busy,blocked,done,completed,note,listenOnly,open,close,save,complete,flag,pending,attempt,lookup,collect,event};
 }

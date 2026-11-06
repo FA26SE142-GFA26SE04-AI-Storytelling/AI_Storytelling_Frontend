@@ -4,6 +4,7 @@ import { Puzzle, X } from 'lucide-react';
 import { childReadingService, childRewardsService } from '@/app/services/childReadingService';
 import type { ChildBadge, ReadingCompleted, ReadingFeeling } from '@/app/types/childReading';
 import KidQuiz from './KidQuiz';
+import KidSummary from './KidSummary';
 import { useDialog } from './useDialog';
 
 /** Câu đố hiện trong cửa sổ nổi giữa màn hình: đóng bằng nút X, Esc hoặc bấm ra ngoài. */
@@ -25,7 +26,7 @@ const FEELINGS: { id: ReadingFeeling; label: string; face: string }[] = [
 ];
 
 /** Sau khi bé đọc xong: phần thưởng vừa nhận, chọn cảm nhận và làm câu đố. */
-export default function KidAfterReading({ token, completed, onLibrary }: { token: string; completed: ReadingCompleted; onLibrary?: () => void }) {
+export default function KidAfterReading({ token, completed, scenes = [], onLibrary }: { token: string; completed: ReadingCompleted; scenes?: { sceneId: number; sceneIndex: number }[]; onLibrary?: () => void }) {
   const [feeling, setFeeling] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
@@ -64,6 +65,7 @@ export default function KidAfterReading({ token, completed, onLibrary }: { token
       </button>)}</div>
       {note && <p className="notice" role="status">{note}</p>}
     </section>
+    <KidSummary token={token} sessionId={completed.sessionId} scenes={scenes} />
     <button type="button" className="kid-soft-button kid-quiz-open" onClick={() => setQuiz(true)}><Puzzle aria-hidden="true" />Làm câu đố về truyện</button>
     {quiz && <QuizPopup onClose={() => setQuiz(false)}>
       <KidQuiz token={token} sessionId={completed.sessionId} onLibrary={onLibrary} onDone={(gained, codes) => { setExp(v => v + gained); setBadgeCodes(v => [...v, ...codes]); }} />

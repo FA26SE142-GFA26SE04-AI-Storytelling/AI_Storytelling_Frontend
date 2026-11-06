@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Award, Check, Flame, Star } from 'lucide-react';
+import { Award, Check, Droplets, Flame, Sprout, Star } from 'lucide-react';
 import { childRewardsService } from '@/app/services/childReadingService';
 import type { ChildRewards } from '@/app/types/childReading';
 
@@ -8,6 +8,8 @@ import type { ChildRewards } from '@/app/types/childReading';
 export default function KidRewards({ token }: { token: string }) {
   const [data, setData] = useState<ChildRewards | null>(null);
   const [note, setNote] = useState('');
+  const [watering, setWatering] = useState(false);
+  const [treeNote, setTreeNote] = useState('');
   useEffect(() => {
     const controller = new AbortController();
     void childRewardsService.get(token, controller.signal).then(r => {
@@ -16,6 +18,17 @@ export default function KidRewards({ token }: { token: string }) {
     });
     return () => controller.abort();
   }, [token]);
+
+  const water = async () => {
+    if (watering) return;
+    setWatering(true); setTreeNote('');
+    const r = await childRewardsService.water(token);
+    setWatering(false);
+    if (!r.success || !r.data) { setTreeNote(r.message); return; }
+    const result = r.data;
+    setData(d => d ? { ...d, knowledgeTree: result.tree } : d);
+    setTreeNote(result.newTreePlanted ? 'Cây đã ra hoa! Em vừa trồng một hạt giống mới.' : `Em đã tưới cây ${result.expPoured} EXP.`);
+  };
 
   if (!data) return note ? <p className="notice" role="status">{note}</p> : <p role="status">Đang tải phần thưởng…</p>;
   const earned = data.badges.filter(b => b.earned);
@@ -32,6 +45,17 @@ export default function KidRewards({ token }: { token: string }) {
       </div>
       <div className="kcard"><Flame aria-hidden="true" /><b>{data.streakDays}</b><span>ngày đọc liên tiếp</span></div>
     </div>
+    <section className="kcard kid-tree" aria-label="Cây tri thức">
+      <Sprout aria-hidden="true" />
+      <div className="grow">
+        <b>Cây tri thức: {data.knowledgeTree.stageName}</b>
+        <p>{data.knowledgeTree.nextStageAt == null ? 'Cây đã ra hoa!' : `${data.knowledgeTree.currentTreeExp}/${data.knowledgeTree.nextStageAt} EXP để lớn lên`}{data.knowledgeTree.floweredTreeCount > 0 && ` · ${data.knowledgeTree.floweredTreeCount} cây đã ra hoa`}</p>
+        {treeNote && <p role="status">{treeNote}</p>}
+      </div>
+      <button type="button" className="kid-listen-primary" disabled={watering || data.knowledgeTree.expToWater <= 0} onClick={() => void water()}>
+        <Droplets aria-hidden="true" />Tưới cây{data.knowledgeTree.expToWater > 0 && ` (+${data.knowledgeTree.expToWater})`}
+      </button>
+    </section>
     <h3 className="display">Huy hiệu của em <span className="kid-badge-count">{earned.length}/{data.badges.length}</span></h3>
     <div className="kid-badges">{data.badges.map(b => <article key={b.code} className={`kid-badge${b.earned ? ' on' : ''}`} title={b.earned && b.earnedAt ? `Đã nhận ngày ${new Date(b.earnedAt).toLocaleDateString('vi-VN')}` : 'Chưa nhận'}>
       {b.earned ? <Check aria-hidden="true" /> : <Award aria-hidden="true" />}

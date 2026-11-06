@@ -96,3 +96,10 @@
 @media (max-width: 1100px) { .continue { grid-template-columns: 1fr; } }
 @media (max-width: 820px) { .wip-list { grid-template-columns: minmax(0, 1fr); } }
 @media (max-width: 820px) { .home-body { padding: 24px 18px; } }
+
+/* Phần con kể lại cuối truyện */
+.summary-row { display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--line-2); border-radius: 14px; background: var(--panel); }
+.summary-row audio { width: 100%; }
+.summary-flags { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.summary-flags li { display: flex; align-items: center; gap: 10px; }
+.summary-flags img { width: 64px; aspect-ratio: 4 / 3; border-radius: 8px; object-fit: cover; flex: none; }
