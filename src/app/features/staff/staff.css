@@ -273,3 +273,94 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 .ce-bar-fill { width: min(64px, 80%); border-radius: 12px 12px 4px 4px; background: linear-gradient(180deg, var(--primary), var(--primary-strong)); min-height: 2px; transition: height .4s ease; }
 .ce-bar-val { font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; }
 .ce-bar-month { font-size: var(--fs-md); font-weight: 800; color: var(--muted); }
+
+/* Gói duyệt truyện: khung cảnh và tranh có viền nổi, nền trong suốt; tranh có trạng thái tải/lỗi; nút duyệt cảnh vừa chữ. */
+.st-review .st-scene { border: 2px solid var(--line-2); background: color-mix(in srgb, var(--panel) 55%, transparent); }
+.st-review .st-scene > .btn { align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; }
+.st-pic { border: 2px solid var(--line-2); background: color-mix(in srgb, var(--surface) 55%, transparent); padding: 8px; }
+.st-pic img { display: block; transition: opacity .25s; }
+.st-pic img.loading { opacity: 0; }
+.st-pic-zoom { position: absolute; right: 16px; bottom: 16px; width: 30px; height: 30px; padding: 6px; border-radius: 50%; background: color-mix(in srgb, var(--shadow) 65%, transparent); color: var(--on-primary); }
+.st-pic-spin { position: absolute; left: 50%; top: 50%; width: 36px; height: 36px; margin: -18px 0 0 -18px; border-radius: 50%; border: 4px solid color-mix(in srgb, var(--primary) 25%, transparent); border-top-color: var(--primary-strong); animation: st-spin .8s linear infinite; }
+@keyframes st-spin { to { transform: rotate(360deg); } }
+.st-pic-failed { align-items: center; justify-content: center; gap: 10px; min-height: 150px; border-color: var(--danger); color: var(--danger); text-align: center; }
+.st-pic-failed .ic { width: 28px; height: 28px; }
+.st-pic-failed .btn { display: inline-flex; align-items: center; gap: 6px; color: var(--text); }
+@media (prefers-reduced-motion: reduce) { .st-pic-spin { animation-duration: 2s; } }
+
+/* Trang duyệt của moderator: khung viền nổi bật, nền trong suốt, tiêu đề nhóm rõ, cảnh chia hai cột (tranh trái, chữ và âm thanh phải). */
+.st-item { border: 2px solid var(--line-2); background: color-mix(in srgb, var(--surface) 55%, transparent); transition: border-color .15s, transform .15s, box-shadow .15s; }
+.st-item:hover { border-color: var(--primary); transform: translateX(2px); }
+.st-item.on { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); }
+.st-item b { font-size: var(--fs-md); }
+.st-item small { font-size: var(--fs-sm); }
+.st-split.fill > .st-card { border: 2px solid var(--line-2); background: color-mix(in srgb, var(--panel) 55%, transparent); backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%); }
+.st-review .st-group-title { display: flex; align-items: center; font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; letter-spacing: 0; text-transform: none; color: var(--text); }
+.st-review .st-scene-label { font-size: var(--fs-md); letter-spacing: 0; text-transform: none; color: var(--text); font-family: var(--font-display); }
+.st-review .st-scene > b { font-family: var(--font-display); font-size: var(--fs-lg); display: flex; align-items: center; }
+.st-review .st-scene.viewed { border-color: var(--primary); }
+.st-review .st-scene { display: grid; grid-template-columns: minmax(240px, 42%) minmax(0, 1fr); column-gap: 22px; row-gap: 14px; align-items: start; }
+.st-review .st-scene > b { grid-column: 1 / -1; }
+.st-review .st-scene > .st-scene-pics { grid-column: 1; grid-row: 2 / span 3; border-top: 0; padding-top: 0; }
+.st-review .st-scene > .st-scene-text { grid-column: 2; grid-row: 2; }
+.st-review .st-scene > .st-scene-audio { grid-column: 2; grid-row: 3; }
+.st-review .st-scene > .btn { grid-column: 2; grid-row: 4; }
+.st-review .st-scene:not(:has(.st-scene-pics)) > .st-scene-text, .st-review .st-scene:not(:has(.st-scene-pics)) > .st-scene-audio, .st-review .st-scene:not(:has(.st-scene-pics)) > .btn { grid-column: 1 / -1; }
+.st-review .st-scene .st-pics { grid-template-columns: 1fr; }
+@media (max-width: 1100px) {
+  .st-review .st-scene { grid-template-columns: 1fr; }
+  .st-review .st-scene > * { grid-column: 1 !important; grid-row: auto !important; }
+}
+
+/* Khoảng cách trang duyệt (CLAUDE.md: giữa thông tin, component và nút phải có khoảng cách): thang 12 / 16 / 20 / 28px, không để nút hay trình phát dính nhau. */
+.st-list { gap: 12px; }
+.st-item { gap: 6px; padding: 14px 16px; }
+.st-review .st-group { gap: 18px; padding: 28px 0; }
+.st-review .st-group > * + .row, .st-review .st-group > * + .btn, .st-review .st-group > * + details { margin-top: 4px; }
+.st-review .row, .st-review .st-group .row { gap: 12px; }
+.st-review .st-scene { padding: 22px 24px; row-gap: 18px; }
+.st-review .st-scene-part { gap: 16px; padding-top: 16px; }
+.st-review .st-scene > .st-scene-audio { padding-top: 0; border-top: 0; }
+.st-review .st-scene > .btn { margin-top: 8px; padding-inline: 18px; min-height: 44px; }
+.st-review .st-seg { gap: 12px; padding: 14px 16px; border: 2px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--surface) 55%, transparent); }
+.st-review .st-seg audio { display: block; width: 100%; margin: 0; }
+.st-review .st-seg small { margin-top: 2px; }
+.st-review .st-pics { gap: 16px; }
+.st-review .st-checks { gap: 22px 24px; }
+.st-review .st-checks .field, .st-review .st-group .field { gap: 10px; }
+.st-review .st-labels { gap: 14px 20px; }
+.st-review .st-storylist { gap: 12px; }
+.st-review .st-quote { gap: 8px; padding: 16px 20px; }
+.st-review .st-facts { gap: 16px; }
+.st-review details > * + * { margin-top: 16px; }
+.st-review details > summary { padding: 6px 0; }
+.st-review .st-group .row .btn, .st-review .st-group > .btn { min-height: 44px; padding-inline: 18px; }
+.st-review .st-warn { margin-left: 10px; }
+
+/* Âm thanh: ô cảnh dùng align-items: start nên ô âm thanh co theo nội dung và trình phát bị bóp chỉ còn nút ba chấm. Cho cột giãn hết chiều ngang. */
+.st-review .st-scene { justify-items: stretch; }
+.st-review .st-scene > .st-scene-audio, .st-review .st-scene > .st-scene-text, .st-review .st-scene > .st-scene-pics { width: 100%; min-width: 0; }
+.st-review .st-scene > .btn { justify-self: start; }
+.st-review .st-seg { width: 100%; min-width: 0; box-sizing: border-box; }
+.st-review .st-seg audio { min-width: 220px; max-width: 100%; height: 44px; }
+
+/* Âm thanh chưa tải xong: vòng xoay nằm cạnh trình phát. */
+.st-audio-row { display: flex; align-items: center; gap: 14px; }
+.st-audio-row audio { flex: 1; }
+.st-audio-spin { flex: none; width: 28px; height: 28px; border-radius: 50%; border: 4px solid color-mix(in srgb, var(--primary) 25%, transparent); border-top-color: var(--primary-strong); animation: st-spin .8s linear infinite; }
+.st-audio-heard { display: inline-flex; align-items: center; gap: 6px; color: var(--primary-strong); font-weight: 700; font-size: var(--fs-md); }
+.st-audio-heard .ic { width: 16px; height: 16px; }
+@media (prefers-reduced-motion: reduce) { .st-audio-spin { animation-duration: 2s; } }
+
+/* Khung nội dung chính của trang duyệt to hơn: bớt lề thừa quanh trang, cột danh sách hẹp lại, khung chi tiết kéo dài tới sát đáy và rộng hết phần còn lại. */
+.st-body.fit { padding: 12px 14px 14px; gap: 12px; }
+.st-split.fill { grid-template-columns: minmax(250px, 310px) minmax(0, 1fr); gap: 14px; }
+.st-split.fill > .st-card { padding: 22px 32px; }
+@media (max-width: 900px) { .st-split.fill { grid-template-columns: 1fr; } }
+
+/* Việc còn thiếu trước khi duyệt: hiện thẳng trong nhóm Quyết định thay vì chỉ nằm trong chú thích của nút Duyệt. */
+.st-blockers { list-style: none; margin: 0; padding: 14px 18px; display: flex; flex-direction: column; gap: 10px; border: 2px solid var(--danger); border-radius: 16px; background: color-mix(in srgb, var(--danger) 8%, transparent); }
+.st-blockers li { display: flex; align-items: flex-start; gap: 10px; font-size: var(--fs-md); font-weight: 700; color: var(--danger); line-height: 1.45; }
+.st-blockers .ic { flex: none; width: 20px; height: 20px; margin-top: 2px; }
+
+.st-label-pills { display: flex; flex-wrap: wrap; gap: 10px; }

@@ -26,15 +26,18 @@ export function useReviewItem(kind: ReviewKind, id: number, onDecision: () => vo
     });
     return () => { scope.current = Symbol(); controller.abort(); };
   }, [kind, id, user?.id, revision]);
-  const act = async (fn: () => Promise<ApiResponse<unknown>>, terminal = false) => {
-    if (locked.current) return;
+  const act = async (fn: () => Promise<ApiResponse<unknown>>, terminal = false): Promise<boolean> => {
+    if (locked.current) return false;
     locked.current = true; setBusy(true); setMessage('');
     const run = scope.current;
     const r = await fn();
-    if (scope.current !== run) return;
+    if (scope.current !== run) return false;
     locked.current = false; setBusy(false); setMessage(r.message || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
     if (r.success && terminal) onDecision();
     else if (r.success || r.status === 409) setRevision(v => v + 1);
+    return r.success;
   };
-  return { item, message, busy, act, refresh: () => setRevision(v => v + 1) };
+  /** Cập nhật gói ngay trên màn hình (lạc quan) trong lúc chờ gói mới từ backend; gói tải về sau đó sẽ thay thế. */
+  const patch = (update: (current: ReviewPackage) => ReviewPackage) => setItem(current => (current ? update(current) : current));
+  return { item, message, busy, act, patch, refresh: () => setRevision(v => v + 1) };
 }

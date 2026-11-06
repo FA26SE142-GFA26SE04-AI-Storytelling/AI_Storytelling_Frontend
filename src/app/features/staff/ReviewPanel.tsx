@@ -10,7 +10,9 @@ import SegmentAudio from './SegmentAudio';
 import LearningMaterials from './LearningMaterials';
 import '@/app/features/review/review-tools.css';
 import SafeImage from "@/app/components/SafeImage";
-import { RefreshCw } from "lucide-react";
+import { Check, CircleAlert, RefreshCw } from "lucide-react";
+import ReviewPicture from './ReviewPicture';
+import { useRiseIn } from '@/app/lib/motion';
 
 /** Tên tiếng Việt của các phần cần sửa (giá trị gửi lên backend giữ nguyên). */
 const PART_LABEL: Record<string, string> = {
@@ -36,8 +38,20 @@ const REPORT_REASON: Record<string, string> = { SafetyConcern: 'Không an toàn'
 const Warn = ({ why }: { why: string }) => <span className="st-warn" role="img" aria-label={why} title={why}>!</span>;
 
 export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind; id: number; onDecision: () => void }) {
-  const { item, message, busy, act, refresh } = useReviewItem(kind, id, onDecision);
+  const { item, message, busy, act, patch, refresh } = useReviewItem(kind, id, onDecision);
+  /** Bấm "Xác nhận đã xem": đổi dấu ! thành đã xem ngay, không đợi tải lại cả gói (gói có nhiều tranh/âm thanh nên tải khá lâu). Lỗi thì tải lại để trả về đúng trạng thái. */
+  /** Chấm một tiêu chí checklist: ô chọn đổi ngay, gói mới từ backend tải ngầm rồi thay thế; lỗi thì tải lại để trả về giá trị cũ. */
+  const setCheck = async (key: 'safety' | 'ageFit' | 'education' | 'language' | 'copyright' | 'image' | 'audio' | 'interaction', value: boolean) => {
+    patch(cur => cur.kind === 'PublicStoryReview' ? { ...cur, data: { ...cur.data, checklist: { ...cur.data.checklist, [key]: value } } } : cur);
+    if (!(await act(() => moderationService.publicChecklist(id, { [key]: value })))) refresh();
+  };
+  const viewScene = async (sceneId: number) => {
+    patch(cur => cur.kind === 'PublicStoryReview' ? { ...cur, data: { ...cur.data, scenes: cur.data.scenes.map(s => s.sceneId === sceneId ? { ...s, viewed: true } : s) } } : cur);
+    if (!(await act(() => moderationService.view(id, 'scene', sceneId)))) refresh();
+  };
   const { user } = useAuth();
+  // Mỗi lần mở một mục, các nhóm thông tin hiện lần lượt thay vì bật ra cùng lúc.
+  const riseRef = useRiseIn<HTMLDivElement>('.st-group', [kind, id, item ? 1 : 0], { delay: 40, distance: 10 });
   const [reason, setReason] = useState('');
   const [archiveReason, setArchiveReason] = useState<'SafetyConcern' | 'Copyright' | 'Inappropriate'>('SafetyConcern');
   const [partType, setPartType] = useState(kind === 'RoadmapTemplateReview' ? 'name_description' : 'metadata');
@@ -64,7 +78,7 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
   const decisionKind = item.kind === 'PublicStoryReview' || item.kind === 'CommunitySubmission' || item.kind === 'RoadmapTemplateReview' ? item.kind : null;
   const content = item.kind === 'PublicStoryReview' ? item.data.version.content : item.kind === 'CommunitySubmission' ? item.data.version.content : item.kind === 'ContentReport' ? item.data.version?.content : item.kind === 'GrayZoneStory' ? item.data.content : null;
   const title = item.kind === 'PublicStoryReview' ? item.data.story.title : item.kind === 'CommunitySubmission' || item.kind === 'ContentReport' ? item.data.story.title : item.kind === 'RoadmapTemplateReview' ? item.data.roadmap.name : item.kind === 'GrayZoneStory' ? item.data.title : 'Yêu cầu gỡ truyện';
-  return <div className="st-card st-review">
+  return <div className="st-card st-review" ref={riseRef}>
     <div className="st-group">
       <h3>{title}</h3>
       {'claimExpiresAt' in data && <p className="sub">Hạn giữ mục: {new Date(data.claimExpiresAt ?? '').toLocaleString('vi-VN')}</p>}
@@ -83,21 +97,22 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
       {item.kind === 'GrayZoneStory' && <div className="st-facts"><div><small>Độ tuổi</small><b>{item.data.ageBand}</b></div><div><small>Mức đọc</small><b>{item.data.readingLevel ?? '—'}</b></div><div><small>Phiên bản</small><b>Bản {item.data.versionNo}</b></div></div>}
       <div className="st-quote"><small>Ghi chú của hệ thống</small><p style={{ whiteSpace: 'pre-wrap' }}>{item.data.flags || 'Không có ghi chú.'}</p></div>
     </div>}
-    {content && <div className="st-group"><b className="st-group-title">{item.kind === 'ContentReport' ? 'Truyện bị báo cáo' : 'Nội dung cần xem'}</b>
+    {/* Gói duyệt truyện công khai đã hiện chữ từng cảnh ở dưới, nên không hiện lại cả bài ở đây. */}
+    {content && !(item.kind === 'PublicStoryReview' && item.data.scenes.length > 0) && <div className="st-group"><b className="st-group-title">{item.kind === 'ContentReport' ? 'Truyện bị báo cáo' : 'Nội dung cần xem'}</b>
       <div className="st-content" style={{ whiteSpace: 'pre-wrap' }}>{content}</div>
     </div>}
     {item.kind === 'PublicStoryReview' && <>
       <div className="st-group"><b className="st-group-title">Các cảnh cần xem và nghe{has('views_incomplete') && <Warn why="Chưa xem đủ các cảnh hoặc chưa nghe audio" />}</b>
-        {item.data.scenes.map(scene => <section className="st-scene" key={scene.sceneId}>
-          <b>Cảnh {scene.sceneIndex + 1}{!scene.viewed && <Warn why="Chưa xác nhận đã xem cảnh này" />}</b><p>{scene.sceneText}</p>
-          {scene.illustrations.length > 0 && <div className="st-scene-part"><b className="st-scene-label">Tranh minh hoạ</b><div className="st-pics">{scene.illustrations.map(i => i.url ? <button type="button" key={i.beatOrder} className="st-pic" onClick={() => setZoom({ url: i.url!, alt: i.visualFocus })} title="Phóng to tranh"><SafeImage src={i.url} alt={i.visualFocus} loading="lazy" /><span>{i.visualFocus}</span><em>Phóng to</em></button> : <div key={i.beatOrder} className="st-pic st-pic-empty"><span>Tranh chưa sẵn sàng</span></div>)}</div></div>}
-          {scene.segments.length > 0 && <div className="st-scene-part"><b className="st-scene-label">Âm thanh</b>{scene.segments.map(s => <div key={s.segmentId} className="st-seg">{!scene.sceneText.includes(s.text.trim()) && <p>{s.text}</p>}<SegmentAudio url={s.audioUrl} heard={s.heard} onHeard={() => void act(() => moderationService.view(id, 'audio', s.segmentId))} /></div>)}</div>}
-          <button className="btn btn-s" disabled={busy || scene.viewed} onClick={() => void act(() => moderationService.view(id, 'scene', scene.sceneId))}>{scene.viewed ? 'Đã xem cảnh' : 'Xác nhận đã xem cảnh'}</button>
+        {item.data.scenes.map(scene => <section className={`st-scene${scene.viewed ? ' viewed' : ''}`} key={scene.sceneId}>
+          <b>Cảnh {scene.sceneIndex + 1}{!scene.viewed && <Warn why="Chưa xác nhận đã xem cảnh này" />}</b><p className="st-scene-text">{scene.sceneText}</p>
+          {scene.illustrations.length > 0 && <div className="st-scene-part st-scene-pics"><b className="st-scene-label">Tranh minh hoạ</b><div className="st-pics">{scene.illustrations.map(i => i.url ? <ReviewPicture key={i.beatOrder} url={i.url} alt={i.visualFocus} onZoom={(url, alt) => setZoom({ url, alt })} /> : <div key={i.beatOrder} className="st-pic st-pic-empty"><span>Tranh chưa sẵn sàng</span></div>)}</div></div>}
+          {scene.segments.length > 0 && <div className="st-scene-part st-scene-audio"><b className="st-scene-label">Âm thanh</b>{scene.segments.map(s => <div key={s.segmentId} className="st-seg">{!scene.sceneText.includes(s.text.trim()) && <p>{s.text}</p>}<SegmentAudio url={s.audioUrl} heard={s.heard} onHeard={() => void act(() => moderationService.view(id, 'audio', s.segmentId))} /></div>)}</div>}
+          <button className="btn btn-s" disabled={busy || scene.viewed} onClick={() => void viewScene(scene.sceneId)}><Check className="ic" aria-hidden="true" />{scene.viewed ? 'Đã xem' : 'Xác nhận đã xem'}</button>
         </section>)}
       </div>
       <div className="st-group"><b className="st-group-title">Checklist chấm điểm{has('checklist_incomplete') && <Warn why="Checklist chưa chấm đủ" />}</b>
         <div className="st-checks">{(['safety', 'ageFit', 'education', 'language', 'copyright', 'image', 'audio', 'interaction'] as const).map(key => <label className="field" key={key}><span className="st-flabel">{({ safety: 'An toàn', ageFit: 'Phù hợp tuổi', education: 'Giá trị giáo dục', language: 'Ngôn ngữ', copyright: 'Bản quyền', image: 'Tranh', audio: 'Âm thanh', interaction: 'Tương tác' })[key]}{item.data.checklist[key] === null && <Warn why="Chưa chấm" />}</span>
-          <select className="inp" disabled={busy} value={item.data.checklist[key] === null ? '' : String(item.data.checklist[key])} onChange={e => { if (e.target.value) void act(() => moderationService.publicChecklist(id, { [key]: e.target.value === 'true' })); }}><option value="">Chưa chấm</option><option value="true">Đạt</option><option value="false">Không đạt</option></select></label>)}</div>
+          <select className="inp" disabled={busy} value={item.data.checklist[key] === null ? '' : String(item.data.checklist[key])} onChange={e => { if (e.target.value) void setCheck(key, e.target.value === 'true'); }}><option value="">Chưa chấm</option><option value="true">Đạt</option><option value="false">Không đạt</option></select></label>)}</div>
       </div>
       {item.data.flags.length > 0 && <div className="st-group"><b className="st-group-title">Cờ cần xử lý{item.data.flags.some(f => !f.resolved) && <Warn why="Còn cờ chưa xử lý" />}</b>
         {item.data.flags.map(f => <div className="st-scene" key={f.flagId}><b>{f.name}{!f.resolved && <Warn why="Cờ chưa xử lý" />}</b><p>{f.reason}</p>{f.evidenceQuote && <blockquote>{f.evidenceQuote}</blockquote>}{f.contextNote && <p className="sub">{f.contextNote}</p>}<button className="btn btn-s" disabled={busy || f.resolved} onClick={() => { setFlagReason(''); setFlagDialog({ flagId: f.flagId, name: f.name }); }}>{f.resolved ? 'Đã xử lý' : 'Xác nhận an toàn'}</button></div>)}
@@ -119,10 +134,16 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
         {item.data.piiRescan.length > 0 ? <div className="st-storylist">{item.data.piiRescan.map((p,i) => <div className="st-storyrow bad" key={i}><b>{p.kind}</b><span>{p.location}<Warn why="Có thể là thông tin cá nhân, cần kiểm tra" /></span></div>)}</div> : <p className="sub">Không phát hiện thông tin cá nhân.</p>}
       </div>}
     </>}
-    {(item.kind === 'PublicStoryReview' || item.kind === 'CommunitySubmission') && <div className="st-group"><b className="st-group-title">Nhãn nội dung</b><button className="btn btn-s" disabled={busy} onClick={() => void labelLoader()}>Chọn lại nhãn nội dung</button>
+    {item.kind === 'PublicStoryReview' && <div className="st-group"><b className="st-group-title">Nhãn nội dung{has('no_labels') && <Warn why="Creator chưa đề xuất nhãn nào" />}</b>
+      {item.data.proposedLabels.length > 0
+        ? <div className="st-label-pills">{item.data.proposedLabels.map(l => <span className="pill ok" key={l.contentCategoryId}>{l.displayName}</span>)}</div>
+        : <div className="st-quote"><small>Chưa có nhãn</small><p>Creator chưa đề xuất nhãn nội dung nào nên chưa thể duyệt. Moderator không tự gắn nhãn được: hãy dùng "Yêu cầu chỉnh sửa" ở phần "Thông tin chung" để Creator bổ sung nhãn.</p></div>}
+    </div>}
+    {item.kind === 'CommunitySubmission' && <div className="st-group"><b className="st-group-title">Nhãn nội dung</b><button className="btn btn-s" disabled={busy} onClick={() => void labelLoader()}>Chọn lại nhãn nội dung</button>
       {categories && <><p className="sub">Chọn toàn bộ tập nhãn muốn giữ, sau đó lưu.</p><div className="st-labels">{categories.map(c => <label className="row" key={c.id}><input type="checkbox" checked={labelIds.includes(c.id)} onChange={e => setLabelIds(v => e.target.checked ? [...v,c.id] : v.filter(x => x !== c.id))} />{c.displayName}</label>)}</div><button className="btn btn-s" disabled={busy || !labelIds.length} onClick={() => void act(() => moderationService.labels(item.kind as 'PublicStoryReview' | 'CommunitySubmission', id, labelIds))}>Lưu tập nhãn</button></>}
     </div>}
     <div className="st-group"><b className="st-group-title">Quyết định</b>
+      {decisionKind && blockers.length > 0 && <ul className="st-blockers" role="status" aria-label="Việc còn thiếu trước khi duyệt">{blockers.map(b => <li key={b.code}><CircleAlert className="ic" aria-hidden="true" />{b.message}</li>)}</ul>}
       <label className="field"><span className="lbl">Lý do / ghi chú quyết định{(item.kind === 'GrayZoneStory' || item.kind === 'PublicStoryRemoval' || item.kind === 'ContentReport') ? (!reason.trim() && <Warn why="Cần nhập lý do trước khi bấm quyết định" />) : <small> (bắt buộc khi Từ chối hoặc Yêu cầu sửa)</small>}</span><textarea className="inp" maxLength={item.kind === 'GrayZoneStory' || item.kind === 'PublicStoryRemoval' ? 2000 : 1000} rows={3} value={reason} onChange={e => setReason(e.target.value)} /></label>
       {decisionKind && <div className="row"><button className="btn btn-ok" disabled={busy || !canApprove} title={blockers.map(b => b.message).join(' · ') || undefined} onClick={() => void act(() => moderationService.approve(decisionKind, id), true)}>Duyệt</button><button className="btn btn-no" disabled={busy || !usableReason} onClick={() => void act(() => moderationService.reject(decisionKind, id, reason), true)}>Từ chối</button></div>}
       {item.kind === 'GrayZoneStory' && <div className="row">{(['Clear','Block'] as const).map(decision => <button className="btn btn-s" key={decision} disabled={busy || !usableReason} onClick={() => void act(() => moderationService.grayDecision(id, { decision, reason, rowVersion: item.data.rowVersion }), true)}>{decision === 'Clear' ? 'Cho phép tiếp tục' : 'Chặn nội dung'}</button>)}</div>}

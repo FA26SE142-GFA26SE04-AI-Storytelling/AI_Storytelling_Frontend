@@ -1378,6 +1378,8 @@ export interface PublicReviewPackageDto {
   'storyVersionId': number;
   'versionNo': number;
   'isResubmission': boolean;
+  /** Nhãn do Creator đề xuất khi gửi duyệt; Moderator không tự gắn nhãn cho truyện công khai. */
+  'proposedLabels': (PublicReviewLabelDto)[];
   'story': PublicReviewStoryDto;
   'version': PublicReviewVersionDto;
   'scenes': (PublicReviewSceneDto)[];
@@ -2289,6 +2291,12 @@ export interface CreatorPublicationStatus {
   'openItemId': number | null;
   'openItemType': string | null;
   'openItemStatus': string | null;
+  /** true khi Moderator trả về chỉ vì phần thông tin chung (nhãn): Creator chọn lại nhãn và gửi lại ngay trên phiên bản này, không cần sửa truyện hay tạo lại media. */
+  'canResubmitLabels'?: boolean;
+  /** Nhãn đang gắn cho truyện. */
+  'labels'?: (PublicReviewLabelDto)[];
+  /** Bộ nhãn của lần gửi duyệt gần nhất. */
+  'lastProposedLabels'?: (PublicReviewLabelDto)[];
 }
 
 export interface CreatorRemovalRequest {
