@@ -47,13 +47,25 @@ type PreviewPage = { text: string; images: string[]; audio: { url: string; label
  */
 export type PreviewStory = Pick<StoryCard, "id" | "title" | "cover"> & { family?: boolean; raw?: Pick<StoryDto, "content"> };
 
+/**
+ * Bộ nhớ tạm của hộp xem trước (sống đến khi tải lại trang): đóng rồi mở lại cùng truyện thì dùng ngay, không gọi API nữa.
+ * Đường dẫn ảnh/giọng đọc là URL có chữ ký nên chỉ giữ ngắn; ảnh lỗi thì xoá mục tương ứng để lần sau lấy đường dẫn mới.
+ */
+const PREVIEW_CACHE = new Map<string, { pages: PreviewPage[]; at: number }>();
+const PREVIEW_TTL_MS = 5 * 60_000;
+
 /** `loadContent`: nguồn chữ riêng (Content Creator đọc qua /creator/stories); không truyền thì dùng API của phụ huynh. */
 export function Preview({ story, onClose, loadContent }: { story: PreviewStory; onClose: () => void; loadContent?: () => Promise<string> }) {
   const [pages, setPages] = useState<PreviewPage[] | null>(null);
   const [page, setPage] = useState(0);
   const [shot, setShot] = useState(0);
   const [broken, setBroken] = useState<string | null>(null);
+  /** Ảnh đã tải xong; chưa khớp ảnh đang chọn thì hiện vòng tải thay vì ảnh cũ. */
+  const [loaded, setLoaded] = useState<string | null>(null);
+  const cacheKey = `${story.id}:${story.family ? "f" : "s"}:${loadContent ? "c" : "p"}:${story.raw?.content?.length ?? 0}`;
   useEffect(() => {
+    const hit = PREVIEW_CACHE.get(cacheKey);
+    if (hit && Date.now() - hit.at < PREVIEW_TTL_MS) { setPages(hit.pages); return; }
     const c = new AbortController();
     const textOnly = (content: string): PreviewPage[] => splitScenes(content).map((text) => ({ text, images: [], audio: [] }));
     const load = async (): Promise<PreviewPage[]> => {
@@ -81,10 +93,22 @@ export function Preview({ story, onClose, loadContent }: { story: PreviewStory; 
         };
       });
     };
-    void load().then((p) => { if (!c.signal.aborted) setPages(p); }).catch(() => { if (!c.signal.aborted) setPages([]); });
+    void load().then((p) => { if (c.signal.aborted) return; PREVIEW_CACHE.set(cacheKey, { pages: p, at: Date.now() }); setPages(p); }).catch(() => { if (!c.signal.aborted) setPages([]); });
     return () => c.abort();
   }, [story]); // eslint-disable-line react-hooks/exhaustive-deps -- loadContent đổi theo từng lần vẽ; chỉ tải lại khi đổi truyện
   const go =(to: number) => { setPage(to); setShot(0); setBroken(null); };
+  // Tải sẵn tranh và giọng đọc của trang hiện tại và trang kế để lật trang không phải chờ.
+  const warm = useRef<(HTMLImageElement | HTMLAudioElement)[]>([]);
+  useEffect(() => {
+    if (!pages) return;
+    const items: (HTMLImageElement | HTMLAudioElement)[] = [];
+    for (const p of [pages[page], pages[page + 1]]) {
+      if (!p) continue;
+      p.images.forEach((u) => { const im = new Image(); im.src = u; items.push(im); });
+      if (p.audio[0]) { const au = new Audio(); au.preload = "auto"; au.src = p.audio[0].url; items.push(au); }
+    }
+    warm.current = items;
+  }, [pages, page]);
   const current = pages?.[page];
   const image = current?.images[shot];
   const shown = image && broken !== image ? image : null;
@@ -99,8 +123,9 @@ export function Preview({ story, onClose, loadContent }: { story: PreviewStory; 
             {shown
               // Ảnh là URL có chữ ký của backend, nên dùng thẻ img thường.
               // eslint-disable-next-line @next/next/no-img-element
-              ? <img className="preview-img" src={shown} alt={`Tranh minh hoạ trang ${page + 1}`} onError={() => setBroken(shown)} />
+              ? <img key={shown} className={`preview-img${loaded === shown ? "" : " loading"}`} src={shown} alt={`Tranh minh hoạ trang ${page + 1}`} ref={(el) => { if (el?.complete && el.naturalWidth > 0) setLoaded(shown); }} onLoad={() => setLoaded(shown)} onError={() => { PREVIEW_CACHE.delete(cacheKey); setBroken(shown); }} />
               : <div className="cover" style={{ aspectRatio: "16/9", borderRadius: 16, background: story.cover }} role="img" aria-label="Chưa có tranh minh hoạ cho trang này" />}
+            {shown && loaded !== shown && <div className="preview-loading" role="status" aria-label="Đang tải tranh"><span className="preview-spin" aria-hidden="true" /></div>}
             {/* Nút nghe tròn ở góc phải trên của hình; key theo trang để đổi trang thì dừng tiếng và chạy lại từ đầu. */}
             {current && current.audio.length > 0 && <AudioRing key={page} urls={current.audio.map((a) => a.url)} label={`Nghe giọng đọc trang ${page + 1}`} />}
           </div>

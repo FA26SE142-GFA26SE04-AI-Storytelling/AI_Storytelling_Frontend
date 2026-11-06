@@ -45,3 +45,11 @@
 .story-editor .pa-assist h3 { font-size: var(--fs-xl); font-weight: 800; }
 .story-editor .pa-assist .field, .story-editor .pa-assist .field > .lbl { font-size: var(--fs-md); font-weight: 800; color: var(--text); }
 .story-editor .pa-assist > .sub { font-size: var(--fs-md); }
+
+/* Đổi trang mà ảnh chưa kịp tải: ẩn ảnh, hiện vòng xoay trên nền khung ảnh thay vì để ảnh cũ. */
+.preview-img.loading { opacity: 0; }
+.preview-loading { position: absolute; inset: 0; display: grid; place-items: center; border-radius: 16px; background: var(--surface-2); pointer-events: none; }
+.preview-spin { width: 44px; height: 44px; border-radius: 50%; border: 5px solid color-mix(in srgb, var(--primary) 25%, transparent); border-top-color: var(--primary-strong); animation: preview-spin .8s linear infinite; }
+@keyframes preview-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .preview-spin { animation-duration: 2s; } }
+.audio-spin { width: 24px; height: 24px; border-width: 3px; }
