@@ -15,12 +15,13 @@ const MODE: Record<string, string> = { reading: "Đọc", listening: "Nghe", com
 const blank = (): CreateDraftInput => ({ title: "", description: "", ageBand: "6-8", genre: GENRES[0], experienceMode: "reading" });
 
 /** Props mà khu nhân viên (StaffApp) truyền cho các trang của Content Creator. */
-export type CreatorPageProps = { go: (pageId: string, target?: number | null) => void; target: number | null };
+export type CreatorPageProps = { go: (pageId: string, target?: number | null) => void; target: number | null; /** Truyện AI đang soạn dở trước khi tải lại trang (chỉ trang "Dùng AI" dùng). */ resumeId?: number | null };
 
 /** Trang "Dùng AI": tạo truyện mẫu mới bằng AI, hoặc mở lại truyện AI từ Thư viện (`target`). */
-export function CreatorCreateAi({ go, target }: CreatorPageProps) {
+export function CreatorCreateAi({ go, target, resumeId = null }: CreatorPageProps) {
   const { user } = useAuth();
-  return <CreatorGeneration key={`${user?.id}:${target ?? "new"}`} initialId={target} onBack={() => go("library")} />;
+  const initialId = target ?? resumeId;
+  return <CreatorGeneration key={`${user?.id}:${initialId ?? "new"}`} initialId={initialId} onBack={() => go("library")} />;
 }
 
 /** Trang "Thủ công" (Luồng 5 Bước 5.8): tạo bản nháp mới rồi soạn, hoặc mở bản nháp có sẵn từ Thư viện (`target`). Mỗi lần lưu là một phiên bản. */

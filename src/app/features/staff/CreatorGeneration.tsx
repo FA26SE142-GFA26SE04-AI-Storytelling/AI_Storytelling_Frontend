@@ -10,10 +10,12 @@ import { useCreatorGeneration } from '@/app/features/story-workflow/useCreatorGe
 import { lengthPresets } from '@/app/features/story-workflow/aiStoryInputFlowUtils';
 import { useStoryProgressPolling } from '@/app/features/story-workflow/useStoryProgressPolling';
 import { ApproveSlot, type ApproveAction } from '@/app/features/story-workflow/approveSlot';
+import { mediaKeepPolling } from '@/app/features/story-workflow/mediaPackage';
+import { useAuth } from '@/app/context/AuthContext';
+import { writeCreatorAiStory } from '@/app/features/story-workflow/storyStudioSession';
 import OutlinePanel from '@/app/features/studio/OutlinePanel';
 import ReviewGate from '@/app/features/review/ReviewGate';
 import CreatorPublication from './CreatorPublication';
-import type { MediaProgressDto } from '@/app/types/aiStory';
 import StudioSteps from '@/app/features/studio/StudioSteps';
 import { studioProgress } from '@/app/features/studio/studioProgress';
 import { useSteppedProgress } from '@/app/features/studio/useSteppedProgress';
@@ -23,7 +25,7 @@ import StudioControls from '@/app/features/studio/StudioControls';
 import StageProgress from '@/app/features/studio/StageProgress';
 import CreatorBrief from './CreatorBrief';
 import CreatorMedia from './CreatorMedia';
-const continueMedia = (m: MediaProgressDto) => !m.isReady && !m.isAwaitingConfirmation && !m.errorCode;
+const continueMedia = mediaKeepPolling;
 /** Lỗi AI hay gặp, giải thích bằng tiếng Việt; mã lạ thì hiện nguyên mã. */
 const FAILURE_VI: Record<string, string> = {
   CONTENT_GENERATION_TIMEOUT: 'AI viết truyện quá thời gian chờ (mã CONTENT_GENERATION_TIMEOUT). Bấm Thử lại để viết lại.',
@@ -44,6 +46,10 @@ export default function CreatorGeneration({ initialId = null, onBack }: { initia
 }
 function CreatorGenerationRun({ initialId, seed, onBack, onReset }: { initialId: number | null; seed: Seed; onBack: () => void; onReset: (seed: Seed) => void }) {
   const flow = useCreatorGeneration(initialId);
+  // Nhớ truyện AI đang soạn để tải lại trang vẫn mở lại đúng truyện (truyện mới bắt đầu thì xóa).
+  const { user: sessionUser } = useAuth();
+  const sessionUserId = sessionUser?.id ?? null;
+  useEffect(() => { if (sessionUserId !== null) writeCreatorAiStory(sessionUserId, flow.id); }, [sessionUserId, flow.id]);
   const retryKey = useRef<{ storyId: number; kind: string; key: string } | null>(null);
   const [context, setContext] = useState<B.CreatorAIStoryInputContextDto | null>(null);
   const [ageBand, setAgeBand] = useState('6-8');
@@ -139,6 +145,9 @@ function CreatorGenerationRun({ initialId, seed, onBack, onReset }: { initialId:
     <TabActions.Provider value={controls}>
     <ApproveSlot.Provider value={setApprove}>
       {reviewing && <ReviewGate key={`${flow.id}:${refresh}`} storyId={flow.id!} ageBand={ageBand} actor="creator" onApproved={refreshState} />}
+      {/* Nút duyệt bị tắt khi `locked`, mà `locked` chỉ được tính bởi CreatorPublication. Ở bước duyệt phải luôn có nó chạy (ẩn, không vẽ gì),
+          nếu không `locked` giữ giá trị cũ (thường là "khóa") cho tới khi tải lại trang nên dấu ✓ không bật dù đã đủ điều kiện. */}
+      {reviewing && publication(true)}
       {mediaStage && flow.id !== null && (
         <CreatorMedia storyId={flow.id} versionId={versionId} media={media} locked={locked} busy={flow.busy}
           onRetry={() => void flow.command(() => api.retryMedia(flow.id!)).then(() => media.refresh())}

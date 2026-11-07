@@ -22,3 +22,31 @@ export function clearStorySessions() {
 export function removeStorySession(userId: number, childId: number) {
   try { sessionStorage.removeItem(storySessionKey(userId, childId)); } catch { /* Optional browser storage. */ }
 }
+
+/** Khu nhân viên: trang đang mở (và truyện đang xem) để tải lại trang hay quay lại từ tab khác không bị đưa về trang đầu. */
+export interface StaffWorkspaceSnapshot { pageId: string; target: number | null }
+const staffKey = (userId: number) => `${STORY_SESSION_PREFIX}staff:${userId}`;
+export function readStaffWorkspace(userId: number): StaffWorkspaceSnapshot | null {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(staffKey(userId)) ?? 'null');
+    return value && typeof value.pageId === 'string' && (value.target === null || (Number.isSafeInteger(value.target) && value.target > 0)) ? value : null;
+  } catch { return null; }
+}
+export function writeStaffWorkspace(userId: number, snapshot: StaffWorkspaceSnapshot) {
+  try { sessionStorage.setItem(staffKey(userId), JSON.stringify(snapshot)); } catch { /* Optional browser storage. */ }
+}
+
+/** Truyện AI Content Creator đang soạn ở trang "Dùng AI"; null là xóa (bắt đầu truyện mới). */
+const creatorAiKey = (userId: number) => `${STORY_SESSION_PREFIX}creator-ai:${userId}`;
+export function readCreatorAiStory(userId: number): number | null {
+  try {
+    const value = Number(sessionStorage.getItem(creatorAiKey(userId)));
+    return Number.isSafeInteger(value) && value > 0 ? value : null;
+  } catch { return null; }
+}
+export function writeCreatorAiStory(userId: number, storyId: number | null) {
+  try {
+    if (storyId === null) sessionStorage.removeItem(creatorAiKey(userId));
+    else sessionStorage.setItem(creatorAiKey(userId), String(storyId));
+  } catch { /* Optional browser storage. */ }
+}

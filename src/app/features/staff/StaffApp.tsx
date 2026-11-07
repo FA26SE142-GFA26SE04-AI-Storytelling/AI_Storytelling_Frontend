@@ -2,12 +2,14 @@
 
 import "./staff.css";
 import "@/app/features/children/children.css";
-import { useState, type ComponentType } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import {
   Activity, BookOpenText, ChartColumn, Coins, FolderOpen, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt,
   Shield, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
+import { useAuth } from "@/app/context/AuthContext";
+import { readCreatorAiStory, readStaffWorkspace, writeStaffWorkspace } from "@/app/features/story-workflow/storyStudioSession";
 import type { StaffRole } from "@/app/types/auth";
 import Frog from "@/app/components/brand/Frog";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
@@ -112,10 +114,25 @@ export default function StaffApp({ role }: { role: StaffRole }) {
   const { theme, toggleTheme } = useTheme();
   const navRef = useRiseIn<HTMLElement>("button", [], { delay: 40, distance: 10 });
   const pages = PAGES[role];
-  const [pageId, setPageId] = useState(pages[0].id);
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
+  // Tải lại trang hay quay lại từ tab khác thì quay về đúng trang (và truyện AI đang soạn), không về trang đầu.
+  const [initial] = useState(() => {
+    const saved = userId !== null ? readStaffWorkspace(userId) : null;
+    const valid = !!saved && pages.some((p) => p.id === saved.pageId);
+    return {
+      pageId: valid ? saved.pageId : pages[0].id,
+      target: valid ? saved.target : null,
+      resumeId: valid && saved.pageId === "create-ai" && saved.target === null && userId !== null ? readCreatorAiStory(userId) : null,
+    };
+  });
+  const [pageId, setPageId] = useState(initial.pageId);
   // Id truyện cần mở khi chuyển trang (ví dụ bấm Mở trong Thư viện truyện mẫu); null là tạo mới.
-  const [target, setTarget] = useState<number | null>(null);
-  const go = (id: string, storyId: number | null = null) => { setPageId(id); setTarget(storyId); };
+  const [target, setTarget] = useState<number | null>(initial.target);
+  // Truyện AI đang soạn dở trước khi tải lại; chỉ dùng cho lần mở đầu, điều hướng sau đó thì bỏ.
+  const [resumeId, setResumeId] = useState<number | null>(initial.resumeId);
+  const go = (id: string, storyId: number | null = null) => { setPageId(id); setTarget(storyId); setResumeId(null); };
+  useEffect(() => { if (userId !== null) writeStaffWorkspace(userId, { pageId, target }); }, [userId, pageId, target]);
   const page = pages.find((p) => p.id === pageId) ?? pages[0];
   const View = page.view;
 
@@ -142,7 +159,7 @@ export default function StaffApp({ role }: { role: StaffRole }) {
         <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} upward />
       </nav>
 
-      <main className="stage"><View key={`${page.id}:${target ?? "new"}`} go={go} target={target} /></main>
+      <main className="stage"><View key={`${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} /></main>
     </div>
   );
 }
