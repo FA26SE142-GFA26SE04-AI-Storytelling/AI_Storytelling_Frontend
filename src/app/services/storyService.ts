@@ -1,5 +1,6 @@
 import type { ApiResponse } from '@/app/types/auth';
 import type { PagedResult, StoryDto, StoryFilterRequest } from '@/app/types/story';
+import type { StoryMediaPackage } from '@/app/types/aiStory';
 import { apiRequest } from './apiClient';
 
 /**
@@ -29,6 +30,11 @@ export const storyService = {
     }
     const query = params.toString();
     return apiRequest(`/Story/community${query ? `?${query}` : ''}`, 'Không tải được thư viện cộng đồng.');
+  },
+
+  /** `GET /Story/community/{id}/media`: ảnh minh họa và giọng đọc (chỉ đọc) của truyện Creator đã công khai. */
+  getCommunityStoryMedia(id: number, signal?: AbortSignal): Promise<ApiResponse<StoryMediaPackage>> {
+    return apiRequest(`/Story/community/${id}/media`, 'Không tải được tranh và giọng đọc.', { signal });
   },
 
   getStoryById(id: number, signal?: AbortSignal): Promise<ApiResponse<StoryDto>> {

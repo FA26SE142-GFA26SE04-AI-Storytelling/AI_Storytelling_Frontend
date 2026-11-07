@@ -45,7 +45,7 @@ type PreviewPage = { text: string; images: string[]; audio: { url: string; label
  * Truyện AI lấy từng cảnh từ gói media của backend (GET /stories/{id}/media/package: chữ, tranh, giọng đọc);
  * chưa có gói media (hoặc truyện thủ công) thì chỉ hiện chữ, chia đoạn theo nội dung truyện.
  */
-export type PreviewStory = Pick<StoryCard, "id" | "title" | "cover"> & { family?: boolean; raw?: Pick<StoryDto, "content"> };
+export type PreviewStory = Pick<StoryCard, "id" | "title" | "cover"> & { family?: boolean; creator?: boolean; raw?: Pick<StoryDto, "content"> };
 
 /**
  * Bộ nhớ tạm của hộp xem trước (sống đến khi tải lại trang): đóng rồi mở lại cùng truyện thì dùng ngay, không gọi API nữa.
@@ -62,7 +62,7 @@ export function Preview({ story, onClose, loadContent }: { story: PreviewStory; 
   const [broken, setBroken] = useState<string | null>(null);
   /** Ảnh đã tải xong; chưa khớp ảnh đang chọn thì hiện vòng tải thay vì ảnh cũ. */
   const [loaded, setLoaded] = useState<string | null>(null);
-  const cacheKey = `${story.id}:${story.family ? "f" : "s"}:${loadContent ? "c" : "p"}:${story.raw?.content?.length ?? 0}`;
+  const cacheKey = `${story.id}:${story.family ? "f" : story.creator ? "r" : "s"}:${loadContent ? "c" : "p"}:${story.raw?.content?.length ?? 0}`;
   useEffect(() => {
     // Creator sửa nội dung liên tục và nguồn chữ riêng không có dấu hiệu đổi, nên không dùng bộ nhớ tạm cho họ.
     const hit = loadContent ? undefined : PREVIEW_CACHE.get(cacheKey);
@@ -79,7 +79,8 @@ export function Preview({ story, onClose, loadContent }: { story: PreviewStory; 
       }
       const [content, pack] = await Promise.all([
         loadContent ? loadContent() : storyService.getStoryById(story.id).then((r) => r.data?.content ?? story.raw?.content ?? ""),
-        aiStoryCreationService.getMediaPackage(story.id, c.signal).then((r) => (r.success ? r.data : null)).catch(() => null),
+        // Truyện Creator đã công khai: ảnh/giọng đọc lấy qua API thư viện chung (API tạo media chỉ cho đúng tác giả).
+        (story.creator && !loadContent ? storyService.getCommunityStoryMedia(story.id, c.signal) : aiStoryCreationService.getMediaPackage(story.id, c.signal)).then((r) => (r.success ? r.data : null)).catch(() => null),
       ]);
       const texts = splitScenes(content);
       const scenes = pack?.scenes?.slice().sort((a, b) => a.sceneIndex - b.sceneIndex) ?? [];
