@@ -5,7 +5,11 @@ import type * as B from '@/app/types/backendContracts';
 import { useAuth } from '@/app/context/AuthContext';
 import type { ApiResponse } from '@/app/types/auth';
 import { confirmDialog } from "@/app/lib/confirm";
-import { Check } from 'lucide-react';
+import { Check, ImagePlus } from 'lucide-react';
+import '@/app/features/created/created.css';
+import CoverPickerDialog from '@/app/features/created/CoverPickerDialog';
+import { creatorService } from '@/app/services/creatorService';
+import { coverFor } from '@/app/lib/storyView';
 import { staffService } from '@/app/services/staffService';
 import type { ContentCategory } from '@/app/types/childProfile';
 
@@ -41,6 +45,15 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
   /** Nhãn nội dung (nhãn dán) Creator đề xuất khi gửi duyệt; danh sách lấy từ API, chỉ nhãn còn hoạt động. */
   const [categories, setCategories] = useState<ContentCategory[] | null>(null);
   const [labelIds, setLabelIds] = useState<number[]>([]);
+  /** Ảnh bìa hiện tại của truyện (undefined = đang tải, null = chưa có). Backend bắt buộc có bìa trước khi gửi duyệt. */
+  const [cover, setCover] = useState<string | null | undefined>(undefined);
+  const [pickingCover, setPickingCover] = useState(false);
+  const [coverTick, setCoverTick] = useState(0);
+  useEffect(() => {
+    let alive = true;
+    void creatorService.get(storyId).then(r => { if (alive && r.ok) setCover(r.data?.coverImageUrl ?? null); });
+    return () => { alive = false; };
+  }, [storyId, versionId, coverTick]);
   const scope = useRef(Symbol());
   const knownSubmitted = useRef<number | null>(null);
   const [submittedVersion,setSubmittedVersion] = useState<number | null>(null);
@@ -136,6 +149,14 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     <div className="pa-step">
       <b>Gửi duyệt công khai</b>
       {blocker && <p className="sub">{blocker}</p>}
+      {canSubmit && <div className="pa-cover" role="group" aria-label="Ảnh bìa">
+        <b>Ảnh bìa</b>
+        <div className="edit-story-cover">
+          <div className="edit-story-cover-preview" role="img" aria-label="Ảnh bìa hiện tại" style={{ background: coverFor(cover) }} />
+          <button type="button" className="btn btn-s" disabled={busy} onClick={() => setPickingCover(true)}><ImagePlus className="ic" />{cover ? 'Đổi ảnh bìa' : 'Chọn ảnh bìa'}</button>
+        </div>
+        {cover === null && <span className="notice warn" role="status" data-inline-notice>Cần chọn ảnh bìa từ tranh trong truyện trước khi gửi duyệt.</span>}
+      </div>}
       {canSubmit && <div className="pa-labels" role="group" aria-label="Nhãn nội dung">
         <b>Nhãn nội dung</b>
         {!categories ? <span role="status">Đang tải nhãn…</span>
@@ -143,13 +164,14 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
           : <div className="pa-label-chips">{categories.map(c => <button type="button" key={c.id} className={`pa-label-chip${labelIds.includes(c.id) ? ' on' : ''}`} aria-pressed={labelIds.includes(c.id)} disabled={busy} onClick={() => toggleLabel(c.id)}>{labelIds.includes(c.id) && <Check className="ic" aria-hidden="true" />}{c.displayName}</button>)}</div>}
       </div>}
       <div className="pa-actions">
-        {canSubmit && <button className="btn btn-p" disabled={busy || labelIds.length === 0 || sameAsReturned} title={labelIds.length === 0 ? 'Chọn ít nhất một nhãn nội dung trước khi gửi' : sameAsReturned ? 'Hãy thay đổi bộ nhãn so với lần bị trả về' : undefined} onClick={() => void act(() => service.submit(storyId, status!.versionId, labelIds))}>{labelsOnlyReturn ? 'Gửi lại với nhãn mới' : 'Gửi bản hiện tại cho Moderator'}</button>}
+        {canSubmit && <button className="btn btn-p" disabled={busy || !cover || labelIds.length === 0 || sameAsReturned} title={!cover ? 'Chọn ảnh bìa trước khi gửi' : labelIds.length === 0 ? 'Chọn ít nhất một nhãn nội dung trước khi gửi' : sameAsReturned ? 'Hãy thay đổi bộ nhãn so với lần bị trả về' : undefined} onClick={() => void act(() => service.submit(storyId, status!.versionId, labelIds))}>{labelsOnlyReturn ? 'Gửi lại với nhãn mới' : 'Gửi bản hiện tại cho Moderator'}</button>}
         {pendingReview && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Rút yêu cầu duyệt? Lượt đăng bài sẽ được hoàn lại nếu yêu cầu còn chờ duyệt."))) return; void act(() => service.withdraw(status!.openItemId!)); }}>Rút yêu cầu duyệt</button>}
         {canRevise && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.revision(storyId, status!.versionId), true)}>Tạo phiên bản chỉnh sửa mới</button>}
         <button className="btn btn-g" disabled={busy} onClick={() => setRefresh(n => n + 1)}>Tải lại trạng thái</button>
       </div>
     </div>
 
+    {pickingCover && <CoverPickerDialog storyId={storyId} cover={cover} onClose={() => setPickingCover(false)} onSaved={() => setCoverTick(n => n + 1)} />}
     {status?.isPublished && !status.openItemId && <div className="pa-step">
       <b>Yêu cầu gỡ để chỉnh sửa</b>
       <p className="sub">Truyện đang công khai nên không sửa trực tiếp được. Gỡ xuống, sửa rồi gửi duyệt lại.</p>

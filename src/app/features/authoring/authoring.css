@@ -132,8 +132,8 @@
 .pa-setup-title { font-size: var(--fs-md); font-weight: 800; }
 
 /* Nhãn nội dung khi gửi duyệt: các nhãn là nút bấm bật/tắt, nhãn đã chọn có dấu tích và nền đậm. */
-.pa-labels { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border: 2px solid var(--line-2); border-radius: 16px; background: color-mix(in srgb, var(--panel) 55%, transparent); }
-.pa-labels > b { font-family: var(--font-display); font-size: var(--fs-lg); }
+.pa-labels, .pa-cover { display: flex; flex-direction: column; gap: 12px; padding: 14px 16px; border: 2px solid var(--line-2); border-radius: 16px; background: color-mix(in srgb, var(--panel) 55%, transparent); }
+.pa-labels > b, .pa-cover > b { font-family: var(--font-display); font-size: var(--fs-lg); }
 .pa-label-chips { display: flex; flex-wrap: wrap; gap: 10px; }
 .pa-label-chip { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; padding: 8px 16px; border: 2px solid var(--line-2); border-radius: 999px; background: color-mix(in srgb, var(--surface) 60%, transparent); font-size: var(--fs-md); font-weight: 700; color: var(--text); transition: background .15s, border-color .15s, transform .15s; }
 .pa-label-chip:hover:not(:disabled) { border-color: var(--primary); transform: translateY(-1px); }
