@@ -14,7 +14,7 @@ import { storyService } from "@/app/services/storyService";
 type Pic = { assetId: number; url: string; label: string };
 
 /** Backend trả 409 khi truyện Creator đã gửi duyệt hoặc đang công khai: phải yêu cầu gỡ trước khi đổi ảnh bìa. */
-const LOCKED_MESSAGE = "Truyện đã gửi duyệt hoặc đang công khai nên chưa đổi được ảnh bìa. Hãy yêu cầu gỡ truyện trước.";
+const LOCKED_MESSAGE = "Truyện đang công khai hoặc đang chờ duyệt nên chưa đổi được ảnh bìa. Hãy yêu cầu gỡ truyện trước.";
 
 /**
  * Popup chọn ảnh bìa từ chính các tranh minh họa của truyện, rồi kéo khung để chọn vị trí hiển thị.

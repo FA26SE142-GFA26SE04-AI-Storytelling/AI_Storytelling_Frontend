@@ -67,7 +67,8 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
     void creatorPublicationService.status(selected, c.signal).then((r) => { if (!c.signal.aborted && r.success) setPub(r.data ?? null); }).catch(() => undefined);
     return () => c.abort();
   }, [selected, pubTick]);
-  const locked = !!pub && (pub.isPublished || !!pub.openItemId || pub.reviewStatus !== "None");
+  // Truyện đã được gỡ (không công khai, không có mục duyệt mở) vẫn đổi được ảnh bìa mà không cần tạo phiên bản mới.
+  const locked = !!pub && (pub.isPublished || !!pub.openItemId);
   const canRemove = !!pub && pub.isPublished && !pub.openItemId;
   const open = (s: CreatorDraft) => go(isAi(s) ? "create-ai" : "create-manual", s.storyId);
 
@@ -131,6 +132,7 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
                 <span>Tạo lúc</span><b>{fmt(sel.createdAt)}</b>
                 {sel.updatedAt && <><span>Cập nhật</span><b>{fmt(sel.updatedAt)}</b></>}
                 <span>Trạng thái</span><span className="pill draft" style={{ width: "fit-content" }}>{SHELVES.find((g) => g.id === shelfOf(sel))?.title}</span>
+                <span>Công khai</span>{pub ? <span className={`pill ${pub.isPublished ? "ok" : "flag"}`} style={{ width: "fit-content" }}>{pub.isPublished ? "Đã công khai" : "Chưa công khai"}</span> : <b>…</b>}
               </div>
               <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
               <button className="btn btn-s btn-c" disabled={locked} onClick={() => setPicking(true)}><ImagePlus className="ic" />Ảnh bìa</button>
