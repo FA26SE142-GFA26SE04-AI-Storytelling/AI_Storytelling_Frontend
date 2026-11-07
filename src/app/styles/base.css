@@ -186,7 +186,10 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 @media (prefers-reduced-motion: reduce) { .app-toast { animation: none; } }
 
 /* Hộp thoại xác nhận (thay window.confirm). */
-.confirm-backdrop { z-index: 220; }
+/* Hộp xác nhận luôn nằm trên cùng, kể cả trên màn của bé (.kid z-index 100) và các popup của bé (300). Dùng hai class để thắng
+   .dlg-backdrop { z-index: 90 } (review-tools.css, nạp sau base.css) bất kể thứ tự nạp: trước đây hộp bị che nên "Em đã đọc xong",
+   "Về danh sách đọc" chờ một hộp không thấy được và không làm gì. */
+.dlg-backdrop.confirm-backdrop { z-index: 400; }
 .confirm-dlg { width: min(400px, 100%); gap: 8px; padding: 18px 20px; }
 .confirm-head { display: flex; align-items: center; gap: 10px; }
 .confirm-head b { font-size: var(--fs-lg); line-height: 1.25; }
