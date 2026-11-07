@@ -27,6 +27,21 @@ function piiSummary(raw: string): string {
   try { const v = JSON.parse(raw) as { passed?: boolean }; if (typeof v.passed === 'boolean') return v.passed ? 'Đạt: không phát hiện thông tin cá nhân.' : 'Không đạt: có thể có thông tin cá nhân.'; } catch { /* không phải JSON thì giữ nguyên */ }
   return raw;
 }
+/** Ghi chú của hệ thống ở backend là chuỗi JSON như {"requestReason": "..."}; lấy lý do ra, JSON khác thì liệt kê từng dòng "khóa: giá trị". */
+function flagsSummary(raw: string | null | undefined): string {
+  const text = (raw ?? '').trim();
+  if (!text) return '';
+  try {
+    const v: unknown = JSON.parse(text);
+    if (v && typeof v === 'object' && !Array.isArray(v)) {
+      const entries = Object.entries(v as Record<string, unknown>);
+      const reason = (v as { requestReason?: unknown }).requestReason;
+      if (entries.length === 1 && typeof reason === 'string') return reason;
+      return entries.map(([k, val]) => `${k}: ${typeof val === 'string' ? val : JSON.stringify(val)}`).join('\n');
+    }
+  } catch { /* không phải JSON thì giữ nguyên */ }
+  return text;
+}
 /** Tên ngắn của tiêu chí checklist (mã do backend định nghĩa); nhãn đầy đủ của backend hiện khi rê chuột. */
 const CRITERION_SHORT: Record<string, string> = {
   safety_baseline: 'An toàn', no_personal_info: 'Không lộ thông tin cá nhân', metadata_labels: 'Nhãn nội dung đúng',
@@ -95,7 +110,7 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
     </div>}
     {(item.kind === 'GrayZoneStory' || item.kind === 'PublicStoryRemoval') && <div className="st-group"><b className="st-group-title">{item.kind === 'GrayZoneStory' ? 'Vì sao truyện bị đưa vào vùng xám' : 'Yêu cầu gỡ truyện'}</b>
       {item.kind === 'GrayZoneStory' && <div className="st-facts"><div><small>Độ tuổi</small><b>{item.data.ageBand}</b></div><div><small>Mức đọc</small><b>{item.data.readingLevel ?? '—'}</b></div><div><small>Phiên bản</small><b>Bản {item.data.versionNo}</b></div></div>}
-      <div className="st-quote"><small>Ghi chú của hệ thống</small><p style={{ whiteSpace: 'pre-wrap' }}>{item.data.flags || 'Không có ghi chú.'}</p></div>
+      <div className="st-quote"><small>{item.kind === 'PublicStoryRemoval' ? 'Lý do Creator yêu cầu gỡ' : 'Ghi chú của hệ thống'}</small><p style={{ whiteSpace: 'pre-wrap' }}>{flagsSummary(item.data.flags) || (item.kind === 'PublicStoryRemoval' ? 'Creator không ghi lý do.' : 'Không có ghi chú.')}</p></div>
     </div>}
     {/* Gói duyệt truyện công khai đã hiện chữ từng cảnh ở dưới, nên không hiện lại cả bài ở đây. */}
     {content && !(item.kind === 'PublicStoryReview' && item.data.scenes.length > 0) && <div className="st-group"><b className="st-group-title">{item.kind === 'ContentReport' ? 'Truyện bị báo cáo' : 'Nội dung cần xem'}</b>
