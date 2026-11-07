@@ -38,8 +38,10 @@ export function useChildReader(token:string, onLibrary:()=>void) {
   /** Tương tác bé đã trả lời trong phiên này (backend cũng đánh dấu attemptedInSession khi mở lại). */
   const [attempted,setAttempted] = useState<number[]>([]);
   const scope = useRef(0), lock = useRef(false);
+  /** Mã của thao tác đang giữ khóa; thao tác cũ xong muộn (phiên đã đổi) chỉ được nhả khóa nếu chưa có thao tác mới giữ. */
+  const ticket = useRef(0);
   const activeSeconds=useRef(0);
-  const close = () => { scope.current++; lock.current=false; setBusy(false); setContent(null); setSession(null); setDefinition(null); onLibrary(); };
+  const close = () => { scope.current++; ticket.current++; lock.current=false; setBusy(false); setContent(null); setSession(null); setDefinition(null); onLibrary(); };
   /** Thoát khi chưa đọc xong thì hỏi lại; tiến độ vẫn được lưu. */
   const leave = async () => { if (!done && !completed && !await confirmDialog('Em muốn thoát truyện?')) return; close(); };
   useEffect(() => () => { scope.current++; }, [token]);
@@ -57,7 +59,7 @@ export function useChildReader(token:string, onLibrary:()=>void) {
       const r = await api.signal(token,session.sessionId,controller.signal); running=false;
       if (controller.signal.aborted) return;
       if (r.success && r.data?.shouldExit || r.status===401 || r.status===403 || r.status===404) {
-        scope.current++; lock.current=false; setBusy(false); setContent(null); setSession(null); setDefinition(null);
+        scope.current++; ticket.current++; lock.current=false; setBusy(false); setContent(null); setSession(null); setDefinition(null);
         setNote(r.data?.message || r.message || 'Truyện này đang nghỉ một chút, mình đọc truyện khác nhé!'); onLibrary();
       } else if (!r.success) setNote(r.message);
     };
@@ -66,10 +68,12 @@ export function useChildReader(token:string, onLibrary:()=>void) {
   },[token,session,onLibrary]);
   const execute = async <T,>(call:()=>Promise<ApiResponse<T>>, apply:(data:T)=>void) => {
     if (lock.current || blocked) return false;
-    lock.current=true; setBusy(true); setNote(''); const run=scope.current;
+    lock.current=true; setBusy(true); setNote(''); const run=scope.current; const mine=++ticket.current;
     const r=await call();
+    // Luôn nhả khóa khi xong, kể cả lúc phiên đã đổi giữa chừng (vd. token làm mới): trước đây thoát sớm mà không nhả nên khóa kẹt
+    // và mọi nút (kể cả "Em đã đọc xong") im lặng không làm gì dù không bị tắt.
+    if (ticket.current===mine) { lock.current=false; setBusy(false); }
     if (run!==scope.current) return false;
-    lock.current=false; setBusy(false);
     if (!r.success || r.data===null) {
       setNote(r.message || 'Chưa nhận được kết quả. Hãy về thư viện để tải lại.');
       if (r.status===0 || (r.status ?? 0)>=500 || r.status===409) setBlocked(true);
@@ -82,7 +86,7 @@ export function useChildReader(token:string, onLibrary:()=>void) {
     if (lock.current) return;
     setBlocked(false); setDone(false); setCompleted(null); setContent(null); setSession(null); setDefinition(null); setAttempted([]);
     activeSeconds.current=0;
-    lock.current=true; setBusy(true); setNote(''); const run=++scope.current;
+    lock.current=true; setBusy(true); setNote(''); const run=++scope.current; ticket.current++;
     const started=await api.start(token,target);
     if (run!==scope.current) return;
     if (!started.success || !started.data || target.storyId != null && started.data.storyId!==target.storyId) {
