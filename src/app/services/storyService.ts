@@ -33,11 +33,11 @@ export const storyService = {
   },
 
   /**
-   * `PUT /stories/{id}/media/cover`: chọn một ảnh minh họa của chính truyện làm ảnh bìa (tác giả, hoặc phụ huynh chủ truyện).
+   * `PUT /stories/{id}/cover`: chọn một ảnh minh họa của chính truyện làm ảnh bìa (tác giả, hoặc phụ huynh chủ truyện).
    * `mediaAssetId = null` là gỡ ảnh bìa. `crop` là vùng hiển thị (0–1 so với cả tấm ảnh). Truyện Creator đã công khai thì backend từ chối (409).
    */
   setCover(id: number, mediaAssetId: number | null, crop?: { x: number; y: number; w: number; h: number } | null): Promise<ApiResponse<null>> {
-    return apiRequest(`/stories/${id}/media/cover`, 'Không lưu được ảnh bìa.', {
+    return apiRequest(`/stories/${id}/cover`,'Không lưu được ảnh bìa.', {
       method: 'PUT',
       body: mediaAssetId === null ? { mediaAssetId: null } : { mediaAssetId, ...(crop ? { x: crop.x, y: crop.y, w: crop.w, h: crop.h } : {}) },
     });
