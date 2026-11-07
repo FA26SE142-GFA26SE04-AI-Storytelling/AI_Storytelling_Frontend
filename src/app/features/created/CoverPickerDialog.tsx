@@ -13,6 +13,9 @@ import { storyService } from "@/app/services/storyService";
 
 type Pic = { assetId: number; url: string; label: string };
 
+/** Backend trả 409 khi truyện Creator đã gửi duyệt hoặc đang công khai: phải yêu cầu gỡ trước khi đổi ảnh bìa. */
+const LOCKED_MESSAGE = "Truyện đã gửi duyệt hoặc đang công khai nên chưa đổi được ảnh bìa. Hãy yêu cầu gỡ truyện trước.";
+
 /**
  * Popup chọn ảnh bìa từ chính các tranh minh họa của truyện, rồi kéo khung để chọn vị trí hiển thị.
  * Dùng chung cho phụ huynh và Content Creator. Nút Lưu chỉ hiện khi đã chọn ảnh.
@@ -50,7 +53,7 @@ export default function CoverPickerDialog({ storyId, cover, onClose, onSaved }: 
     setSaving(true);
     const r = await storyService.setCover(storyId, picked.assetId, crop);
     setSaving(false);
-    if (!r.success) { showToast(r.message || "Không lưu được ảnh bìa.", "err"); return; }
+    if (!r.success) { showToast(r.status === 409 ? LOCKED_MESSAGE : r.message || "Không lưu được ảnh bìa.", "err"); return; }
     showToast("Đã lưu ảnh bìa.");
     onSaved(); onClose();
   };
@@ -60,7 +63,7 @@ export default function CoverPickerDialog({ storyId, cover, onClose, onSaved }: 
     setSaving(true);
     const r = await storyService.setCover(storyId, null);
     setSaving(false);
-    if (!r.success) { showToast(r.message || "Không gỡ được ảnh bìa.", "err"); return; }
+    if (!r.success) { showToast(r.status === 409 ? LOCKED_MESSAGE : r.message || "Không gỡ được ảnh bìa.", "err"); return; }
     showToast("Đã gỡ ảnh bìa.");
     onSaved(); onClose();
   };

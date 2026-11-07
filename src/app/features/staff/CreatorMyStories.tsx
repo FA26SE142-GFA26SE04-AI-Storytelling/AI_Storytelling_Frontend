@@ -3,9 +3,12 @@
 import "@/app/features/library/library.css";
 import "@/app/features/created/created.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, ImagePlus, Info, PencilLine, RefreshCw, WandSparkles } from "lucide-react";
+import { Eye, ImagePlus, Info, PencilLine, RefreshCw, Undo2, WandSparkles } from "lucide-react";
 import CreatorPreview from "./CreatorPreview";
+import RemovalRequestDialog from "./RemovalRequestDialog";
 import CoverPickerDialog from "@/app/features/created/CoverPickerDialog";
+import { creatorPublicationService } from "@/app/services/creatorPublicationService";
+import type { CreatorPublicationStatus } from "@/app/types/backendContracts";
 import Select from "@/app/components/Select";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import Frog from "@/app/components/brand/Frog";
@@ -32,6 +35,10 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
   const [selected, setSelected] = useState<number | null>(null);
   const [reading, setReading] = useState(false);
   const [picking, setPicking] = useState(false);
+  const [removing, setRemoving] = useState(false);
+  /** Trạng thái phát hành của truyện đang chọn (đã công khai / đang chờ duyệt) để biết có khóa đổi ảnh bìa không. */
+  const [pub, setPub] = useState<CreatorPublicationStatus | null>(null);
+  const [pubTick, setPubTick] = useState(0);
   const [collapsed, setCollapsed] = useState(true);
   const aside = useMemo(() => ({ collapsed, toggle: () => setCollapsed((v) => !v) }), [collapsed]);
 
@@ -53,6 +60,15 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
   const count = (id: string) => all.filter((s) => shelfOf(s) === id).length;
   const sel = all.find((s) => s.storyId === selected) ?? null;
   const pick = (s: CreatorDraft) => { setSelected(s.storyId); if (collapsed) setCollapsed(false); };
+  useEffect(() => {
+    setPub(null);
+    if (selected === null) return;
+    const c = new AbortController();
+    void creatorPublicationService.status(selected, c.signal).then((r) => { if (!c.signal.aborted && r.success) setPub(r.data ?? null); }).catch(() => undefined);
+    return () => c.abort();
+  }, [selected, pubTick]);
+  const locked = !!pub && (pub.isPublished || !!pub.openItemId || pub.reviewStatus !== "None");
+  const canRemove = !!pub && pub.isPublished && !pub.openItemId;
   const open = (s: CreatorDraft) => go(isAi(s) ? "create-ai" : "create-manual", s.storyId);
 
   return (
@@ -117,11 +133,13 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
                 <span>Trạng thái</span><span className="pill draft" style={{ width: "fit-content" }}>{SHELVES.find((g) => g.id === shelfOf(sel))?.title}</span>
               </div>
               <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
-              <button className="btn btn-s btn-c" onClick={() => setPicking(true)}><ImagePlus className="ic" />Ảnh bìa</button>
+              <button className="btn btn-s btn-c" disabled={locked} onClick={() => setPicking(true)}><ImagePlus className="ic" />Ảnh bìa</button>
+              {canRemove && <button className="btn btn-no btn-c" onClick={() => setRemoving(true)}><Undo2 className="ic" />Yêu cầu gỡ</button>}
               <button className="btn btn-p btn-c" onClick={() => open(sel)}>{isAi(sel) ? <WandSparkles className="ic" /> : <PencilLine className="ic" />}Mở để soạn tiếp</button>
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
         </AsidePane>
+        {sel && removing && <RemovalRequestDialog storyId={sel.storyId} title={sel.title} onClose={() => setRemoving(false)} onDone={() => setPubTick((n) => n + 1)} />}
         {sel && picking && <CoverPickerDialog key={sel.storyId} storyId={sel.storyId} cover={sel.coverImageUrl} onClose={() => setPicking(false)} onSaved={() => void load()} />}
         {sel && reading && <CreatorPreview story={sel} onClose={() => setReading(false)} />}
       </section>
