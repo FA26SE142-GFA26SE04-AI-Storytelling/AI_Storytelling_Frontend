@@ -10,6 +10,8 @@ import { useStudioCompletion } from "@/app/features/story-workflow/useStudioComp
 import { useMediaPackage } from "@/app/features/story-workflow/useMediaPackage";
 import MediaIssues from "@/app/features/studio/MediaIssues";
 import StudioScenePreview from "@/app/features/studio/StudioScenePreview";
+import { mediaCanRetry, mediaIsGenerating } from "@/app/features/story-workflow/mediaPackage";
+import { PublicationDock } from "./CreatorPublication";
 import type { MediaProgressDto } from "@/app/types/aiStory";
 
 type Props = {
@@ -34,6 +36,8 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
   const preview = useStudioMediaPreview(storyId, versionId ?? m?.approvedStoryVersionId ?? null, m);
   const scenes = useMemo(() => preview.pack?.scenes.slice().sort((a, b) => a.sceneIndex - b.sceneIndex) ?? [], [preview.pack]);
   const [active, setActive] = useState(0);
+  /** Ngăn cuối khung giữa để phần Phát hành vẽ khung Ảnh bìa và Nhãn nội dung vào đó. */
+  const [dock, setDock] = useState<HTMLElement | null>(null);
   const index = Math.min(active, Math.max(0, scenes.length - 1));
   const scene = scenes[index];
   const sideRef = useRiseIn<HTMLDivElement>(".ck, .prep-scene", [scenes.length ? 1 : 0], { delay: 35, distance: 10 });
@@ -66,18 +70,21 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
   const statusText = m
     ? m.isReady ? ""
       : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi tick ô xác nhận và bấm nút bên dưới."
+      : mediaCanRetry(m) ? ""
       : "Đang tạo, bạn có thể rời màn hình này."
     : media.error ?? "Đang kiểm tra…";
 
   return (
     <>
       <div className="center">
+        {m && mediaCanRetry(m) && <button className="btn btn-p studio-retry-corner" disabled={busy} onClick={onRetry}><RefreshCw className="ic" />Thử lại</button>}
         <div className="board">
+          <div className="board-stack">
           {scenes.length > 0 ? (
             <div className="artwrap">
               {preview.error && <p className="notice err" role="alert">{preview.error}</p>}
               <StudioScenePreview key={`${storyId}:${preview.pack?.packageRevision}:${scene?.sceneId}:${scene?.illustrations.map((x) => x.url).join("|")}`}
-                scene={scene} text={scene?.text ?? ""} loading={preview.loading} onReload={reload} actions={sceneActions} />
+                scene={scene} text={scene?.text ?? ""} loading={preview.loading} onReload={reload} actions={sceneActions} generating={!!m && mediaIsGenerating(m)} />
             </div>
           ) : (
             // Chưa có cảnh: khối chờ ở giữa (không dùng khung cảnh vì nó co hẹp và nhãn bị chồng lên chữ).
@@ -88,6 +95,9 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
               {!preview.loading && <button className="btn btn-s" onClick={reload}><RefreshCw className="ic" />Tải lại</button>}
             </div>
           )}
+          {/* Khung Ảnh bìa và Nhãn nội dung của phần Phát hành nằm ngay dưới cảnh, cùng kiểu khung với chữ truyện (rỗng thì ẩn). */}
+          <div className="center-dock" ref={setDock} />
+          </div>
         </div>
       </div>
 
@@ -96,7 +106,6 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
           {statusText && <p role="status">{statusText}</p>}
           {mp.note && <p className="notice" role="status">{mp.note}</p>}
           {mp.uncertain && <p className="notice warn" role="status">Chưa rõ kết quả thao tác. Hãy tải lại ảnh và giọng đọc rồi mới thử lại.</p>}
-          {m?.errorCode && <button className="btn btn-s" disabled={busy} onClick={onRetry}><RefreshCw className="ic" />Thử lại</button>}
           <div className="studio-completion">
             {c.note && <p className="notice" role="status">{c.note}</p>}
             {c.canConfirm && <>
@@ -137,7 +146,7 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
             </div>
           </section>
         )}
-        {children}
+        <PublicationDock.Provider value={dock}>{children}</PublicationDock.Provider>
       </AsidePane>
     </>
   );

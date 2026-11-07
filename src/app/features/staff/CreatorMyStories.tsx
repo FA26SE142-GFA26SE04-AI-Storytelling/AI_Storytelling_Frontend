@@ -3,10 +3,10 @@
 import "@/app/features/library/library.css";
 import "@/app/features/created/created.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, ImagePlus, Info, PencilLine, RefreshCw, Undo2, WandSparkles } from "lucide-react";
+import { Eye, Info, PencilLine, RefreshCw, Undo2, WandSparkles } from "lucide-react";
 import CreatorPreview from "./CreatorPreview";
 import RemovalRequestDialog from "./RemovalRequestDialog";
-import CoverPickerDialog from "@/app/features/created/CoverPickerDialog";
+import { REVIEW } from "./CreatorPublication";
 import { creatorPublicationService } from "@/app/services/creatorPublicationService";
 import type { CreatorPublicationStatus } from "@/app/types/backendContracts";
 import Select from "@/app/components/Select";
@@ -23,6 +23,8 @@ const AGE: Record<string, string> = { "6-8": "6–8 tuổi", "9-10": "9–10 tu�
 const MODE: Record<string, string> = { reading: "Đọc", listening: "Nghe", combined: "Đọc và nghe" };
 const isAi = (s: CreatorDraft) => s.source?.toLowerCase() === "ai";
 const SHORT: Record<string, string> = { draft: "Đang soạn", review: "Đang duyệt", ready: "Sẵn sàng", archived: "Lưu trữ" };
+/** Màu nhãn theo trạng thái Moderator duyệt phiên bản hiện tại. */
+const REVIEW_TONE: Record<string, string> = { None: "draft", Pending: "wait", Approved: "ok", ChangesRequested: "wait", Rejected: "flag", Withdrawn: "draft" };
 const SOURCES = [{ id: "all", label: "Tất cả" }, { id: "ai", label: "Do AI tạo" }, { id: "manual", label: "Thủ công" }];
 
 /** Trang "Truyện của tôi" của Content Creator: mọi truyện đã tạo (AI và thủ công), lọc theo trạng thái, xem chi tiết rồi mở soạn tiếp. */
@@ -34,7 +36,6 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
   const [source, setSource] = useState("all");
   const [selected, setSelected] = useState<number | null>(null);
   const [reading, setReading] = useState(false);
-  const [picking, setPicking] = useState(false);
   const [removing, setRemoving] = useState(false);
   /** Trạng thái phát hành của truyện đang chọn (đã công khai / đang chờ duyệt) để biết có khóa đổi ảnh bìa không. */
   const [pub, setPub] = useState<CreatorPublicationStatus | null>(null);
@@ -67,8 +68,6 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
     void creatorPublicationService.status(selected, c.signal).then((r) => { if (!c.signal.aborted && r.success) setPub(r.data ?? null); }).catch(() => undefined);
     return () => c.abort();
   }, [selected, pubTick]);
-  // Truyện đã được gỡ (không công khai, không có mục duyệt mở) vẫn đổi được ảnh bìa mà không cần tạo phiên bản mới.
-  const locked = !!pub && (pub.isPublished || !!pub.openItemId);
   const canRemove = !!pub && pub.isPublished && !pub.openItemId;
   const open = (s: CreatorDraft) => go(isAi(s) ? "create-ai" : "create-manual", s.storyId);
 
@@ -132,17 +131,16 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
                 <span>Tạo lúc</span><b>{fmt(sel.createdAt)}</b>
                 {sel.updatedAt && <><span>Cập nhật</span><b>{fmt(sel.updatedAt)}</b></>}
                 <span>Trạng thái</span><span className="pill draft" style={{ width: "fit-content" }}>{SHELVES.find((g) => g.id === shelfOf(sel))?.title}</span>
+                <span>Kiểm duyệt</span>{pub ? <span className={`pill ${REVIEW_TONE[pub.reviewStatus] ?? "draft"}`} style={{ width: "fit-content" }}>{REVIEW[pub.reviewStatus] ?? pub.reviewStatus}</span> : <b>…</b>}
                 <span>Công khai</span>{pub ? <span className={`pill ${pub.isPublished ? "ok" : "flag"}`} style={{ width: "fit-content" }}>{pub.isPublished ? "Đã công khai" : "Chưa công khai"}</span> : <b>…</b>}
               </div>
               <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
-              <button className="btn btn-s btn-c" disabled={locked} onClick={() => setPicking(true)}><ImagePlus className="ic" />Ảnh bìa</button>
               {canRemove && <button className="btn btn-no btn-c" onClick={() => setRemoving(true)}><Undo2 className="ic" />Yêu cầu gỡ</button>}
               <button className="btn btn-p btn-c" onClick={() => open(sel)}>{isAi(sel) ? <WandSparkles className="ic" /> : <PencilLine className="ic" />}Mở để soạn tiếp</button>
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
         </AsidePane>
         {sel && removing && <RemovalRequestDialog storyId={sel.storyId} title={sel.title} onClose={() => setRemoving(false)} onDone={() => setPubTick((n) => n + 1)} />}
-        {sel && picking && <CoverPickerDialog key={sel.storyId} storyId={sel.storyId} cover={sel.coverImageUrl} onClose={() => setPicking(false)} onSaved={() => void load()} />}
         {sel && reading && <CreatorPreview story={sel} onClose={() => setReading(false)} />}
       </section>
     </AsideContext.Provider>

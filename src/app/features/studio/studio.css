@@ -47,6 +47,22 @@
 .studio-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
 .studio-actions:empty { display: none; }
 .studio-actions p { margin: 0; font-size: var(--fs-md); }
+/* Cảnh và các khung phát hành xếp dọc trong cùng vùng cuộn của khung giữa. */
+.board-stack { width: 100%; max-width: 1040px; display: flex; flex-direction: column; align-items: center; gap: 24px; margin: auto; }
+/* Khung Ảnh bìa và Nhãn nội dung của phần Phát hành (rỗng thì ẩn), cùng kiểu khung với chữ truyện. */
+.center-dock { width: 100%; display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 24px; align-items: stretch; }
+.center-dock:empty { display: none; }
+.center-dock .pa-cover, .center-dock .pa-labels { padding: 14px 18px 16px; background: color-mix(in srgb, var(--surface) 82%, transparent); border: 1px solid var(--line-2); border-radius: 16px; }
+/* Khung Ảnh bìa lúc thu gọn: ảnh xem trước lớn ở giữa, nút nằm dưới và vừa bề ngang khung, không để trống bên cạnh. */
+.center-dock .pa-cover:not(.expanded) .edit-story-cover { flex-direction: column; align-items: stretch; gap: 14px; }
+.center-dock .pa-cover:not(.expanded) .edit-story-cover-preview { width: min(190px, 100%); align-self: center; }
+.center-dock .pa-cover:not(.expanded) .edit-story-cover .btn { justify-content: center; }
+/* Đang chọn ảnh bìa: khung Ảnh bìa mở rộng hết bề ngang, khung Nhãn xuống hàng dưới. */
+.center-dock .pa-cover.expanded { grid-column: 1 / -1; }
+.center-dock:has(.pa-cover.expanded) .pa-labels { grid-column: 1 / -1; }
+@media (max-width: 760px) { .center-dock { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+/* Nút Thử lại khi việc tạo media đã dừng vì lỗi: nằm ở góc khung chính. */
+.studio-retry-corner { position: absolute; top: 14px; right: 14px; z-index: 3; box-shadow: 0 8px 20px -12px color-mix(in srgb, var(--shadow) 70%, transparent); }
 .studio-completion { flex-basis: 100%; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .studio-completion .notice { flex-basis: 100%; }
 .studio-completion .row { flex: 1 1 260px; }
@@ -299,3 +315,8 @@
 .studio-scene-controls .studio-audio-row audio { flex: 1 1 auto; min-width: 0; width: auto; }
 .studio-scene-controls .studio-audio-row .icon-only { flex: none; }
 .studio-reload { display: flex; justify-content: flex-end; }
+
+/* Đang vẽ tranh / tạo giọng đọc: con ếch ngồi chờ ở giữa khung tranh và cạnh hàng giọng đọc. */
+.studio-media-wait { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); }
+.studio-media-wait b { font-size: var(--fs-lg); }
+.studio-audio-wait { display: flex; align-items: center; gap: 10px; color: var(--muted); }

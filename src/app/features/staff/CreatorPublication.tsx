@@ -1,5 +1,7 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
+import { usePop } from '@/app/lib/motion';
 import { creatorPublicationService as service } from '@/app/services/creatorPublicationService';
 import type * as B from '@/app/types/backendContracts';
 import { useAuth } from '@/app/context/AuthContext';
@@ -7,14 +9,17 @@ import type { ApiResponse } from '@/app/types/auth';
 import { confirmDialog } from "@/app/lib/confirm";
 import { Check, ImagePlus } from 'lucide-react';
 import '@/app/features/created/created.css';
-import CoverPickerDialog from '@/app/features/created/CoverPickerDialog';
+import CoverPickerDialog, { CoverPickerPanel, prefetchCoverPictures } from '@/app/features/created/CoverPickerDialog';
 import { creatorService } from '@/app/services/creatorService';
 import { coverFor } from '@/app/lib/storyView';
 import { staffService } from '@/app/services/staffService';
 import type { ContentCategory } from '@/app/types/childProfile';
 
+/** Ngăn ở khung giữa (màn Tranh & giọng đọc) để vẽ khung Ảnh bìa và Nhãn nội dung; không có thì hai khung nằm ngay trong phần Phát hành. */
+export const PublicationDock = createContext<HTMLElement | null>(null);
+
 /** Trạng thái duyệt của backend là chuỗi tiếng Anh; dịch các giá trị đã biết, giá trị lạ giữ nguyên. */
-const REVIEW: Record<string, string> = {
+export const REVIEW: Record<string, string> = {
   None: 'Chưa gửi duyệt', Pending: 'Đang chờ Moderator duyệt', Approved: 'Đã được duyệt', Rejected: 'Bị từ chối', ChangesRequested: 'Moderator yêu cầu sửa', Withdrawn: 'Đã rút yêu cầu',
 };
 const OPEN_ITEM: Record<string, string> = { Pending: 'đang chờ Moderator nhận', Claimed: 'Moderator đang xem xét', Approved: 'đã duyệt', Rejected: 'bị từ chối' };
@@ -54,6 +59,12 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     void creatorService.get(storyId).then(r => { if (alive && r.ok) setCover(r.data?.coverImageUrl ?? null); });
     return () => { alive = false; };
   }, [storyId, versionId, coverTick]);
+  const dock = useContext(PublicationDock);
+  // Chọn ảnh bìa: khung Ảnh bìa mở rộng ngay tại chỗ (chỉ khi có ngăn ở khung giữa; không có thì dùng popup) kèm hiệu ứng bật ra.
+  // Lưu xong thì hiện bìa mới ngay, rồi mới tải lại bản đã ký từ backend.
+  const onCoverSaved = (next?: string | null) => { if (next !== undefined) setCover(next); setCoverTick(n => n + 1); };
+  const expandCover = pickingCover && !!dock;
+  const coverRef = usePop<HTMLDivElement>(expandCover, 0.96);
   const scope = useRef(Symbol());
   const knownSubmitted = useRef<number | null>(null);
   const [submittedVersion,setSubmittedVersion] = useState<number | null>(null);
@@ -128,6 +139,28 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     : status.reviewStatus !== 'None' ? 'Bản này đã từng được gửi duyệt. Muốn gửi lại, hãy tạo phiên bản chỉnh sửa mới.'
     : null;
 
+  // Hai khung Ảnh bìa và Nhãn nội dung: vẽ vào ngăn ở khung giữa nếu có, không thì ngay trong phần Phát hành.
+  const pickers = canSubmit ? <>
+  <div ref={coverRef} className={`pa-cover${expandCover ? ' expanded' : ''}`} role="group" aria-label="Ảnh bìa">
+          {expandCover
+            ? <CoverPickerPanel inline storyId={storyId} cover={cover} onClose={() => setPickingCover(false)} onSaved={onCoverSaved} />
+            : <>
+              <b>Ảnh bìa</b>
+              <div className="edit-story-cover">
+                <div className="edit-story-cover-preview" role="img" aria-label="Ảnh bìa hiện tại" style={{ background: coverFor(cover) }} />
+                <button type="button" className="btn btn-s" disabled={busy} onPointerEnter={() => prefetchCoverPictures(storyId)} onFocus={() => prefetchCoverPictures(storyId)} onClick={() => setPickingCover(true)}><ImagePlus className="ic" />{cover ? 'Đổi ảnh bìa' : 'Chọn ảnh bìa'}</button>
+              </div>
+              {cover === null && <span className="notice warn" role="status" data-inline-notice>Cần chọn ảnh bìa từ tranh trong truyện trước khi gửi duyệt.</span>}
+            </>}
+        </div>
+        <div className="pa-labels" role="group" aria-label="Nhãn nội dung">
+          <b>Nhãn nội dung</b>
+          {!categories ? <span role="status">Đang tải nhãn…</span>
+            : categories.length === 0 ? <span>Chưa có nhãn nào để chọn. Hãy liên hệ quản trị viên.</span>
+            : <div className="pa-label-chips">{categories.map(c => <button type="button" key={c.id} className={`pa-label-chip${labelIds.includes(c.id) ? ' on' : ''}`} aria-pressed={labelIds.includes(c.id)} disabled={busy} onClick={() => toggleLabel(c.id)}>{labelIds.includes(c.id) && <Check className="ic" aria-hidden="true" />}{c.displayName}</button>)}</div>}
+        </div>
+  </> : null;
+
   // Ẩn phần giao diện ở các bước trước media (vẫn chạy ở trên để tính trạng thái khóa chỉnh sửa cho màn cha).
   if (hidden) return null;
   return <section className="pa-card" aria-label="Phát hành"><div className="pa-head"><h3><span className="pa-num">3</span>Phát hành truyện</h3></div>
@@ -149,20 +182,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     <div className="pa-step">
       <b>Gửi duyệt công khai</b>
       {blocker && <p className="sub">{blocker}</p>}
-      {canSubmit && <div className="pa-cover" role="group" aria-label="Ảnh bìa">
-        <b>Ảnh bìa</b>
-        <div className="edit-story-cover">
-          <div className="edit-story-cover-preview" role="img" aria-label="Ảnh bìa hiện tại" style={{ background: coverFor(cover) }} />
-          <button type="button" className="btn btn-s" disabled={busy} onClick={() => setPickingCover(true)}><ImagePlus className="ic" />{cover ? 'Đổi ảnh bìa' : 'Chọn ảnh bìa'}</button>
-        </div>
-        {cover === null && <span className="notice warn" role="status" data-inline-notice>Cần chọn ảnh bìa từ tranh trong truyện trước khi gửi duyệt.</span>}
-      </div>}
-      {canSubmit && <div className="pa-labels" role="group" aria-label="Nhãn nội dung">
-        <b>Nhãn nội dung</b>
-        {!categories ? <span role="status">Đang tải nhãn…</span>
-          : categories.length === 0 ? <span>Chưa có nhãn nào để chọn. Hãy liên hệ quản trị viên.</span>
-          : <div className="pa-label-chips">{categories.map(c => <button type="button" key={c.id} className={`pa-label-chip${labelIds.includes(c.id) ? ' on' : ''}`} aria-pressed={labelIds.includes(c.id)} disabled={busy} onClick={() => toggleLabel(c.id)}>{labelIds.includes(c.id) && <Check className="ic" aria-hidden="true" />}{c.displayName}</button>)}</div>}
-      </div>}
+      {!dock && pickers}
       <div className="pa-actions">
         {canSubmit && <button className="btn btn-p" disabled={busy || !cover || labelIds.length === 0 || sameAsReturned} title={!cover ? 'Chọn ảnh bìa trước khi gửi' : labelIds.length === 0 ? 'Chọn ít nhất một nhãn nội dung trước khi gửi' : sameAsReturned ? 'Hãy thay đổi bộ nhãn so với lần bị trả về' : undefined} onClick={() => void act(() => service.submit(storyId, status!.versionId, labelIds))}>{labelsOnlyReturn ? 'Gửi lại với nhãn mới' : 'Gửi bản hiện tại cho Moderator'}</button>}
         {pendingReview && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Rút yêu cầu duyệt? Lượt đăng bài sẽ được hoàn lại nếu yêu cầu còn chờ duyệt."))) return; void act(() => service.withdraw(status!.openItemId!)); }}>Rút yêu cầu duyệt</button>}
@@ -171,7 +191,9 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
       </div>
     </div>
 
-    {pickingCover && <CoverPickerDialog storyId={storyId} cover={cover} onClose={() => setPickingCover(false)} onSaved={() => setCoverTick(n => n + 1)} />}
+    {dock && pickers && createPortal(pickers, dock)}
+    {/* Không có ngăn ở khung giữa (soạn thủ công…) thì chọn ảnh bìa bằng popup. */}
+    {pickingCover && !dock && <CoverPickerDialog storyId={storyId} cover={cover} onClose={() => setPickingCover(false)} onSaved={onCoverSaved} />}
     {status?.isPublished && !status.openItemId && <div className="pa-step">
       <b>Yêu cầu gỡ để chỉnh sửa</b>
       <p className="sub">Truyện đang công khai nên không sửa trực tiếp được. Gỡ xuống, sửa rồi gửi duyệt lại.</p>
