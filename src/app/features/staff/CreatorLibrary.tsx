@@ -41,7 +41,7 @@ function BookCard({ story, rank, on, onPick, published }: { story: CreatorDraft;
   const label = `${SHELVES.find((g) => g.id === shelfOf(story))?.title}${shelfOf(story) === "ready" && !published ? " · chưa công khai" : ""}`;
   return (
     <button className={`bk${on ? " on" : ""}`} onClick={onPick} aria-pressed={on}>
-      <span className="bk-cover" style={{ background: coverFor() }}>
+      <span className="bk-cover" style={{ background: coverFor(story.coverImageUrl) }}>
         {!ready ? <span className="pill draft bk-badge">{label}</span> : isNew(story) && <span className="bk-badge bk-new">Mới</span>}
         <span className="bk-name display">{name}</span>
         {rank !== undefined && <span className="bk-rank display" aria-hidden>{rank}</span>}
@@ -216,7 +216,7 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
         <AsidePane title="Chi tiết" icon={Info}>
           {sel ? (
             <>
-              <div className="cover cover-portrait" style={{ background: coverFor() }} />
+              <div className="cover cover-portrait" style={{ background: coverFor(sel.coverImageUrl) }} />
               <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
               {sel.description && <p className="sub">{sel.description}</p>}
               <div className="meta">

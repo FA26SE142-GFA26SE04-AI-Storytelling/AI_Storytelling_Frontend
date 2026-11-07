@@ -31,7 +31,8 @@ export default function EditStoryDialog({ story, saving, onSave, onClose }: {
   const src = v.cover.trim();
   const cover = joinCover(src, crop);
   const dirty = v.title.trim() !== initial.title.trim() || v.description.trim() !== initial.description.trim() || v.genre !== initial.genre || cover !== initial.cover;
-  const coverMsg = coverError(cover) || (src && badCover === src ? "Không mở được ảnh từ đường dẫn này. Hãy dán link trực tiếp tới file ảnh (.jpg, .png, .webp…)." : "");
+  // Ảnh bìa chọn từ tranh trong truyện là link đã ký (dài hơn 500 ký tự): chỉ kiểm tra khi người dùng tự đổi đường dẫn.
+  const coverMsg = (cover !== initial.cover && coverError(cover)) || (src && badCover === src ? "Không mở được ảnh từ đường dẫn này. Hãy dán link trực tiếp tới file ảnh (.jpg, .png, .webp…)." : "");
   // Backend yêu cầu tên truyện từ 3 đến 200 ký tự.
   const valid = v.title.trim().length >= 3 && !coverMsg;
   return (

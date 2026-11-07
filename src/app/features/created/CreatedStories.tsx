@@ -3,7 +3,7 @@
 import "@/app/features/library/library.css";
 import "./created.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, Info, PencilLine, RefreshCw, SquarePen, Trash2, WandSparkles } from "lucide-react";
+import { Eye, ImagePlus, Info, PencilLine, RefreshCw, SquarePen, Trash2, WandSparkles } from "lucide-react";
 import { confirmDialog } from "@/app/lib/confirm";
 import Select from "@/app/components/Select";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
@@ -16,6 +16,7 @@ import { parentAuthoringService } from "@/app/services/parentAuthoringService";
 import { Preview } from "@/app/features/library/LibraryWorkspace";
 import { showToast } from "@/app/lib/toast";
 import EditStoryDialog, { type StoryInfoEdit } from "./EditStoryDialog";
+import CoverPickerDialog from "./CoverPickerDialog";
 import { ageLabel, familyToCard, statusKey, toCard, type StoryCard } from "@/app/lib/storyView";
 
 /** Nhóm trạng thái hiển thị trên trang: gom các trạng thái chi tiết của backend thành vài nhóm dễ hiểu. */
@@ -91,6 +92,7 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
 
   // Sửa thông tin chung (tên, mô tả, thể loại): backend chỉ cho sửa truyện AI của chính phụ huynh.
   const [editing, setEditing] = useState(false);
+  const [picking, setPicking] = useState(false);
   const [saving, setSaving] = useState(false);
   const canEdit = (s: StoryCard) => !s.family;
   const saveInfo = async (s: StoryCard, v: StoryInfoEdit) => {
@@ -176,12 +178,14 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
             </div>
             <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
             {canEdit(sel) && <button className="btn btn-s btn-c" onClick={() => setEditing(true)}><SquarePen className="ic" />Sửa thông tin</button>}
+            <button className="btn btn-s btn-c" onClick={() => setPicking(true)}><ImagePlus className="ic" />Ảnh bìa</button>
             <button className="btn btn-p btn-c" onClick={() => open(sel)}>{sel.family ? <PencilLine className="ic" /> : <WandSparkles className="ic" />}Mở để soạn tiếp</button>
             {canDelete(sel) && <button className="btn btn-no btn-c" disabled={deleting} onClick={() => void remove(sel)}><Trash2 className="ic" />{deleting ? "Đang xóa…" : "Xóa truyện"}</button>}
           </>
         ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
       </AsidePane>
       {sel && editing && canEdit(sel) && <EditStoryDialog key={sel.id} story={sel.raw} saving={saving} onSave={(v) => void saveInfo(sel, v)} onClose={() => setEditing(false)} />}
+      {sel && picking && <CoverPickerDialog key={sel.id} storyId={sel.id} cover={sel.raw.coverImageUrl} onClose={() => setPicking(false)} onSaved={() => void load()} />}
       {sel && reading && <Preview story={sel} onClose={() => setReading(false)} />}
     </section>
     </AsideContext.Provider>

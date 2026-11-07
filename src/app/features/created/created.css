@@ -49,4 +49,12 @@
 .cover-cropper-frame:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 .cover-cropper-zoom { display: flex; align-items: center; gap: 10px; }
 .cover-cropper-zoom input { flex: 1; accent-color: var(--primary-strong); }
+/* Lưới chọn ảnh bìa từ tranh trong truyện. */
+.cover-pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; max-height: 220px; overflow-y: auto; padding: 4px; }
+.cover-pick { padding: 0; border: 2px solid var(--line-2); border-radius: 12px; overflow: hidden; background: var(--surface-2); cursor: pointer; line-height: 0; transition: transform .15s ease, border-color .15s ease, box-shadow .15s ease; }
+.cover-pick img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; }
+.cover-pick:hover { transform: translateY(-2px); }
+.cover-pick.on { border-color: var(--primary-strong); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 30%, transparent); }
+.cover-pick:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .cover-pick { transition: none; } .cover-pick:hover { transform: none; } }
 @media (max-width: 520px) { .edit-story-cover { flex-direction: column; } }

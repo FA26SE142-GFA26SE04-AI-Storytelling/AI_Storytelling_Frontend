@@ -32,6 +32,17 @@ export const storyService = {
     return apiRequest(`/Story/community${query ? `?${query}` : ''}`, 'Không tải được thư viện cộng đồng.');
   },
 
+  /**
+   * `PUT /stories/{id}/media/cover`: chọn một ảnh minh họa của chính truyện làm ảnh bìa (tác giả, hoặc phụ huynh chủ truyện).
+   * `mediaAssetId = null` là gỡ ảnh bìa. `crop` là vùng hiển thị (0–1 so với cả tấm ảnh). Truyện Creator đã công khai thì backend từ chối (409).
+   */
+  setCover(id: number, mediaAssetId: number | null, crop?: { x: number; y: number; w: number; h: number } | null): Promise<ApiResponse<null>> {
+    return apiRequest(`/stories/${id}/media/cover`, 'Không lưu được ảnh bìa.', {
+      method: 'PUT',
+      body: mediaAssetId === null ? { mediaAssetId: null } : { mediaAssetId, ...(crop ? { x: crop.x, y: crop.y, w: crop.w, h: crop.h } : {}) },
+    });
+  },
+
   /** `GET /Story/community/{id}/media`: ảnh minh họa và giọng đọc (chỉ đọc) của truyện Creator đã công khai. */
   getCommunityStoryMedia(id: number, signal?: AbortSignal): Promise<ApiResponse<StoryMediaPackage>> {
     return apiRequest(`/Story/community/${id}/media`, 'Không tải được tranh và giọng đọc.', { signal });

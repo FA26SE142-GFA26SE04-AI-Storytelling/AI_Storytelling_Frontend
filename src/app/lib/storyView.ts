@@ -110,8 +110,8 @@ export function toCard(s: StoryDto): StoryCard {
 }
 
 /** Bản nháp tự soạn (GET /parent/stories) đổi sang thẻ truyện để hiện chung trong Thư viện. */
-export function familyToCard(d: { storyId: number; authorUserId: number; title: string; description: string; language: string; ageBand: string; genre: string; createdAt: string; updatedAt: string | null; source: string; status: string }): StoryCard {
-  const card = toCard({ id: d.storyId, title: d.title, description: d.description, genre: d.genre, ageBand: d.ageBand, language: d.language, source: d.source || "Manual", status: d.status, isPublished: false, authorUserId: d.authorUserId, authorName: null, createdAt: d.createdAt, updatedAt: d.updatedAt });
+export function familyToCard(d: { storyId: number; authorUserId: number; title: string; description: string; language: string; ageBand: string; genre: string; createdAt: string; updatedAt: string | null; source: string; status: string; coverImageUrl?: string | null }): StoryCard {
+  const card = toCard({ id: d.storyId, title: d.title, description: d.description, genre: d.genre, coverImageUrl: d.coverImageUrl, ageBand: d.ageBand, language: d.language, source: d.source || "Manual", status: d.status, isPublished: false, authorUserId: d.authorUserId, authorName: null, createdAt: d.createdAt, updatedAt: d.updatedAt });
   return { ...card, family: true, fromAi: false };
 }
 

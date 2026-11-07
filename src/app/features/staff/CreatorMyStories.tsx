@@ -3,8 +3,9 @@
 import "@/app/features/library/library.css";
 import "@/app/features/created/created.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Eye, Info, PencilLine, RefreshCw, WandSparkles } from "lucide-react";
+import { Eye, ImagePlus, Info, PencilLine, RefreshCw, WandSparkles } from "lucide-react";
 import CreatorPreview from "./CreatorPreview";
+import CoverPickerDialog from "@/app/features/created/CoverPickerDialog";
 import Select from "@/app/components/Select";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import Frog from "@/app/components/brand/Frog";
@@ -30,6 +31,7 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
   const [source, setSource] = useState("all");
   const [selected, setSelected] = useState<number | null>(null);
   const [reading, setReading] = useState(false);
+  const [picking, setPicking] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
   const aside = useMemo(() => ({ collapsed, toggle: () => setCollapsed((v) => !v) }), [collapsed]);
 
@@ -79,7 +81,7 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
                 const name = s.title || "Truyện chưa đặt tên";
                 return (
                   <button className={`bk${selected === s.storyId ? " on" : ""}`} key={s.storyId} onClick={() => pick(s)} aria-pressed={selected === s.storyId} aria-label={`Xem chi tiết truyện ${name}`}>
-                    <span className="bk-cover" style={{ background: coverFor() }}>
+                    <span className="bk-cover" style={{ background: coverFor(s.coverImageUrl) }}>
                       <span className="pill draft bk-badge">{SHELVES.find((g) => g.id === shelfOf(s))?.title}</span>
                       <span className="bk-name display">{name}</span>
                     </span>
@@ -101,7 +103,7 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
         <AsidePane title="Chi tiết" icon={Info}>
           {sel ? (
             <>
-              <div className="cover cover-portrait" style={{ background: coverFor() }} />
+              <div className="cover cover-portrait" style={{ background: coverFor(sel.coverImageUrl) }} />
               <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
               {sel.description && <p className="sub">{sel.description}</p>}
               <div className="meta">
@@ -115,10 +117,12 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
                 <span>Trạng thái</span><span className="pill draft" style={{ width: "fit-content" }}>{SHELVES.find((g) => g.id === shelfOf(sel))?.title}</span>
               </div>
               <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
+              <button className="btn btn-s btn-c" onClick={() => setPicking(true)}><ImagePlus className="ic" />Ảnh bìa</button>
               <button className="btn btn-p btn-c" onClick={() => open(sel)}>{isAi(sel) ? <WandSparkles className="ic" /> : <PencilLine className="ic" />}Mở để soạn tiếp</button>
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
         </AsidePane>
+        {sel && picking && <CoverPickerDialog key={sel.storyId} storyId={sel.storyId} cover={sel.coverImageUrl} onClose={() => setPicking(false)} onSaved={() => void load()} />}
         {sel && reading && <CreatorPreview story={sel} onClose={() => setReading(false)} />}
       </section>
     </AsideContext.Provider>

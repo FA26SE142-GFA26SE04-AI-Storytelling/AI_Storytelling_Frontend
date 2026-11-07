@@ -19,6 +19,8 @@ export interface CreatorDraft {
   /** ID phiên bản hiện tại (null khi chưa lưu lần nào); gửi làm `baseVersionId`. */
   selectedVersionId: number | null;
   lastVersionNo: number;
+  /** Ảnh bìa đã ký (có thể kèm `#crop=`); null khi chưa chọn. */
+  coverImageUrl?: string | null;
   createdAt: string;
   updatedAt: string | null;
   /** "Manual" hoặc "Ai". */
