@@ -95,10 +95,10 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
   const canEdit = (s: StoryCard) => !s.family;
   const saveInfo = async (s: StoryCard, v: StoryInfoEdit) => {
     if (saving) return;
-    setSaving(true); setError("");
+    setSaving(true);
     const r = await storyService.updateStoryInfo(s.raw, v);
     setSaving(false);
-    if (!r.success) { setError(r.message || "Không lưu được thông tin truyện."); return; }
+    if (!r.success) { showToast(r.message || "Không lưu được thông tin truyện.", "err"); return; }
     setEditing(false); showToast("Đã lưu thông tin truyện.");
     await load();
   };
@@ -108,11 +108,11 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
   const canDelete = (s: StoryCard) => !s.family && !["media_processing", "published"].includes(statusKey(s.raw));
   const remove = async (s: StoryCard) => {
     if (deleting || !(await confirmDialog(`Xóa truyện "${s.title || "chưa đặt tên"}"? Truyện sẽ biến mất khỏi danh sách và Thư viện. Bạn không hoàn tác được thao tác này.`))) return;
-    setDeleting(true); setError("");
+    setDeleting(true);
     const r = await storyService.deleteStory(s.id);
     setDeleting(false);
-    if (!r.success) { setError(r.message || "Không xóa được truyện."); return; }
-    setSelected(null); setReading(false);
+    if (!r.success) { showToast(r.message || "Không xóa được truyện.", "err"); return; }
+    setSelected(null); setReading(false); showToast("Đã xóa truyện.");
     await load();
   };
 

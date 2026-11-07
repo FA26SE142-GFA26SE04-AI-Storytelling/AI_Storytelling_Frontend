@@ -21,6 +21,16 @@ export const storyService = {
     return apiRequest(`/Story${query ? `?${query}` : ''}`, 'Không tải được danh sách truyện.');
   },
 
+  /** `GET /Story/community`: truyện của Creator đã được duyệt và công khai, cho mọi vai trò đăng nhập (User, Creator, Moderator, Admin). */
+  getCommunityStories(filter: StoryFilterRequest = {}): Promise<ApiResponse<PagedResult<StoryDto>>> {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(filter)) {
+      if (value !== undefined && value !== null && value !== '') params.append(key, String(value));
+    }
+    const query = params.toString();
+    return apiRequest(`/Story/community${query ? `?${query}` : ''}`, 'Không tải được thư viện cộng đồng.');
+  },
+
   getStoryById(id: number, signal?: AbortSignal): Promise<ApiResponse<StoryDto>> {
     return apiRequest(`/Story/${id}`, 'Không tìm thấy truyện.', {signal});
   },

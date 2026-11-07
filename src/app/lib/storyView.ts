@@ -19,6 +19,8 @@ export type StoryCard = {
   raw: StoryDto;
   /** Truyện tự soạn (trang "Thủ công"): chỉ mở và sửa qua API /parent/stories. */
   family?: boolean;
+  /** Truyện của Creator đã duyệt, lấy từ GET /Story/community. */
+  creator?: boolean;
 };
 
 /** Ảnh bìa mẫu dùng chung cho mọi truyện chưa có ảnh bìa (public/default-cover.svg). */

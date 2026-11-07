@@ -220,9 +220,9 @@ export function ShelfRow({ children }: { children: React.ReactNode }) {
   );
 }
 
-const SOURCE_PILLS = [{ id: "all", label: "Tất cả" }, { id: "ai", label: "Do AI tạo" }, { id: "manual", label: "Nhập sẵn" }, { id: "family", label: "Tự soạn" }];
-const sourceOf = (s: StoryCard) => (s.family ? "family" : s.fromAi ? "ai" : "manual");
-const SOURCE_LABEL: Record<string, string> = { ai: "Do AI tạo", manual: "Nhập sẵn", family: "Tự soạn gia đình" };
+const SOURCE_PILLS = [{ id: "all", label: "Tất cả" }, { id: "creator", label: "Của creator" }, { id: "ai", label: "Do AI tạo" }, { id: "manual", label: "Nhập sẵn" }, { id: "family", label: "Tự soạn" }];
+const sourceOf = (s: StoryCard) => (s.creator ? "creator" : s.family ? "family" : s.fromAi ? "ai" : "manual");
+const SOURCE_LABEL: Record<string, string> = { creator: "Của creator", ai: "Do AI tạo", manual: "Nhập sẵn", family: "Tự soạn gia đình" };
 
 export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const { user } = useAuth();
@@ -233,6 +233,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const loadPublic = useCallback(async () => {
     setStoriesLoading(true);
     const all: StoryDto[] = [];
+    const creatorIds = new Set<number>();
     let message: string | null = null;
     // Mỗi trang tối đa 100 truyện (giới hạn của backend) nên tải lần lượt tới hết.
     for (let pageIndex = 1; pageIndex <= 50; pageIndex++) {
@@ -242,7 +243,16 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
       all.push(...items);
       if (items.length === 0 || all.length >= (res.data?.totalCount ?? 0)) break;
     }
-    setPub(all.map(toCard));
+    // Truyện của Creator đã duyệt nằm ở API riêng (GET /Story/community), gộp vào thư viện chung.
+    for (let pageIndex = 1; pageIndex <= 50; pageIndex++) {
+      const res = await storyService.getCommunityStories({ pageIndex, pageSize: 100, isDescending: true });
+      if (!res.success) { message = message ?? res.message; break; }
+      const items = res.data?.items ?? [];
+      items.forEach((s) => creatorIds.add(s.id));
+      all.push(...items.filter((s) => !all.some((x) => x.id === s.id)));
+      if (items.length === 0 || !res.data?.hasNextPage) break;
+    }
+    setPub(all.map((s) => (creatorIds.has(s.id) ? { ...toCard(s), creator: true } : toCard(s))));
     setError(message);
     setStoriesLoading(false);
   }, []);
