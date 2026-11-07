@@ -3,7 +3,7 @@ import { authoringGuideManagementService as guides } from '@/app/services/author
 import { aiStoryCreationService as media } from '@/app/services/aiStoryCreationService';
 import { parentAuthoringService as parent } from '@/app/services/parentAuthoringService';
 import { authService } from '@/app/services/authService';
-import { mediaMutationSnapshot, mediaNeedsPolling } from '@/app/features/story-workflow/mediaPackage';
+import { mediaCanRetry, mediaIsGenerating, mediaKeepPolling, mediaMutationSnapshot, mediaNeedsPolling } from '@/app/features/story-workflow/mediaPackage';
 import { snapshotStage } from '@/app/features/story-workflow/generationSnapshot';
 import { isMediaStage, contentDestination } from '@/app/features/story-workflow/storyGenerationFlow';
 import type { ContentGenerationProgressDto, MediaProgressDto, StoryMediaPackage } from '@/app/types/aiStory';
@@ -68,6 +68,14 @@ describe('Current controller contracts', () => {
     expect(contentDestination(generation)).toBe('media'); expect(isMediaStage('MediaReview')).toBe(true);
     expect(mediaNeedsPolling({isReady:false,isAwaitingConfirmation:true,jobStatus:'Completed'} as MediaProgressDto)).toBe(false);
     expect(mediaNeedsPolling({isReady:false,isAwaitingConfirmation:false,jobStatus:'Running'} as MediaProgressDto)).toBe(true);
+  });
+  it('keeps waiting while media is retrying after a transient error, and offers Retry only once it stopped',() => {
+    const retrying = {isReady:false,isAwaitingConfirmation:false,jobStatus:'Pending',errorCode:'GEMINI_RATE_LIMITED'} as MediaProgressDto;
+    expect(mediaIsGenerating(retrying)).toBe(true); expect(mediaCanRetry(retrying)).toBe(false); expect(mediaKeepPolling(retrying)).toBe(true);
+    const failed = {isReady:false,isAwaitingConfirmation:false,jobStatus:'Failed',errorCode:'MEDIA_FAILED'} as MediaProgressDto;
+    expect(mediaIsGenerating(failed)).toBe(false); expect(mediaCanRetry(failed)).toBe(true); expect(mediaKeepPolling(failed)).toBe(false);
+    const ready = {isReady:true,isAwaitingConfirmation:false,jobStatus:'Completed',errorCode:null} as MediaProgressDto;
+    expect(mediaCanRetry(ready)).toBe(false); expect(mediaKeepPolling(ready)).toBe(false);
   });
   it('rejects stale or incomplete package metadata instead of guessing mutation preconditions',() => {
     const pack = {storyVersionId:12,packageRevision:3,isConfirmed:false} as StoryMediaPackage;

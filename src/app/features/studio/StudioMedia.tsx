@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, CircleAlert, Image as ImageIcon, Images, Volume2 } from "lucide-react";
+import { Check, CircleAlert, Image as ImageIcon, Images, RefreshCw, Volume2 } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
@@ -11,6 +11,7 @@ import type { useMediaProgress } from "./useStoryPipeline";
 import { useRiseIn } from "@/app/lib/motion";
 import { useMediaPackage } from '@/app/features/story-workflow/useMediaPackage';
 import StudioScenePreview from './StudioScenePreview';
+import { mediaCanRetry, mediaIsGenerating } from '@/app/features/story-workflow/mediaPackage';
 import StudioCompletion from './StudioCompletion';
 import MediaIssues from './MediaIssues';
 
@@ -35,7 +36,7 @@ export default function StudioMedia({ storyId, media }: Props) {
   const mp=useMediaPackage({storyId,versionId:m?.approvedStoryVersionId,onChanged:reload,source:preview.pack});
   // Truyện đã sẵn sàng (gói media đã xác nhận) thì không hiện nút tạo lại nữa: gói đã chốt, muốn đổi phải làm lại từ bước duyệt.
   const sceneActions=preview.pack&&!m?.isConfirmed&&!m?.isReady?{busy:mp.busy,locked:mp.uncertain,replacements:preview.pack.replacements??[],regenerate:(k:'illustration'|'audio',id:number)=>void mp.regenerate(k,id),keepCurrent:(id:number)=>void mp.keepCurrent(id)}:undefined;
-  const statusText=m ? (m.isReady ? "" : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi xác nhận để hoàn tất truyện." : "Đang tạo, bạn có thể rời màn hình này.") : media.error ?? "Đang kiểm tra…";
+  const statusText=m ? (m.isReady ? "" : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi xác nhận để hoàn tất truyện." : mediaCanRetry(m) ? "" : "Đang tạo, bạn có thể rời màn hình này.") : media.error ?? "Đang kiểm tra…";
   // Tải sẵn tranh và giọng đọc của cảnh đang xem và cảnh kế để đổi cảnh không phải chờ.
   const warm=useRef<(HTMLImageElement|HTMLAudioElement)[]>([]);
   useEffect(()=>{
@@ -57,11 +58,12 @@ export default function StudioMedia({ storyId, media }: Props) {
   return (
     <>
       <div className="center">
+        {m && mediaCanRetry(m) && <button className="btn btn-p studio-retry-corner" onClick={() => void api.retryMedia(storyId).then(media.refresh)}><RefreshCw className="ic" />Thử lại</button>}
         {bundle ? (
           <div className="board">
             <div className="artwrap">
               {preview.error&&<p className="notice err" role="alert">{preview.error}</p>}
-              <StudioScenePreview key={`${storyId}:${preview.pack?.storyVersionId}:${preview.pack?.packageRevision}:${currentScene?.sceneId}:${sceneIndex}:${currentScene?.illustrations.map(i=>i.url).join('|')}`} scene={currentScene} text={scenes[sceneIndex]??''} loading={preview.loading} onReload={reload} actions={sceneActions}/>
+              <StudioScenePreview key={`${storyId}:${preview.pack?.storyVersionId}:${preview.pack?.packageRevision}:${currentScene?.sceneId}:${sceneIndex}:${currentScene?.illustrations.map(i=>i.url).join('|')}`} scene={currentScene} text={scenes[sceneIndex]??''} loading={preview.loading} onReload={reload} actions={sceneActions} generating={!!m && mediaIsGenerating(m)}/>
             </div>
           </div>
         ) : (
@@ -80,7 +82,6 @@ export default function StudioMedia({ storyId, media }: Props) {
             {statusText&&<p role="status">{statusText}</p>}
             {mp.note&&<p className="notice" role="status">{mp.note}</p>}
             {mp.uncertain&&<p className="notice warn" role="status">Chưa rõ kết quả thao tác. Hãy tải lại ảnh và giọng đọc rồi mới thử lại.</p>}
-            {m?.errorCode && <button className="btn btn-s" onClick={() => void api.retryMedia(storyId).then(media.refresh)}>Thử lại</button>}
             {bundle&&<StudioCompletion pack={preview.pack} progress={m} onChanged={reload}/>}
           </div>
           <section className="prep-group" aria-label="Tiến độ">

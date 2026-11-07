@@ -9,6 +9,7 @@ import { useAIStoryInputFlow } from "@/app/features/story-workflow/useAIStoryInp
 import type { AIStoryInputFormValues } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
 import { studioActions } from "./studioProgress";
 import { useStoryProgressPolling } from "@/app/features/story-workflow/useStoryProgressPolling";
+import { mediaKeepPolling } from "@/app/features/story-workflow/mediaPackage";
 
 import { loadSnapshot, snapshotStage, keepSnapshotPolling, pipelineFailure, type Stage, type StatusSnapshot } from '@/app/features/story-workflow/generationSnapshot';
 import { loadResumeSnapshot } from '@/app/features/story-workflow/resumeStory';
@@ -94,7 +95,7 @@ export function useStoryPipeline(userId: number, childId: number | null, approve
   return { cancel, flow, storyId, stage, snapshot, resumed:!!resumed, statusError: status.error, timedOut: status.timedOut, errorCode, retryFailed, refresh: status.refresh };
 }
 
-const mediaContinue = (m: MediaProgressDto) => !m.isReady && !m.isAwaitingConfirmation && !m.errorCode;
+const mediaContinue = mediaKeepPolling;
 export function useMediaProgress(storyId: number | null) {
   return useStoryProgressPolling<MediaProgressDto>(storyId, api.getMediaProgress, mediaContinue, 600_000);
 }
