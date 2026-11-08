@@ -7,7 +7,8 @@ import type * as B from '@/app/types/backendContracts';
 import { useAuth } from '@/app/context/AuthContext';
 import type { ApiResponse } from '@/app/types/auth';
 import { confirmDialog } from "@/app/lib/confirm";
-import { Check, ImagePlus } from 'lucide-react';
+import { Check, FilePen, ImagePlus, RefreshCw, Send, ShieldCheck, Trash2, Undo2 } from 'lucide-react';
+import Dialog from '@/app/components/Dialog';
 import '@/app/features/created/created.css';
 import CoverPickerDialog, { CoverPickerPanel, prefetchCoverPictures } from '@/app/features/created/CoverPickerDialog';
 import { creatorService } from '@/app/services/creatorService';
@@ -39,10 +40,15 @@ function zoneAdvice(zone: B.GrayZoneContentCheckDto): string {
     : 'Nội dung nằm ở vùng xám nhưng hiện không còn chờ Moderator (có thể đã được xử lý trước đó). Nếu bạn sửa nội dung, hãy kiểm tra lại.';
 }
 
-export default function CreatorPublication({ storyId, versionId, storyStatus, onRevision, onLockChange, hidden = false }: { storyId: number; versionId: number | null; storyStatus?: string; onRevision: () => void; onLockChange?: (locked: boolean) => void; hidden?: boolean }) {
+/**
+ * Phát hành truyện Creator: gửi Moderator duyệt, rút yêu cầu, tạo bản chỉnh sửa, xin gỡ khi đã công khai.
+ * `showCheck`: hiện ô kiểm tra vùng xám (luồng AI). Luồng thủ công kiểm tra ở bước riêng trước khi chốt nên tắt đi.
+ */
+export default function CreatorPublication({ storyId, versionId, storyStatus, onRevision, onLockChange, hidden = false, showCheck = true, stepNo = 3 }: { storyId: number; versionId: number | null; storyStatus?: string; onRevision: () => void; onLockChange?: (locked: boolean) => void; hidden?: boolean; showCheck?: boolean; stepNo?: number }) {
   const { user } = useAuth();
   const [status, setStatus] = useState<B.CreatorPublicationStatus | null>(null);
   const [reason, setReason] = useState('');
+  const [removing, setRemoving] = useState(false);
   const [note, setNote] = useState('');
   const [busy, setBusy] = useState(false);
   const [refresh, setRefresh] = useState(0);
@@ -91,7 +97,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     setBusy(true); setNote(''); const run = scope.current;
     const r = await fn(); if (run !== scope.current) return;
     setBusy(false); setNote(r.message || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
-    if (r.success) { if (revision) onRevision(); else { if (lockVersion) { knownSubmitted.current = status?.versionId ?? null; setSubmittedVersion(status?.versionId ?? null); onLockChange?.(true); } setRefresh(n => n + 1); } }
+    if (r.success) { setRemoving(false); setReason(''); if (revision) onRevision(); else { if (lockVersion) { knownSubmitted.current = status?.versionId ?? null; setSubmittedVersion(status?.versionId ?? null); onLockChange?.(true); } setRefresh(n => n + 1); } }
     else if (r.status === 409) setRefresh(n => n + 1);
   };
   const runCheck = async () => {
@@ -150,7 +156,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
                 <div className="edit-story-cover-preview" role="img" aria-label="Ảnh bìa hiện tại" style={{ background: coverFor(cover) }} />
                 <button type="button" className="btn btn-s" disabled={busy} onPointerEnter={() => prefetchCoverPictures(storyId)} onFocus={() => prefetchCoverPictures(storyId)} onClick={() => setPickingCover(true)}><ImagePlus className="ic" />{cover ? 'Đổi ảnh bìa' : 'Chọn ảnh bìa'}</button>
               </div>
-              {cover === null && <span className="notice warn" role="status" data-inline-notice>Cần chọn ảnh bìa từ tranh trong truyện trước khi gửi duyệt.</span>}
+              {cover === null && <span className="notice warn" role="status">Cần chọn ảnh bìa từ tranh trong truyện trước khi gửi duyệt.</span>}
             </>}
         </div>
         <div className="pa-labels" role="group" aria-label="Nhãn nội dung">
@@ -163,31 +169,31 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
 
   // Ẩn phần giao diện ở các bước trước media (vẫn chạy ở trên để tính trạng thái khóa chỉnh sửa cho màn cha).
   if (hidden) return null;
-  return <section className="pa-card" aria-label="Phát hành"><div className="pa-head"><h3><span className="pa-num">3</span>Phát hành truyện</h3></div>
+  return <section className="pa-card" aria-label="Phát hành"><div className="pa-head"><h3><span className="pa-num">{stepNo}</span>Phát hành truyện</h3></div>
     {note && <p className="notice" role="status">{note}</p>}
     <p style={{ margin: 0, fontWeight: 800, fontSize: "var(--fs-md)" }}>{headline}</p>
-    <p className="sub">Gửi bản hiện tại cho Moderator duyệt công khai. Bản đã nộp giữ nguyên trong lịch sử; muốn sửa bản sẵn sàng hoặc đã nộp, hãy tạo phiên bản chỉnh sửa mới.</p>
+    <p className="sub">Gửi bản hiện tại cho Moderator duyệt công khai. Muốn sửa bản đã nộp, hãy tạo bản chỉnh sửa mới.</p>
 
-    <div className="pa-step">
+    {showCheck && <div className="pa-step">
       <b>Kiểm tra vùng xám (nên làm trước khi gửi)</b>
       <p className="sub">AI đánh giá nội dung theo nhóm tuổi của truyện và cho ra một trong ba mức: <b>An toàn</b> (qua), <b>Vùng xám</b> (có chỗ gây tranh cãi, cần Moderator xem trước khi tiếp tục) hoặc <b>Bị chặn</b> (vi phạm nghiêm trọng, phải sửa). Kết quả chỉ cho biết mức, không chỉ ra câu cụ thể.</p>
-      <div className="pa-actions"><button className="btn btn-s" disabled={busy || !checkable} onClick={() => void runCheck()}>{busy ? 'Đang kiểm tra…' : 'Kiểm tra vùng xám bằng AI'}</button></div>
+      <div className="pa-actions"><button className="btn btn-s" disabled={busy || !checkable} onClick={() => void runCheck()}><ShieldCheck className="ic" />{busy ? 'Đang kiểm tra…' : 'Kiểm tra'}</button></div>
       {zone && zone.storyVersionId === status?.versionId && <div className={`notice ${ZONE[zone.status]?.tone ?? ''}`} role="status">
         <b>Kết quả: {ZONE[zone.status]?.title ?? zone.status}</b>
         <p style={{ margin: '6px 0 0' }}>{zoneAdvice(zone)}</p>
       </div>}
-      {grayWaiting && !zone && <div className="notice warn">Truyện đang ở vùng xám và chờ Moderator xem xét. Bạn chờ quyết định của họ trước khi chốt hay gửi duyệt.</div>}
-    </div>
+      {grayWaiting && !zone && <div className="notice warn" role="status">Truyện đang ở vùng xám và chờ Moderator xem xét. Bạn chờ quyết định của họ trước khi chốt hay gửi duyệt.</div>}
+    </div>}
 
     <div className="pa-step">
       <b>Gửi duyệt công khai</b>
       {blocker && <p className="sub">{blocker}</p>}
       {!dock && pickers}
       <div className="pa-actions">
-        {canSubmit && <button className="btn btn-p" disabled={busy || !cover || labelIds.length === 0 || sameAsReturned} title={!cover ? 'Chọn ảnh bìa trước khi gửi' : labelIds.length === 0 ? 'Chọn ít nhất một nhãn nội dung trước khi gửi' : sameAsReturned ? 'Hãy thay đổi bộ nhãn so với lần bị trả về' : undefined} onClick={() => void act(() => service.submit(storyId, status!.versionId, labelIds))}>{labelsOnlyReturn ? 'Gửi lại với nhãn mới' : 'Gửi bản hiện tại cho Moderator'}</button>}
-        {pendingReview && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Rút yêu cầu duyệt? Lượt đăng bài sẽ được hoàn lại nếu yêu cầu còn chờ duyệt."))) return; void act(() => service.withdraw(status!.openItemId!)); }}>Rút yêu cầu duyệt</button>}
-        {canRevise && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.revision(storyId, status!.versionId), true)}>Tạo phiên bản chỉnh sửa mới</button>}
-        <button className="btn btn-g" disabled={busy} onClick={() => setRefresh(n => n + 1)}>Tải lại trạng thái</button>
+        {canSubmit && <button className="btn btn-p" disabled={busy || !cover || labelIds.length === 0 || sameAsReturned} title={!cover ? 'Chọn ảnh bìa trước khi gửi' : labelIds.length === 0 ? 'Chọn ít nhất một nhãn nội dung trước khi gửi' : sameAsReturned ? 'Hãy thay đổi bộ nhãn so với lần bị trả về' : undefined} onClick={() => void act(() => service.submit(storyId, status!.versionId, labelIds))}><Send className="ic" />{labelsOnlyReturn ? 'Gửi lại' : 'Gửi duyệt'}</button>}
+        {pendingReview && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Rút yêu cầu duyệt? Lượt đăng bài sẽ được hoàn lại nếu yêu cầu còn chờ duyệt."))) return; void act(() => service.withdraw(status!.openItemId!)); }}><Undo2 className="ic" />Rút yêu cầu</button>}
+        {canRevise && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Tạo bản chỉnh sửa mới? Bản hiện tại giữ nguyên trong lịch sử, bạn sẽ soạn và làm lại media cho bản mới."))) return; void act(() => service.revision(storyId, status!.versionId), true); }}><FilePen className="ic" />Tạo bản chỉnh sửa</button>}
+        <button className="btn btn-g icon-only" aria-label="Tải lại trạng thái" title="Tải lại trạng thái" disabled={busy} onClick={() => setRefresh(n => n + 1)}><RefreshCw className="ic" /></button>
       </div>
     </div>
 
@@ -197,8 +203,11 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     {status?.isPublished && !status.openItemId && <div className="pa-step">
       <b>Yêu cầu gỡ để chỉnh sửa</b>
       <p className="sub">Truyện đang công khai nên không sửa trực tiếp được. Gỡ xuống, sửa rồi gửi duyệt lại.</p>
-      <label className="field">Lý do yêu cầu gỡ<textarea className="inp" rows={2} maxLength={2000} value={reason} onChange={e => setReason(e.target.value)} /></label>
-      <div className="pa-actions"><button className="btn btn-s" disabled={busy || !reason.trim()} onClick={async () => { if (!(await confirmDialog("Gửi yêu cầu gỡ truyện? Moderator sẽ xem xét việc gỡ truyện khỏi thư viện công khai."))) return; void act(() => service.remove(storyId, reason)); }}>Yêu cầu gỡ</button></div>
+      <div className="pa-actions"><button className="btn btn-s" disabled={busy} onClick={() => setRemoving(true)}><Trash2 className="ic" />Yêu cầu gỡ</button></div>
     </div>}
+    {removing && <Dialog title="Yêu cầu gỡ truyện" onClose={() => { if (!busy) setRemoving(false); }}>
+      <label className="field"><span className="lbl">Lý do yêu cầu gỡ</span><textarea className="inp" autoFocus rows={3} maxLength={2000} value={reason} onChange={e => setReason(e.target.value)} /></label>
+      <div className="row"><button className="btn btn-g" disabled={busy} onClick={() => setRemoving(false)}>Huỷ</button><span className="grow" /><button className="btn btn-no" disabled={busy || !reason.trim()} onClick={async () => { if (!(await confirmDialog("Gửi yêu cầu gỡ truyện? Moderator sẽ xem xét việc gỡ truyện khỏi thư viện công khai."))) return; void act(() => service.remove(storyId, reason)); }}><Send className="ic" />Gửi yêu cầu</button></div>
+    </Dialog>}
   </section>;
 }

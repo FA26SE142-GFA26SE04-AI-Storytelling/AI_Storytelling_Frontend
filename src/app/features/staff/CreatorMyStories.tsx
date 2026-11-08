@@ -88,7 +88,7 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
             </div>
           </div>
 
-          {error && <p className="notice err" role="alert" data-inline-notice>{error}</p>}
+          {error && <p className="notice err" role="alert">{error}</p>}
           {loading && !all.length && <p className="sub" role="status">Đang tải truyện…</p>}
 
           {shown.length > 0 ? (

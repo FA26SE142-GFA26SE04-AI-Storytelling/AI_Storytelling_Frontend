@@ -3,6 +3,9 @@
 import "@/app/features/library/library.css";
 import "@/app/features/review/review-tools.css";
 import { useRef, useState } from "react";
+import { FilePlus2 } from "lucide-react";
+import Dialog from "@/app/components/Dialog";
+import Select from "@/app/components/Select";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { CreateDraftInput } from "@/app/types/creator";
 import { GENRES } from "@/app/lib/storyRules";
@@ -12,6 +15,9 @@ import { useAuth } from "@/app/context/AuthContext";
 import CreatorEditor from "./CreatorEditor";
 
 const MODE: Record<string, string> = { reading: "Đọc", listening: "Nghe", combined: "Đọc và nghe" };
+const AGE_OPTIONS: { value: CreateDraftInput["ageBand"]; label: string }[] = [{ value: "6-8", label: "6–8 tuổi" }, { value: "9-10", label: "9–10 tuổi" }];
+const MODE_OPTIONS = Object.entries(MODE).map(([value, label]) => ({ value: value as CreateDraftInput["experienceMode"], label }));
+const GENRE_OPTIONS = GENRES.map((g) => ({ value: g, label: g }));
 const blank = (): CreateDraftInput => ({ title: "", description: "", ageBand: "6-8", genre: GENRES[0], experienceMode: "reading" });
 
 /** Props mà khu nhân viên (StaffApp) truyền cho các trang của Content Creator. */
@@ -59,29 +65,23 @@ export function CreatorCreateManual({ go, target }: CreatorPageProps) {
   // Giống trang phụ huynh: hộp thoại tạo bản nháp hiện ngay khi vào, tạo xong thì vào thẳng bước soạn nội dung.
   return (
     <Page title="Tạo truyện thủ công" sub="Điền thông tin truyện mới rồi mở trình soạn để tự viết nội dung.">
-      <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label="Tạo bản nháp">
-        <form className="dlg wide" onSubmit={(e) => { e.preventDefault(); void create(); }}>
-          <b className="display" style={{ fontSize: "var(--fs-lg)" }}>Tạo bản nháp truyện mới</b>
+      <Dialog title="Tạo bản nháp truyện mới" wide onClose={() => { if (!busy) go("library"); }}>
+        <form className="ce-create" onSubmit={(e) => { e.preventDefault(); void create(); }}>
           <Notice note={note} />
-          <div className="st-form">
-            <label className="field"><span className="lbl">Tên truyện</span><input className="inp" autoFocus maxLength={200} value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
-            <label className="field"><span className="lbl">Nhóm tuổi</span>
-              <select className="inp" value={form.ageBand} onChange={(e) => set({ ageBand: e.target.value as CreateDraftInput["ageBand"] })}><option value="6-8">6–8 tuổi</option><option value="9-10">9–10 tuổi</option></select></label>
-            <label className="field"><span className="lbl">Thể loại</span>
-              <select className="inp" value={form.genre} onChange={(e) => set({ genre: e.target.value })}>{GENRES.map((g) => <option key={g}>{g}</option>)}</select></label>
-            <label className="field"><span className="lbl">Trải nghiệm</span>
-              <select className="inp" value={form.experienceMode} onChange={(e) => set({ experienceMode: e.target.value as CreateDraftInput["experienceMode"] })}>
-                {Object.entries(MODE).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
+          <label className="field"><span className="lbl">Tên truyện</span><input className="inp" autoFocus maxLength={200} value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
+          <div className="ce-create-row">
+            <div className="field"><span className="lbl">Nhóm tuổi</span><Select<CreateDraftInput["ageBand"]> ariaLabel="Nhóm tuổi" value={form.ageBand} options={AGE_OPTIONS} onChange={(v) => set({ ageBand: v })} /></div>
+            <div className="field"><span className="lbl">Thể loại</span><Select<string> ariaLabel="Thể loại" value={form.genre} options={GENRE_OPTIONS} onChange={(v) => set({ genre: v })} /></div>
+            <div className="field"><span className="lbl">Trải nghiệm</span><Select<CreateDraftInput["experienceMode"]> ariaLabel="Trải nghiệm" value={form.experienceMode} options={MODE_OPTIONS} onChange={(v) => set({ experienceMode: v })} /></div>
           </div>
           <label className="field"><span className="lbl">Mô tả ngắn</span><textarea className="inp" rows={2} maxLength={1000} value={form.description} onChange={(e) => set({ description: e.target.value })} /></label>
-          <p className="sub">Nhóm tuổi và trải nghiệm chưa đổi được sau khi tạo. “Nghe” và “Đọc và nghe” chưa tự tạo giọng đọc.</p>
-          <div className="row">
-            <button type="button" className="btn btn-g" onClick={() => go("library")}>Về thư viện</button>
-            <span className="grow" />
-            <button type="submit" className="btn btn-p" disabled={busy}>{busy ? "Đang tạo…" : "Tạo bản nháp"}</button>
+          <p className="notice warn" data-inline-notice>Nhóm tuổi và trải nghiệm không đổi được sau khi tạo.</p>
+          <div className="ce-create-actions">
+            <button type="button" className="btn btn-g" disabled={busy} onClick={() => go("library")}>Huỷ</button>
+            <button type="submit" className="btn btn-p" disabled={busy || !form.title.trim()}><FilePlus2 className="ic" />{busy ? "Đang tạo…" : "Tạo bản nháp"}</button>
           </div>
         </form>
-      </div>
+      </Dialog>
     </Page>
   );
 }
