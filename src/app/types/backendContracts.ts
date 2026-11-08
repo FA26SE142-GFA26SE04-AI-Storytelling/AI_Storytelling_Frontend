@@ -1361,6 +1361,10 @@ export interface PublicReviewHistoryEntryDto {
 }
 
 export interface PublicReviewIllustrationDto {
+  /** AiGenerated hoặc nguồn Creator tải lên. */
+  'source'?: string;
+  'sourceDeclaration'?: string | null;
+  'rightsDeclaration'?: string | null;
   'beatOrder': number;
   'visualFocus': string;
   'assetId': number | null;
@@ -1387,6 +1391,8 @@ export interface PublicReviewPackageDto {
   'scenes': (PublicReviewSceneDto)[];
   'vocabulary': (PublicReviewVocabularyDto)[];
   'quizzes': (PublicReviewQuizDto)[];
+  /** Tương tác khi nghe của phiên bản đang duyệt. */
+  'listeningInteractions'?: (PublicReviewListeningDto)[];
   'discussionQuestions': (PublicReviewDiscussionDto)[];
   'flags': (PublicReviewFlagDto)[];
   'allFlagsResolved': boolean;
@@ -1396,6 +1402,37 @@ export interface PublicReviewPackageDto {
   'canApprove': boolean;
   'previousModeratorName': string | null;
   'reviewHistory': (PublicReviewHistoryEntryDto)[];
+}
+
+export interface PublicReviewListeningOptionDto {
+  id: number;
+  sortOrder: number;
+  text: string;
+  feedback: string | null;
+  isMatch: boolean;
+  correctOrder: number | null;
+  sourceQuote: string | null;
+  imageDescription: string | null;
+  imageUrl: string | null;
+}
+
+export interface PublicReviewListeningDto {
+  id: number;
+  type: string;
+  kind: string | null;
+  storySceneId: number | null;
+  anchorOffset: number;
+  prompt: string | null;
+  sourceQuote: string | null;
+  characterName: string | null;
+  hiddenWord: string | null;
+  hint: string | null;
+  revealOffset: number | null;
+  explanation: string | null;
+  matchFeedback: string | null;
+  noMatchFeedback: string | null;
+  waitFeedback: string | null;
+  options: (PublicReviewListeningOptionDto)[];
 }
 
 export interface PublicReviewProgressDto {
@@ -1426,6 +1463,10 @@ export interface PublicReviewSceneDto {
 }
 
 export interface PublicReviewSegmentDto {
+  'audioSource'?: string;
+  'requiresFullAudioReview'?: boolean;
+  'sourceDeclaration'?: string | null;
+  'rightsDeclaration'?: string | null;
   'segmentId': number;
   'segmentOrder': number;
   'text': string;

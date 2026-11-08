@@ -456,28 +456,15 @@ export const authService = {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-      // Thử ping qua route root hoặc swagger/swagger.json
-      const swaggerUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, '') + '/swagger/v1/swagger.json';
-      const response = await fetch(swaggerUrl, {
-        method: 'GET',
-        signal: controller.signal,
-      }).catch(() => null);
-
+      // Dùng `/health` của backend: có header CORS nên không sinh lỗi đỏ trong console.
+      // (Trước đây gọi swagger.json — không có CORS — rồi OPTIONS /Auth/login trần — bị 405.)
+      const healthUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, '') + '/health';
+      const response = await fetch(healthUrl, { method: 'GET', signal: controller.signal }).catch(() => null);
       clearTimeout(timeoutId);
 
       if (response && response.ok) {
-        return { isOnline: true, message: `Backend Swagger v1 Online (${swaggerUrl})` };
+        return { isOnline: true, message: `Backend online (${healthUrl})` };
       }
-
-      // Secondary check: OPTIONS call to auth login
-      const optionsResponse = await fetch(`${API_BASE_URL}/Auth/login`, {
-        method: 'OPTIONS',
-      }).catch(() => null);
-
-      if (optionsResponse) {
-        return { isOnline: true, message: 'Backend API Service Reachable' };
-      }
-
       return { isOnline: false, message: `Backend chưa phản hồi tại ${API_BASE_URL}` };
     } catch {
       return { isOnline: false, message: 'Không kết nối được tới Backend (Offline)' };
