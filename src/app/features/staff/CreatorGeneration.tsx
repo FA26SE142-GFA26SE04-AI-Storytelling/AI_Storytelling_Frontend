@@ -39,12 +39,12 @@ type Seed = { topic: string; lesson: string; genre: string; charactersText: stri
  * Vỏ ngoài: "bỏ truyện / quay lại sửa ý tưởng" dựng lại toàn bộ luồng bằng key mới, nên mọi trạng thái cũ (dàn ý, tiến trình) sạch hẳn.
  * Content Creator không có API huỷ truyện, nên đây chỉ là làm mới form; bản nháp vẫn nằm trong Thư viện.
  */
-export default function CreatorGeneration({ initialId = null, onBack }: { initialId?: number | null; onBack: () => void }) {
+export default function CreatorGeneration({ initialId = null }: { initialId?: number | null; onBack: () => void }) {
   const [run, setRun] = useState(0);
   const [seed, setSeed] = useState<Seed>(null);
-  return <CreatorGenerationRun key={run} initialId={run === 0 ? initialId : null} seed={seed} onBack={onBack} onReset={(next) => { setSeed(next); setRun((n) => n + 1); }} />;
+  return <CreatorGenerationRun key={run} initialId={run === 0 ? initialId : null} seed={seed} onReset={(next) => { setSeed(next); setRun((n) => n + 1); }} />;
 }
-function CreatorGenerationRun({ initialId, seed, onBack, onReset }: { initialId: number | null; seed: Seed; onBack: () => void; onReset: (seed: Seed) => void }) {
+function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number | null; seed: Seed; onReset: (seed: Seed) => void }) {
   const flow = useCreatorGeneration(initialId);
   // Nhớ truyện AI đang soạn để tải lại trang vẫn mở lại đúng truyện (truyện mới bắt đầu thì xóa).
   const { user: sessionUser } = useAuth();

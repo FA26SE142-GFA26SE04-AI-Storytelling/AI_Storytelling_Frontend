@@ -1,7 +1,7 @@
 "use client";
 import { confirmDialog } from "@/app/lib/confirm";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft, Check, FileUp, RotateCcw } from "lucide-react";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { ContentSaved, CreatorDraft, CreatorResult, CreatorVersion, SaveVersionInput } from "@/app/types/creator";
@@ -50,8 +50,8 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
   const [conflict, setConflict] = useState(false);
   const [stepId, setStepId] = useState<StepId>('write');
   // Lệnh ghi chưa rõ kết quả (mất mạng): thử lại nguyên lệnh này, với đúng bản chụp lúc gửi.
-  const pending = useRef<Write | null>(null);
-  const [hasPending, setHasPending] = useState(false);
+  const [pending, setPending] = useState<Write | null>(null);
+  const hasPending = pending !== null;
   const dirty = !same(form, saved);
   const pii = detectPii(`${form.title}\n${form.content}`);
 
@@ -89,15 +89,14 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
     const r = await call();
     setBusy(false);
     if (r.ok && r.data) {
-      pending.current = null;
-      setHasPending(false);
+      setPending(null);
       const snap = replaceForm ? fromVersion(r.data.version) : snapshot;
       if (replaceForm) setForm(snap);
       apply(r.data, snap);
       setNote({ ok: true, text: `${okText} (phiên bản V${r.data.version.versionNo}).` });
       return true;
     }
-    if (r.status === 0) { pending.current = w; setHasPending(true); }
+    if (r.status === 0) setPending(w);
     if (r.status === 409) setConflict(true);
     setNote({ ok: false, text: r.status === 409 ? `${r.message || "Truyện đã thay đổi ở nơi khác."} Nội dung bạn đang sửa vẫn còn.` : r.message });
     return false;
@@ -125,7 +124,7 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
     if (d.ok && d.data) { setDraft(d.data); setConflict(false); setNote({ ok: true, text: "Đã đồng bộ với máy chủ. Bấm Lưu để tạo phiên bản mới từ nội dung bạn đang sửa." }); void loadVersions(); }
   };
 
-  const retry = () => { if (pending.current) void runWrite(pending.current); };
+  const retry = () => { if (pending) void runWrite(pending); };
 
   if (!draft) return <div className="st-card"><p className="sub">{note?.text ?? "Đang mở truyện…"}</p><button className="btn btn-g" style={{ width: "fit-content" }} onClick={onBack}><ArrowLeft className="ic" />Danh sách</button></div>;
 

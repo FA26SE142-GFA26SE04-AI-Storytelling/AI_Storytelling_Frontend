@@ -113,12 +113,11 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
     return () => clearTimeout(id);
   }, [settingsKey, loading, canEdit, saving, policy, consent]);
 
-  if (!child) return <p className="sub">Chưa có hồ sơ bé.</p>;
-
   const jump = (id: string) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
   const outdated = !!policy?.consentOutdated;
 
   const save = async () => {
+    if (!child) return;
     // Lần lưu đầu backend bắt buộc Owner đồng ý điều khoản.
     if (!policy?.consentRecorded && !consent) {
       setNote({ ok: false, text: isOwner ? "Hãy đọc và đồng ý điều khoản ở mục Đồng ý của phụ huynh trước khi lưu." : "Người quản lý chính cần đồng ý điều khoản trước khi lưu cài đặt an toàn." });
@@ -154,7 +153,9 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
     }
   };
 
-  saveRef.current = save;
+  useEffect(() => { saveRef.current = save; });
+
+  if (!child) return <p className="sub">Chưa có hồ sơ bé.</p>;
 
   const reapplyPreset = async () => {
     setSaving(true);

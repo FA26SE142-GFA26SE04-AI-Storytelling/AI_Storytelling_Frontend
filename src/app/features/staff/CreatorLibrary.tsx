@@ -100,15 +100,15 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
     return () => { document.removeEventListener("mousedown", down); document.removeEventListener("keydown", key); };
   }, [filterOpen]);
 
-  const sorted = useMemo(() => [...(list ?? [])].sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime()), [list]);
+  // Thư viện chỉ hiện truyện đã được Moderator duyệt công khai.
+  const sorted = useMemo(() => (list ?? []).filter((s) => published[s.storyId]).sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime()), [list, published]);
   const activeCount = [status, genre, age, src].filter((v) => v !== "all").length;
   const topics = useMemo(() => [...new Set(sorted.filter((s) => !["draft", "review", "unpublished"].includes(libShelf(s))).map((s) => s.genre || "Khác"))], [sorted, libShelf]);
   const activeTopic = topic && topics.includes(topic) ? topic : topics[0] ?? null;
   const released = sorted.filter((s) => libShelf(s) === "ready");
   const latest = released.slice(0, 10);
   // Truyện đang soạn hoặc chưa công khai tách riêng; các kệ còn lại chỉ gồm truyện đã được Moderator duyệt công khai (hoặc đã lưu trữ).
-  const unpublished = sorted.filter((s) => ["draft", "review", "unpublished"].includes(libShelf(s)));
-  const rest = sorted.filter((s) => !["draft", "review", "unpublished"].includes(libShelf(s)));
+  const rest = sorted;
   const byTopic = rest.filter((s) => (s.genre || "Khác") === activeTopic);
   const bySource = rest.filter((s) => source === "all" || sourceOf(s) === source);
   const searching = q.trim() !== "" || activeCount > 0;
@@ -203,11 +203,6 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                   <Shelf title="Tất cả truyện" items={bySource.map((s) => ({ id: s.storyId }))} pills={SOURCE_PILLS} pill={source} onPill={setSource}>
                     {bySource.length > 0 ? <div className="shelf-grid">{bySource.map((s) => card(s))}</div> : <p className="sub">Chưa có truyện nào trong nhóm này.</p>}
                   </Shelf>
-                  {unpublished.length > 0 && (
-                    <Shelf title="Chưa công khai" sub={`Bản nháp, truyện đang chờ duyệt và truyện sẵn sàng nhưng Moderator chưa duyệt công khai · ${unpublished.length} truyện`} items={unpublished.map((s) => ({ id: s.storyId }))} onAll={() => setExpanded({ title: "Chưa công khai", items: unpublished })}>
-                      <ShelfRow>{unpublished.map((s) => card(s))}</ShelfRow>
-                    </Shelf>
-                  )}
                 </>
               )}
           </div>

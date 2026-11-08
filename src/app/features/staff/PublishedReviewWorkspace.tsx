@@ -5,13 +5,15 @@ import { moderationService as service } from '@/app/services/moderationService';
 import { useAuth } from '@/app/context/AuthContext';
 import Frog from '@/app/components/brand/Frog';
 import Select from '@/app/components/Select';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Flag, Send } from 'lucide-react';
+import Dialog from '@/app/components/Dialog';
 import { coverFor } from '@/app/lib/storyView';
 import '@/app/features/library/library.css';
 import '@/app/features/created/created.css';
 import { Page } from './ui';
 import StoryWishCards from './StoryWishCards';
 import LearningMaterials from './LearningMaterials';
+const REASONS: { value: B.ContentReportReasonName; label: string }[] = [['SafetyConcern','Không an toàn'],['Inappropriate','Không phù hợp'],['WrongAgeBand','Không đúng độ tuổi'],['Copyright','Bản quyền'],['Cultural','Văn hóa'],['Other','Khác']].map(([value, label]) => ({ value: value as B.ContentReportReasonName, label }));
 export default function PublishedReviewWorkspace() {
   const { user } = useAuth();
   const [source, setSource] = useState<B.PublishedContentSourceName>('PublicLibrary');
@@ -23,6 +25,7 @@ export default function PublishedReviewWorkspace() {
   const [reason, setReason] = useState<B.ContentReportReasonName>('SafetyConcern');
   const [description, setDescription] = useState('');
   const [attachmentUrl, setAttachmentUrl] = useState('');
+  const [reportOpen, setReportOpen] = useState(false);
   const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false);
   const scope = useRef(Symbol());
   const grantView = async () => {
@@ -51,22 +54,28 @@ export default function PublishedReviewWorkspace() {
     const run = scope.current; setBusy(true);
     const r = await service.createReviewItem({storyId:story.story.storyId,readingRoadmapId:roadmap?.roadmapId ?? null,reason,description:description.trim() || null,attachmentUrl:attachmentUrl.trim() || null});
     if (scope.current !== run) return;
-    setBusy(false); setMessage(r.success && r.data ? `Đã tạo báo cáo #${r.data.reportId}. Mở hàng đợi và nhận xử lý theo quyền.` : r.message);
+    setBusy(false); if (r.success) setReportOpen(false); setMessage(r.success && r.data ? `Đã tạo báo cáo #${r.data.reportId}. Mở hàng đợi và nhận xử lý theo quyền.` : r.message);
   };
   const inDetail = !!story || !!roadmap;
-  const SOURCES = [{ id: 'PublicLibrary', label: 'Thư viện công khai' }, { id: 'RoadmapTemplate', label: 'Bộ truyện mẫu' }] as const;
+  const SOURCES = [{ id: 'PublicLibrary', label: 'Thư viện công khai' }, { id: 'RoadmapTemplate', label: 'Lộ trình mẫu' }] as const;
   return <Page title="Rà soát nội dung công khai">
     {message && <p className="notice" role="status">{message}</p>}
     {inDetail ? <>
       <div className="row"><button className="btn btn-g" onClick={() => { setStory(null); setRoadmap(null); setMessage(''); }}><ArrowLeft className="ic" />Về thư viện</button></div>
       <div className="st-card">
-          <div className="st-group"><div className="row"><button className="btn btn-s" disabled={busy} onClick={()=>void grantView()}title="Ghi nhận lượt xem để rà soát">Bắt đầu rà soát</button></div></div>
-          {roadmap && <section><div className="st-group"><h3>{roadmap.name}</h3><p>{roadmap.description}</p></div><div className="st-group"><b className="st-group-title">Truyện trong bộ</b><div className="row">{roadmap.stories.map(s => <button className="btn btn-s" disabled={busy} key={s.storyId} onClick={() => void openStory(s.storyId)}>{s.title}</button>)}</div></div></section>}
+          <div className="st-group"><div className="row"><button className="btn btn-s" disabled={busy} onClick={()=>void grantView()}title="Ghi nhận lượt xem để rà soát"><Eye className="ic" />Bắt đầu rà soát</button></div></div>
+          {roadmap && <section><div className="st-group"><h3>{roadmap.name}</h3><p>{roadmap.description}</p></div><div className="st-group"><b className="st-group-title">Truyện trong lộ trình</b><div className="row">{roadmap.stories.map(s => <button className="btn btn-s" disabled={busy} key={s.storyId} onClick={() => void openStory(s.storyId)}>{s.title}</button>)}</div></div></section>}
           {story && <section><div className="st-group"><h3>{story.story.title}</h3><p style={{whiteSpace:'pre-wrap'}}>{story.version?.content}</p></div><div className="st-group"><details open><summary>Học liệu</summary><LearningMaterials vocabulary={story.vocabulary} quizzes={story.quizzes} /></details></div>
             {(user?.role==='Moderator'||user?.role==='Administrator') && <StoryWishCards key={story.story.storyId} storyId={story.story.storyId}/>}
-            {user?.role==='Moderator' && <div className="st-group"><b className="st-group-title">Tạo mục rà soát</b><label className="field">Lý do<select className="inp" value={reason} onChange={e => setReason(e.target.value as B.ContentReportReasonName)}>{[['SafetyConcern','Không an toàn'],['Inappropriate','Không phù hợp'],['WrongAgeBand','Không đúng độ tuổi'],['Copyright','Bản quyền'],['Cultural','Văn hóa'],['Other','Khác']].map(([v,label]) => <option key={v} value={v}>{label}</option>)}</select></label><label className="field">Ghi chú rà soát<textarea className="inp" rows={4} placeholder="Mô tả vấn đề bạn thấy ở nội dung này (không bắt buộc)" maxLength={2000} value={description} onChange={e => setDescription(e.target.value)} /></label><label className="field">Nguồn đính kèm<input className="inp" type="url" placeholder="Đường dẫn minh chứng, bắt đầu bằng https:// (không bắt buộc)" maxLength={500} value={attachmentUrl} onChange={e => setAttachmentUrl(e.target.value)} /></label><button className="btn btn-p" disabled={busy} onClick={() => void report()}>Tạo mục rà soát</button></div>}
+            {user?.role==='Moderator' && <div className="st-group"><b className="st-group-title">Báo cáo nội dung</b><div className="row"><button className="btn btn-s" disabled={busy} onClick={() => setReportOpen(true)}><Flag className="ic" />Tạo mục rà soát</button></div></div>}
           </section>}
           </div>
+      {reportOpen && <Dialog title="Tạo mục rà soát" onClose={() => setReportOpen(false)}>
+        <div className="field"><span className="lbl">Lý do</span><Select<B.ContentReportReasonName> ariaLabel="Lý do" value={reason} options={REASONS} onChange={setReason} /></div>
+        <label className="field"><span className="lbl">Ghi chú rà soát</span><textarea className="inp" rows={4} placeholder="Mô tả vấn đề bạn thấy ở nội dung này (không bắt buộc)" maxLength={2000} value={description} onChange={e => setDescription(e.target.value)} /></label>
+        <label className="field"><span className="lbl">Nguồn đính kèm</span><input className="inp" type="url" placeholder="Đường dẫn minh chứng, bắt đầu bằng https:// (không bắt buộc)" maxLength={500} value={attachmentUrl} onChange={e => setAttachmentUrl(e.target.value)} /></label>
+        <div className="row"><button className="btn btn-g" onClick={() => setReportOpen(false)}>Huỷ</button><button className="btn btn-p" disabled={busy} onClick={() => void report()}><Send className="ic" />Gửi</button></div>
+      </Dialog>}
     </> : <div className="created">
       <div className="created-bar">
         <div className="created-pills" role="tablist" aria-label="Nguồn nội dung">
@@ -86,7 +95,7 @@ export default function PublishedReviewWorkspace() {
           <span className="bk-meta">{i.storyCount != null ? `${i.storyCount} truyện · ` : ''}{i.ageBand}{i.labels.length ? ` · ${i.labels.map(l => l.displayName).join(', ')}` : ''}</span>
         </button>)}
       </div> : list ? <div className="empty"><Frog size={110} mood="think" /><b className="display">Không có nội dung nào</b></div> : <p className="sub" role="status">Đang tải…</p>}
-      <div className="row" style={{ justifyContent: 'center', gap: 12 }}><button className="btn btn-s" disabled={busy || page === 1} onClick={() => setPage(p => p - 1)}>Trước</button><span>Trang {page}</span><button className="btn btn-s" disabled={busy || !list?.hasNextPage} onClick={() => setPage(p => p + 1)}>Tiếp</button></div>
+      <div className="row" style={{ justifyContent: 'center', gap: 12 }}><button className="btn btn-g" aria-label="Trang trước" title="Trang trước" disabled={busy || page === 1} onClick={() => setPage(p => p - 1)}><ChevronLeft className="ic" /></button><span>Trang {page}</span><button className="btn btn-g" aria-label="Trang tiếp" title="Trang tiếp" disabled={busy || !list?.hasNextPage} onClick={() => setPage(p => p + 1)}><ChevronRight className="ic" /></button></div>
     </div>}
   </Page>;
 }

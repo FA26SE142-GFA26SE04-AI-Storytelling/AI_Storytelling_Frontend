@@ -57,20 +57,20 @@ export default function RoadmapTemplates() {
     const run = scope.current; setBusy(true); setNote('');
     const r = detail ? await service.update(detail.id, form) : await service.create(form);
     if (scope.current !== run) return;
-    if (!r.success || !r.data) { setBusy(false); if (!detail && r.status === 0) { setUncertainCreate(true); setNote('Chưa rõ bộ truyện đã được tạo. Tải lại danh sách để kiểm tra trước khi tạo thêm.'); } else setNote(r.message); return; }
+    if (!r.success || !r.data) { setBusy(false); if (!detail && r.status === 0) { setUncertainCreate(true); setNote('Chưa rõ lộ trình đã được tạo. Tải lại danh sách để kiểm tra trước khi tạo thêm.'); } else setNote(r.message); return; }
     setDetail(r.data); // Preserve the created id if saving items fails: retry must not create a second roadmap.
     const saved = await service.items(r.data.id, items);
     if (scope.current !== run) return;
-    setBusy(false); setNote(saved.message || (saved.success ? 'Đã lưu bộ truyện.' : 'Metadata đã lưu; chưa lưu được danh sách truyện. Hãy thử lưu lại.'));
+    setBusy(false); setNote(saved.message || (saved.success ? 'Đã lưu lộ trình.' : 'Metadata đã lưu; chưa lưu được danh sách truyện. Hãy thử lưu lại.'));
     if (saved.success && saved.data) setDetail(saved.data);
   };
   const writable = moderator && (!detail || detail.isMine && detail.status === 'Draft');
   const move = (index: number, delta: number) => { const next = [...items]; const target = index + delta; if (target < 0 || target >= next.length) return; [next[index],next[target]] = [next[target],next[index]]; setItems(next); };
-  return <Page fit title="Bộ truyện mẫu">
-    {note && <div className="notice" role="status">{note}</div>}{uncertainCreate && <button className="btn btn-s" onClick={() => { setUncertainCreate(false); reload(); }}title="Tải lại để đối chiếu bộ vừa tạo">Tải lại</button>}
+  return <Page fit title="Lộ trình mẫu">
+    {note && <div className="notice" role="status">{note}</div>}{uncertainCreate && <button className="btn btn-s" onClick={() => { setUncertainCreate(false); reload(); }}title="Tải lại để đối chiếu lộ trình vừa tạo">Tải lại</button>}
     <div className="st-split fill">
     <div className="st-list">
-    {moderator && <div className="row"><button className="btn btn-p" disabled={busy || uncertainCreate} onClick={() => { scope.current = Symbol(); setDetail(null); setItems([]); setForm(blank()); }}>Tạo bộ mới</button></div>}
+    {moderator && <div className="row"><button className="btn btn-p" disabled={busy || uncertainCreate} onClick={() => { scope.current = Symbol(); setDetail(null); setItems([]); setForm(blank()); }}>Tạo lộ trình mới</button></div>}
     <div className="row"><select className="inp" value={group} onChange={e => { setGroup(e.target.value as B.RoadmapListGroupName); setPage(1); }}>{Object.entries(groups).map(([k,v]) => <option value={k} key={k}>{v}</option>)}</select><button className="btn btn-s" disabled={busy} onClick={reload}><RefreshCw className="ic" />Tải lại</button></div>
     {list?.items.map(d => <button className={`st-item${detail?.id === d.id ? ' on' : ''}`} key={d.id} onClick={() => void open(d.id)}><b>{d.name}</b><span>{d.storyCount} truyện · {d.status}</span><small>{fmt(d.publishedAt ?? d.submittedAt)}{d.needsUpdate ? ' · Có truyện cần cập nhật' : ''}</small></button>)}
     <div className="row"><button className="btn btn-s" disabled={page === 1} onClick={() => setPage(v => v - 1)}>Trước</button><span>Trang {page}</span><button className="btn btn-s" disabled={!list?.hasNextPage} onClick={() => setPage(v => v + 1)}>Tiếp</button></div>
@@ -78,7 +78,7 @@ export default function RoadmapTemplates() {
     {form ? <section className="st-card">
       <div className="st-group"><h3>{detail ? `Bộ #${detail.id}` : 'Bộ mới'}</h3></div><fieldset disabled={!writable || busy} style={{ border: 0, padding: 0 }}>
         <div className="st-group"><b className="st-group-title">Thông tin chung</b>
-        <label className="field">Tên bộ<input className="inp" maxLength={200} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></label>
+        <label className="field">Tên lộ trình<input className="inp" maxLength={200} value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></label>
         <label className="field">Mô tả<textarea className="inp" maxLength={2000} value={form.description ?? ''} onChange={e => setForm({ ...form, description: e.target.value || null })} /></label>
         <div className="st-form"><label className="field">Độ tuổi<select className="inp" value={form.ageBand} onChange={e => setForm({ ...form, ageBand: e.target.value })}><option>6-8</option><option>9-10</option></select></label><label className="field">Chủ đề chính<select className="inp" value={form.mainCategoryId} onChange={e => setForm({ ...form, mainCategoryId: Number(e.target.value) })}><option value={0}>Chọn chủ đề</option>{categories.map(c => <option key={c.id} value={c.id}>{c.displayName}</option>)}</select></label>
           {(['readingLevelMin','readingLevelMax','defaultDaysPerStory'] as const).map(key => <label className="field" key={key}>{({ readingLevelMin: 'Mức đọc từ', readingLevelMax: 'Mức đọc đến', defaultDaysPerStory: 'Số ngày mỗi truyện' })[key]}<input type="number" className="inp" min={1} max={key === 'defaultDaysPerStory' ? 30 : 10} value={form[key]} onChange={e => setForm({ ...form, [key]: Number(e.target.value) })} /></label>)}</div></div>
@@ -94,11 +94,11 @@ export default function RoadmapTemplates() {
       {detail?.lastReview && <p className="notice">Phản hồi: {detail.lastReview.generalNote ?? detail.lastReview.reason ?? detail.lastReview.decision}</p>}</div>}
       {moderator && detail && <div className="st-group"><b className="st-group-title">Gửi duyệt và lưu trữ</b><label className="field">Lý do lưu trữ<input className="inp" maxLength={500} value={reason} onChange={e => setReason(e.target.value)} /></label><div className="row">
         {detail.isMine && detail.canSubmit && <button className="btn btn-p" disabled={busy} onClick={() => void act(() => service.submit(detail.id))}>Gửi duyệt</button>}
-        {detail.isMine && detail.status === 'PendingReview' && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Rút yêu cầu duyệt bộ truyện này?"))) return; void act(() => service.withdraw(detail.id)); }}>Rút yêu cầu duyệt</button>}
+        {detail.isMine && detail.status === 'PendingReview' && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Rút yêu cầu duyệt lộ trình này?"))) return; void act(() => service.withdraw(detail.id)); }}>Rút yêu cầu duyệt</button>}
         {(detail.status === 'Published' || group === 'Orphaned') && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.clone(detail.id))}>Nhân bản để sửa</button>}
-        {detail.status === 'Published' && <button className="btn btn-no" disabled={busy || reason.trim().length < 3} onClick={async () => { if (!(await confirmDialog("Lưu trữ bộ truyện này? Bộ truyện sẽ không còn hiện trong thư viện lộ trình."))) return; void act(() => service.archive(detail.id, reason)); }}>Lưu trữ bộ</button>}
+        {detail.status === 'Published' && <button className="btn btn-no" disabled={busy || reason.trim().length < 3} onClick={async () => { if (!(await confirmDialog("Lưu trữ lộ trình này? Lộ trình mẫu sẽ không còn hiện trong thư viện."))) return; void act(() => service.archive(detail.id, reason)); }}>Lưu trữ</button>}
       </div></div>}
-    </section> :<div className="st-card st-empty"><Frog size={120} mood="think" /><b className="display">Chọn một bộ truyện để xem</b></div>}
+    </section> :<div className="st-card st-empty"><Frog size={120} mood="think" /><b className="display">Chọn một lộ trình để xem</b></div>}
     </div>
   </Page>;
 }

@@ -27,7 +27,7 @@ export function useChildRefs(): ChildRef[] {
 }
 
 /**
- * Luồng 4 Bước 4.1 / 4.1c — thêm một truyện hoặc một bộ truyện mẫu vào lộ trình của một hoặc nhiều con.
+ * Luồng 4 Bước 4.1 / 4.1c — thêm một truyện hoặc một lộ trình mẫu vào lộ trình của một hoặc nhiều con.
  * Mỗi bé được kiểm tra riêng; bé không phù hợp bị bỏ qua và liệt kê lại (BR-4.A1).
  */
 export default function AddToRoadmapDialog({ story, template, childId, single, onClose, onDone }: {

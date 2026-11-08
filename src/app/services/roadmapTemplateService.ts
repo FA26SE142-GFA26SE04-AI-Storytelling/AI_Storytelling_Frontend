@@ -1,6 +1,6 @@
 import type * as B from '@/app/types/backendContracts';
 import { apiRequest, apiQuery } from './apiClient';
-const send = <T>(path: string, method: 'GET' | 'POST' | 'PUT' = 'GET', body?: unknown, signal?: AbortSignal) => apiRequest<T>('/RoadmapTemplate' + path, 'Không thực hiện được thao tác bộ truyện.', { method, body, signal });
+const send = <T>(path: string, method: 'GET' | 'POST' | 'PUT' = 'GET', body?: unknown, signal?: AbortSignal) => apiRequest<T>('/RoadmapTemplate' + path, 'Không thực hiện được thao tác lộ trình.', { method, body, signal });
 export const roadmapTemplateService = {
   list: (group: B.RoadmapListGroupName, pageIndex = 1, signal?: AbortSignal) => send<B.PagedResult<B.RoadmapListItemDto>>(apiQuery({ group, pageIndex, pageSize: 20 }), 'GET', undefined, signal),
   get: (id: number, signal?: AbortSignal) => send<B.RoadmapDetailDto>(`/${id}`, 'GET', undefined, signal),

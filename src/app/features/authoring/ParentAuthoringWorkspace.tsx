@@ -49,6 +49,8 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
   const [preview, setPreview] = useState<B.ParentPreparationDto | null>(null);
   const [viewVersion, setViewVersion] = useState<B.CreatorVersionDto | null>(null);
   const [stepId, setStepId] = useState<StepId>('write');
+  // Chỉ nạp lại biểu mẫu khi đổi phiên bản; đổi tiêu đề truyện không được xoá nội dung đang soạn.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { setReferences([]); setForm(h.version ? { title:h.version.title,content:h.version.content,sourceDeclaration:h.version.sourceDeclaration,rightsDeclaration:h.version.rightsDeclaration } : { ...empty, title: h.draft?.story.title ?? '' }); setPreview(null); setChecklist({ intendedMeaning:false,suitableForChild:false,privacyChecked:false,endingChecked:false }); }, [h.version]);
   const story = h.draft?.story;
   const storyKey = story?.storyId ?? null;

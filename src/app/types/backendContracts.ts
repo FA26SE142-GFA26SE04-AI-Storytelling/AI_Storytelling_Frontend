@@ -1001,6 +1001,7 @@ export interface ModerationItemDetailDto {
   'slaDueAt': string | null;
   'isOverdue': boolean;
   'claimedByUserId': number | null;
+  'claimedByName': string | null;
   'claimedAt': string | null;
   'claimExpiresAt': string | null;
   'createdAt': string;
@@ -1025,6 +1026,7 @@ export interface ModerationItemSummaryDto {
   'slaDueAt': string | null;
   'isOverdue': boolean;
   'claimedByUserId': number | null;
+  'claimedByName': string | null;
   'claimedAt': string | null;
   'claimExpiresAt': string | null;
   'createdAt': string;

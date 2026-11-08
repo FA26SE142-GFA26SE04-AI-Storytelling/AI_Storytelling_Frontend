@@ -4,7 +4,7 @@ import "@/app/features/library/library.css";
 import "@/app/features/review/review-tools.css";
 import { useRef, useState } from "react";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
-import type { CreateDraftInput, CreatorDraft } from "@/app/types/creator";
+import type { CreateDraftInput } from "@/app/types/creator";
 import { GENRES } from "@/app/lib/storyRules";
 import { Notice, Page } from "./ui";
 import CreatorGeneration from "./CreatorGeneration";

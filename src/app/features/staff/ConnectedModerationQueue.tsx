@@ -1,6 +1,6 @@
 'use client';
 import { useCallback, useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight, ChevronsUp, Equal, ChevronDown, Clock, HandHelping, Inbox, RefreshCw } from 'lucide-react';
+import { AlarmClock, Archive, ChevronLeft, ChevronRight, ChevronsUp, Equal, ChevronDown, CircleCheck, CircleX, Clock, HandHelping, Hourglass, Inbox, RefreshCw, UserCheck, type LucideIcon } from 'lucide-react';
 import Frog from '@/app/components/brand/Frog';
 import Select from '@/app/components/Select';
 import { staffService } from '@/app/services/staffService';
@@ -8,18 +8,32 @@ import { useAuth } from '@/app/context/AuthContext';
 import type { QueueItem, QueueItemStatus, QueueItemType } from '@/app/types/staff';
 import type { ReviewKind } from '@/app/services/moderationService';
 import { Page, Notice, useAction } from './ui';
+import { useRiseIn } from '@/app/lib/motion';
 import ReviewPanel from './ReviewPanel';
-const types: Record<string, string> = { PublicStoryReview: 'Truyện công khai', RoadmapTemplateReview: 'Bộ truyện mẫu', CommunitySubmission: 'Truyện cộng đồng', GrayZoneStory: 'Vùng xám', ContentReport: 'Báo cáo nội dung', PublicStoryRemoval: 'Yêu cầu gỡ truyện' };
+const types: Record<string, string> = { PublicStoryReview: 'Truyện công khai', RoadmapTemplateReview: 'Lộ trình mẫu', CommunitySubmission: 'Truyện cộng đồng', GrayZoneStory: 'Vùng xám', ContentReport: 'Báo cáo nội dung', PublicStoryRemoval: 'Yêu cầu gỡ truyện' };
 const statuses: QueueItemStatus[] = ['Pending','Claimed','Escalated','Approved','ChangesRequested','Rejected','Cleared','Blocked','Dismissed','Archived','Withdrawn','Removed','Closed'];
-const labels: Record<string, string> = { Pending: 'Đang chờ', Claimed: 'Đang nhận xử lý', Escalated: 'Chuyển lên Admin', Approved: 'Đã duyệt', ChangesRequested: 'Yêu cầu sửa', Rejected: 'Từ chối', Cleared: 'Cho phép tiếp tục', Blocked: 'Bị chặn', Dismissed: 'Bỏ qua', Archived: 'Đã gỡ', Withdrawn: 'Đã rút', Removed: 'Đã gỡ', Closed: 'Đã đóng' };
+const labels: Record<string, string> = { Pending: 'Đang chờ', Claimed: 'Đang nhận xử lý', Escalated: 'Chuyển lên Admin', Approved: 'Đã duyệt', ChangesRequested: 'Yêu cầu sửa', Rejected: 'Từ chối', Cleared: 'Cho phép tiếp tục', Blocked: 'Bị chặn', Dismissed: 'Bỏ qua', Archived: 'Đã lưu trữ', Withdrawn: 'Đã rút', Removed: 'Đã gỡ', Closed: 'Đã đóng' };
 const PRIORITY: Record<string, { label: string; Icon: typeof Equal; tone: string }> = {
   High: { label: 'Ưu tiên cao', Icon: ChevronsUp, tone: 'hi' },
   Medium: { label: 'Ưu tiên vừa', Icon: Equal, tone: 'mid' },
   Low: { label: 'Ưu tiên thấp', Icon: ChevronDown, tone: 'lo' },
 };
+/** Dấu trạng thái của một mục: quá hạn, chờ nhận, đã nhận, đã duyệt… (thay cho dấu mức ưu tiên). */
+type StateMark = { label: string; Icon: LucideIcon; tone: string };
+function stateOf(status: string, late: boolean): StateMark {
+  if (late) return { label: 'Quá hạn', Icon: AlarmClock, tone: 'late' };
+  switch (status) {
+    case 'Pending': return { label: 'Chờ nhận', Icon: Hourglass, tone: 'wait' };
+    case 'Claimed': return { label: 'Đã nhận', Icon: UserCheck, tone: 'held' };
+    case 'Escalated': return { label: 'Chuyển lên Admin', Icon: ChevronsUp, tone: 'wait' };
+    case 'Approved': case 'Cleared': return { label: status === 'Approved' ? 'Đã duyệt' : 'Cho phép tiếp tục', Icon: CircleCheck, tone: 'done' };
+    case 'ChangesRequested': case 'Rejected': case 'Blocked': case 'Removed': return { label: labels[status], Icon: CircleX, tone: 'stop' };
+    default: return { label: labels[status] ?? status, Icon: Archive, tone: 'lo' };
+  }
+}
 /** Hạn xử lý: ngày giờ rõ ràng, kèm còn bao lâu hoặc đã quá hạn bao lâu. */
-/** Người xử lý: chưa có người nhận thì để trống. Backend chỉ trả mã người nhận, chưa có tên, nên chỉ gọi được "Bạn" hoặc theo mã. */
-const handlerName = (id: number | null, me?: number | null, myUsername?: string) => (id == null ? '' : id === me ? (myUsername ? `${myUsername} (bạn)` : 'Bạn') : `Tài khoản #${id}`);
+/** Người xử lý: chưa có người nhận thì để trống. Backend trả tên người nhận ở claimedByName; chưa có tên thì hiện theo mã. */
+const handlerName = (item: QueueItem, me?: number | null, myName?: string) => (item.claimedByUserId == null ? 'Chưa có' : item.claimedByUserId === me ? `${myName || item.claimedByName || 'Bạn'} (bạn)` : item.claimedByName || `Tài khoản #${item.claimedByUserId}`);
 /** Hạn xử lý chỉ còn ý nghĩa khi mục chưa có quyết định; mục đã xử lý xong thì không tính quá hạn. */
 const OPEN_STATUSES = ['Pending', 'Claimed', 'Escalated'];
 function dueInfo(iso: string | null, status: string) {
@@ -33,17 +47,17 @@ function dueInfo(iso: string | null, status: string) {
   return { text: `${time}, ${date}`, late: OPEN_STATUSES.includes(status) && diff < 0, done: !OPEN_STATUSES.includes(status), span };
 }
 /** Tóm tắt một mục chưa mở được nội dung: loại, trạng thái, ưu tiên, hạn và nút nhận xử lý. */
-function DetailCard({ item, me, myUsername, busy, onClaim }: { item: QueueItem; me?: number; myUsername?: string; busy: boolean; onClaim: () => void }) {
+function DetailCard({ item, me, myName, busy, onClaim }: { item: QueueItem; me?: number; myName?: string; busy: boolean; onClaim: () => void }) {
   const pr = PRIORITY[item.priority]; const due = dueInfo(item.slaDueAt, item.status);
   return <div className="st-card st-detail">
     <div className="st-detail-head">
       <span className="st-detail-ic" aria-hidden><Inbox className="ic" /></span>
       <div className="grow"><b className="display">{types[item.itemType] ?? item.itemType}</b></div>
-      {pr && <span className={`st-prio ${pr.tone}`} title={pr.label} aria-label={pr.label}><pr.Icon className="ic" /></span>}
+      {(() => { const m = stateOf(item.status, !!due?.late); return <span className={`st-prio ${m.tone}`} title={m.label} aria-label={m.label}><m.Icon className="ic" /></span>; })()}
     </div>
     <div className="st-facts">
       <div><small>Trạng thái</small><b>{labels[item.status]}{item.claimedByUserId === me ? (item.status === 'Claimed' ? ' · bạn đang giữ' : ' · bạn đã xử lý') : ''}</b></div>
-      <div><small>Người xử lý</small><b>{handlerName(item.claimedByUserId, me, myUsername)}</b></div>
+      <div><small>Người xử lý</small><b>{handlerName(item, me, myName)}</b></div>
       <div><small>Mức ưu tiên</small><b>{pr?.label ?? item.priority}</b></div>
       <div><small>Hạn xử lý</small><b className={due?.late ? 'st-late' : ''}>{due ? due.text : 'Chưa đặt hạn'}</b>{due && <small className={due.late ? 'st-late' : ''}>{due.done ? 'Đã xử lý xong' : due.late ? `Quá hạn ${due.span}` : `Còn ${due.span}`}</small>}</div>
     </div>
@@ -74,6 +88,7 @@ export default function ConnectedModerationQueue({ admin }: { admin?: boolean })
     });
     return () => { alive = false; };
   }, [status, kind, pageIndex, revision, user?.id]);
+  const listRef = useRiseIn<HTMLDivElement>('.st-item', [items], { delay: 40, distance: 10 });
   const current = items.find(i => i.id === selected);
   const canOpen = current && current.itemType in types && ((current.status === 'Claimed' && current.claimedByUserId === user?.id) || (current.status === 'Escalated' && current.itemType === 'ContentReport' && user?.role === 'Administrator'));
   return <Page fit title="Hàng đợi kiểm duyệt">
@@ -83,16 +98,15 @@ export default function ConnectedModerationQueue({ admin }: { admin?: boolean })
       <Select<QueueItemType | ''> ariaLabel="Loại mục" value={kind} options={[{ value: '', label: 'Tất cả loại mục' }, ...Object.entries(types).map(([k, v]) => ({ value: k as QueueItemType, label: v }))]} onChange={v => { setKind(v); setPageIndex(1); }} />
       <button className="btn btn-g" aria-label="Tải lại" onClick={reload}><RefreshCw className="ic" /></button>
     </div>
-    <div className="st-split fill"><div className="st-list">{items.map(i => <button className={`st-item${selected === i.id ? ' on' : ''}`} key={i.id} onClick={() => setSelected(i.id)}>{(() => {
-          const pr = PRIORITY[i.priority]; const due = dueInfo(i.slaDueAt, i.status);
+    <div className="st-split fill"><div className="st-list" ref={listRef}>{items.map(i => <button className={`st-item${selected === i.id ? ' on' : ''}`} key={i.id} onClick={() => setSelected(i.id)}>{(() => {
+          const due = dueInfo(i.slaDueAt, i.status);
           return <>
-            <span className="st-item-top"><b>{types[i.itemType] ?? i.itemType}</b>{pr && <span className={`st-prio ${pr.tone}`} title={pr.label} aria-label={pr.label}><pr.Icon className="ic" /></span>}</span>
-            <small>{labels[i.status]}{i.claimedByUserId === user?.id ? (i.status === 'Claimed' ? ' · Bạn đang giữ mục' : ' · Bạn đã xử lý') : ''}</small>
-            {due ? <small className={`st-due${due.late ? ' late' : ''}`}><Clock className="ic" />{due.text} · {due.done ? 'đã xử lý xong' : due.late ? `quá hạn ${due.span}` : `còn ${due.span}`}</small> : <small className="st-due"><Clock className="ic" />Chưa đặt hạn</small>}
+            <span className="st-item-top"><b>{types[i.itemType] ?? i.itemType}</b>{(() => { const m = stateOf(i.status, !!due?.late); return <span className={`st-prio ${m.tone}`} title={m.label} aria-label={m.label}><m.Icon className="ic" /></span>; })()}</span>
+            <small className={`st-due${due?.late ? ' late' : ''}`}><Clock className="ic" />{labels[i.status]}{i.claimedByUserId === user?.id ? (i.status === 'Claimed' ? ' · bạn đang giữ' : ' · bạn đã xử lý') : ''} · {due ? (due.done ? due.text : due.late ? `quá hạn ${due.span}` : `còn ${due.span}`) : 'chưa đặt hạn'}</small>
           </>;
         })()}</button>)}{!items.length && !error && <p>Không có mục nào ở trang này.</p>}
       <div className="row" style={{ justifyContent: 'center', gap: 12 }}><button className="btn btn-g" aria-label="Trang trước" disabled={pageIndex === 1} onClick={() => setPageIndex(p => p - 1)}><ChevronLeft className="ic" /></button><span className="sub">Trang {pageIndex}</span><button className="btn btn-g" aria-label="Trang tiếp" disabled={!hasNext} onClick={() => setPageIndex(p => p + 1)}><ChevronRight className="ic" /></button></div></div>
-      {current ? canOpen ? <ReviewPanel key={`${user?.id}:${current.id}`} kind={current.itemType as ReviewKind} id={current.id} onDecision={reload} /> : <DetailCard item={current} me={user?.id} myUsername={user?.username} busy={busy} onClaim={() => void run(() => staffService.claim(current.id), 'Đã nhận mục; chọn trạng thái Đang nhận xử lý để tiếp tục.')} /> : <div className="st-card st-empty"><Frog size={120} mood="think" /><b className="display">Chọn một mục để xem</b><span className="sub">{items.length ? 'Bấm vào một mục bên trái để xem chi tiết và nhận xử lý.' : 'Hiện chưa có mục nào cần xử lý.'}</span></div>}
+      {current ? canOpen ? <ReviewPanel key={`${user?.id}:${current.id}`} kind={current.itemType as ReviewKind} id={current.id} onDecision={reload} /> : <DetailCard item={current} me={user?.id} myName={(user?.fullName || user?.username)} busy={busy} onClaim={() => void run(() => staffService.claim(current.id), 'Đã nhận mục; chọn trạng thái Đang nhận xử lý để tiếp tục.')} /> : <div className="st-card st-empty"><Frog size={120} mood="think" /><b className="display">Chọn một mục để xem</b><span className="sub">{items.length ? 'Bấm vào một mục bên trái để xem chi tiết và nhận xử lý.' : 'Hiện chưa có mục nào cần xử lý.'}</span></div>}
     </div>
   </Page>;
 }

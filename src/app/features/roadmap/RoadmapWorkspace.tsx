@@ -25,7 +25,7 @@ const SKIP_REASON: Record<string, string> = {
   source_deleted: "Truyện gốc đã bị xoá",
   data_deletion: "Dữ liệu của bé đã bị xoá",
 };
-const SOURCE: Record<string, string> = { parent: "Bố mẹ chọn", template: "Bộ truyện mẫu", wish: "Từ điều ước của bé" };
+const SOURCE: Record<string, string> = { parent: "Bố mẹ chọn", template: "Lộ trình mẫu", wish: "Từ điều ước của bé" };
 
 /** Luồng 4 Bước 4.1–4.1d — "Lộ trình của con". */
 export default function RoadmapWorkspace({ go }: WorkspaceProps) {
@@ -132,7 +132,7 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
               <button className="btn btn-p" disabled={!canEdit} onClick={openPick}><Plus className="ic" />Thêm truyện</button>
             </div>
             <button className="btn btn-s" onClick={() => go("library")}>Thư viện</button>
-            {canEdit && (queued.length > 0 || open) && <button className="btn btn-no" onClick={async () => { if (await confirmDialog(`Gỡ toàn bộ truyện chưa đọc khỏi lộ trình của ${child.nickname}?`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình."); }}><Trash2 className="ic" />Làm trống</button>}
+            {canEdit && (queued.length > 0 || open) && <button className="btn btn-no" onClick={async () => { if (await confirmDialog(`Gỡ toàn lộ trình chưa đọc khỏi lộ trình của ${child.nickname}?`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình."); }}><Trash2 className="ic" />Làm trống</button>}
           </div>
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
           <HoldPanel child={child} role={role} onChanged={() => void load()} />
@@ -153,7 +153,7 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
             <div className="empty" style={{ height: "auto", padding: 20 }}>
               <Frog size={80} mood="think" />
               <b className="display">{total ? `${child.nickname} đã đọc hết truyện bạn chọn` : "Lộ trình đang trống"}</b>
-              <span>Thêm truyện hoặc một bộ truyện mẫu để {child.nickname} đọc tiếp.</span>
+              <span>Thêm truyện hoặc một lộ trình mẫu để {child.nickname} đọc tiếp.</span>
             </div>
           )}
 
@@ -195,7 +195,7 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
             <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>Thêm truyện cho {child.nickname}</b><button className="btn btn-g" aria-label="Đóng" onClick={() => setDialog(null)}><X className="ic" /></button></div>
             <div className="seg" role="tablist">
               <button type="button" role="tab" aria-selected={pickTab === "mine"} className={pickTab === "mine" ? "on" : ""} onClick={() => setPickTab("mine")}>Truyện của tôi</button>
-              <button type="button" role="tab" aria-selected={pickTab === "sets"} className={pickTab === "sets" ? "on" : ""} onClick={() => void showSets()}>Bộ truyện mẫu</button>
+              <button type="button" role="tab" aria-selected={pickTab === "sets"} className={pickTab === "sets" ? "on" : ""} onClick={() => void showSets()}>Lộ trình mẫu</button>
             </div>
             {pickTab === "mine" ? (
               <>
@@ -211,7 +211,7 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
               </>
             ) : templates === null ? <p className="sub">Đang tải…</p> : (
               <>
-                {templates.length === 0 && <p className="sub">Chưa có bộ truyện mẫu nào được duyệt.</p>}
+                {templates.length === 0 && <p className="sub">Chưa có lộ trình mẫu nào được duyệt.</p>}
                 <div className="rm-templates">
                   {templates.filter((t) => t.targetAgeBand === child.ageBand).concat(templates.filter((t) => t.targetAgeBand !== child.ageBand)).map((t) => (
                     <div key={t.id} className="rm-template">

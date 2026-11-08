@@ -48,6 +48,10 @@
 .st-prio.hi { color: #e5594f; background: color-mix(in srgb, #e5594f 16%, transparent); }
 .st-prio.mid { color: #e0a43a; background: color-mix(in srgb, #e0a43a 16%, transparent); }
 .st-prio.lo { color: var(--muted); background: var(--surface-2); }
+.st-prio.late, .st-prio.stop { color: var(--danger); background: color-mix(in srgb, var(--danger) 16%, transparent); }
+.st-prio.wait { color: var(--warn-ink); background: color-mix(in srgb, var(--warn-ink) 16%, transparent); }
+.st-prio.held { color: var(--primary-strong); background: color-mix(in srgb, var(--primary) 18%, transparent); }
+.st-prio.done { color: var(--ok-ink); background: color-mix(in srgb, var(--ok-ink) 16%, transparent); }
 .st-due { display: flex; align-items: center; gap: 5px; }
 .st-due .ic { width: 13px; height: 13px; flex: none; }
 .st-due.late { color: #e5594f; font-weight: 700; }

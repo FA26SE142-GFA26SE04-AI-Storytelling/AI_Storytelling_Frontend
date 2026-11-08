@@ -10,7 +10,7 @@ import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useAuth } from "@/app/context/AuthContext";
 import type { StoryDto } from "@/app/types/story";
 import { storyService } from "@/app/services/storyService";
-import { ageLabel, familyToCard, splitScenes, statusKey, toCard, type StoryCard } from "@/app/lib/storyView";
+import { ageLabel, splitScenes, statusKey, toCard, type StoryCard } from "@/app/lib/storyView";
 import { parentAuthoringService } from "@/app/services/parentAuthoringService";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useRiseIn } from "@/app/lib/motion";
@@ -257,24 +257,11 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
     setError(message);
     setStoriesLoading(false);
   }, []);
-  // Truyện tự soạn không có trong GET /Story (backend ẩn), nên tải riêng từ GET /parent/stories rồi gộp vào.
-  const [family, setFamily] = useState<StoryCard[]>([]);
-  const [familyError, setFamilyError] = useState<string | null>(null);
-  const loadFamily = useCallback(async () => {
-    const all: StoryCard[] = [];
-    for (let page = 1; page <= 50; page++) {
-      const r = await parentAuthoringService.mine(page, 100);
-      if (!r.success) { setFamilyError(r.message); break; }
-      all.push(...(r.data?.items ?? []).map(familyToCard));
-      if (!r.data?.hasNextPage) { setFamilyError(null); break; }
-    }
-    setFamily(all);
-  }, []);
-  useEffect(() => { void loadPublic(); void loadFamily(); }, [loadPublic, loadFamily]);
+  useEffect(() => { void loadPublic(); }, [loadPublic]);
   const stories = useMemo(() => {
-    const seen = new Set(pub.map((s) => s.id));
-    return [...pub, ...family.filter((s) => !seen.has(s.id))].filter((s) => SHOWN_GROUPS.includes(statusOf(s)));
-  }, [pub, family]);
+    // Thư viện chung chỉ hiện truyện đã công khai; truyện tự soạn của gia đình là riêng tư nên không đưa vào.
+    return pub.filter((s) => s.raw.isPublished && SHOWN_GROUPS.includes(statusOf(s)));
+  }, [pub]);
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -349,7 +336,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
     <AsideContext.Provider value={aside}>
     <section className="ws dock lib" data-aside={asideCollapsed ? "collapsed" : undefined}>
       <div className="pane">
-        {(error || familyError) && <div className="err-banner" role="alert">{error ?? `Chưa tải được truyện tự soạn: ${familyError}`}</div>}
+        {error && <div className="err-banner" role="alert">{error}</div>}
         <div className="lib-scroll">
           <div className="lbar">
             <div className="lsearch">
