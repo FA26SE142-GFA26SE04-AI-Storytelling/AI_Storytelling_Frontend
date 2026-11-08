@@ -1,6 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Check, Lock, RotateCcw, ShieldCheck } from 'lucide-react';
+import { Lock, RotateCcw, ShieldCheck } from 'lucide-react';
+import StepDone from '@/app/features/studio/StepDone';
 import { creatorPublicationService as service } from '@/app/services/creatorPublicationService';
 import { confirmDialog } from '@/app/lib/confirm';
 import type { CreatorDraft } from '@/app/types/creator';
@@ -87,7 +88,7 @@ export default function CreatorContentCheck({ draft, disabled, missing, onWorkin
       {note && <p className={`notice ${note.ok ? 'ok' : 'err'}`} role="status">{note.text}</p>}
 
       {confirmed
-        ? <p className="ce-done" style={{ display: 'flex', alignItems: 'center', gap: 10, margin: 0 }}><span className="ce-done-ic"><Check className="ic" aria-hidden /></span><b>Đã xong</b></p>
+        ? <StepDone />
         : <>
           {missing.length > 0 && <p className="notice warn" role="status">Còn thiếu: {missing.join(', ')}. Quay lại bước 1 điền đủ rồi lưu.</p>}
 
