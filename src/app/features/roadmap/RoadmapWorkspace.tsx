@@ -1,233 +1,135 @@
 "use client";
-import { avatarOf } from "@/app/lib/guardian";
-import DenyCover from "@/app/components/DenyCover";
-import { confirmDialog } from "@/app/lib/confirm";
 
+import "@/app/features/library/library.css";
 import "./roadmap.css";
-import "@/app/features/review/review-tools.css";
-import { useCallback, useEffect, useState } from "react";
-import { ArrowDown, ArrowUp, BookOpen, Check, GripVertical, Plus, Trash2, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Search, X } from "lucide-react";
+import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { guardianService } from "@/app/services/guardianService";
-import type { RoadmapItem, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
+import { roadmapTemplate } from "@/app/services/roadmapAdapters";
+import { avatarOf } from "@/app/lib/guardian";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
-import { useMyRole } from "@/app/features/children/useMyRole";
-import { ageLabel, statusKey } from "@/app/lib/storyView";
-import { fmtDate } from "@/app/lib/guardian";
+import type * as B from "@/app/types/backendContracts";
+import type { RoadmapItem, RoadmapTemplate } from "@/app/types/progress";
 import Frog from "@/app/components/brand/Frog";
+import { Shelf, ShelfRow } from "@/app/features/library/LibraryWorkspace";
 import AddToRoadmapDialog from "./AddToRoadmapDialog";
+import RoadmapAlbum from "./RoadmapAlbum";
+import { useRoadmapTemplates } from "./roadmapData";
+import TemplateDialog from "./TemplateDialog";
+import ChildRoadmapDialog from "./ChildRoadmapDialog";
 
-const SKIP_REASON: Record<string, string> = {
-  blocked_category: "Thuộc chủ đề bị chặn",
-  age_band_mismatch: "Không hợp nhóm tuổi",
-  story_unavailable: "Truyện không còn đọc được",
-  source_deleted: "Truyện gốc đã bị xoá",
-  data_deletion: "Dữ liệu của bé đã bị xoá",
-};
-const SOURCE: Record<string, string> = { parent: "Bố mẹ chọn", template: "Lộ trình mẫu", wish: "Từ điều ước của bé" };
+/** Nhóm tuổi của lộ trình mẫu ("6-8") và của hồ sơ bé ("Age_6_8") viết khác nhau; đưa về một dạng để so. */
+const band = (v: string) => v.replace(/^Age_/, "").replace("_", "-");
 
-/** Luồng 4 Bước 4.1–4.1d — "Lộ trình của con". */
+/**
+ * Luồng 4a — "Lộ trình của con".
+ * Bên trái là thư viện lộ trình mẫu do Moderator soạn, mỗi lộ trình là một album. Bên phải là các bé:
+ * bấm một bé để xem lộ trình của bé, bé đã đọc tới đâu, và sắp xếp / gỡ / thêm truyện.
+ */
 export default function RoadmapWorkspace({ go }: WorkspaceProps) {
-  const { children: kids, stories } = useWorkspaceData();
-  // Bé chọn ở đây chỉ dùng trong trang Lộ trình. Nhiều bé thì phải bấm chọn trước; chỉ có một bé thì hiện luôn.
-  const [picked, setPicked] = useState<number | null>(null);
-  const child = kids.find((k) => k.id === picked) ?? (kids.length === 1 ? kids[0] : null);
-  const role = useMyRole(child);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [counts, setCounts] = useState<{ completed: number; total: number } | null>(null);
-  const [items, setItems] = useState<RoadmapItem[] | null>(null);
-  const [dialog, setDialog] = useState<{ kind: "pick" } | { kind: "add"; story?: RoadmapStoryInput; template?: RoadmapTemplate } | null>(null);
-  const [templates, setTemplates] = useState<RoadmapTemplate[] | null>(null);
-  const [pickTab, setPickTab] = useState<"mine" | "sets">("mine");
-  const [drag, setDrag] = useState<number | null>(null);
-  const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
-  const [showHistory, setShowHistory] = useState(false);
-  const canEdit = !!role?.can("AssignActivity");
+  const { user } = useAuth();
+  const { children: kids } = useWorkspaceData();
+  const { templates, error: loadError } = useRoadmapTemplates();
+  const [q, setQ] = useState("");
+  const [topic, setTopic] = useState<string | null>(null);
+  const [opened, setOpened] = useState<B.RoadmapLibraryItemDto | null>(null);
+  const [adding, setAdding] = useState<RoadmapTemplate | null>(null);
+  const [kidOpen, setKidOpen] = useState<number | null>(null);
+  const [roadmaps, setRoadmaps] = useState<Record<number, RoadmapItem[]>>({});
 
-  const load = useCallback(async () => {
-    if (!child) return;
-    const r = await guardianService.roadmap(child.id);
-    setItems(r.data ?? []);
-    setCounts(r.counts ?? null);
-    setLoadError(r.success ? null : r.message);
-  }, [child]);
-  useEffect(() => { setItems(null); void load(); }, [load]);
+  const loadKids = useCallback(async () => {
+    const pairs = await Promise.all(kids.map(async (k) => [k.id, (await guardianService.roadmap(k.id)).data ?? []] as const));
+    setRoadmaps(Object.fromEntries(pairs));
+  }, [kids]);
+  useEffect(() => { void loadKids(); }, [loadKids]);
 
-  if (kids.length === 0) return <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}><div className="pane"><div className="empty"><b className="display">Chưa có hồ sơ bé</b></div></div></section>;
-
-  const choose = (id: number) => { setPicked(id); setNote(null); setShowHistory(false); };
-  const kidsBar = (
-    <div className="rm-kids" role="tablist" aria-label="Chọn bé để xem lộ trình">
-      {kids.map((k) => (
-        <button key={k.id} role="tab" aria-selected={child?.id === k.id} className={`rm-kid${child?.id === k.id ? " on" : ""}`} onClick={() => choose(k.id)}>
-          <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
-          <span className="grow"><b>{k.nickname}</b><small>{ageLabel(k.ageBand)}</small></span>
-          {child?.id === k.id && <Check className="ic" />}
-        </button>
-      ))}
-    </div>
-  );
-
-  if (!child) return (
-    <section className="ws dock" style={{ gridTemplateColumns: "1fr", gridTemplateRows: "auto 1fr" }}>
-      <div className="pane rm-pick-pane">
-        <div className="pb rm-body">
-          {kidsBar}
-          <div className="empty" style={{ height: "auto", padding: 24 }}>
-            <Frog size={80} mood="think" />
-            <b className="display">Chọn bé để xem lộ trình</b>
-            <span>Mỗi bé có một lộ trình riêng. Bấm vào tên bé ở trên.</span>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-
-  const open = items?.find((i) => i.status === "open") ?? null;
-  const queued = (items ?? []).filter((i) => i.status === "queued").sort((a, b) => a.position - b.position);
-  const history = (items ?? []).filter((i) => i.status === "completed" || i.status === "skipped" || i.status === "removed");
-  const total = counts?.total ?? (items ?? []).filter((i) => i.status !== "removed" && i.status !== "skipped").length;
-  const overdue = !!open?.dueAt && Date.parse(open.dueAt) < Date.now();
-  const ready = stories.filter((s) => ["ready", "published"].includes(statusKey(s.raw)));
-
-  const act = async (fn: () => Promise<{ success: boolean; message: string }>, okText?: string) => {
-    const r = await fn();
-    setNote(r.success ? (okText ? { ok: true, text: okText } : null) : { ok: false, text: r.message });
-    await load();
-  };
-
-  const reorder = (ids: number[]) => void act(() => guardianService.reorderRoadmap(child.id, ids));
-  const move = (id: number, delta: number) => {
-    const ids = queued.map((q) => q.id);
-    const i = ids.indexOf(id);
-    const j = i + delta;
-    if (j < 0 || j >= ids.length) return;
-    [ids[i], ids[j]] = [ids[j], ids[i]];
-    reorder(ids);
-  };
-  const drop = (targetId: number) => {
-    if (drag === null || drag === targetId) return;
-    const ids = queued.map((q) => q.id).filter((x) => x !== drag);
-    ids.splice(ids.indexOf(targetId), 0, drag);
-    setDrag(null);
-    reorder(ids);
-  };
-
-  const openPick = () => { setPickTab("mine"); setDialog({ kind: "pick" }); };
-  const showSets = async () => {
-    setPickTab("sets");
-    if (templates === null) setTemplates((await guardianService.templates()).data ?? []);
-  };
+  const list = useMemo(() => templates ?? [], [templates]);
+  const kidBands = useMemo(() => new Set(kids.map((k) => band(k.ageBand))), [kids]);
+  const forKids = list.filter((t) => kidBands.has(band(t.ageBand)));
+  const topics = useMemo(() => [...new Set(list.map((t) => t.mainCategory?.displayName).filter((t): t is string => !!t))], [list]);
+  const activeTopic = topic && topics.includes(topic) ? topic : topics[0] ?? null;
+  const byTopic = list.filter((t) => t.mainCategory?.displayName === activeTopic);
+  const needle = q.trim().toLowerCase();
+  const results = needle ? list.filter((t) => `${t.name} ${t.description ?? ""}`.toLowerCase().includes(needle)) : [];
+  const album = (t: B.RoadmapLibraryItemDto) => <RoadmapAlbum key={t.id} item={t} onOpen={() => setOpened(t)} />;
+  const kid = kids.find((k) => k.id === kidOpen) ?? null;
 
   return (
-    <section className="ws dock" style={{ gridTemplateColumns: "1fr", gridTemplateRows: "auto 1fr" }}>
-      <div className="pane rm-kids-pane"><div className="pb">{kidsBar}</div></div>
-      <div className="pane rm-main">
-        <div key={child.id} className="pb rm-body rm-swap">
-          {loadError && <div className="notice err" role="alert" data-inline-notice>{loadError}</div>}
-          <div className="rm-actions">
-            <div className="rm-actions-edit">
-              <DenyCover active={!!role && !canEdit} text="Bạn không đủ quyền hạn để thêm, gỡ hoặc sắp xếp lộ trình." />
-              <button className="btn btn-p" disabled={!canEdit} onClick={openPick}><Plus className="ic" />Thêm truyện</button>
-            </div>
-            <button className="btn btn-s" onClick={() => go("library")}>Thư viện</button>
-            {canEdit && (queued.length > 0 || open) && <button className="btn btn-no" onClick={async () => { if (await confirmDialog(`Gỡ toàn lộ trình chưa đọc khỏi lộ trình của ${child.nickname}?`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình."); }}><Trash2 className="ic" />Làm trống</button>}
+    <section className="ws dock rm-page">
+      <div className="pane">
+        <div className="lib-scroll">
+          <div className="lbar">
+            <label className="lsearch">
+              <Search className="ic" aria-hidden />
+              <input className="inp grow" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm lộ trình theo tên" aria-label="Tìm lộ trình theo tên" style={{ border: 0, background: "none" }} />
+              {q && <button className="btn btn-g icon-only" aria-label="Xoá tìm kiếm" onClick={() => setQ("")}><X className="ic" /></button>}
+            </label>
           </div>
-      {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
-
-          <h3 className="display rm-h">Đang đọc</h3>
-          {items === null ? <p className="sub">Đang tải…</p> : open ? (
-            <div className="rm-item open">
-              <BookOpen className="ic" />
-              <div className="grow">
-                <b>{open.title}</b>
-                <small>{SOURCE[open.source]} · mở ngày {fmtDate(open.openedAt)}{open.dueAt ? ` · mong đọc xong trước ${fmtDate(open.dueAt)}` : ""}</small>
-                {open.note && <small>💌 {open.note}</small>}
-                {overdue && <small className="warn">Đã qua ngày mong đọc xong — có thể nhắc nhẹ {child.nickname} nhé.</small>}
-              </div>
-              {canEdit && <button className="btn btn-g" aria-label="Gỡ" onClick={async () => { if (!(await confirmDialog("Gỡ truyện này khỏi lộ trình? Truyện kế tiếp sẽ được mở cho bé."))) return; void act(() => guardianService.removeFromRoadmap(child.id, open.id), "Đã gỡ, truyện kế tiếp được mở."); }}><Trash2 className="ic" /></button>}
+          {loadError && <div className="notice err" role="alert" data-inline-notice>{loadError}</div>}
+          {templates === null ? <p className="sub lib-empty">Đang tải lộ trình mẫu…</p>
+          : list.length === 0 ? (
+            <div className="lib-empty">
+              <Frog size={90} mood="think" />
+              <b className="display">Chưa có lộ trình mẫu nào</b>
+              <button className="btn btn-s" onClick={() => go("library")}>Mở thư viện truyện</button>
             </div>
+          ) : needle ? (
+            <Shelf title="Kết quả" sub={`${results.length} lộ trình`} items={results}>
+              {results.length ? <div className="shelf-grid">{results.map(album)}</div> : <p className="sub">Không tìm thấy lộ trình phù hợp.</p>}
+            </Shelf>
           ) : (
-            <div className="empty" style={{ height: "auto", padding: 20 }}>
-              <Frog size={80} mood="think" />
-              <b className="display">{total ? `${child.nickname} đã đọc hết truyện bạn chọn` : "Lộ trình đang trống"}</b>
-              <span>Thêm truyện hoặc một lộ trình mẫu để {child.nickname} đọc tiếp.</span>
-            </div>
-          )}
-
-          <h3 className="display rm-h">Tiếp theo <small>{queued.length}</small></h3>
-          {queued.length === 0 && <p className="sub">Chưa có truyện nào đang chờ.</p>}
-          <ol className="rm-list">
-            {queued.map((q, i) => (
-              <li key={q.id} className={`rm-item${drag === q.id ? " dragging" : ""}`} draggable={canEdit}
-                onDragStart={() => setDrag(q.id)} onDragOver={(e) => e.preventDefault()} onDrop={() => drop(q.id)} onDragEnd={() => setDrag(null)}>
-                {canEdit && <GripVertical className="ic grip" aria-hidden />}
-                <span className="rm-n">{i + 1}</span>
-                <div className="grow"><b>{q.title}</b><small>{SOURCE[q.source]}{q.dueDays ? ` · ${q.dueDays} ngày` : ""}{q.note ? ` · 💌 ${q.note}` : ""}</small></div>
-                {canEdit && <>
-                  <button className="btn btn-g" aria-label="Lên" disabled={i === 0} onClick={() => move(q.id, -1)}><ArrowUp className="ic" /></button>
-                  <button className="btn btn-g" aria-label="Xuống" disabled={i === queued.length - 1} onClick={() => move(q.id, 1)}><ArrowDown className="ic" /></button>
-                  <button className="btn btn-g" aria-label="Gỡ" onClick={async () => { if (!(await confirmDialog("Gỡ truyện này khỏi lộ trình?"))) return; void act(() => guardianService.removeFromRoadmap(child.id, q.id), "Đã gỡ truyện."); }}><Trash2 className="ic" /></button>
-                </>}
-              </li>
-            ))}
-          </ol>
-
-          <button className="btn btn-g" style={{ width: "fit-content" }} onClick={() => setShowHistory(!showHistory)}>{showHistory ? "Ẩn" : "Xem"} truyện đã đọc / bỏ qua ({history.length})</button>
-          {showHistory && (
-            <ul className="rm-list">
-              {history.map((h) => (
-                <li key={h.id} className="rm-item done">
-                  <div className="grow"><b>{h.title}</b><small>{h.status === "completed" ? `Đã đọc xong ${fmtDate(h.completedAt)}` : h.status === "skipped" ? `Bỏ qua: ${SKIP_REASON[h.skipReason ?? ""] ?? "Không còn phù hợp"}` : "Đã gỡ"}</small></div>
-                  <span className={`pill ${h.status === "completed" ? "ok" : "draft"}`}>{h.status === "completed" ? "Đã đọc" : h.status === "skipped" ? "Bỏ qua" : "Đã gỡ"}</span>
-                </li>
-              ))}
-            </ul>
+            <>
+              {forKids.length > 0 && (
+                <Shelf title="Hợp với các bé" items={forKids}>
+                  <ShelfRow>{forKids.map(album)}</ShelfRow>
+                </Shelf>
+              )}
+              {topics.length > 1 && (
+                <Shelf title="Theo chủ đề" items={byTopic} pills={topics.map((t) => ({ id: t, label: t }))} pill={activeTopic ?? undefined} onPill={setTopic}>
+                  <ShelfRow>{byTopic.map(album)}</ShelfRow>
+                </Shelf>
+              )}
+              <Shelf title="Tất cả lộ trình" items={list}>
+                <div className="shelf-grid">{list.map(album)}</div>
+              </Shelf>
+            </>
           )}
         </div>
       </div>
 
-      {dialog?.kind === "pick" && (
-        <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label="Thêm truyện" onClick={(e) => { if (e.target === e.currentTarget) setDialog(null); }}>
-          <div className="dlg wide">
-            <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>Thêm truyện cho {child.nickname}</b><button className="btn btn-g" aria-label="Đóng" onClick={() => setDialog(null)}><X className="ic" /></button></div>
-            <div className="seg" role="tablist">
-              <button type="button" role="tab" aria-selected={pickTab === "mine"} className={pickTab === "mine" ? "on" : ""} onClick={() => setPickTab("mine")}>Truyện của tôi</button>
-              <button type="button" role="tab" aria-selected={pickTab === "sets"} className={pickTab === "sets" ? "on" : ""} onClick={() => void showSets()}>Lộ trình mẫu</button>
-            </div>
-            {pickTab === "mine" ? (
-              <>
-                {ready.length === 0 && <p className="sub">Chưa có truyện nào sẵn sàng. Truyện cần được duyệt và tạo xong minh hoạ.</p>}
-                <div className="sec" style={{ gap: 6 }}>
-                  {ready.map((s) => (
-                    <button key={s.id} className="rm-pick" onClick={() => setDialog({ kind: "add", story: { storyId: s.id, title: s.title, ageBand: s.ageBand, length: s.words } })}>
-                      <span className="cover-sm" style={{ background: s.cover }} />
-                      <span className="grow"><b>{s.title}</b><small>{ageLabel(s.ageBand)} · {s.words} tiếng</small></span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            ) : templates === null ? <p className="sub">Đang tải…</p> : (
-              <>
-                {templates.length === 0 && <p className="sub">Chưa có lộ trình mẫu nào được duyệt.</p>}
-                <div className="rm-templates">
-                  {templates.filter((t) => t.targetAgeBand === child.ageBand).concat(templates.filter((t) => t.targetAgeBand !== child.ageBand)).map((t) => (
-                    <div key={t.id} className="rm-template">
-                      <b>{t.title}</b>
-                      <small>{ageLabel(t.targetAgeBand)} · mức {t.readingLevelMin}–{t.readingLevelMax} · {t.topic} · {t.stories.length} truyện</small>
-                      <span className="sub">{t.description}</span>
-                      {t.targetAgeBand !== child.ageBand && <small className="warn">Bộ này dành cho {ageLabel(t.targetAgeBand)}.</small>}
-                      <button className="btn btn-s" style={{ width: "fit-content" }} onClick={() => setDialog({ kind: "add", template: t })}>Xem và thêm</button>
-                    </div>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
-        </div>
-      )}
+      <aside className="pane rm-side" aria-label="Các bé">
+        <h3 className="display rm-side-h">Các bé</h3>
+        {kids.length === 0 ? <p className="sub">Chưa có hồ sơ bé.</p> : (
+          <ul className="rm-side-list">
+            {kids.map((k) => {
+              const items = roadmaps[k.id];
+              const done = items?.filter((i) => i.status === "completed").length ?? 0;
+              const total = items?.filter((i) => i.status !== "skipped" && i.status !== "removed").length ?? 0;
+              const now = items?.find((i) => i.status === "open");
+              return (
+                <li key={k.id}>
+                  <button className={`rm-kidcard${kidOpen === k.id ? " on" : ""}`} onClick={() => setKidOpen(k.id)}>
+                    <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
+                    <span className="grow">
+                      <b>{k.nickname}</b>
+                      <span className="rm-kidcard-sub">{items === undefined ? "Đang tải…" : now ? `Đang đọc: ${now.title}` : total ? "Đã đọc hết" : "Lộ trình trống"}</span>
+                      <span className="rm-mini" aria-hidden><i style={{ width: `${total ? (done / total) * 100 : 0}%` }} /></span>
+                    </span>
+                    <span className="rm-kidcard-n">{done}/{total}</span>
+                    {k.status !== "Active" && <span className="pill draft">{k.status === "Draft" ? "Chưa kích hoạt" : k.status === "Archived" ? "Đã lưu trữ" : "Tạm dừng"}</span>}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </aside>
 
-      {dialog?.kind === "add" && <AddToRoadmapDialog single childId={child.id} story={dialog.story} template={dialog.template} onClose={() => { setDialog(null); void load(); }} onDone={() => void load()} />}
+      {opened && <TemplateDialog item={opened} onClose={() => setOpened(null)} onAdd={(d) => { setOpened(null); setAdding(roadmapTemplate(d)); }} />}
+      {adding && <AddToRoadmapDialog template={adding} onClose={() => setAdding(null)} onDone={() => void loadKids()} />}
+      {kid && <ChildRoadmapDialog child={kid} canEdit={kid.ownerUserId === user?.id} onClose={() => setKidOpen(null)} onChanged={() => void loadKids()} />}
     </section>
   );
 }

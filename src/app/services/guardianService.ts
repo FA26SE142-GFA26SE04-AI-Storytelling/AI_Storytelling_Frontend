@@ -5,7 +5,7 @@ import type {
 } from '@/app/types/progress';
 import { apiRequest } from './apiClient';
 import { roadmapService } from './roadmapService';
-import { roadmapItems, roadmapAddResult, roadmapTemplate, roadmapCopyResult } from './roadmapAdapters';
+import { roadmapItems, roadmapAddResult, roadmapCopyResult } from './roadmapAdapters';
 import { communityService } from './communityService';
 import type * as B from '@/app/types/backendContracts';
 
@@ -35,18 +35,6 @@ export const guardianService = {
   },
   async clearRoadmap(childId: number): Promise<ApiResponse<null>> {
     const r = await roadmapService.clear(childId); return { ...r, data: null };
-  },
-  async templates(): Promise<ApiResponse<RoadmapTemplate[]>> {
-    const items: RoadmapTemplate[] = [];
-    for (let pageIndex = 1; ; pageIndex++) {
-      const r = await roadmapService.library({ pageIndex, pageSize: 20 });
-      if (!r.success || !r.data) return { ...r, data: null };
-      const details = await Promise.all(r.data.items.map(i => roadmapService.detail(i.id)));
-      const failure = details.find(d => !d.success || !d.data);
-      if (failure) return { ...failure, data: null };
-      items.push(...details.flatMap(d => d.data ? [roadmapTemplate(d.data)] : []));
-      if (!r.data.hasNextPage) return { ...r, data: items };
-    }
   },
   previewTemplate: (children: ChildRef[], template: RoadmapTemplate, position: RoadmapPosition, daysPerStory: number | null) =>
     roadmapService.preview(template.id, { childProfileIds: children.map(c => c.id), position: positionWire(position), daysPerStory }),

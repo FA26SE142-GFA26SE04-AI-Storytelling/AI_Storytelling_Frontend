@@ -15,6 +15,12 @@ import { parentAuthoringService } from "@/app/services/parentAuthoringService";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useRiseIn } from "@/app/lib/motion";
 import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
+import RoadmapAlbum from "@/app/features/roadmap/RoadmapAlbum";
+import TemplateDialog from "@/app/features/roadmap/TemplateDialog";
+import { useRoadmapTemplates } from "@/app/features/roadmap/roadmapData";
+import { roadmapTemplate } from "@/app/services/roadmapAdapters";
+import type { RoadmapTemplate } from "@/app/types/progress";
+import type * as B from "@/app/types/backendContracts";
 import { guardianService } from "@/app/services/guardianService";
 import type { CommunitySubmission, ContentReport } from "@/app/types/progress";
 import { CommunityDialog, ReportDialog } from "./ModerationDialogs";
@@ -274,6 +280,14 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const [source, setSource] = useState("all");
   const [topic, setTopic] = useState<string | null>(null);
   const [expanded, setExpanded] = useState<{ title: string; items: StoryCard[] } | null>(null);
+  // Lộ trình mẫu (album) xen giữa các kệ truyện, giống playlist trong thư viện nhạc.
+  const { templates } = useRoadmapTemplates();
+  const [allRoadmaps, setAllRoadmaps] = useState(false);
+  const [openedTpl, setOpenedTpl] = useState<B.RoadmapLibraryItemDto | null>(null);
+  const [addingTpl, setAddingTpl] = useState<RoadmapTemplate | null>(null);
+  const album = (t: B.RoadmapLibraryItemDto) => <RoadmapAlbum key={`rm-${t.id}`} item={t} onOpen={() => setOpenedTpl(t)} />;
+  const roadmapAll = templates ?? [];
+  const roadmapLatest = roadmapAll.slice(0, 10);
   const [status, setStatus] = useState("all");
   // Bộ lọc theo thể loại (genre), nhóm tuổi (ageBand) và nguồn (source). "all" là không lọc.
   const [genreF, setGenreF] = useState("all");
@@ -317,6 +331,11 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
       s.title.toLowerCase().includes(needle));
   }, [sorted, q, status, genreF, ageF, srcF]);
   const activeCount = [status, genreF, ageF, srcF].filter((v) => v !== "all").length;
+  // Tìm theo tên thì tìm cả lộ trình mẫu; bộ lọc trạng thái / thể loại / nguồn chỉ áp dụng cho truyện.
+  const roadmapResults = useMemo(() => {
+    const needle = q.trim().toLowerCase();
+    return needle ? (templates ?? []).filter((t) => `${t.name} ${t.description ?? ""}`.toLowerCase().includes(needle)) : [];
+  }, [templates, q]);
 
   // Chưa bấm vào truyện nào thì không chọn sẵn truyện đầu tiên.
   const sel = stories.find((s) => s.id === selected) ?? null;
@@ -388,8 +407,20 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
               <div className="row"><button className="btn btn-gold" onClick={() => go("studio")}><WandSparkles className="ic" />Dùng AI tạo truyện</button><button className="btn btn-s" onClick={() => go("authoring")}>Viết thủ công</button></div>
             </div>
           ) : searching ? (
-            <Shelf title="Kết quả" sub={`${results.length} truyện`} items={results}>
-              {results.length > 0 ? <div className="shelf-grid">{results.map((s) => card(s))}</div> : <p className="sub">Không tìm thấy truyện phù hợp.</p>}
+            <>
+              <Shelf title="Truyện" sub={`${results.length} truyện`} items={results}>
+                {results.length > 0 ? <div className="shelf-grid">{results.map((s) => card(s))}</div> : <p className="sub">Không tìm thấy truyện phù hợp.</p>}
+              </Shelf>
+              {roadmapResults.length > 0 && (
+                <Shelf title="Lộ trình" sub={`${roadmapResults.length} lộ trình`} items={roadmapResults}>
+                  <div className="shelf-grid">{roadmapResults.map(album)}</div>
+                </Shelf>
+              )}
+            </>
+          ) : allRoadmaps ? (
+            <Shelf title="Lộ trình mẫu" sub={`${roadmapAll.length} lộ trình`} items={roadmapAll}>
+              <button className="shelf-back" onClick={() => setAllRoadmaps(false)}><ChevronLeft className="ic" />Quay lại thư viện</button>
+              <div className="shelf-grid">{roadmapAll.map(album)}</div>
             </Shelf>
           ) : expanded ? (
             <Shelf title={expanded.title} sub={`${expanded.items.length} truyện`} items={expanded.items}>
@@ -401,6 +432,11 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
               {latest.length > 0 && (
                 <Shelf title="Mới nhất" items={latest} onAll={released.length > latest.length ? () => setExpanded({ title: "Mới nhất", items: released }) : undefined}>
                   <ShelfRow>{latest.map((s, i) => card(s, i + 1))}</ShelfRow>
+                </Shelf>
+              )}
+              {roadmapLatest.length > 0 && (
+                <Shelf title="Lộ trình mẫu" items={roadmapLatest} onAll={roadmapAll.length > roadmapLatest.length ? () => setAllRoadmaps(true) : undefined}>
+                  <ShelfRow>{roadmapLatest.map(album)}</ShelfRow>
                 </Shelf>
               )}
               {inProgress.length > 0 && (
@@ -460,7 +496,9 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
       </AsidePane>
       {sel && dialog === "preview" && <Preview story={sel} onClose={() => setDialog(null)} />}
-      {sel && dialog === "roadmap" && <AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} onClose={() => setDialog(null)} />}
+      {openedTpl && <TemplateDialog item={openedTpl} onClose={() => setOpenedTpl(null)} onAdd={(d) => { setOpenedTpl(null); setAddingTpl(roadmapTemplate(d)); }} />}
+      {addingTpl && <AddToRoadmapDialog template={addingTpl} onClose={() => setAddingTpl(null)} />}
+      {sel && dialog === "roadmap" &&<AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} onClose={() => setDialog(null)} />}
       {sel && dialog === "report" && <ReportDialog story={sel} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
       {sel && dialog === "community" && <CommunityDialog story={sel} nickname="" onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}

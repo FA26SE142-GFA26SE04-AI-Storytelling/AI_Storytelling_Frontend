@@ -2,7 +2,8 @@
 
 import "@/app/features/review/review-tools.css";
 import { useEffect, useState } from "react";
-import { Route, X } from "lucide-react";
+import { Lock, Route, X } from "lucide-react";
+import Dialog from "@/app/components/Dialog";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import { guardianService, type ChildRef } from "@/app/services/guardianService";
@@ -84,9 +85,7 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
   const nameOf = (id: number) => refs.find((r) => r.id === id)?.nickname ?? `#${id}`;
 
   return (
-    <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="dlg">
-        <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>{title}</b><button className="btn btn-g" aria-label="Đóng" onClick={onClose}><X className="ic" /></button></div>
+    <Dialog title={title} onClose={onClose}>
         {result ? (
           <>
             {result.added.length > 0 && <div className="notice ok">Đã thêm cho {[...new Set(result.added.map((a) => nameOf(a.childProfileId)))].join(", ")}{result.added.some((a) => a.moved) ? " (truyện đã có được chuyển lên đọc tiếp theo)" : ""}.</div>}
@@ -101,20 +100,19 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
           </>
         ) : (
           <>
-            {template && (
-              <div className="sec" style={{ gap: 4 }}>
-                <span className="sub">{template.description}</span>
-                <ol style={{ margin: 0, paddingLeft: 18, fontSize: "var(--fs-sm)" }}>{template.stories.map((s) => <li key={s.storyId}>{s.title}</li>)}</ol>
-              </div>
-            )}
             {!single && <div className="field">
               <span className="lbl">Cho bé</span>
               <div className="chips">
-                {refs.map((r) => (
-                  <button key={r.id} type="button" className={`chip${picked.includes(r.id) ? " on" : ""}`} onClick={() => setPicked(picked.includes(r.id) ? picked.filter((x) => x !== r.id) : [...picked, r.id])}>
-                    {r.nickname} · {ageLabel(r.ageBand)}
-                  </button>
-                ))}
+                {/* Hồ sơ không Active thì không thêm truyện vào lộ trình được (quy tắc Luồng 4): khoá ô chọn và nói lý do. */}
+                {refs.map((r) => {
+                  const off = r.status !== "Active";
+                  return (
+                    <button key={r.id} type="button" disabled={off} title={off ? "Hồ sơ của bé không hoạt động nên chưa thêm được" : undefined}
+                      className={`chip${picked.includes(r.id) ? " on" : ""}`} onClick={() => setPicked(picked.includes(r.id) ? picked.filter((x) => x !== r.id) : [...picked, r.id])}>
+                      {off && <Lock className="ic" aria-hidden />}{r.nickname} · {ageLabel(r.ageBand)}
+                    </button>
+                  );
+                })}
               </div>
             </div>}
             <div className="field">
@@ -143,7 +141,6 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
             </div>
           </>
         )}
-      </div>
-    </div>
+    </Dialog>
   );
 }
