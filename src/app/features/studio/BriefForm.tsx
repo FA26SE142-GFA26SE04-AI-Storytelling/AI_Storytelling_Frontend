@@ -6,7 +6,7 @@ import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/us
 import { childProfileService } from "@/app/services/childProfileService";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
 import { copyrightHits, GENRES } from "@/app/lib/storyRules";
-import { STUDIO_PREFILL_KEY } from "@/app/features/home/WishItem";
+import { STUDIO_PREFILL_KEY } from "@/app/features/learning/WishItem";
 import { parentWishService } from "@/app/services/storyWishService";
 import { takeLandingIdea } from "@/app/features/landing/landingIdea";
 import {

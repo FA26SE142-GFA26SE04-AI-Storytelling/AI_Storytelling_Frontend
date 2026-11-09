@@ -61,7 +61,8 @@ export interface PagedParentSummaries { items:ParentSummaryItem[]; pageIndex:num
 
 // ---------- Phụ huynh xem con đã đọc gì (/ParentReadingFeedback) ----------
 export interface PagedReadingFeedback { items:ParentReadingFeedbackItem[]; pageIndex:number; pageSize:number; totalCount:number; totalPages:number; hasNextPage:boolean; hasPreviousPage:boolean }
-export interface ParentReadingFeedbackItem { sessionId:number; storyId:number; title:string; completedAt:string|null; feeling:ReadingFeeling|string|null; feelingLabel:string|null; quizTotalQuestions:number; quizBestPercent:number|null }
+export interface ParentConversationAnswer { question:string; kind:'Emotion'|'Opinion'|string; answerText:string; sceneIndex:number|null; answeredAt:string }
+export interface ParentReadingFeedbackItem { sessionId:number; storyId:number; title:string; completedAt:string|null; feeling:ReadingFeeling|string|null; feelingLabel:string|null; quizTotalQuestions:number; quizBestPercent:number|null; conversationAnswers?:ParentConversationAnswer[] }
 export interface ReadingSignal { shouldExit:boolean; returnTo:string|null; message:string|null; sessionStatus:string }
 export interface VocabularyDefinition { vocabularyId:number; term:string; definition:string; isCollected:boolean }
 export interface NotebookEntry { entryId:number; vocabularyId:number; term:string; definition:string; storyId:number; storyTitle:string; sceneIndex:number|null; collectedAt:string }

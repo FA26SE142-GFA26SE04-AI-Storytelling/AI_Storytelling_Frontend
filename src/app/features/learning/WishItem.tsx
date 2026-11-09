@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Ban, Check, Sparkles, X } from "lucide-react";
 import IconButton from "@/app/components/IconButton";
+import { showToast } from "@/app/lib/toast";
 import { parentWishService } from "@/app/services/storyWishService";
 import type { ParentWishDto, ParentWishSuggestionsDto } from "@/app/types/storyWish";
 import type { WorkspaceId } from "@/app/components/shell/nav";
@@ -33,13 +34,12 @@ export default function WishItem({ wish, nickname, go, onChanged }: {
   const [declining, setDeclining] = useState(false);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
     void parentWishService.suggestions(wish.wishId, controller.signal).then((r) => {
       if (controller.signal.aborted) return;
-      if (r.success) setSuggestions(r.data); else setErr(r.message);
+      if (r.success) setSuggestions(r.data); else showToast(r.message, "err");
     });
     return () => controller.abort();
   }, [wish.wishId]);
@@ -47,10 +47,9 @@ export default function WishItem({ wish, nickname, go, onChanged }: {
   const run = async (fn: () => Promise<{ success: boolean; message: string }>) => {
     if (busy) return;
     setBusy(true);
-    setErr(null);
     const r = await fn();
     setBusy(false);
-    if (r.success) onChanged(); else setErr(r.message);
+    if (r.success) onChanged(); else showToast(r.message, "err");
   };
 
   // Studio tự tải form điền sẵn của điều ước và gửi qua create-story.
@@ -98,7 +97,6 @@ export default function WishItem({ wish, nickname, go, onChanged }: {
           <IconButton icon={Ban} label="Từ chối điều ước" className="btn btn-no" disabled={busy} onClick={() => setDeclining(true)} />
         </div>
       )}
-      {err && <div className="notice err" role="alert">{err}</div>}
     </div>
   );
 }

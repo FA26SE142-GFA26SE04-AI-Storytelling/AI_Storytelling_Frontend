@@ -18,7 +18,7 @@ import KidMode from "@/app/features/kid/KidMode";
 import KidEntry from "@/app/features/kid/KidEntry";
 import ChildrenWorkspace from "@/app/features/children/ChildrenWorkspace";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
-import RoadmapWorkspace from "@/app/features/roadmap/RoadmapWorkspace";
+import LearningWorkspace from "@/app/features/learning/LearningWorkspace";
 import StaffApp from "@/app/features/staff/StaffApp";
 import { isStaffRole } from "@/app/types/auth";
 import ChildPickerHost from "@/app/components/ChildPickerHost";
@@ -33,7 +33,7 @@ const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
   authoring: AuthoringWorkspace,
   library: LibraryWorkspace,
   created: CreatedStories,
-  roadmap: RoadmapWorkspace,
+  roadmap: LearningWorkspace, // trang "Học tập của bé"; giữ mã "roadmap" để link và thông báo cũ vẫn mở đúng
   review: ReviewWorkspace,
   report: ReportWorkspace,
   account: () => <AccountWorkspace page="profile" />,

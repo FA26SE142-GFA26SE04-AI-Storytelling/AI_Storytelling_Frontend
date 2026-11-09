@@ -46,7 +46,7 @@ export const isUnread = (n: AppNotification) => !n.readAt && n.status.toLowerCas
 /** Màn mở khi bấm vào thông báo (khu phụ huynh). Nhóm theo `NotificationGroups` và loại thông báo của backend. */
 export function notificationTarget(n: AppNotification): WorkspaceId | null {
   const key = notificationKey(n.type);
-  if (key.startsWith("roadmap_")) return "roadmap";
+  if (key.startsWith("roadmap_") || key === "story_summary_sent") return "roadmap";
   if (key.startsWith("story_wish_")) return "library";
   switch (n.group) {
     case "supervisors":

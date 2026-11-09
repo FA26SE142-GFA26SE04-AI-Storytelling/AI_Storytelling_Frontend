@@ -1,0 +1,210 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import { ArrowDown, ArrowUp, BookOpen, Check, ChevronDown, Lock, Plus, Search, Trash2, X } from "lucide-react";
+import Dialog from "@/app/components/Dialog";
+import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
+import { guardianService } from "@/app/services/guardianService";
+import { roadmapTemplate } from "@/app/services/roadmapAdapters";
+import { confirmDialog } from "@/app/lib/confirm";
+import { showToast } from "@/app/lib/toast";
+import { fmtDate } from "@/app/lib/guardian";
+import { statusKey } from "@/app/lib/storyView";
+import type * as B from "@/app/types/backendContracts";
+import type { ChildProfile } from "@/app/types/childProfile";
+import type { RoadmapItem, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
+import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
+import RoadmapAlbum from "@/app/features/roadmap/RoadmapAlbum";
+import TemplateDialog from "@/app/features/roadmap/TemplateDialog";
+import { useRoadmapTemplates, useStoryCovers } from "@/app/features/roadmap/roadmapData";
+import { splitRoadmap } from "./learningData";
+
+const SOURCE: Record<string, string> = { parent: "Bố mẹ chọn", template: "Lộ trình mẫu", wish: "Điều ước của bé" };
+const SKIP_REASON: Record<string, string> = {
+  blocked_category: "Thuộc chủ đề bị chặn", age_band_mismatch: "Không hợp nhóm tuổi",
+  story_unavailable: "Truyện không còn đọc được", source_deleted: "Truyện gốc đã bị xoá", data_deletion: "Dữ liệu của bé đã bị xoá",
+};
+const CHILD_STATUS: Record<string, string> = { Draft: "chưa kích hoạt", Suspended: "đang tạm dừng", Archived: "đã lưu trữ" };
+
+/** Nhóm tuổi của lộ trình mẫu ("6-8") và của hồ sơ bé ("Age_6_8") viết khác nhau; đưa về một dạng để so. */
+const band = (v: string) => v.replace(/^Age_/, "").replace("_", "-");
+
+/**
+ * Luồng 4a — lộ trình đọc của một bé: các truyện theo thứ tự, bé đã đọc tới đâu.
+ * Chủ hồ sơ sắp xếp, gỡ, làm trống, thêm truyện hoặc thêm cả một lộ trình mẫu. Hồ sơ không Active thì không thêm được.
+ */
+export default function RoadmapTab({ child, items, error, canEdit, onChanged }: {
+  child: ChildProfile;
+  items: RoadmapItem[] | undefined;
+  error: string | null;
+  canEdit: boolean;
+  onChanged: () => void;
+}) {
+  const { stories } = useWorkspaceData();
+  const [busy, setBusy] = useState(false);
+  const [picking, setPicking] = useState(false);
+  const [adding, setAdding] = useState<RoadmapStoryInput | null>(null);
+  const [showOff, setShowOff] = useState(false);
+
+  const { done, open, queued, off, total } = splitRoadmap(items);
+  const cover = useStoryCovers([...done, ...(open ? [open] : []), ...queued].map((i) => i.storyId));
+  const ready = stories.filter((s) => ["ready", "published"].includes(statusKey(s.raw)));
+  const active = child.status === "Active";
+  const percent = total ? Math.round((done.length / total) * 100) : 0;
+
+  const act = async (fn: () => Promise<{ success: boolean; message: string }>, okText: string) => {
+    setBusy(true);
+    const r = await fn();
+    setBusy(false);
+    showToast(r.success ? okText : r.message, r.success ? "ok" : "err");
+    onChanged();
+  };
+  const move = (id: number, delta: number) => {
+    const ids = queued.map((q) => q.id);
+    const i = ids.indexOf(id), j = i + delta;
+    if (j < 0 || j >= ids.length) return;
+    [ids[i], ids[j]] = [ids[j], ids[i]];
+    void act(() => guardianService.reorderRoadmap(child.id, ids), "Đã đổi thứ tự.");
+  };
+  const remove = async (item: RoadmapItem) => {
+    const text = item.status === "open" ? `Gỡ “${item.title}” khỏi lộ trình? Truyện kế tiếp sẽ được mở cho ${child.nickname}.` : `Gỡ “${item.title}” khỏi lộ trình?`;
+    if (await confirmDialog(text)) void act(() => guardianService.removeFromRoadmap(child.id, item.id), "Đã gỡ truyện.");
+  };
+  const clear = async () => {
+    if (await confirmDialog(`Gỡ mọi truyện chưa đọc khỏi lộ trình của ${child.nickname}? Truyện đã đọc vẫn được giữ.`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình.");
+  };
+
+  return (
+    <>
+      <section className="lr-card">
+        <div className="lr-card-h">
+          <h3 className="display">Các truyện theo thứ tự</h3>
+          {canEdit && (
+            <div className="lr-actions">
+              {(queued.length > 0 || open) && <button className="btn btn-no icon-only" aria-label="Làm trống lộ trình" title="Làm trống lộ trình" disabled={busy} onClick={() => void clear()}><Trash2 className="ic" /></button>}
+              <button className="btn btn-p" disabled={busy || !active} onClick={() => setPicking(true)}><Plus className="ic" />Thêm truyện</button>
+            </div>
+          )}
+        </div>
+
+        <div className="rm-progress">
+          <div className="rm-progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done.length} aria-label="Tiến độ đọc">
+            <i style={{ width: `${percent}%` }} />
+          </div>
+          <b>Đã đọc {done.length}/{total}</b>
+        </div>
+        {!active && <p className="notice warn lr-notice" role="status" data-inline-notice><Lock className="ic" aria-hidden /> Hồ sơ của {child.nickname} {CHILD_STATUS[child.status] ?? "không hoạt động"} nên chưa thêm truyện được.</p>}
+        {error && <p className="notice err lr-notice" role="alert" data-inline-notice>{error}</p>}
+
+        {items === undefined ? <p className="sub">Đang tải lộ trình…</p> : total === 0 ? (
+          <p className="rm-empty">Lộ trình đang trống. Thêm một truyện hoặc chọn một lộ trình mẫu bên dưới.</p>
+        ) : (
+          <ol className="rm-steps lr-steps">
+            {done.map((d) => (
+              <li key={d.id} className="rm-step done">
+                <span className="rm-step-n"><Check className="ic" aria-hidden /></span>
+                <span className="rm-step-cover" style={{ background: cover(d.storyId) }} aria-hidden />
+                <span className="grow"><b>{d.title}</b></span>
+                <span className="pill ok" title={`Đọc xong ${fmtDate(d.completedAt)}`}>Đã đọc</span>
+              </li>
+            ))}
+            {open && (
+              <li className="rm-step now">
+                <span className="rm-step-n"><BookOpen className="ic" aria-hidden /></span>
+                <span className="rm-step-cover" style={{ background: cover(open.storyId) }} aria-hidden />
+                <span className="grow"><b>{open.title}</b>{open.note && <em>💌 {open.note}</em>}</span>
+                <span className="pill wait">Đang đọc</span>
+                {open.dueAt && <span className={`pill ${Date.parse(open.dueAt) < Date.now() ? "flag" : "draft"}`}>Hạn {fmtDate(open.dueAt)}</span>}
+                <span className="pill draft">{SOURCE[open.source]}</span>
+                {canEdit && <button className="btn btn-g icon-only" aria-label="Gỡ" title="Gỡ" disabled={busy} onClick={() => void remove(open)}><Trash2 className="ic" /></button>}
+              </li>
+            )}
+            {queued.map((q, i) => (
+              <li key={q.id} className="rm-step">
+                <span className="rm-step-n">{done.length + (open ? 1 : 0) + i + 1}</span>
+                <span className="rm-step-cover" style={{ background: cover(q.storyId) }} aria-hidden />
+                <span className="grow"><b>{q.title}</b>{q.note && <em>💌 {q.note}</em>}</span>
+                <span className="pill draft">{SOURCE[q.source]}</span>
+                {canEdit && <>
+                  <button className="btn btn-g icon-only" aria-label="Lên" title="Lên" disabled={busy || i === 0} onClick={() => move(q.id, -1)}><ArrowUp className="ic" /></button>
+                  <button className="btn btn-g icon-only" aria-label="Xuống" title="Xuống" disabled={busy || i === queued.length - 1} onClick={() => move(q.id, 1)}><ArrowDown className="ic" /></button>
+                  <button className="btn btn-g icon-only" aria-label="Gỡ" title="Gỡ" disabled={busy} onClick={() => void remove(q)}><Trash2 className="ic" /></button>
+                </>}
+              </li>
+            ))}
+          </ol>
+        )}
+
+        {off.length > 0 && (
+          <div className="rm-off">
+            <button className="btn btn-g" aria-expanded={showOff} onClick={() => setShowOff(!showOff)}><ChevronDown className="ic" style={{ transform: showOff ? "rotate(180deg)" : undefined }} />Đã gỡ hoặc bỏ qua ({off.length})</button>
+            {showOff && <ul className="rm-steps">{off.map((o) => (
+              <li key={o.id} className="rm-step off">
+                <span className="grow"><b>{o.title}</b></span>
+                <span className="pill draft" title={o.status === "skipped" ? SKIP_REASON[o.skipReason ?? ""] ?? "Không còn phù hợp" : undefined}>{o.status === "skipped" ? "Bỏ qua" : "Đã gỡ"}</span>
+              </li>
+            ))}</ul>}
+          </div>
+        )}
+      </section>
+
+      {canEdit && <TemplateShelf child={child} disabled={!active} onAdded={onChanged} />}
+
+      {picking && (
+        <Dialog title={`Chọn truyện cho ${child.nickname}`} onClose={() => setPicking(false)} wide>
+          {ready.length === 0 ? <p className="sub">Chưa có truyện nào sẵn sàng để thêm.</p> : (
+            <div className="rm-pickgrid">
+              {ready.map((s) => (
+                <button key={s.id} className="bk" onClick={() => setAdding({ storyId: s.id, title: s.title, ageBand: s.ageBand, length: s.words })}>
+                  <span className="bk-cover" style={{ background: s.cover }}><span className="bk-name display">{s.title}</span></span>
+                  <span className="bk-title">{s.title}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </Dialog>
+      )}
+      {adding && <AddToRoadmapDialog single childId={child.id} story={adding} onClose={() => setAdding(null)} onDone={() => { setPicking(false); onChanged(); }} />}
+    </>
+  );
+}
+
+/** Lộ trình mẫu do Moderator soạn: mặc định chỉ hiện các bộ hợp nhóm tuổi của bé, tìm được theo tên. */
+function TemplateShelf({ child, disabled, onAdded }: { child: ChildProfile; disabled: boolean; onAdded: () => void }) {
+  const { templates, error } = useRoadmapTemplates();
+  const [q, setQ] = useState("");
+  const [all, setAll] = useState(false);
+  const [opened, setOpened] = useState<B.RoadmapLibraryItemDto | null>(null);
+  const [adding, setAdding] = useState<RoadmapTemplate | null>(null);
+
+  const list = useMemo(() => templates ?? [], [templates]);
+  const fits = list.filter((t) => band(t.ageBand) === band(child.ageBand));
+  const needle = q.trim().toLowerCase();
+  const base = all || !fits.length ? list : fits;
+  const shown = needle ? list.filter((t) => `${t.name} ${t.description ?? ""}`.toLowerCase().includes(needle)) : base;
+
+  return (
+    <section className="lr-card">
+      <div className="lr-card-h">
+        <h3 className="display">Lộ trình mẫu</h3>
+        <div className="lr-actions">
+          <label className="lsearch lr-search">
+            <Search className="ic" aria-hidden />
+            <input className="inp grow" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm theo tên" aria-label="Tìm lộ trình mẫu theo tên" style={{ border: 0, background: "none" }} />
+            {q && <button className="btn btn-g icon-only" aria-label="Xoá tìm kiếm" onClick={() => setQ("")}><X className="ic" /></button>}
+          </label>
+          {!needle && fits.length > 0 && fits.length < list.length && (
+            <button className="btn btn-g" aria-pressed={all} onClick={() => setAll(!all)}>{all ? "Hợp tuổi bé" : "Tất cả"}</button>
+          )}
+        </div>
+      </div>
+      {error && <p className="notice err lr-notice" role="alert" data-inline-notice>{error}</p>}
+      {templates === null ? <p className="sub">Đang tải lộ trình mẫu…</p>
+        : shown.length === 0 ? <p className="rm-empty">{needle ? "Không tìm thấy lộ trình phù hợp." : "Chưa có lộ trình mẫu nào."}</p>
+        : <div className="shelf-grid lr-albums">{shown.map((t) => <RoadmapAlbum key={t.id} item={t} onOpen={() => setOpened(t)} />)}</div>}
+
+      {opened && <TemplateDialog item={opened} onClose={() => setOpened(null)} onAdd={(d) => { setOpened(null); if (disabled) showToast(`Hồ sơ của ${child.nickname} chưa hoạt động nên chưa thêm truyện được.`, "warn"); else setAdding(roadmapTemplate(d)); }} />}
+      {adding && <AddToRoadmapDialog single childId={child.id} template={adding} onClose={() => setAdding(null)} onDone={onAdded} />}
+    </section>
+  );
+}

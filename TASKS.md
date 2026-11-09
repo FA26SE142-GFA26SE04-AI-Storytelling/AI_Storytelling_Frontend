@@ -13,7 +13,7 @@ Ký hiệu: `[ ]` chưa làm · `[x]` đã làm. Ưu tiên: **P1** làm trước
 
 ## 1. Tương tác của trẻ khi đọc (Luồng 4b, 4c) — P1
 
-Đã làm 5/7 mục. Còn lại luyện đọc to (bị chặn bởi Backend) và màn phụ huynh xem tóm tắt (có code nhưng chưa gắn vào trang nào).
+Đã làm 6/7 mục. Còn lại luyện đọc to (bị chặn bởi Backend).
 
 - [x] **Tương tác khi nghe** — `POST /child/reading/sessions/{sessionId}/interactions/{interactionId}/attempts`
   - 5 loại: Checkpoint, RolePlay, FillBlank, EventOrdering, PicturePrediction ([KidInteraction.tsx](src/app/features/kid/KidInteraction.tsx)).
@@ -25,12 +25,14 @@ Ký hiệu: `[ ]` chưa làm · `[x]` đã làm. Ưu tiên: **P1** làm trước
 - [x] **Ghi âm tóm tắt cuối truyện** — `POST /child/reading/sessions/{sessionId}/summary/recording` ([KidSummary.tsx](src/app/features/kid/KidSummary.tsx), [useRecorder.ts](src/app/features/kid/useRecorder.ts))
   - Tối đa 3 MB mỗi bản (tự dừng khi gần chạm giới hạn hoặc sau 120 giây); cần quyền micro (`MediaRecorder`); nghe lại trước khi gửi.
 - [x] **Đánh dấu chỗ còn thắc mắc** — `POST /child/reading/sessions/{sessionId}/summary/flags` (chọn tối đa 5 cảnh, cùng [KidSummary.tsx](src/app/features/kid/KidSummary.tsx)).
-- [ ] **Phụ huynh nghe lại và xoá tóm tắt** (Luồng 4c) — `GET /ParentStorySummary/{childProfileId}`, `DELETE /ParentStorySummary/{childProfileId}/{summaryId}`. Code đã có ([StorySummaries.tsx](src/app/features/home/StorySummaries.tsx) nằm trong [ReadingFeedback.tsx](src/app/features/home/ReadingFeedback.tsx), xoá có popup xác nhận) **nhưng không hiện ở đâu**: [HomeWorkspace.tsx](src/app/features/home/HomeWorkspace.tsx) không còn trong bảng `VIEWS` của `page.tsx` từ khi đổi sang điều hướng ngang. Cần quyết định gắn `ReadingFeedback` vào trang nào (gợi ý: tab của từng bé trong "Con của tôi"). Thông báo `StorySummarySent` hiện đã có chữ tiếng Việt nhưng chưa mở tới màn nào.
+- [x] **Phụ huynh nghe lại và xoá tóm tắt** (Luồng 4c) — `GET /ParentStorySummary/{childProfileId}`, `DELETE /ParentStorySummary/{childProfileId}/{summaryId}`. Xong 09/11: tab "Kết quả đọc" của trang Học tập của bé ([ResultsTab.tsx](src/app/features/learning/ResultsTab.tsx)), xoá có popup xác nhận. Thông báo `StorySummarySent` mở trang Học tập của bé.
 - [ ] **Luyện đọc to** — `POST /child/reading/sessions/{sessionId}/segments/{segmentId}/read-aloud` (nhận dạng giọng nói so khớp với văn bản). **Vẫn bị chặn bởi Backend** (kiểm lại 09/11): `ReadingSegmentDto` trong `GET .../content` chỉ có `SegmentOrder`, `Text`, `AudioUrl`, `WordTimingsJson`, không có `segmentId`, nên Frontend không biết gọi đoạn nào. Khi có: ghi âm bằng `useRecorder` (tối đa 1 MB), gửi multipart trường `audio`, hiện kết quả từng chữ (`good` / `retry` / `skipped`).
 
-Đã nối và có màn hình (trước đợt này): danh sách truyện, phiên đọc, tiến độ, hoàn thành, dấu trang, yêu thích, cảm xúc, quiz, sổ tay, nghĩa của từ, phần thưởng (chỉ xem), điều ước, lộ trình của trẻ. Phản hồi đọc của phụ huynh (`ReadingFeedback`) có code nhưng đang không hiện, cùng lý do với mục tóm tắt ở trên.
+Đã nối và có màn hình (trước đợt này): danh sách truyện, phiên đọc, tiến độ, hoàn thành, dấu trang, yêu thích, cảm xúc, quiz, sổ tay, nghĩa của từ, phần thưởng (chỉ xem), điều ước, lộ trình của trẻ. Phản hồi đọc của phụ huynh (`/ParentReadingFeedback`, kèm câu bé trả lời ở các điểm dừng) hiện ở tab "Kết quả đọc".
 
 ## 1b. Lộ trình đọc (Luồng 4a) — P2
+
+Từ 09/11 trang "Lộ trình của con" đổi thành **"Học tập của bé"** ([LearningWorkspace.tsx](src/app/features/learning/LearningWorkspace.tsx)): cột các bé bên trái, 4 tab Tổng quan / Lộ trình / Kết quả đọc / Điều ước. Lộ trình là một tab (không còn popup), lộ trình mẫu nằm ngay dưới, mặc định lọc theo tuổi của bé. Mã trang vẫn là `roadmap` (`#roadmap`) để link và thông báo cũ mở đúng. Không bỏ hẳn lộ trình được vì Backend dùng lộ trình để quyết định bé được đọc truyện nào (`ChildStoryBrowseService`).
 
 Đối chiếu tài liệu "Luồng 4 – Lộ trình và trải nghiệm đọc của trẻ" (mục 4a và bảng quy tắc) với code ngày 09/11. Cả 25 endpoint của 5 controller lộ trình (`ChildRoadmap`, `MyRoadmap`, `RoadmapLibrary`, `RoadmapTemplate`, `RoadmapReview`) đều đã có hàm service và màn gọi; phần còn lại là quy tắc nghiệp vụ, hiệu năng và quy tắc thiết kế.
 
@@ -98,8 +100,8 @@ Lấy từ bản audit ngày 09/11 (39 endpoint). Cần xác nhận từng cái 
 - [x] CSS cuốn sách trong `landing.css` (`ld-book*`, `ld-rain`, `ld-pad`, `ld-frog`, `ld-leaf`, `ld-listen`, `ld-dots`, `ld-stamp`) đã xoá; mọi lớp `ld-` còn lại đều có component dùng.
 
 Còn lại:
-- [ ] **Trang Tổng quan (`features/home`) không được gắn vào trang nào.** Trước khi xoá cần quyết định chuyển `ReadingFeedback` (kèm tóm tắt của bé, xem mục 1) và `WishItem` sang đâu. `BriefForm` vẫn import hằng `STUDIO_PREFILL_KEY` từ `WishItem.tsx`.
-- [ ] CSS của các khối dashboard đã gỡ (`stats3`, `bars`, `trend`, `report-row`, `done-grid`, `dash-block.locked`… trong `dashboard.css`) còn lại; xoá cùng lúc với quyết định ở trên.
+- [x] **Trang Tổng quan (`features/home`)** đã xoá (09/11). `WishItem` chuyển sang `features/learning`, phản hồi đọc và tóm tắt viết lại trong tab Kết quả đọc.
+- [x] CSS dashboard (`dashboard.css`, `home.css`) xoá cùng thư mục `features/home`.
 
 ## 5. Chờ Backend hoặc cần quyết định — để sau
 
@@ -127,6 +129,8 @@ Còn lại:
 Commit `a11f770`: trang soạn thủ công của Creator và phụ huynh dùng chung ô soạn (`StoryFields`), Creator có nút Tải tệp mẫu, dịch mã lỗi kiểm tra nội dung của phụ huynh, gợi ý các câu dài nhất khi chưa đủ dễ đọc, dịch `AI_OUTPUT_INVALID`, vòng xoay ở nút "Lấy gợi ý", nút "Lưu cách đọc" chỉ hiện khi có thay đổi, ghi chú trạng thái của Creator không bật thành toast khi mở trang.
 
 Dọn code cũ ở mục 4 (chưa commit).
+
+Trang "Học tập của bé" thay trang "Lộ trình của con" (chưa commit): xem mục 1b. Xoá `RoadmapWorkspace.tsx`, `ChildRoadmapDialog.tsx` và thư mục `features/home`.
 
 ### 06/11/2026
 
