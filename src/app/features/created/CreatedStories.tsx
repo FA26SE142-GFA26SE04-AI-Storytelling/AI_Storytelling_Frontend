@@ -160,7 +160,7 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
           </Shelf>
         ) : shelves.length > 0 ? (
           shelves.map((g) => (
-            <Shelf key={g.id} title={g.label} sub={`${g.items.length} truyện`} items={g.items} onAll={g.items.length > 5 ? () => setExpanded(g.id) : undefined}>
+            <Shelf key={g.id} accent={g.id === "review"} title={g.label} sub={`${g.items.length} truyện`} items={g.items} onAll={g.items.length > 5 ? () => setExpanded(g.id) : undefined}>
               <ShelfRow>{g.items.map(card)}</ShelfRow>
             </Shelf>
           ))

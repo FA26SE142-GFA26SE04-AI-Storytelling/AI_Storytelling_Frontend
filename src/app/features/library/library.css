@@ -85,3 +85,10 @@
 .lib-pickbar b { flex: 1; min-width: 0; font-size: var(--fs-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @keyframes lib-pick-in { from { opacity: 0; transform: translateY(-8px); } }
 @media (prefers-reduced-motion: reduce) { .lib-pickbar { animation: none; } }
+
+/* Kệ cần chú ý (ví dụ "Chờ bạn duyệt"): nền vàng nhạt, viền vàng, dấu chấm vàng trước tiêu đề. */
+.shelf.accent { padding: 20px 22px 22px; border-radius: 26px; border: 2px solid color-mix(in srgb, var(--gold) 70%, transparent); background: color-mix(in srgb, var(--gold) 13%, transparent); }
+.shelf.accent .shelf-h h3 { display: inline-flex; align-items: center; gap: 12px; }
+.shelf.accent .shelf-h h3::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--gold-deep); box-shadow: 0 0 0 5px color-mix(in srgb, var(--gold) 45%, transparent); animation: shelf-dot 2s ease-in-out infinite; }
+@keyframes shelf-dot { 50% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--gold) 10%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .shelf.accent .shelf-h h3::before { animation: none; } }

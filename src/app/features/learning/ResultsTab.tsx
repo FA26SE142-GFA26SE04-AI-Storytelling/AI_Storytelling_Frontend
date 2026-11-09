@@ -31,7 +31,7 @@ export function quizPill(i: ParentReadingFeedbackItem) {
   if (i.quizTotalQuestions === 0) return null;
   if (i.quizBestPercent == null) return <span className="pill draft">Chưa làm câu đố</span>;
   const p = Math.round(i.quizBestPercent);
-  return <span className={`pill ${p >= 80 ? "ok" : p >= 50 ? "wait" : "flag"}`}>Câu đố {p}%</span>;
+  return p >= 80 ? <span className="pill gold-pill">⭐ Câu đố {p}%</span> : <span className={`pill ${p >= 50 ? "wait" : "flag"}`}>Câu đố {p}%</span>;
 }
 
 export function feelingPill(i: ParentReadingFeedbackItem) {

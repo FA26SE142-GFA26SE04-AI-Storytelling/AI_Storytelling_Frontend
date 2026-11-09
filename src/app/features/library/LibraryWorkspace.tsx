@@ -180,15 +180,15 @@ function BookCard({ story, rank, on, onPick }: { story: StoryCard; rank?: number
   );
 }
 
-type ShelfProps = { title: string; sub?: string; items: { id: number }[]; pills?: { id: string; label: string }[]; pill?: string; onPill?: (id: string) => void; onAll?: () => void; children: React.ReactNode };
+type ShelfProps = { title: string; sub?: string; /** Kệ cần chú ý (việc phụ huynh phải làm): nền và viền vàng. */ accent?: boolean; items: { id: number }[]; pills?: { id: string; label: string }[]; pill?: string; onPill?: (id: string) => void; onAll?: () => void; children: React.ReactNode };
 
 /** Một kệ truyện: tiêu đề, nút lọc dạng viên thuốc và "Xem tất cả". */
-export function Shelf({ title, sub, items, pills, pill, onPill, onAll, children }: ShelfProps) {
+export function Shelf({ title, sub, accent, items, pills, pill, onPill, onAll, children }: ShelfProps) {
   // Mỗi kệ tự chạy hiệu ứng hiện dần, chỉ khi danh sách truyện của chính kệ đó đổi (đổi chủ đề không làm kệ khác nháy lại).
   const animKey = items.map((s) => s.id).join(",");
   const ref = useRiseIn<HTMLElement>(".bk", [animKey], { delay: 22, distance: 12 });
   return (
-    <section ref={ref} className="shelf" aria-label={title}>
+    <section ref={ref} className={`shelf${accent ? " accent" : ""}`} aria-label={title}>
       <div className="shelf-h">
         <h3 className="display">{title}</h3>
         {sub && <span className="sub">{sub}</span>}

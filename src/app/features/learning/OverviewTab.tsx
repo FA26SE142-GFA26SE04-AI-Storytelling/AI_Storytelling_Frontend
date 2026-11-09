@@ -24,18 +24,18 @@ export default function OverviewTab({ child, items, wishCount, onTab }: {
   const cover = useStoryCovers([...(open ? [open] : []), ...next].map((i) => i.storyId));
   const percent = total ? Math.round((done.length / total) * 100) : 0;
 
-  const tiles: { id: LearningTabId; icon: typeof Route; label: string; value: string }[] = [
+  const tiles: { id: LearningTabId; icon: typeof Route; label: string; value: string; alert?: boolean }[] = [
     { id: "roadmap", icon: Route, label: "Lộ trình", value: items === undefined ? "…" : `${done.length}/${total}` },
     { id: "results", icon: BookOpenCheck, label: "Đã đọc xong", value: feedback.data ? String(feedback.data.totalCount) : "…" },
     { id: "results", icon: Mic, label: "Bé kể lại", value: summaries.data ? String(summaries.data.totalCount) : "…" },
-    { id: "wishes", icon: Sparkles, label: "Điều ước chờ", value: wishCount === null ? "…" : String(wishCount) },
+    { id: "wishes", icon: Sparkles, label: "Điều ước chờ", value: wishCount === null ? "…" : String(wishCount), alert: !!wishCount },
   ];
 
   return (
     <>
       <div className="lr-tiles">
         {tiles.map((t) => (
-          <button key={t.label} className="lr-tile" onClick={() => onTab(t.id)}>
+          <button key={t.label} className={`lr-tile${t.alert ? " alert" : ""}`} onClick={() => onTab(t.id)}>
             <t.icon className="ic" aria-hidden />
             <b className="display">{t.value}</b>
             <span>{t.label}</span>
@@ -43,7 +43,7 @@ export default function OverviewTab({ child, items, wishCount, onTab }: {
         ))}
       </div>
 
-      <section className="lr-card">
+      <section className="lr-card lr-card-now">
         <div className="lr-card-h">
           <h3 className="display">Đang đọc</h3>
           <button className="btn btn-g" onClick={() => onTab("roadmap")}>Xem lộ trình<ChevronRight className="ic" /></button>

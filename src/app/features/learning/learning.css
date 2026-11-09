@@ -76,3 +76,11 @@
   .lr-now-body { align-items: center; width: 100%; }
   .lr-search { flex-basis: 100%; }
 }
+
+/* Điểm nhấn vàng: việc cần bố mẹ làm và thông tin quan trọng. */
+.lr-badge { background: var(--gold); color: var(--on-gold); }
+.lr-tile.alert { border-color: var(--gold-deep); background: color-mix(in srgb, var(--gold) 22%, var(--surface)); }
+.lr-tile.alert .ic { color: var(--gold-deep); }
+.lr-tile.alert b { color: var(--warn-ink); }
+.lr-card-now { border-left: 6px solid var(--gold); }
+.pill.gold-pill { background: var(--gold); color: var(--on-gold); font-weight: 800; }

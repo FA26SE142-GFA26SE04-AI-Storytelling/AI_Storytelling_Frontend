@@ -1,6 +1,6 @@
 'use client';
 import { confirmDialog } from "@/app/lib/confirm";
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { childAccessService } from '@/app/services/childAccessService';
 import { childReadingService, childNotebookService } from '@/app/services/childReadingService';
 import type { ChildStoryPage, NotebookEntry } from '@/app/types/childReading';
@@ -16,9 +16,10 @@ import { coverFor } from '@/app/lib/storyView';
 import {ArrowRight,Award,BookOpen,ChevronLeft,ChevronRight,NotebookPen,RefreshCw,Search,Sparkles,Trash2} from 'lucide-react';
 import PaneSwap from './PaneSwap';
 
+const TABS=[{id:'stories' as const,label:'Truyện',icon:BookOpen},{id:'notebook' as const,label:'Sổ tay',icon:NotebookPen},{id:'wishes' as const,label:'Điều ước',icon:Sparkles},{id:'rewards' as const,label:'Phần thưởng',icon:Award}];
 const SOURCES=[{id:'',label:'Tất cả'},{id:'mine',label:'Của em'},{id:'library',label:'Thư viện'}];
 
-export default function ChildReadingLibrary({childId,community,story,unlockTitle,onCommunityOpened,onStoryOpened,onLockChange,onPaneChange,onReadingChange}:{childId:number;community?:{submissionId:number;title:string}|null;story?:{storyId:number}|null;unlockTitle?:string;onCommunityOpened?:()=>void;onStoryOpened?:()=>void;onLockChange?:(lock:{locked:boolean;unlockStoryId:number|null})=>void;onPaneChange?:(pane:string)=>void;onReadingChange?:(active:boolean)=>void}) {
+export default function ChildReadingLibrary({childId,community,story,unlockTitle,hero,onCommunityOpened,onStoryOpened,onLockChange,onPaneChange,onReadingChange}:{childId:number;/** Khung "Hôm nay em đọc" hiện đầu tab Truyện. */hero?:ReactNode;community?:{submissionId:number;title:string}|null;story?:{storyId:number}|null;unlockTitle?:string;onCommunityOpened?:()=>void;onStoryOpened?:()=>void;onLockChange?:(lock:{locked:boolean;unlockStoryId:number|null})=>void;onPaneChange?:(pane:string)=>void;onReadingChange?:(active:boolean)=>void}) {
   const session=childAccessService.readSession();
   const token=session?.childProfileId===childId?session.accessToken:'';
   const [revision,setRevision]=useState(0);
@@ -81,10 +82,8 @@ export default function ChildReadingLibrary({childId,community,story,unlockTitle
   return <section className="ksection kid-reading">
     {reader.busy&&!reader.content&&<div className="kid-loading" role="status" aria-live="polite"><Frog mood="think" size={96}/><p>Đang mở truyện…</p><span className="kid-spinner" aria-hidden="true"/></div>}
     <div className="kid-library-tabs" aria-label="Thư viện của em">
-      <IconButton icon={BookOpen} label="Truyện của em" iconClassName="" className="kid-soft-button" aria-pressed={pane==='stories'} onClick={()=>setPane('stories')}/>
-      <IconButton icon={NotebookPen} label="Sổ tay của em" iconClassName="" className="kid-soft-button" aria-pressed={pane==='notebook'} onClick={()=>setPane('notebook')}/>
-      <IconButton icon={Sparkles} label="Em ước" iconClassName="" className="kid-soft-button" aria-pressed={pane==='wishes'} onClick={()=>setPane('wishes')}/>
-      <IconButton icon={Award} label="Phần thưởng" iconClassName="" className="kid-soft-button" aria-pressed={pane==='rewards'} onClick={()=>setPane('rewards')}/>
+      {/* Bé chưa đọc giỏi nên mỗi nút có cả hình và chữ ngắn. */}
+      {TABS.map(t=><button key={t.id} type="button" className="kid-soft-button kid-tab" aria-pressed={pane===t.id} onClick={()=>setPane(t.id)}><t.icon aria-hidden="true"/>{t.label}</button>)}
       <IconButton icon={RefreshCw} label="Tải lại" iconClassName="" className="kid-soft-button kid-library-refresh" disabled={loading} onClick={refresh}/>
       <span className="kid-library-frog" aria-hidden="true"><Frog mood="happy" size={64}/></span>
     </div>
@@ -92,6 +91,7 @@ export default function ChildReadingLibrary({childId,community,story,unlockTitle
     {note&&<p role="status" className="kid-toast">{note}</p>}
     <PaneSwap key={pane} dir={dir}>
     {pane==='stories'&&<>
+    {hero}
     {!stories?.isLocked&&<div className="kid-toolbar">
       <form className="kid-search" role="search" onSubmit={e=>{e.preventDefault();setPage(1);setQuery(search.trim());}}>
         <Search aria-hidden="true"/>
@@ -105,7 +105,7 @@ export default function ChildReadingLibrary({childId,community,story,unlockTitle
     {loading&&<p role="status">Đang tải thư viện…</p>}
     {stories?.isLocked?<>{stories.unlockStoryId&&<Shelf title="Truyện em có thể đọc" items={[{id:stories.unlockStoryId}]}><ShelfRow><button className="bk" disabled={reader.busy} aria-label={`Đọc lại truyện ${unlockTitle??'đang mở'}`} onClick={()=>void reader.open({storyId:stories.unlockStoryId!})}><span className="bk-cover" style={{background:coverFor()}}><span className="pill ok bk-badge"><BookOpen className="ic" aria-hidden="true"/>Đọc được</span><span className="bk-name display">{unlockTitle??'Truyện đang mở'}</span></span><span className="bk-title">{unlockTitle??'Truyện đang mở'}</span><span className="bk-meta">Em đọc lại truyện này nhé</span></button></ShelfRow></Shelf>}</>:<>
     {stories?.message&&<p>{stories.message}</p>}
-    {!!stories?.items.length&&<Shelf title={source==='mine'?'Truyện của em':source==='library'?'Thư viện':'Tất cả truyện'} items={stories.items.map(s=>({id:s.storyId}))}><ShelfRow>{stories.items.map(s=><button key={s.storyId} className="bk" disabled={reader.busy} aria-label={`Đọc truyện ${s.title}`} onClick={()=>void reader.open({storyId:s.storyId})}><span className="bk-cover" style={{background:coverFor(s.coverImageUrl)}}><span className="pill ok bk-badge"><BookOpen className="ic" aria-hidden="true"/>Đọc được</span>{!s.coverImageUrl&&<span className="bk-name display">{s.title}</span>}</span><span className="bk-title">{s.title}</span>{s.description&&<span className="bk-meta">{s.description}</span>}</button>)}</ShelfRow></Shelf>}
+    {!!stories?.items.length&&<Shelf title={source==='mine'?'Truyện của em':source==='library'?'Thư viện':'Chọn truyện em thích'} items={stories.items.map(s=>({id:s.storyId}))}><ShelfRow>{stories.items.map(s=><button key={s.storyId} className="bk" disabled={reader.busy} aria-label={`Đọc truyện ${s.title}`} onClick={()=>void reader.open({storyId:s.storyId})}><span className="bk-cover" style={{background:coverFor(s.coverImageUrl)}}><span className="pill ok bk-badge"><BookOpen className="ic" aria-hidden="true"/>Đọc được</span>{!s.coverImageUrl&&<span className="bk-name display">{s.title}</span>}</span><span className="bk-title">{s.title}</span>{s.description&&<span className="bk-meta">{s.description}</span>}</button>)}</ShelfRow></Shelf>}
     {!loading&&stories&&!stories.items.length&&<p>Chưa có truyện phù hợp trong mục này. Em thử mục khác hoặc nhờ bố mẹ chọn truyện nhé.</p>}
     {stories&&!stories.isLocked&&(page>1||stories.totalCount>stories.pageSize)&&<div className="kid-pager">
       <IconButton icon={ChevronLeft} label="Trang trước" disabled={loading||page===1} onClick={()=>setPage(v=>v-1)}/>
