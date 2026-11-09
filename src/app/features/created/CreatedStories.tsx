@@ -131,7 +131,7 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
             <Select<string> className="created-select" ariaLabel="Lọc theo nguồn" value={source} options={SOURCES.map((s) => ({ value: s.id, label: s.label }))} onChange={setSource} />
             <button className="btn btn-g" onClick={() => void load()} disabled={loading} aria-label="Tải lại" title="Tải lại"><RefreshCw className="ic" /></button>
             <button className="btn btn-s" onClick={() => go("authoring")}><PencilLine className="ic" />Thủ công</button>
-            <button className="btn btn-p" onClick={() => go("studio")}><WandSparkles className="ic" />Dùng AI</button>
+            <button className="btn btn-gold" onClick={() => go("studio")}><WandSparkles className="ic" />Dùng AI</button>
           </div>
         </div>
 

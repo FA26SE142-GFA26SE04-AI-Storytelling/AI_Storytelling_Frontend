@@ -94,7 +94,7 @@ export default function WishItem({ wish, nickname, go, onChanged }: {
         </div>
       ) : (
         <div className="row">
-          <IconButton icon={Sparkles} label="Tạo truyện mới từ điều ước" className="btn btn-p" disabled={busy} onClick={createNew} />
+          <IconButton icon={Sparkles} label="Tạo truyện mới từ điều ước" className="btn btn-gold" disabled={busy} onClick={createNew} />
           <IconButton icon={Ban} label="Từ chối điều ước" className="btn btn-no" disabled={busy} onClick={() => setDeclining(true)} />
         </div>
       )}

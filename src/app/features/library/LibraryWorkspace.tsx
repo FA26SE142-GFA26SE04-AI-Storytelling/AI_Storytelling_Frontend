@@ -385,7 +385,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
             <div className="lib-empty">
               <b className="display">Chưa có truyện nào</b>
               <span className="sub">Hãy tạo truyện đầu tiên bằng AI, hoặc tự viết truyện theo cách thủ công.</span>
-              <div className="row"><button className="btn btn-p" onClick={() => go("studio")}><WandSparkles className="ic" />Dùng AI tạo truyện</button><button className="btn btn-s" onClick={() => go("authoring")}>Viết thủ công</button></div>
+              <div className="row"><button className="btn btn-gold" onClick={() => go("studio")}><WandSparkles className="ic" />Dùng AI tạo truyện</button><button className="btn btn-s" onClick={() => go("authoring")}>Viết thủ công</button></div>
             </div>
           ) : searching ? (
             <Shelf title="Kết quả" sub={`${results.length} truyện`} items={results}>

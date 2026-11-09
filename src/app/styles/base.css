@@ -58,6 +58,13 @@ button { cursor: pointer; border: 0; background: none; }
 .btn-p { background: var(--primary-strong); color: #fff; border-radius: 18px 7px 18px 7px; box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--primary) 80%, transparent); }
 .btn-p:hover { background: color-mix(in srgb, var(--primary-strong) 85%, #000); }
 .btn-p::before { opacity: .15; }
+/* Nút nhấn vàng: chỉ dùng cho hành động "phép màu" tạo truyện bằng AI và lời mời bắt đầu, để vàng luôn là điểm nhấn hiếm. */
+.btn-gold { background: var(--gold); color: var(--on-gold); font-weight: 700; border-radius: 18px 7px 18px 7px; box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--gold-deep) 85%, transparent); }
+.btn-gold:hover { background: color-mix(in srgb, var(--gold) 82%, var(--gold-deep)); box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--gold-deep) 90%, transparent); }
+.btn-gold::before { opacity: .12; }
+.btn-gold .ic { animation: gold-twinkle 2.8s ease-in-out infinite; }
+@keyframes gold-twinkle { 0%, 80%, 100% { transform: none; } 88% { transform: rotate(-14deg) scale(1.15); } }
+@media (prefers-reduced-motion: reduce) { .btn-gold .ic { animation: none; } }
 .btn-s { background: var(--surface-2); border: 1px solid var(--line-2); }
 .btn-s:hover { border-color: var(--primary); }
 .btn-g { color: var(--muted); }
@@ -81,7 +88,7 @@ button { cursor: pointer; border: 0; background: none; }
 .chips { display: flex; flex-wrap: wrap; gap: 5px; }
 .chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); font-size: var(--fs-xs); font-weight: 600; color: var(--muted); transition: all .15s; }
 .chip:hover { color: var(--text); border-color: var(--faint); }
-.chip.on { background: color-mix(in srgb, var(--primary) 16%, transparent); border-color: var(--primary); color: var(--text); }
+.chip.on { background: color-mix(in srgb, var(--gold) 30%, transparent); border-color: var(--gold-deep); color: var(--text); }
 .chip.block { background: color-mix(in srgb, var(--danger) 10%, transparent); border-color: color-mix(in srgb, var(--danger) 35%, transparent); color: var(--danger); }
 
 /* ===== Biểu mẫu ===== */
@@ -138,12 +145,12 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 .hint { color: var(--muted); font-size: var(--fs-xs); }
 .toast { position: absolute; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 8px 16px; border-radius: 10px; font-weight: 700; font-size: var(--fs-sm); z-index: 30; animation: wsin .2s; }
 
-/* Scrollbar: thin, glassy, follows theme */
-* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--primary) 45%, transparent) transparent; }
+/* Thanh cuộn mảnh, màu vàng nhấn */
+* { scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--gold) 80%, var(--gold-deep)) transparent; }
 *::-webkit-scrollbar { width: 10px; height: 10px; }
 *::-webkit-scrollbar-track { background: transparent; }
-*::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--primary) 40%, transparent); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
-*::-webkit-scrollbar-thumb:hover { background: color-mix(in srgb, var(--primary) 75%, transparent); background-clip: content-box; }
+*::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--gold) 80%, var(--gold-deep)); border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+*::-webkit-scrollbar-thumb:hover { background: var(--gold-deep); background-clip: content-box; }
 *::-webkit-scrollbar-corner { background: transparent; }
 
 /* Chuyển không gian kiểu Morph: khung thật bị ẩn nền/viền trong ảnh chụp,
