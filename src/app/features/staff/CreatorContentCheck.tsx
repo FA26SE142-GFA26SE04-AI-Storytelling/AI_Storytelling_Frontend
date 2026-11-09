@@ -90,7 +90,7 @@ export default function CreatorContentCheck({ draft, disabled, missing, onWorkin
       {confirmed
         ? <StepDone />
         : <>
-          {missing.length > 0 && <p className="notice warn" role="status">Còn thiếu: {missing.join(', ')}. Quay lại bước 1 điền đủ rồi lưu.</p>}
+          {missing.length > 0 && <p className="notice warn" role="status" data-inline-notice>Còn thiếu: {missing.join(', ')}. Quay lại bước 1 điền đủ rồi lưu.</p>}
 
           <div className="pa-step">
             <h4><span className="pa-num">1</span>Tự kiểm tra nội dung</h4>

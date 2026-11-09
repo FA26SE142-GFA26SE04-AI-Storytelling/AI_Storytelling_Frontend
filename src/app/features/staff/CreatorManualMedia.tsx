@@ -15,5 +15,5 @@ export default function CreatorManualMedia({ draft, disabled, onWorkingChange, o
   const ready = useCallback((p: MediaProgressDto) => onStatus(p.storyStatus), [onStatus]);
   return <MediaProgress storyId={draft.storyId} versionId={draft.selectedVersionId} active={active} disabled={disabled} stepNo={3}
     onWorkingChange={onWorkingChange} onReady={ready}
-    idle={<p className="notice warn" role="status">Hãy chốt nội dung ở bước 2 trước, AI sẽ tạo tranh và giọng đọc sau đó.</p>} />;
+    idle={<p className="notice warn" role="status" data-inline-notice>Hãy chốt nội dung ở bước 2 trước, AI sẽ tạo tranh và giọng đọc sau đó.</p>} />;
 }

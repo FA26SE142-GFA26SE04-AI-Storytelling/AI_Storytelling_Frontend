@@ -4,7 +4,7 @@ import './authoring.css';
 import '@/app/features/studio/workflow.css';
 import '@/app/features/review/review-tools.css';
 import { useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, Eye, FilePlus2, FileText, Lock, RefreshCw, Send, ShieldCheck, Undo2, Upload, UserRoundPen } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Eye, FilePlus2, FileText, Lock, RefreshCw, Send, ShieldCheck, Undo2, Upload, UserRoundPen, Download } from 'lucide-react';
 import Dialog from '@/app/components/Dialog';
 import StepDone from '@/app/features/studio/StepDone';
 import type * as B from '@/app/types/backendContracts';
@@ -13,8 +13,11 @@ import { useParentAuthoring } from './useParentAuthoring';
 import AssistancePanel from "./AssistancePanel";
 import AuthoringGuides from './AuthoringGuides';
 import ParentSetupPanel from './ParentSetupPanel';
+import { parseStoryFile, downloadStoryTemplate } from './parseStoryFile';
 import ParentManualMedia from './ParentManualMedia';
 import FamilyMediaPreview from './FamilyMediaPreview';
+import StoryFields from './StoryFields';
+import ReadabilityHints from './ReadabilityHints';
 import { useWorkspaceData } from '@/app/context/WorkspaceDataContext';
 import { useRiseIn } from '@/app/lib/motion';
 import { useMyRole } from '@/app/features/children/useMyRole';
@@ -26,6 +29,26 @@ const COVERAGE_VI: Record<string, string> = {
   'Technical limits, configured keywords in title/body and body readability only; no semantic safety assessment or AI.':
     'Chỉ kiểm tra giới hạn kỹ thuật, từ khóa cấm đã cấu hình ở tiêu đề và nội dung, và độ dễ đọc của nội dung. Không đánh giá an toàn theo ngữ nghĩa và không dùng AI, nên bạn vẫn cần tự đọc lại.',
 };
+/** Mã lỗi/cảnh báo của bước kiểm tra tự động đổi sang câu tiếng Việt nói rõ lỗi gì và cần làm gì. Mã lạ giữ nguyên. */
+const ISSUE_VI: Record<string, string> = {
+  SAFETY_MODERATION_REQUIRED: 'Truyện đang chờ kiểm duyệt an toàn. Đợi kiểm duyệt viên xử lý xong rồi kiểm tra lại.',
+  CHILD_CONTEXT_SETUP_REQUIRED: 'Ngôn ngữ hoặc độ tuổi của truyện không khớp hồ sơ bé. Hãy cập nhật hồ sơ bé hoặc thiết lập lại truyện.',
+  TITLE_REQUIRED: 'Truyện chưa có tiêu đề. Hãy nhập tiêu đề rồi lưu.',
+  CONTENT_REQUIRED: 'Truyện chưa có nội dung. Hãy viết nội dung rồi lưu.',
+  SAFETY_POLICY_REQUIRED: 'Bé chưa có chính sách an toàn. Hãy thiết lập chính sách cho bé trước.',
+  STORY_LENGTH_POLICY_INVALID: 'Giới hạn độ dài truyện trong chính sách của bé chưa hợp lệ. Hãy kiểm tra lại chính sách.',
+  STORY_TOO_LONG: 'Truyện dài hơn giới hạn cho phép của bé. Hãy rút gọn nội dung.',
+  SEMANTIC_SAFETY_REVIEW_REQUIRED: 'Chính sách của bé yêu cầu điểm an toàn theo ý nghĩa, nhưng bước kiểm tra tự động chưa chấm được. Hãy tự đọc kỹ truyện hoặc bỏ yêu cầu điểm an toàn trong chính sách.',
+  READABILITY_POLICY_INVALID: 'Ngưỡng độ dễ đọc trong chính sách của bé chưa hợp lệ. Hãy kiểm tra lại chính sách.',
+  READABILITY_POLICY_NOT_MET: 'Truyện chưa đủ dễ đọc theo mức đọc của bé. Hãy dùng câu ngắn và từ đơn giản hơn.',
+  UNFILLED_PLACEHOLDER: 'Còn chỗ trống chưa điền (dấu ___ hoặc {{ }}). Hãy điền hoặc xoá.',
+};
+function issueText(code: string) {
+  const [key, detail] = code.split(':');
+  if (key === 'BLOCKED_CATEGORY') return `Nội dung chứa chủ đề bị chặn${detail ? ` (${detail})` : ''}. Hãy sửa hoặc bỏ phần đó.`;
+  if (key === 'POLICY_REVIEW_REQUIRED') return `Nội dung có chủ đề cần bạn xem xét${detail ? ` (${detail})` : ''}. Hãy đọc lại kỹ trước khi tiếp tục.`;
+  return ISSUE_VI[key] ?? code;
+}
 const empty = { title: '', content: '', sourceDeclaration: '', rightsDeclaration: '' };
 function resultOf<T>(ops: B.ParentOperationDto[], kind: string, versionId: number | null): T | null {
   const value = ops.filter(o => o.kind === kind && o.sourceIsCurrent && o.storyVersionId === versionId && !o.revokedAt).sort((a,b) => b.id - a.id)[0]?.result;
@@ -47,6 +70,9 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
   const [title, setTitle] = useState('Truyện của gia đình');
   // Hộp đặt tên bản nháp: hiện ngay khi vào trang mà chưa mở bản nháp nào có sẵn.
   const [naming, setNaming] = useState(initialStoryId === null);
+  // Huỷ hộp đặt tên: đang có bản nháp thì chỉ đóng hộp; chưa có thì không còn gì để soạn nên về "Truyện của tôi".
+  const cancelNaming = () => { if (story) setNaming(false); else onDone?.(); };
+  const downloadTemplate = () => downloadStoryTemplate();
   const [reading, setReading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [checklist, setChecklist] = useState<B.ParentChecklist>({ intendedMeaning:false,suitableForChild:false,privacyChecked:false,endingChecked:false });
@@ -61,7 +87,7 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
   const story = h.draft?.story;
   const storyKey = story?.storyId ?? null;
   useEffect(() => { setStepId('write'); }, [storyKey]);
-  // Tải tệp .txt/.docx: máy chủ đọc nội dung tệp rồi đưa thẳng vào khung soạn để xem và sửa; chỉ lưu khi bấm "Lưu và tiếp tục".
+  // Tải tệp .txt/.docx: máy chủ đọc chữ trong tệp, rồi tách các dòng "Tên truyện:", "Nguồn nội dung:", "Cam kết quyền sử dụng:", "Nội dung:" vào từng ô để xem và sửa; chỉ lưu khi bấm "Lưu và tiếp tục".
   const loadFile = async (file: File) => {
     if (!story || reading) return;
     if (form.content.trim() && !await confirmDialog('Nội dung tệp sẽ thay phần đang soạn. Tiếp tục?')) return;
@@ -71,9 +97,14 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
     const r = await service.previewFile(story.storyId, body);
     setReading(false);
     if (!r.success || !r.data) { h.setNote(r.message || 'Chưa đọc được tệp này.'); return; }
-    const content = r.data.content;
-    setForm(prev => ({ ...prev, content, title: prev.title.trim() ? prev.title : file.name.replace(/.[^.]+$/, '') }));
-    h.setNote('Đã đưa nội dung tệp vào khung soạn. Đọc lại, sửa nếu cần rồi bấm "Lưu và tiếp tục".');
+    const f = parseStoryFile(r.data.content);
+    setForm(prev => ({
+      title: f.title || (prev.title.trim() ? prev.title : file.name.replace(/\.[^.]+$/, '')),
+      content: f.content ?? prev.content,
+      sourceDeclaration: f.sourceDeclaration || prev.sourceDeclaration,
+      rightsDeclaration: f.rightsDeclaration || prev.rightsDeclaration,
+    }));
+    h.setNote('Đã điền thông tin từ tệp vào các ô. Đọc lại, sửa nếu cần rồi bấm "Lưu và tiếp tục".');
   };
   const dirty = !!story && (form.title !== (h.version?.title ?? '') || form.content !== (h.version?.content ?? '') || form.sourceDeclaration !== (h.version?.sourceDeclaration ?? '') || form.rightsDeclaration !== (h.version?.rightsDeclaration ?? ''));
   const check = resultOf<B.ParentCheckDto>(h.workflow,'Check',story?.selectedVersionId ?? null);
@@ -131,12 +162,12 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
         {story && <button className="btn btn-s" disabled={h.busy || h.uncertain || !canAssign} onClick={async () => { if (!dirty || await confirmDialog('Bỏ thay đổi chưa lưu để tạo bản nháp mới?')) setNaming(true); }}><FilePlus2 className="ic" />Bản nháp mới</button>}
       </div>
 
-      {naming && <Dialog title={`Tạo bản nháp cho ${kidName}`} onClose={() => { if (story) setNaming(false); }}>
+      {naming && <Dialog title={`Tạo bản nháp cho ${kidName}`} onClose={cancelNaming}>
         <form className="ce-create" onSubmit={async e => { e.preventDefault(); if (await h.create(title.trim() || 'Truyện của gia đình')) setNaming(false); }}>
           <label className="field"><span className="lbl">Tên bản nháp</span><input className="inp" autoFocus maxLength={200} value={title} onChange={e => setTitle(e.target.value)} /></label>
           {h.note && <p className="notice" role="status">{h.note}</p>}
           <div className="ce-create-actions">
-            {story && <button type="button" className="btn btn-g" onClick={() => setNaming(false)}>Huỷ</button>}
+            <button type="button" className="btn btn-g" disabled={!story && !onDone} onClick={cancelNaming}>Huỷ</button>
             <button type="submit" className="btn btn-p" disabled={h.busy || h.uncertain || !canAssign || !title.trim()}><FilePlus2 className="ic" />Tạo bản nháp</button>
           </div>
         </form>
@@ -169,14 +200,10 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
               </div>
               {h.draft?.isReadOnly && <p className="notice warn" role="status">Bản này đã giao cho bé nên chỉ xem được. Muốn sửa, hãy thu hồi quyền đọc ở bước Chuẩn bị và giao.</p>}
               <fieldset className="pa-fieldset" disabled={!canWrite}>
-                <label className="field">Tên truyện<input className="inp" maxLength={200} value={form.title} onChange={e => setForm({ ...form,title:e.target.value })} /></label>
-                <label className="field">Nội dung<textarea className="inp" rows={14} maxLength={200000} value={form.content} onSelect={e=>setSelection({snapshot:{title:form.title,content:e.currentTarget.value},start:e.currentTarget.selectionStart,length:e.currentTarget.selectionEnd-e.currentTarget.selectionStart})} onChange={e => setForm({ ...form,content:e.target.value })} /></label>
-                <div className="pa-fields">
-                  <label className="field">Nguồn nội dung<input className="inp" maxLength={2000} value={form.sourceDeclaration} onChange={e => setForm({ ...form,sourceDeclaration:e.target.value })} /></label>
-                  <label className="field">Cam kết quyền sử dụng<input className="inp" maxLength={2000} value={form.rightsDeclaration} onChange={e => setForm({ ...form,rightsDeclaration:e.target.value })} /></label>
-                </div>
+                <StoryFields form={form} onChange={p => setForm(f => ({ ...f, ...p }))} onSelect={setSelection} rightsLabel="Cam kết quyền sử dụng" rightsPlaceholder="VD: Tôi là tác giả hoặc có quyền dùng nội dung này" />
                 <div className="pa-actions bar">
-                  <button className="btn btn-s" disabled={reading} onClick={() => fileRef.current?.click()}><Upload className="ic" />{reading ? 'Đang đọc tệp…' : 'Nhập từ tệp'}</button>
+                  <button className="btn btn-s" disabled={reading} title={'Tệp .txt hoặc .docx, mỗi dòng đầu một mục:\nTên truyện: …\nNguồn nội dung: …\nCam kết quyền sử dụng: …\nNội dung: … (phần truyện viết tiếp bên dưới)'} onClick={() => fileRef.current?.click()}><Upload className="ic" />{reading ? 'Đang đọc tệp…' : 'Nhập từ tệp'}</button>
+                  <button className="btn btn-s" onClick={downloadTemplate} title="Tải tệp mẫu .txt để điền sẵn Tên truyện, Nguồn nội dung, Cam kết quyền sử dụng và Nội dung"><Download className="ic" />Tải tệp mẫu</button>
                   <input ref={fileRef} type="file" accept=".txt,.docx" hidden aria-label="Chọn tệp truyện (.txt, .docx)" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void loadFile(f); }} />
                 </div>
               </fieldset>
@@ -210,9 +237,10 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
                 {!check && <p className="sub" role="status">{h.busy ? 'Đang kiểm tra nội dung…' : 'Chưa kiểm tra nội dung của bản đã lưu.'}</p>}
                 {check && <>
                   {(check.errors.length > 0 || check.warnings.length > 0) && <ul className="pa-issues">
-                    {check.errors.map(e => <li className="err" key={e}>{e}</li>)}
-                    {check.warnings.map(e => <li className="warn" key={e}>{e}</li>)}
+                    {check.errors.map(e => <li className="err" key={e}>{issueText(e)}</li>)}
+                    {check.warnings.map(e => <li className="warn" key={e}>{issueText(e)}</li>)}
                   </ul>}
+                  {check.errors.includes('READABILITY_POLICY_NOT_MET') && h.version && <ReadabilityHints content={h.version.content} />}
                   {check.canPrepare && check.errors.length === 0 && <span className="pill ok" style={{ width: 'fit-content' }}><Check className="ic" aria-hidden />Kiểm tra tự động: không có lỗi</span>}
                   <small className="sub">{COVERAGE_VI[check.coverage] ?? check.coverage}</small>
                 </>}

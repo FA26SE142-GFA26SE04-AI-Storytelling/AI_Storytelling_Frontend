@@ -139,7 +139,7 @@ export default function AssistancePanel({ actor, story, snapshot, selection, dis
       {task.activeOperation && <div className="as-running"><Loader2 className="ic" aria-hidden /><span className="grow">AI đang xử lý…</span><button className="btn btn-s" disabled={h.cancelBusy || h.uncertain} onClick={() => void h.cancelRunning()}>Huỷ</button></div>}
 
       {['Open', 'AwaitingClarification'].includes(task.status) && !task.activeOperation && !(result?.question && task.activeClarificationStepId && !task.acceptedAnswerStepId) &&
-        <button className="btn btn-p" disabled={blocked || task.status === 'AwaitingClarification' && !task.acceptedAnswerStepId} onClick={() => void h.command((id, cmd) => h.api.suggestions(story.storyId, id, { ...cmd, answerStepId: task.acceptedAnswerStepId }))}><Sparkles className="ic" />Lấy gợi ý</button>}
+        <button className="btn btn-p" disabled={blocked || task.status === 'AwaitingClarification' && !task.acceptedAnswerStepId} onClick={() => void h.command((id, cmd) => h.api.suggestions(story.storyId, id, { ...cmd, answerStepId: task.acceptedAnswerStepId }))}>{h.busy ? <Loader2 className="ic as-spin" aria-hidden /> : <Sparkles className="ic" />}{h.busy ? 'Đang lấy…' : 'Lấy gợi ý'}</button>}
 
       {/* AI hỏi thêm trước khi gợi ý. */}
       {result?.question && task.activeClarificationStepId && <div className="as-block">
