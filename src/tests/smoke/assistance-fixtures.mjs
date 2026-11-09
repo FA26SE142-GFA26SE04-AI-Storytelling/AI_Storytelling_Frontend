@@ -44,10 +44,17 @@ export async function assistanceFixture({path,method,body,state,ok,paged,draft,c
  return false;
 }
 
+/** Bản nháp của Creator nằm ở "Truyện của tôi" (Thư viện chỉ có truyện đã công khai): bấm thẻ truyện, rồi "Mở để soạn tiếp". */
+export async function openCreatorStory(page, title='Ếch con khám phá') {
+ await page.getByRole('button',{name:'Truyện của tôi',exact:true}).click();
+ await page.getByRole('button',{name:`Xem chi tiết truyện ${title}`,exact:true}).first().click();
+ await page.getByRole('button',{name:'Mở để soạn tiếp',exact:true}).click();
+}
+
 export async function exerciseAssistance({page,requests,manual,parent,stale=false,retry=false}) {
  if(parent&&manual){await page.getByRole('button',{name:'Tự viết truyện',exact:true}).click();await page.getByRole('button',{name:'Ếch con khám phá #7',exact:true}).click();}
  else if(parent){await page.goto(new URL('/?storyId=7#studio',page.url()).href,{waitUntil:'domcontentloaded'});}
- else await page.getByRole('button',{name:'Mở',exact:true}).click();
+ else await openCreatorStory(page);
  if(!manual)await page.getByRole('button',{name:'Tự sửa bản thảo',exact:true}).click();
  const content=page.locator('textarea[rows="12"], textarea[rows="14"], textarea[rows="18"]').first();
  await content.fill('Bản nháp chưa lưu. Mi tìm thấy hộp.');

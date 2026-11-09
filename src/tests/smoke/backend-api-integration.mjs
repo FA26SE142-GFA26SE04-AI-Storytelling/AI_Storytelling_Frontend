@@ -5,7 +5,7 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { currentControllerFixture } from './current-controller-fixtures.mjs';
 import { resumeStoryFixture } from './resume-story-fixtures.mjs';
 import { childReadingFixture } from './child-reading-fixtures.mjs';
-import { assistanceFixture, exerciseAssistance } from './assistance-fixtures.mjs';
+import { assistanceFixture, exerciseAssistance, openCreatorStory } from './assistance-fixtures.mjs';
 import { pipelineStatusFixture, exercisePipeline } from './pipeline-status-fixtures.mjs';
 import { exerciseMediaDiagnostics } from './media-diagnostics-fixtures.mjs';
 const require = createRequire(import.meta.url);
@@ -187,7 +187,7 @@ try {
   await page.goto(`${base}/?storyId=88#studio`,{waitUntil:'domcontentloaded'});
   await page.getByRole('checkbox',{name:'Tôi đã xem tranh và nghe giọng đọc của gói media này',exact:true}).check();
   await page.getByRole('button',{name:'Xác nhận media và hoàn tất truyện',exact:true}).click();
-  await page.getByText('STALE_MEDIA_PACKAGE',{exact:true}).waitFor();
+  await page.locator('.app-toast').getByText('STALE_MEDIA_PACKAGE',{exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'Giao truyện cho Bé Sen',exact:true}).count(),0);
   assert(await page.getByRole('button',{name:'Xác nhận media và hoàn tất truyện',exact:true}).isDisabled());
  },false,'ParentResumeCompletionConflict');
@@ -258,7 +258,7 @@ try {
   assert(!requests.some(r=>r.path==='/Story/7'));
  });
  await fixture('ContentCreator',async({page,requests})=>{
-  await page.getByRole('button',{name:'Mở',exact:true}).click();
+  await openCreatorStory(page);
   await page.getByRole('button',{name:'Xác nhận nội dung và tạo media',exact:true}).waitFor();
   await page.getByRole('button',{name:'Xác nhận nội dung và tạo media',exact:true}).click();
   assert.equal(await page.getByRole('button',{name:'Gửi bản hiện tại cho Moderator',exact:true}).count(),0);
@@ -270,7 +270,7 @@ try {
   assert(!requests.some(r=>r.path==='/stories/7/review/approve'));
  });
  await fixture('ContentCreator',async({page,requests})=>{
-  await page.getByRole('button',{name:'Mở',exact:true}).click();
+  await openCreatorStory(page);
   await page.getByRole('button',{name:'Chốt bản đã lưu và tạo media',exact:true}).click();
   await page.getByRole('button',{name:'Xem ảnh và nghe thử',exact:true}).click();
   await page.getByText('Scene from the saved manual version.',{exact:true}).waitFor();
@@ -335,13 +335,13 @@ try {
  },false,'GuideConflict');
  await fixture('ContentCreator',async({page,requests,state})=>{
   state.creatorStatus='MediaReview';
-  await page.getByRole('button',{name:'Mở',exact:true}).click();
+  await openCreatorStory(page);
   await page.route('**/api/v1/stories/7/media/confirm',async r=>{
    const req=r.request();requests.push({path:'/stories/7/media/confirm',method:req.method(),body:req.postDataJSON()});state.mediaRevision=2;
    await r.fulfill({status:409,contentType:'application/json',body:JSON.stringify({success:false,message:'STALE_MEDIA_PACKAGE',data:null})});
   },{times:1});
   await confirmMediaInBrowser(page);
-  await page.getByText('STALE_MEDIA_PACKAGE',{exact:true}).waitFor();
+  await page.locator('.app-toast').getByText('STALE_MEDIA_PACKAGE',{exact:true}).waitFor();
   assert.equal(await page.getByRole('button',{name:'Gửi bản hiện tại cho Moderator',exact:true}).count(),0);
   assert.equal(await page.getByRole('button',{name:'Xác nhận tranh và giọng đọc',exact:true}).count(),0);
   await page.getByRole('button',{name:'Tải gói media mới nhất',exact:true}).click();
@@ -358,7 +358,7 @@ try {
    requests.push({path:'/stories/7/media/replacements/88/keep-current',method:'POST',body});
    await r.fulfill({status:200,contentType:'application/json',body:JSON.stringify({success:true,message:'OK',data:{storyId:7,approvedStoryVersionId:12,packageRevision:1,storyStatus:'MediaReview'}})});
   });
-  await page.getByRole('button',{name:'Mở',exact:true}).click();
+  await openCreatorStory(page);
   await page.getByText('Ảnh và âm thanh thực tế',{exact:true}).click();
   await page.getByRole('button',{name:'Tải gói media mới nhất',exact:true}).click();
   await page.getByRole('button',{name:'Giữ media trước đó',exact:true}).click();
