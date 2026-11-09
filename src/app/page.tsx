@@ -44,7 +44,8 @@ function Workspaces() {
   const [ws, setWs] = useState<WorkspaceId>(DEFAULT_WORKSPACE);
   const [resumeStoryId, setResumeStoryId] = useState<number | null>(null);
   // Bé đang dùng chế độ "Cho bé đọc"; chỉ đặt khi bấm nút đó, các trang phụ huynh không dùng.
-  const [kidId, setKidId] = useState<number | null>(null);
+  const [kid, setKid] = useState<{ id: number; storyId: number | null } | null>(null);
+  const openKid = useCallback((id: number, storyId: number | null = null) => setKid({ id, storyId }), []);
   const View = VIEWS[ws];
   const go = useCallback<WorkspaceProps['go']>((id, target) => transitionWorkspace(() => {
     const storyId = takesStoryId(id) ? target?.storyId ?? null : null;
@@ -59,20 +60,20 @@ function Workspaces() {
     return () => { window.removeEventListener('popstate',restore); window.removeEventListener('hashchange',restore); };
   }, []);
 
-  const kidChild = kids.find((k) => k.id === kidId) ?? null;
+  const kidChild = kids.find((k) => k.id === kid?.id) ?? null;
   const kidOpen = !!kidChild;
 
   return (
     <>
       {/* Khi bé đang dùng, khoá hẳn khu người lớn phía sau (kể cả phím Tab), chỉ ra được qua cổng phụ huynh. */}
       <div inert={kidOpen} style={{ display: "contents" }}>
-        <AppShell ws={ws} onWs={go} onKid={setKidId}>
+        <AppShell ws={ws} onWs={go} onKid={(id) => openKid(id)}>
           {childrenLoading
             ? <div className="splash">Đang tải hồ sơ bé…</div>
-            : <View key={takesStoryId(ws) ? `${ws}:${resumeStoryId ?? 'new'}` : ws} go={go} resumeStoryId={resumeStoryId} />}
+            : <View key={takesStoryId(ws) ? `${ws}:${resumeStoryId ?? 'new'}` : ws} go={go} resumeStoryId={resumeStoryId} onKid={openKid} />}
         </AppShell>
       </div>
-      {kidChild && <KidMode child={kidChild} onExit={() => setKidId(null)} />}
+      {kidChild && <KidMode child={kidChild} storyId={kid?.storyId} onExit={() => setKid(null)} />}
     </>
   );
 }

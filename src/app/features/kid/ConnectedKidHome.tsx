@@ -23,7 +23,7 @@ function Cover({ coverUrl, title, meta, disabled, onOpen, label }: { id: number;
   const canRead = !!onOpen;
   return <button className={`bk${canRead ? ' can-read' : ' cannot-read'}`} disabled={disabled || !canRead} aria-label={canRead ? `Đọc truyện ${title}` : `${title}: ${label ?? 'chưa mở'}`} onClick={onOpen}><span className="bk-cover" style={{ background: coverFor(coverUrl) }}>{canRead ? <span className="pill ok bk-badge"><BookOpen className="ic" aria-hidden />Đọc được</span> : <span className="pill draft bk-badge"><Lock className="ic" aria-hidden />{label ?? 'Chưa mở'}</span>}<span className="bk-name display">{title}</span></span>{meta && <span className="bk-meta">{meta}</span>}</button>;
 }
-export default function ConnectedKidHome({ childId, onExit }: { childId: number; onExit: () => void }) {
+export default function ConnectedKidHome({ childId, onExit, openStoryId }: { childId: number; onExit: () => void; openStoryId?: number | null }) {
   const ended = useKidSession();
   const { theme, toggleTheme } = useTheme();
   const endedRef = usePop<HTMLElement>(ended, 0.9);
@@ -34,7 +34,7 @@ export default function ConnectedKidHome({ childId, onExit }: { childId: number;
   const [pack, setPack] = useState<B.ParentPreparationDto | null>(null);
   const [selected, setSelected] = useState<B.CommunityStoryDto | null>(null);
   /** Truyện bé vừa bấm trong "Hành trình của em"; ChildReadingLibrary mở đọc rồi xoá giá trị này. */
-  const [startStory, setStartStory] = useState<{ storyId: number } | null>(null);
+  const [startStory, setStartStory] = useState<{ storyId: number } | null>(() => (openStoryId ? { storyId: openStoryId } : null));
   const [errors, setErrors] = useState<string[]>([]);
   const [nickname, setNickname] = useState('');
   const [revision, setRevision] = useState(0);

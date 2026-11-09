@@ -37,4 +37,6 @@ export const WORKSPACES: WorkspaceEntry[] = [
 export type WorkspaceProps = {
   go: (id: WorkspaceId, target?: { storyId: number | null }) => void;
   resumeStoryId?: number | null;
+  /** Vào chế độ của bé; có storyId thì mở thẳng truyện đó ("Cho bé đọc truyện này"). */
+  onKid?: (childId: number, storyId?: number | null) => void;
 };

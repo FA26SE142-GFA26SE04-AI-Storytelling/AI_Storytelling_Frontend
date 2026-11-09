@@ -128,7 +128,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
                 <span className={`pill ${tone}`}>{statusLabel}</span>
                 <span className="pill ai">Do AI tạo</span>
                 {!learning && <span className="pill draft">Chỉ để đọc</span>}
-                <span className="hint" style={{ marginLeft: "auto" }}>Bản thảo #{summary.storyVersionId} · {countWords(content)} tiếng</span>
+                <span className="row" style={{ marginLeft: "auto", gap: 6 }}><span className="pill draft">Bản #{summary.storyVersionId}</span><span className="pill draft">{countWords(content)} tiếng</span></span>
               </div>
               {editing ? (
                 <StoryEditor key={story.versionId} story={story} actor={actor} assistanceRevisionToken={summary.assistanceRevisionToken} busy={busy} onCancel={() => setEditing(false)}
@@ -136,7 +136,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
               ) : (
                 <>
                   <h2 className="display">{story.title}</h2>
-                  <p className="sub">Bài học: {story.lesson || "—"}</p>
+                  <p style={{ margin: 0 }}><b>Bài học:</b> {story.lesson || "—"}</p>
                   <StoryView story={story} selection={selection} selectable={canEdit} onSelect={setSelection} />
                 </>
               )}
@@ -166,7 +166,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
             <button className="ck ck-link" onClick={() => setTab("story")}>
               <span className="st ok"><BookOpenText /></span>Truyện<small>{countWords(content)} tiếng{summary.readabilityFkgl !== null && ` · FKGL ${summary.readabilityFkgl.toFixed(1)}`}</small>
             </button>
-            {!learning && <p className="hint">Truyện chỉ để đọc: không có từ vựng hay câu đố.</p>}
+            {!learning && <span className="pill draft" style={{ width: "fit-content" }}>Chỉ để đọc: không có từ vựng, câu đố</span>}
             {artifacts.map((k) => (
               <button key={k} className="ck ck-link" onClick={() => setTab(k)}>
                 <span className={`st ${items[k].length > 0 ? "ok" : "warn"}`}>{items[k].length > 0 ? <Check /> : <CircleAlert />}</span>

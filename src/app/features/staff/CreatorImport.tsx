@@ -14,13 +14,15 @@ const MAX_FILE_BYTES = 5_000_000;
  * Nhập văn bản hoặc tệp .txt / .docx vào truyện Creator: xem trước (không tạo phiên bản) → xác nhận (tạo phiên bản Import).
  * Revision / base được chụp lúc xem trước; có lệnh ghi khác thành công thì bản xem trước cũ không còn dùng được.
  */
-export default function CreatorImport({ draft, defaultTitle, onSaved, onClose }: {
+export default function CreatorImport({ draft, defaultTitle, onSaved, onClose, initialMethod = "paste" }: {
+  /** Chế độ mở popup: dán văn bản hoặc tải tệp (theo nút đã bấm). */
+  initialMethod?: "paste" | "file";
   draft: CreatorDraft;
   defaultTitle: string;
   onSaved: (r: ContentSaved) => void;
   onClose: () => void;
 }) {
-  const [method, setMethod] = useState<"paste" | "file">("paste");
+  const [method, setMethod] = useState<"paste" | "file">(initialMethod);
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [pending, setPending] = useState<Pending | null>(null);

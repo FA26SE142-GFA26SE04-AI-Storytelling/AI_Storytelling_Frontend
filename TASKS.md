@@ -5,7 +5,7 @@ Cập nhật: 09/11/2026. Chỉ tính phần Frontend (`src/`); không sửa Bac
 Căn cứ:
 - 5 tài liệu Luồng 1–5 (link trong `CLAUDE.md` ở thư mục gốc dự án).
 - Quy tắc thiết kế trong `CLAUDE.md`.
-- Kết quả chạy `node scripts/audit-core-api.mjs` ngày 09/11: Backend hiện **354** endpoint, 311 đã nối, 2 loại trừ, **41** còn thiếu (18 `SERVICE_ONLY`, 23 `MISSING`; cập nhật sau khi xoá `PersonalStoryEditor`). "Còn thiếu" gồm cả endpoint chưa có hàm service và endpoint có hàm service nhưng chưa màn nào gọi (`SERVICE_ONLY`).
+- Kết quả chạy `node scripts/audit-core-api.mjs` ngày 09/11: Backend hiện **354** endpoint, 314 đã nối, 2 loại trừ, **38** còn thiếu (17 `SERVICE_ONLY`, 21 `MISSING`; cập nhật 09/11 sau khi nối dán văn bản và giao máy kèm truyện). "Còn thiếu" gồm cả endpoint chưa có hàm service và endpoint có hàm service nhưng chưa màn nào gọi (`SERVICE_ONLY`).
 
 Ký hiệu: `[ ]` chưa làm · `[x]` đã làm. Ưu tiên: **P1** làm trước · **P2** làm sau · **P3** dọn dẹp.
 
@@ -62,14 +62,14 @@ Lấy từ bản audit ngày 09/11 (39 endpoint). Cần xác nhận từng cái 
 
 **Có hàm service, chỉ thiếu màn gọi:**
 - [ ] **Truyện có sẵn (Luồng 3b)** — `POST /stories/import`, `/stories/import-file`, `/stories/{id}/existing/{evaluate, adapt, keep-original}`, `GET .../existing/evaluation`, `PUT .../existing/content`. Đủ hàm trong [existingStoryService.ts](src/app/services/existingStoryService.ts) nhưng không màn nào import service này. Riêng `.../existing/archive` bỏ vì đã chốt không còn lưu trữ truyện.
-- [ ] **Nhập văn bản cho truyện của phụ huynh** — `POST /parent/stories/{storyId}/imports/preview`, `.../imports/confirm`. Có hàm `previewImport`, `confirmImport` trong `parentAuthoringService.ts`; trang soạn của phụ huynh đang dùng `imports/preview-file` rồi tự tách tệp, chưa dùng hai endpoint này.
+- [x] **Dán văn bản cho truyện của phụ huynh** (09/11) — nút "Dán văn bản" ở trang Tự viết mở popup, gọi `POST /parent/stories/{id}/imports/preview` rồi điền vào các ô (tách "Tên truyện:", "Nguồn nội dung:"… như khi nhập tệp); chỉ lưu khi bấm "Lưu và tiếp tục". `.../imports/confirm` cố ý chưa dùng vì sẽ lưu thẳng mà phụ huynh chưa xem lại.
 - [ ] **Xoá Learning Profile và Safety Policy** — `DELETE /LearningProfile/{id}`, `DELETE /SafetyPolicy/{id}`. Có `removeLearning`, `removeSafety` trong `profileLifecycleService.ts`, chưa có nút. Quy tắc: không xoá Safety Policy khi hồ sơ đang Active.
 - [ ] **Điều ước của phụ huynh** — `GET /parent/wishes/{wishId}` (có `parentWishService.detail`), `GET /parent/wishes/{wishId}/generation` (chưa có hàm; service đang gọi `generation-form`, cần đối chiếu với Backend).
 - [ ] **Thẻ ước (Moderator)** — `GET /moderation/wish-cards/{id}` (có hàm trong `wishCardService.ts`), `POST /moderation/stories/{id}/wish-cards/ai-match` (chưa có hàm).
 - [ ] `GET /ChildProfile/{id}` — chỉ có hàm service, chưa có màn dùng.
 
 **Chưa có hàm service:**
-- [ ] **Giao máy kèm truyện (Luồng 1c)** — `GET /ChildAccessCredential/story-handover`, `POST /ChildAccessCredential/{childProfileId}/handover-story`.
+- [x] **Giao máy kèm truyện (Luồng 1c)** (09/11) — nút "Cho bé đọc ngay" ở khung chi tiết của truyện đã xong (Thư viện, Truyện của tôi) mở popup [StoryHandoverButton.tsx](src/app/features/kid/StoryHandoverButton.tsx): `GET /ChildAccessCredential/story-handover` cho biết bé nào đọc được (bé gợi ý viền vàng, bé không đọc được mờ kèm lý do); chọn bé thì `POST .../{childId}/handover-story` và `KidMode` mở thẳng truyện (vẫn qua cổng xác nhận người lớn khi thoát).
 - [ ] **Duyệt truyện** — `POST /stories/{id}/review/confirm-package` (chưa có hàm). `PUT /stories/{id}/review/listening/{interactionId}` (sửa tương tác khi nghe) đã có hàm nhưng chưa màn nào gọi.
 - [ ] **Media từng đoạn của Creator (mới)** — `POST /creator/stories/{id}/media/illustration-beats/{beatId}/{upload, generate}`, `POST /creator/stories/{id}/media/segments/{segmentId}/{upload, generate}`.
 - [ ] **Gói truyện của phụ huynh (mới)** — `POST /parent/stories/{id}/content/{finalize, reopen}`, `GET|POST /parent/stories/{id}/packages`, `GET .../packages/{packageId}`, `POST .../packages/{packageId}/{generate, retry, revise, confirm}`, `GET .../packages/{packageId}/preview`, `GET .../packages/{packageId}/assets/{assetId}`, `POST /parent/stories/{id}/family-confirmations/batch`. Đây là luồng mới của Backend, cần đọc lại tài liệu Luồng 3 trước khi làm.
@@ -83,7 +83,7 @@ Lấy từ bản audit ngày 09/11 (39 endpoint). Cần xác nhận từng cái 
 - [x] **Form chuyển sang popup** (xong 09/11): soạn hướng dẫn ([GuideItemEditor.tsx](src/app/features/staff/GuideItemEditor.tsx), mở khi bấm "Thêm hướng dẫn" hoặc tên hướng dẫn, lưu xong tự đóng) và nhập nội dung của Creator ([CreatorImport.tsx](src/app/features/staff/CreatorImport.tsx)).
 - [x] **Nút Lưu chỉ hiện khi có thay đổi** (xong 09/11): "Lưu nháp và thứ tự" (RoadmapTemplates), "Lưu tập nhãn" ([ReviewPanel.tsx](src/app/features/staff/ReviewPanel.tsx)).
 - [x] **Xoá `PersonalStoryEditor.tsx`** (09/11): form tạo truyện riêng cũ, không trang nào hiển thị; việc tự viết truyện đã có trang "Tự viết". `POST /Story` và `PATCH /Story/{id}/publish` chuyển sang `SERVICE_ONLY` (hàm vẫn còn trong `storyManagementService`).
-- [ ] **Rút bớt chữ nhỏ dưới component** (`sub`, `hint`, `<small>`). Đã làm 09/11: WishItem, BriefForm, ReviewPanel, CreatorImport, Thư viện (trạng thái thành nhãn, "không có truyện" thành khung viền đứt), CreateChildWizard (ghi chú thành khung có biểu tượng, giải thích chủ đề vào ⓘ). Nhãn tên trường trong khung thông tin giữ nguyên. Còn nhiều nhất: ParentAuthoringWorkspace (~8), ReviewGate (~8), StudioPlan, StudioMedia, SafetyWorkspace, ProposalCard, AccountWorkspace (~5).
+- [x] **Rút bớt chữ nhỏ dưới component** (09/11): WishItem, BriefForm, ReviewPanel, CreatorImport, Thư viện, CreateChildWizard, trang Tự viết, màn duyệt Studio, Studio, Cài đặt an toàn, đề xuất sửa (ProposalCard), Tài khoản. Trạng thái thành nhãn, hướng dẫn thành khung thông báo, giải thích phụ vào ⓘ (`components/InfoTip`), "chưa có gì" thành khung viền đứt (`.empty-line`). Nhãn tên trường trong ô số liệu / checklist giữ nguyên.
 - [x] **Rà nhãn nút dài** (09/11): rút gọn 6 nhãn trên 24 ký tự ("Tải lại trạng thái truyện / hoàn tất" → "Tải lại", "Thử lại kiểm tra ý tưởng" → "Kiểm tra lại", "Chèn gợi ý vào bản đang sửa" → "Chèn gợi ý", "Đồng bộ bộ hướng dẫn" → "Đồng bộ", "Tạo bản nháp từ phiên bản này" → "Tạo nháp từ bản này"). Giữ "Duyệt dàn ý và viết truyện" (nút chính của Studio). Chưa kiểm tra bằng mắt ở khung hẹp / điện thoại.
 - [ ] **Kiểm tra bằng mắt**: chạy app, chụp từng trang, xem bố cục, khoảng cách, tiêu đề nổi bật, đồng bộ giữa các trang, cả theme sáng và tối. Đặc biệt kiểm tra lại: viền mới đậm hơn, tiêu đề mục `.sec-h`, ảnh bìa mẫu `default-cover.svg`, popup mới.
 
@@ -139,7 +139,7 @@ Commit `af6f1cd`: trang chính của bé có khung "Hôm nay em đọc", nút ta
 
 Bỏ `DenyCover`, nút Lưu chỉ hiện khi có thay đổi ở RoadmapTemplates và ReviewPanel, cập nhật audit và test (335/335 qua).
 
-Rút chữ nhỏ (WishItem, BriefForm, ReviewPanel, Thư viện, CreateChildWizard; thêm `components/InfoTip`), form soạn hướng dẫn và nhập nội dung Creator thành popup, rút gọn 6 nhãn nút dài, xoá `PersonalStoryEditor`, "Truyện của tôi" của Creator chia kệ theo trạng thái, đổi tên nút Creator thành "Viết bằng AI" / "Tự viết". Smoke test (`tests/smoke`) cập nhật theo giao diện mới (nút tạo truyện, luồng lộ trình mẫu ở trang Học tập, bỏ fixture `PersonalStoryEditor`) nhưng **chưa chạy được** vì máy chưa cài Playwright.
+Rút chữ nhỏ (WishItem, BriefForm, ReviewPanel, Thư viện, CreateChildWizard; thêm `components/InfoTip`), form soạn hướng dẫn và nhập nội dung Creator thành popup, rút gọn 6 nhãn nút dài, xoá `PersonalStoryEditor`, "Truyện của tôi" của Creator chia kệ theo trạng thái, đổi tên nút Creator thành "Viết bằng AI" / "Tự viết". Test `coreCompletion` tăng thời gian chờ lên 30 giây (chạy script audit vài giây, trước đây thỉnh thoảng quá 5 giây khi cả bộ chạy song song). Smoke test (`tests/smoke`) cập nhật theo giao diện mới (nút tạo truyện, luồng lộ trình mẫu ở trang Học tập, bỏ fixture `PersonalStoryEditor`) nhưng **chưa chạy được** vì máy chưa cài Playwright.
 
 ### 06/11/2026
 

@@ -114,6 +114,8 @@ async function fixture(role,run,manual=false,caseName=null) {
   return route.fulfill({status:404,contentType:'application/json',body:JSON.stringify({success:false,message:'Fixture: chức năng không nằm trong smoke test.',data:null})});
  });
  try {console.log('Smoke',label);await page.goto(base,{waitUntil:'domcontentloaded'});await run({page,requests,state});assert.deepEqual(errors,[],`Runtime errors: ${errors.join('; ')}`);results.push({role:label,status:'passed',requests:requests.length});}
+ // Ghi lỗi của trường hợp này rồi chạy tiếp các trường hợp sau; cuối cùng thoát với mã lỗi nếu có trường hợp hỏng.
+ catch(e){const lines=String(e?.message??e).split(/\r?\n/);const waiting=lines.find(l=>l.includes('waiting for'));const first=lines[0]+(waiting?` | ${waiting.replace(/\x1b\[[0-9;]*m/g,'').trim()}`:'');console.log('FAILED',label,'-',first);results.push({role:label,status:'failed',error:first});process.exitCode=1;}
  finally {await writeFile(new URL(`${label}-requests.json`,output),JSON.stringify({requests,errors},null,2));await page.screenshot({path:new URL(`${label}.png`,output).pathname.replace(/^\/(\w:)/,'$1'),fullPage:true}).catch(()=>{});await context.close();}
 }
 async function confirmMediaInBrowser(page, regenerate=false) {
@@ -295,7 +297,7 @@ try {
   assert(requests.some(r=>r.method==='PUT'&&r.path===`${root}/draft/items/ending`));
   assert.deepEqual(requests.find(r=>r.path===`${root}/draft/publish`).body,{revisionToken:'g3'});
   await page.getByRole('button',{name:'parent-vi-2 · Published',exact:true}).click();
-  await page.getByRole('button',{name:'Tạo bản nháp từ phiên bản này',exact:true}).click();
+  await page.getByRole('button',{name:'Tạo nháp từ bản này',exact:true}).click();
   await page.getByRole('button',{name:'Hủy bản nháp',exact:true}).click();
   await page.getByRole('button',{name:'Tạo bản nháp từ bản đang dùng',exact:true}).waitFor();
   assert(requests.some(r=>r.method==='DELETE'&&r.path===`${root}/draft`));
@@ -367,7 +369,7 @@ try {
   await page.getByRole('button',{name:'Nội dung',exact:true}).click();await page.getByRole('menuitem',{name:'Hướng dẫn sáng tác',exact:true}).click();
   await page.getByText('Bản đang phát hành: parent-vi-1',{exact:true}).waitFor();
   await page.getByRole('button',{name:'parent-vi-1 · Published',exact:true}).click();
-  await page.getByRole('button',{name:'Tạo bản nháp từ phiên bản này',exact:true}).waitFor();
+  await page.getByRole('button',{name:'Tạo nháp từ bản này',exact:true}).waitFor();
   assert(requests.some(r=>r.path==='/moderation/authoring-guides/versions/1'));
  },false,'AdministratorGuides');
  await fixture('Parent',async({page,requests,state})=>{

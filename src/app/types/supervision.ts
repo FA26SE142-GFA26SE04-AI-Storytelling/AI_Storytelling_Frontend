@@ -31,6 +31,12 @@ export interface ChildSession {
   expiresInSeconds: number;
 }
 
+/** "Cho bé đọc truyện này" (Luồng 1c): bé nào đọc được truyện, lý do nếu không, bé được gợi ý. */
+export interface StoryHandoverChild { childProfileId: number; nickname: string; canRead: boolean; skipCode: string | null; message: string | null }
+export interface StoryHandoverOptions { storyId: number; suggestedChildProfileId: number | null; children: StoryHandoverChild[] }
+/** Phiên của bé mở thẳng một truyện. */
+export interface ChildStoryHandover extends ChildSession { storyId: number }
+
 export interface ChildSessionProfile {
   childProfileId: number;
   nickname: string;

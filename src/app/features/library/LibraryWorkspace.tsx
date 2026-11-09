@@ -18,6 +18,7 @@ import { parentAuthoringService } from "@/app/services/parentAuthoringService";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useRiseIn } from "@/app/lib/motion";
 import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
+import StoryHandoverButton from "@/app/features/kid/StoryHandoverButton";
 import RoadmapAlbum from "@/app/features/roadmap/RoadmapAlbum";
 import TemplateDialog from "@/app/features/roadmap/TemplateDialog";
 import { useRoadmapTemplates } from "@/app/features/roadmap/roadmapData";
@@ -254,7 +255,7 @@ async function loadAllPages(fetchPage: (pageIndex: number) => ReturnType<typeof 
   return { items, message: null as string | null };
 }
 
-export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
+export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go' | 'onKid'>) {
   const { user } = useAuth();
   const { children: kids } = useWorkspaceData();
   // Mở từ nút "Thêm truyện" ở trang Học tập của bé: chọn sẵn bé đó, thêm xong thì quay về lộ trình của bé.
@@ -516,6 +517,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
               {selStatus === "review" && <button className="btn btn-p btn-c" onClick={() => go(sel.fromAi ? 'studio' : 'authoring', { storyId: sel.id })}><WandSparkles className="ic" />Mở để duyệt</button>}
               {sel.fromAi && ['draft','generating','outline','review','media','moderation'].includes(selStatus ?? '') && <button className="btn btn-p btn-c" onClick={() => go("studio",{storyId:sel.id})}><WandSparkles className="ic" />Tiếp tục trong Studio</button>}
               {selStatus === "moderation" && <span className="pill wait lib-state" title="Kiểm duyệt viên thường xem trong 24 giờ">Đang chờ kiểm duyệt</span>}
+              {selStatus === "ready" && <StoryHandoverButton storyId={sel.id} title={sel.title} onKid={onKid} />}
               {selStatus === "ready" && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình</button>}
               {selStatus === "ready" && mod?.submission && <span className="pill draft lib-state">Cộng đồng: {SUB_STATUS[mod.submission.status] ?? mod.submission.status}</span>}
               {mine && selStatus === "ready" && mod?.submission && ((mod.submission.canWithdraw ?? mod.submission.status === "pending") || (mod.submission.canRemove ?? mod.submission.status === "approved")) && (

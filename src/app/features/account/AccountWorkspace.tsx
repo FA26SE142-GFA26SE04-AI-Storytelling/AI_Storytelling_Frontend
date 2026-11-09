@@ -5,6 +5,7 @@ import PasswordInput from "@/app/components/PasswordInput";
 import "../children/children.css";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { KeyRound, LogOut, MonitorSmartphone, X } from "lucide-react";
+import InfoTip from "@/app/components/InfoTip";
 import { useAuth } from "@/app/context/AuthContext";
 import { accountService } from "@/app/services/accountService";
 import type { LoginSession } from "@/app/types/supervision";
@@ -92,9 +93,8 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
                 <form className="dlg" onSubmit={changePassword} style={{ gap: 12, width: "min(440px, 100%)" }}>
                   <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>Đổi mật khẩu</b><button type="button" className="btn btn-g" aria-label="Đóng" onClick={closePw}><X className="ic" /></button></div>
                   <label className="field"><span className="lbl">Mật khẩu hiện tại</span><PasswordInput className="inp" required autoComplete="current-password" value={pw.current} onChange={set("current")} /></label>
-                  <label className="field"><span className="lbl">Mật khẩu mới</span><PasswordInput className="inp" required autoComplete="new-password" value={pw.next} onChange={set("next")} /></label>
+                  <label className="field"><span className="lbl">Mật khẩu mới <InfoTip text="Ít nhất 8 ký tự, có cả chữ và số. Đổi xong, các thiết bị khác sẽ bị đăng xuất." /></span><PasswordInput className="inp" required autoComplete="new-password" value={pw.next} onChange={set("next")} /></label>
                   <label className="field"><span className="lbl">Nhập lại mật khẩu mới</span><PasswordInput className="inp" required autoComplete="new-password" value={pw.confirm} onChange={set("confirm")} /></label>
-                  <p className="sub">Ít nhất 8 ký tự, có cả chữ và số. Đổi xong, các thiết bị khác sẽ bị đăng xuất.</p>
                   {pwNote && <div className={`notice ${pwNote.ok ? "ok" : "err"}`} role="status">{pwNote.text}</div>}
                   <div className="row" style={{ justifyContent: "flex-end" }}>
                     <button type="button" className="btn btn-g" onClick={closePw}><X className="ic" />Hủy</button>
@@ -107,11 +107,11 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
             <section className="acc-card" style={{ gap: 6 }}>
               <h3 className="display" style={{ margin: 0 }}>Phiên đăng nhập</h3>
               {sessions === null && <p className="sub">Đang tải…</p>}
-              {sessions?.length === 0 && <p className="sub">Không có phiên nào khác.</p>}
+              {sessions?.length === 0 && <p className="empty-line">Không có phiên nào khác.</p>}
               {sessions?.map((s) => (
                 <div key={s.id} className="session-row">
                   <MonitorSmartphone className="ic" />
-                  <span className="grow">Đăng nhập lúc {fmtDateTime(s.issuedAt)}<small className="sub" style={{ display: "block" }}>Hết hạn {fmtDateTime(s.expiresAt)}</small></span>
+                  <span className="grow">Đăng nhập lúc {fmtDateTime(s.issuedAt)}</span><span className="pill draft">Hết hạn {fmtDateTime(s.expiresAt)}</span>
                   <button className="btn btn-g" onClick={() => void revoke(s.id)}>Đăng xuất</button>
                 </div>
               ))}

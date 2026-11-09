@@ -915,8 +915,19 @@
     "controller": "ChildAccessCredentialController.cs",
     "action": "GetStoryHandoverOptions",
     "controllerLine": 78,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/ChildAccessCredential/story-handover",
+        "service": "childAccessService",
+        "operation": "storyHandoverOptions",
+        "file": "app/services/childAccessService.ts",
+        "line": 35,
+        "callers": [
+          "app/features/kid/StoryHandoverButton.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -925,8 +936,19 @@
     "controller": "ChildAccessCredentialController.cs",
     "action": "StartStoryHandover",
     "controllerLine": 92,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/ChildAccessCredential/{}/handover-story",
+        "service": "childAccessService",
+        "operation": "startStoryHandover",
+        "file": "app/services/childAccessService.ts",
+        "line": 41,
+        "callers": [
+          "app/features/kid/KidMode.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -941,7 +963,7 @@
         "service": "childAccessService",
         "operation": "loginWithEasyLogin",
         "file": "app/services/childAccessService.ts",
-        "line": 34,
+        "line": 45,
         "callers": [
           "app/features/kid/KidEntry.tsx"
         ]
@@ -962,7 +984,7 @@
         "service": "childAccessService",
         "operation": "getSessionProfile",
         "file": "app/services/childAccessService.ts",
-        "line": 38,
+        "line": 49,
         "callers": [
           "app/features/kid/ConnectedKidHome.tsx",
           "app/features/kid/KidEntry.tsx"
@@ -973,7 +995,7 @@
         "service": "childAccessService",
         "operation": "checkSession",
         "file": "app/services/childAccessService.ts",
-        "line": 49,
+        "line": 60,
         "callers": [
           "app/features/kid/useKidSession.ts"
         ]
@@ -4646,10 +4668,12 @@
         "operation": "previewImport",
         "file": "app/services/parentAuthoringService.ts",
         "line": 15,
-        "callers": []
+        "callers": [
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -5189,7 +5213,7 @@
         "service": "childAccessService",
         "operation": "verifyParentalGate",
         "file": "app/services/childAccessService.ts",
-        "line": 59,
+        "line": 70,
         "callers": [
           "app/features/kid/ParentalGate.tsx"
         ]

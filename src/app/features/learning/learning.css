@@ -83,7 +83,6 @@
 .lr-tile.alert .ic { color: var(--gold-deep); }
 .lr-tile.alert b { color: var(--warn-ink); }
 .lr-card-now { border-left: 6px solid var(--gold); }
-.pill.gold-pill { background: var(--gold); color: var(--on-gold); font-weight: 800; }
 
 /* Khung điều ước: tiêu đề có hạn xử lý dạng nhãn, truyện gợi ý là các dòng có viền, nút có chữ ngắn. */
 .wish-row { gap: 12px; font-size: var(--fs-md); }

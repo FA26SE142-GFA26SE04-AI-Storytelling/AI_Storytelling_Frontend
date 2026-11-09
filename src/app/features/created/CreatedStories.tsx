@@ -16,6 +16,7 @@ import { parentAuthoringService } from "@/app/services/parentAuthoringService";
 import { Preview, Shelf, ShelfRow } from "@/app/features/library/LibraryWorkspace";
 import { showToast } from "@/app/lib/toast";
 import EditStoryDialog, { type StoryInfoEdit } from "./EditStoryDialog";
+import StoryHandoverButton from "@/app/features/kid/StoryHandoverButton";
 import { ageLabel, familyToCard, statusKey, toCard, type StoryCard } from "@/app/lib/storyView";
 
 /** Nhóm trạng thái hiển thị trên trang (cũng là thứ tự các kệ, "Đã xong" đứng đầu): gom các trạng thái chi tiết của backend thành vài nhóm dễ hiểu. */
@@ -31,7 +32,7 @@ const when = (iso: string) => new Date(iso).toLocaleString("vi-VN", { day: "2-di
 const SOURCES = [{ id: "all", label: "Tất cả" }, { id: "ai", label: "Do AI tạo" }, { id: "manual", label: "Thủ công" }];
 
 /** Trang "Truyện đã tạo": mọi truyện phụ huynh đã tạo (AI và thủ công), kể cả bản nháp chưa vào Thư viện. */
-export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
+export default function CreatedStories({ go, onKid }: Pick<WorkspaceProps, "go" | "onKid">) {
   const { user } = useAuth();
   const { children: kids } = useWorkspaceData();
   const [ai, setAi] = useState<StoryCard[]>([]);
@@ -189,6 +190,7 @@ export default function CreatedStories({ go }: Pick<WorkspaceProps, "go">) {
               {sel.raw.updatedAt && <><span>Cập nhật</span><b>{when(sel.raw.updatedAt)}</b></>}
               <span>Trạng thái</span><span className={`pill ${sel.tone}`} style={{ width: "fit-content" }}>{sel.statusLabel}</span>
             </div>
+            {groupOf(sel) === "done" && <StoryHandoverButton storyId={sel.id} title={sel.title || "truyện này"} onKid={onKid} />}
             {groupOf(sel) === "done" && <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>}
             {canEdit(sel) && <button className="btn btn-s btn-c" onClick={() => setEditing(true)}><SquarePen className="ic" />Sửa thông tin</button>}
             <button className="btn btn-p btn-c" onClick={() => open(sel)}>{sel.family ? <PencilLine className="ic" /> : <WandSparkles className="ic" />}{groupOf(sel) === "review" ? "Mở để duyệt" : "Mở để soạn tiếp"}</button>

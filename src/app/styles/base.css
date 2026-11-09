@@ -244,3 +244,25 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 .info-tip { display: inline-grid; place-items: center; vertical-align: middle; color: var(--muted); cursor: help; }
 .info-tip .ic { width: 15px; height: 15px; }
 .info-tip:hover { color: var(--primary-strong); }
+
+/* Dòng "chưa có gì": khung viền đứt, chữ cỡ thường (thay cho chữ nhỏ). */
+.empty-line { margin: 0; padding: 14px 16px; border: 2px dashed var(--line-2); border-radius: 16px; text-align: center; font-size: var(--fs-md); color: var(--muted); }
+
+/* Nhãn vàng nổi bật (điểm cao, việc gợi ý). */
+.pill.gold-pill { background: var(--gold); color: var(--on-gold); font-weight: 800; }
+.pill.gold-pill .ic { width: 12px; height: 12px; fill: currentColor; }
+
+/* Popup "Cho bé đọc truyện này": mỗi bé một nút lớn; bé được gợi ý viền vàng; bé chưa đọc được thì mờ và có lý do. */
+.handover-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.handover-kid { width: 100%; display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 2px solid var(--line-2); border-radius: 18px; background: var(--surface); color: var(--text); text-align: left; transition: border-color .15s, transform .15s; }
+.handover-kid:hover:not(:disabled) { border-color: var(--primary); transform: translateY(-2px); }
+.handover-kid.suggested:not(:disabled) { border-color: var(--gold-deep); background: color-mix(in srgb, var(--gold) 12%, var(--surface)); }
+.handover-kid:disabled { opacity: .6; cursor: not-allowed; }
+.handover-kid .av { width: 40px; height: 40px; font-size: var(--fs-xl); }
+.handover-kid .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.handover-kid b { font-size: var(--fs-md); }
+.handover-why { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-sm); color: var(--muted); }
+.handover-why .ic { width: 14px; height: 14px; flex: none; }
+.handover-go { width: 36px; height: 36px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--primary-strong); color: var(--on-primary, #fff); }
+.handover-go svg { width: 18px; height: 18px; }
+@media (prefers-reduced-motion: reduce) { .handover-kid { transition: none; } .handover-kid:hover:not(:disabled) { transform: none; } }

@@ -2,7 +2,7 @@
 import { confirmDialog } from "@/app/lib/confirm";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, Download, FileUp, Lock, RefreshCw, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ClipboardPaste, Download, FileUp, Lock, RefreshCw, RotateCcw } from "lucide-react";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { ContentSaved, CreatorDraft, CreatorResult, CreatorVersion, SaveVersionInput } from "@/app/types/creator";
 import { detectPii } from "@/app/lib/storyRules";
@@ -53,7 +53,8 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
   const [saved, setSaved] = useState<SaveVersionInput>(EMPTY);
   const [versions, setVersions] = useState<CreatorVersion[] | null>(null);
   const [viewing, setViewing] = useState<CreatorVersion | null>(null);
-  const [importing, setImporting] = useState(false);
+  // Popup nhập nội dung, mở thẳng ở chế độ dán văn bản hoặc tải tệp.
+  const [importing, setImporting] = useState<"paste" | "file" | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note>(null);
   const [conflict, setConflict] = useState(false);
@@ -201,7 +202,8 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
                 {pii.length > 0 && <div className="notice err" role="alert">Truyện còn thông tin cá nhân ({[...new Set(pii.map((p) => p.kind))].join(", ")}). Hãy bỏ trước khi gửi duyệt.</div>}
                 {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
                 <div className="pa-actions bar">
-                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting(true)}><FileUp className="ic" />Nhập từ tệp</button>
+                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting("file")}><FileUp className="ic" />Nhập từ tệp</button>
+                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting("paste")}><ClipboardPaste className="ic" />Dán văn bản</button>
                   <button className="btn btn-s" onClick={() => downloadStoryTemplate(CREATOR_FILE_TEMPLATE)} title="Tải tệp mẫu .txt để viết nội dung rồi nhập vào"><Download className="ic" />Tải tệp mẫu</button>
                   {conflict && <button className="btn btn-g" disabled={busy} onClick={() => void resync()}><RefreshCw className="ic" />Đồng bộ</button>}
                   {hasPending && <button className="btn btn-s" disabled={busy} onClick={retry}><RotateCcw className="ic" />Thử lại</button>}
@@ -255,7 +257,7 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
         </div>
       </div>
 
-      {importing && <CreatorImport draft={draft} defaultTitle={form.title} onClose={() => setImporting(false)}
+      {importing && <CreatorImport key={importing} initialMethod={importing} draft={draft} defaultTitle={form.title} onClose={() => setImporting(null)}
         onSaved={(r) => { const snap = fromVersion(r.version); setForm(snap); apply(r, snap); setNote({ ok: true, text: `Đã nhập nội dung (phiên bản V${r.version.versionNo}).` }); }} />}
 
     </>
