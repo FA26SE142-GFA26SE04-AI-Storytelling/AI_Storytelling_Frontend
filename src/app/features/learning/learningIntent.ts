@@ -7,10 +7,14 @@ import type { WorkspaceId } from "@/app/components/shell/nav";
 const PICK_KEY = "taletale-roadmap-pick";
 const BACK_KEY = "taletale-learning-back";
 
+/**
+ * Đọc rồi mới xoá ở lượt sau: ở chế độ phát triển, React (Strict Mode) chạy useEffect khởi tạo hai lần liên tiếp;
+ * xoá ngay thì lần thứ hai đọc ra null và ghi đè mất giá trị của lần đầu.
+ */
 const take = (key: string): number | null => {
   try {
     const v = sessionStorage.getItem(key);
-    sessionStorage.removeItem(key);
+    if (v !== null) setTimeout(() => { try { sessionStorage.removeItem(key); } catch { /* bỏ qua */ } }, 0);
     return v && /^\d+$/.test(v) ? Number(v) : null;
   } catch { return null; }
 };

@@ -12,6 +12,7 @@
     "lint": "eslint",
     "test": "vitest run tests",
     "test:coverage": "vitest run tests --coverage",
+    "test:smoke": "node tests/smoke/core-flows.mjs",
     "audit:api": "node scripts/audit-core-api.mjs --check"
   },
   "dependencies": {
