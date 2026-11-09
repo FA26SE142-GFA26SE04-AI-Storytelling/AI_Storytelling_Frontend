@@ -16,7 +16,6 @@ import { ageLabel, statusKey } from "@/app/lib/storyView";
 import { fmtDate } from "@/app/lib/guardian";
 import Frog from "@/app/components/brand/Frog";
 import AddToRoadmapDialog from "./AddToRoadmapDialog";
-import HoldPanel from "./HoldPanel";
 
 const SKIP_REASON: Record<string, string> = {
   blocked_category: "Thuộc chủ đề bị chặn",
@@ -135,7 +134,6 @@ export default function RoadmapWorkspace({ go }: WorkspaceProps) {
             {canEdit && (queued.length > 0 || open) && <button className="btn btn-no" onClick={async () => { if (await confirmDialog(`Gỡ toàn lộ trình chưa đọc khỏi lộ trình của ${child.nickname}?`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình."); }}><Trash2 className="ic" />Làm trống</button>}
           </div>
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
-          <HoldPanel child={child} role={role} onChanged={() => void load()} />
 
           <h3 className="display rm-h">Đang đọc</h3>
           {items === null ? <p className="sub">Đang tải…</p> : open ? (

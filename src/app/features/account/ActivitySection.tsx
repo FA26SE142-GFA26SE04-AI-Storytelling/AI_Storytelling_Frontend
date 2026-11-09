@@ -11,11 +11,9 @@ const ACTION: Record<string, string> = {
   ARCHIVE_CHILD_PROFILE: 'Lưu trữ hồ sơ',
   RESUME_CHILD_PROFILE: 'Mở lại hồ sơ',
   SUSPEND_CHILD_PROFILE: 'Khóa hồ sơ',
-  DataRequestCancelled: 'Hủy yêu cầu',
 };
 const ENTITY: Record<string, string> = {
   ChildProfile: 'Hồ sơ bé',
-  DataRequest: 'Yêu cầu dữ liệu',
 };
 
 const PER_PAGE = 8;
@@ -24,7 +22,6 @@ const MAX_PAGES = 5;
 const GROUPS = [
   { value: 'all', label: 'Tất cả', types: null },
   { value: 'profile', label: 'Hồ sơ bé', types: ['ChildProfile'] },
-  { value: 'data', label: 'Dữ liệu', types: ['DataRequest'] },
 ] as const;
 type Group = (typeof GROUPS)[number]['value'];
 

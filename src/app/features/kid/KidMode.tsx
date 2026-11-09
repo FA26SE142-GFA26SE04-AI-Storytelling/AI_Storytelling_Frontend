@@ -13,7 +13,7 @@ import ParentalGate from "./ParentalGate";
 import KidApp from "./KidApp";
 
 /**
- * "Cho bé đọc" (Luồng 1 Bước 1.10, Luồng 3 Bước 3.0): mở phiên riêng của bé qua ProfileSwitcher.
+ * "Cho bé đọc" (Luồng 1 Bước 1.10, Luồng 3 Bước 3.0): mở phiên riêng của bé bằng mã giao máy (handover).
  * Rời chế độ của bé phải qua cổng xác nhận người lớn nếu cài đặt an toàn bật.
  */
 export default function KidMode({ child, onExit }: { child: ChildProfile; onExit: () => void }) {

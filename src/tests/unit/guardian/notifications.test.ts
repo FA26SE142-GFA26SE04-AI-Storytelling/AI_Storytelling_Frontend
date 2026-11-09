@@ -17,7 +17,7 @@ describe('thông báo trong app', () => {
 
   it('hiện câu tiếng Việt cho thông báo backend thay vì tên mã', () => {
     expect(notificationText(n('OwnershipTransferRequest'))).toBe('Có đề nghị chuyển quyền quản lý chính');
-    expect(notificationText(n('DataRequestCompleted'))).toBe('Yêu cầu xuất / xoá dữ liệu đã xử lý xong');
+    expect(notificationText(n('StorySummarySent'))).toBe('Bé vừa gửi tóm tắt sau khi đọc truyện');
     expect(notificationText(n('SomethingNew'))).toBe('Bạn có thông báo mới');
   });
 
@@ -28,7 +28,7 @@ describe('thông báo trong app', () => {
   });
 
   it('mở màn liên quan theo loại hoặc nhóm', () => {
-    expect(notificationTarget(n('hold_mode_alert'))).toBe('roadmap');
+    expect(notificationTarget(n('RoadmapStoryAdded'))).toBe('roadmap');
     expect(notificationTarget(n('SupervisionInvite', { group: 'supervisors' }))).toBe('children');
     expect(notificationTarget(n('StoryModerationResult', { group: 'stories' }))).toBe('library');
     expect(notificationTarget(n('AccountSecurityChanged', { group: 'account' }))).toBe('account');

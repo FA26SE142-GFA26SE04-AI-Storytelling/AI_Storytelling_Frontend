@@ -30,39 +30,6 @@
 .ld-trust li { display: inline-flex; align-items: center; gap: 8px; }
 .ld-trust .ic { color: var(--ok-ink); width: 18px; height: 18px; }
 
-.ld-book-wrap { margin: 0; display: flex; flex-direction: column; gap: 12px; }
-.ld-book-wrap figcaption { font-size: var(--fs-sm); color: var(--muted); padding-left: 6px; }
-.ld-book { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); background: var(--paper); border-radius: 30px; overflow: hidden; border: 1px solid var(--line);
-  box-shadow: 0 40px 80px -40px color-mix(in srgb, var(--shadow) 60%, transparent); }
-.ld-book-art { position: relative; min-height: 330px; overflow: hidden;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--sky) 32%, var(--paper)) 0 62%, color-mix(in srgb, var(--mint) 22%, var(--paper)) 62%); }
-.ld-rain { position: absolute; inset: 0 0 auto; width: 100%; height: 58%; stroke: color-mix(in srgb, var(--sky) 70%, var(--paper)); stroke-width: 3; stroke-linecap: round; fill: none; }
-.ld-pad { position: absolute; left: 8%; right: 8%; bottom: 14%; height: 18%; border-radius: 50%; background: var(--primary); box-shadow: inset 0 -6px 0 color-mix(in srgb, var(--primary-strong) 60%, transparent); }
-.ld-frog { position: absolute; left: 50%; bottom: 20%; transform: translateX(-50%); }
-.ld-leaf { position: absolute; left: 50%; bottom: 52%; width: 62%; transform: translateX(-38%) rotate(-6deg); fill: var(--primary-strong); }
-.ld-leaf .vein { fill: none; stroke: color-mix(in srgb, var(--primary) 70%, var(--paper)); stroke-width: 2; stroke-linecap: round; }
-
-.ld-book-page { position: relative; padding: 30px 30px 24px; display: flex; flex-direction: column; gap: 18px; }
-.ld-book-meta { display: flex; justify-content: space-between; gap: 12px; font-size: var(--fs-sm); font-weight: 700; color: var(--muted); }
-.ld-book-meta span:last-child { flex: none; }
-.ld-book-text { margin: 0; font-family: var(--font-story); font-size: clamp(21px, 2vw, 25px); line-height: 1.65; color: var(--ink-warm); }
-.ld-book-text span { border-radius: 7px; transition: background-color .15s; }
-.ld-book-text .hl { background: color-mix(in srgb, var(--gold) 60%, transparent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 60%, transparent); }
-.ld-book-text .vocab { text-decoration: underline dotted var(--primary); text-decoration-thickness: 3px; text-underline-offset: 7px; }
-.ld-book-foot { margin-top: auto; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.ld-listen { display: inline-flex; align-items: center; gap: 9px; min-height: 48px; padding: 0 18px; border-radius: 16px; background: var(--surface-2); color: var(--link); font-weight: 800; font-size: var(--fs-md); touch-action: manipulation; }
-.ld-listen svg { width: 20px; height: 20px; }
-.ld-listen:hover { background: color-mix(in srgb, var(--primary) 22%, var(--surface-2)); }
-.ld-dots { display: flex; gap: 6px; align-items: center; }
-.ld-dots i { width: 8px; height: 8px; border-radius: 99px; background: var(--line-2); }
-.ld-dots i.done { background: var(--primary); }
-.ld-dots i.cur { width: 22px; background: var(--primary-strong); }
-/* Dấu duyệt đóng ở góc tranh, không đè lên chữ truyện. */
-.ld-stamp { position: absolute; right: 14px; top: 16px; transform: rotate(-8deg); display: flex; flex-direction: column; align-items: center; line-height: 1.1;
-  padding: 6px 12px 5px; border: 3px solid var(--link); border-radius: 12px; color: var(--link); background: color-mix(in srgb, var(--paper) 85%, transparent); }
-.ld-stamp b { font-family: var(--font-display); font-weight: 800; font-size: var(--fs-lg); }
-.ld-stamp small { font-size: var(--fs-xs); font-weight: 800; }
-
 /* ===== Ô thử ý tưởng: dải màu nhẹ ngay dưới phần mở đầu ===== */
 .ld-idea-band { margin: 8px 0 0; padding: 30px; border-radius: 32px; background: color-mix(in srgb, var(--lotus-light) 45%, var(--paper)); border: 1px solid color-mix(in srgb, var(--lotus) 40%, var(--line)); }
 .ld-idea { display: flex; flex-direction: column; gap: 14px; max-width: 820px; margin: 0 auto; }
@@ -196,9 +163,6 @@
   .ld-foot-brand { grid-column: 1 / -1; }
 }
 @media (max-width: 600px) {
-  .ld-book { grid-template-columns: minmax(0, 1fr); }
-  .ld-book-art { min-height: 220px; }
-  .ld-book-page { padding: 22px 20px 20px; }
   .ld-idea-band { padding: 20px 14px; border-radius: 24px; }
   .ld-idea-go { width: 100%; justify-content: center; }
   .ld-how-panel { padding: 18px; }

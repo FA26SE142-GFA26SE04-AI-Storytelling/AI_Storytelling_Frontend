@@ -1,7 +1,6 @@
-import { unavailable } from './unavailable';
 import type { ApiResponse } from '@/app/types/auth';
 import type {
-  AppNotification, ChildRef, CommunitySubmission, ContentReport, Dashboard, InterventionCase, ProgressReport, ReadCompletion, ReportReason,
+  AppNotification, ChildRef, CommunitySubmission, ContentReport, ReportReason,
   RoadmapAddResult, RoadmapItem, RoadmapPosition, RoadmapStoryInput, RoadmapTemplate,
 } from '@/app/types/progress';
 import { apiRequest } from './apiClient';
@@ -19,8 +18,6 @@ const reportReasons = { safety_concern: 'SafetyConcern', inappropriate: 'Inappro
 export type { ChildRef };
 
 export const guardianService = {
-
-  dashboard: (childId: number): Promise<ApiResponse<Dashboard>> => unavailable('tính năng này', [childId]),
 
   async roadmap(childId: number): Promise<ApiResponse<RoadmapItem[]> & { counts?: { completed: number; total: number } }> {
     const r = await roadmapService.get(childId);
@@ -57,20 +54,6 @@ export const guardianService = {
     const r = await roadmapService.copy(template.id, { childProfileIds: children.map(c => c.id), position: positionWire(position), daysPerStory });
     return { ...r, data: r.data ? roadmapCopyResult(r.data, children) : null };
   },
-
-  holdCase: (childId: number): Promise<ApiResponse<InterventionCase | null>> => unavailable('tính năng này', [childId]),
-
-  unlockHold: (childId: number, caseId: number, notes: string): Promise<ApiResponse<null>> =>
-    unavailable('tính năng này', [childId,caseId,notes]),
-
-  addHoldNotes: (childId: number, caseId: number, notes: string): Promise<ApiResponse<null>> =>
-    unavailable('tính năng này', [childId,caseId,notes]),
-
-  completions: (childId: number): Promise<ApiResponse<ReadCompletion[]>> => unavailable('tính năng này', [childId]),
-  markCompletionSeen: (childId: number, id: number): Promise<ApiResponse<null>> =>
-    unavailable('tính năng này', [childId,id]),
-
-  reports: (childId: number): Promise<ApiResponse<ProgressReport[]>> => unavailable('tính năng này', [childId]),
 
   // Điều ước của bé: xem storyWishService (parentWishService).
 

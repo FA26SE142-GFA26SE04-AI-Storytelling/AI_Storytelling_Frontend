@@ -1,5 +1,4 @@
 import type { ContentCategory, ReadingMode } from "@/app/types/childProfile";
-import type { Permission } from "@/app/types/supervision";
 
 /** Hằng số và quy tắc dùng chung cho Luồng 1 (khu quản lý của phụ huynh). */
 
@@ -10,20 +9,6 @@ export const CHILD_STATUS: Record<string, { label: string; tone: "ok" | "wait" |
   Archived: { label: "Đã lưu trữ", tone: "draft" },
 };
 export const childStatus = (s: string) => CHILD_STATUS[s] ?? { label: s, tone: "draft" as const };
-
-/** Luồng 1 Mục 8 — ý nghĩa từng quyền. */
-export const PERMISSIONS: { id: Permission; label: string; hint: string }[] = [
-  { id: "GenerateStory", label: "Tạo truyện AI", hint: "Tạo truyện AI theo hồ sơ và chính sách của bé" },
-  { id: "ViewProgress", label: "Xem tiến độ đọc", hint: "Số phiên, thời gian đọc, chuỗi ngày đọc" },
-  { id: "ViewResults", label: "Xem kết quả", hint: "Điểm câu đố, kết quả đọc hiểu" },
-  { id: "ReceiveReport", label: "Nhận báo cáo định kỳ", hint: "Báo cáo tuần về việc đọc của bé" },
-  { id: "ApproveStory", label: "Duyệt truyện", hint: "Duyệt truyện, xử lý điều ước, nộp thư viện cộng đồng" },
-  { id: "AssignActivity", label: "Quản lý lộ trình của con", hint: "Thêm, gỡ, sắp xếp truyện; mở khóa Hold Mode" },
-  { id: "ApproveReadingLevel", label: "Sửa mức đọc", hint: "Sửa mức đọc, quyết định đề xuất điều chỉnh" },
-  { id: "ManageSafetySettings", label: "Sửa cài đặt an toàn", hint: "Cài đặt an toàn và mã đăng nhập của bé" },
-];
-/** Bước 1.7 — preset khi Additional Supervisor nhận lời mời. */
-export const DEFAULT_PRESET: Permission[] = ["ViewProgress", "ViewResults", "ReceiveReport", "ApproveStory"];
 
 export const AGE_BANDS = [
   { id: "Age_6_8", label: "6–8 tuổi", hint: "Đang học đọc, nghe là chính" },
