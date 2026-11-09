@@ -17,6 +17,20 @@ const output = new URL('../../out/core-flows-smoke/', import.meta.url);
 await mkdir(output, { recursive: true });
 
 const now = '2026-11-09T00:00:00Z';
+/** Ảnh SVG một màu nhúng sẵn (không tải từ mạng). */
+const pictureUrl = (color) => `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90"><rect width="160" height="90" fill="${color}"/></svg>`)}`;
+/** File WAV im lặng dài vài giây (8 kHz, 8 bit) để thử giọng đọc mà không cần âm thanh thật. */
+const silentWav = (seconds) => {
+  const rate = 8000, n = rate * seconds, b = Buffer.alloc(44 + n);
+  b.write('RIFF', 0); b.writeUInt32LE(36 + n, 4); b.write('WAVEfmt ', 8); b.writeUInt32LE(16, 16); b.writeUInt16LE(1, 20); b.writeUInt16LE(1, 22);
+  b.writeUInt32LE(rate, 24); b.writeUInt32LE(rate, 28); b.writeUInt16LE(1, 32); b.writeUInt16LE(8, 34); b.write('data', 36); b.writeUInt32LE(n, 40); b.fill(128, 44);
+  return `data:audio/wav;base64,${b.toString('base64')}`;
+};
+const sceneText = 'Thỏ ra vườn. Thỏ thấy cà rốt. Thỏ chia cho bạn.';
+/** Mốc thời gian từng chữ, mỗi chữ cách nhau 0,25 giây. */
+const timingsOf = (text) => JSON.stringify(text.split(' ').map((word, i) => ({ word: word.replace(/[.,]$/, ''), start: i * 0.25, end: (i + 1) * 0.25 })));
+/** Hai đoạn âm thanh: đoạn 1 (vị trí 0–29) có chữ "Thỏ" thứ hai ở vị trí 13 lúc 0,75 giây (tranh 2); đoạn 2 bắt đầu ở vị trí 30 (tranh 3). */
+const part1 = 'Thỏ ra vườn. Thỏ thấy cà rốt.', part2 = 'Thỏ chia cho bạn.';
 const paged = (items) => ({ items, pageIndex: 1, pageSize: 20, totalCount: items.length, totalPages: 1, hasNextPage: false, hasPreviousPage: false });
 const sen = { id: 10, ownerUserId: 1, nickname: 'Bé Sen', ageBand: 'Age_6_8', language: 'vi', avatarId: 'frog', status: 'Active', createdAt: now };
 const lan = { id: 11, ownerUserId: 1, nickname: 'Bé Lan', ageBand: 'Age_9_10', language: 'vi', avatarId: 'frog', status: 'Active', createdAt: now };
@@ -66,7 +80,15 @@ function api({ path, method, body, url, state }) {
     case path === '/CommunityLibrary': return paged([]);
     case path === '/child/reading/stories': return { isLocked: false, unlockStoryId: null, message: null, items: [{ storyId: 7, title: story.title, coverImageUrl: null, description: null, source: 'roadmap' }], totalCount: 1, pageIndex: 1, pageSize: 20 };
     case path === '/child/notebook': return [];
-    case path === '/child/reading/sessions' && method === 'POST': state.reading = body; return undefined; // chỉ cần biết bé đã mở đúng truyện
+    case path === '/child/reading/sessions' && method === 'POST': state.reading = body; return { sessionId: 31, storyId: body.storyId, resumed: false, lastPage: 1, lastReadingMode: 'ListenFirst', isBookmarked: false, isFavorited: false };
+    // Cảnh đầu có 3 tranh (mỗi tranh một đoạn chữ); ảnh là SVG nhúng để không cần tải từ ngoài.
+    case path === '/child/reading/sessions/31/content': return { sessionId: 31, storyId: 7, title: story.title, lesson: null, listenOnly: false, vocabulary: [],
+      scenes: [{ sceneId: 1, sceneIndex: 0, text: 'Thỏ ra vườn. Thỏ thấy cà rốt. Thỏ chia cho bạn.', illustrationUrl: pictureUrl('#7cc'), interaction: null, attemptedInSession: false,
+        illustrations: [{ beatOrder: 1, startOffset: 0, endOffset: 12, url: pictureUrl('#7cc') }, { beatOrder: 2, startOffset: 13, endOffset: 29, url: pictureUrl('#fc7') }, { beatOrder: 3, startOffset: 30, endOffset: 48, url: pictureUrl('#c7f') }],
+        segments: [{ segmentOrder: 1, startOffset: 0, endOffset: 29, text: part1, audioUrl: silentWav(2), wordTimingsJson: timingsOf(part1) },
+          { segmentOrder: 2, startOffset: 30, endOffset: 48, text: part2, audioUrl: silentWav(1), wordTimingsJson: timingsOf(part2) }] }] };
+    case path === '/child/reading/sessions/31/signal': return { shouldExit: false, returnTo: null, message: null, sessionStatus: 'Active' };
+    case path === '/child/reading/sessions/31/events': return null;
     // Creator
     case path === '/creator/stories': return paged([draft]);
     case path === '/creator/stories/7': return draft;
@@ -241,6 +263,43 @@ try {
     await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
     await page.waitForTimeout(1000);
     assert.equal(state.reading?.storyId, 7, 'Bấm "Đọc ngay" phải mở truyện hôm nay');
+  });
+
+  await smoke('KidScenePictures', 'Parent', async ({ page }) => {
+    await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
+    const dots = page.getByRole('group', { name: 'Chọn tranh' }).getByRole('button');
+    await dots.first().waitFor();
+    assert.equal(await dots.count(), 3, 'Cảnh có 3 tranh thì phải có 3 chấm');
+    const layers = page.locator('.kid-pic-layer');
+    assert.equal(await layers.count(), 3, 'Cả 3 tranh được tải sẵn');
+    const isOn = async (i) => (await layers.nth(i).getAttribute('class')).split(' ').includes('on');
+    assert(await isOn(0), 'Mới vào cảnh thì hiện tranh đầu');
+    const caption = page.locator('.kid-story-caption p');
+    const bold = page.locator('.kid-pic-part');
+    assert.equal((await caption.textContent()).trim(), sceneText, 'Khung chữ vẫn hiện cả cảnh');
+    assert.equal((await bold.textContent()).trim(), 'Thỏ ra vườn.', 'In đậm đoạn của tranh 1');
+    await dots.nth(1).click();
+    assert(await isOn(1), 'Bấm chấm 2 thì hiện tranh 2');
+    assert(!(await isOn(0)), 'Tranh trước mờ đi');
+    await page.locator('.kid-pic-part', { hasText: 'Thỏ thấy cà rốt.' }).waitFor();
+    assert.equal((await caption.textContent()).trim(), sceneText, 'Đổi tranh vẫn hiện cả cảnh');
+    assert.equal(await bold.count(), 1, 'Chỉ in đậm đoạn của tranh đang hiện');
+    assert.equal(await dots.nth(1).getAttribute('aria-pressed'), 'true');
+  });
+
+  await smoke('KidPicturesFollowNarration', 'Parent', async ({ page }) => {
+    await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
+    const layers = page.locator('.kid-pic-layer');
+    await layers.first().waitFor();
+    await page.getByRole('button', { name: 'Nghe truyện', exact: true }).click();
+    // Giọng đọc tới chữ của tranh 2 (0,75 giây) thì tranh đổi và highlight chuyển sang đoạn của tranh 2.
+    await page.locator('.kid-pic-layer.on').nth(0).and(layers.nth(1)).waitFor({ timeout: 5000 });
+    await page.locator('.kid-pic-part', { hasText: 'Thỏ thấy cà rốt.' }).waitFor({ timeout: 5000 });
+    // Sang đoạn âm thanh 2 (đầu câu của tranh 3): tranh 3 hiện, highlight chuyển theo.
+    await page.locator('.kid-pic-layer.on').nth(0).and(layers.nth(2)).waitFor({ timeout: 6000 });
+    await page.locator('.kid-pic-part', { hasText: part2 }).waitFor({ timeout: 5000 });
   });
 
   await writeFile(new URL('results.json', output), JSON.stringify(results, null, 2));

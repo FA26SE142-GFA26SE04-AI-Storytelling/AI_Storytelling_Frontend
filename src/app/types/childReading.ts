@@ -19,9 +19,14 @@ export interface ListeningAttemptResult {
   interactionId:number; type:string; matched:boolean|null; feedback:string|null; feedbackAudioUrl:string|null;
   suggestedAnswer:string|null; replaySceneIndexes:number[]; revealed:boolean; correctOrderOptionIds:number[]|null;
 }
+/** Một tranh của cảnh, minh hoạ đoạn chữ [startOffset, endOffset) trong text của cảnh. */
+export interface SceneIllustration { beatOrder:number; startOffset:number; endOffset:number; url:string|null }
 export interface ReadingScene {
   sceneId:number; sceneIndex:number; text:string; illustrationUrl:string|null;
-  segments:{segmentOrder:number; text:string; audioUrl:string|null; wordTimingsJson:string|null}[];
+  /** 1–3 tranh theo thứ tự; Backend cũ không trả trường này thì chỉ có illustrationUrl. */
+  illustrations?:SceneIllustration[];
+  /** startOffset/endOffset: vị trí đoạn trong text của cảnh (Backend cũ không có). */
+  segments:{segmentOrder:number; startOffset?:number; endOffset?:number; text:string; audioUrl:string|null; wordTimingsJson:string|null}[];
   /** Hiện khi bé nghe hết cảnh này; null nếu không có. */
   interaction:ReadingInteraction|null;
   /** Bé đã thử tương tác này trong phiên hiện tại nên không hỏi lại. */

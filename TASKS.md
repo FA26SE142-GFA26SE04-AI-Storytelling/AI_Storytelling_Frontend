@@ -15,6 +15,7 @@ Ký hiệu: `[ ]` chưa làm · `[x]` đã làm. Ưu tiên: **P1** làm trước
 
 Đã làm 6/7 mục. Còn lại luyện đọc to (bị chặn bởi Backend).
 
+- [x] **Nhiều tranh trong một cảnh** (09/11, có sửa Backend theo yêu cầu) — `GET .../content` trả thêm `illustrations` (1–3 tranh, mỗi tranh kèm đoạn chữ `[startOffset, endOffset)`) và vị trí từng đoạn âm thanh. Màn đọc xếp chồng các tranh, tự chuyển (mờ vào) khi giọng đọc tới đoạn của tranh đó (theo mốc thời gian từng chữ, không có thì ước theo thời gian); bé tự bấm chấm dưới tranh khi tự đọc. Backend cũ không có trường mới thì vẫn hiện 1 tranh. Code: [scenePictures.ts](src/app/features/kid/scenePictures.ts), `ChildReader`, `KidNarrator`. Khung chữ hiện cả cảnh và **highlight đoạn chữ của tranh đang hiện** (từ câu của tranh trong `illustration_beats` tới trước câu của tranh sau); cảnh 1 tranh thì không highlight. Không tô theo đoạn âm thanh / từng chữ (đã thử, bỏ theo yêu cầu). Mốc thời gian từng chữ hiện chưa có vì giọng Gemini TTS không tạo; muốn có thì đổi `AI:TTS` sang `GoogleCloudTTS` + `EnableWordTimings: true`.
 - [x] **Tương tác khi nghe** — `POST /child/reading/sessions/{sessionId}/interactions/{interactionId}/attempts`
   - 5 loại: Checkpoint, RolePlay, FillBlank, EventOrdering, PicturePrediction ([KidInteraction.tsx](src/app/features/kid/KidInteraction.tsx)).
   - Hiện khi bé nghe hết cảnh (hoặc khi bé sang cảnh khác / bấm "Em đã đọc xong" mà cảnh còn tương tác chưa trả lời). Bé có thể "Để sau". Không hiện khi bật "Chỉ nghe" hoặc cảnh đã trả lời (`attemptedInSession`).

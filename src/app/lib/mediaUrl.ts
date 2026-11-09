@@ -21,6 +21,7 @@ export function resolveContentMedia(content: ReadingContent): ReadingContent {
     scenes: content.scenes.map((scene) => ({
       ...scene,
       illustrationUrl: resolveMediaUrl(scene.illustrationUrl),
+      illustrations: scene.illustrations?.map((p) => ({ ...p, url: resolveMediaUrl(p.url) })),
       segments: scene.segments.map((s) => ({ ...s, audioUrl: resolveMediaUrl(s.audioUrl) })),
       interaction: scene.interaction && {
         ...scene.interaction,
