@@ -2,22 +2,21 @@
 
 import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, BookOpen, Check, ChevronDown, Lock, Plus, Search, Trash2, X } from "lucide-react";
-import Dialog from "@/app/components/Dialog";
-import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { guardianService } from "@/app/services/guardianService";
 import { roadmapTemplate } from "@/app/services/roadmapAdapters";
 import { confirmDialog } from "@/app/lib/confirm";
 import { showToast } from "@/app/lib/toast";
 import { fmtDate } from "@/app/lib/guardian";
-import { statusKey } from "@/app/lib/storyView";
 import type * as B from "@/app/types/backendContracts";
 import type { ChildProfile } from "@/app/types/childProfile";
-import type { RoadmapItem, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
+import type { RoadmapItem, RoadmapTemplate } from "@/app/types/progress";
+import type { WorkspaceId } from "@/app/components/shell/nav";
 import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
 import RoadmapAlbum from "@/app/features/roadmap/RoadmapAlbum";
 import TemplateDialog from "@/app/features/roadmap/TemplateDialog";
 import { useRoadmapTemplates, useStoryCovers } from "@/app/features/roadmap/roadmapData";
 import { splitRoadmap } from "./learningData";
+import { pickStoryInLibrary } from "./learningIntent";
 
 const SOURCE: Record<string, string> = { parent: "Bố mẹ chọn", template: "Lộ trình mẫu", wish: "Điều ước của bé" };
 const SKIP_REASON: Record<string, string> = {
@@ -33,22 +32,19 @@ const band = (v: string) => v.replace(/^Age_/, "").replace("_", "-");
  * Luồng 4a — lộ trình đọc của một bé: các truyện theo thứ tự, bé đã đọc tới đâu.
  * Chủ hồ sơ sắp xếp, gỡ, làm trống, thêm truyện hoặc thêm cả một lộ trình mẫu. Hồ sơ không Active thì không thêm được.
  */
-export default function RoadmapTab({ child, items, error, canEdit, onChanged }: {
+export default function RoadmapTab({ child, items, error, canEdit, onChanged, go }: {
   child: ChildProfile;
   items: RoadmapItem[] | undefined;
   error: string | null;
   canEdit: boolean;
   onChanged: () => void;
+  go: (id: WorkspaceId) => void;
 }) {
-  const { stories } = useWorkspaceData();
   const [busy, setBusy] = useState(false);
-  const [picking, setPicking] = useState(false);
-  const [adding, setAdding] = useState<RoadmapStoryInput | null>(null);
   const [showOff, setShowOff] = useState(false);
 
   const { done, open, queued, off, total } = splitRoadmap(items);
   const cover = useStoryCovers([...done, ...(open ? [open] : []), ...queued].map((i) => i.storyId));
-  const ready = stories.filter((s) => ["ready", "published"].includes(statusKey(s.raw)));
   const active = child.status === "Active";
   const percent = total ? Math.round((done.length / total) * 100) : 0;
 
@@ -82,7 +78,7 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged }: 
           {canEdit && (
             <div className="lr-actions">
               {(queued.length > 0 || open) && <button className="btn btn-no icon-only" aria-label="Làm trống lộ trình" title="Làm trống lộ trình" disabled={busy} onClick={() => void clear()}><Trash2 className="ic" /></button>}
-              <button className="btn btn-p" disabled={busy || !active} onClick={() => setPicking(true)}><Plus className="ic" />Thêm truyện</button>
+              <button className="btn btn-p" disabled={busy || !active} onClick={() => pickStoryInLibrary(go, child.id)}><Plus className="ic" />Thêm truyện</button>
             </div>
           )}
         </div>
@@ -150,21 +146,6 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged }: 
 
       {canEdit && <TemplateShelf child={child} disabled={!active} onAdded={onChanged} />}
 
-      {picking && (
-        <Dialog title={`Chọn truyện cho ${child.nickname}`} onClose={() => setPicking(false)} wide>
-          {ready.length === 0 ? <p className="sub">Chưa có truyện nào sẵn sàng để thêm.</p> : (
-            <div className="rm-pickgrid">
-              {ready.map((s) => (
-                <button key={s.id} className="bk" onClick={() => setAdding({ storyId: s.id, title: s.title, ageBand: s.ageBand, length: s.words })}>
-                  <span className="bk-cover" style={{ background: s.cover }}><span className="bk-name display">{s.title}</span></span>
-                  <span className="bk-title">{s.title}</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </Dialog>
-      )}
-      {adding && <AddToRoadmapDialog single childId={child.id} story={adding} onClose={() => setAdding(null)} onDone={() => { setPicking(false); onChanged(); }} />}
     </>
   );
 }

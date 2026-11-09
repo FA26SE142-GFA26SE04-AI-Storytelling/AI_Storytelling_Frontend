@@ -71,3 +71,9 @@
 .cover-pick:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .cover-pick { transition: none; } .cover-pick:hover { transform: none; } }
 @media (max-width: 520px) { .edit-story-cover { flex-direction: column; } }
+
+/* Các kệ theo trạng thái (giống Thư viện): ô tìm kiếm bên trái thanh trên, các kệ cách nhau rõ. */
+.created { gap: 34px; }
+.created-bar .created-search { flex: 0 1 420px; min-height: 42px; padding-left: 16px; }
+.created-search .inp { font-size: var(--fs-md); }
+.created .shelf-row > .bk { flex-basis: 190px; }

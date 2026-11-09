@@ -149,3 +149,9 @@
 /* Thanh điều hướng cuộn ngang cắt phần nhô ra ngoài nút: chừa lề trên và phải để chấm đếm không bị cắt. */
 .topnav { padding-block: 6px; padding-inline: 10px; }
 .topnav .badge { top: -3px; right: -3px; min-width: 17px; height: 17px; font-size: var(--fs-xs); }
+
+/* Header của phụ huynh (tên lớp hdr-*: tránh trùng tiện ích Tailwind như top-3 = "top: 12px"): một hàng flex; hai nhóm hai bên cùng co giãn từ 0 (flex: 1 1 0) nên rộng bằng nhau
+   và thanh điều hướng ở giữa trang. Nhóm không co nhỏ hơn nội dung nên không đè lên nhau khi màn hẹp. */
+.hdr-l, .hdr-r { flex: 1 1 0; display: flex; align-items: center; gap: 10px; min-width: max-content; }
+.hdr-r { justify-content: flex-end; }
+.hdr-center .topnav { flex: none; }

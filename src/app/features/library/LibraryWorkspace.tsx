@@ -5,9 +5,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { aiStoryCreationService } from "@/app/services/aiStoryCreationService";
 import AudioRing from "./AudioRing";
-import { ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, Send, WandSparkles, X } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, Send, WandSparkles, X } from "lucide-react";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useAuth } from "@/app/context/AuthContext";
+import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
+import { avatarOf } from "@/app/lib/guardian";
+import { backToLearning, takeLibraryPick } from "@/app/features/learning/learningIntent";
 import type { StoryDto } from "@/app/types/story";
 import { storyService } from "@/app/services/storyService";
 import { ageLabel, splitScenes, statusKey, toCard, type StoryCard } from "@/app/lib/storyView";
@@ -231,39 +234,65 @@ const SOURCE_PILLS = [{ id: "all", label: "Tất cả" }, { id: "creator", label
 const sourceOf = (s: StoryCard) => (s.creator ? "creator" : s.family ? "family" : s.fromAi ? "ai" : "manual");
 const SOURCE_LABEL: Record<string, string> = { creator: "Của creator", ai: "Do AI tạo", manual: "Nhập sẵn", family: "Tự soạn gia đình" };
 
+/**
+ * Bộ nhớ đệm của thư viện trong phiên: mở lại trang thì hiện ngay truyện đã tải, rồi tải bản mới ở nền.
+ * Gắn với người dùng để đăng nhập tài khoản khác không thấy dữ liệu cũ.
+ */
+let pubCache: { userId: number; cards: StoryCard[]; at: number } | null = null;
+const PUB_FRESH_MS = 30_000;
+
+/** Tải lần lượt mọi trang của một API danh sách (mỗi trang tối đa 100 truyện, giới hạn của backend). */
+async function loadAllPages(fetchPage: (pageIndex: number) => ReturnType<typeof storyService.getStories>) {
+  const items: StoryDto[] = [];
+  for (let pageIndex = 1; pageIndex <= 50; pageIndex++) {
+    const res = await fetchPage(pageIndex);
+    if (!res.success) return { items, message: res.message };
+    const page = res.data?.items ?? [];
+    items.push(...page);
+    if (page.length === 0 || res.data?.hasNextPage === false || items.length >= (res.data?.totalCount ?? Infinity)) break;
+  }
+  return { items, message: null as string | null };
+}
+
 export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
   const { user } = useAuth();
+  const { children: kids } = useWorkspaceData();
+  // Mở từ nút "Thêm truyện" ở trang Học tập của bé: chọn sẵn bé đó, thêm xong thì quay về lộ trình của bé.
+  const [pickFor, setPickFor] = useState<number | null>(null);
+  useEffect(() => { setPickFor(takeLibraryPick()); }, []);
+  const pickKid = kids.find((k) => k.id === pickFor) ?? null;
+  const addedRef = useRef(false);
+  const closeRoadmapDialog = (close: () => void) => {
+    close();
+    if (addedRef.current && pickKid) { addedRef.current = false; backToLearning(go, pickKid.id); }
+  };
   // Thư viện lấy truyện của mọi người dùng qua GET /Story (không lọc theo tác giả), rồi chỉ giữ truyện đã được duyệt.
-  const [pub, setPub] = useState<StoryCard[]>([]);
-  const [storiesLoading, setStoriesLoading] = useState(true);
+  const cached = pubCache && pubCache.userId === user?.id ? pubCache : null;
+  const [pub, setPub] = useState<StoryCard[]>(() => cached?.cards ?? []);
+  const [storiesLoading, setStoriesLoading] = useState(!cached);
   const [error, setError] = useState<string | null>(null);
   const loadPublic = useCallback(async () => {
-    setStoriesLoading(true);
-    const all: StoryDto[] = [];
-    const creatorIds = new Set<number>();
-    let message: string | null = null;
-    // Mỗi trang tối đa 100 truyện (giới hạn của backend) nên tải lần lượt tới hết.
-    for (let pageIndex = 1; pageIndex <= 50; pageIndex++) {
-      const res = await storyService.getStories({ pageIndex, pageSize: 100, isDescending: true });
-      if (!res.success) { message = res.message; break; }
-      const items = res.data?.items ?? [];
-      all.push(...items);
-      if (items.length === 0 || all.length >= (res.data?.totalCount ?? 0)) break;
-    }
-    // Truyện của Creator đã duyệt nằm ở API riêng (GET /Story/community), gộp vào thư viện chung.
-    for (let pageIndex = 1; pageIndex <= 50; pageIndex++) {
-      const res = await storyService.getCommunityStories({ pageIndex, pageSize: 100, isDescending: true });
-      if (!res.success) { message = message ?? res.message; break; }
-      const items = res.data?.items ?? [];
-      items.forEach((s) => creatorIds.add(s.id));
-      all.push(...items.filter((s) => !all.some((x) => x.id === s.id)));
-      if (items.length === 0 || !res.data?.hasNextPage) break;
-    }
-    setPub(all.map((s) => (creatorIds.has(s.id) ? { ...toCard(s), creator: true } : toCard(s))));
+    // Truyện của Creator đã duyệt nằm ở API riêng (GET /Story/community); tải song song với GET /Story rồi gộp.
+    const [mine, community] = await Promise.all([
+      loadAllPages((pageIndex) => storyService.getStories({ pageIndex, pageSize: 100, isDescending: true })),
+      loadAllPages((pageIndex) => storyService.getCommunityStories({ pageIndex, pageSize: 100, isDescending: true })),
+    ]);
+    const ids = new Set(mine.items.map((s) => s.id));
+    const creatorIds = new Set(community.items.map((s) => s.id));
+    const all = [...mine.items, ...community.items.filter((s) => !ids.has(s.id))];
+    const cards = all.map((s) => (creatorIds.has(s.id) ? { ...toCard(s), creator: true } : toCard(s)));
+    const message = mine.message ?? community.message;
+    setPub(cards);
+    if (!message && user) pubCache = { userId: user.id, cards, at: Date.now() };
     setError(message);
     setStoriesLoading(false);
-  }, []);
-  useEffect(() => { void loadPublic(); }, [loadPublic]);
+  }, [user]);
+  // Có dữ liệu đệm còn mới thì không tải lại; cũ hơn 30 giây thì vẫn hiện ngay và tải bản mới ở nền.
+  useEffect(() => {
+    if (cached && Date.now() - cached.at < PUB_FRESH_MS) return;
+    void loadPublic();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadPublic]);
   const stories = useMemo(() => {
     // Thư viện chung chỉ hiện truyện đã công khai; truyện tự soạn của gia đình là riêng tư nên không đưa vào.
     return pub.filter((s) => s.raw.isPublished && SHOWN_GROUPS.includes(statusOf(s)));
@@ -357,6 +386,14 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
       <div className="pane">
         {error && <div className="err-banner" role="alert">{error}</div>}
         <div className="lib-scroll">
+          {pickKid && (
+            <div className="lib-pickbar" role="status">
+              <span className="av" aria-hidden>{avatarOf(pickKid.avatarId).emoji}</span>
+              <b className="grow">Đang chọn truyện cho {pickKid.nickname}</b>
+              <button className="btn btn-s" onClick={() => backToLearning(go, pickKid.id)}><ArrowLeft className="ic" />Quay lại</button>
+              <button className="btn btn-g icon-only" aria-label="Thôi chọn" title="Thôi chọn" onClick={() => setPickFor(null)}><X className="ic" /></button>
+            </div>
+          )}
           <div className="lbar">
             <div className="lsearch">
             <label className="row grow" style={{ gap: 6, color: "var(--muted)" }}>
@@ -477,7 +514,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
                 <button className="btn btn-p btn-c" onClick={() => go("authoring", { storyId: sel.id })}><PencilLine className="ic" />Mở trong trang Thủ công</button>
               </>}
               {!sel.family && <>
-              {selStatus === "review" && <button className="btn btn-p btn-c" onClick={() => sel.fromAi ? go('studio',{storyId:sel.id}) : go('review')}><WandSparkles className="ic" />Mở để duyệt</button>}
+              {selStatus === "review" && <button className="btn btn-p btn-c" onClick={() => go(sel.fromAi ? 'studio' : 'authoring', { storyId: sel.id })}><WandSparkles className="ic" />Mở để duyệt</button>}
               {sel.fromAi && ['draft','generating','outline','review','media','moderation'].includes(selStatus ?? '') && <button className="btn btn-p btn-c" onClick={() => go("studio",{storyId:sel.id})}><WandSparkles className="ic" />Tiếp tục trong Studio</button>}
               {selStatus === "moderation" && <p className="sub">Truyện đang chờ kiểm duyệt viên xem, thường trong 24 giờ.</p>}
               {selStatus === "ready" && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình</button>}
@@ -490,15 +527,15 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
               )}
               {selStatus === "ready" && <button className="btn btn-g btn-c" onClick={() => setDialog("report")}><Flag className="ic" />Báo cáo nội dung</button>}
               {mod?.reports.some((r) => r.status === "pending") && <p className="sub">Đã có báo cáo đang chờ kiểm duyệt viên xử lý.</p>}
-              {selStatus !== "archived" && <button className="btn btn-s btn-c" onClick={() => setDialog("preview")}><Eye className="ic" />Xem trước như bé thấy</button>}
+              {selStatus === "ready" && <button className="btn btn-s btn-c" onClick={() => setDialog("preview")}><Eye className="ic" />Xem trước như bé thấy</button>}
               </>}
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
       </AsidePane>
       {sel && dialog === "preview" && <Preview story={sel} onClose={() => setDialog(null)} />}
       {openedTpl && <TemplateDialog item={openedTpl} onClose={() => setOpenedTpl(null)} onAdd={(d) => { setOpenedTpl(null); setAddingTpl(roadmapTemplate(d)); }} />}
-      {addingTpl && <AddToRoadmapDialog template={addingTpl} onClose={() => setAddingTpl(null)} />}
-      {sel && dialog === "roadmap" &&<AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} onClose={() => setDialog(null)} />}
+      {addingTpl && <AddToRoadmapDialog template={addingTpl} childId={pickKid?.id} single={!!pickKid} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setAddingTpl(null))} />}
+      {sel && dialog === "roadmap" &&<AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} childId={pickKid?.id} single={!!pickKid} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setDialog(null))} />}
       {sel && dialog === "report" && <ReportDialog story={sel} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
       {sel && dialog === "community" && <CommunityDialog story={sel} nickname="" onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}

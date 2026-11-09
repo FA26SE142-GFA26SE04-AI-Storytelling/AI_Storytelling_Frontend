@@ -16,6 +16,7 @@ import type { ChildProfile } from "@/app/types/childProfile";
 import Frog from "@/app/components/brand/Frog";
 import { openChildCreate } from "@/app/features/children/childrenIntent";
 import { splitRoadmap, usePendingWishes } from "./learningData";
+import { takeLearningBack } from "./learningIntent";
 import OverviewTab from "./OverviewTab";
 import RoadmapTab from "./RoadmapTab";
 import ResultsTab from "./ResultsTab";
@@ -43,6 +44,11 @@ export default function LearningWorkspace({ go }: WorkspaceProps) {
   const [tab, setTab] = useState<LearningTabId>("overview");
   const [roadmaps, setRoadmaps] = useState<Record<number, RoadmapState>>({});
   const child = kids.find((k) => k.id === selId) ?? kids[0] ?? null;
+  // Quay về từ Thư viện sau khi thêm truyện: mở lại đúng bé, ở tab Lộ trình.
+  useEffect(() => {
+    const back = takeLearningBack();
+    if (back !== null) { setSelId(back); setTab("roadmap"); }
+  }, []);
 
   const loadRoadmaps = useCallback(async () => {
     const pairs = await Promise.all(kids.map(async (k) => {
@@ -127,7 +133,7 @@ function LearningMain({ child, tab, setTab, bodyRef, roadmap, canEdit, onRoadmap
       <div ref={bodyRef} className="pb children-body">
         <div key={tab} className="tab-pane lr-pane" role="tabpanel">
           {tab === "overview" && <OverviewTab child={child} items={roadmap?.items} wishCount={wishCount} onTab={setTab} />}
-          {tab === "roadmap" && <RoadmapTab child={child} items={roadmap?.items} error={roadmap?.error ?? null} canEdit={canEdit} onChanged={onRoadmapChanged} />}
+          {tab === "roadmap" && <RoadmapTab child={child} items={roadmap?.items} error={roadmap?.error ?? null} canEdit={canEdit} onChanged={onRoadmapChanged} go={go} />}
           {tab === "results" && <ResultsTab child={child} />}
           {tab === "wishes" && <WishesTab child={child} wishes={wishes.data} error={wishes.error} canEdit={canEdit} go={go} onChanged={wishes.reload} />}
         </div>

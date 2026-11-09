@@ -36,7 +36,8 @@ export interface RoadmapStoryInput {
 }
 
 export interface RoadmapAddResult {
-  warnings?: string[];
+  /** Cảnh báo theo từng bé (đã dịch sang tiếng Việt); truyện vẫn được thêm. */
+  warnings?: { childProfileId: number; nickname: string; text: string }[];
   added: { childProfileId: number; itemId: number | null; moved: boolean }[];
   skipped: { childProfileId: number; nickname: string; reason: string }[];
 }

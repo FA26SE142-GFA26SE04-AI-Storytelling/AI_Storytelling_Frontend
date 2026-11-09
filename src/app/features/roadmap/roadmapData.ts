@@ -10,22 +10,33 @@ import type * as B from "@/app/types/backendContracts";
  * Dữ liệu dùng chung của trang Lộ trình, có bộ nhớ đệm theo phiên để mỗi lộ trình mẫu / ảnh bìa chỉ tải một lần.
  * API lộ trình mẫu không có ảnh bìa nên bìa album ghép từ ảnh bìa của vài truyện đầu (GET /Story/{id}).
  */
-/** Danh sách lộ trình mẫu đã xuất bản (chỉ danh sách, có phân trang); chi tiết từng album tải riêng bằng useTemplateDetail. */
+/** Danh sách lộ trình mẫu dùng chung trong phiên: các trang mở lại thấy ngay, tải lại ở nền khi đã cũ hơn 60 giây. */
+let listCache: { data: B.RoadmapLibraryItemDto[]; at: number } | null = null;
+let listLoading: Promise<{ data: B.RoadmapLibraryItemDto[] | null; error: string | null }> | null = null;
+
+function loadTemplateList() {
+  listLoading ??= (async () => {
+    const all: B.RoadmapLibraryItemDto[] = [];
+    for (let pageIndex = 1; pageIndex <= 20; pageIndex++) {
+      const r = await roadmapService.library({ pageIndex, pageSize: 50 });
+      if (!r.success || !r.data) return { data: listCache?.data ?? all, error: r.message };
+      all.push(...r.data.items);
+      if (!r.data.hasNextPage) break;
+    }
+    listCache = { data: all, at: Date.now() };
+    return { data: all, error: null };
+  })().finally(() => { listLoading = null; });
+  return listLoading;
+}
+
+/** Danh sách lộ trình mẫu đã xuất bản (chỉ danh sách); chi tiết từng album tải riêng bằng useTemplateDetail. */
 export function useRoadmapTemplates() {
-  const [templates, setTemplates] = useState<B.RoadmapLibraryItemDto[] | null>(null);
+  const [templates, setTemplates] = useState<B.RoadmapLibraryItemDto[] | null>(() => listCache?.data ?? null);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
+    if (listCache && Date.now() - listCache.at < 60_000) return;
     let alive = true;
-    void (async () => {
-      const all: B.RoadmapLibraryItemDto[] = [];
-      for (let pageIndex = 1; pageIndex <= 20; pageIndex++) {
-        const r = await roadmapService.library({ pageIndex, pageSize: 50 });
-        if (!r.success || !r.data) { if (alive) setError(r.message); break; }
-        all.push(...r.data.items);
-        if (!r.data.hasNextPage) break;
-      }
-      if (alive) setTemplates(all);
-    })();
+    void loadTemplateList().then((r) => { if (alive) { setTemplates(r.data); setError(r.error); } });
     return () => { alive = false; };
   }, []);
   return { templates, error };
