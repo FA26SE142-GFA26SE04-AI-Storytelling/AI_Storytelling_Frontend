@@ -92,3 +92,8 @@
 .shelf.accent .shelf-h h3::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--gold-deep); box-shadow: 0 0 0 5px color-mix(in srgb, var(--gold) 45%, transparent); animation: shelf-dot 2s ease-in-out infinite; }
 @keyframes shelf-dot { 50% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--gold) 10%, transparent); } }
 @media (prefers-reduced-motion: reduce) { .shelf.accent .shelf-h h3::before { animation: none; } }
+
+/* Thông báo "không có truyện" dạng khung viền đứt; mô tả truyện cỡ chữ thường; trạng thái dạng nhãn. */
+.lib-none { margin: 0; padding: 16px; border: 2px dashed var(--line-2); border-radius: 18px; text-align: center; font-size: var(--fs-md); color: var(--muted); }
+.lib-desc { margin: 0; font-size: var(--fs-md); line-height: 1.6; }
+.pill.lib-state { width: fit-content; font-size: var(--fs-sm); padding: 3px 12px; }

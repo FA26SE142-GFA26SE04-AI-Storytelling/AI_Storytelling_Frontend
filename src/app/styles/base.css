@@ -220,7 +220,6 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 @media (prefers-reduced-motion: reduce) { .sel-list { animation: none; } .sel-chev { transition: none; } }
 
 /* Vùng chỉ xem: lớp phủ trong suốt bắt cú bấm để báo thiếu quyền */
-.deny-cover { position: absolute; inset: 0; z-index: 5; cursor: not-allowed; }
 
 /* Hộp chọn bé dùng chung (components/ChildPickerHost) */
 .cpick-dlg { width: min(440px, 100%); gap: 14px; }
@@ -240,3 +239,8 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
   .st-card, .st-kpi, .plan-card, .version-row, .cpick, .sec > .notice { animation: none; }
   .btn:not(.icon-only):hover { transform: none; }
 }
+
+/* InfoTip: biểu tượng ⓘ cạnh nhãn, giải thích hiện khi rê chuột (thay dòng chữ nhỏ dưới ô nhập). */
+.info-tip { display: inline-grid; place-items: center; vertical-align: middle; color: var(--muted); cursor: help; }
+.info-tip .ic { width: 15px; height: 15px; }
+.info-tip:hover { color: var(--primary-strong); }

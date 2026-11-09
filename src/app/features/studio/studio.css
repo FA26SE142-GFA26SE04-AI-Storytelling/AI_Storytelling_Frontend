@@ -320,3 +320,7 @@
 .studio-media-wait { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); }
 .studio-media-wait b { font-size: var(--fs-lg); }
 .studio-audio-wait { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+
+/* Số lượt tạo truyện dạng nhãn; còn 1 lượt trở xuống thì tô vàng. */
+.brief-submit-info { align-items: flex-start; gap: 6px; }
+.pill.brief-quota-low { background: var(--gold); color: var(--on-gold); font-weight: 800; }

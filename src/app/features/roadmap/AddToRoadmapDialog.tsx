@@ -3,7 +3,8 @@
 import "@/app/features/review/review-tools.css";
 import "./roadmap.css";
 import { useEffect, useState } from "react";
-import { AlertTriangle, BookOpen, Check, Info, Library, Lock, Plus, X } from "lucide-react";
+import { AlertTriangle, BookOpen, Check, Library, Lock, Plus, X } from "lucide-react";
+import InfoTip from "@/app/components/InfoTip";
 import Dialog from "@/app/components/Dialog";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { childProfileService } from "@/app/services/childProfileService";
@@ -179,7 +180,7 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
         <div className="field">
           <span className="lbl atr-lbl">
             {template ? "Hạn đọc mỗi truyện" : "Hạn đọc"}
-            <span className="atr-info" title={DAYS_HINT} aria-label={DAYS_HINT} role="img"><Info className="ic" /></span>
+            <InfoTip text={DAYS_HINT} />
           </span>
           <div className="seg atr-seg" role="radiogroup" aria-label="Hạn đọc">
             {DAY_OPTIONS.map((d) => <button key={String(d)} type="button" role="radio" aria-checked={days === d} className={days === d ? "on" : ""} onClick={() => setDays(d)}>{d ? `${d} ngày` : "Không đặt"}</button>)}

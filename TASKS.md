@@ -5,7 +5,7 @@ Cập nhật: 09/11/2026. Chỉ tính phần Frontend (`src/`); không sửa Bac
 Căn cứ:
 - 5 tài liệu Luồng 1–5 (link trong `CLAUDE.md` ở thư mục gốc dự án).
 - Quy tắc thiết kế trong `CLAUDE.md`.
-- Kết quả chạy `node scripts/audit-core-api.mjs` ngày 09/11: Backend hiện **354** endpoint, 313 đã nối, 2 loại trừ, **39** còn thiếu. "Còn thiếu" gồm cả endpoint chưa có hàm service và endpoint có hàm service nhưng chưa màn nào gọi (`SERVICE_ONLY`).
+- Kết quả chạy `node scripts/audit-core-api.mjs` ngày 09/11: Backend hiện **354** endpoint, 311 đã nối, 2 loại trừ, **41** còn thiếu (18 `SERVICE_ONLY`, 23 `MISSING`; cập nhật sau khi xoá `PersonalStoryEditor`). "Còn thiếu" gồm cả endpoint chưa có hàm service và endpoint có hàm service nhưng chưa màn nào gọi (`SERVICE_ONLY`).
 
 Ký hiệu: `[ ]` chưa làm · `[x]` đã làm. Ưu tiên: **P1** làm trước · **P2** làm sau · **P3** dọn dẹp.
 
@@ -51,8 +51,8 @@ Cần làm:
 - [x] **P2 — Tải lộ trình mẫu chậm (N+1)** (xong 09/11: `useRoadmapTemplates` chỉ tải danh sách, chi tiết tải theo album và được nhớ lại). `guardianService.templates()` tải hết mọi trang của `/RoadmapLibrary` rồi gọi `/RoadmapLibrary/{id}` cho từng mẫu trước khi hiện. Đổi thành: hiện danh sách từ `/RoadmapLibrary` (có phân trang), chỉ gọi chi tiết khi bấm "Xem và thêm".
 - [x] **P2 — Hai popup tự viết markup `dlg-backdrop`** (xong 09/11): popup "Thêm truyện cho bé" trong RoadmapWorkspace và [AddToRoadmapDialog.tsx](src/app/features/roadmap/AddToRoadmapDialog.tsx). Chuyển sang `components/Dialog` để đồng bộ (đóng bằng Esc, focus, animation).
 - [x] **P2 — Gọn trang Lộ trình theo quy tắc thiết kế** (xong 09/11: trang làm lại thành thư viện album + cột các bé, nguồn và hạn đọc thành nhãn): khoảng 16 dòng chữ nhỏ (`<small>`, `sub`) trong RoadmapWorkspace. Gộp nguồn, ngày mở, hạn đọc thành nhãn (pill) thay vì một dòng chữ nhỏ dài; bỏ câu giải thích dưới khung khi có thể.
-- [x] **P3 — Bỏ `DenyCover` "Bạn không đủ quyền hạn…"** (xong ở trang Lộ trình 09/11; LearningTab, ProfileTab còn) ở RoadmapWorkspace (và LearningTab, ProfileTab): đây là phần còn lại của bộ quyền giám sát. Mỗi bé chỉ còn chủ hồ sơ nên chỉ cần ẩn nút khi không phải chủ.
-- [ ] **P3 — Nút "Lưu nháp và thứ tự"** ở RoadmapTemplates luôn hiện (đã ghi ở mục 3), làm cùng đợt này.
+- [x] **P3 — Bỏ `DenyCover` "Bạn không đủ quyền hạn…"** (xong hết 09/11: đã gỡ ở LearningTab, ProfileTab và xoá component; các ô nhập vẫn khoá khi không phải chủ hồ sơ) ở RoadmapWorkspace (và LearningTab, ProfileTab): đây là phần còn lại của bộ quyền giám sát. Mỗi bé chỉ còn chủ hồ sơ nên chỉ cần ẩn nút khi không phải chủ.
+- [x] **P3 — Nút "Lưu nháp và thứ tự"** ở RoadmapTemplates chỉ hiện khi sửa thông tin chung hoặc danh sách truyện (xong 09/11; bộ mới chưa lưu thì luôn hiện).
 
 Ngoài phạm vi (theo mục "Còn thiếu" của tài liệu): Hold Mode, dashboard phụ huynh, báo cáo tuần, gợi ý học thích ứng, can thiệp O2O. Frontend đã gỡ phần giả lập của các mục này (mục 4).
 
@@ -70,20 +70,21 @@ Lấy từ bản audit ngày 09/11 (39 endpoint). Cần xác nhận từng cái 
 
 **Chưa có hàm service:**
 - [ ] **Giao máy kèm truyện (Luồng 1c)** — `GET /ChildAccessCredential/story-handover`, `POST /ChildAccessCredential/{childProfileId}/handover-story`.
-- [ ] **Duyệt truyện** — `PUT /stories/{id}/review/listening/{interactionId}` (sửa tương tác khi nghe), `POST /stories/{id}/review/confirm-package`.
+- [ ] **Duyệt truyện** — `POST /stories/{id}/review/confirm-package` (chưa có hàm). `PUT /stories/{id}/review/listening/{interactionId}` (sửa tương tác khi nghe) đã có hàm nhưng chưa màn nào gọi.
 - [ ] **Media từng đoạn của Creator (mới)** — `POST /creator/stories/{id}/media/illustration-beats/{beatId}/{upload, generate}`, `POST /creator/stories/{id}/media/segments/{segmentId}/{upload, generate}`.
 - [ ] **Gói truyện của phụ huynh (mới)** — `POST /parent/stories/{id}/content/{finalize, reopen}`, `GET|POST /parent/stories/{id}/packages`, `GET .../packages/{packageId}`, `POST .../packages/{packageId}/{generate, retry, revise, confirm}`, `GET .../packages/{packageId}/preview`, `GET .../packages/{packageId}/assets/{assetId}`, `POST /parent/stories/{id}/family-confirmations/batch`. Đây là luồng mới của Backend, cần đọc lại tài liệu Luồng 3 trước khi làm.
 - [ ] **Tranh truyện tự soạn phía bé (mới)** — `GET /child/manual-stories/{confirmationId}/assets/{assetId}`.
 
 **Test:**
-- [ ] Cập nhật `docs/core-api-coverage.json` và các số trong `tests/unit/services/coreCompletion.test.ts` (đang chờ 329, thực tế 354). Test "has source evidence for every browser endpoint" là test duy nhất đang lỗi (334/335 test qua ngày 09/11).
+- [x] Cập nhật `docs/core-api-coverage.json` (chạy `node scripts/audit-core-api.mjs --write`) và `tests/unit/services/coreCompletion.test.ts` theo 354 endpoint: 311 đã nối, 2 loại trừ, 18 `SERVICE_ONLY`, 23 `MISSING` (09/11, 335/335 test qua).
 
 ## 3. Quy tắc thiết kế trong CLAUDE.md còn sót — P2
 
-- [ ] **Form chuyển sang popup**: còn soạn hướng dẫn ([GuideItemEditor.tsx](src/app/features/staff/GuideItemEditor.tsx)) và nhập truyện của Creator ([CreatorImport.tsx](src/app/features/staff/CreatorImport.tsx), đang là khung nằm trong trang). Dùng `components/Dialog`. Bộ truyện mẫu (RoadmapTemplates) và tiêu chí (RubricWorkspace) đã dùng `Dialog`.
-- [ ] **Nút Lưu chỉ hiện khi có thay đổi**: RoadmapTemplates ("Lưu nháp và thứ tự"), "Lưu tập nhãn" ([ReviewPanel.tsx](src/app/features/staff/ReviewPanel.tsx)), [PersonalStoryEditor.tsx](src/app/features/library/PersonalStoryEditor.tsx). Mẫu đúng: [ProfileSection.tsx](src/app/features/account/ProfileSection.tsx), [LearningTab.tsx](src/app/features/children/LearningTab.tsx), [ParentSetupPanel.tsx](src/app/features/authoring/ParentSetupPanel.tsx) ("Lưu cách đọc", sửa 09/11).
-- [ ] **Rút bớt chữ nhỏ dưới component** (khoảng 300 dòng `sub`, `hint`, `<small>` ngày 09/11). Nhiều nhất: RoadmapWorkspace (~16), ReviewPanel (~15), WishItem, BriefForm (~8). HomeWorkspace đã bớt nhiều sau khi gỡ các khối dashboard (09/11) và hiện không được gắn vào trang nào.
-- [ ] **Rà tiếp nhãn nút dài** còn lại (đã rút gọn 14 nhãn); kiểm tra nút không tràn chữ ở khung hẹp và điện thoại.
+- [x] **Form chuyển sang popup** (xong 09/11): soạn hướng dẫn ([GuideItemEditor.tsx](src/app/features/staff/GuideItemEditor.tsx), mở khi bấm "Thêm hướng dẫn" hoặc tên hướng dẫn, lưu xong tự đóng) và nhập nội dung của Creator ([CreatorImport.tsx](src/app/features/staff/CreatorImport.tsx)).
+- [x] **Nút Lưu chỉ hiện khi có thay đổi** (xong 09/11): "Lưu nháp và thứ tự" (RoadmapTemplates), "Lưu tập nhãn" ([ReviewPanel.tsx](src/app/features/staff/ReviewPanel.tsx)).
+- [x] **Xoá `PersonalStoryEditor.tsx`** (09/11): form tạo truyện riêng cũ, không trang nào hiển thị; việc tự viết truyện đã có trang "Tự viết". `POST /Story` và `PATCH /Story/{id}/publish` chuyển sang `SERVICE_ONLY` (hàm vẫn còn trong `storyManagementService`).
+- [ ] **Rút bớt chữ nhỏ dưới component** (`sub`, `hint`, `<small>`). Đã làm 09/11: WishItem, BriefForm, ReviewPanel, CreatorImport, Thư viện (trạng thái thành nhãn, "không có truyện" thành khung viền đứt), CreateChildWizard (ghi chú thành khung có biểu tượng, giải thích chủ đề vào ⓘ). Nhãn tên trường trong khung thông tin giữ nguyên. Còn nhiều nhất: ParentAuthoringWorkspace (~8), ReviewGate (~8), StudioPlan, StudioMedia, SafetyWorkspace, ProposalCard, AccountWorkspace (~5).
+- [x] **Rà nhãn nút dài** (09/11): rút gọn 6 nhãn trên 24 ký tự ("Tải lại trạng thái truyện / hoàn tất" → "Tải lại", "Thử lại kiểm tra ý tưởng" → "Kiểm tra lại", "Chèn gợi ý vào bản đang sửa" → "Chèn gợi ý", "Đồng bộ bộ hướng dẫn" → "Đồng bộ", "Tạo bản nháp từ phiên bản này" → "Tạo nháp từ bản này"). Giữ "Duyệt dàn ý và viết truyện" (nút chính của Studio). Chưa kiểm tra bằng mắt ở khung hẹp / điện thoại.
 - [ ] **Kiểm tra bằng mắt**: chạy app, chụp từng trang, xem bố cục, khoảng cách, tiêu đề nổi bật, đồng bộ giữa các trang, cả theme sáng và tối. Đặc biệt kiểm tra lại: viền mới đậm hơn, tiêu đề mục `.sec-h`, ảnh bìa mẫu `default-cover.svg`, popup mới.
 
 ## 4. Dọn code cũ — P3
@@ -111,7 +112,7 @@ Còn lại:
 - [ ] **Lỗi AI phía Backend** (ghi nhận 09/11, Frontend chỉ đổi câu báo lỗi): "Nhận xét bản thảo" hay trả `AI_OUTPUT_INVALID` với bài dài (AI tính sai vị trí ký tự); kiểm tra nội dung của phụ huynh luôn báo `SEMANTIC_SAFETY_REVIEW_REQUIRED` khi chính sách của bé có ngưỡng điểm an toàn; Vertex thỉnh thoảng trả 429 hoặc hết thời gian. Kiểm tra nội dung của Creator chỉ trả An toàn / Vùng xám / Bị chặn, không có lý do hay vị trí.
 - [ ] **Doanh thu của Creator**: chờ Backend có API; sau đó làm lại trang thống kê.
 - [ ] **Trang giới thiệu hiển thị truyện đã phát hành**: chờ API công khai (hiện thư viện cộng đồng cần token).
-- [ ] **Ảnh bìa truyện cộng đồng và lộ trình của trẻ**: chờ DTO trả ảnh bìa (hiện dùng ảnh mẫu chung).
+- [ ] **Ảnh bìa truyện cộng đồng**: chờ DTO trả ảnh bìa (hiện dùng ảnh mẫu chung). Lộ trình của trẻ (`/MyRoadmap`) đã có `coverImageUrl` và đang dùng ở khung "Hôm nay em đọc".
 - [ ] **Quản lý prompt, chất lượng AI, tài khoản phụ huynh (Admin)**: chờ tài liệu và API; đã gỡ khỏi menu.
 - [ ] **Creator tự đăng ký**: chờ chốt cách có tài khoản Creator (Luồng 5, mục 5g).
 
@@ -130,7 +131,15 @@ Commit `a11f770`: trang soạn thủ công của Creator và phụ huynh dùng c
 
 Dọn code cũ ở mục 4 (chưa commit).
 
-Trang "Học tập của bé" thay trang "Lộ trình của con" (chưa commit): xem mục 1b. Xoá `RoadmapWorkspace.tsx`, `ChildRoadmapDialog.tsx` và thư mục `features/home`.
+Commit `8bfd3ba`: trang "Học tập của bé" thay trang "Lộ trình của con" (xem mục 1b); xoá `RoadmapWorkspace.tsx`, `ChildRoadmapDialog.tsx` và thư mục `features/home`.
+
+Commit `1faaa8c`: popup thêm vào lộ trình làm lại (tự tải kế hoạch, dịch mã cảnh báo, kết quả theo từng bé); nút "Thêm truyện" mở Thư viện với bé chọn sẵn rồi quay về; Thư viện và lộ trình mẫu nhớ dữ liệu trong phiên; "Truyện của tôi" chia kệ theo trạng thái; bỏ trang "Xem và duyệt" (kệ "Chờ bạn duyệt" thay thế); chỉ truyện đã xong mới đọc thử; tách nút "Viết bằng AI" / "Tự viết", căn giữa thanh điều hướng; thanh cuộn màu xanh.
+
+Commit `af6f1cd`: trang chính của bé có khung "Hôm nay em đọc", nút tab có chữ; điểm nhấn vàng cho việc cần làm.
+
+Bỏ `DenyCover`, nút Lưu chỉ hiện khi có thay đổi ở RoadmapTemplates và ReviewPanel, cập nhật audit và test (335/335 qua).
+
+Rút chữ nhỏ (WishItem, BriefForm, ReviewPanel, Thư viện, CreateChildWizard; thêm `components/InfoTip`), form soạn hướng dẫn và nhập nội dung Creator thành popup, rút gọn 6 nhãn nút dài, xoá `PersonalStoryEditor`, "Truyện của tôi" của Creator chia kệ theo trạng thái, đổi tên nút Creator thành "Viết bằng AI" / "Tự viết". Smoke test (`tests/smoke`) cập nhật theo giao diện mới (nút tạo truyện, luồng lộ trình mẫu ở trang Học tập, bỏ fixture `PersonalStoryEditor`) nhưng **chưa chạy được** vì máy chưa cài Playwright.
 
 ### 06/11/2026
 

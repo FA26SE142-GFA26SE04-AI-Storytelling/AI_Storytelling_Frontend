@@ -121,7 +121,7 @@ function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number 
   const notices = <>
     {(flow.message || flow.error || contextError) && <p className="notice" role="status">{flow.error || contextError || flow.message}</p>}
     {flow.timedOut && <p className="notice" role="status">Đã dừng theo dõi tự động. Kiểm tra trạng thái trước khi gửi lệnh khác.</p>}
-    {flow.input && flow.input.inputStatus !== 'input_accepted' && <><p>{flow.input.fallbackMessage ?? 'Đang kiểm tra ý tưởng…'}</p>{flow.input.canRetry && submitted && <button className="btn btn-s" disabled={flow.busy} onClick={() => void flow.retry(submitted!)}>Thử lại kiểm tra ý tưởng</button>}</>}
+    {flow.input && flow.input.inputStatus !== 'input_accepted' && <><p>{flow.input.fallbackMessage ?? 'Đang kiểm tra ý tưởng…'}</p>{flow.input.canRetry && submitted && <button className="btn btn-s" disabled={flow.busy} onClick={() => void flow.retry(submitted!)}>Kiểm tra lại</button>}</>}
     {flow.failure && <div className="notice err" role="alert" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
       <span>{FAILURE_VI[flow.failure.code] ?? `Máy chủ xác nhận bước xử lý thất bại (${flow.failure.code}).`}</span>
       {canRetry && <button type="button" className="btn btn-s" disabled={flow.busy} onClick={() => void retryFailed()}>{flow.busy ? 'Đang gửi yêu cầu…' : 'Thử lại'}</button>}
@@ -138,7 +138,7 @@ function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number 
     onStartNew={() => onReset(null)}
     approve={approve ? { ...approve, disabled: approve.disabled || locked } : null} />;
   return <section className="ws with-steps" style={reviewing || mediaStage ? undefined : { gridTemplateColumns: 'minmax(0, 1fr)' }}>
-    <StudioSteps progress={progress} context={flow.error || flow.timedOut ? <button className="btn btn-s" onClick={refreshState}>Tải lại trạng thái truyện</button> : undefined}>
+    <StudioSteps progress={progress} context={flow.error || flow.timedOut ? <button className="btn btn-s" onClick={refreshState}>Tải lại</button> : undefined}>
       {/* Màn duyệt truyện tự hiện cụm nút ở thanh tab của nó (như phụ huynh); các bước khác hiện ngay trên thanh tiến trình. */}
       {!reviewing && controls}
     </StudioSteps>

@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Ban, Check, Sparkles, X } from "lucide-react";
-import IconButton from "@/app/components/IconButton";
+import { Ban, BookOpen, Check, Sparkles, X } from "lucide-react";
+import Dialog from "@/app/components/Dialog";
 import { showToast } from "@/app/lib/toast";
 import { parentWishService } from "@/app/services/storyWishService";
 import type { ParentWishDto, ParentWishSuggestionsDto } from "@/app/types/storyWish";
@@ -60,42 +60,54 @@ export default function WishItem({ wish, nickname, go, onChanged }: {
     go("studio");
   };
 
+  // Hạn xử lý: còn dưới 24 giờ thì tô vàng cho bố mẹ chú ý.
+  const due = wish.expiresAt ? new Date(wish.expiresAt) : null;
+  const soon = !!due && due.getTime() - Date.now() < 24 * 3600 * 1000;
+  const readState = (s: ParentWishSuggestionsDto["items"][number]) =>
+    s.completed ? `Đã đọc${s.feelingLabel ? ` · ${s.feelingLabel.toLowerCase()}` : ""}` : s.opened ? "Đã mở đọc" : null;
+
   return (
     <div className="wish-row">
-      <div className="row">
+      <div className="wish-row-h">
+        <Sparkles className="ic" aria-hidden />
         <b className="grow">{wishLabel(wish)}</b>
-        <span className="pill wait">Điều ước</span>
+        {due && <span className={`pill ${soon ? "gold-pill" : "draft"}`}>Hạn {due.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit" })}</span>}
       </div>
-      {wish.expiresAt && <small className="sub">Cần xử lý trước {new Date(wish.expiresAt).toLocaleString("vi-VN")}.</small>}
+
       {suggestions && (suggestions.items.length > 0 ? (
-        <div className="sec" style={{ gap: 4 }}>
-          <small className="sub">Truyện có sẵn phù hợp:</small>
-          {suggestions.items.map((s) => (
-            <div key={s.rank} className="row">
-              <span className="grow">
-                {s.title}
-                {s.hint ? <small className="sub"> — {s.hint}</small>
-                  : s.completed ? <small className="sub"> — {nickname} đã đọc xong{s.feelingLabel ? `, ${s.feelingLabel.toLowerCase()}` : ""}</small>
-                  : s.opened ? <small className="sub"> — {nickname} đã mở đọc</small> : null}
-              </span>
-              {s.storyId != null
-                ? <IconButton icon={Check} label={`Dùng truyện "${s.title}"`} className="btn btn-ok" disabled={busy} onClick={() => void run(() => parentWishService.useExisting(wish.wishId, s.rank))} />
-                : <small className="sub">Truyện cộng đồng, bé có thể tự đọc</small>}
-            </div>
-          ))}
-        </div>
-      ) : <small className="sub">{suggestions.emptyMessage ?? "Chưa có truyện phù hợp trong thư viện."}</small>)}
-      {declining ? (
-        <div className="row">
-          <input className="inp" maxLength={DECLINE_REASON_MAX} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Lý do (chỉ bạn thấy, không bắt buộc)" aria-label="Lý do từ chối" />
-          <IconButton icon={Check} label="Xác nhận từ chối" className="btn btn-no" disabled={busy} onClick={() => void run(() => parentWishService.decline(wish.wishId, note))} />
-          <IconButton icon={X} label="Hủy" className="btn btn-g" disabled={busy} onClick={() => setDeclining(false)} />
-        </div>
-      ) : (
-        <div className="row">
-          <IconButton icon={Sparkles} label="Tạo truyện mới từ điều ước" className="btn btn-gold" disabled={busy} onClick={createNew} />
-          <IconButton icon={Ban} label="Từ chối điều ước" className="btn btn-no" disabled={busy} onClick={() => setDeclining(true)} />
-        </div>
+        <ul className="wish-sugs" aria-label="Truyện có sẵn phù hợp">
+          {suggestions.items.map((s) => {
+            const state = readState(s);
+            return (
+              <li key={s.rank} className="wish-sug">
+                <BookOpen className="ic" aria-hidden />
+                <span className="grow" title={s.hint ?? undefined}>{s.title}</span>
+                {state && <span className="pill ok">{nickname} {state.charAt(0).toLowerCase() + state.slice(1)}</span>}
+                {s.storyId != null
+                  ? <button className="btn btn-ok" disabled={busy} onClick={() => void run(() => parentWishService.useExisting(wish.wishId, s.rank))}><Check className="ic" />Dùng</button>
+                  : <span className="pill draft" title="Truyện cộng đồng, bé có thể tự đọc">Cộng đồng</span>}
+              </li>
+            );
+          })}
+        </ul>
+      ) : <p className="wish-empty">{suggestions.emptyMessage ?? "Chưa có truyện phù hợp trong thư viện."}</p>)}
+
+      <div className="wish-actions">
+        <button className="btn btn-gold" disabled={busy} onClick={createNew}><Sparkles className="ic" />Tạo truyện mới</button>
+        <button className="btn btn-no" disabled={busy} onClick={() => setDeclining(true)}><Ban className="ic" />Từ chối</button>
+      </div>
+
+      {declining && (
+        <Dialog title="Từ chối điều ước" onClose={() => setDeclining(false)}>
+          <label className="field">
+            <span className="lbl">Lý do (chỉ bạn thấy)</span>
+            <textarea className="inp" rows={3} maxLength={DECLINE_REASON_MAX} value={note} onChange={(e) => setNote(e.target.value)} placeholder="Không bắt buộc" />
+          </label>
+          <div className="row" style={{ justifyContent: "flex-end" }}>
+            <button className="btn btn-g" onClick={() => setDeclining(false)}><X className="ic" />Hủy</button>
+            <button className="btn btn-no" disabled={busy} onClick={() => void run(() => parentWishService.decline(wish.wishId, note)).then(() => setDeclining(false))}><Ban className="ic" />Từ chối</button>
+          </div>
+        </Dialog>
       )}
     </div>
   );

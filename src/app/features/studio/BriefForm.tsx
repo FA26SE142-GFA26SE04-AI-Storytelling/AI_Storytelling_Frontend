@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CircleAlert, Lock, ShieldAlert, Sparkles } from "lucide-react";
+import InfoTip from "@/app/components/InfoTip";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
@@ -151,7 +152,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
           </fieldset>
 
           <fieldset className="brief-group">
-            <legend className="display">Thêm chi tiết <small>không bắt buộc, để trống thì AI tự nghĩ</small></legend>
+            <legend className="display">Thêm chi tiết <span className="pill draft">Không bắt buộc</span> <InfoTip text="Để trống thì AI tự nghĩ." /></legend>
             <div className="field">
               <label className="lbl" htmlFor="brief-genre">Thể loại</label>
               <select id="brief-genre" name="genre" className="inp" disabled={locked} value={values.genre} onChange={(e) => updateValues({ genre: e.target.value })}>
@@ -160,9 +161,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
                 {!!values.genre && !GENRES.includes(values.genre) && <option value={values.genre}>{values.genre}</option>}
               </select>
             </div>
-            {text("charactersText", "Nhân vật", "Ví dụ: Sóc Bông, Thỏ Trắng…", {
-              hint: "Nhiều nhân vật thì cách nhau bằng dấu phẩy.",
-            })}
+            {text("charactersText", "Nhân vật", "Ví dụ: Sóc Bông, Thỏ Trắng (cách nhau bằng dấu phẩy)")}
             {text("setting", "Bối cảnh", "Ví dụ: Khu rừng tre ven hồ sen…")}
           </fieldset>
 
@@ -174,17 +173,16 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
         <fieldset className="brief-group">
           <legend className="display">Tuỳ chọn truyện</legend>
           <div className="field">
-            <span className="lbl row" style={{ justifyContent: "space-between" }}><span id="brief-length">Độ dài</span><b style={{ color: "var(--text)" }}>khoảng {values.targetLength} tiếng</b></span>
+            <span className="lbl row" style={{ justifyContent: "space-between" }}><span id="brief-length">Độ dài <InfoTip text={`${context.recommendedTargetLength ? `Mức vừa theo đề xuất máy chủ: ${presets.medium} tiếng` : `Ngắn / Vừa / Dài theo mức đọc ${context.readingLevel} của bé`}; tối đa ${max} tiếng theo cài đặt an toàn.`} /></span><b style={{ color: "var(--text)" }}>khoảng {values.targetLength} tiếng</b></span>
             <div className="seg" role="group" aria-labelledby="brief-length">{LENGTHS.map(([k, label]) => (
               <button type="button" key={k} disabled={locked} aria-pressed={preset === k} className={preset === k ? "on" : ""} onClick={() => updateValues({ targetLength: presets[k] })}>{label}<small>{presets[k]}</small></button>
             ))}</div>
             <input type="range" className="range" disabled={locked} min={MIN_TARGET_LENGTH} max={max} step={10} value={clampTargetLength(values.targetLength, max)} onChange={(e) => updateValues({ targetLength: +e.target.value })} aria-label="Chỉnh độ dài chi tiết" />
-            <small className="hint">{context.recommendedTargetLength ? `Mức vừa theo đề xuất máy chủ: ${presets.medium} tiếng` : `Ngắn / Vừa / Dài theo mức đọc ${context.readingLevel} của bé`}; tối đa {max} tiếng theo cài đặt an toàn.</small>
           </div>
 
           {context.availableVocabularyLevels.length > 1 && (
             <div className="field">
-              <label className="lbl" htmlFor="brief-vocab">Mức từ vựng</label>
+              <label className="lbl" htmlFor="brief-vocab">Mức từ vựng <InfoTip text={`${TONE_LABEL[tone]}: ${TONE_HINT[tone]}`} /></label>
               <select id="brief-vocab" name="vocabularyLevel" className="inp" disabled={locked} value={values.vocabularyLevel} onChange={(e) => updateValues({ vocabularyLevel: e.target.value as typeof values.vocabularyLevel })}>
                 {context.availableVocabularyLevels.map((v) => (
                   <option key={v} value={v}>
@@ -192,16 +190,14 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
                   </option>
                 ))}
               </select>
-              <small className="hint">{TONE_LABEL[tone]}: {TONE_HINT[tone]}</small>
             </div>
           )}
 
           {modes.length > 1 && (
-            <div className="field"><span className="lbl" id="brief-mode">Kiểu truyện</span>
+            <div className="field"><span className="lbl" id="brief-mode">Kiểu truyện <InfoTip text={OUTPUT_MODE[values.outputMode].hint} /></span>
               <div className="seg" role="group" aria-labelledby="brief-mode">{modes.map((m) => (
                 <button type="button" key={m} disabled={locked} aria-pressed={values.outputMode === m} className={values.outputMode === m ? "on" : ""} onClick={() => updateValues({ outputMode: m })}>{OUTPUT_MODE[m].label}</button>
               ))}</div>
-              <small className="hint">{OUTPUT_MODE[values.outputMode].hint}</small>
             </div>
           )}
         </fieldset>
@@ -211,15 +207,15 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
               {topicTooLong && <div className="notice err" role="alert" data-inline-notice>Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
               {errorMessage && <div className="notice err" role="alert">{errorMessage}</div>}
               {outOfQuota && <div className="notice err" role="alert" data-inline-notice>Bạn đã dùng hết lượt tạo truyện của kỳ này.</div>}
-              <button type="submit" className="btn btn-p brief-go" disabled={submitDisabled} aria-describedby="brief-go-why">
+              <button type="submit" className="btn btn-p brief-go" disabled={submitDisabled} aria-describedby={submitReason ? "brief-go-why" : undefined}>
                 <Sparkles className="ic" aria-hidden />{isBusy ? "Đang gửi ý tưởng…" : "Viết dàn ý"}
               </button>
               <div className="brief-submit-info">
-                <span id="brief-go-why" className={submitReason ? "brief-why" : "hint"}>
-                  {submitReason && <CircleAlert aria-hidden />}{submitReason ?? "AI viết dàn ý trước để bạn duyệt, rồi mới viết truyện."}
-                </span>
+                {submitReason && <span id="brief-go-why" className="brief-why">
+                  <CircleAlert aria-hidden />{submitReason}
+                </span>}
                 {quota && !quota.isUnlimited && (
-                  <small className="hint">Còn <b>{quota.remaining ?? 0}</b>/{quota.quotaLimit ?? "?"} lượt tạo truyện · mỗi truyện có 3 lần sửa bằng AI miễn phí</small>
+                  <span className={`pill ${(quota.remaining ?? 0) <= 1 ? "brief-quota-low" : "draft"}`} title="Mỗi truyện có 3 lần sửa bằng AI miễn phí">Còn {quota.remaining ?? 0}/{quota.quotaLimit ?? "?"} lượt</span>
                 )}
               </div>
             </div>

@@ -440,13 +440,12 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
           : stories.length === 0 ? (
             <div className="lib-empty">
               <b className="display">Chưa có truyện nào</b>
-              <span className="sub">Hãy tạo truyện đầu tiên bằng AI, hoặc tự viết truyện theo cách thủ công.</span>
               <div className="row"><button className="btn btn-gold" onClick={() => go("studio")}><WandSparkles className="ic" />Dùng AI tạo truyện</button><button className="btn btn-s" onClick={() => go("authoring")}>Viết thủ công</button></div>
             </div>
           ) : searching ? (
             <>
               <Shelf title="Truyện" sub={`${results.length} truyện`} items={results}>
-                {results.length > 0 ? <div className="shelf-grid">{results.map((s) => card(s))}</div> : <p className="sub">Không tìm thấy truyện phù hợp.</p>}
+                {results.length > 0 ? <div className="shelf-grid">{results.map((s) => card(s))}</div> : <p className="lib-none">Không tìm thấy truyện phù hợp.</p>}
               </Shelf>
               {roadmapResults.length > 0 && (
                 <Shelf title="Lộ trình" sub={`${roadmapResults.length} lộ trình`} items={roadmapResults}>
@@ -487,7 +486,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
                 </Shelf>
               )}
               <Shelf title="Tất cả truyện" items={bySource} pills={SOURCE_PILLS} pill={source} onPill={setSource}>
-                {bySource.length > 0 ? <div className="shelf-grid">{bySource.map((s) => card(s))}</div> : <p className="sub">Chưa có truyện nào trong nhóm này.</p>}
+                {bySource.length > 0 ? <div className="shelf-grid">{bySource.map((s) => card(s))}</div> : <p className="lib-none">Chưa có truyện nào trong nhóm này.</p>}
               </Shelf>
             </>
           )}
@@ -499,7 +498,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
             <>
               <div className="cover cover-portrait" style={{ background: sel.cover }} />
               <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title}</h3>
-              {sel.raw.description && <p className="sub">{sel.raw.description}</p>}
+              {sel.raw.description && <p className="lib-desc">{sel.raw.description}</p>}
               <div className="meta">
                 <span>Nguồn</span><b>{SOURCE_LABEL[sourceOf(sel)]}</b>
                 <span>Độ tuổi</span><b>{ageLabel(sel.ageBand)}</b>
@@ -516,9 +515,9 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
               {!sel.family && <>
               {selStatus === "review" && <button className="btn btn-p btn-c" onClick={() => go(sel.fromAi ? 'studio' : 'authoring', { storyId: sel.id })}><WandSparkles className="ic" />Mở để duyệt</button>}
               {sel.fromAi && ['draft','generating','outline','review','media','moderation'].includes(selStatus ?? '') && <button className="btn btn-p btn-c" onClick={() => go("studio",{storyId:sel.id})}><WandSparkles className="ic" />Tiếp tục trong Studio</button>}
-              {selStatus === "moderation" && <p className="sub">Truyện đang chờ kiểm duyệt viên xem, thường trong 24 giờ.</p>}
+              {selStatus === "moderation" && <span className="pill wait lib-state" title="Kiểm duyệt viên thường xem trong 24 giờ">Đang chờ kiểm duyệt</span>}
               {selStatus === "ready" && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình</button>}
-              {selStatus === "ready" && mod?.submission && <p className="sub">Thư viện cộng đồng: {SUB_STATUS[mod.submission.status] ?? mod.submission.status}</p>}
+              {selStatus === "ready" && mod?.submission && <span className="pill draft lib-state">Cộng đồng: {SUB_STATUS[mod.submission.status] ?? mod.submission.status}</span>}
               {mine && selStatus === "ready" && mod?.submission && ((mod.submission.canWithdraw ?? mod.submission.status === "pending") || (mod.submission.canRemove ?? mod.submission.status === "approved")) && (
                 <button className="btn btn-s btn-c" onClick={async () => { const withdraw = mod.submission!.status === "pending"; if (!(await confirmDialog(withdraw ? "Rút yêu cầu nộp thư viện cộng đồng? Truyện sẽ không còn chờ duyệt." : "Gỡ truyện khỏi thư viện cộng đồng? Mọi người sẽ không còn thấy truyện này."))) return; void (mod.submission!.canRemove ?? mod.submission!.status === "approved" ? guardianService.removeCommunity(mod.submission!.id) : guardianService.withdrawCommunity(mod.submission!.id)).then((r) => { flash(r.message); void loadMod(); }); }}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
               )}
@@ -526,7 +525,7 @@ export default function LibraryWorkspace({ go }: Pick<WorkspaceProps,'go'>) {
                 <button className="btn btn-s btn-c" disabled={!!mod?.reports.some((r) => r.status === "pending")} title={mod?.reports.some((r) => r.status === "pending") ? "Truyện đang có báo cáo chờ xử lý" : undefined} onClick={() => setDialog("community")}><Send className="ic" />Nộp thư viện cộng đồng</button>
               )}
               {selStatus === "ready" && <button className="btn btn-g btn-c" onClick={() => setDialog("report")}><Flag className="ic" />Báo cáo nội dung</button>}
-              {mod?.reports.some((r) => r.status === "pending") && <p className="sub">Đã có báo cáo đang chờ kiểm duyệt viên xử lý.</p>}
+              {mod?.reports.some((r) => r.status === "pending") && <span className="pill flag lib-state">Có báo cáo đang chờ xử lý</span>}
               {selStatus === "ready" && <button className="btn btn-s btn-c" onClick={() => setDialog("preview")}><Eye className="ic" />Xem trước như bé thấy</button>}
               </>}
             </>

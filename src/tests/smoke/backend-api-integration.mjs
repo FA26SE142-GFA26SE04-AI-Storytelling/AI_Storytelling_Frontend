@@ -225,37 +225,14 @@ try {
   assert.equal(await page.locator('.art .cover').count(),0);
  },false,'ParentResumeMediaError');
  await fixture('Parent',async({page,requests})=>{
-  page.on('dialog',d=>d.accept());
-  await page.getByRole('button',{name:'Thư viện truyện',exact:true}).click();
-  await page.getByRole('button',{name:'Truyện riêng',exact:true}).click();
-  const dialog=page.getByRole('dialog',{name:'Quản lý truyện riêng',exact:true});
-  await dialog.getByLabel('Tên truyện',{exact:true}).fill('Truyện riêng fixture');
-  await dialog.getByLabel('Nội dung',{exact:true}).fill('Bản truyện thuộc tài khoản kiểm thử.');
-  await dialog.getByRole('button',{name:'Lưu truyện riêng',exact:true}).click();
-  await dialog.getByText('Truyện #70',{exact:false}).waitFor();
-  await dialog.getByLabel('Tên truyện',{exact:true}).fill('Truyện riêng đã sửa');
-  await dialog.getByRole('button',{name:'Lưu truyện riêng',exact:true}).click();
-  assert(await dialog.getByRole('button',{name:'Yêu cầu phát hành',exact:true}).isDisabled());
-  await dialog.getByRole('spinbutton',{name:'Mã truyện riêng',exact:true}).fill('71');
-  await dialog.getByRole('button',{name:'Mở theo mã',exact:true}).click();
-  await dialog.getByRole('button',{name:'Yêu cầu phát hành',exact:true}).click();
-  await dialog.getByRole('button',{name:'Xóa truyện riêng',exact:true}).click();
-  await dialog.getByRole('button',{name:'Yêu cầu phát hành',exact:true}).waitFor({state:'detached'});
-  assert.equal(requests.find(r=>r.path==='/Story'&&r.method==='POST').body.isAiGenerated,false);
-  assert(requests.some(r=>r.path==='/Story/70'&&r.method==='PUT'));
-  assert(!requests.some(r=>r.path==='/Story/70/publish'));
-  assert(requests.some(r=>r.path==='/Story/71/publish'&&r.method==='PATCH'));
-  assert(requests.some(r=>r.path==='/Story/71'&&r.method==='DELETE'));
- },false,'ParentPersonalStory');
- await fixture('Parent',async({page,requests})=>{
-  await page.getByRole('button',{name:'Lộ trình của con',exact:true}).click();
-  await page.getByText('Ếch con trong lộ trình',{exact:true}).waitFor();
-  await page.getByRole('button',{name:'Kho bộ truyện mẫu',exact:true}).click();
-  await page.locator('.rm-template').filter({hasText:'Bộ khám phá'}).getByRole('button').click();
-  await page.getByRole('button',{name:'Xem trước kế hoạch'}).click();
-  await page.getByText('Kế hoạch sao chép',{exact:true}).waitFor();
+  await page.getByRole('button',{name:'Học tập của bé',exact:true}).click();
+  await page.getByRole('tab',{name:'Lộ trình',exact:true}).click();
+  await page.getByText('Ếch con trong lộ trình',{exact:true}).first().waitFor();
+  await page.getByRole('button',{name:'Bộ khám phá, 1 truyện',exact:true}).click();
+  await page.getByRole('button',{name:'Thêm cho bé',exact:true}).click();
+  await page.getByText('Truyện sẽ được thêm',{exact:true}).waitFor();
   assert(!requests.some(r=>r.path.endsWith('/copy')));
-  await page.getByRole('button',{name:'Thêm vào lộ trình',exact:true}).click();
+  await page.getByRole('button',{name:'Thêm 1 truyện',exact:true}).click();
   await page.getByRole('button',{name:'Xong',exact:true}).waitFor();
   assert.deepEqual(requests.find(r=>r.path.endsWith('/copy')).body,{childProfileIds:[10],position:'NextUp',daysPerStory:3});
   await page.getByRole('button',{name:'Xong',exact:true}).click();
@@ -324,7 +301,7 @@ try {
   assert(requests.some(r=>r.method==='DELETE'&&r.path===`${root}/draft`));
  },false,'ModeratorGuides');
  await fixture('Parent',async({page,requests})=>{
-  await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();await page.getByRole('menuitem',{name:'Thủ công',exact:true}).click();
+  await page.getByRole('button',{name:'Tự viết truyện',exact:true}).click();
   await page.getByRole('button',{name:'Ếch con khám phá #7',exact:true}).click();
   await page.getByRole('button',{name:'Kiểm tra bản đã lưu',exact:true}).click();
   for(const name of ['Đúng ý định của tôi','Phù hợp với bé','Đã kiểm tra thông tin riêng tư','Đã đọc phần kết'])await page.getByRole('checkbox',{name,exact:true}).check();
@@ -404,7 +381,7 @@ try {
   assert.equal(new URL(page.url()).hash,'#studio');
   assert(!requests.slice(start).some(r=>r.path.startsWith('/ai-story-input')||r.path.startsWith('/stories/7/')));
   await page.getByRole('button',{name:'Về thư viện',exact:true}).click();
-  await page.getByRole('button',{name:'Studio tạo truyện',exact:true}).click();await page.getByRole('menuitem',{name:'Dùng AI',exact:true}).click();
+  await page.getByRole('button',{name:'Viết truyện bằng AI',exact:true}).click();
   await page.getByText('Hai bạn cùng ngắm trăng.',{exact:true}).waitFor();
   await page.evaluate(()=>sessionStorage.clear());
   await page.reload({waitUntil:'domcontentloaded'});

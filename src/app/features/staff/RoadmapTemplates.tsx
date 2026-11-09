@@ -28,6 +28,9 @@ export default function RoadmapTemplates() {
   const [busy, setBusy] = useState(false);
   const [uncertainCreate, setUncertainCreate] = useState(false);
   const [revision, setRevision] = useState(0);
+  // Bản đã lưu (thông tin chung + danh sách truyện) để chỉ hiện nút Lưu khi có thay đổi.
+  const [base, setBase] = useState<string | null>(null);
+  const snapshot = (f: B.SaveRoadmapRequestDto | null, list: B.RoadmapItemInputDto[]) => JSON.stringify({ f, list });
   const scope = useRef(Symbol());
   const reload = useCallback(() => setRevision(v => v + 1), []);
   useEffect(() => {
@@ -48,8 +51,9 @@ export default function RoadmapTemplates() {
     if (scope.current !== run) return;
     setBusy(false);
     if (!r.success || !r.data) { setNote(r.message); return; }
-    const d = r.data; setDetail(d); setItems(d.stories.map(s => ({ storyId: s.storyId, days: s.days })));
-    setForm({ name: d.name, description: d.description, ageBand: d.ageBand, mainCategoryId: d.mainCategory?.id ?? 0, readingLevelMin: d.readingLevelMin, readingLevelMax: d.readingLevelMax, defaultDaysPerStory: d.defaultDaysPerStory });
+    const d = r.data; const nextItems = d.stories.map(s => ({ storyId: s.storyId, days: s.days }));
+    const nextForm = { name: d.name, description: d.description, ageBand: d.ageBand, mainCategoryId: d.mainCategory?.id ?? 0, readingLevelMin: d.readingLevelMin, readingLevelMax: d.readingLevelMax, defaultDaysPerStory: d.defaultDaysPerStory };
+    setDetail(d); setItems(nextItems); setForm(nextForm); setBase(snapshot(nextForm, nextItems));
   };
   const act = async (fn: () => Promise<ApiResponse<unknown>>) => { if (busy) return; const run = scope.current; setBusy(true); const r = await fn(); if (scope.current !== run) return; setBusy(false); setNote(r.message || (r.success ? 'Đã cập nhật.' : 'Thao tác chưa hoàn tất.')); if (r.success) reload(); };
   const save = async () => {
@@ -62,15 +66,17 @@ export default function RoadmapTemplates() {
     const saved = await service.items(r.data.id, items);
     if (scope.current !== run) return;
     setBusy(false); setNote(saved.message || (saved.success ? 'Đã lưu lộ trình.' : 'Metadata đã lưu; chưa lưu được danh sách truyện. Hãy thử lưu lại.'));
-    if (saved.success && saved.data) setDetail(saved.data);
+    if (saved.success && saved.data) { setDetail(saved.data); setBase(snapshot(form, items)); }
   };
+  // Bộ mới chưa có trên máy chủ thì luôn cho lưu; bộ đã có chỉ hiện nút khi sửa gì đó.
+  const dirty = !detail || snapshot(form, items) !== base;
   const writable = moderator && (!detail || detail.isMine && detail.status === 'Draft');
   const move = (index: number, delta: number) => { const next = [...items]; const target = index + delta; if (target < 0 || target >= next.length) return; [next[index],next[target]] = [next[target],next[index]]; setItems(next); };
   return <Page fit title="Lộ trình mẫu">
     {note && <div className="notice" role="status">{note}</div>}{uncertainCreate && <button className="btn btn-s" onClick={() => { setUncertainCreate(false); reload(); }}title="Tải lại để đối chiếu lộ trình vừa tạo">Tải lại</button>}
     <div className="st-split fill">
     <div className="st-list">
-    {moderator && <div className="row"><button className="btn btn-p" disabled={busy || uncertainCreate} onClick={() => { scope.current = Symbol(); setDetail(null); setItems([]); setForm(blank()); }}>Tạo lộ trình mới</button></div>}
+    {moderator && <div className="row"><button className="btn btn-p" disabled={busy || uncertainCreate} onClick={() => { scope.current = Symbol(); setDetail(null); setItems([]); setForm(blank()); setBase(null); }}>Tạo lộ trình mới</button></div>}
     <div className="row"><select className="inp" value={group} onChange={e => { setGroup(e.target.value as B.RoadmapListGroupName); setPage(1); }}>{Object.entries(groups).map(([k,v]) => <option value={k} key={k}>{v}</option>)}</select><button className="btn btn-s" disabled={busy} onClick={reload}><RefreshCw className="ic" />Tải lại</button></div>
     {list?.items.map(d => <button className={`st-item${detail?.id === d.id ? ' on' : ''}`} key={d.id} onClick={() => void open(d.id)}><b>{d.name}</b><span>{d.storyCount} truyện · {d.status}</span><small>{fmt(d.publishedAt ?? d.submittedAt)}{d.needsUpdate ? ' · Có truyện cần cập nhật' : ''}</small></button>)}
     <div className="row"><button className="btn btn-s" disabled={page === 1} onClick={() => setPage(v => v - 1)}>Trước</button><span>Trang {page}</span><button className="btn btn-s" disabled={!list?.hasNextPage} onClick={() => setPage(v => v + 1)}>Tiếp</button></div>
@@ -87,7 +93,7 @@ export default function RoadmapTemplates() {
         <div className="st-group"><b className="st-group-title">Thêm truyện vào bộ</b>
         <div className="chips">{candidates?.items.filter(c => !items.some(i => i.storyId === c.storyId)).map(c => <button className="chip" key={c.storyId} onClick={() => setItems(v => [...v,{ storyId: c.storyId, days: null }])}>+ {c.title}</button>)}</div>
         <div className="row"><button className="btn btn-s" disabled={candidatePage === 1} onClick={() => setCandidatePage(v => v - 1)}>Truyện trước</button><button className="btn btn-s" disabled={!candidates?.hasNextPage} onClick={() => setCandidatePage(v => v + 1)}>Truyện tiếp</button></div></div>
-        <div className="st-group"><div className="row"><button className="btn btn-p" disabled={uncertainCreate || !form.name.trim() || !form.mainCategoryId} onClick={() => void save()}>Lưu nháp và thứ tự</button></div></div>
+        {dirty && <div className="st-group"><div className="row"><button className="btn btn-p" disabled={uncertainCreate || !form.name.trim() || !form.mainCategoryId} onClick={() => void save()}>Lưu nháp và thứ tự</button></div></div>}
       </fieldset>
       {(detail?.checks.length || detail?.lastReview) && <div className="st-group"><b className="st-group-title">Kết quả kiểm tra</b>
       {detail?.checks.map(c => <p className={c.passed ? 'sub' : 'notice warn'} key={c.code}>{c.message}</p>)}

@@ -374,7 +374,6 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 
 
 /* Gói duyệt truyện công khai: thông tin để chấm checklist. */
-.st-evidence { display: block; margin: -2px 0 2px; font-size: var(--fs-xs); font-weight: 600; color: var(--muted); line-height: 1.45; }
 .pr-facts { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
 .pr-facts .st-facts { flex: 1; min-width: 260px; }
 .pr-cover { width: 120px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 14px; border: 1px solid var(--line); flex: none; }
@@ -388,3 +387,6 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 .pr-options li.ok { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, transparent); font-weight: 700; }
 .pr-options .ic { width: 15px; height: 15px; color: var(--primary-strong); flex: none; }
 .pr-thumb { width: 64px; height: 48px; object-fit: cover; border-radius: 8px; margin-left: auto; }
+
+/* Form trong popup (soạn hướng dẫn, nhập nội dung của Creator): xếp dọc, cách đều. */
+.st-guide-form, .st-import { display: flex; flex-direction: column; gap: 14px; border: 0; padding: 0; margin: 0; min-width: 0; }

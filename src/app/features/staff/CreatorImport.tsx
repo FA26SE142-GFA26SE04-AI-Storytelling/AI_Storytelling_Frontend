@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { FileUp, X } from "lucide-react";
+import { FileUp } from "lucide-react";
+import Dialog from "@/app/components/Dialog";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { ContentSaved, CreatorDraft, ImportPreview } from "@/app/types/creator";
 import { fmt } from "./ui";
@@ -56,8 +57,8 @@ export default function CreatorImport({ draft, defaultTitle, onSaved, onClose }:
   };
 
   return (
-    <div className="st-card">
-      <div className="row"><h3 className="grow">Nhập nội dung</h3><button className="btn btn-g" onClick={onClose} aria-label="Đóng" title="Đóng"><X className="ic" /></button></div>
+    <Dialog title="Nhập nội dung" onClose={onClose} wide>
+    <div className="st-import">
       {!pending ? (
         <>
           <div className="seg" style={{ maxWidth: 320 }}>
@@ -67,12 +68,11 @@ export default function CreatorImport({ draft, defaultTitle, onSaved, onClose }:
           {method === "paste"
             ? <textarea className="inp" rows={8} value={text} onChange={(e) => setText(e.target.value)} placeholder="Dán nội dung truyện" aria-label="Nội dung nhập" />
             : <input className="inp" type="file" accept=".txt,.docx" onChange={(e) => setFile(e.target.files?.[0] ?? null)} aria-label="Tệp truyện" />}
-          <p className="sub">Xem trước không tạo phiên bản. Nội dung chỉ thay bản hiện tại sau khi bạn xác nhận.</p>
           <button className="btn btn-s" style={{ width: "fit-content" }} disabled={busy || (method === "paste" ? !text.trim() : !file)} onClick={() => void preview()}>{busy ? "Đang đọc…" : "Xem trước"}</button>
         </>
       ) : (
         <>
-          <p className="sub">Bản xem trước{pending.preview.fileName ? ` từ “${pending.preview.fileName}”` : ""} · hết hạn {fmt(pending.preview.expiresAt)}. Muốn sửa nội dung thì xem trước lại.</p>
+          <div className="row" style={{ gap: 8 }}>{pending.preview.fileName && <span className="pill draft">{pending.preview.fileName}</span>}<span className="pill wait">Hết hạn {fmt(pending.preview.expiresAt)}</span></div>
           <div className="st-content" style={{ maxHeight: 260, overflowY: "auto" }}>{pending.preview.content}</div>
           <div className="st-form">
             <label className="field"><span className="lbl">Tên truyện</span><input className="inp" maxLength={200} value={title} onChange={(e) => setTitle(e.target.value)} /></label>
@@ -88,5 +88,6 @@ export default function CreatorImport({ draft, defaultTitle, onSaved, onClose }:
       )}
       {err && <div className="notice err" role="alert">{err}</div>}
     </div>
+    </Dialog>
   );
 }

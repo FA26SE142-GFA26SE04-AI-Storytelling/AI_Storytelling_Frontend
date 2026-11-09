@@ -184,3 +184,7 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
 .kid-item.on { background-color: color-mix(in srgb, var(--primary) 14%, var(--surface-2)); box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 28%, transparent); }
 .kid-item b { font-size: var(--fs-md); font-weight: 800; }
 .kid-item small { font-size: var(--fs-sm); }
+
+/* Ghi chú trong trình tạo hồ sơ bé: khung có biểu tượng thay cho dòng chữ nhỏ. */
+.wiz-note { display: flex; align-items: center; gap: 8px; margin: 0; font-size: var(--fs-sm); }
+.wiz-note .ic { width: 18px; height: 18px; flex: none; color: var(--primary-strong); }

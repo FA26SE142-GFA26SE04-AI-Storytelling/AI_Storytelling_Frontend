@@ -1,5 +1,4 @@
 "use client";
-import DenyCover from "@/app/components/DenyCover";
 import { confirmDialog } from "@/app/lib/confirm";
 
 import { useEffect, useState } from "react";
@@ -98,7 +97,6 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
   return (
     <div className="sec" style={{ gap: 24 }}>
       <section className="sec" style={{ gap: 12, position: "relative" }}>
-        <DenyCover active={!isOwner} text="Bạn không đủ quyền hạn để sửa thông tin bé. Chỉ người quản lý chính được sửa." />
         <label className="field"><span className="lbl">Biệt danh</span>
           <input className="inp" maxLength={150} disabled={!isOwner} value={nickname} onChange={(e) => setNickname(e.target.value)} /></label>
         <div className="field"><span className="lbl">Nhóm tuổi</span>
