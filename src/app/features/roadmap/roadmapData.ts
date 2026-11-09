@@ -69,10 +69,36 @@ export function useTemplateDetail(id: number | null) {
   return { detail: current?.data ?? null, loading: id !== null && !current?.done };
 }
 
+/**
+ * Ảnh bìa của truyện cộng đồng (của Creator đã công khai), theo mã truyện. GET /Story/{id} không trả các truyện này
+ * ("Không tìm thấy") nên lấy từ GET /Story/community — API này trả bìa đã đổi thành link thật. Tải một lần, nhớ lại.
+ */
+let communityCovers: Promise<Map<number, string | null>> | null = null;
+function loadCommunityCovers() {
+  communityCovers ??= (async () => {
+    const map = new Map<number, string | null>();
+    for (let pageIndex = 1; pageIndex <= 20; pageIndex++) {
+      const r = await storyService.getCommunityStories({ pageIndex, pageSize: 100 });
+      if (!r.success || !r.data) break;
+      r.data.items.forEach((s) => map.set(s.id, s.coverImageUrl ?? null));
+      if (!r.data.hasNextPage) break;
+    }
+    return map;
+  })().catch(() => { communityCovers = null; return new Map(); });
+  return communityCovers;
+}
+
 function loadCover(storyId: number) {
   let p = covers.get(storyId);
   if (!p) {
-    p = storyService.getStoryById(storyId).then((r) => (r.success && r.data ? coverFor(r.data.coverImageUrl) : DEFAULT_COVER), () => DEFAULT_COVER);
+    p = storyService.getStoryById(storyId)
+      .then(async (r) => {
+        if (r.success && r.data) return coverFor(r.data.coverImageUrl);
+        // Không tìm thấy qua GET /Story/{id}: có thể là truyện cộng đồng.
+        const community = await loadCommunityCovers();
+        return community.has(storyId) ? coverFor(community.get(storyId)) : DEFAULT_COVER;
+      })
+      .catch(() => DEFAULT_COVER);
     covers.set(storyId, p);
   }
   return p;

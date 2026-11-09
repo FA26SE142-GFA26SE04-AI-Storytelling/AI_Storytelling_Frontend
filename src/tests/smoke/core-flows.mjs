@@ -38,6 +38,14 @@ const story = { id: 7, title: 'Ếch con khám phá', content: 'Ếch con đọc
 const waiting = { ...story, id: 8, title: 'Truyện chờ duyệt', status: 'ContentReview', isPublished: false };
 const draft = { storyId: 7, authorUserId: 1, title: story.title, description: '', language: 'vi', ageBand: '6-8', genre: 'Khám phá', experienceMode: 'reading', audienceRevision: 1, revisionToken: 'r1', selectedVersionId: 12, lastVersionNo: 1, createdAt: now, updatedAt: null, source: 'Manual', status: 'Draft' };
 
+/** Chi tiết bộ lộ trình mẫu giả, dựng từ những gì Moderator đã gửi lên. */
+const roadmapDetail = (state) => ({ id: 40, name: state.rtCreated?.name ?? '', description: state.rtCreated?.description ?? null, ageBand: '6-8', mainCategory: { id: 1, code: 'nature', displayName: 'Thiên nhiên' },
+  readingLevelMin: state.rtCreated?.readingLevelMin ?? 1, readingLevelMax: state.rtCreated?.readingLevelMax ?? 3, defaultDaysPerStory: state.rtCreated?.defaultDaysPerStory ?? 3,
+  status: state.rtSubmitted ? 'PendingReview' : 'Draft', createdByUserId: 1, createdByName: null, isMine: true, submittedAt: null, publishedAt: null, clonedFromId: null,
+  stories: (state.rtItems ?? []).map((i, k) => ({ storyId: i.storyId, position: k + 1, days: i.days, title: i.storyId === 7 ? story.title : 'Truyện thứ hai', ageBand: '6-8', readingLevel: 2, isEligible: true })),
+  checks: [{ code: 'has_stories', passed: !!state.rtItems?.length, message: 'Có ít nhất 2 truyện', relatedRoadmapId: null }],
+  canSubmit: (state.rtItems?.length ?? 0) >= 2, lastReview: null, needsUpdate: false, retiredStoryIds: [] });
+
 /** API giả cho mọi trường hợp. Trả `undefined` thì rơi xuống 404 "chức năng không nằm trong smoke test". */
 function api({ path, method, body, url, state }) {
   switch (true) {
@@ -50,7 +58,8 @@ function api({ path, method, body, url, state }) {
     case path.startsWith('/LearningProfile/'): return { childProfileId: 10, readingLevel: 2, readingMode: 'ReadFirst', topics: [] };
     case path === '/ContentCategory': return [{ id: 1, code: 'nature', displayName: 'Thiên nhiên', isActive: true }];
     case path === '/Story': return paged([story, waiting]);
-    case path === '/Story/community': return paged([]);
+    // Truyện cộng đồng (của Creator) mã 9: GET /Story/9 không tìm thấy, ảnh bìa chỉ có ở danh sách cộng đồng.
+    case path === '/Story/community': return paged([{ ...story, id: 9, title: 'Truyện thứ hai', source: 'Creator', coverImageUrl: pictureUrl('#e96') }]);
     case path === '/Story/7': return story;
     case path === '/parent/stories': return paged([]);
     // Học tập của bé
@@ -89,6 +98,13 @@ function api({ path, method, body, url, state }) {
           { segmentOrder: 2, startOffset: 30, endOffset: 48, text: part2, audioUrl: silentWav(1), wordTimingsJson: timingsOf(part2) }] }] };
     case path === '/child/reading/sessions/31/signal': return { shouldExit: false, returnTo: null, message: null, sessionStatus: 'Active' };
     case path === '/child/reading/sessions/31/events': return null;
+    // Moderator: lộ trình mẫu
+    case path === '/RoadmapTemplate' && method === 'GET': return paged(state.rtCreated ? [{ id: 40, name: state.rtCreated.name, ageBand: '6-8', mainCategory: null, storyCount: state.rtItems?.length ?? 0, status: state.rtSubmitted ? 'PendingReview' : 'Draft', createdByUserId: 1, createdByName: null, isMine: true, submittedAt: null, publishedAt: null, openCloneId: null, needsUpdate: false, retiredStoryCount: 0 }] : []);
+    case path === '/RoadmapTemplate/candidates': return paged([{ storyId: 7, title: story.title, ageBand: '6-8', readingLevel: 2, labels: [], publishedAt: now }, { storyId: 9, title: 'Truyện thứ hai', ageBand: '6-8', readingLevel: 3, labels: [], publishedAt: now }]);
+    case path === '/RoadmapTemplate' && method === 'POST': state.rtCreated = body; return roadmapDetail(state);
+    case path === '/RoadmapTemplate/40/items': state.rtItems = body.items; return roadmapDetail(state);
+    case path === '/RoadmapTemplate/40/submit': state.rtSubmitted = true; return { roadmapId: 40, status: 'PendingReview' };
+    case path === '/RoadmapTemplate/40': return roadmapDetail(state);
     // Creator
     case path === '/creator/stories': return paged([draft]);
     case path === '/creator/stories/7': return draft;
@@ -300,6 +316,52 @@ try {
     // Sang đoạn âm thanh 2 (đầu câu của tranh 3): tranh 3 hiện, highlight chuyển theo.
     await page.locator('.kid-pic-layer.on').nth(0).and(layers.nth(2)).waitFor({ timeout: 6000 });
     await page.locator('.kid-pic-part', { hasText: part2 }).waitFor({ timeout: 5000 });
+  });
+
+  await smoke('ModeratorRoadmap', 'Moderator', async ({ page, state }) => {
+    await page.goto(base, { waitUntil: 'domcontentloaded' });
+    await nav(page, 'Lộ trình mẫu');
+    await page.getByRole('button', { name: 'Tạo lộ trình mới', exact: true }).first().click();
+    // Bước 1: thông tin chung. Thiếu tên / chủ đề thì nút Lưu nháp bị khoá và nói rõ thiếu gì.
+    await page.getByText('Còn thiếu: tên lộ trình, chủ đề chính', { exact: true }).waitFor();
+    assert(await page.getByRole('button', { name: 'Lưu nháp', exact: true }).isDisabled());
+    await page.getByPlaceholder('Ví dụ: Khám phá thiên nhiên cho bé 6–8 tuổi').fill('Khám phá rừng xanh');
+    await page.getByRole('combobox').filter({ hasText: 'Chọn chủ đề' }).selectOption({ label: 'Thiên nhiên' });
+    // Số ngày theo Backend là 1–30: chọn mức ngoài các nút bằng ô "Khác", rồi quay lại nút 5 ngày.
+    await page.getByRole('combobox', { name: 'Số ngày khác' }).selectOption({ label: '10 ngày' });
+    assert.equal(await page.getByRole('radio', { checked: true }).count(), 1, 'Chỉ còn nút độ tuổi được chọn khi dùng ô Khác');
+    await page.getByRole('radio', { name: '5 ngày', exact: true }).click();
+    // Bước 2: chọn 2 truyện trong popup rồi đổi thứ tự.
+    await page.getByRole('button', { name: 'Thêm truyện', exact: true }).click();
+    const picker = page.getByRole('dialog', { name: 'Chọn truyện (6–8 tuổi)' });
+    // Ô tìm trong popup phải gọn (từng bị phình cao vì mượn CSS .lsearch của Thư viện).
+    const searchBox = await picker.locator('.rt-search').boundingBox();
+    assert(searchBox && searchBox.height < 70, `Ô tìm kiếm cao bất thường: ${searchBox?.height}px`);
+    await page.evaluate(() => document.documentElement.setAttribute('data-theme', 'dark'));
+    await picker.getByRole('button', { name: /Ếch con khám phá/ }).waitFor();
+    await page.screenshot({ path: new URL('ModeratorRoadmap-picker.png', output).pathname.replace(/^\/(\w:)/, '$1') });
+    await page.evaluate(() => document.documentElement.removeAttribute('data-theme'));
+    await picker.getByRole('button', { name: /Ếch con khám phá/ }).click();
+    await picker.getByRole('button', { name: /Truyện thứ hai/ }).click();
+    await picker.getByText('Đã chọn 2 truyện', { exact: true }).waitFor();
+    // Ảnh bìa của truyện cộng đồng lấy từ /Story/community khi GET /Story/{id} không có.
+    const communityCover = picker.locator('.rt-pick-item', { hasText: 'Truyện thứ hai' }).locator('.rt-pick-cover');
+    await page.waitForFunction((el) => el && getComputedStyle(el).backgroundImage.includes('svg'), await communityCover.elementHandle(), { timeout: 5000 });
+    await picker.getByRole('button', { name: 'Xong', exact: true }).click();
+    await page.getByRole('button', { name: 'Lên', exact: true }).nth(1).click();
+    await page.getByRole('combobox', { name: 'Số ngày đọc truyện 1' }).selectOption({ label: '20 ngày' });
+    await page.screenshot({ path: new URL('ModeratorRoadmap-edit.png', output).pathname.replace(/^\/(\w:)/, '$1'), fullPage: true });
+    await page.getByRole('button', { name: 'Lưu nháp', exact: true }).click();
+    await page.getByRole('button', { name: 'Gửi duyệt', exact: true }).waitFor();
+    assert.deepEqual(state.rtCreated, { name: 'Khám phá rừng xanh', description: null, ageBand: '6-8', mainCategoryId: 1, readingLevelMin: 1, readingLevelMax: 3, defaultDaysPerStory: 5 });
+    assert.deepEqual(state.rtItems, [{ storyId: 9, days: 20 }, { storyId: 7, days: null }], 'Lưu đúng thứ tự và số ngày riêng (tới 30 ngày)');
+    // Bước 3: lưu xong thì nút Lưu nháp ẩn, gửi duyệt được.
+    assert.equal(await page.getByRole('button', { name: 'Lưu nháp', exact: true }).count(), 0);
+    await page.getByRole('button', { name: 'Gửi duyệt', exact: true }).click();
+    // Gửi xong thì chuyển sang nhóm "Chờ duyệt" và mở lại đúng bộ vừa gửi.
+    await page.getByRole('tab', { name: 'Chờ duyệt', selected: true }).waitFor();
+    await page.locator('.rt-head').getByText('Đang chờ duyệt', { exact: true }).waitFor();
+    assert(state.rtSubmitted, 'Phải gọi API gửi duyệt');
   });
 
   await writeFile(new URL('results.json', output), JSON.stringify(results, null, 2));

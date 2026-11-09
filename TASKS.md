@@ -115,6 +115,7 @@ Còn lại:
 - [ ] **Trang giới thiệu hiển thị truyện đã phát hành**: chờ API công khai (hiện thư viện cộng đồng cần token).
 - [ ] **Ảnh bìa truyện cộng đồng**: chờ DTO trả ảnh bìa (hiện dùng ảnh mẫu chung). Lộ trình của trẻ (`/MyRoadmap`) đã có `coverImageUrl` và đang dùng ở khung "Hôm nay em đọc".
 - [ ] **Quản lý prompt, chất lượng AI, tài khoản phụ huynh (Admin)**: chờ tài liệu và API; đã gỡ khỏi menu.
+- [ ] **API lựa chọn cho form lộ trình mẫu**: Backend chưa có API trả độ tuổi (enum `AgeBand`), khoảng mức đọc (`RoadmapTemplatePolicy.MinReadingLevel..MaxReadingLevel` = 1–10) và khoảng số ngày mỗi truyện (`MinDays..MaxDays` = 1–30). Frontend đang để cố định cho khớp, có chú thích nguồn trong [RoadmapTemplates.tsx](src/app/features/staff/RoadmapTemplates.tsx). Đề xuất thêm `GET /RoadmapTemplate/options` (chỉ đọc) rồi Frontend dựng lựa chọn từ đó. Chủ đề chính đã lấy từ `GET /ContentCategory`.
 - [ ] **Creator tự đăng ký**: chờ chốt cách có tài khoản Creator (Luồng 5, mục 5g).
 
 ## 6. Đã chốt (không cần làm)
