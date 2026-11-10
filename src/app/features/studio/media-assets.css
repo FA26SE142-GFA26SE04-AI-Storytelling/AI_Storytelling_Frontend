@@ -1,0 +1,19 @@
+/* Mục "Ảnh và âm thanh thực tế" (MediaAssets): dùng chung cho phụ huynh và Content Creator. */
+.ma { min-width: 0; }
+.ma > * + * { margin-top: 14px; }
+.ma-bar { display: flex; align-items: center; gap: 12px; }
+.ma-scene { display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 18px; background: color-mix(in srgb, var(--surface) 75%, transparent); }
+.ma-title { font-size: var(--fs-md); }
+.ma-text { margin: 0; font-size: var(--fs-sm); line-height: 1.65; color: var(--muted); white-space: pre-wrap; }
+.ma-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.ma-item { margin: 0; display: flex; flex-direction: column; gap: 8px; padding: 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.ma-item img, .ma-empty { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; }
+.ma-empty { display: grid; place-items: center; background: var(--surface-2); color: var(--muted); font-size: var(--fs-sm); }
+.ma-item figcaption, .ma-audio { display: flex; align-items: center; gap: 8px; font-size: var(--fs-sm); font-weight: 700; }
+.ma-item figcaption > span:first-child { margin-right: auto; }
+.ma-audio { flex-wrap: wrap; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+.ma-audio audio { flex: 1; min-width: 220px; height: 36px; }
+.ma-confirm { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 16px; border: 2px solid var(--primary); background: color-mix(in srgb, var(--primary) 8%, var(--surface)); font-weight: 700; }
+.ma-confirm .row { flex: 1; min-width: 240px; gap: 10px; }
+.ma-done { margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 800; color: var(--ok-ink); }
+.ma-done .ic { width: 18px; height: 18px; }

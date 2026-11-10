@@ -1,8 +1,8 @@
 "use client";
 import { confirmDialog } from "@/app/lib/confirm";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, Check, FileUp, RotateCcw } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { ArrowLeft, ArrowRight, Check, ClipboardPaste, Download, FileUp, Lock, RefreshCw, RotateCcw } from "lucide-react";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { ContentSaved, CreatorDraft, CreatorResult, CreatorVersion, SaveVersionInput } from "@/app/types/creator";
 import { detectPii } from "@/app/lib/storyRules";
@@ -11,22 +11,30 @@ import CreatorImport from "./CreatorImport";
 import "@/app/features/authoring/authoring.css";
 
 import AssistancePanel from "@/app/features/authoring/AssistancePanel";
+import StoryFields from "@/app/features/authoring/StoryFields";
+import { CREATOR_FILE_TEMPLATE, downloadStoryTemplate } from "@/app/features/authoring/parseStoryFile";
 import type { AssistanceReference } from "@/app/types/backendContracts";
 import CreatorPublication from "./CreatorPublication";
 import CreatorManualMedia from "./CreatorManualMedia";
+import CreatorContentCheck from "./CreatorContentCheck";
+import { useRiseIn } from "@/app/lib/motion";
 import type {AssistanceSelection} from '@/app/features/story-workflow/assistanceSelection';
 
-type StepId = 'write' | 'media' | 'publish';
+type StepId = 'write' | 'check' | 'media' | 'publish';
 function EditorNavigation({ prev, next, nextOk, label = 'Bước tiếp theo', onNext, onNavigate }: {
   prev: StepId | null; next: StepId | null; nextOk: boolean; label?: string;
   onNext?: () => void | Promise<void>; onNavigate: (step: StepId) => void;
 }) {
   return <div className="pa-actions bar">
-    {prev && <button className="btn btn-g" onClick={() => onNavigate(prev)}>Quay lại</button>}
-    {next && <button className="btn btn-p push" disabled={!nextOk} onClick={() => void (onNext ? onNext() : onNavigate(next))}>{label}</button>}
+    {prev && <button className="btn btn-g" onClick={() => onNavigate(prev)}><ArrowLeft className="ic" />Quay lại</button>}
+    {next && <button className="btn btn-p push" disabled={!nextOk} onClick={() => void (onNext ? onNext() : onNavigate(next))}>{label}<ArrowRight className="ic" /></button>}
   </div>;
 }
-const ORIGIN: Record<string, string> = { Write: "Viết", Import: "Nhập", Restore: "Khôi phục" };
+/** Nhãn trạng thái truyện ở đầu trình soạn: [tông pill, chữ]. */
+const STATUS_PILL: Record<string, [string, string]> = {
+  Draft: ["draft", "Nháp"], MediaProcessing: ["wait", "Đang tạo media"], MediaReview: ["wait", "Chờ xác nhận media"], Ready: ["ok", "Sẵn sàng"], Archived: ["draft", "Đã lưu trữ"],
+};
+const ORIGIN: Record<string, string> ={ Write: "Viết", Import: "Nhập", Restore: "Khôi phục" };
 const EMPTY: SaveVersionInput = { title: "", content: "", sourceDeclaration: "", rightsDeclaration: "" };
 const same = (a: SaveVersionInput, b: SaveVersionInput) =>
   a.title === b.title && a.content === b.content && a.sourceDeclaration === b.sourceDeclaration && a.rightsDeclaration === b.rightsDeclaration;
@@ -46,23 +54,27 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
   const [selection,setSelection]=useState<AssistanceSelection|null>(null);
   const [publicationLocked, setPublicationLocked] = useState(true);
   const [mediaLocked, setMediaLocked] = useState(false);
-  const editorLocked = publicationLocked || mediaLocked;
+  const [checkLocked, setCheckLocked] = useState(false);
+  const editorLocked = publicationLocked || mediaLocked || checkLocked;
   const [draft, setDraft] = useState<CreatorDraft | null>(null);
   const mediaState = useCallback((status: string) => setDraft(d => d && d.status !== status ? { ...d, status } : d), []);
   const [form, setForm] = useState<SaveVersionInput>(EMPTY);
   const [saved, setSaved] = useState<SaveVersionInput>(EMPTY);
   const [versions, setVersions] = useState<CreatorVersion[] | null>(null);
   const [viewing, setViewing] = useState<CreatorVersion | null>(null);
-  const [importing, setImporting] = useState(false);
+  // Popup nhập nội dung, mở thẳng ở chế độ dán văn bản hoặc tải tệp.
+  const [importing, setImporting] = useState<"paste" | "file" | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note>(null);
   const [conflict, setConflict] = useState(false);
   const [stepId, setStepId] = useState<StepId>('write');
   // Lệnh ghi chưa rõ kết quả (mất mạng): thử lại nguyên lệnh này, với đúng bản chụp lúc gửi.
-  const pending = useRef<Write | null>(null);
-  const [hasPending, setHasPending] = useState(false);
+  const [pending, setPending] = useState<Write | null>(null);
+  const hasPending = pending !== null;
   const dirty = !same(form, saved);
   const pii = detectPii(`${form.title}\n${form.content}`);
+  // Đổi bước thì các khung của bước mới hiện lần lượt.
+  const stageRef = useRiseIn<HTMLDivElement>(".pa-stage:not([hidden]) > .pa-card, .pa-stage:not([hidden]) > section", [stepId, !!draft], { delay: 50, distance: 10 });
 
   const loadVersions = useCallback(async () => {
     const r = await creatorService.versions(storyId);
@@ -98,15 +110,14 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
     const r = await call();
     setBusy(false);
     if (r.ok && r.data) {
-      pending.current = null;
-      setHasPending(false);
+      setPending(null);
       const snap = replaceForm ? fromVersion(r.data.version) : snapshot;
       if (replaceForm) setForm(snap);
       apply(r.data, snap);
       setNote({ ok: true, text: `${okText} (phiên bản V${r.data.version.versionNo}).` });
       return true;
     }
-    if (r.status === 0) { pending.current = w; setHasPending(true); }
+    if (r.status === 0) setPending(w);
     if (r.status === 409) setConflict(true);
     setNote({ ok: false, text: r.status === 409 ? `${r.message || "Truyện đã thay đổi ở nơi khác."} Nội dung bạn đang sửa vẫn còn.` : r.message });
     return false;
@@ -134,32 +145,40 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
     if (d.ok && d.data) { setDraft(d.data); setConflict(false); setNote({ ok: true, text: "Đã đồng bộ với máy chủ. Bấm Lưu để tạo phiên bản mới từ nội dung bạn đang sửa." }); void loadVersions(); }
   };
 
-  const retry = () => { if (pending.current) void runWrite(pending.current); };
+  const retry = () => { if (pending) void runWrite(pending); };
 
   if (!draft) return <div className="st-card"><p className="sub">{note?.text ?? "Đang mở truyện…"}</p><button className="btn btn-g" style={{ width: "fit-content" }} onClick={onBack}><ArrowLeft className="ic" />Danh sách</button></div>;
 
   const set = (p: Partial<SaveVersionInput>) => setForm((f) => ({ ...f, ...p }));
   const isSaved = !dirty && !!draft.selectedVersionId;
   const mediaDone = draft.status === 'Ready';
-  // Các bước của luồng soạn truyện Creator; bước sau chỉ mở khi đã có phiên bản lưu.
+  // Lý do khoá sửa nội dung, hiện một lần dạng toast và làm chú thích cho nhãn "Chỉ xem".
+  const lockReason = checkLocked ? 'Đang chốt nội dung, tạm khoá sửa.'
+    : mediaLocked ? 'AI đang tạo tranh và giọng đọc cho bản đã chốt nên tạm khoá sửa nội dung.'
+    : 'Bản này đã chốt hoặc đã gửi duyệt nên chỉ xem được. Muốn sửa, hãy tạo bản chỉnh sửa ở bước Phát hành.';
+  const confirmed = draft.status !== 'Draft';
+  const missing = [...(saved.sourceDeclaration.trim() ? [] : ['Nguồn nội dung']), ...(saved.rightsDeclaration.trim() ? [] : ['Cam kết bản quyền'])];
+  // Các bước theo Luồng 3 (3d): soạn → tự kiểm tra và chốt nội dung → tranh, giọng đọc → gửi Moderator duyệt.
   const steps: { id: StepId; label: string; note: string; done: boolean; locked: boolean }[] = [
     { id: 'write', label: 'Soạn nội dung', note: dirty ? 'Có thay đổi chưa lưu' : isSaved ? 'Đã lưu' : 'Chưa lưu', done: isSaved, locked: false },
-    { id: 'media', label: 'Chốt và tạo tranh, giọng đọc', note: mediaDone ? 'Media sẵn sàng' : draft.status === 'Draft' ? 'Chưa chốt bản' : 'Đang xử lý media', done: mediaDone, locked: !isSaved },
+    { id: 'check', label: 'Kiểm tra và chốt', note: confirmed ? 'Đã chốt' : 'Chưa chốt', done: confirmed, locked: !isSaved },
+    { id: 'media', label: 'Tranh và giọng đọc', note: mediaDone ? 'Đã sẵn sàng' : confirmed ? 'Đang xử lý' : 'Cần chốt nội dung', done: mediaDone, locked: !isSaved || !confirmed },
     { id: 'publish', label: 'Phát hành', note: mediaDone ? 'Có thể gửi duyệt' : 'Cần media sẵn sàng', done: false, locked: !isSaved },
   ];
   const active = steps.find(s => s.id === stepId && !s.locked) ?? steps[0];
-  const saveThenNext = async () => { if (!dirty || await save()) setStepId('media'); };
+  const saveThenNext = async () => { if (!dirty || await save()) setStepId('check'); };
   return (
     <>
       <div className="st-card ce-head">
         <div className="row" style={{ flexWrap: "wrap" }}>
           <button className="btn btn-g" onClick={async () => { if (!dirty || await confirmDialog("Bỏ các thay đổi chưa lưu?")) onBack(); }}><ArrowLeft className="ic" />Danh sách</button>
           <h3 className="grow ce-title">{form.title || "Truyện chưa đặt tên"}</h3>
-          <span className="pill draft">Nháp · {draft.lastVersionNo ? `V${draft.lastVersionNo}` : "chưa lưu"}</span>
+          <span className={`pill ${STATUS_PILL[draft.status ?? ""]?.[0] ?? "draft"}`}>{STATUS_PILL[draft.status ?? ""]?.[1] ?? "Nháp"} · {draft.lastVersionNo ? `V${draft.lastVersionNo}` : "chưa lưu"}</span>
           {dirty && <span className="pill wait">Chưa lưu</span>}
+          {editorLocked && <span className="pill draft" title={lockReason}><Lock className="ic" aria-hidden />Chỉ xem</span>}
         </div>
         <small className="sub ce-meta">{draft.ageBand} tuổi · {draft.genre || "chưa có thể loại"} · cập nhật {fmt(draft.updatedAt ?? draft.createdAt)}</small>
-        {editorLocked && <p className="notice warn">Bản này đang được mở chỉ để xem. Kiểm tra phần phát hành hoặc tạo phiên bản chỉnh sửa mới.</p>}
+        {editorLocked && <p className="notice warn" role="status" data-inline-notice>{lockReason}</p>}
       </div>
 
       <div className="pa-flow">
@@ -177,24 +196,20 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
         </nav>
 
         {/* Cả ba bước luôn được dựng, chỉ ẩn bước không chọn: các bước media và phát hành giữ trạng thái và báo khoá soạn cho trình soạn. */}
-        <div className="pa-stage">
+        <div className="pa-stage" ref={stageRef}>
           <div className="pa-stage" hidden={active.id !== 'write'}>
             <section className="pa-card" aria-label="Soạn nội dung">
               <div className="pa-head"><h3><span className="pa-num">1</span>Soạn nội dung</h3></div>
               <fieldset className="pa-fieldset" disabled={editorLocked || busy}>
-                <label className="field"><span className="lbl">Tên truyện</span><input className="inp" maxLength={200} value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
-                <label className="field"><span className="lbl">Nội dung (mỗi đoạn cách nhau một dòng trống)</span>
-                  <textarea className="inp" rows={14} maxLength={200_000} value={form.content} onSelect={e=>setSelection({snapshot:{title:form.title,content:e.currentTarget.value},start:e.currentTarget.selectionStart,length:e.currentTarget.selectionEnd-e.currentTarget.selectionStart})} onChange={(e) => set({ content: e.target.value })} /></label>
-                <div className="pa-fields">
-                  <label className="field"><span className="lbl">Nguồn nội dung</span><input className="inp" maxLength={2000} value={form.sourceDeclaration} onChange={(e) => set({ sourceDeclaration: e.target.value })} placeholder="VD: Tự sáng tác" /></label>
-                  <label className="field"><span className="lbl">Cam kết bản quyền</span><input className="inp" maxLength={2000} value={form.rightsDeclaration} onChange={(e) => set({ rightsDeclaration: e.target.value })} placeholder="VD: Tôi có quyền phát hành nội dung này" /></label>
-                </div>
-                {pii.length > 0 && <div className="notice err">Truyện còn thông tin cá nhân ({[...new Set(pii.map((p) => p.kind))].join(", ")}). Hãy bỏ trước khi gửi duyệt.</div>}
+                <StoryFields form={form} onChange={set} onSelect={setSelection} />
+                {pii.length > 0 && <div className="notice err" role="alert">Truyện còn thông tin cá nhân ({[...new Set(pii.map((p) => p.kind))].join(", ")}). Hãy bỏ trước khi gửi duyệt.</div>}
                 {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
                 <div className="pa-actions bar">
-                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting(true)}><FileUp className="ic" />Nhập văn bản / tệp</button>
-                  {conflict && <button className="btn btn-g" disabled={busy} onClick={() => void resync()}>Đồng bộ với máy chủ</button>}
-                  {hasPending && <button className="btn btn-s" disabled={busy} onClick={retry}>Thử lại lệnh vừa rồi</button>}
+                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting("file")}><FileUp className="ic" />Nhập từ tệp</button>
+                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting("paste")}><ClipboardPaste className="ic" />Dán văn bản</button>
+                  <button className="btn btn-s" onClick={() => downloadStoryTemplate(CREATOR_FILE_TEMPLATE)} title="Tải tệp mẫu .txt để viết nội dung rồi nhập vào"><Download className="ic" />Tải tệp mẫu</button>
+                  {conflict && <button className="btn btn-g" disabled={busy} onClick={() => void resync()}><RefreshCw className="ic" />Đồng bộ</button>}
+                  {hasPending && <button className="btn btn-s" disabled={busy} onClick={retry}><RotateCcw className="ic" />Thử lại</button>}
                 </div>
               </fieldset>
             </section>
@@ -225,23 +240,27 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
                 )}
               </details>
             </section>
-            <EditorNavigation prev={null} next="media" nextOk={isSaved || (dirty && !!form.content.trim() && !busy && !editorLocked && !conflict)} label={dirty ? 'Lưu và tiếp tục' : 'Bước tiếp theo'} onNext={dirty ? saveThenNext : undefined} onNavigate={setStepId}/>
+            <EditorNavigation prev={null} next="check" nextOk={isSaved || (dirty && !!form.content.trim() && !busy && !editorLocked && !conflict)} label={dirty ? 'Lưu và tiếp tục' : 'Bước tiếp theo'} onNext={dirty ? saveThenNext : undefined} onNavigate={setStepId}/>
+          </div>
+
+          <div className="pa-stage" hidden={active.id !== 'check'}>
+            <CreatorContentCheck key={`check:${storyId}:${draft.selectedVersionId}`} draft={draft} disabled={busy || dirty || conflict || hasPending || publicationLocked} missing={missing} onWorkingChange={setCheckLocked} onConfirmed={(status) => { mediaState(status); setStepId('media'); }} />
+            <EditorNavigation prev={'write'} next={'media'} nextOk={confirmed} onNavigate={setStepId}/>
           </div>
 
           <div className="pa-stage" hidden={active.id !== 'media'}>
-            <CreatorManualMedia key={`media:${storyId}:${draft.selectedVersionId}`} draft={draft} disabled={busy || dirty || conflict || hasPending || publicationLocked} missing={[...(saved.sourceDeclaration.trim() ? [] : ['Nguồn nội dung']), ...(saved.rightsDeclaration.trim() ? [] : ['Cam kết bản quyền'])]} onWorkingChange={setMediaLocked} onStatus={mediaState} />
-            {!mediaDone && <p className="sub">Nút "Bước tiếp theo" mở khi truyện đã có tranh, giọng đọc và bạn đã xác nhận gói media.</p>}
-            <EditorNavigation prev="write" next="publish" nextOk={mediaDone} onNavigate={setStepId}/>
+            <CreatorManualMedia key={`media:${storyId}:${draft.selectedVersionId}`} draft={draft} disabled={busy || dirty || conflict || hasPending || publicationLocked} onWorkingChange={setMediaLocked} onStatus={mediaState} />
+            <EditorNavigation prev={'check'} next={'publish'} nextOk={mediaDone} onNavigate={setStepId}/>
           </div>
 
           <div className="pa-stage" hidden={active.id !== 'publish'}>
-            <CreatorPublication storyId={storyId} versionId={draft.selectedVersionId} storyStatus={draft.status} onRevision={() => void open()} onLockChange={setPublicationLocked} />
+            <CreatorPublication storyId={storyId} versionId={draft.selectedVersionId} storyStatus={draft.status} onRevision={() => void open()} onLockChange={setPublicationLocked} showCheck={false} stepNo={4} />
             <EditorNavigation prev="media" next={null} nextOk={false} onNavigate={setStepId}/>
           </div>
         </div>
       </div>
 
-      {importing && <CreatorImport draft={draft} defaultTitle={form.title} onClose={() => setImporting(false)}
+      {importing && <CreatorImport key={importing} initialMethod={importing} draft={draft} defaultTitle={form.title} onClose={() => setImporting(null)}
         onSaved={(r) => { const snap = fromVersion(r.version); setForm(snap); apply(r, snap); setNote({ ok: true, text: `Đã nhập nội dung (phiên bản V${r.version.versionNo}).` }); }} />}
 
     </>

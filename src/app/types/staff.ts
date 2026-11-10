@@ -62,6 +62,7 @@ export interface ModerationItem {
   submittedAt: string;
   dueAt: string;
   claimedByUserId: number | null;
+  claimedByName?: string | null;
   claimedAt: string | null;
   decision: ModerationDecision | null;
   decisionReason: string | null;
@@ -215,6 +216,7 @@ export interface QueueItem {
   slaDueAt: string | null;
   isOverdue: boolean;
   claimedByUserId: number | null;
+  claimedByName?: string | null;
   claimedAt: string | null;
   claimExpiresAt: string | null;
   createdAt: string;

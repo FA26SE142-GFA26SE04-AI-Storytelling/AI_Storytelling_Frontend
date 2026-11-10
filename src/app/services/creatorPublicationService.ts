@@ -5,6 +5,7 @@ export const creatorPublicationService = {
   confirmManual: (id: number, body: B.ConfirmManualContentRequest) => apiRequest<B.ConfirmManualContentResult>(`${root(id)}/manual/confirm-content`, 'Không chốt được nội dung thủ công.', { method: 'POST', body }),
   status: (id: number, signal?: AbortSignal) => apiRequest<B.CreatorPublicationStatus>(`${root(id)}/publication`, 'Không tải được trạng thái phát hành.', { signal }),
   check: (id: number, versionId: number) => apiRequest<B.GrayZoneContentCheckDto>(`${root(id)}/content/check`, 'Không kiểm tra được nội dung.', { method: 'POST', body: { versionId } }),
+  /** `contentCategoryIds`: nhãn nội dung Creator đề xuất; backend bắt buộc có ít nhất một nhãn. */
   submit: (storyId: number, storyVersionId: number, contentCategoryIds: number[]) => {
     if (!Array.isArray(contentCategoryIds) || !contentCategoryIds.length || contentCategoryIds.some(id => !Number.isSafeInteger(id) || id < 1))
       return Promise.resolve({ success: false, status: 400, message: 'Hãy chọn ít nhất một nhãn nội dung hợp lệ.', data: null });

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ShieldCheck } from "lucide-react";
+import InfoTip from "@/app/components/InfoTip";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ContentCategory, PolicyRule } from "@/app/types/childProfile";
 import { AGE_BANDS, defaultReadingLevel, defaultReadingMode, presetBlocked } from "@/app/lib/guardian";
@@ -96,7 +97,7 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
                 ))}
               </div>
             </div>
-            <p className="sub">Taletale không hỏi họ tên đầy đủ, ngày sinh, trường học hay địa chỉ của bé. Bạn là người quản lý chính (Owner) của hồ sơ này.</p>
+            <p className="notice wiz-note"><ShieldCheck className="ic" aria-hidden />Taletale không hỏi họ tên, ngày sinh, trường học hay địa chỉ của bé.</p>
           </div>
         )}
 
@@ -105,13 +106,12 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
         {step === 2 && (
           <div className="sec" style={{ gap: 18 }}>
             <div>
-              <h3 className="display" style={{ margin: "0 0 4px" }}>Chủ đề</h3>
-              <p className="sub" style={{ marginBottom: 6 }}>Đã chọn sẵn các chủ đề nên chặn cho {AGE_BANDS.find((a) => a.id === ageBand)?.label}. Bạn có thể bỏ bớt hoặc thêm.</p>
+              <h3 className="display" style={{ margin: "0 0 8px" }}>Chủ đề <InfoTip text={`Đã chọn sẵn các chủ đề nên chặn cho ${AGE_BANDS.find((a) => a.id === ageBand)?.label ?? "bé"}. Bạn có thể bỏ bớt hoặc thêm.`} /></h3>
               <CategoryRules cats={cats} rules={rules} onChange={setRules} />
             </div>
             <div className="trow"><span>Cổng xác nhận người lớn<small>Hỏi mật khẩu của bạn trước khi rời chế độ của bé</small></span>
               <button type="button" className={`tog${gate ? " on" : ""}`} role="switch" aria-checked={gate} aria-label="Cổng xác nhận người lớn" onClick={() => setGate(!gate)} /></div>
-            <p className="sub">Mọi truyện AI tạo cho bé sẽ chờ bạn duyệt. Bạn có thể đổi trong Cài đặt an toàn.</p>
+            <p className="notice wiz-note"><Check className="ic" aria-hidden />Truyện AI tạo cho bé sẽ chờ bạn duyệt (đổi được trong Cài đặt an toàn).</p>
             <ConsentBlock checked={consent} onChange={setConsent} />
           </div>
         )}

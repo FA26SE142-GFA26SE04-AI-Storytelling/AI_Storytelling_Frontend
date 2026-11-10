@@ -30,7 +30,7 @@ export default function IdeaBox({ onStart }: { onStart: () => void }) {
               <button type="button" key={g} aria-pressed={genre === g} className={genre === g ? "on" : ""} onClick={() => setGenre(genre === g ? null : g)}>{g}</button>
             ))}
           </div>
-          <button type="submit" className="btn btn-p ld-idea-go"><Sparkles className="ic" aria-hidden />Viết thử truyện này</button>
+          <button type="submit" className="btn btn-gold ld-idea-go"><Sparkles className="ic" aria-hidden />Viết thử truyện này</button>
         </div>
       </div>
       <p className="ld-idea-hint">Tạo tài khoản xong, ý tưởng này được điền sẵn trong Studio để bạn duyệt từng bước.</p>

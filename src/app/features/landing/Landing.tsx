@@ -45,7 +45,7 @@ export default function Landing({ onStart }: { onStart: (mode: "login" | "regist
             <h1 className="display ld-rise">Câu chuyện cho con, qua tay bố mẹ trước</h1>
             <p className="ld-lead ld-rise">Bạn kể một ý tưởng, AI viết thành truyện có tranh và giọng đọc cho bé 6–10 tuổi. Mỗi bước đều chờ bạn đồng ý, và bé chỉ thấy truyện bạn đã duyệt.</p>
             <div className="ld-cta ld-rise">
-              <button className="btn btn-p ld-big" onClick={() => onStart("register")}>Bắt đầu cho con</button>
+              <button className="btn btn-gold ld-big" onClick={() => onStart("register")}>Bắt đầu cho con</button>
               <button className="btn btn-s ld-big" onClick={() => onStart("login")}>Tôi đã có tài khoản</button>
             </div>
             <ul className="ld-trust ld-rise">

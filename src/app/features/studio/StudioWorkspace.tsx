@@ -82,7 +82,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
   if (p.resumed && !p.snapshot) return <section className="ws dock"><div className="pane"><div className="pb">
     <h2 className="display">{p.statusError ? 'Chưa mở được truyện đang tạo' : 'Đang mở lại truyện đang tạo…'}</h2>
     {p.statusError && <p className="notice err" role="alert" data-inline-notice>{p.statusError}</p>}
-    <div className="row"><button className="btn btn-s" onClick={p.refresh}>Tải lại trạng thái truyện</button><button className="btn btn-s" onClick={() => go('library')}>Về thư viện</button></div>
+    <div className="row"><button className="btn btn-s" onClick={p.refresh}>Tải lại</button><button className="btn btn-s" onClick={() => go('library')}>Về thư viện</button></div>
   </div></div></section>;
   // Cụm nút điều khiển nằm ở góc phải thanh tab của khung đang hiện (xem story-workflow/tabActions).
   const controls = (
@@ -92,7 +92,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
   );
   return (
     <section ref={bodyRef} className="ws with-steps" data-aside={asideCollapsed ? "collapsed" : undefined}>
-      <StudioSteps progress={progress} context={p.resumed && p.statusError ? <button className="btn btn-s" onClick={p.refresh}>Tải lại trạng thái truyện</button> : undefined} />
+      <StudioSteps progress={progress} context={p.resumed && p.statusError ? <button className="btn btn-s" onClick={p.refresh}>Tải lại</button> : undefined} />
       <TabActions.Provider value={controls}>
       <AsideContext.Provider value={aside}>
       <ApproveSlot.Provider value={setApprove}>
@@ -104,7 +104,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           onApproved={() => { p.refresh(); void reload(); }}
         />
       ) : section === "media" && p.storyId !== null ? (
-        <StudioMedia key={p.storyId} storyId={p.storyId} childId={childId} ageBand={p.snapshot?.story?.ageBand??''} media={media} onFinish={() => { void reload(); onNew(); go("library"); }} />
+        <StudioMedia key={p.storyId} storyId={p.storyId} media={media} />
       ) : (
         <StudioPlan
           flow={p.flow}

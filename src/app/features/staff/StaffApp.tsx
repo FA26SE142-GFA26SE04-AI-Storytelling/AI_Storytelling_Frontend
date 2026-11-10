@@ -2,12 +2,14 @@
 
 import "./staff.css";
 import "@/app/features/children/children.css";
-import { useState, type ComponentType } from "react";
+import { useEffect, useState, type ComponentType } from "react";
 import {
-  Activity, BookOpenText, ChartColumn, Coins, FolderOpen, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt,
+  Activity, BookOpenText, ChartColumn, Coins, FolderOpen, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
   Shield, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
+import { useAuth } from "@/app/context/AuthContext";
+import { readCreatorAiStory, readStaffWorkspace, writeStaffWorkspace } from "@/app/features/story-workflow/storyStudioSession";
 import type { StaffRole } from "@/app/types/auth";
 import Frog from "@/app/components/brand/Frog";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
@@ -50,11 +52,11 @@ const CREATOR_ACCOUNT_PAGES: PageDef[] = [
 /** Luồng 5 — ba khu tách biệt theo vai trò; mỗi tài khoản đúng một vai trò (BR-5.7a). */
 const PAGES: Record<StaffRole, PageDef[]> = {
   Administrator: [
-    { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và bộ mẫu đang công khai" },
+    { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và lộ trình mẫu đang công khai" },
     { id: "escalated", label: "Kiểm duyệt (ca chuyển lên)", icon: Inbox, view: () => <ModerationQueue admin />, hint: "Ca Moderator chuyển lên Admin" },
     { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
-    { id: "templates", label: "Xem bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
+    { id: "templates", label: "Xem lộ trình mẫu", icon: Route, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
     { id: "catalog", label: "Danh mục nội dung", icon: ListChecks, view: AdminCatalog },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
@@ -65,17 +67,17 @@ const PAGES: Record<StaffRole, PageDef[]> = {
   ],
   Moderator: [
     { id: "queue", label: "Hàng đợi kiểm duyệt", short: "Hàng đợi duyệt", icon: Inbox, view: () => <ModerationQueue /> },
-    { id: "published", label: "Rà soát thư viện", short: "Rà soát truyện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và bộ mẫu đang công khai" },
+    { id: "published", label: "Rà soát thư viện", short: "Rà soát truyện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và lộ trình mẫu đang công khai" },
     { id: "rubrics", label: "Tiêu chí vùng xám", short: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", short: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
-    { id: "templates", label: "Bộ truyện mẫu", icon: LibraryBig, view: RoadmapTemplates },
+    { id: "templates", label: "Lộ trình mẫu", icon: Route, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
     ...ACCOUNT_PAGES,
   ],
   ContentCreator: [
     { id: "library", label: "Thư viện truyện mẫu", short: "Thư viện", icon: BookOpenText, view: CreatorLibrary },
-    { id: "create-ai", label: "Tạo truyện bằng AI", menuLabel: "Dùng AI", short: "Dùng AI", icon: WandSparkles, view: CreatorCreateAi, hint: "AI viết truyện mẫu từ ý tưởng của bạn" },
-    { id: "create-manual", label: "Tạo truyện thủ công", menuLabel: "Thủ công", short: "Thủ công", icon: PencilLine, view: CreatorCreateManual, hint: "Bạn tự viết nội dung, lưu thành từng phiên bản" },
+    { id: "create-ai", label: "Viết truyện bằng AI", menuLabel: "Viết bằng AI", short: "Viết bằng AI", icon: WandSparkles, view: CreatorCreateAi, hint: "AI viết truyện mẫu từ ý tưởng của bạn" },
+    { id: "create-manual", label: "Tự viết truyện", menuLabel: "Tự viết", short: "Tự viết", icon: PencilLine, view: CreatorCreateManual, hint: "Bạn tự viết nội dung, lưu thành từng phiên bản" },
     { id: "my-stories", label: "Truyện của tôi", short: "Truyện của tôi", icon: FolderOpen, view: CreatorMyStories, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở" },
     ...CREATOR_ACCOUNT_PAGES,
   ],
@@ -112,10 +114,25 @@ export default function StaffApp({ role }: { role: StaffRole }) {
   const { theme, toggleTheme } = useTheme();
   const navRef = useRiseIn<HTMLElement>("button", [], { delay: 40, distance: 10 });
   const pages = PAGES[role];
-  const [pageId, setPageId] = useState(pages[0].id);
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
+  // Tải lại trang hay quay lại từ tab khác thì quay về đúng trang (và truyện AI đang soạn), không về trang đầu.
+  const [initial] = useState(() => {
+    const saved = userId !== null ? readStaffWorkspace(userId) : null;
+    const valid = !!saved && pages.some((p) => p.id === saved.pageId);
+    return {
+      pageId: valid ? saved.pageId : pages[0].id,
+      target: valid ? saved.target : null,
+      resumeId: valid && saved.pageId === "create-ai" && saved.target === null && userId !== null ? readCreatorAiStory(userId) : null,
+    };
+  });
+  const [pageId, setPageId] = useState(initial.pageId);
   // Id truyện cần mở khi chuyển trang (ví dụ bấm Mở trong Thư viện truyện mẫu); null là tạo mới.
-  const [target, setTarget] = useState<number | null>(null);
-  const go = (id: string, storyId: number | null = null) => { setPageId(id); setTarget(storyId); };
+  const [target, setTarget] = useState<number | null>(initial.target);
+  // Truyện AI đang soạn dở trước khi tải lại; chỉ dùng cho lần mở đầu, điều hướng sau đó thì bỏ.
+  const [resumeId, setResumeId] = useState<number | null>(initial.resumeId);
+  const go = (id: string, storyId: number | null = null) => { setPageId(id); setTarget(storyId); setResumeId(null); };
+  useEffect(() => { if (userId !== null) writeStaffWorkspace(userId, { pageId, target }); }, [userId, pageId, target]);
   const page = pages.find((p) => p.id === pageId) ?? pages[0];
   const View = page.view;
 
@@ -142,7 +159,7 @@ export default function StaffApp({ role }: { role: StaffRole }) {
         <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} upward />
       </nav>
 
-      <main className="stage"><View key={`${page.id}:${target ?? "new"}`} go={go} target={target} /></main>
+      <main className="stage"><View key={`${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} /></main>
     </div>
   );
 }

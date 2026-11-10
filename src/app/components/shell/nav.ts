@@ -1,6 +1,6 @@
-import { Activity, BookOpen, FolderOpen, ChartColumn, CreditCard, PencilLine, Inbox, Route, UserRound, Users, WandSparkles, type LucideIcon } from "lucide-react";
+import { Activity, BookOpen, FolderOpen, ChartColumn, CreditCard, GraduationCap, PencilLine, UserRound, Users, WandSparkles, type LucideIcon } from "lucide-react";
 
-export type WorkspaceId = "children" | "studio" | "authoring" | "created" | "library" | "roadmap" | "review" | "report" | "account" | "account-payment" | "account-activity";
+export type WorkspaceId = "children" | "studio" | "authoring" | "created" | "library" | "roadmap" | "report" | "account" | "account-payment" | "account-activity";
 
 export type WorkspaceEntry = {
   id: WorkspaceId;
@@ -20,12 +20,11 @@ export type WorkspaceEntry = {
 
 export const WORKSPACES: WorkspaceEntry[] = [
   { id: "library", label: "Thư viện truyện", short: "Thư viện", icon: BookOpen },
-  // Nút Studio xổ ra hai cách tạo truyện: Dùng AI (chính Studio) và Thủ công.
-  { id: "studio", label: "Studio tạo truyện", short: "Tạo truyện", icon: WandSparkles, under: "studio", menuLabel: "Dùng AI", hint: "AI viết truyện từ ý tưởng của bạn, bạn duyệt từng bước" },
-  { id: "authoring", label: "Thủ công", icon: PencilLine, under: "studio", hint: "Bạn tự viết truyện (có thể tải tệp lên), tự kiểm tra rồi giao cho bé" },
+  // Hai cách tạo truyện là hai nút riêng, tên song song: Viết bằng AI (Studio) và Tự viết (Thủ công).
+  { id: "studio", label: "Viết truyện bằng AI", short: "Viết bằng AI", icon: WandSparkles, hint: "AI viết truyện từ ý tưởng của bạn, bạn duyệt từng bước" },
+  { id: "authoring", label: "Tự viết truyện", short: "Tự viết", icon: PencilLine, hint: "Bạn tự viết truyện (có thể tải tệp lên), tự kiểm tra rồi giao cho bé" },
   { id: "created", label: "Truyện của tôi", icon: FolderOpen, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở" },
-  { id: "roadmap", label: "Lộ trình của con", short: "Lộ trình", icon: Route },
-  { id: "review", label: "Duyệt nội dung", short: "Xem và duyệt", icon: Inbox },
+  { id: "roadmap", label: "Học tập của bé", short: "Học tập", icon: GraduationCap },
   // Mở từ menu avatar: nhóm của bé (ít dùng hằng ngày), rồi nhóm tài khoản.
   { id: "children", label: "Hồ sơ bé", icon: Users, inMenu: "kids" },
   { id: "report", label: "Báo cáo", icon: ChartColumn, inMenu: "kids" },
@@ -38,4 +37,6 @@ export const WORKSPACES: WorkspaceEntry[] = [
 export type WorkspaceProps = {
   go: (id: WorkspaceId, target?: { storyId: number | null }) => void;
   resumeStoryId?: number | null;
+  /** Vào chế độ của bé; có storyId thì mở thẳng truyện đó ("Cho bé đọc truyện này"). */
+  onKid?: (childId: number, storyId?: number | null) => void;
 };

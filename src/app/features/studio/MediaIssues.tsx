@@ -21,6 +21,12 @@ export default function MediaIssues({ progress, pack, onSelectScene }: {
   const reasons = [...new Set(waiting.map(issue => mediaIssueReason(issue.errorCode)).filter((x): x is string => !!x))];
   const retryTimes = waiting.map(issue => timeOf(issue.nextRetryAt)).filter((x): x is Date => !!x).sort((a, b) => a.getTime() - b.getTime());
   const codes = [...new Set(waiting.map(issue => issue.errorCode))];
+  // Các mục lỗi cùng một thông báo (vd. bị giới hạn lượt) gom vào một thẻ, các cảnh bị ảnh hưởng hiện thành chip.
+  const failedGroups = [...failed.reduce((map, issue) => {
+    const message = mediaIssueMessage(issue);
+    map.set(message, [...(map.get(message) ?? []), issue]);
+    return map;
+  }, new Map<string, MediaGenerationIssue[]>())].map(([message, items]) => ({ message, items }));
 
   const title = !issues.length ? 'Chưa hoàn thành gói media'
     : failed.length ? `${failed.length + waiting.length} mục media cần kiểm tra`
@@ -39,13 +45,14 @@ export default function MediaIssues({ progress, pack, onSelectScene }: {
         <details><summary>Chi tiết kỹ thuật</summary>
           <small>Mã: {codes.join(', ')} · Asset: {waiting.map(issue => `#${issue.assetId}`).join(', ')}</small></details>
       </div>}
-      {failed.length > 0 && <ul>{failed.map(issue => {
-        const retryAt = timeOf(issue.nextRetryAt);
-        return <li className="notice err" key={issue.assetId}>
-          {onSelectScene ? <button className="btn btn-s" onClick={() => onSelectScene(issue.sceneId, issue.sceneIndex)}>{mediaIssueLabel(issue)}</button> : <strong>{mediaIssueLabel(issue)}</strong>}
-          <p>{mediaIssueMessage(issue)}</p>
+      {failedGroups.length > 0 && <ul>{failedGroups.map(group => {
+        const retryAt = group.items.map(issue => timeOf(issue.nextRetryAt)).filter((x): x is Date => !!x).sort((x, y) => x.getTime() - y.getTime())[0];
+        return <li className="notice err" key={group.message}>
+          <p>{group.message}</p>
+          <div className="media-chips">{group.items.map(pick)}</div>
           {retryAt && <small>Thử lại từ {retryAt.toLocaleTimeString('vi-VN')}.</small>}
-          <details><summary>Chi tiết kỹ thuật</summary><small>Mã: {issue.errorCode} · Asset #{issue.assetId}{issue.attemptCount > 0 ? ` · Lượt sinh: ${issue.attemptCount}` : ''}</small></details>
+          <details><summary>Chi tiết kỹ thuật</summary>
+            <small>Mã: {[...new Set(group.items.map(issue => issue.errorCode))].join(", ")} · Asset {group.items.map(issue => `#${issue.assetId}`).join(', ')}</small></details>
         </li>;
       })}</ul>}
     </> : <p className="notice err">Lỗi gói media ({progress?.errorCode}). API chưa cung cấp vị trí lỗi cụ thể; chưa thể xác định cảnh bị ảnh hưởng.</p>}

@@ -1001,6 +1001,7 @@ export interface ModerationItemDetailDto {
   'slaDueAt': string | null;
   'isOverdue': boolean;
   'claimedByUserId': number | null;
+  'claimedByName': string | null;
   'claimedAt': string | null;
   'claimExpiresAt': string | null;
   'createdAt': string;
@@ -1025,6 +1026,7 @@ export interface ModerationItemSummaryDto {
   'slaDueAt': string | null;
   'isOverdue': boolean;
   'claimedByUserId': number | null;
+  'claimedByName': string | null;
   'claimedAt': string | null;
   'claimExpiresAt': string | null;
   'createdAt': string;
@@ -1359,6 +1361,10 @@ export interface PublicReviewHistoryEntryDto {
 }
 
 export interface PublicReviewIllustrationDto {
+  /** AiGenerated hoặc nguồn Creator tải lên. */
+  'source'?: string;
+  'sourceDeclaration'?: string | null;
+  'rightsDeclaration'?: string | null;
   'beatOrder': number;
   'visualFocus': string;
   'assetId': number | null;
@@ -1378,11 +1384,15 @@ export interface PublicReviewPackageDto {
   'storyVersionId': number;
   'versionNo': number;
   'isResubmission': boolean;
+  /** Nhãn do Creator đề xuất khi gửi duyệt; Moderator không tự gắn nhãn cho truyện công khai. */
+  'proposedLabels': (PublicReviewLabelDto)[];
   'story': PublicReviewStoryDto;
   'version': PublicReviewVersionDto;
   'scenes': (PublicReviewSceneDto)[];
   'vocabulary': (PublicReviewVocabularyDto)[];
   'quizzes': (PublicReviewQuizDto)[];
+  /** Tương tác khi nghe của phiên bản đang duyệt. */
+  'listeningInteractions'?: (PublicReviewListeningDto)[];
   'discussionQuestions': (PublicReviewDiscussionDto)[];
   'flags': (PublicReviewFlagDto)[];
   'allFlagsResolved': boolean;
@@ -1392,6 +1402,37 @@ export interface PublicReviewPackageDto {
   'canApprove': boolean;
   'previousModeratorName': string | null;
   'reviewHistory': (PublicReviewHistoryEntryDto)[];
+}
+
+export interface PublicReviewListeningOptionDto {
+  id: number;
+  sortOrder: number;
+  text: string;
+  feedback: string | null;
+  isMatch: boolean;
+  correctOrder: number | null;
+  sourceQuote: string | null;
+  imageDescription: string | null;
+  imageUrl: string | null;
+}
+
+export interface PublicReviewListeningDto {
+  id: number;
+  type: string;
+  kind: string | null;
+  storySceneId: number | null;
+  anchorOffset: number;
+  prompt: string | null;
+  sourceQuote: string | null;
+  characterName: string | null;
+  hiddenWord: string | null;
+  hint: string | null;
+  revealOffset: number | null;
+  explanation: string | null;
+  matchFeedback: string | null;
+  noMatchFeedback: string | null;
+  waitFeedback: string | null;
+  options: (PublicReviewListeningOptionDto)[];
 }
 
 export interface PublicReviewProgressDto {
@@ -1422,6 +1463,10 @@ export interface PublicReviewSceneDto {
 }
 
 export interface PublicReviewSegmentDto {
+  'audioSource'?: string;
+  'requiresFullAudioReview'?: boolean;
+  'sourceDeclaration'?: string | null;
+  'rightsDeclaration'?: string | null;
   'segmentId': number;
   'segmentOrder': number;
   'text': string;
@@ -2283,6 +2328,7 @@ export interface CreatorPublicationResult {
 }
 
 export interface CreatorPublicationStatus {
+  'safetyCheck'?: CreatorSafetyCheckDto;
   'storyId': number;
   'versionId': number;
   'isPublished': boolean;
@@ -2290,9 +2336,19 @@ export interface CreatorPublicationStatus {
   'openItemId': number | null;
   'openItemType': string | null;
   'openItemStatus': string | null;
-  'labels'?: PublicReviewLabelDto[];
-  'lastProposedLabels'?: PublicReviewLabelDto[];
+  /** true khi Moderator trả về chỉ vì phần thông tin chung (nhãn): Creator chọn lại nhãn và gửi lại ngay trên phiên bản này, không cần sửa truyện hay tạo lại media. */
   'canResubmitLabels'?: boolean;
+  /** Được gửi lại cùng phiên bản sau khi rút yêu cầu lúc Pending; không mở quyền sửa content/media. */
+  'canResubmitWithdrawn'?: boolean;
+  /** Nhãn đang gắn cho truyện. */
+  'labels'?: (PublicReviewLabelDto)[];
+  /** Bộ nhãn của lần gửi duyệt gần nhất. */
+  'lastProposedLabels'?: (PublicReviewLabelDto)[];
+}
+export interface CreatorSafetyCheckDto {
+  required: boolean;
+  state: 'NotChecked' | 'Current' | 'Stale' | 'Unavailable';
+  zone: 'Safe' | 'GrayZone' | 'HardBlock' | null;
 }
 
 export interface CreatorRemovalRequest {

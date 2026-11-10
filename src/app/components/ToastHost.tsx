@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CircleAlert, CircleCheck, Info, X } from "lucide-react";
 
 type Tone = "ok" | "err" | "warn" | "info";
@@ -24,15 +24,15 @@ export default function ToastHost() {
   const lastText = useRef(new WeakMap<Element, string>());
   const timers = useRef(new Map<number, number>());
 
-  const dismiss = (id: number) => {
+  const dismiss = useCallback((id: number) => {
     window.clearTimeout(timers.current.get(id));
     timers.current.delete(id);
     setItems((cur) => cur.filter((t) => t.id !== id));
-  };
-  const arm = (id: number, ms: number) => {
+  }, []);
+  const arm = useCallback((id: number, ms: number) => {
     window.clearTimeout(timers.current.get(id));
     timers.current.set(id, window.setTimeout(() => dismiss(id), ms));
-  };
+  }, [dismiss]);
 
   useEffect(() => {
     const push = (el: Element) => {
@@ -63,7 +63,7 @@ export default function ToastHost() {
     document.querySelectorAll(NOTICE).forEach(push);
     const pending = timers.current;
     return () => { observer.disconnect(); pending.forEach((t) => window.clearTimeout(t)); pending.clear(); };
-  }, []);
+  }, [arm]);
 
   if (items.length === 0) return null;
   return (

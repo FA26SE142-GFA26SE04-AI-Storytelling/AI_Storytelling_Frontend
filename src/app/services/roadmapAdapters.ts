@@ -13,11 +13,20 @@ export function roadmapItems(dto: B.ChildRoadmapDto): RoadmapItem[] {
     openedAt: i.openedAt, completedAt: i.completedAt, skipReason: i.skipReason as RoadmapItem['skipReason'], isStoryAvailable: i.isStoryAvailable,
   }));
 }
+/** Backend trả một số cảnh báo dạng mã; các cảnh báo khác đã là câu tiếng Việt. */
+const WARNING_TEXT: Record<string, string> = {
+  reading_level_differs: 'Mức đọc của truyện khác mức đọc của bé. Bé vẫn đọc được, bạn có thể đồng hành cùng bé.',
+  reading_level_outside_range: 'Mức đọc của bé nằm ngoài khoảng mức đọc của lộ trình này.',
+};
+export const roadmapWarningText = (w: string) => WARNING_TEXT[w] ?? w;
+const warningsOf = (childProfileId: number, list: string[], children: ChildRef[]) =>
+  list.map(w => ({ childProfileId, nickname: children.find(c => c.id === childProfileId)?.nickname ?? `#${childProfileId}`, text: roadmapWarningText(w) }));
+
 export function roadmapAddResult(dto: B.AddRoadmapStoryResultDto, children: ChildRef[]): RoadmapAddResult {
   return {
     added: dto.results.filter(i => i.itemId !== null && ['Added', 'MovedToNext'].includes(i.outcome)).map(i => ({ childProfileId: i.childProfileId, itemId: i.itemId!, moved: i.outcome === 'MovedToNext' })),
     skipped: dto.results.filter(i => !['Added', 'MovedToNext'].includes(i.outcome)).map(i => ({ childProfileId: i.childProfileId, nickname: children.find(c => c.id === i.childProfileId)?.nickname ?? `#${i.childProfileId}`, reason: i.message ?? i.skipCode ?? i.outcome })),
-    warnings: dto.results.flatMap(i => i.warnings.map(w => `${children.find(c => c.id === i.childProfileId)?.nickname ?? i.childProfileId}: ${w}`)),
+    warnings: dto.results.flatMap(i => warningsOf(i.childProfileId, i.warnings, children)),
   };
 }
 export function roadmapTemplate(dto: B.RoadmapLibraryDetailDto): RoadmapTemplate {
@@ -30,6 +39,6 @@ export function roadmapCopyResult(dto: B.RoadmapCopyPlanDto, children: ChildRef[
   return {
     added: dto.children.flatMap(c => c.outcome === 'Copied' ? c.steps.filter(s => s.action === 'Copy').map(() => ({ childProfileId: c.childProfileId, itemId: null, moved: false })) : []),
     skipped: dto.children.flatMap(c => c.outcome !== 'Copied' ? [{ childProfileId: c.childProfileId, nickname: children.find(k => k.id === c.childProfileId)?.nickname ?? `#${c.childProfileId}`, reason: c.message ?? c.skipCode ?? c.outcome }] : c.steps.filter(s => s.action === 'Skip').map(s => ({ childProfileId: c.childProfileId, nickname: children.find(k => k.id === c.childProfileId)?.nickname ?? `#${c.childProfileId}`, reason: `${s.title ?? s.storyId}: ${s.message ?? s.skipCode ?? s.action}` }))),
-    warnings: dto.children.flatMap(c => c.warnings.map(w => `${children.find(k => k.id === c.childProfileId)?.nickname ?? c.childProfileId}: ${w}`)),
+    warnings: dto.children.flatMap(c => warningsOf(c.childProfileId, c.warnings, children)),
   };
 }

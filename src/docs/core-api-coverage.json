@@ -915,8 +915,19 @@
     "controller": "ChildAccessCredentialController.cs",
     "action": "GetStoryHandoverOptions",
     "controllerLine": 78,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/ChildAccessCredential/story-handover",
+        "service": "childAccessService",
+        "operation": "storyHandoverOptions",
+        "file": "app/services/childAccessService.ts",
+        "line": 35,
+        "callers": [
+          "app/features/kid/StoryHandoverButton.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -925,8 +936,19 @@
     "controller": "ChildAccessCredentialController.cs",
     "action": "StartStoryHandover",
     "controllerLine": 92,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/ChildAccessCredential/{}/handover-story",
+        "service": "childAccessService",
+        "operation": "startStoryHandover",
+        "file": "app/services/childAccessService.ts",
+        "line": 41,
+        "callers": [
+          "app/features/kid/KidMode.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -941,7 +963,7 @@
         "service": "childAccessService",
         "operation": "loginWithEasyLogin",
         "file": "app/services/childAccessService.ts",
-        "line": 34,
+        "line": 45,
         "callers": [
           "app/features/kid/KidEntry.tsx"
         ]
@@ -962,7 +984,7 @@
         "service": "childAccessService",
         "operation": "getSessionProfile",
         "file": "app/services/childAccessService.ts",
-        "line": 38,
+        "line": 49,
         "callers": [
           "app/features/kid/ConnectedKidHome.tsx",
           "app/features/kid/KidEntry.tsx"
@@ -973,7 +995,7 @@
         "service": "childAccessService",
         "operation": "checkSession",
         "file": "app/services/childAccessService.ts",
-        "line": 49,
+        "line": 60,
         "callers": [
           "app/features/kid/useKidSession.ts"
         ]
@@ -1036,7 +1058,7 @@
         "service": "childNotebookService",
         "operation": "collect",
         "file": "app/services/childReadingService.ts",
-        "line": 33,
+        "line": 44,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1057,7 +1079,7 @@
         "service": "childNotebookService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 32,
+        "line": 43,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx"
         ]
@@ -1078,7 +1100,7 @@
         "service": "childNotebookService",
         "operation": "remove",
         "file": "app/services/childReadingService.ts",
-        "line": 34,
+        "line": 45,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx"
         ]
@@ -1092,7 +1114,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildPackageAssetsController.cs",
     "action": "Get",
-    "controllerLine": 18,
+    "controllerLine": 17,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -1334,7 +1356,7 @@
         "service": "childQuizService",
         "operation": "get",
         "file": "app/services/childReadingService.ts",
-        "line": 20,
+        "line": 29,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1355,7 +1377,7 @@
         "service": "childQuizService",
         "operation": "answer",
         "file": "app/services/childReadingService.ts",
-        "line": 21,
+        "line": 30,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1376,7 +1398,7 @@
         "service": "childQuizService",
         "operation": "result",
         "file": "app/services/childReadingService.ts",
-        "line": 22,
+        "line": 31,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1439,7 +1461,7 @@
         "service": "childReadingService",
         "operation": "content",
         "file": "app/services/childReadingService.ts",
-        "line": 7,
+        "line": 8,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1460,7 +1482,7 @@
         "service": "childReadingService",
         "operation": "progress",
         "file": "app/services/childReadingService.ts",
-        "line": 8,
+        "line": 9,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1481,7 +1503,7 @@
         "service": "childReadingService",
         "operation": "complete",
         "file": "app/services/childReadingService.ts",
-        "line": 9,
+        "line": 10,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1502,7 +1524,7 @@
         "service": "childReadingService",
         "operation": "bookmark",
         "file": "app/services/childReadingService.ts",
-        "line": 10,
+        "line": 11,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1523,7 +1545,7 @@
         "service": "childReadingService",
         "operation": "favorite",
         "file": "app/services/childReadingService.ts",
-        "line": 11,
+        "line": 12,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1538,8 +1560,19 @@
     "controller": "ChildReadingController.cs",
     "action": "SetListenOnly",
     "controllerLine": 119,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "PUT /api/v1/child/reading/sessions/{}/listen-only",
+        "service": "childReadingService",
+        "operation": "listenOnly",
+        "file": "app/services/childReadingService.ts",
+        "line": 17,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -1548,8 +1581,19 @@
     "controller": "ChildReadingController.cs",
     "action": "SubmitListeningAttempt",
     "controllerLine": 128,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/reading/sessions/{}/interactions/{}/attempts",
+        "service": "childReadingService",
+        "operation": "attempt",
+        "file": "app/services/childReadingService.ts",
+        "line": 19,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "PUT",
@@ -1564,7 +1608,7 @@
         "service": "childReadingService",
         "operation": "feeling",
         "file": "app/services/childReadingService.ts",
-        "line": 16,
+        "line": 25,
         "callers": [
           "app/features/kid/KidAfterReading.tsx"
         ]
@@ -1585,7 +1629,7 @@
         "service": "childReadingService",
         "operation": "signal",
         "file": "app/services/childReadingService.ts",
-        "line": 12,
+        "line": 13,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1606,7 +1650,7 @@
         "service": "childReadingService",
         "operation": "event",
         "file": "app/services/childReadingService.ts",
-        "line": 13,
+        "line": 14,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1627,7 +1671,7 @@
         "service": "childReadingService",
         "operation": "definition",
         "file": "app/services/childReadingService.ts",
-        "line": 14,
+        "line": 15,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1658,7 +1702,7 @@
         "service": "childRewardsService",
         "operation": "get",
         "file": "app/services/childReadingService.ts",
-        "line": 25,
+        "line": 34,
         "callers": [
           "app/features/kid/KidAfterReading.tsx",
           "app/features/kid/KidRewards.tsx"
@@ -1674,8 +1718,19 @@
     "controller": "ChildRewardsController.cs",
     "action": "WaterKnowledgeTree",
     "controllerLine": 45,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/rewards/knowledge-tree/water",
+        "service": "childRewardsService",
+        "operation": "water",
+        "file": "app/services/childReadingService.ts",
+        "line": 36,
+        "callers": [
+          "app/features/kid/KidRewards.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -1715,8 +1770,7 @@
         "line": 7,
         "callers": [
           "app/services/guardianService.ts",
-          "app/features/home/ChildCard.tsx",
-          "app/features/roadmap/RoadmapWorkspace.tsx"
+          "app/features/learning/LearningWorkspace.tsx"
         ]
       }
     ],
@@ -1738,7 +1792,7 @@
         "line": 9,
         "callers": [
           "app/services/guardianService.ts",
-          "app/features/roadmap/RoadmapWorkspace.tsx"
+          "app/features/learning/RoadmapTab.tsx"
         ]
       }
     ],
@@ -1760,7 +1814,7 @@
         "line": 10,
         "callers": [
           "app/services/guardianService.ts",
-          "app/features/roadmap/RoadmapWorkspace.tsx"
+          "app/features/learning/RoadmapTab.tsx"
         ]
       }
     ],
@@ -1782,7 +1836,7 @@
         "line": 11,
         "callers": [
           "app/services/guardianService.ts",
-          "app/features/roadmap/RoadmapWorkspace.tsx"
+          "app/features/learning/RoadmapTab.tsx"
         ]
       }
     ],
@@ -1795,8 +1849,19 @@
     "controller": "ChildStorySummaryController.cs",
     "action": "SendRecording",
     "controllerLine": 41,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/reading/sessions/{}/summary/recording",
+        "service": "childReadingService",
+        "operation": "summaryRecording",
+        "file": "app/services/childReadingService.ts",
+        "line": 21,
+        "callers": [
+          "app/features/kid/KidSummary.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -1805,8 +1870,19 @@
     "controller": "ChildStorySummaryController.cs",
     "action": "SendFlags",
     "controllerLine": 67,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/reading/sessions/{}/summary/flags",
+        "service": "childReadingService",
+        "operation": "summaryFlags",
+        "file": "app/services/childReadingService.ts",
+        "line": 23,
+        "callers": [
+          "app/features/kid/KidSummary.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -1821,7 +1897,7 @@
         "service": "childWishService",
         "operation": "cards",
         "file": "app/services/storyWishService.ts",
-        "line": 8,
+        "line": 9,
         "callers": [
           "app/features/kid/KidWish.tsx"
         ]
@@ -1842,7 +1918,7 @@
         "service": "childWishService",
         "operation": "startDraft",
         "file": "app/services/storyWishService.ts",
-        "line": 11,
+        "line": 12,
         "callers": [
           "app/features/kid/KidWish.tsx"
         ]
@@ -1863,7 +1939,7 @@
         "service": "childWishService",
         "operation": "selectCard",
         "file": "app/services/storyWishService.ts",
-        "line": 13,
+        "line": 14,
         "callers": [
           "app/features/kid/KidWish.tsx"
         ]
@@ -1884,7 +1960,7 @@
         "service": "childWishService",
         "operation": "submit",
         "file": "app/services/storyWishService.ts",
-        "line": 15,
+        "line": 16,
         "callers": [
           "app/features/kid/KidWish.tsx"
         ]
@@ -1905,7 +1981,7 @@
         "service": "childWishService",
         "operation": "mine",
         "file": "app/services/storyWishService.ts",
-        "line": 18,
+        "line": 19,
         "callers": [
           "app/features/kid/KidWish.tsx"
         ]
@@ -2283,6 +2359,7 @@
         "line": 26,
         "callers": [
           "app/features/staff/AdminCatalog.tsx",
+          "app/features/staff/CreatorPublication.tsx",
           "app/features/staff/ReviewPanel.tsx",
           "app/features/staff/RoadmapTemplates.tsx",
           "app/features/staff/WishCardManagement.tsx"
@@ -2347,7 +2424,7 @@
         "service": "guardianService",
         "operation": "reportStory",
         "file": "app/services/guardianService.ts",
-        "line": 78,
+        "line": 49,
         "callers": [
           "app/features/library/ModerationDialogs.tsx"
         ]
@@ -2452,7 +2529,7 @@
         "service": "creatorInputService",
         "operation": "context",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 19,
+        "line": 20,
         "callers": [
           "app/features/staff/CreatorGeneration.tsx"
         ]
@@ -2473,7 +2550,7 @@
         "service": "creatorInputService",
         "operation": "submit",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 20,
+        "line": 21,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -2494,7 +2571,7 @@
         "service": "creatorInputService",
         "operation": "progress",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 21,
+        "line": 22,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -2515,7 +2592,7 @@
         "service": "creatorInputService",
         "operation": "retry",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 22,
+        "line": 23,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -2749,7 +2826,7 @@
         "file": "app/services/creatorPublicationService.ts",
         "line": 5,
         "callers": [
-          "app/features/staff/CreatorManualMedia.tsx"
+          "app/features/staff/CreatorContentCheck.tsx"
         ]
       }
     ],
@@ -2815,7 +2892,8 @@
         "callers": [
           "app/features/staff/CreatorEditor.tsx",
           "app/features/staff/CreatorGeneration.tsx",
-          "app/features/staff/CreatorPreview.tsx"
+          "app/features/staff/CreatorPreview.tsx",
+          "app/features/staff/CreatorPublication.tsx"
         ]
       }
     ],
@@ -2975,7 +3053,7 @@
     "authorization": "Roles = \"ContentCreator\"",
     "controller": "CreatorMediaUploadsController.cs",
     "action": "UploadImage",
-    "controllerLine": 19,
+    "controllerLine": 18,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -2985,7 +3063,7 @@
     "authorization": "Roles = \"ContentCreator\"",
     "controller": "CreatorMediaUploadsController.cs",
     "action": "UploadAudio",
-    "controllerLine": 24,
+    "controllerLine": 23,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -2995,7 +3073,7 @@
     "authorization": "Roles = \"ContentCreator\"",
     "controller": "CreatorMediaUploadsController.cs",
     "action": "GenerateImage",
-    "controllerLine": 30,
+    "controllerLine": 29,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -3005,7 +3083,7 @@
     "authorization": "Roles = \"ContentCreator\"",
     "controller": "CreatorMediaUploadsController.cs",
     "action": "GenerateAudio",
-    "controllerLine": 35,
+    "controllerLine": 34,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -3024,6 +3102,7 @@
         "file": "app/services/creatorPublicationService.ts",
         "line": 7,
         "callers": [
+          "app/features/staff/CreatorContentCheck.tsx",
           "app/features/staff/CreatorPublication.tsx"
         ]
       }
@@ -3045,8 +3124,9 @@
         "file": "app/services/creatorPublicationService.ts",
         "line": 6,
         "callers": [
+          "app/features/staff/CreatorContentCheck.tsx",
           "app/features/staff/CreatorLibrary.tsx",
-          "app/features/staff/CreatorManualMedia.tsx",
+          "app/features/staff/CreatorMyStories.tsx",
           "app/features/staff/CreatorPublication.tsx"
         ]
       }
@@ -3066,9 +3146,10 @@
         "service": "creatorPublicationService",
         "operation": "remove",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 15,
+        "line": 16,
         "callers": [
-          "app/features/staff/CreatorPublication.tsx"
+          "app/features/staff/CreatorPublication.tsx",
+          "app/features/staff/RemovalRequestDialog.tsx"
         ]
       }
     ],
@@ -3087,7 +3168,7 @@
         "service": "creatorPublicationService",
         "operation": "revision",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 16,
+        "line": 17,
         "callers": [
           "app/features/staff/CreatorPublication.tsx"
         ]
@@ -3369,8 +3450,7 @@
         "line": 74,
         "callers": [
           "app/features/children/LearningTab.tsx",
-          "app/features/children/ProfileTab.tsx",
-          "app/features/home/ChildCard.tsx"
+          "app/features/children/ProfileTab.tsx"
         ]
       }
     ],
@@ -3410,10 +3490,9 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 143,
         "callers": [
-          "app/features/authoring/ParentManualMedia.tsx",
           "app/features/staff/CreatorGeneration.tsx",
-          "app/features/staff/CreatorManualMedia.tsx",
           "app/features/story-workflow/resumeStory.ts",
+          "app/features/studio/MediaProgress.tsx",
           "app/features/studio/useStoryPipeline.ts"
         ]
       }
@@ -3435,8 +3514,8 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 144,
         "callers": [
+          "app/features/created/CoverPickerDialog.tsx",
           "app/features/library/LibraryWorkspace.tsx",
-          "app/features/staff/CreatorManualMedia.tsx",
           "app/features/story-workflow/useMediaPackage.ts",
           "app/features/story-workflow/useStudioMediaPreview.ts"
         ]
@@ -3523,9 +3602,8 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 145,
         "callers": [
-          "app/features/authoring/ParentManualMedia.tsx",
           "app/features/staff/CreatorGeneration.tsx",
-          "app/features/staff/CreatorManualMedia.tsx",
+          "app/features/studio/MediaProgress.tsx",
           "app/features/studio/StudioMedia.tsx"
         ]
       }
@@ -3910,7 +3988,7 @@
         "service": "guardianService",
         "operation": "notifications",
         "file": "app/services/guardianService.ts",
-        "line": 101,
+        "line": 72,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -3931,7 +4009,7 @@
         "service": "guardianService",
         "operation": "unreadNotificationCount",
         "file": "app/services/guardianService.ts",
-        "line": 112,
+        "line": 83,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -3952,7 +4030,7 @@
         "service": "guardianService",
         "operation": "markNotificationRead",
         "file": "app/services/guardianService.ts",
-        "line": 105,
+        "line": 76,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -3973,7 +4051,7 @@
         "service": "guardianService",
         "operation": "markAllNotificationsRead",
         "file": "app/services/guardianService.ts",
-        "line": 108,
+        "line": 79,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -3994,7 +4072,7 @@
         "service": "guardianService",
         "operation": "deleteNotification",
         "file": "app/services/guardianService.ts",
-        "line": 116,
+        "line": 87,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -4419,8 +4497,7 @@
         "line": 7,
         "callers": [
           "app/features/authoring/useParentAuthoring.ts",
-          "app/features/created/CreatedStories.tsx",
-          "app/features/library/LibraryWorkspace.tsx"
+          "app/features/created/CreatedStories.tsx"
         ]
       }
     ],
@@ -4592,10 +4669,12 @@
         "operation": "previewImport",
         "file": "app/services/parentAuthoringService.ts",
         "line": 15,
-        "callers": []
+        "callers": [
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -4790,7 +4869,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentPackageAssetsController.cs",
     "action": "Get",
-    "controllerLine": 15,
+    "controllerLine": 14,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4807,9 +4886,9 @@
         "service": "parentReadingFeedbackService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 29,
+        "line": 40,
         "callers": [
-          "app/features/home/ReadingFeedback.tsx"
+          "app/features/learning/learningData.ts"
         ]
       }
     ],
@@ -4821,7 +4900,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentStoryPackagesController.cs",
     "action": "FinalizeContent",
-    "controllerLine": 12,
+    "controllerLine": 11,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4831,7 +4910,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Reopen",
-    "controllerLine": 15,
+    "controllerLine": 14,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4841,7 +4920,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Create",
-    "controllerLine": 18,
+    "controllerLine": 17,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4851,7 +4930,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentStoryPackagesController.cs",
     "action": "List",
-    "controllerLine": 22,
+    "controllerLine": 21,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4861,7 +4940,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Get",
-    "controllerLine": 25,
+    "controllerLine": 24,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4871,7 +4950,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Generate",
-    "controllerLine": 28,
+    "controllerLine": 27,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4881,7 +4960,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Retry",
-    "controllerLine": 32,
+    "controllerLine": 31,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4891,7 +4970,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Revise",
-    "controllerLine": 35,
+    "controllerLine": 34,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4901,7 +4980,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Preview",
-    "controllerLine": 38,
+    "controllerLine": 37,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4911,7 +4990,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Confirm",
-    "controllerLine": 41,
+    "controllerLine": 40,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4921,7 +5000,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Deliver",
-    "controllerLine": 44,
+    "controllerLine": 43,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -4932,8 +5011,19 @@
     "controller": "ParentStorySummaryController.cs",
     "action": "List",
     "controllerLine": 20,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/ParentStorySummary/{}",
+        "service": "parentStorySummaryService",
+        "operation": "list",
+        "file": "app/services/childReadingService.ts",
+        "line": 50,
+        "callers": [
+          "app/features/learning/learningData.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "DELETE",
@@ -4942,8 +5032,19 @@
     "controller": "ParentStorySummaryController.cs",
     "action": "Delete",
     "controllerLine": 29,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/ParentStorySummary/{}/{}",
+        "service": "parentStorySummaryService",
+        "operation": "remove",
+        "file": "app/services/childReadingService.ts",
+        "line": 51,
+        "callers": [
+          "app/features/learning/ResultsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -4958,9 +5059,9 @@
         "service": "parentWishService",
         "operation": "suggestions",
         "file": "app/services/storyWishService.ts",
-        "line": 28,
+        "line": 32,
         "callers": [
-          "app/features/home/WishItem.tsx"
+          "app/features/learning/WishItem.tsx"
         ]
       }
     ],
@@ -4979,9 +5080,9 @@
         "service": "parentWishService",
         "operation": "list",
         "file": "app/services/storyWishService.ts",
-        "line": 24,
+        "line": 25,
         "callers": [
-          "app/features/home/HomeWorkspace.tsx"
+          "app/features/learning/learningData.ts"
         ]
       }
     ],
@@ -5000,11 +5101,13 @@
         "service": "parentWishService",
         "operation": "get",
         "file": "app/services/storyWishService.ts",
-        "line": 26,
-        "callers": []
+        "line": 27,
+        "callers": [
+          "app/features/learning/WishesTab.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -5019,7 +5122,7 @@
         "service": "parentWishService",
         "operation": "generationForm",
         "file": "app/services/storyWishService.ts",
-        "line": 30,
+        "line": 34,
         "callers": [
           "app/features/studio/BriefForm.tsx"
         ]
@@ -5040,7 +5143,7 @@
         "service": "parentWishService",
         "operation": "createStory",
         "file": "app/services/storyWishService.ts",
-        "line": 33,
+        "line": 37,
         "callers": [
           "app/features/story-workflow/useAIStoryInputFlow.ts"
         ]
@@ -5055,8 +5158,19 @@
     "controller": "ParentWishesController.cs",
     "action": "GetGenerationProgress",
     "controllerLine": 45,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/wishes/{}/generation",
+        "service": "parentWishService",
+        "operation": "generation",
+        "file": "app/services/storyWishService.ts",
+        "line": 30,
+        "callers": [
+          "app/features/learning/WishesTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -5071,9 +5185,9 @@
         "service": "parentWishService",
         "operation": "useExisting",
         "file": "app/services/storyWishService.ts",
-        "line": 36,
+        "line": 40,
         "callers": [
-          "app/features/home/WishItem.tsx"
+          "app/features/learning/WishItem.tsx"
         ]
       }
     ],
@@ -5092,9 +5206,9 @@
         "service": "parentWishService",
         "operation": "decline",
         "file": "app/services/storyWishService.ts",
-        "line": 38,
+        "line": 42,
         "callers": [
-          "app/features/home/WishItem.tsx"
+          "app/features/learning/WishItem.tsx"
         ]
       }
     ],
@@ -5113,7 +5227,7 @@
         "service": "childAccessService",
         "operation": "verifyParentalGate",
         "file": "app/services/childAccessService.ts",
-        "line": 59,
+        "line": 70,
         "callers": [
           "app/features/kid/ParentalGate.tsx"
         ]
@@ -5412,7 +5526,7 @@
         "service": "creatorPublicationService",
         "operation": "submit",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 12,
+        "line": 13,
         "callers": [
           "app/features/staff/CreatorPublication.tsx"
         ]
@@ -5433,7 +5547,7 @@
         "service": "creatorPublicationService",
         "operation": "withdraw",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 14,
+        "line": 15,
         "callers": [
           "app/features/staff/CreatorPublication.tsx"
         ]
@@ -6094,8 +6208,7 @@
         "file": "app/services/roadmapService.ts",
         "line": 12,
         "callers": [
-          "app/services/guardianService.ts",
-          "app/features/roadmap/RoadmapWorkspace.tsx"
+          "app/features/roadmap/roadmapData.ts"
         ]
       }
     ],
@@ -6116,8 +6229,7 @@
         "file": "app/services/roadmapService.ts",
         "line": 13,
         "callers": [
-          "app/services/guardianService.ts",
-          "app/features/roadmap/RoadmapWorkspace.tsx"
+          "app/features/roadmap/roadmapData.ts"
         ]
       }
     ],
@@ -6541,7 +6653,6 @@
         "line": 91,
         "callers": [
           "app/features/children/ProfileTab.tsx",
-          "app/features/home/ChildCard.tsx",
           "app/features/kid/KidMode.tsx",
           "app/features/roadmap/AddToRoadmapDialog.tsx",
           "app/features/safety/SafetyWorkspace.tsx"
@@ -6770,6 +6881,60 @@
   },
   {
     "method": "GET",
+    "route": "/api/v1/Story/community",
+    "authorization": "Roles = \"User,ContentCreator,Moderator,Administrator\"",
+    "controller": "StoryCommunityController.cs",
+    "action": "GetStories",
+    "controllerLine": 26,
+    "evidence": [
+      {
+        "key": "GET /api/v1/Story/community",
+        "service": "storyService",
+        "operation": "getCommunityStories",
+        "file": "app/services/storyService.ts",
+        "line": 32,
+        "callers": [
+          "app/features/library/LibraryWorkspace.tsx",
+          "app/features/roadmap/roadmapData.ts"
+        ]
+      },
+      {
+        "key": "GET /api/v1/Story/community",
+        "service": "storyService",
+        "operation": "getCommunityStories",
+        "file": "app/services/storyService.ts",
+        "line": 32,
+        "callers": [
+          "app/features/library/LibraryWorkspace.tsx",
+          "app/features/roadmap/roadmapData.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Story/community/{id}/media",
+    "authorization": "Roles = \"User,ContentCreator,Moderator,Administrator\"",
+    "controller": "StoryCommunityController.cs",
+    "action": "GetStoryMedia",
+    "controllerLine": 35,
+    "evidence": [
+      {
+        "key": "GET /api/v1/Story/community/{}/media",
+        "service": "storyService",
+        "operation": "getCommunityStoryMedia",
+        "file": "app/services/storyService.ts",
+        "line": 48,
+        "callers": [
+          "app/features/library/LibraryWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
     "route": "/api/v1/Story",
     "authorization": "AllowAnonymous",
     "controller": "StoryController.cs",
@@ -6816,10 +6981,10 @@
         "service": "storyService",
         "operation": "getStoryById",
         "file": "app/services/storyService.ts",
-        "line": 26,
+        "line": 52,
         "callers": [
           "app/features/library/LibraryWorkspace.tsx",
-          "app/features/library/PersonalStoryEditor.tsx",
+          "app/features/roadmap/roadmapData.ts",
           "app/features/story-workflow/resumeStory.ts"
         ]
       }
@@ -6840,12 +7005,10 @@
         "operation": "create",
         "file": "app/services/storyManagementService.ts",
         "line": 4,
-        "callers": [
-          "app/features/library/PersonalStoryEditor.tsx"
-        ]
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "PUT",
@@ -6861,8 +7024,16 @@
         "operation": "update",
         "file": "app/services/storyManagementService.ts",
         "line": 5,
+        "callers": []
+      },
+      {
+        "key": "PUT /api/v1/Story/{}",
+        "service": "storyService",
+        "operation": "updateStoryInfo",
+        "file": "app/services/storyService.ts",
+        "line": 60,
         "callers": [
-          "app/features/library/PersonalStoryEditor.tsx"
+          "app/features/created/CreatedStories.tsx"
         ]
       }
     ],
@@ -6882,16 +7053,14 @@
         "operation": "remove",
         "file": "app/services/storyManagementService.ts",
         "line": 6,
-        "callers": [
-          "app/features/library/PersonalStoryEditor.tsx"
-        ]
+        "callers": []
       },
       {
         "key": "DELETE /api/v1/Story/{}",
         "service": "storyService",
         "operation": "deleteStory",
         "file": "app/services/storyService.ts",
-        "line": 30,
+        "line": 67,
         "callers": [
           "app/features/created/CreatedStories.tsx"
         ]
@@ -6913,8 +7082,27 @@
         "operation": "publish",
         "file": "app/services/storyManagementService.ts",
         "line": 7,
+        "callers": []
+      }
+    ],
+    "disposition": "SERVICE_ONLY"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/stories/{storyId}/cover",
+    "authorization": "Roles = \"User,ContentCreator\"",
+    "controller": "StoryCoverController.cs",
+    "action": "SetCover",
+    "controllerLine": 24,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/stories/{}/cover",
+        "service": "storyService",
+        "operation": "setCover",
+        "file": "app/services/storyService.ts",
+        "line": 40,
         "callers": [
-          "app/features/library/PersonalStoryEditor.tsx"
+          "app/features/created/CoverPickerDialog.tsx"
         ]
       }
     ],
@@ -6926,7 +7114,7 @@
     "authorization": "Roles = \"User,ContentCreator,Administrator\"",
     "controller": "StoryPackageConfirmationController.cs",
     "action": "Confirm",
-    "controllerLine": 20,
+    "controllerLine": 19,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/confirm-package",
@@ -6998,7 +7186,6 @@
         "file": "app/services/childProfileService.ts",
         "line": 117,
         "callers": [
-          "app/features/home/HomeWorkspace.tsx",
           "app/features/studio/BriefForm.tsx"
         ]
       }
@@ -7041,10 +7228,12 @@
         "operation": "get",
         "file": "app/services/wishCardService.ts",
         "line": 10,
-        "callers": []
+        "callers": [
+          "app/features/staff/WishCardManagement.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -7116,8 +7305,19 @@
     "controller": "WishCardMatchManagementController.cs",
     "action": "MatchWithAi",
     "controllerLine": 14,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/moderation/stories/{}/wish-cards/ai-match",
+        "service": "wishCardService",
+        "operation": "aiMatch",
+        "file": "app/services/wishCardService.ts",
+        "line": 28,
+        "callers": [
+          "app/features/staff/StoryWishCards.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",

@@ -85,4 +85,5 @@ it('keeps the endpoint coverage manifest current, including unresolved connectio
   const gaps=manifest.filter(r=>['MISSING','SERVICE_ONLY'].includes(r.disposition)).map(r=>r.method+' '+r.route).sort();
   expect([...result.missing].sort()).toEqual(gaps);
  }
-});
+// Chạy script audit (vài giây) nên cần thời gian dài hơn mặc định 5 giây khi cả bộ test chạy song song.
+},30000);

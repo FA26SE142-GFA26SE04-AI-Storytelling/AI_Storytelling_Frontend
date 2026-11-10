@@ -44,8 +44,25 @@
 .voc-i { background: var(--surface); border: 1px solid var(--line); border-radius: 20px; padding: 8px 10px; font-size: var(--fs-sm); }
 .voc-i b { color: var(--warn-ink); }
 .voc-i span { display: block; color: var(--muted); font-size: var(--fs-xs); }
-.media-bar { padding: 10px 14px; border-top: 1px solid var(--line); background: var(--panel); font-size: var(--fs-sm); display: flex; align-items: center; gap: 12px; }
-.media-bar { flex-wrap: wrap; max-height: 44vh; overflow-y: auto; }
+.studio-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+.studio-actions:empty { display: none; }
+.studio-actions p { margin: 0; font-size: var(--fs-md); }
+/* Cảnh và các khung phát hành xếp dọc trong cùng vùng cuộn của khung giữa. */
+.board-stack { width: 100%; max-width: 1040px; display: flex; flex-direction: column; align-items: center; gap: 24px; margin: auto; }
+/* Khung Ảnh bìa và Nhãn nội dung của phần Phát hành (rỗng thì ẩn), cùng kiểu khung với chữ truyện. */
+.center-dock { width: 100%; display: grid; grid-template-columns: minmax(220px, 300px) minmax(0, 1fr); gap: 24px; align-items: stretch; }
+.center-dock:empty { display: none; }
+.center-dock .pa-cover, .center-dock .pa-labels { padding: 14px 18px 16px; background: color-mix(in srgb, var(--surface) 82%, transparent); border: 1px solid var(--line-2); border-radius: 16px; }
+/* Khung Ảnh bìa lúc thu gọn: ảnh xem trước lớn ở giữa, nút nằm dưới và vừa bề ngang khung, không để trống bên cạnh. */
+.center-dock .pa-cover:not(.expanded) .edit-story-cover { flex-direction: column; align-items: stretch; gap: 14px; }
+.center-dock .pa-cover:not(.expanded) .edit-story-cover-preview { width: min(190px, 100%); align-self: center; }
+.center-dock .pa-cover:not(.expanded) .edit-story-cover .btn { justify-content: center; }
+/* Đang chọn ảnh bìa: khung Ảnh bìa mở rộng hết bề ngang, khung Nhãn xuống hàng dưới. */
+.center-dock .pa-cover.expanded { grid-column: 1 / -1; }
+.center-dock:has(.pa-cover.expanded) .pa-labels { grid-column: 1 / -1; }
+@media (max-width: 760px) { .center-dock { grid-template-columns: minmax(0, 1fr); gap: 16px; } }
+/* Nút Thử lại khi việc tạo media đã dừng vì lỗi: nằm ở góc khung chính. */
+.studio-retry-corner { position: absolute; top: 14px; right: 14px; z-index: 3; box-shadow: 0 8px 20px -12px color-mix(in srgb, var(--shadow) 70%, transparent); }
 .studio-completion { flex-basis: 100%; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .studio-completion .notice { flex-basis: 100%; }
 .studio-completion .row { flex: 1 1 260px; }
@@ -205,8 +222,6 @@
   .studio-story-resume { flex-basis: auto; flex-shrink: 0; }
   .ws.with-steps .board .artwrap { width: 100%; min-width: 0; }
   .ws.with-steps .board .art { width: 100%; }
-  .ws.with-steps .media-bar { flex-wrap: wrap; }
-  .ws.with-steps .media-bar > .grow { flex-basis: 100%; }
 }
 
 /* ===== Chuyển động của Studio ===== */
@@ -262,3 +277,50 @@
 .media-issues .media-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .media-issues .media-chips .chip { font-size: var(--fs-xs); padding: 3px 9px; }
 .media-issues details summary { cursor: pointer; font-size: var(--fs-xs); opacity: .8; }
+
+/* Tranh chưa tải xong: ẩn ảnh, hiện vòng xoay giữa khung thay vì để ảnh cũ. */
+.studio-media-image.loading { opacity: 0; }
+.studio-media-loading { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.studio-media-spin { width: 44px; height: 44px; border-radius: 50%; border: 5px solid color-mix(in srgb, var(--primary) 25%, transparent); border-top-color: var(--primary-strong); animation: studio-media-spin .8s linear infinite; }
+@keyframes studio-media-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .studio-media-spin { animation-duration: 2s; } }
+
+/* Cột "Chuẩn bị cho bé": ba nhóm có tiêu đề (Tiến độ, Nội dung, Cảnh), chữ cùng cỡ, cảnh xếp một dòng gọn. */
+.prep-group { display: flex; flex-direction: column; gap: 8px; }
+.prep-group + .prep-group { border-top: 1px solid var(--line); padding-top: 14px; }
+.prep-group .sec-h { padding: 0; font-size: var(--fs-md); font-weight: 800; color: var(--text); font-family: var(--font-display); }
+.prep-list { display: flex; flex-direction: column; gap: 2px; }
+.prep-list .ck { font-size: var(--fs-md); padding: 6px 2px; }
+.prep-list .ck .st { width: 22px; height: 22px; }
+.prep-list .ck .st svg { width: 12px; height: 12px; }
+.prep-list .ck small { font-size: var(--fs-md); font-weight: 700; color: var(--muted); }
+.prep-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.prep-stat { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border: 2px solid var(--line); border-radius: 16px; background: color-mix(in srgb, var(--surface) 60%, transparent); }
+.prep-stat.wide { grid-column: 1 / -1; }
+.prep-stat small { font-size: var(--fs-sm); font-weight: 700; color: var(--muted); }
+.prep-stat b { font-family: var(--font-display); font-size: var(--fs-xl); line-height: 1.2; }
+.prep-stat p { margin: 0; font-size: var(--fs-md); line-height: 1.45; }
+.prep-scenes { display: flex; flex-direction: column; gap: 8px; }
+.prep-scene { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 8px 12px 8px 8px; border: 2px solid var(--line); border-radius: 14px; background: color-mix(in srgb, var(--surface) 60%, transparent); font-size: var(--fs-md); transition: border-color .15s, background .15s, transform .15s; }
+.prep-scene:hover { border-color: var(--line-2); transform: translateX(2px); }
+.prep-scene.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 14%, transparent); }
+.prep-scene .num { flex: none; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--primary-strong); color: var(--on-primary); font-weight: 800; font-size: var(--fs-sm); }
+.prep-scene .txt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.prep-scene .flag { flex: none; width: 20px; height: 20px; color: var(--gold-deep); }
+.studio-actions:not(:has(p, button, label)) { display: none; }
+
+/* Nút tạo lại tranh nằm trên góc ảnh, nút tạo lại giọng đọc nằm cùng hàng với trình phát; nút tải lại chỉ là biểu tượng nhỏ ở cuối. Ba nút khác biểu tượng để không nhầm. */
+.studio-media-regen { position: absolute; top: 12px; right: 12px; z-index: 2; background: color-mix(in srgb, var(--panel) 80%, transparent); backdrop-filter: blur(8px); }
+.studio-scene-controls .studio-audio-row { flex-wrap: nowrap; align-items: center; gap: 10px; }
+.studio-scene-controls .studio-audio-row audio { flex: 1 1 auto; min-width: 0; width: auto; }
+.studio-scene-controls .studio-audio-row .icon-only { flex: none; }
+.studio-reload { display: flex; justify-content: flex-end; }
+
+/* Đang vẽ tranh / tạo giọng đọc: con ếch ngồi chờ ở giữa khung tranh và cạnh hàng giọng đọc. */
+.studio-media-wait { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--muted); }
+.studio-media-wait b { font-size: var(--fs-lg); }
+.studio-audio-wait { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+
+/* Số lượt tạo truyện dạng nhãn; còn 1 lượt trở xuống thì tô vàng. */
+.brief-submit-info { align-items: flex-start; gap: 6px; }
+.pill.brief-quota-low { background: var(--gold); color: var(--on-gold); font-weight: 800; }

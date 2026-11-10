@@ -1,4 +1,5 @@
 import { apiQuery, apiRequest } from './apiClient';
+import type { AIStoryInputProgressDto } from '@/app/types/aiStory';
 import type { SubmitAIStoryInputRequestDto } from '@/app/types/aiStory';
 import type * as W from '@/app/types/storyWish';
 
@@ -24,6 +25,9 @@ export const parentWishService = {
     apiRequest<W.ParentWishDto[]>(`/parent/wishes${apiQuery({ childProfileId })}`, 'Không tải được điều ước của bé.', { signal }),
   get: (wishId: number, signal?: AbortSignal) =>
     apiRequest<W.ParentWishDetailDto>(`/parent/wishes/${wishId}`, 'Không mở được điều ước.', { signal }),
+  /** Tiến độ tạo truyện mới từ điều ước (sau khi bố mẹ chọn "Tạo truyện mới"). */
+  generation: (wishId: number, signal?: AbortSignal) =>
+    apiRequest<AIStoryInputProgressDto>(`/parent/wishes/${wishId}/generation`, 'Không tải được tiến độ tạo truyện.', { signal }),
   suggestions: (wishId: number, signal?: AbortSignal) =>
     apiRequest<W.ParentWishSuggestionsDto>(`/parent/wishes/${wishId}/suggestions`, 'Không tải được truyện gợi ý.', { signal }),
   generationForm: (wishId: number, signal?: AbortSignal) =>

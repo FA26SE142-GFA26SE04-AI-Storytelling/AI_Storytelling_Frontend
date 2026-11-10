@@ -23,11 +23,11 @@ export default function ProposalCard({ proposal, busy, onApply, onDiscard }: Pro
       <div className="proposal-h">
         <Sparkles className="ic" />
         <b>{listening ? "AI đề xuất tương tác khi nghe mới" : story ? "AI đề xuất sửa đoạn này" : `AI đề xuất ${ARTIFACT_LABEL[kind]?.toLowerCase() ?? "học liệu"} mới`}</b>
-        <span className="hint">Chưa thay đổi gì cho tới khi bạn áp dụng</span>
+        <span className="pill wait" title="Chưa thay đổi gì cho tới khi bạn áp dụng">Chưa áp dụng</span>
       </div>
       {listening ? (
         <div className="proposal-body">
-          <p className="sub">{listeningItems.length} tương tác mới sẽ thay các tương tác cùng loại hiện tại.</p>
+          <p className="notice">{listeningItems.length} tương tác mới sẽ thay các tương tác cùng loại hiện tại.</p>
           <ol className="art-list">{listeningItems.map((it, i) => <li key={i}>{it.prompt || `Tương tác ${i + 1}`}</li>)}</ol>
         </div>
       ) : story ? (
@@ -40,7 +40,7 @@ export default function ProposalCard({ proposal, busy, onApply, onDiscard }: Pro
         </>
       ) : artifact && (
         <div className="proposal-body">
-          {artifact.before && <p className="sub">{artifact.before.length} mục hiện tại → {artifact.after.length} mục mới. Áp dụng sẽ thay toàn bộ danh sách.</p>}
+          {artifact.before && <p className="notice">{artifact.before.length} mục hiện tại → {artifact.after.length} mục mới. Áp dụng sẽ thay toàn bộ danh sách.</p>}
           <ArtifactItems kind={kind} items={artifact.after} />
         </div>
       )}

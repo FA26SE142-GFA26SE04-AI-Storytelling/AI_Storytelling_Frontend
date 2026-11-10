@@ -42,7 +42,7 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
         <span className="brief-tag"><Lock aria-hidden />{ageBand.replace("-", "–")} tuổi</span>
         <span className="brief-tag"><Lock aria-hidden />Mức đọc {readingLevel}</span>
       </div>
-      {contextError && <div className="notice err" role="alert" data-inline-notice>{contextError}</div>}
+      {contextError && <div className="notice err" role="alert">{contextError}</div>}
 
       <div className="brief-flow">
         <fieldset className="brief-group">
@@ -126,7 +126,7 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
         </fieldset>
 
         <div className="brief-submit">
-          {topicTooLong && <div className="notice err" role="alert" data-inline-notice>Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
+          {topicTooLong && <div className="notice err" role="alert">Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
           <button type="submit" className="btn btn-p brief-go" disabled={disabled} aria-describedby="cbrief-go-why">
             <Sparkles className="ic" aria-hidden />{busy ? "Đang gửi ý tưởng…" : "Viết dàn ý"}
           </button>

@@ -18,7 +18,7 @@ export default function GuideItemEditor({ item, disabled, onSave, onDirty }: {
     onSave(id, {...value, templateText:form.itemType === 'template' ? form.templateText : null,
       placeholderDefinitions:form.itemType === 'template' ? [...new Set([...(form.templateText ?? '').matchAll(/\{\{([a-z_]+)\}\}/g)].map(m => m[1]))] : [] });
   };
-  return <fieldset className="st-card" disabled={disabled} style={{border:'1px solid var(--line)'}}><legend>{item ? 'Sửa hướng dẫn' : 'Thêm hướng dẫn'}</legend>
+  return <fieldset className="st-guide-form" disabled={disabled}>
     <label className="field">Mã hướng dẫn<input className="inp" value={form.id} disabled={!!item} maxLength={100} onChange={e => set({id:e.target.value})}/></label>
     <label className="field">Tiêu đề<input className="inp" value={form.title} onChange={e => set({title:e.target.value})}/></label>
     <label className="field">Lời hướng dẫn<textarea className="inp" rows={3} value={form.instruction} onChange={e => set({instruction:e.target.value})}/></label>
@@ -28,6 +28,6 @@ export default function GuideItemEditor({ item, disabled, onSave, onDirty }: {
       <label className="field">Thứ tự<input className="inp" type="number" value={form.order} onChange={e => set({order:Number(e.target.value)})}/></label></div>
     <label className="field">Ví dụ<textarea className="inp" value={form.example ?? ''} onChange={e => set({example:e.target.value || null})}/></label>
     {form.itemType === 'template' && <label className="field">Mẫu điền (chỗ trống dạng {'{{ten_bien}}'})<textarea className="inp" rows={4} value={form.templateText ?? ''} onChange={e => set({templateText:e.target.value})}/></label>}
-    {changed && <button className="btn btn-p" disabled={!valid} onClick={save}>Lưu</button>}
+    {changed && <div className="row" style={{ justifyContent: 'flex-end' }}><button className="btn btn-p" disabled={!valid} onClick={save}>Lưu</button></div>}
   </fieldset>;
 }

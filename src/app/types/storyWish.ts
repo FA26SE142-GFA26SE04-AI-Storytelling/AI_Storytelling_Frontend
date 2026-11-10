@@ -111,3 +111,7 @@ export interface CreateWishCardRequestDto extends UpdateWishCardRequestDto { gro
 
 /** Thẻ đã gắn cho một truyện; source là "Moderator" hoặc "Ai". */
 export interface WishCardMatchDto { storyId: number; wishCardId: number; group: string; label: string; source: string }
+
+/** Kết quả AI ghép thẻ ước cho truyện: số thẻ vừa gắn và bằng chứng (đoạn trích, lý do) cho từng thẻ. */
+export interface WishCardEvidence { cardId: number; sourceQuote: string; reason: string }
+export interface StoryWishCardAiMatchResult { storyId: number; storyVersionId: number; addedCount: number; matches: WishCardEvidence[]; sourceFingerprint: string }

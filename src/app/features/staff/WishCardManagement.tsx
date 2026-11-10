@@ -49,10 +49,20 @@ export default function WishCardManagement() {
   useEffect(() => { void staffService.categories().then((r) => setCats(r.data ?? [])); }, []);
   const { note, busy, run } = useAction(load);
 
+  const toForm = (c: WishCardDto) => ({ group: c.group as ManagedWishCardGroup, label: c.label, imageUrl: c.imageUrl, audioUrl: c.audioUrl ?? "", ageBand: c.ageBand ?? "", contentCategoryId: c.contentCategoryId?.toString() ?? "", sortOrder: String(c.sortOrder) });
+  /**
+   * Mở popup ngay với dữ liệu trong danh sách, rồi tải bản mới nhất của thẻ (GET /moderation/wish-cards/{id})
+   * để không sửa đè thay đổi của người khác. Chỉ thay form khi người dùng chưa kịp sửa gì.
+   */
   const edit = (c: WishCardDto) => {
-    setEditing(c);
-    setForm({ group: c.group as ManagedWishCardGroup, label: c.label, imageUrl: c.imageUrl, audioUrl: c.audioUrl ?? "", ageBand: c.ageBand ?? "", contentCategoryId: c.contentCategoryId?.toString() ?? "", sortOrder: String(c.sortOrder) });
-    setDialog(true);
+    const listed = toForm(c);
+    setEditing(c); setForm(listed); setDialog(true);
+    void wishCardService.get(c.id).then((r) => {
+      if (!r.success || !r.data) return;
+      const fresh = r.data;
+      setEditing((cur) => (cur?.id === c.id ? fresh : cur));
+      setForm((f) => (JSON.stringify(f) === JSON.stringify(listed) ? toForm(fresh) : f));
+    });
   };
   const reset = () => { setEditing(null); setForm(EMPTY); setDialog(false); };
 
@@ -71,7 +81,7 @@ export default function WishCardManagement() {
 
   return <Page title="Thẻ ước" sub="Thẻ hình bé chọn khi ước một câu chuyện. Ẩn thẻ chỉ bỏ khỏi lựa chọn mới, điều ước và truyện đã gắn thẻ vẫn giữ nguyên.">
     <Notice note={note} />
-    {loadError && <p className="notice err">{loadError}</p>}
+    {loadError && <p className="notice err" role="alert">{loadError}</p>}
     <div className="row">
       <select className="inp" aria-label="Lọc theo nhóm" value={group} onChange={(e) => { setGroup(e.target.value as ManagedWishCardGroup | ""); setPage(1); }}>
         <option value="">Mọi nhóm</option>{WISH_GROUPS.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
@@ -82,18 +92,18 @@ export default function WishCardManagement() {
       <IconButton icon={Plus} label="Thêm thẻ mới" className="btn btn-p" style={{ flex: "none", minWidth: 44 }} disabled={busy} onClick={() => { setEditing(null); setForm(EMPTY); setDialog(true); }} />
     </div>
     <div className="st-card">
-      <table className="st-table">
+      <table className="st-table stack-table">
         <thead><tr><th>Hình</th><th>Nhãn</th><th>Nhóm</th><th>Tuổi</th><th>Nhãn nội dung</th><th>Thứ tự</th><th>Trạng thái</th><th /></tr></thead>
         <tbody>
           {list?.items.map((c) => <tr key={c.id} className={editing?.id === c.id ? "on" : undefined}>
-            <td><SafeImage src={c.imageUrl} alt="" width={44} height={44} style={{ objectFit: "contain", borderRadius: 8 }} /></td>
-            <td><b>{c.label}</b>{c.audioUrl && <div><audio controls preload="none" src={c.audioUrl} style={{ height: 28, maxWidth: 180 }} /></div>}</td>
-            <td>{groupLabel(c.group)}</td>
-            <td>{c.ageBand ?? "Mọi tuổi"}</td>
-            <td>{catName(c.contentCategoryId)}</td>
-            <td>{c.sortOrder}</td>
-            <td><span className={`pill ${c.isActive ? "ok" : "draft"}`}>{c.isActive ? "Đang dùng" : "Đã ẩn"}</span></td>
-            <td><div className="row">
+            <td data-label="Hình"><SafeImage src={c.imageUrl} alt="" width={44} height={44} style={{ objectFit: "contain", borderRadius: 8 }} /></td>
+            <td data-label="Nhãn"><b>{c.label}</b>{c.audioUrl && <div><audio controls preload="none" src={c.audioUrl} style={{ height: 28, maxWidth: 180 }} /></div>}</td>
+            <td data-label="Nhóm">{groupLabel(c.group)}</td>
+            <td data-label="Tuổi">{c.ageBand ?? "Mọi tuổi"}</td>
+            <td data-label="Nhãn nội dung">{catName(c.contentCategoryId)}</td>
+            <td data-label="Thứ tự">{c.sortOrder}</td>
+            <td data-label="Trạng thái"><span className={`pill ${c.isActive ? "ok" : "draft"}`}>{c.isActive ? "Đang dùng" : "Đã ẩn"}</span></td>
+            <td data-label=""><div className="row">
               <IconButton icon={Pencil} label={`Sửa thẻ ${c.label}`} disabled={busy} onClick={() => edit(c)} />
               <IconButton icon={c.isActive ? EyeOff : Eye} label={`${c.isActive ? "Ẩn" : "Hiện lại"} thẻ ${c.label}`} className="btn btn-g" disabled={busy} onClick={() => void run(() => wishCardService.setActive(c.id, !c.isActive))} />
             </div></td>

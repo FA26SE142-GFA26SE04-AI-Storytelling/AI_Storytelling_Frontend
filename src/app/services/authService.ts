@@ -94,7 +94,7 @@ export const authService = {
       this.notifyAuthStateChange(null, null);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng kiểm tra lại dịch vụ backend.',
+        message: 'Chưa kết nối được máy chủ. Bạn thử lại sau ít phút nhé.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -113,7 +113,7 @@ export const authService = {
       this.notifyAuthStateChange(null, null);
       return {
         success: false,
-        message: 'Không tìm thấy refresh token. Vui lòng đăng nhập lại.',
+        message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
         data: null,
       };
     }
@@ -249,7 +249,7 @@ export const authService = {
       console.error('Register error:', error);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng kiểm tra lại kết nối.',
+        message: 'Chưa kết nối được máy chủ. Bạn kiểm tra mạng rồi thử lại nhé.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -275,7 +275,7 @@ export const authService = {
       console.error('Verify email error:', error);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng kiểm tra lại kết nối.',
+        message: 'Chưa kết nối được máy chủ. Bạn kiểm tra mạng rồi thử lại nhé.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -301,7 +301,7 @@ export const authService = {
       console.error('Forgot password error:', error);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng thử lại.',
+        message: 'Chưa kết nối được máy chủ. Bạn thử lại nhé.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -327,7 +327,7 @@ export const authService = {
       console.error('Reset password error:', error);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng thử lại.',
+        message: 'Chưa kết nối được máy chủ. Bạn thử lại nhé.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -344,7 +344,7 @@ export const authService = {
     if (!accessToken && !refreshToken) {
       return {
         success: false,
-        message: 'Bạn chưa đăng nhập hoặc token đã hết hạn.',
+        message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
         data: null,
       };
     }
@@ -363,14 +363,14 @@ export const authService = {
       }
       return { ...(data || {
         success: false,
-        message: 'Không thể tải thông tin cá nhân từ Backend.',
+        message: 'Chưa tải được thông tin tài khoản. Bạn thử lại nhé.',
         data: null,
       }), success: false, status: response.status };
     } catch (error) {
       console.error('Get profile error:', error);
       return {
         success: false,
-        message: 'Không thể tải thông tin cá nhân từ Backend.',
+        message: 'Chưa tải được thông tin tài khoản. Bạn thử lại nhé.',
         data: null,
         status: 0,
         errors: [(error as Error).message || 'Network connection failed'],
@@ -388,7 +388,7 @@ export const authService = {
     if (!accessToken && !refreshToken) {
       return {
         success: false,
-        message: 'Bạn chưa đăng nhập hoặc token đã hết hạn.',
+        message: 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.',
         data: null,
       };
     }
@@ -409,7 +409,7 @@ export const authService = {
       console.error('Change password error:', error);
       return {
         success: false,
-        message: 'Không thể kết nối đến máy chủ Backend. Vui lòng thử lại.',
+        message: 'Chưa kết nối được máy chủ. Bạn thử lại nhé.',
         data: null,
         errors: [(error as Error).message || 'Network connection failed'],
       };
@@ -456,31 +456,19 @@ export const authService = {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 3000);
 
-      // Thử ping qua route root hoặc swagger/swagger.json
-      const swaggerUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, '') + '/swagger/v1/swagger.json';
-      const response = await fetch(swaggerUrl, {
-        method: 'GET',
-        signal: controller.signal,
-      }).catch(() => null);
-
+      // Dùng `/health` của backend: có header CORS nên không sinh lỗi đỏ trong console.
+      // (Trước đây gọi swagger.json — không có CORS — rồi OPTIONS /Auth/login trần — bị 405.)
+      const healthUrl = API_BASE_URL.replace(/\/api\/v1\/?$/, '') + '/health';
+      const response = await fetch(healthUrl, { method: 'GET', signal: controller.signal }).catch(() => null);
       clearTimeout(timeoutId);
 
       if (response && response.ok) {
-        return { isOnline: true, message: `Backend Swagger v1 Online (${swaggerUrl})` };
+        return { isOnline: true, message: 'Máy chủ đang hoạt động.' };
       }
-
-      // Secondary check: OPTIONS call to auth login
-      const optionsResponse = await fetch(`${API_BASE_URL}/Auth/login`, {
-        method: 'OPTIONS',
-      }).catch(() => null);
-
-      if (optionsResponse) {
-        return { isOnline: true, message: 'Backend API Service Reachable' };
-      }
-
-      return { isOnline: false, message: `Backend chưa phản hồi tại ${API_BASE_URL}` };
+      // Câu báo hiện cho người dùng: không ghi địa chỉ hay tên kỹ thuật của máy chủ.
+      return { isOnline: false, message: 'Chưa kết nối được máy chủ. Bạn thử lại sau ít phút nhé.' };
     } catch {
-      return { isOnline: false, message: 'Không kết nối được tới Backend (Offline)' };
+      return { isOnline: false, message: 'Chưa kết nối được máy chủ. Bạn kiểm tra mạng rồi thử lại nhé.' };
     }
   },
 

@@ -236,8 +236,8 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
 
             <section id="s-consent">
               <h2 className="display">Đồng ý của phụ huynh</h2>
-              {(!policy?.consentRecorded || outdated) && <p className="sub" style={{ marginBottom: 10 }}>Tích đồng ý bên dưới để các cài đặt được lưu tự động.</p>}
-              {policy?.consentRecorded && !outdated && <p className="sub" style={{ marginBottom: 10 }}>{`Đã đồng ý ngày ${fmtDate(policy.consentRecordedAt)}.`}</p>}
+              {(!policy?.consentRecorded || outdated) && <p className="notice warn" style={{ marginBottom: 10 }}>Tích đồng ý bên dưới để các cài đặt được lưu tự động.</p>}
+              {policy?.consentRecorded && !outdated && <span className="pill ok" style={{ marginBottom: 10, width: "fit-content" }}>{`Đã đồng ý ngày ${fmtDate(policy.consentRecordedAt)}`}</span>}
               <ConsentBlock checked={consent} onChange={setConsent} disabled={!isOwner || (!!policy?.consentRecorded && !outdated)} />
             </section>
           </>

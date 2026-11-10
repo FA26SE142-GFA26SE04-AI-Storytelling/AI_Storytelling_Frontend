@@ -77,7 +77,7 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
         const r = await login({ identifier: f.identifier.trim(), password: f.password });
         if (!r.success) setMsg({ ok: false, text: r.message });
       } else if (mode === "creator") {
-        setMsg({ok:false,text:'Backend chưa cung cấp API đăng ký Content Creator.'});
+        setMsg({ok:false,text:'Chưa mở đăng ký tài khoản Creator. Vui lòng liên hệ quản trị viên.'});
       } else if (mode === "register") {
         const problem = passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp." : null);
         if (problem) { setMsg({ ok: false, text: problem }); return; }

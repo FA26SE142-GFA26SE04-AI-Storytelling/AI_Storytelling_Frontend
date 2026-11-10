@@ -10,10 +10,12 @@ import { useCreatorGeneration } from '@/app/features/story-workflow/useCreatorGe
 import { lengthPresets } from '@/app/features/story-workflow/aiStoryInputFlowUtils';
 import { useStoryProgressPolling } from '@/app/features/story-workflow/useStoryProgressPolling';
 import { ApproveSlot, type ApproveAction } from '@/app/features/story-workflow/approveSlot';
+import { mediaKeepPolling } from '@/app/features/story-workflow/mediaPackage';
+import { useAuth } from '@/app/context/AuthContext';
+import { writeCreatorAiStory } from '@/app/features/story-workflow/storyStudioSession';
 import OutlinePanel from '@/app/features/studio/OutlinePanel';
 import ReviewGate from '@/app/features/review/ReviewGate';
 import CreatorPublication from './CreatorPublication';
-import type { MediaProgressDto } from '@/app/types/aiStory';
 import StudioSteps from '@/app/features/studio/StudioSteps';
 import { studioProgress } from '@/app/features/studio/studioProgress';
 import { useSteppedProgress } from '@/app/features/studio/useSteppedProgress';
@@ -23,7 +25,7 @@ import StudioControls from '@/app/features/studio/StudioControls';
 import StageProgress from '@/app/features/studio/StageProgress';
 import CreatorBrief from './CreatorBrief';
 import CreatorMedia from './CreatorMedia';
-const continueMedia = (m: MediaProgressDto) => !m.isReady && !m.isAwaitingConfirmation && !m.errorCode;
+const continueMedia = mediaKeepPolling;
 /** Lỗi AI hay gặp, giải thích bằng tiếng Việt; mã lạ thì hiện nguyên mã. */
 const FAILURE_VI: Record<string, string> = {
   CONTENT_GENERATION_TIMEOUT: 'AI viết truyện quá thời gian chờ (mã CONTENT_GENERATION_TIMEOUT). Bấm Thử lại để viết lại.',
@@ -37,13 +39,17 @@ type Seed = { topic: string; lesson: string; genre: string; charactersText: stri
  * Vỏ ngoài: "bỏ truyện / quay lại sửa ý tưởng" dựng lại toàn bộ luồng bằng key mới, nên mọi trạng thái cũ (dàn ý, tiến trình) sạch hẳn.
  * Content Creator không có API huỷ truyện, nên đây chỉ là làm mới form; bản nháp vẫn nằm trong Thư viện.
  */
-export default function CreatorGeneration({ initialId = null, onBack }: { initialId?: number | null; onBack: () => void }) {
+export default function CreatorGeneration({ initialId = null }: { initialId?: number | null; onBack: () => void }) {
   const [run, setRun] = useState(0);
   const [seed, setSeed] = useState<Seed>(null);
-  return <CreatorGenerationRun key={run} initialId={run === 0 ? initialId : null} seed={seed} onBack={onBack} onReset={(next) => { setSeed(next); setRun((n) => n + 1); }} />;
+  return <CreatorGenerationRun key={run} initialId={run === 0 ? initialId : null} seed={seed} onReset={(next) => { setSeed(next); setRun((n) => n + 1); }} />;
 }
-function CreatorGenerationRun({ initialId, seed, onBack, onReset }: { initialId: number | null; seed: Seed; onBack: () => void; onReset: (seed: Seed) => void }) {
+function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number | null; seed: Seed; onReset: (seed: Seed) => void }) {
   const flow = useCreatorGeneration(initialId);
+  // Nhớ truyện AI đang soạn để tải lại trang vẫn mở lại đúng truyện (truyện mới bắt đầu thì xóa).
+  const { user: sessionUser } = useAuth();
+  const sessionUserId = sessionUser?.id ?? null;
+  useEffect(() => { if (sessionUserId !== null) writeCreatorAiStory(sessionUserId, flow.id); }, [sessionUserId, flow.id]);
   const retryKey = useRef<{ storyId: number; kind: string; key: string } | null>(null);
   const [context, setContext] = useState<B.CreatorAIStoryInputContextDto | null>(null);
   const [ageBand, setAgeBand] = useState('6-8');
@@ -115,7 +121,7 @@ function CreatorGenerationRun({ initialId, seed, onBack, onReset }: { initialId:
   const notices = <>
     {(flow.message || flow.error || contextError) && <p className="notice" role="status">{flow.error || contextError || flow.message}</p>}
     {flow.timedOut && <p className="notice" role="status">Đã dừng theo dõi tự động. Kiểm tra trạng thái trước khi gửi lệnh khác.</p>}
-    {flow.input && flow.input.inputStatus !== 'input_accepted' && <><p>{flow.input.fallbackMessage ?? 'Đang kiểm tra ý tưởng…'}</p>{flow.input.canRetry && submitted && <button className="btn btn-s" disabled={flow.busy} onClick={() => void flow.retry(submitted!)}>Thử lại kiểm tra ý tưởng</button>}</>}
+    {flow.input && flow.input.inputStatus !== 'input_accepted' && <><p>{flow.input.fallbackMessage ?? 'Đang kiểm tra ý tưởng…'}</p>{flow.input.canRetry && submitted && <button className="btn btn-s" disabled={flow.busy} onClick={() => void flow.retry(submitted!)}>Kiểm tra lại</button>}</>}
     {flow.failure && <div className="notice err" role="alert" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
       <span>{FAILURE_VI[flow.failure.code] ?? `Máy chủ xác nhận bước xử lý thất bại (${flow.failure.code}).`}</span>
       {canRetry && <button type="button" className="btn btn-s" disabled={flow.busy} onClick={() => void retryFailed()}>{flow.busy ? 'Đang gửi yêu cầu…' : 'Thử lại'}</button>}
@@ -132,13 +138,16 @@ function CreatorGenerationRun({ initialId, seed, onBack, onReset }: { initialId:
     onStartNew={() => onReset(null)}
     approve={approve ? { ...approve, disabled: approve.disabled || locked } : null} />;
   return <section className="ws with-steps" style={reviewing || mediaStage ? undefined : { gridTemplateColumns: 'minmax(0, 1fr)' }}>
-    <StudioSteps progress={progress} context={flow.error || flow.timedOut ? <button className="btn btn-s" onClick={refreshState}>Tải lại trạng thái truyện</button> : undefined}>
+    <StudioSteps progress={progress} context={flow.error || flow.timedOut ? <button className="btn btn-s" onClick={refreshState}>Tải lại</button> : undefined}>
       {/* Màn duyệt truyện tự hiện cụm nút ở thanh tab của nó (như phụ huynh); các bước khác hiện ngay trên thanh tiến trình. */}
       {!reviewing && controls}
     </StudioSteps>
     <TabActions.Provider value={controls}>
     <ApproveSlot.Provider value={setApprove}>
       {reviewing && <ReviewGate key={`${flow.id}:${refresh}`} storyId={flow.id!} ageBand={ageBand} actor="creator" onApproved={refreshState} />}
+      {/* Nút duyệt bị tắt khi `locked`, mà `locked` chỉ được tính bởi CreatorPublication. Ở bước duyệt phải luôn có nó chạy (ẩn, không vẽ gì),
+          nếu không `locked` giữ giá trị cũ (thường là "khóa") cho tới khi tải lại trang nên dấu ✓ không bật dù đã đủ điều kiện. */}
+      {reviewing && publication(true)}
       {mediaStage && flow.id !== null && (
         <CreatorMedia storyId={flow.id} versionId={versionId} media={media} locked={locked} busy={flow.busy}
           onRetry={() => void flow.command(() => api.retryMedia(flow.id!)).then(() => media.refresh())}
