@@ -27,6 +27,10 @@ export interface CreatorDraft {
   source?: string;
   /** Trạng thái truyện của backend: Draft, ContentReview, MediaProcessing, Ready, Archived… */
   status?: string;
+  /** Đã công khai vào Thư viện chung hay chưa. */
+  isPublished?: boolean;
+  /** Trạng thái Moderator kiểm duyệt phiên bản hiện tại: None, Pending, Approved, ChangesRequested, Rejected. */
+  reviewStatus?: string | null;
 }
 
 /** `GET /creator/stories/{id}/publication`. `reviewStatus`: None, Pending, Approved, ChangesRequested, Rejected. */

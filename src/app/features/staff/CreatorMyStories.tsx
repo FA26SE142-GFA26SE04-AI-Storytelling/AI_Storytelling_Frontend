@@ -17,19 +17,74 @@ import { creatorService } from "@/app/services/creatorService";
 import type { CreatorDraft } from "@/app/types/creator";
 import { coverFor } from "@/app/lib/storyView";
 import { fmt } from "./ui";
-import { SHELVES, shelfOf } from "./CreatorLibrary";
+import { creatorShelfOf, currentCreatorPublication, groupCreatorStories, resolveStoryDisplayState, type CreatorPublicationSnapshot } from "./creatorStoryShelves";
 import type { CreatorPageProps } from "./CreatorStories";
 
 const AGE: Record<string, string> = { "6-8": "6–8 tuổi", "9-10": "9–10 tuổi" };
 const MODE: Record<string, string> = { reading: "Đọc", listening: "Nghe", combined: "Đọc và nghe" };
 const isAi = (s: CreatorDraft) => s.source?.toLowerCase() === "ai";
-/** Thứ tự các kệ: truyện đã xong lên đầu (giống trang của phụ huynh). */
-const SHELF_ORDER = ["ready", "review", "draft"];
 /** Màu nhãn theo trạng thái Moderator duyệt phiên bản hiện tại. */
 const REVIEW_TONE: Record<string, string> = { None: "draft", Pending: "wait", Approved: "ok", ChangesRequested: "wait", Rejected: "flag", Withdrawn: "draft" };
 const SOURCES = [{ id: "all", label: "Tất cả" }, { id: "ai", label: "Do AI tạo" }, { id: "manual", label: "Thủ công" }];
 
-/** Trang "Truyện của tôi" của Content Creator: mọi truyện đã tạo (AI và thủ công), lọc theo trạng thái, xem chi tiết rồi mở soạn tiếp. */
+/** Thẻ truyện trên trang "Truyện của tôi", kèm huy hiệu theo trạng thái biên soạn hoặc kiểm duyệt công khai. */
+export function CreatorStoryCard({
+  story,
+  selected,
+  onPick,
+}: {
+  story: CreatorDraft;
+  selected: boolean;
+  onPick: () => void;
+}) {
+  const name = story.title || "Truyện chưa đặt tên";
+  const shelf = creatorShelfOf(story);
+  return (
+    <button
+      className={`bk${selected ? " on" : ""}`}
+      onClick={onPick}
+      aria-pressed={selected}
+      aria-label={`Xem chi tiết truyện ${name}`}
+    >
+      <span className="bk-cover" style={{ background: coverFor(story.coverImageUrl) }}>
+        <span className={`pill ${shelf.tone} bk-badge`}>{shelf.badge}</span>
+        <span className="bk-name display">{name}</span>
+      </span>
+      <span className="bk-title">{name}</span>
+      <span className="bk-meta">{isAi(story) ? "Do AI tạo" : "Thủ công"} · {AGE[story.ageBand] ?? story.ageBand}</span>
+    </button>
+  );
+}
+
+/** Bảng thuộc tính trong cột Chi tiết của một truyện Creator, đồng bộ nhãn trạng thái với section. */
+export function CreatorStoryDetailMeta({
+  story,
+  pub,
+}: {
+  story: CreatorDraft;
+  pub: CreatorPublicationStatus | null;
+}) {
+  const merged = resolveStoryDisplayState(story, pub);
+  const shelf = creatorShelfOf(merged);
+  const reviewKey = pub?.reviewStatus ?? merged.reviewStatus ?? (shelf.id === "rejected" ? "Rejected" : null);
+  const published = pub ? pub.isPublished : merged.isPublished;
+  return (
+    <div className="meta">
+      <span>Cách tạo</span><b>{isAi(merged) ? "Do AI tạo" : "Thủ công"}</b>
+      <span>Độ tuổi</span><b>{AGE[merged.ageBand] ?? merged.ageBand}</b>
+      <span>Thể loại</span><b>{merged.genre || "Khác"}</b>
+      <span>Trải nghiệm</span><b>{MODE[merged.experienceMode] ?? merged.experienceMode}</b>
+      <span>Phiên bản</span><b>{merged.lastVersionNo ? `V${merged.lastVersionNo}` : "Chưa lưu"}</b>
+      <span>Tạo lúc</span><b>{fmt(merged.createdAt)}</b>
+      {merged.updatedAt && <><span>Cập nhật</span><b>{fmt(merged.updatedAt)}</b></>}
+      <span>Trạng thái</span><span className={`pill ${shelf.tone}`} style={{ width: "fit-content" }}>{shelf.title}</span>
+      <span>Kiểm duyệt</span>{reviewKey ? <span className={`pill ${REVIEW_TONE[reviewKey] ?? "draft"}`} style={{ width: "fit-content" }}>{REVIEW[reviewKey] ?? reviewKey}</span> : <b>…</b>}
+      <span>Công khai</span>{published !== undefined ? <span className={`pill ${published ? "ok" : "flag"}`} style={{ width: "fit-content" }}>{published ? "Đã công khai" : "Chưa công khai"}</span> : <b>…</b>}
+    </div>
+  );
+}
+
+/** Trang "Truyện của tôi" của Content Creator: mọi truyện đã tạo (AI và thủ công), tách section kiểm duyệt và Bị từ chối, xem chi tiết rồi mở soạn tiếp. */
 export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
   const [list, setList] = useState<CreatorDraft[] | null>(null);
   const [error, setError] = useState("");
@@ -42,8 +97,9 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
   const [reading, setReading] = useState(false);
   const [removing, setRemoving] = useState(false);
   /** Trạng thái phát hành của truyện đang chọn (đã công khai / đang chờ duyệt) để biết có khóa đổi ảnh bìa không. */
-  const [pub, setPub] = useState<CreatorPublicationStatus | null>(null);
+  const [publicationSnapshot, setPublicationSnapshot] = useState<CreatorPublicationSnapshot | null>(null);
   const [pubTick, setPubTick] = useState(0);
+  const pub = currentCreatorPublication(publicationSnapshot, list, selected, pubTick);
   const [collapsed, setCollapsed] = useState(true);
   const aside = useMemo(() => ({ collapsed, toggle: () => setCollapsed((v) => !v) }), [collapsed]);
 
@@ -62,32 +118,27 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
 
   const all = useMemo(() => [...(list ?? [])].sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime()), [list]);
   const needle = q.trim().toLowerCase();
-  const shown = all.filter((s) => (source === "all" || (source === "ai") === isAi(s)) && (!needle || (s.title || "").toLowerCase().includes(needle)));
-  const shelves = SHELF_ORDER.map((id) => SHELVES.find((g) => g.id === id)!).map((g) => ({ ...g, items: shown.filter((s) => shelfOf(s) === g.id) })).filter((g) => g.items.length > 0);
+  const shown = all
+    .filter((s) => (source === "all" || (source === "ai") === isAi(s)) && (!needle || (s.title || "").toLowerCase().includes(needle)))
+    .map((s) => resolveStoryDisplayState(s, pub));
+  const shelves = groupCreatorStories(shown);
   const openShelf = shelves.find((g) => g.id === expanded) ?? null;
-  const sel = all.find((s) => s.storyId === selected) ?? null;
+  const rawSel = all.find((s) => s.storyId === selected) ?? null;
+  const sel = rawSel ? resolveStoryDisplayState(rawSel, pub) : null;
   const pick = (s: CreatorDraft) => { setSelected(s.storyId); if (collapsed) setCollapsed(false); };
   useEffect(() => {
-    setPub(null);
+    setPublicationSnapshot(null);
     if (selected === null) return;
     const c = new AbortController();
-    void creatorPublicationService.status(selected, c.signal).then((r) => { if (!c.signal.aborted && r.success) setPub(r.data ?? null); }).catch(() => undefined);
+    void creatorPublicationService.status(selected, c.signal).then((r) => {
+      if (!c.signal.aborted && r.success && r.data) setPublicationSnapshot({ list, revision: pubTick, data: r.data });
+    }).catch(() => undefined);
     return () => c.abort();
-  }, [selected, pubTick]);
+  }, [selected, pubTick, list]);
   const canRemove = !!pub && pub.isPublished && !pub.openItemId;
-  const card = (s: CreatorDraft) => {
-    const name = s.title || "Truyện chưa đặt tên";
-    return (
-      <button className={`bk${selected === s.storyId ? " on" : ""}`} key={s.storyId} onClick={() => pick(s)} aria-pressed={selected === s.storyId} aria-label={`Xem chi tiết truyện ${name}`}>
-        <span className="bk-cover" style={{ background: coverFor(s.coverImageUrl) }}>
-          <span className="pill draft bk-badge">{SHELVES.find((g) => g.id === shelfOf(s))?.title}</span>
-          <span className="bk-name display">{name}</span>
-        </span>
-        <span className="bk-title">{name}</span>
-        <span className="bk-meta">{isAi(s) ? "Do AI tạo" : "Thủ công"} · {AGE[s.ageBand] ?? s.ageBand}</span>
-      </button>
-    );
-  };
+  const card = (s: CreatorDraft) => (
+    <CreatorStoryCard key={s.storyId} story={s} selected={selected === s.storyId} onPick={() => pick(s)} />
+  );
   const open = (s: CreatorDraft) => go(isAi(s) ? "create-ai" : "create-manual", s.storyId);
 
   return (
@@ -137,25 +188,14 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
               <div className="cover cover-portrait" style={{ background: coverFor(sel.coverImageUrl) }} />
               <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
               {sel.description && <p className="sub">{sel.description}</p>}
-              <div className="meta">
-                <span>Cách tạo</span><b>{isAi(sel) ? "Do AI tạo" : "Thủ công"}</b>
-                <span>Độ tuổi</span><b>{AGE[sel.ageBand] ?? sel.ageBand}</b>
-                <span>Thể loại</span><b>{sel.genre || "Khác"}</b>
-                <span>Trải nghiệm</span><b>{MODE[sel.experienceMode] ?? sel.experienceMode}</b>
-                <span>Phiên bản</span><b>{sel.lastVersionNo ? `V${sel.lastVersionNo}` : "Chưa lưu"}</b>
-                <span>Tạo lúc</span><b>{fmt(sel.createdAt)}</b>
-                {sel.updatedAt && <><span>Cập nhật</span><b>{fmt(sel.updatedAt)}</b></>}
-                <span>Trạng thái</span><span className="pill draft" style={{ width: "fit-content" }}>{SHELVES.find((g) => g.id === shelfOf(sel))?.title}</span>
-                <span>Kiểm duyệt</span>{pub ? <span className={`pill ${REVIEW_TONE[pub.reviewStatus] ?? "draft"}`} style={{ width: "fit-content" }}>{REVIEW[pub.reviewStatus] ?? pub.reviewStatus}</span> : <b>…</b>}
-                <span>Công khai</span>{pub ? <span className={`pill ${pub.isPublished ? "ok" : "flag"}`} style={{ width: "fit-content" }}>{pub.isPublished ? "Đã công khai" : "Chưa công khai"}</span> : <b>…</b>}
-              </div>
+              <CreatorStoryDetailMeta story={sel} pub={pub} />
               <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
               {canRemove && <button className="btn btn-no btn-c" onClick={() => setRemoving(true)}><Undo2 className="ic" />Yêu cầu gỡ</button>}
               <button className="btn btn-p btn-c" onClick={() => open(sel)}>{isAi(sel) ? <WandSparkles className="ic" /> : <PencilLine className="ic" />}Mở để soạn tiếp</button>
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
         </AsidePane>
-        {sel && removing && <RemovalRequestDialog storyId={sel.storyId} title={sel.title} onClose={() => setRemoving(false)} onDone={() => setPubTick((n) => n + 1)} />}
+        {sel && removing && <RemovalRequestDialog storyId={sel.storyId} title={sel.title} onClose={() => setRemoving(false)} onDone={() => { setPubTick((n) => n + 1); void load(); }} />}
         {sel && reading && <CreatorPreview story={sel} onClose={() => setReading(false)} />}
       </section>
     </AsideContext.Provider>
