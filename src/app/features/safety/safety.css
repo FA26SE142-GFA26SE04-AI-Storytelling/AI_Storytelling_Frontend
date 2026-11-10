@@ -46,3 +46,8 @@
 .trow.strong { margin-top: 22px; padding: 14px 16px; border: 1px solid var(--primary); border-radius: 16px; background: color-mix(in srgb, var(--primary) 10%, var(--surface)); font-size: var(--fs-md); font-weight: 800; }
 .trow.strong small { margin-top: 4px; font-size: var(--fs-sm); }
 .safety-tab .setbody .trow.strong:last-child { padding-bottom: 14px; border-bottom: 1px solid var(--primary); }
+/* Hai ngưỡng tự duyệt, chỉ hiện khi chọn "Tự duyệt khi đạt ngưỡng"; trượt xuống khi mở. */
+.safety-auto { margin-top: 12px; padding: 12px 14px; border: 1px solid var(--line-2); border-radius: 16px; background: color-mix(in srgb, var(--surface) 70%, transparent); animation: safety-auto-in .25s ease-out; }
+.safety-auto .notice { margin: 0 0 4px; }
+@keyframes safety-auto-in { from { opacity: 0; transform: translateY(-6px); } }
+@media (prefers-reduced-motion: reduce) { .safety-auto { animation: none; } }

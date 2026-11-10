@@ -4,7 +4,8 @@ import { confirmDialog } from "@/app/lib/confirm";
 import "./safety.css";
 import "../children/children.css";
 import { useCallback, useEffect, useState, useRef } from "react";
-import { Clock, FileCheck, Inbox, CirclePause, ShieldCheck, Sparkles } from "lucide-react";
+import { Clock, FileCheck, Inbox, Target, ShieldCheck, Sparkles, Mic } from "lucide-react";
+import Dialog from "@/app/components/Dialog";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ApprovalMode, ContentCategory, PolicyRule, SafetyPolicy } from "@/app/types/childProfile";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
@@ -24,9 +25,26 @@ const NAV = [
   { id: "s-topic", label: "Chủ đề", icon: ShieldCheck },
   { id: "s-limit", label: "Giới hạn và quyền", icon: Clock },
   { id: "s-feature", label: "Tính năng cho bé", icon: Sparkles },
-  { id: "s-hold", label: "Tạm dừng khi khó", icon: CirclePause },
+  { id: "s-hold", label: "Mức đọc hiểu", icon: Target },
   { id: "s-consent", label: "Đồng ý của phụ huynh", icon: FileCheck },
 ];
+/** Điều khoản (e): Backend bắt Owner đồng ý khi bật giọng nói lần đầu. */
+const VOICE_CONSENT = "Khi bật giọng nói: lúc bé luyện đọc to, giọng của bé chỉ được nhận dạng tạm thời rồi bỏ, không lưu lại; bản ghi âm bé kể lại cuối truyện được lưu để bạn nghe lại, bạn xoá được bất cứ lúc nào.";
+
+/** Thanh kéo ngưỡng 0–100; null = để hệ thống dùng mức mặc định. */
+function ScoreSlider({ label, value, fallback, disabled, onChange }: { label: string; value: number | null; fallback: number; disabled: boolean; onChange: (v: number | null) => void }) {
+  return (
+    <div className="field" style={{ marginTop: 10 }}>
+      <span className="lbl row" style={{ justifyContent: "space-between" }}>{label}
+        <span className="row" style={{ gap: 8 }}>
+          <b style={{ color: "var(--text)" }}>{value === null ? "Mặc định" : value}</b>
+          {value !== null && <button type="button" className="btn btn-g" disabled={disabled} onClick={() => onChange(null)}>Về mặc định</button>}
+        </span>
+      </span>
+      <input type="range" className="range" disabled={disabled} min={0} max={100} step={5} value={value ?? fallback} onChange={(e) => onChange(+e.target.value)} aria-label={label} />
+    </div>
+  );
+}
 
 function Toggle({ on, label, hint, disabled, strong, onChange }: { on: boolean; label: string; hint: string; disabled?: boolean; strong?: boolean; onChange: (v: boolean) => void }) {
   return (
@@ -52,7 +70,13 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
   const [interactive, setInteractive] = useState(true);
   const [consent, setConsent] = useState(false);
   const [threshold, setThreshold] = useState(70);
-  const [windowSize, setWindowSize] = useState(3);
+  const [safetyTh, setSafetyTh] = useState<number | null>(null);
+  const [readTh, setReadTh] = useState<number | null>(null);
+  const [voice, setVoice] = useState(false);
+  // Đã tích đồng ý (e) trong popup nhưng chưa lưu; gửi kèm lần lưu kế tiếp.
+  const [voiceAccepted, setVoiceAccepted] = useState(false);
+  const [askVoice, setAskVoice] = useState(false);
+  const [voiceTick, setVoiceTick] = useState(false);
   const [loading, setLoading] = useState(true);
   const bodyRef = useRiseIn<HTMLDivElement>("section", [child?.id, loading], { delay: 70 });
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
@@ -76,7 +100,10 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
       // Điều khoản đổi phiên bản thì Owner phải đồng ý lại.
       setConsent(pol.consentRecorded && !pol.consentOutdated);
       setThreshold(Number(pol.comprehensionThresholdPercent ?? 70));
-      setWindowSize(pol.comprehensionWindowSize ?? 3);
+      setSafetyTh(pol.safetyScoreThreshold == null ? null : Number(pol.safetyScoreThreshold));
+      setReadTh(pol.readabilityScoreThreshold == null ? null : Number(pol.readabilityScoreThreshold));
+      setVoice(!!pol.voiceAnswersEnabled);
+      setVoiceAccepted(false);
       setRules(Object.fromEntries(pol.categories.map((x) => [x.contentCategoryId, normalizeRule(x.rule)])));
     } else {
       setConsent(false);
@@ -102,7 +129,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
     return () => { alive = false; };
   }, [childId, childAge, apply]);
 
-  const settingsKey = JSON.stringify([mode, len, gate, wishes, interactive, threshold, windowSize, rules, consent]);
+  const settingsKey = JSON.stringify([mode, len, gate, wishes, interactive, threshold, safetyTh, readTh, voice, rules, consent]);
   useEffect(() => {
     if (loading || !canEdit || saving) return;
     if (baseline.current === null) { baseline.current = settingsKey; return; }
@@ -138,7 +165,12 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
       parentalGateEnabled: gate,
       consentRecorded: consent,
       comprehensionThresholdPercent: threshold,
-      comprehensionWindowSize: windowSize,
+      // Chưa có tính năng nào dùng số bài liên tiếp (Hold Mode chưa làm): giữ nguyên giá trị đang lưu.
+      comprehensionWindowSize: policy?.comprehensionWindowSize ?? 3,
+      safetyScoreThreshold: safetyTh,
+      readabilityScoreThreshold: readTh,
+      voiceAnswersEnabled: voice,
+      voiceConsentAccepted: voice && voiceAccepted,
       storyWishesEnabled: wishes,
       allowInteractiveStories: interactive,
       // Danh sách chặn mặc định đã được điền sẵn ở giao diện, không để backend thêm lần nữa.
@@ -192,6 +224,13 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
                   </label>
                 ))}
               </div>
+              {mode === "AutoPublishOnThreshold" && (
+                <div className="safety-auto">
+                  {gate && <p className="notice warn">Đang bật &ldquo;Hỏi mật khẩu khi bé thoát&rdquo; nên truyện vẫn cần bạn duyệt tay. Muốn tự duyệt, hãy tắt mục đó ở phần Giới hạn và quyền.</p>}
+                  <ScoreSlider label="Điểm an toàn tối thiểu" value={safetyTh} fallback={80} disabled={!canEdit} onChange={setSafetyTh} />
+                  <ScoreSlider label="Độ dễ đọc tối thiểu" value={readTh} fallback={60} disabled={!canEdit} onChange={setReadTh} />
+                </div>
+              )}
             </section>
 
             <section id="s-topic">
@@ -217,20 +256,16 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
             <section id="s-feature">
               <h2 className="display">Tính năng cho bé</h2>
               <Toggle on={wishes} disabled={!canEdit} onChange={setWishes} label="Bé ước một câu chuyện" hint="Bé chọn thẻ hình để gửi điều ước, bạn xem và quyết định" />
-              <Toggle on={interactive} disabled={!canEdit} onChange={setInteractive} label="Truyện nhiều lựa chọn" hint="Cho phép tạo truyện mà bé tự chọn hướng đi ở một số đoạn" />
+              <Toggle on={interactive} disabled={!canEdit} onChange={setInteractive} label="Tương tác khi nghe truyện" hint="Trong lúc nghe, bé đoán tranh, điền chữ, sắp xếp sự kiện… để hiểu truyện hơn" />
+              <Toggle on={voice} disabled={!canEdit} onChange={(v) => { if (v && isOwner && !policy?.voiceConsentAt && !voiceAccepted) { setVoiceTick(false); setAskVoice(true); } else setVoice(v); }}
+                label="Cho bé trả lời bằng giọng nói" hint="Bé ghi âm kể lại truyện cho bạn nghe và luyện đọc to" />
             </section>
 
             <section id="s-hold">
-              <h2 className="display">Tạm dừng khi bé gặp khó</h2>
+              <h2 className="display">Mức đọc hiểu mục tiêu</h2>
               <div className="field">
-                <span className="lbl row" style={{ justifyContent: "space-between" }}>Ngưỡng đọc hiểu <b style={{ color: "var(--text)" }}>{threshold}%</b></span>
-                <input type="range" className="range" disabled={!canEdit} min={50} max={90} step={5} value={threshold} onChange={(e) => setThreshold(+e.target.value)} aria-label="Ngưỡng đọc hiểu" />
-              </div>
-              <div className="field" style={{ marginTop: 10 }}>
-                <span className="lbl">Số bài liên tiếp dưới ngưỡng</span>
-                <div className="seg" style={{ maxWidth: 260 }}>
-                  {[2, 3, 4, 5].map((n) => <button key={n} disabled={!canEdit} className={windowSize === n ? "on" : ""} onClick={() => setWindowSize(n)}>{n} bài</button>)}
-                </div>
+                <span className="lbl row" style={{ justifyContent: "space-between" }}>Tỉ lệ bé cần hiểu đúng <b style={{ color: "var(--text)" }}>{threshold}%</b></span>
+                <input type="range" className="range" disabled={!canEdit} min={50} max={90} step={5} value={threshold} onChange={(e) => setThreshold(+e.target.value)} aria-label="Mức đọc hiểu mục tiêu" title="AI dựa vào mức này để chọn độ khó cho câu hỏi" />
               </div>
             </section>
 
@@ -244,6 +279,23 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
         )}
       </div>
 
+      {askVoice && (
+        <Dialog title="Bật trả lời bằng giọng nói" onClose={() => setAskVoice(false)}>
+          <div className="consent">
+            <b>Trước khi bật, bạn cần biết:</b>
+            <ol start={5} type="a"><li>{VOICE_CONSENT}</li></ol>
+            <label className="row" style={{ alignItems: "flex-start" }}>
+              <input type="checkbox" checked={voiceTick} onChange={(e) => setVoiceTick(e.target.checked)} style={{ marginTop: 3, accentColor: "var(--primary)" }} />
+              <span>Tôi đã đọc và đồng ý</span>
+            </label>
+          </div>
+          <div className="row" style={{ marginTop: 12 }}>
+            <button className="btn btn-g" onClick={() => setAskVoice(false)}>Huỷ</button>
+            <span className="grow" />
+            <button className="btn btn-p" disabled={!voiceTick} onClick={() => { setVoiceAccepted(true); setVoice(true); setAskVoice(false); }}><Mic className="ic" />Đồng ý và bật</button>
+          </div>
+        </Dialog>
+      )}
       {canEdit && !loading && (saving || note) && (
         <div className="safety-savebar">
           {saving ? <div className="notice" role="status">Đang lưu…</div> : note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}

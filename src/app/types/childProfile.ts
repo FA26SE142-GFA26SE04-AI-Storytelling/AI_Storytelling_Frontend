@@ -121,6 +121,8 @@ export interface SafetyPolicy {
   childCreationEnabled?: boolean;
   childCreationMode?: string;
   voiceAnswersEnabled?: boolean;
+  /** Lúc phụ huynh đồng ý mục (e) về giọng nói; null = chưa đồng ý, bật lần đầu phải đồng ý. */
+  voiceConsentAt?: string | null;
   categories: SafetyPolicyCategory[];
 }
 

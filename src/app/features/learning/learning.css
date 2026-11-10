@@ -51,8 +51,18 @@
 .lr-q { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; font-size: var(--fs-sm); color: var(--muted); }
 .lr-a { font-size: var(--fs-md); }
 .lr-flags { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.lr-flags li { display: flex; align-items: center; gap: 12px; font-size: var(--fs-sm); }
+.lr-flags li { display: flex; align-items: flex-start; gap: 12px; font-size: var(--fs-sm); }
 .lr-flags img { width: 72px; aspect-ratio: 4 / 3; border-radius: 10px; object-fit: cover; flex: none; }
+/* Hai phần của một lần kể lại: Bản ghi âm và Chỗ bé còn thắc mắc. */
+.lr-sum-part { display: flex; flex-direction: column; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.lr-sum-h { display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 700; }
+.lr-sum-h .ic { width: 16px; height: 16px; color: var(--primary); }
+.lr-flag-body { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
+.lr-flag-text { margin: 0; line-height: 1.55; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden; }
+.lr-flag-text.open { display: block; -webkit-line-clamp: unset; line-clamp: unset; }
+.lr-flag-more { padding: 2px 8px; min-height: 0; font-size: var(--fs-xs); gap: 4px; }
+.lr-flag-more .ic { width: 14px; height: 14px; transition: transform .2s; }
+.lr-flag-more[aria-expanded="true"] .ic { transform: rotate(180deg); }
 .lr-pager { display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: 700; }
 
 /* Điều ước (WishItem) */

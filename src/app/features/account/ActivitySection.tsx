@@ -5,16 +5,7 @@ import { profileLifecycleService as service } from '@/app/services/profileLifecy
 import Select from '@/app/components/Select';
 import { fmtDateTime } from '@/app/lib/guardian';
 import type { AuditLogDto } from '@/app/types/backendContracts';
-
-const ACTION: Record<string, string> = {
-  RESTORE_CHILD_PROFILE: 'Khôi phục hồ sơ',
-  ARCHIVE_CHILD_PROFILE: 'Lưu trữ hồ sơ',
-  RESUME_CHILD_PROFILE: 'Mở lại hồ sơ',
-  SUSPEND_CHILD_PROFILE: 'Khóa hồ sơ',
-};
-const ENTITY: Record<string, string> = {
-  ChildProfile: 'Hồ sơ bé',
-};
+import { auditActionLabel, auditEntityLabel } from '@/app/lib/auditLabels';
 
 const PER_PAGE = 8;
 const MAX_PAGES = 5;
@@ -36,14 +27,16 @@ export default function ActivitySection({ childId }: { childId?: number }) {
     const controller = new AbortController(); let alive = true; setItems(null); setError('');
     void (async () => {
       const all: AuditLogDto[] = [];
+      let failed = false;
       for (let p = 1; p <= MAX_PAGES; p++) {
         const r = childId === undefined ? await service.accountAudit(p,controller.signal) : await service.childAudit(childId,p,controller.signal);
         if (!alive) return;
-        if (!r.success || !r.data) { setError(r.message); break; }
+        if (!r.success || !r.data) { failed = true; setError(r.message || 'Chưa tải được lịch sử hoạt động. Hãy thử lại sau.'); break; }
         all.push(...r.data.items);
         if (!r.data.hasNextPage) break;
       }
-      if (alive) setItems(all);
+      // Lỗi ngay từ trang đầu thì không có gì để hiện: giữ null để không báo nhầm "Chưa có hoạt động".
+      if (alive) setItems(failed && all.length === 0 ? null : all);
     })();
     return () => { alive=false; controller.abort(); };
   }, [childId,refresh]);
@@ -60,15 +53,19 @@ export default function ActivitySection({ childId }: { childId?: number }) {
       <button className="btn btn-g" aria-label="Tải lại nhật ký" onClick={()=>setRefresh(n=>n+1)}><RefreshCw className="ic" /></button></div>
     {error && <p className="notice err" role="alert">{error}</p>}
     {items === null && !error && <p className="sub">Đang tải…</p>}
+    {items === null && error && <div className="row act-failed">
+      <span className="sub grow">Chưa tải được lịch sử hoạt động.</span>
+      <button className="btn btn-s" onClick={()=>setRefresh(n=>n+1)}><RefreshCw className="ic" />Thử lại</button>
+    </div>}
     {rows.map(item => <div className="act-row" key={item.id}>
-      <b>{ACTION[item.action] ?? item.action}</b>
-      <small>{ENTITY[item.entityType] ?? item.entityType} #{item.entityId} · {fmtDateTime(item.occurredAt)}</small>
+      <b>{auditActionLabel(item.action, item.entityType)}</b>
+      <small>{auditEntityLabel(item.entityType)} #{item.entityId} · {fmtDateTime(item.occurredAt)}</small>
     </div>)}
     {items !== null && shown.length === 0 && <p className="sub">Chưa có hoạt động.</p>}
-    <div className="row act-pager">
+    {items !== null && <div className="row act-pager">
       <button className="btn btn-g" aria-label="Trang trước" disabled={cur===1} onClick={()=>setPage(p=>p-1)}><ChevronLeft className="ic" /></button>
       <span className="sub">Trang {cur}/{pages}</span>
       <button className="btn btn-g" aria-label="Trang tiếp" disabled={cur>=pages} onClick={()=>setPage(p=>p+1)}><ChevronRight className="ic" /></button>
-    </div>
+    </div>}
   </section>;
 }

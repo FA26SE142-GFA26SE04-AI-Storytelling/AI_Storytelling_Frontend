@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, MessageCircleHeart, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, CircleHelp, MessageCircleHeart, Mic, Trash2 } from "lucide-react";
 import IconButton from "@/app/components/IconButton";
 import SafeImage from "@/app/components/SafeImage";
 import Frog from "@/app/components/brand/Frog";
@@ -72,6 +72,23 @@ function ResultCard({ item }: { item: ParentReadingFeedbackItem }) {
   );
 }
 
+/** Một cảnh bé còn thắc mắc: chữ của cảnh rút gọn 2 dòng, bấm để xem hết. */
+function FlagRow({ index, text, image }: { index: number; text: string; image: string | null }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <li>
+      <SafeImage src={image} alt={`Tranh cảnh ${index + 1}`} />
+      <div className="lr-flag-body">
+        <span className="pill wait">Cảnh {index + 1}</span>
+        <p className={`lr-flag-text${open ? " open" : ""}`}>{text}</p>
+        <button type="button" className="btn btn-g lr-flag-more" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+          {open ? "Thu gọn" : "Xem cả cảnh"}<ChevronDown className="ic" aria-hidden />
+        </button>
+      </div>
+    </li>
+  );
+}
+
 /** Phần bé kể lại cuối truyện: nghe lại bản ghi âm, xem các cảnh bé còn thắc mắc, xoá khi cần. */
 function SummaryCard({ s, nickname, busy, onRemove }: { s: ParentSummaryItem; nickname: string; busy: boolean; onRemove: () => void }) {
   return (
@@ -81,16 +98,19 @@ function SummaryCard({ s, nickname, busy, onRemove }: { s: ParentSummaryItem; ni
         <span className="pill draft">{shortDate(s.createdAt)}</span>
         <IconButton icon={Trash2} label={`Xoá phần kể lại về ${s.title}`} disabled={busy} onClick={onRemove} />
       </div>
-      {s.recordingUrl && <audio controls preload="none" src={s.recordingUrl} aria-label={`Nghe ${nickname} kể lại ${s.title}`} />}
+      <div className="lr-sum-part">
+        <b className="lr-sum-h"><Mic className="ic" aria-hidden />Bản ghi âm</b>
+        {s.recordingUrl
+          ? <audio controls preload="none" src={s.recordingUrl} aria-label={`Nghe ${nickname} kể lại ${s.title}`} />
+          : <p className="sub">{nickname} chưa ghi âm phần kể lại.</p>}
+      </div>
       {s.flags.length > 0 && (
-        <ul className="lr-flags" aria-label="Chỗ bé còn thắc mắc">
-          {s.flags.map((f) => (
-            <li key={f.sceneId}>
-              <SafeImage src={f.illustrationUrl} alt="" />
-              <span><span className="pill wait">Cảnh {f.sceneIndex + 1}</span> {f.sceneText}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="lr-sum-part">
+          <b className="lr-sum-h"><CircleHelp className="ic" aria-hidden />Chỗ {nickname} còn thắc mắc</b>
+          <ul className="lr-flags">
+            {s.flags.map((f) => <FlagRow key={f.sceneId} index={f.sceneIndex} text={f.sceneText} image={f.illustrationUrl} />)}
+          </ul>
+        </div>
       )}
     </li>
   );

@@ -151,6 +151,7 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
 .act-row b { font-size: var(--fs-md); }
 .act-row small { font-size: var(--fs-xs); opacity: .7; }
 .act-pager { justify-content: center; gap: 12px; padding-top: 10px; }
+.act-failed { align-items: center; gap: 12px; padding: 12px 0; }
 .conn-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: var(--fs-md); }
 .conn-dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--line-2); }
 .conn-dot.ok { background: var(--primary); }
@@ -184,6 +185,12 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
 .kid-item.on { background-color: color-mix(in srgb, var(--primary) 14%, var(--surface-2)); box-shadow: 0 5px 14px color-mix(in srgb, var(--primary) 28%, transparent); }
 .kid-item b { font-size: var(--fs-md); font-weight: 800; }
 .kid-item small { font-size: var(--fs-sm); }
+/* Cột danh sách hẹp (250px): tên một dòng, tuổi và trạng thái chung dòng thứ hai, không xuống dòng. */
+.kid-item-text { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.kid-item-text b { display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kid-item-meta { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.kid-item-meta small { white-space: nowrap; }
+.kid-item-meta .pill { white-space: nowrap; flex-shrink: 0; }
 
 /* Ghi chú trong trình tạo hồ sơ bé: khung có biểu tượng thay cho dòng chữ nhỏ. */
 .wiz-note { display: flex; align-items: center; gap: 8px; margin: 0; font-size: var(--fs-sm); }

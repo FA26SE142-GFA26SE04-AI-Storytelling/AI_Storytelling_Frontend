@@ -9,6 +9,11 @@ type SceneRef = { sceneId: number; sceneIndex: number };
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 
+/** Báo đã gửi xong: dấu tích và chữ cùng một dòng, bật lên nhẹ khi xuất hiện. */
+const Sent = ({ text }: { text: string }) => (
+  <p className="kid-sent" role="status"><span className="kid-sent-ic" aria-hidden="true"><Check /></span>{text}</p>
+);
+
 /** Cuối truyện: bé kể lại bằng giọng nói và chọn những chỗ còn thắc mắc để gửi cho bố mẹ. */
 export default function KidSummary({ token, sessionId, scenes }: { token: string; sessionId: number; scenes: SceneRef[] }) {
   const rec = useRecorder(SUMMARY_MAX_BYTES);
@@ -36,10 +41,10 @@ export default function KidSummary({ token, sessionId, scenes }: { token: string
 
   return <section className="kid-summary" aria-label="Kể lại cho bố mẹ">
     <h3 className="display">Em kể lại cho bố mẹ nghe nhé</h3>
-    {sentVoice ? <p role="status"><Check aria-hidden="true" /> {sentVoice}</p> : <div className="kid-actions">
+    {sentVoice ? <Sent text={sentVoice} /> : <div className="kid-actions">
       {rec.state === 'recording'
         ? <button type="button" className="kid-listen-primary" onClick={rec.stop}><Square aria-hidden="true" />Dừng ({clock(rec.seconds)})</button>
-        : <button type="button" className="kid-soft-button" onClick={() => void rec.start()}><Mic aria-hidden="true" />{rec.state === 'ready' ? 'Ghi lại' : 'Bấm để kể'}</button>}
+        : <button type="button" className="kid-soft-button" disabled={rec.state === 'converting'} onClick={() => void rec.start()}><Mic aria-hidden="true" />{rec.state === 'converting' ? 'Đang chuẩn bị…' : rec.state === 'ready' ? 'Ghi lại' : 'Bấm để kể'}</button>}
       {rec.state === 'ready' && rec.url && <>
         <audio controls src={rec.url} aria-label="Nghe lại bản em vừa kể" />
         <button type="button" className="kid-soft-button icon-only" aria-label="Bỏ bản ghi" title="Bỏ bản ghi" onClick={rec.reset}><RotateCcw aria-hidden="true" /></button>
@@ -51,7 +56,7 @@ export default function KidSummary({ token, sessionId, scenes }: { token: string
 
     {scenes.length > 0 && <>
       <h3 className="display"><HelpCircle aria-hidden="true" /> Chỗ nào em còn thắc mắc?</h3>
-      {sentFlags ? <p role="status"><Check aria-hidden="true" /> {sentFlags}</p> : <>
+      {sentFlags ? <Sent text={sentFlags} /> : <>
         <div className="kid-flag-list" role="group" aria-label={`Chọn tối đa ${SUMMARY_MAX_FLAGS} cảnh`}>
           {scenes.map(s => <button key={s.sceneId} type="button" className="kid-soft-button" aria-pressed={picked.includes(s.sceneId)}
             disabled={!picked.includes(s.sceneId) && picked.length >= SUMMARY_MAX_FLAGS} onClick={() => toggle(s.sceneId)}>Cảnh {s.sceneIndex + 1}</button>)}

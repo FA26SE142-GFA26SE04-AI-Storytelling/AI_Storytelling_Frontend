@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ComponentType } from "react";
+import { useCallback, useEffect, useLayoutEffect, useState, type ComponentType } from "react";
+import { childAccessService } from "@/app/services/childAccessService";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import AppShell from "@/app/components/shell/AppShell";
@@ -44,8 +45,15 @@ function Workspaces() {
   const [ws, setWs] = useState<WorkspaceId>(DEFAULT_WORKSPACE);
   const [resumeStoryId, setResumeStoryId] = useState<number | null>(null);
   // Bé đang dùng chế độ "Cho bé đọc"; chỉ đặt khi bấm nút đó, các trang phụ huynh không dùng.
-  const [kid, setKid] = useState<{ id: number; storyId: number | null } | null>(null);
+  const [kid, setKid] = useState<{ id: number; storyId: number | null; resume?: boolean } | null>(null);
   const openKid = useCallback((id: number, storyId: number | null = null) => setKid({ id, storyId }), []);
+  // Tải lại trang khi bé đang dùng: phiên của bé còn trong sessionStorage thì vào lại ngay chế độ của bé,
+  // không rơi ra khu người lớn (muốn ra vẫn phải qua cổng phụ huynh). Chạy trước khi vẽ để không lộ khu người lớn.
+  useLayoutEffect(() => {
+    const s = childAccessService.readSession();
+    if (s?.via === 'profile_switcher') setKid({ id: s.childProfileId, storyId: null, resume: true });
+  }, []);
+  const closeKid = useCallback(() => setKid(null), []);
   const View = VIEWS[ws];
   const go = useCallback<WorkspaceProps['go']>((id, target) => transitionWorkspace(() => {
     const storyId = takesStoryId(id) ? target?.storyId ?? null : null;
@@ -61,7 +69,13 @@ function Workspaces() {
   }, []);
 
   const kidChild = kids.find((k) => k.id === kid?.id) ?? null;
-  const kidOpen = !!kidChild;
+  // Đang chờ danh sách bé để vào lại chế độ của bé sau khi tải trang: che khu người lớn bằng màn chờ.
+  const kidPending = !!kid && !kidChild && childrenLoading;
+  const kidOpen = !!kidChild || kidPending;
+  // Bé của phiên cũ không còn trong danh sách (bị lưu trữ, đổi tài khoản…): bỏ phiên, về khu người lớn.
+  useEffect(() => {
+    if (kid && !kidChild && !childrenLoading) { childAccessService.clearSession(); setKid(null); }
+  }, [kid, kidChild, childrenLoading]);
 
   return (
     <>
@@ -73,7 +87,8 @@ function Workspaces() {
             : <View key={takesStoryId(ws) ? `${ws}:${resumeStoryId ?? 'new'}` : ws} go={go} resumeStoryId={resumeStoryId} onKid={openKid} />}
         </AppShell>
       </div>
-      {kidChild && <KidMode child={kidChild} storyId={kid?.storyId} onExit={() => setKid(null)} />}
+      {kidPending && <div className="kid" role="dialog" aria-modal="true" aria-label="Chế độ của bé"><div className="splash">Đang mở…</div></div>}
+      {kidChild && <KidMode child={kidChild} storyId={kid?.storyId} resume={kid?.resume} onExit={closeKid} />}
     </>
   );
 }

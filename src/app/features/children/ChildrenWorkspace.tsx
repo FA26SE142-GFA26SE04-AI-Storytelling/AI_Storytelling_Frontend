@@ -75,8 +75,10 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
             return (
               <button key={k.id} className={`kid-item${mode === "view" && child?.id === k.id ? " on" : ""}`} onClick={() => { setSelId(k.id); setMode("view"); }}>
                 <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
-                <span className="grow"><b>{k.nickname}</b><small>{ageLabel(k.ageBand)}</small></span>
-                <span className={`pill ${st.tone}`}>{st.label}</span>
+                <span className="grow kid-item-text">
+                  <b title={k.nickname}>{k.nickname}</b>
+                  <span className="kid-item-meta"><small>{ageLabel(k.ageBand)}</small><span className={`pill ${st.tone}`}>{st.label}</span></span>
+                </span>
               </button>
             );
           })}
