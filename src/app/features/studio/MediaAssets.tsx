@@ -14,9 +14,10 @@ const AssetPill = ({ status }: { status: string }) => { const [tone, label] = AS
 /**
  * Xem, tạo lại từng tranh / đoạn giọng đọc và xác nhận gói media.
  * `autoOpen`: mở sẵn và tự tải gói (khi đang chờ người dùng xác nhận); không cần bấm tải.
+ * `showConfirmation`: tắt khi màn cha đã có nút xác nhận gói riêng.
  */
-export default function MediaAssets({ storyId, versionId, onChanged, disabled = false, autoOpen = false }: {
-  storyId: number; versionId?: number | null; onChanged: () => void; disabled?: boolean; autoOpen?: boolean;
+export default function MediaAssets({ storyId, versionId, onChanged, disabled = false, autoOpen = false, showConfirmation = true }: {
+  storyId: number; versionId?: number | null; onChanged: () => void; disabled?: boolean; autoOpen?: boolean; showConfirmation?: boolean;
 }) {
   const { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm, keepCurrent } = useMediaPackage({storyId,versionId,onChanged,disabled});
   const loaded = useRef(false);
@@ -52,7 +53,7 @@ export default function MediaAssets({ storyId, versionId, onChanged, disabled = 
       </div>)}
     </article>)}
     {pack?.replacements?.filter(r=>['Failed','ManualReview'].includes(r.status)).map(r=><div className="notice" role="status" key={r.candidateAssetId}><p>Bản tạo lại {r.type === 'Illustration' ? 'tranh' : 'âm thanh'} chưa đạt yêu cầu.</p><button className="btn btn-s" disabled={busy||disabled||uncertain} onClick={()=>void keepCurrent(r.candidateAssetId)}>Giữ bản cũ</button></div>)}
-    {pack?.isAwaitingConfirmation && <div className="ma-confirm"><label className="row"><input type="checkbox" checked={reviewed} disabled={busy || disabled || uncertain} onChange={e => setReviewed(e.target.checked)} />Tôi đã xem tranh và nghe các đoạn âm thanh của gói này</label>
+    {showConfirmation && pack?.isAwaitingConfirmation && <div className="ma-confirm"><label className="row"><input type="checkbox" checked={reviewed} disabled={busy || disabled || uncertain} onChange={e => setReviewed(e.target.checked)} />Tôi đã xem tranh và nghe các đoạn âm thanh của gói này</label>
       <button className="btn btn-ok" disabled={busy || disabled || uncertain || !reviewed} onClick={() => void confirm()}><Check className="ic" />Xác nhận media</button>
     </div>}
     {pack?.isConfirmed && <p className="ma-done"><Check className="ic" aria-hidden />Đã xác nhận gói media</p>}

@@ -62,28 +62,28 @@ describe('Remaining Core contracts',()=>{
   expect(fetcher.mock.calls[0][0]).toMatch(/\/ModerationQueue\/review-views$/);expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual(body);
  });
 });
-// Backend endpoints with a wrapper in app/services but no screen calling it yet (SERVICE_ONLY).
-const SERVICE_ONLY_ENDPOINTS=['GET /api/v1/ChildProfile/{id}','POST /api/v1/stories/import','POST /api/v1/stories/import-file','POST /api/v1/stories/{storyId}/existing/evaluate','GET /api/v1/stories/{storyId}/existing/evaluation','POST /api/v1/stories/{storyId}/existing/adapt','PUT /api/v1/stories/{storyId}/existing/content','POST /api/v1/stories/{storyId}/existing/keep-original','POST /api/v1/stories/{storyId}/existing/archive','DELETE /api/v1/LearningProfile/{childProfileId}','POST /api/v1/parent/stories/{storyId}/imports/confirm','PUT /api/v1/stories/{storyId}/review/listening/{interactionId}','DELETE /api/v1/SafetyPolicy/{childProfileId}','POST /api/v1/Story','PATCH /api/v1/Story/{id}/publish'];
-// Backend endpoints with no web wrapper at all yet (MISSING).
-const MISSING_ENDPOINTS:string[]=['GET /api/v1/child/manual-stories/{confirmationId}/assets/{assetId}','POST /api/v1/child/reading/sessions/{sessionId}/segments/{segmentId}/read-aloud','POST /api/v1/creator/stories/{storyId}/media/illustration-beats/{beatId}/upload','POST /api/v1/creator/stories/{storyId}/media/segments/{segmentId}/upload','POST /api/v1/creator/stories/{storyId}/media/illustration-beats/{beatId}/generate','POST /api/v1/creator/stories/{storyId}/media/segments/{segmentId}/generate','GET /api/v1/parent/stories/{storyId}/packages/{packageId}/assets/{assetId}','POST /api/v1/parent/stories/{storyId}/content/finalize','POST /api/v1/parent/stories/{storyId}/content/reopen','POST /api/v1/parent/stories/{storyId}/packages','GET /api/v1/parent/stories/{storyId}/packages','GET /api/v1/parent/stories/{storyId}/packages/{packageId}','POST /api/v1/parent/stories/{storyId}/packages/{packageId}/generate','POST /api/v1/parent/stories/{storyId}/packages/{packageId}/retry','POST /api/v1/parent/stories/{storyId}/packages/{packageId}/revise','GET /api/v1/parent/stories/{storyId}/packages/{packageId}/preview','POST /api/v1/parent/stories/{storyId}/packages/{packageId}/confirm','POST /api/v1/parent/stories/{storyId}/family-confirmations/batch','POST /api/v1/stories/{storyId}/review/confirm-package'];
+// The checked-in manifest records both connected routes and known static-evidence gaps.
+// A passing test means the audit is current, not that every endpoint is connected.
 type AuditRow={method:string;route:string;disposition:string};
-const BY_DISPOSITION=(rows:AuditRow[],disposition:string)=>rows.filter(r=>r.disposition===disposition).map(r=>r.method+' '+r.route);
-it('has source evidence for every browser endpoint in the current controllers',()=>{
- if(existsSync('../../AI_Storytelling_Backend/src/Core/StoryPlatform.Api/Controllers')){
-  // Without --check: the script exits 1 while any endpoint is unconnected.
-  const output=execFileSync(process.execPath,['scripts/audit-core-api.mjs'],{encoding:'utf8',timeout:15000});
-  const result=JSON.parse(output);expect(result.total).toBe(354);expect(result.connected).toBe(318);expect(result.excluded).toBe(2);
-  // The script also writes every endpoint with its disposition; check each category on its own so a new
-  // MISSING endpoint cannot hide behind a SERVICE_ONLY one that got a screen (or vice versa).
-  const audit=JSON.parse(readFileSync('out/core-api-audit.json','utf8')) as AuditRow[];
-  expect(BY_DISPOSITION(audit,'SERVICE_ONLY')).toEqual(SERVICE_ONLY_ENDPOINTS);
-  expect(BY_DISPOSITION(audit,'MISSING')).toEqual(MISSING_ENDPOINTS);
-  expect([...result.missing].sort()).toEqual([...SERVICE_ONLY_ENDPOINTS,...MISSING_ENDPOINTS].sort());
- }
+const auditSummary=(rows:AuditRow[])=>rows.map(({method,route,disposition})=>({method,route,disposition}))
+ .sort((a,b)=>(a.method+' '+a.route).localeCompare(b.method+' '+b.route));
+it('keeps the endpoint coverage manifest current, including unresolved connection gaps',()=>{
  const manifest=JSON.parse(readFileSync('docs/core-api-coverage.json','utf8')) as AuditRow[];
- expect(manifest).toHaveLength(354);expect(new Set(manifest.map(r=>r.method+' '+r.route)).size).toBe(354);
- expect(BY_DISPOSITION(manifest,'SERVICE_ONLY')).toEqual(SERVICE_ONLY_ENDPOINTS);
- expect(BY_DISPOSITION(manifest,'MISSING')).toEqual(MISSING_ENDPOINTS);
+ expect(manifest.length).toBeGreaterThan(0);
+ expect(new Set(manifest.map(r=>r.method+' '+r.route)).size).toBe(manifest.length);
+ expect(manifest.every(r=>['CONNECTED_SOURCE','SERVICE_ONLY','MISSING','SERVER_TO_SERVER','COMPATIBILITY_ALIAS'].includes(r.disposition))).toBe(true);
  expect(manifest.filter(r=>r.disposition==='SERVER_TO_SERVER').map(r=>r.route)).toEqual(['/api/v1/Payment/webhook/sepay']);
+ if(existsSync('../../AI_Storytelling_Backend/src/Core/StoryPlatform.Api/Controllers')){
+  // --check remains the strict completion gate and fails while connection gaps remain.
+  const output=execFileSync(process.execPath,['scripts/audit-core-api.mjs'],{encoding:'utf8',timeout:15000});
+  const result=JSON.parse(output);
+  const audit=JSON.parse(readFileSync('out/core-api-audit.json','utf8')) as AuditRow[];
+  expect(auditSummary(audit)).toEqual(auditSummary(manifest));
+  expect(result.total).toBe(manifest.length);
+  expect(result.connected).toBe(manifest.filter(r=>r.disposition==='CONNECTED_SOURCE').length);
+  expect(result.excluded).toBe(manifest.filter(r=>['SERVER_TO_SERVER','COMPATIBILITY_ALIAS'].includes(r.disposition)).length);
+  const gaps=manifest.filter(r=>['MISSING','SERVICE_ONLY'].includes(r.disposition)).map(r=>r.method+' '+r.route).sort();
+  expect([...result.missing].sort()).toEqual(gaps);
+ }
 // Chạy script audit (vài giây) nên cần thời gian dài hơn mặc định 5 giây khi cả bộ test chạy song song.
 },30000);

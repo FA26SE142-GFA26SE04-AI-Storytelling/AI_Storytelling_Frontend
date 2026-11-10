@@ -1,6 +1,7 @@
 import { generationDisplayPhase } from "@/app/features/story-workflow/storyGenerationFlow";
 import type { MediaProgressDto } from "@/app/types/aiStory";
 import type { Stage, StatusSnapshot } from "./useStoryPipeline";
+import { mediaPackageDisplay } from '@/app/features/story-workflow/studioMediaState';
 
 /** Các bước người dùng thấy trên thanh tiến trình của Studio (gộp 5 Phase của Luồng 2 thành ngôn ngữ phụ huynh). */
 export const STUDIO_STEPS = [
@@ -48,9 +49,10 @@ export function studioProgress(
     case "review": return at(5, "you", "Chờ bạn duyệt truyện");
     case "media":
       if (media?.isReady) return { current: 7, mode: "done", caption: "Truyện đã sẵn sàng" };
-      if (media?.isAwaitingConfirmation) return { current: 6, mode: "you", caption: "Chờ bạn xem và xác nhận tranh, giọng đọc" };
-      if (media?.errorCode) return { current: 6, mode: "error", caption: "Tạo tranh gặp lỗi" };
-      return at(6, "run", "Đang vẽ tranh, tạo giọng");
+      {
+        const display=mediaPackageDisplay(media);
+        return {current:6,mode:display.kind==='failed'?'error':display.kind==='confirm'||display.kind==='selection'?'you':'run',caption:display.label};
+      }
     case "stopped": return { current: -1, mode: "error", caption: "Truyện đã dừng" };
   }
 }

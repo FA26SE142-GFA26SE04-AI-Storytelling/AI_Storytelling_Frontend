@@ -6,7 +6,12 @@ export const creatorPublicationService = {
   status: (id: number, signal?: AbortSignal) => apiRequest<B.CreatorPublicationStatus>(`${root(id)}/publication`, 'Không tải được trạng thái phát hành.', { signal }),
   check: (id: number, versionId: number) => apiRequest<B.GrayZoneContentCheckDto>(`${root(id)}/content/check`, 'Không kiểm tra được nội dung.', { method: 'POST', body: { versionId } }),
   /** `contentCategoryIds`: nhãn nội dung Creator đề xuất; backend bắt buộc có ít nhất một nhãn. */
-  submit: (storyId: number, storyVersionId: number, contentCategoryIds: number[]) => apiRequest<B.PublicStorySubmissionResultDto>('/PublicStorySubmission/submit', 'Không gửi được truyện đi duyệt.', { method: 'POST', body: { storyId, storyVersionId, contentCategoryIds } }),
+  submit: (storyId: number, storyVersionId: number, contentCategoryIds: number[]) => {
+    if (!Array.isArray(contentCategoryIds) || !contentCategoryIds.length || contentCategoryIds.some(id => !Number.isSafeInteger(id) || id < 1))
+      return Promise.resolve({ success: false, status: 400, message: 'Hãy chọn ít nhất một nhãn nội dung hợp lệ.', data: null });
+    const body: B.SubmitPublicStoryRequestDto = { storyId, storyVersionId, contentCategoryIds: [...new Set(contentCategoryIds)] };
+    return apiRequest<B.PublicStorySubmissionResultDto>('/PublicStorySubmission/submit', 'Không gửi được truyện đi duyệt.', { method: 'POST', body });
+  },
   withdraw: (itemId: number) => apiRequest<B.PublicStorySubmissionResultDto>(`/PublicStorySubmission/${itemId}/withdraw`, 'Không rút được yêu cầu.', { method: 'POST' }),
   remove: (id: number, reason: string) => apiRequest<B.CreatorPublicationResult>(`${root(id)}/removal-requests`, 'Không yêu cầu gỡ được truyện.', { method: 'POST', body: { reason } }),
   revision: (id: number, sourceVersionId: number) => apiRequest<B.CreatorPublicationResult>(`${root(id)}/revisions`, 'Không tạo được phiên bản chỉnh sửa.', { method: 'POST', body: { sourceVersionId } }),

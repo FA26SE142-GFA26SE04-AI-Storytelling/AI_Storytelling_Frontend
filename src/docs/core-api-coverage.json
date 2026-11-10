@@ -2347,7 +2347,8 @@
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
           "app/features/children/LearningForm.tsx",
-          "app/features/safety/SafetyWorkspace.tsx"
+          "app/features/safety/SafetyWorkspace.tsx",
+          "app/features/story-workflow/useCreatorPublicationLabels.ts"
         ]
       },
       {
@@ -2528,7 +2529,7 @@
         "service": "creatorInputService",
         "operation": "context",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 15,
+        "line": 20,
         "callers": [
           "app/features/staff/CreatorGeneration.tsx"
         ]
@@ -2549,7 +2550,7 @@
         "service": "creatorInputService",
         "operation": "submit",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 16,
+        "line": 21,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -2570,7 +2571,7 @@
         "service": "creatorInputService",
         "operation": "progress",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 17,
+        "line": 22,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -2591,7 +2592,7 @@
         "service": "creatorInputService",
         "operation": "retry",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 18,
+        "line": 23,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -3145,7 +3146,7 @@
         "service": "creatorPublicationService",
         "operation": "remove",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 11,
+        "line": 16,
         "callers": [
           "app/features/staff/CreatorPublication.tsx",
           "app/features/staff/RemovalRequestDialog.tsx"
@@ -3167,7 +3168,7 @@
         "service": "creatorPublicationService",
         "operation": "revision",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 12,
+        "line": 17,
         "callers": [
           "app/features/staff/CreatorPublication.tsx"
         ]
@@ -3487,7 +3488,7 @@
         "service": "aiStoryCreationService",
         "operation": "getMediaProgress",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 141,
+        "line": 143,
         "callers": [
           "app/features/staff/CreatorGeneration.tsx",
           "app/features/story-workflow/resumeStory.ts",
@@ -3511,7 +3512,7 @@
         "service": "aiStoryCreationService",
         "operation": "getMediaPackage",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 142,
+        "line": 144,
         "callers": [
           "app/features/created/CoverPickerDialog.tsx",
           "app/features/library/LibraryWorkspace.tsx",
@@ -3535,7 +3536,7 @@
         "service": "aiStoryCreationService",
         "operation": "regenerateIllustration",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 144,
+        "line": 146,
         "callers": [
           "app/features/story-workflow/useMediaPackage.ts"
         ]
@@ -3556,7 +3557,7 @@
         "service": "aiStoryCreationService",
         "operation": "confirmMedia",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 146,
+        "line": 148,
         "callers": [
           "app/features/story-workflow/useMediaPackage.ts",
           "app/features/story-workflow/useStudioCompletion.ts"
@@ -3578,7 +3579,7 @@
         "service": "aiStoryCreationService",
         "operation": "regenerateAudio",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 145,
+        "line": 147,
         "callers": [
           "app/features/story-workflow/useMediaPackage.ts"
         ]
@@ -3599,7 +3600,7 @@
         "service": "aiStoryCreationService",
         "operation": "retryMedia",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 143,
+        "line": 145,
         "callers": [
           "app/features/staff/CreatorGeneration.tsx",
           "app/features/studio/MediaProgress.tsx",
@@ -3622,7 +3623,7 @@
         "service": "aiStoryCreationService",
         "operation": "keepCurrentMedia",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 147,
+        "line": 149,
         "callers": [
           "app/features/story-workflow/useMediaPackage.ts"
         ]
@@ -5525,7 +5526,7 @@
         "service": "creatorPublicationService",
         "operation": "submit",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 9,
+        "line": 13,
         "callers": [
           "app/features/staff/CreatorPublication.tsx"
         ]
@@ -5546,7 +5547,7 @@
         "service": "creatorPublicationService",
         "operation": "withdraw",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 10,
+        "line": 15,
         "callers": [
           "app/features/staff/CreatorPublication.tsx"
         ]
@@ -5653,7 +5654,7 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 117,
         "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
+          "app/features/story-workflow/storyReviewBundle.ts"
         ]
       }
     ],
@@ -5706,7 +5707,7 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 119,
         "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
+          "app/features/story-workflow/storyReviewBundle.ts"
         ]
       }
     ],
@@ -5746,7 +5747,7 @@
         "service": "aiStoryCreationService",
         "operation": "partialEditStory",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 136,
+        "line": 138,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -5767,7 +5768,7 @@
         "service": "aiStoryCreationService",
         "operation": "completeStoryReview",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 129,
+        "line": 131,
         "callers": []
       },
       {
@@ -5775,13 +5776,11 @@
         "service": "aiStoryCreationService",
         "operation": "completeReview",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 130,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 132,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "GET",
@@ -5798,7 +5797,7 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 121,
         "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
+          "app/features/story-workflow/storyReviewBundle.ts"
         ]
       }
     ],
@@ -5838,7 +5837,7 @@
         "service": "aiStoryCreationService",
         "operation": "regenerateReviewArtifact",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 137,
+        "line": 139,
         "callers": [
           "app/features/review/ReviewTools.tsx",
           "app/features/story-workflow/useStoryReview.ts"
@@ -5860,13 +5859,11 @@
         "service": "aiStoryCreationService",
         "operation": "completeReview",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 130,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 132,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "GET",
@@ -5883,7 +5880,7 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 123,
         "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
+          "app/features/story-workflow/storyReviewBundle.ts"
         ]
       }
     ],
@@ -5924,7 +5921,7 @@
         "service": "aiStoryCreationService",
         "operation": "regenerateReviewArtifact",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 137,
+        "line": 139,
         "callers": [
           "app/features/review/ReviewTools.tsx",
           "app/features/story-workflow/useStoryReview.ts"
@@ -5946,13 +5943,11 @@
         "service": "aiStoryCreationService",
         "operation": "completeReview",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 130,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 132,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "GET",
@@ -5969,7 +5964,7 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 125,
         "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
+          "app/features/story-workflow/storyReviewBundle.ts"
         ]
       }
     ],
@@ -5988,7 +5983,7 @@
         "service": "aiStoryCreationService",
         "operation": "updateListeningInteraction",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 126,
+        "line": 128,
         "callers": []
       }
     ],
@@ -6007,7 +6002,7 @@
         "service": "aiStoryCreationService",
         "operation": "regenerateListening",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 127,
+        "line": 129,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -6028,7 +6023,7 @@
         "service": "aiStoryCreationService",
         "operation": "completeListening",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 128,
+        "line": 130,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -6049,13 +6044,11 @@
         "service": "aiStoryCreationService",
         "operation": "validateReview",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 131,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 133,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "POST",
@@ -6091,13 +6084,11 @@
         "service": "aiStoryCreationService",
         "operation": "confirmCreatorContent",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 132,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 134,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "POST",
@@ -6112,13 +6103,11 @@
         "service": "aiStoryCreationService",
         "operation": "approveStory",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 133,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 135,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "POST",
@@ -6133,7 +6122,7 @@
         "service": "aiStoryCreationService",
         "operation": "archiveStory",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 135,
+        "line": 137,
         "callers": [
           "app/features/studio/useStoryPipeline.ts"
         ]
@@ -6154,7 +6143,7 @@
         "service": "aiStoryCreationService",
         "operation": "getProposal",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 138,
+        "line": 140,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -6175,7 +6164,7 @@
         "service": "aiStoryCreationService",
         "operation": "applyProposal",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 139,
+        "line": 141,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -6196,7 +6185,7 @@
         "service": "aiStoryCreationService",
         "operation": "discardProposal",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 140,
+        "line": 142,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -7126,8 +7115,19 @@
     "controller": "StoryPackageConfirmationController.cs",
     "action": "Confirm",
     "controllerLine": 19,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/stories/{}/review/confirm-package",
+        "service": "aiStoryCreationService",
+        "operation": "confirmPackage",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 127,
+        "callers": [
+          "app/features/story-workflow/useStoryReview.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",

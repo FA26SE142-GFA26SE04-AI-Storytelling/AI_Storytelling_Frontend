@@ -11,4 +11,4 @@ export const mediaIsGenerating = (p: MediaProgressDto) => !p.isReady && !p.isAwa
 export const mediaCanRetry = (p: MediaProgressDto) => !!p.errorCode && !mediaIsGenerating(p);
 /** Tiếp tục hỏi trạng thái khi còn đang tạo, hoặc chưa có kết luận và chưa có lỗi. */
 export const mediaKeepPolling = (p: MediaProgressDto) => !p.isReady && !p.isAwaitingConfirmation && (mediaIsGenerating(p) || !p.errorCode) && !['Failed', 'Cancelled'].includes(p.jobStatus);
-export const mediaNeedsPolling = (p: MediaProgressDto) => !p.isReady && !p.isAwaitingConfirmation && !p.errorCode && !['Failed','Cancelled'].includes(p.jobStatus);
+export const mediaNeedsPolling = (p: MediaProgressDto) => !p.isReady && !p.isAwaitingConfirmation && !['Failed','Cancelled'].includes(p.jobStatus);

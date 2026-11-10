@@ -14,6 +14,7 @@ import StudioScenePreview from './StudioScenePreview';
 import { mediaCanRetry, mediaIsGenerating } from '@/app/features/story-workflow/mediaPackage';
 import StudioCompletion from './StudioCompletion';
 import MediaIssues from './MediaIssues';
+import { audioBranchDisplay, mediaPackageDisplay } from '@/app/features/story-workflow/studioMediaState';
 
 type Props = { storyId: number; media: ReturnType<typeof useMediaProgress> };
 
@@ -25,14 +26,28 @@ export default function StudioMedia({ storyId, media }: Props) {
   const r = useStoryReview(storyId);
   const { bundle, error } = r;
   const [active, setActive] = useState(0);
+  const [retryBusy,setRetryBusy]=useState(false);
+  const [retryNote,setRetryNote]=useState('');
+  const retryLock=useRef(false);
   const sideRef = useRiseIn<HTMLDivElement>(".prep-stat, .ck, .prep-scene", [bundle ? 1 : 0], { delay: 35, distance: 10 });
   const m = media.data;
+  const display=mediaPackageDisplay(m);
+  const audio=audioBranchDisplay(m);
   const preview=useStudioMediaPreview(storyId,bundle?.summary.storyVersionId??m?.approvedStoryVersionId??null,m);
   const mediaScenes=useMemo(()=>preview.pack?.scenes.slice().sort((a,b)=>a.sceneIndex-b.sceneIndex)??[],[preview.pack]);
   const scenes=useMemo(()=>mediaScenes.length?mediaScenes.map(s=>s.text??''):(bundle?splitScenes(bundle.story.content):[]),[mediaScenes,bundle]);
   const sceneIndex=Math.min(active,Math.max(0,scenes.length-1));
   const currentScene=mediaScenes[sceneIndex];
   const reload=()=>{preview.refresh();media.refresh();};
+  const retry=async()=>{
+    if(retryLock.current)return;
+    retryLock.current=true;setRetryBusy(true);setRetryNote('');
+    try {
+      const response=await api.retryMedia(storyId);
+      setRetryNote(response.success?'Đã yêu cầu thử lại các mục chưa hoàn tất.':response.message||'Chưa gửi được yêu cầu. Hãy tải lại trạng thái trước khi thử tiếp.');
+      reload();
+    } finally {retryLock.current=false;setRetryBusy(false);}
+  };
   const mp=useMediaPackage({storyId,versionId:m?.approvedStoryVersionId,onChanged:reload,source:preview.pack});
   // Truyện đã sẵn sàng (gói media đã xác nhận) thì không hiện nút tạo lại nữa: gói đã chốt, muốn đổi phải làm lại từ bước duyệt.
   const sceneActions=preview.pack&&!m?.isConfirmed&&!m?.isReady?{busy:mp.busy,locked:mp.uncertain,replacements:preview.pack.replacements??[],regenerate:(k:'illustration'|'audio',id:number)=>void mp.regenerate(k,id),keepCurrent:(id:number)=>void mp.keepCurrent(id)}:undefined;
@@ -58,12 +73,12 @@ export default function StudioMedia({ storyId, media }: Props) {
   return (
     <>
       <div className="center">
-        {m && mediaCanRetry(m) && <button className="btn btn-p studio-retry-corner" onClick={() => void api.retryMedia(storyId).then(media.refresh)}><RefreshCw className="ic" />Thử lại</button>}
+        {m && mediaCanRetry(m) && <button className="btn btn-p studio-retry-corner" disabled={retryBusy} onClick={() => void retry()}><RefreshCw className="ic" />{retryBusy ? 'Đang gửi…' : 'Thử lại'}</button>}
         {bundle ? (
           <div className="board">
             <div className="artwrap">
               {preview.error&&<p className="notice err" role="alert">{preview.error}</p>}
-              <StudioScenePreview key={`${storyId}:${preview.pack?.storyVersionId}:${preview.pack?.packageRevision}:${currentScene?.sceneId}:${sceneIndex}:${currentScene?.illustrations.map(i=>i.url).join('|')}`} scene={currentScene} text={scenes[sceneIndex]??''} loading={preview.loading} onReload={reload} actions={sceneActions} generating={!!m && mediaIsGenerating(m)}/>
+              <StudioScenePreview key={`${storyId}:${preview.pack?.storyVersionId}:${preview.pack?.packageRevision}:${currentScene?.sceneId}:${sceneIndex}:${currentScene?.illustrations.map(i=>i.url).join('|')}:${currentScene?.audio?.map(a=>a.url).join('|')}`} scene={currentScene} text={scenes[sceneIndex]??''} loading={preview.loading} onReload={reload} actions={sceneActions} generating={!!m && mediaIsGenerating(m)}/>
             </div>
           </div>
         ) : (
@@ -80,17 +95,19 @@ export default function StudioMedia({ storyId, media }: Props) {
       <AsidePane title="Chuẩn bị cho bé" icon={Images} bodyRef={sideRef}>
           <div className="studio-actions">
             {statusText&&<p role="status">{statusText}</p>}
+            {(media.timedOut||media.error)&&<div className="notice warn" role="status"><p>{media.timedOut?'Chưa nhận được kết quả cuối cùng. Việc tạo media có thể vẫn đang chạy.':media.error}</p><button className="btn btn-s" onClick={reload}>Tiếp tục theo dõi</button></div>}
+            {retryNote&&<p className="notice" role="status">{retryNote}</p>}
             {mp.note&&<p className="notice" role="status">{mp.note}</p>}
             {mp.uncertain&&<p className="notice warn" role="status">Chưa rõ kết quả thao tác. Hãy tải lại ảnh và giọng đọc rồi mới thử lại.</p>}
-            {bundle&&<StudioCompletion pack={preview.pack} progress={m} onChanged={reload}/>}
+            {bundle&&<StudioCompletion pack={preview.loading?null:preview.pack} progress={m} onChanged={reload}/>}
           </div>
           <section className="prep-group" aria-label="Tiến độ">
             <div className="sec-h"><span>Tiến độ</span></div>
             <div className="prep-list">
               {step(true, "Đã duyệt nội dung", "", Check)}
               {step(!!m && total > 0 && m.readyIllustrations >= total, "Tranh minh hoạ", m ? `${m.readyIllustrations}/${total}` : "…", ImageIcon)}
-              {step(!!m?.isGenerated, "Giọng đọc", m ? `${m.readyAudio} đoạn` : "…", Volume2)}
-              {step(!!m?.isConfirmed, m?.isConfirmed ? "Đã xác nhận gói media" : "Chờ xác nhận gói media", "", Check)}
+              {step(audio.done, audio.label, audio.nextRetryAt ? `${audio.detail} · thử lại lúc ${new Date(audio.nextRetryAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}` : audio.detail, Volume2)}
+              {step(display.kind==='ready', display.label, "", Check)}
             </div>
             <MediaIssues progress={m} pack={preview.pack} onSelectScene={(id, index) => {
               const position = mediaScenes.findIndex(s => s.sceneId === id);
@@ -107,6 +124,7 @@ export default function StudioMedia({ storyId, media }: Props) {
                 <>
                   <div className="prep-stat"><small>Từ vựng</small><b>{count(bundle?.vocabulary.items.length)}</b></div>
                   <div className="prep-stat"><small>Câu hỏi</small><b>{count(bundle?.quiz.items.length)}</b></div>
+                  <div className="prep-stat"><small>Tương tác lúc nghe</small><b>{count(bundle?.listening?.items.length)}</b></div>
                 </>
               )}
               <div className="prep-stat wide"><small>Bài học</small><p>{bundle ? bundle.story.lesson || "—" : "…"}</p></div>

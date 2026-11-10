@@ -55,6 +55,7 @@ function DetailCard({ item, me, myName, busy, onClaim }: { item: QueueItem; me?:
       <div className="grow"><b className="display">{types[item.itemType] ?? item.itemType}</b></div>
       {(() => { const m = stateOf(item.status, !!due?.late); return <span className={`st-prio ${m.tone}`} title={m.label} aria-label={m.label}><m.Icon className="ic" /></span>; })()}
     </div>
+    <p>{item.storyTitle || (item.storyId != null ? `Truyện #${item.storyId}` : types[item.itemType] ?? item.itemType)} · Yêu cầu #{item.id}</p>
     <div className="st-facts">
       <div><small>Trạng thái</small><b>{labels[item.status]}{item.claimedByUserId === me ? (item.status === 'Claimed' ? ' · bạn đang giữ' : ' · bạn đã xử lý') : ''}</b></div>
       <div><small>Người xử lý</small><b>{handlerName(item, me, myName)}</b></div>
@@ -75,16 +76,20 @@ export default function ConnectedModerationQueue({ admin }: { admin?: boolean })
   const [selected, setSelected] = useState<number | null>(null);
   const [error, setError] = useState('');
   const [hasNext, setHasNext] = useState(false);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
   const [revision, setRevision] = useState(0);
   const reload = useCallback(() => { setSelected(null); setRevision(n => n + 1); }, []);
   const { note, busy, run } = useAction(reload);
   useEffect(() => {
     let alive = true;
-    setItems([]); setSelected(null); setError('');
+    setItems([]); setSelected(null); setError(''); setLoading(true); setHasNext(false); setTotalCount(0); setTotalPages(0);
     void staffService.queue({ status, itemType: kind || undefined, pageIndex, pageSize: 6 }).then(r => {
       if (!alive) return;
+      setLoading(false);
       if (!r.success || !r.data) { setError(r.message); return; }
-      setItems(r.data.items); setHasNext(r.data.hasNextPage);
+      setItems(r.data.items); setHasNext(r.data.hasNextPage); setTotalCount(r.data.totalCount); setTotalPages(r.data.totalPages);
     });
     return () => { alive = false; };
   }, [status, kind, pageIndex, revision, user?.id]);
@@ -97,15 +102,18 @@ export default function ConnectedModerationQueue({ admin }: { admin?: boolean })
       <Select<QueueItemStatus> ariaLabel="Trạng thái" value={status} options={statuses.map(s => ({ value: s, label: labels[s] }))} onChange={v => { setStatus(v); setPageIndex(1); }} />
       <Select<QueueItemType | ''> ariaLabel="Loại mục" value={kind} options={[{ value: '', label: 'Tất cả loại mục' }, ...Object.entries(types).map(([k, v]) => ({ value: k as QueueItemType, label: v }))]} onChange={v => { setKind(v); setPageIndex(1); }} />
       <button className="btn btn-g" aria-label="Tải lại" onClick={reload}><RefreshCw className="ic" /></button>
+      <button className="btn btn-s" onClick={() => { setStatus('Pending'); setKind('PublicStoryReview'); setPageIndex(1); reload(); }}>Truyện Creator chờ duyệt</button>
+      <span className="sub" role="status">{loading ? 'Đang tải hàng đợi…' : !error ? `${totalCount} mục · Trang ${pageIndex}/${Math.max(1, totalPages)}` : ''}</span>
     </div>
     <div className="st-split fill"><div className="st-list" ref={listRef}>{items.map(i => <button className={`st-item${selected === i.id ? ' on' : ''}`} key={i.id} onClick={() => setSelected(i.id)}>{(() => {
           const due = dueInfo(i.slaDueAt, i.status);
           return <>
             <span className="st-item-top"><b>{types[i.itemType] ?? i.itemType}</b>{(() => { const m = stateOf(i.status, !!due?.late); return <span className={`st-prio ${m.tone}`} title={m.label} aria-label={m.label}><m.Icon className="ic" /></span>; })()}</span>
+            {i.storyId != null && <b>{i.storyTitle || `Truyện #${i.storyId}`}</b>}
             <small className={`st-due${due?.late ? ' late' : ''}`}><Clock className="ic" />{labels[i.status]}{i.claimedByUserId === user?.id ? (i.status === 'Claimed' ? ' · bạn đang giữ' : ' · bạn đã xử lý') : ''} · {due ? (due.done ? due.text : due.late ? `quá hạn ${due.span}` : `còn ${due.span}`) : 'chưa đặt hạn'}</small>
           </>;
-        })()}</button>)}{!items.length && !error && <p>Không có mục nào ở trang này.</p>}
-      <div className="row" style={{ justifyContent: 'center', gap: 12 }}><button className="btn btn-g" aria-label="Trang trước" disabled={pageIndex === 1} onClick={() => setPageIndex(p => p - 1)}><ChevronLeft className="ic" /></button><span className="sub">Trang {pageIndex}</span><button className="btn btn-g" aria-label="Trang tiếp" disabled={!hasNext} onClick={() => setPageIndex(p => p + 1)}><ChevronRight className="ic" /></button></div></div>
+        })()}</button>)}{!items.length && !error && !loading && <p>Không có mục nào ở trang này.</p>}
+      <div className="row" style={{ justifyContent: 'center', gap: 12 }}><button className="btn btn-g" aria-label="Trang trước" disabled={loading || pageIndex === 1} onClick={() => setPageIndex(p => p - 1)}><ChevronLeft className="ic" /></button><span className="sub">Trang {pageIndex}/{Math.max(1, totalPages)}</span><button className="btn btn-g" aria-label="Trang tiếp" disabled={loading || !hasNext} onClick={() => setPageIndex(p => p + 1)}><ChevronRight className="ic" /></button></div></div>
       {current ? canOpen ? <ReviewPanel key={`${user?.id}:${current.id}`} kind={current.itemType as ReviewKind} id={current.id} onDecision={reload} /> : <DetailCard item={current} me={user?.id} myName={(user?.fullName || user?.username)} busy={busy} onClaim={() => void run(() => staffService.claim(current.id), 'Đã nhận mục; chọn trạng thái Đang nhận xử lý để tiếp tục.')} /> : <div className="st-card st-empty"><Frog size={120} mood="think" /><b className="display">Chọn một mục để xem</b><span className="sub">{items.length ? 'Bấm vào một mục bên trái để xem chi tiết và nhận xử lý.' : error ? 'Chưa tải được hàng đợi. Bấm nút tải lại để thử lại.' : 'Hiện chưa có mục nào cần xử lý.'}</span></div>}
     </div>
   </Page>;

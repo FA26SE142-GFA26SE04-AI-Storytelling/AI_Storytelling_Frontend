@@ -1971,6 +1971,7 @@ export interface SubmitCreatorAIStoryInputRequestDto {
 export interface SubmitPublicStoryRequestDto {
   'storyId': number;
   'storyVersionId': number;
+  'contentCategoryIds': (number)[];
 }
 
 export interface SubscriptionPlanDto {

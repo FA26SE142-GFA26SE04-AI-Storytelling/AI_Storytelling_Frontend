@@ -208,6 +208,7 @@ export interface QueueItem {
   status: QueueItemStatus | string;
   priority: 'High' | 'Medium' | 'Low' | string;
   storyId: number | null;
+  storyTitle?: string | null;
   storyVersionId: number | null;
   contentReportId: number | null;
   readingRoadmapId: number | null;
