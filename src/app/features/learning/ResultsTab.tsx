@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, CircleHelp, MessageCircleHeart, Mic, Trash2 } from "lucide-react";
+import { ChevronDown, CircleHelp, MessageCircleHeart, Mic, Trash2 } from "lucide-react";
 import IconButton from "@/app/components/IconButton";
+import Pager from "@/app/components/Pager";
 import SafeImage from "@/app/components/SafeImage";
 import Frog from "@/app/components/brand/Frog";
 import { confirmDialog } from "@/app/lib/confirm";
@@ -13,18 +14,6 @@ import type { ParentReadingFeedbackItem, ParentSummaryItem } from "@/app/types/c
 import { FEELING_FACE, shortDate, useReadingFeedback, useStorySummaries } from "./learningData";
 
 const PAGE = 10;
-
-/** Nút trang trước / trang sau dùng chung cho hai danh sách. */
-function Pager({ page, totalPages, hasPrev, hasNext, onPage }: { page: number; totalPages: number; hasPrev: boolean; hasNext: boolean; onPage: (p: number) => void }) {
-  if (totalPages <= 1) return null;
-  return (
-    <div className="lr-pager">
-      <IconButton icon={ChevronLeft} label="Trang trước" disabled={!hasPrev} onClick={() => onPage(page - 1)} />
-      <span>{page}/{totalPages}</span>
-      <IconButton icon={ChevronRight} label="Trang sau" disabled={!hasNext} onClick={() => onPage(page + 1)} />
-    </div>
-  );
-}
 
 /** Nhãn điểm câu đố: "Không có câu đố", "Chưa làm" hoặc phần trăm tốt nhất. */
 export function quizPill(i: ParentReadingFeedbackItem) {

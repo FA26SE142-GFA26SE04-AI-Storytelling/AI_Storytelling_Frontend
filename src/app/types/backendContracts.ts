@@ -1268,17 +1268,28 @@ export interface PartialEditRequestDto {
 
 export type PasswordPolicy = Record<string, never>;
 
+export type PaymentStatus = 'Pending' | 'Paid' | 'Expired' | 'MismatchAmount';
 export interface PaymentTransactionDto {
   'id': number;
   'planId': number;
   'planName': string;
+  'planType': PlanType;
   'amount': number;
   'transactionCode': string;
+  /** Chỉ có khi giao dịch Pending còn hạn. */
   'qrCodeUrl': string | null;
-  'status': string;
+  'status': PaymentStatus;
+  'createdAt': string;
   'expiresAt': string;
   'paidAt': string | null;
   'sepayTransactionId': string | null;
+}
+
+/** Giao dịch trong trang Admin: thêm người mua. */
+export interface AdminPaymentTransactionDto extends PaymentTransactionDto {
+  'payerUserId': number;
+  'payerEmail': string;
+  'payerName': string;
 }
 
 export type Permission = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
@@ -1974,11 +1985,82 @@ export interface SubmitPublicStoryRequestDto {
   'contentCategoryIds': (number)[];
 }
 
+/** Loại gói (Luồng 2): Gói Đọc, Gói Sáng tạo, Add-on; `Legacy` là gói Personal cũ, chỉ còn trong lịch sử. */
+export type PlanType = 'Reading' | 'Creative' | 'AddOn' | 'Legacy';
 export interface SubscriptionPlanDto {
   'id': number;
   'name': string;
+  'planType': PlanType;
   'priceVnd': number;
-  'quotaAmount': number;
+  /** Lượt tạo truyện AI: Gói Sáng tạo là mỗi chu kỳ, Add-on là cộng thêm. */
+  'aiCredits': number;
+  'isPurchasable': boolean;
+  /** Lý do chưa mua được (ví dụ Add-on khi chưa có gói). */
+  'lockedReason': string | null;
+}
+
+export interface AdminSubscriptionPlanDto {
+  'id': number;
+  'name': string;
+  'planType': PlanType;
+  'priceVnd': number;
+  'aiCredits': number;
+  'isActive': boolean;
+}
+
+export interface UpdateSubscriptionPlanRequestDto {
+  'name': string;
+  'priceVnd': number;
+  'aiCredits': number;
+  'isActive': boolean;
+}
+
+export interface QuotaPlanDto {
+  'planType': PlanType;
+  'planName': string;
+  'startAt': string;
+  'endAt': string;
+}
+
+/** `GET /TokenQuota/me`: gói hiện tại và lượt AI còn lại tách theo nguồn. `plan` null là mức Miễn phí. */
+export interface MyQuotaDto {
+  'plan': QuotaPlanDto | null;
+  /** Chu kỳ đã trả trước (gia hạn sớm / hạ gói), bắt đầu khi chu kỳ hiện tại kết thúc. */
+  'nextPlan': QuotaPlanDto | null;
+  'trialCredits': number;
+  'cycleCredits': number;
+  'addOnCredits': number;
+  /** Lượt không hết hạn: còn dư từ gói Personal cũ hoặc Admin cấp. */
+  'otherCredits': number;
+  'totalRemaining': number;
+}
+
+export interface AdjustCreditsRequestDto {
+  'userId': number;
+  /** Dương là cấp, âm là trừ. */
+  'amount': number;
+  'reason': string;
+}
+
+export interface CreditAdjustmentDto {
+  'id': number;
+  'userId': number;
+  'amount': number;
+  'reason': string;
+  'adminId': number;
+  'adminName': string;
+  'createdAt': string;
+  'totalRemainingAfter': number | null;
+}
+
+export interface ReconciliationExceptionDto {
+  'id': number;
+  'status': 'Open' | 'Resolved';
+  'reason': string;
+  'createdAt': string;
+  'resolvedAt': string | null;
+  'resolvedByName': string | null;
+  'transaction': AdminPaymentTransactionDto;
 }
 
 export interface SuggestAssistanceRequest {

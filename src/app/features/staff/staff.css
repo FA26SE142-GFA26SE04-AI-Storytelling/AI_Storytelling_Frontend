@@ -398,3 +398,6 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 /* Hàng nút/ô nhập được phép xuống dòng khi màn hình hẹp. */
 .st-wrap { flex-wrap: wrap; }
 .st-wrap > .inp[type="date"] { flex: 1 1 150px; min-width: 0; }
+/* Cột "Người mua" ở trang Thanh toán của Admin: tên trên, email dưới. */
+.pay-payer { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pay-payer small { font-size: var(--fs-xs); opacity: .75; overflow-wrap: anywhere; }
