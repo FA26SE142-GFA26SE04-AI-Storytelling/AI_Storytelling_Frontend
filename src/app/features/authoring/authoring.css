@@ -45,6 +45,9 @@
 
 /* Nhãn "Dành cho: tên bé" ở đầu khung soạn nội dung */
 .pa-for { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 999px; font-size: var(--fs-sm); background: color-mix(in srgb, var(--gold) 22%, transparent); color: var(--warn-ink); border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent); }
+/* Nút mở khoá nội dung đã chốt: viền vàng để dễ thấy cạnh nhãn "Chỉ xem". */
+.pa-reopen { border-color: var(--gold) !important; box-shadow: 0 0 0 3px color-mix(in srgb, var(--gold) 18%, transparent); }
+.pa-reopen .ic { color: var(--gold-deep); }
 .pa-for b { font-weight: 800; }
 
 /* Bé đang được soạn truyện, cạnh tiêu đề Bản nháp; nút đổi bé là icon */
@@ -80,6 +83,15 @@
 .pa-stepbtn:not(:disabled):hover { background: var(--surface-2); }
 .pa-stepbtn.on { background: color-mix(in srgb, var(--primary) 14%, var(--surface)); border-color: var(--primary); }
 .pa-stepbtn:disabled { opacity: .5; cursor: not-allowed; }
+/* Đang xem lại bước cũ: bước đang làm có viền vàng nét đứt để biết đường quay về. */
+.pa-stepbtn.working { border: 1px dashed var(--gold); }
+/* Khung bọc nội dung bước (bỏ kiểu mặc định của fieldset). */
+.pa-review { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-direction: column; gap: inherit; }
+.pa-review:disabled { opacity: .85; }
+.pa-review-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px 16px; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--gold) 50%, transparent); border-left: 5px solid var(--gold); background: color-mix(in srgb, var(--gold) 14%, var(--surface)); animation: pa-hint-in .25s ease-out; }
+.pa-review-bar > .ic { color: var(--gold-deep); flex-shrink: 0; }
+.pa-review-bar .grow { display: flex; flex-direction: column; gap: 2px; min-width: 200px; }
+.pa-review-bar b { font-weight: 800; }
 .pa-stepbtn .pa-num { width: 28px; height: 28px; font-size: var(--fs-sm); background: var(--surface-2); color: var(--muted); border: 1px solid var(--line-2); }
 .pa-stepbtn.on .pa-num { background: var(--primary-strong); color: #fff; border-color: var(--primary-strong); }
 .pa-stepbtn.done .pa-num { background: var(--primary-strong); color: #fff; border-color: var(--primary-strong); }
@@ -191,5 +203,54 @@
 .pa-issues li.err { border-left-color: var(--danger); background: color-mix(in srgb, var(--danger) 8%, var(--surface)); }
 .pa-issues li.warn { border-left-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--surface)); }
 .pa-hints { display: flex; flex-direction: column; gap: 8px; }
+/* Lưu ý dòng thiếu dấu kết câu ở bước soạn: viền vàng bên trái, nút sửa nhanh bên phải. */
+.pa-hint-end { display: flex; align-items: flex-start; gap: 16px; margin-top: 12px; padding: 12px 16px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--gold) 45%, transparent); border-left: 5px solid var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--surface)); animation: pa-hint-in .25s ease-out; }
+.pa-hint-end-txt { flex: 1; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pa-hint-end-txt > b { font-weight: 800; color: var(--warn-ink); }
+.pa-hint-end-txt ul { margin: 0; padding-left: 18px; }
+.pa-hint-end-txt li { overflow-wrap: anywhere; }
+.pa-hint-end .btn { flex-shrink: 0; }
+@keyframes pa-hint-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+@media (max-width: 640px) { .pa-hint-end { flex-direction: column; } }
 .pa-hints > b { font-size: var(--fs-md); font-weight: 800; }
 .pa-head .pill .ic, .pa-stage .pill .ic { width: 13px; height: 13px; }
+
+/* Gói cho từng bé (FamilyPackages): chọn bé + thành phần, thẻ gói của từng bé, giao nhiều bé. */
+.fp { gap: 14px; }
+.fp h4 { margin: 0 0 6px; display: flex; align-items: center; gap: 8px; font-size: var(--fs-md); }
+.fp h4 .ic { width: 18px; height: 18px; color: var(--primary); }
+.fp-kid { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border: 1px solid var(--line); border-radius: 14px; transition: border-color .2s, background .2s; }
+.fp-kid.on { border-color: color-mix(in srgb, var(--primary) 45%, var(--line)); background: color-mix(in srgb, var(--primary) 6%, transparent); }
+.fp-parts { display: flex; flex-wrap: wrap; gap: 8px; }
+.fp-part { display: inline-flex; align-items: center; gap: 4px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); font-size: var(--fs-sm); font-weight: 700; cursor: pointer; transition: background .2s, border-color .2s; }
+.fp-part .ic { width: 14px; height: 14px; }
+.fp-part.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 14%, var(--surface)); color: var(--text); }
+.fp-part:disabled { opacity: .6; cursor: default; }
+.fp-card { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; border: 2px solid var(--line-2); border-radius: 18px; background: color-mix(in srgb, var(--surface) 90%, transparent); animation: block-in .3s cubic-bezier(.2, .8, .3, 1) both; }
+.fp-card-h { gap: 8px; align-items: center; }
+.fp-card-h .display { font-size: var(--fs-lg); }
+.fp-progress { display: flex; flex-wrap: wrap; gap: 6px; }
+.fp-counts { margin: 0; font-size: var(--fs-sm); font-weight: 700; }
+.fp-deliver { border-top: 1px solid var(--line); padding-top: 12px; }
+.fp-foot { justify-content: flex-start; }
+.fp-preview { display: flex; flex-direction: column; gap: 16px; max-height: 70vh; overflow-y: auto; }
+.fp-preview section { display: flex; flex-direction: column; gap: 6px; }
+.fp-preview h4 { margin: 0; font-size: var(--fs-md); }
+.fp-preview p { margin: 0; line-height: 1.6; }
+.fp-media { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 10px; }
+.fp-media img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 10px; border: 1px solid var(--line); }
+.fp-media audio { width: 100%; }
+.fp-media-empty { display: grid; place-items: center; aspect-ratio: 4 / 3; border-radius: 10px; background: var(--surface-2); font-size: var(--fs-xs); opacity: .8; }
+.fp-list { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 8px; }
+.fp-list small { display: block; opacity: .75; }
+.fp-choices { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+@media (prefers-reduced-motion: reduce) { .fp-card { animation: none; } }
+/* Điểm nhấn vàng: gói đang chờ bạn thao tác, khu giao truyện. */
+.fp-card.todo { border-left: 5px solid var(--gold); }
+.fp-deliver h4 .ic, .fp-new h4 .ic { color: var(--gold-deep); }
+/* Chi tiết chấm an toàn không đạt trong thẻ gói của bé. */
+.fp-safety { display: flex; flex-direction: column; gap: 4px; margin-top: 6px; }
+.fp-safety b { font-weight: 800; }
+/* Báo đang tạo học liệu ở đầu khung gói: viền vàng, biểu tượng xoay. */
+.fp-running { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 14px; border-radius: 12px; border-left: 5px solid var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--surface)); font-weight: 600; }
+.fp-running .ic { color: var(--gold-deep); flex-shrink: 0; }

@@ -172,6 +172,22 @@
 .plan-scroll > .pb { overflow: visible; flex: none; max-width: 900px; margin: 0 auto; padding: 22px 24px; gap: 16px; background: color-mix(in srgb, var(--paper) 92%, transparent); border: 1px solid var(--line-2); border-radius: 26px 26px 26px 10px; box-shadow: 0 24px 50px -28px color-mix(in srgb, var(--shadow) 40%, transparent); }
 /* Form ý tưởng: một cột cuộn dọc, độ rộng vừa tầm đọc */
 .plan-scroll > .pb.brief { max-width: 720px; }
+/* Chọn cách tạo truyện (Viết từ ý tưởng / Nhập truyện có sẵn), nằm trên khung yêu cầu. */
+.plan-entry { max-width: 720px; margin: 0 auto 14px; }
+.plan-entry .ic, .import-panel .seg .ic { width: 16px; height: 16px; flex: none; }
+.plan-entry button, .import-panel .seg button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+/* Nhập truyện có sẵn (Luồng 3b). */
+.import-panel { gap: 16px; animation: block-in .3s cubic-bezier(.2, .8, .3, 1) both; }
+.import-file { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.import-panel textarea.inp { margin-top: 8px; resize: vertical; }
+.import-go { align-self: flex-end; }
+.import-result { display: flex; flex-direction: column; gap: 12px; }
+.import-result > .row .ic { width: 22px; height: 22px; color: var(--primary); }
+.import-result .display { font-size: var(--fs-lg); }
+.import-hint { margin: 0; }
+.import-issues { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; }
+.import-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+@media (prefers-reduced-motion: reduce) { .import-panel { animation: none; } }
 .brief .lbl { font-size: var(--fs-sm); color: var(--text); }
 .brief .hint { font-size: var(--fs-xs); color: var(--muted); line-height: 1.45; }
 .brief-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
@@ -324,3 +340,5 @@
 /* Số lượt tạo truyện dạng nhãn; còn 1 lượt trở xuống thì tô vàng. */
 .brief-submit-info { align-items: flex-start; gap: 6px; }
 .pill.brief-quota-low { background: var(--gold); color: var(--on-gold); font-weight: 800; }
+/* Khung kết quả đánh giá truyện nhập: viền trên màu vàng nhấn. */
+.import-panel:has(.import-result) { border-top: 4px solid var(--gold); }

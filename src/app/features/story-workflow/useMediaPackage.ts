@@ -1,7 +1,8 @@
 'use client';
 import { confirmDialog } from "@/app/lib/confirm";
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationService';
+import { creatorPublicationService } from '@/app/services/creatorPublicationService';
 import type { StoryMediaPackage } from '@/app/types/aiStory';
 import { mediaMutationSnapshot } from '@/app/features/story-workflow/mediaPackage';
 
@@ -22,7 +23,7 @@ export function useMediaPackage({ storyId, versionId, onChanged, disabled = fals
     setPack(null); setReviewed(false); setBusy(false); setUncertain(false);
     return () => { scope.current = Symbol(); };
   }, [storyId, versionId]);
-  const load = async () => {
+  const load = useCallback(async () => {
     if (lock.current) return;
     const run = scope.current; lock.current = true; setBusy(true); setPack(null); setReviewed(false);
     const r = await api.getMediaPackage(storyId);
@@ -31,7 +32,7 @@ export function useMediaPackage({ storyId, versionId, onChanged, disabled = fals
     if (r.success && r.data && r.data.storyId === storyId && mediaMutationSnapshot(r.data, versionId)) {
       setPack(r.data); setUncertain(false); setNote('');
     } else setNote(r.message || 'Gói media không còn khớp phiên bản. Hãy đồng bộ trạng thái.');
-  };
+  }, [storyId, versionId]);
   const regenerate = async (kind: 'illustration' | 'audio', assetId: number) => {
     if (lock.current || disabled || uncertain || !pack) return;
     const body = mediaMutationSnapshot(pack, versionId);
@@ -70,5 +71,22 @@ export function useMediaPackage({ storyId, versionId, onChanged, disabled = fals
     setNote(r.success?'Đã giữ media trước đó. Tải lại gói để kiểm tra và xác nhận.':r.message);
     onChanged();
   };
-  return { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm, keepCurrent };
+  /** Creator chế độ tự chọn: tải tệp lên (có `file`) hoặc nhờ AI tạo cho một tranh / đoạn đang chờ chọn. */
+  const choose = async (kind: 'image' | 'audio', targetId: number, file: File | null, decl?: { sourceDeclaration: string; rightsDeclaration: string }) => {
+    if (lock.current || disabled || uncertain || !pack) return false;
+    const body = mediaMutationSnapshot(pack, versionId);
+    if (!body) return false;
+    const run = scope.current; lock.current = true; setBusy(true);
+    const command = { ...body, operationId: crypto.randomUUID() };
+    const r = file && decl
+      ? await creatorPublicationService.uploadMedia(storyId, kind, targetId, file, command, decl)
+      : await creatorPublicationService.generateMedia(storyId, kind, targetId, command);
+    if (run !== scope.current) return false;
+    lock.current = false; setBusy(false);
+    setUncertain(r.status === 0 || (r.status ?? 0) >= 500);
+    setNote(r.success ? (file ? 'Đã tải lên, đang kiểm tra tệp. Trang tự cập nhật khi xong.' : 'Đã nhờ AI tạo. Trang tự cập nhật khi xong.') : r.message);
+    if (r.success) { setPack(null); onChanged(); }
+    return r.success;
+  };
+  return { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm, keepCurrent, choose };
 }

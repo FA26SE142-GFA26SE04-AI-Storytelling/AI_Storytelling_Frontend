@@ -26,7 +26,7 @@ Ký hiệu:
 | F-04 | Xác nhận thanh toán, hết hạn | SePay, Hệ thống, Admin | Tuấn | **Một phần** — phụ huynh xong; còn áp gói Creator |
 | F-05 | Lượt tạo truyện AI: kiểm tra, trừ, lịch sử | Phụ huynh, Creator | Tuấn | **Một phần** — xem lượt, lịch sử xong; còn giữ/hoàn lượt, miễn phí tạo lại, lượt Creator |
 | F-06 | Tạo truyện bằng AI và duyệt nội dung | Phụ huynh, Creator | Minh | Đã làm |
-| F-07 | Tự viết và nhập truyện có sẵn | Phụ huynh, Creator | Minh | **Một phần** — FE chưa có màn nhập truyện có sẵn, chưa nối luồng gói mới |
+| F-07 | Tự viết và nhập truyện có sẵn | Phụ huynh, Creator | Minh | Đã làm |
 | F-08 | Điều ước của bé và phụ huynh đáp lại | Bé, Phụ huynh | Minh | Đã làm |
 | F-09 | Tranh, giọng đọc và xác nhận gói media | Phụ huynh, Creator | Minh | Đã làm |
 | F-10 | Gửi truyện công khai và kiểm duyệt | Phụ huynh, Creator, Moderator | Minh | Đã làm |
@@ -43,7 +43,7 @@ Ký hiệu:
 | F-21 | Thống kê lượt đọc của Creator | Creator | Tuấn | Chưa làm |
 | F-22 | Thống kê nội dung của Creator | Creator | Khánh | Chưa làm |
 
-**Đã làm 10/22 · Một phần 7/22 · Chưa làm 5/22** (cập nhật 10/11 sau đợt gói và thanh toán). Chưa làm: F-16, F-19, F-20, F-21, F-22 (chưa có cả Backend lẫn Frontend). Phần còn thiếu dồn ở **gói Creator** (WF-02) và **thống kê** (WF-05); WF-01, WF-03, WF-04 gần xong.
+**Đã làm 11/22 · Một phần 6/22 · Chưa làm 5/22** (cập nhật 10/11 sau đợt Tạo truyện). Chưa làm: F-16, F-19, F-20, F-21, F-22 (chưa có cả Backend lẫn Frontend). Phần còn thiếu dồn ở **gói Creator** (WF-02) và **thống kê** (WF-05); WF-01, WF-03, WF-04 gần xong.
 
 ---
 
@@ -87,8 +87,8 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] Tự viết truyện: soạn, nhập từ tệp, dán văn bản, lưu nhiều phiên bản, trợ lý AI gợi ý, kiểm tra nội dung, xác nhận nội dung, chuẩn bị media, xác nhận cho gia đình.
 - [x] Ảnh bìa truyện; Truyện của tôi theo kệ (Đã xong / Chờ bạn duyệt / Đang soạn).
 - [x] Điều ước của bé: xem điều ước và gợi ý truyện có sẵn, dùng truyện có sẵn, tạo truyện mới bằng AI (xem tiến độ, mở trong Studio), từ chối.
-- [ ] **Một phần — Nhập truyện có sẵn rồi AI đánh giá / chuyển thể / giữ nguyên** (Luồng 3b, `ExistingStoriesController` 8 endpoint): BE có, FE có hàm ([existingStoryService.ts](src/app/services/existingStoryService.ts)) nhưng chưa có màn.
-- [ ] **Luồng gói truyện mới của phụ huynh** (`ParentStoryPackagesController` 11 endpoint: chốt / mở lại nội dung, tạo / sinh / thử lại / sửa / xem trước / xác nhận gói, xác nhận cho nhiều bé một lần): BE có, FE chưa nối. Cần đọc lại Luồng 3 trước khi làm.
+- [x] **Nhập truyện có sẵn** (Luồng 3b, [ImportStoryPanel.tsx](src/app/features/studio/ImportStoryPanel.tsx)): trong Viết bằng AI chọn "Nhập truyện có sẵn" → dán văn bản hoặc tải .txt/.docx → AI đánh giá (Phù hợp / Nên chỉnh lại / Chưa phù hợp, điểm an toàn, số chữ, độ dễ đọc, các vấn đề) → Tiếp tục, Nhờ AI chỉnh, Tự sửa hoặc Giữ nguyên (ghi lý do) → Studio mở truyện, tạo học liệu và đi tiếp các bước duyệt, tranh, giọng đọc. Chưa dùng: xem lại đánh giá đã lưu (`GET .../existing/evaluation`), lưu trữ (đã chốt bỏ).
+- [x] **Giao cho nhiều bé (gói riêng từng bé)** ([FamilyPackages.tsx](src/app/features/authoring/FamilyPackages.tsx), bước 2 của Tự viết, nút "Giao cho nhiều bé"): chọn bé và thành phần gói (từ vựng, câu đố, tương tác khi nghe, tranh, giọng đọc) → chốt nội dung → Backend kiểm tra theo hồ sơ từng bé → Tạo học liệu → Xem trước (nội dung, tranh / giọng đọc tải kèm token, từ vựng, câu đố có đáp án) → Chốt gói → Giao nhiều bé một lần; thu hồi riêng từng bé; Thử lại phần lỗi; Đổi thành phần (bản gói mới); Mở lại để sửa nội dung. Đã thử thật với 2 bé (truyện #920). Truyện đã có gói thì không trộn với cách giao một bé.
 - [ ] Lượt tạo truyện theo tài liệu 6 — xem mục Hệ thống bên dưới.
 
 ### Cộng đồng (F-10)
@@ -126,7 +126,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] Tạo truyện bằng AI (F-06) và tự viết (F-07): soạn, nhập, lưu phiên bản, trợ lý AI, tự kiểm tra nội dung (An toàn / Vùng xám / Bị chặn), xác nhận nội dung, tranh và giọng đọc, xác nhận gói (F-09).
 - [x] Gửi duyệt công khai: chọn ảnh bìa và nhãn nội dung, rút yêu cầu, gửi lại khi chỉ bị trả về vì nhãn, tạo bản chỉnh sửa, yêu cầu gỡ truyện đã công khai (F-10).
 - [x] Thư viện truyện mẫu, Truyện của tôi.
-- [ ] **Media từng đoạn** (`CreatorMediaUploadsController` 4 endpoint: tải lên / tạo tranh từng beat, giọng đọc từng đoạn) — BE có, FE chưa nối.
+- [x] **Media từng đoạn của Creator**: bước "Kiểm tra và chốt" chọn "AI tạo hết" hoặc "Tự chọn từng phần"; ở bước Tranh và giọng đọc, mỗi tranh / đoạn đang chờ có nút Tải lên (khai báo nguồn và quyền, ảnh JPEG/PNG/WebP ≤ 10 MB, âm thanh MP3/WAV ≤ 25 MB) và AI tạo. Đã thử thật (truyện #919).
 - [ ] **Mua gói Creator, xem lượt tạo truyện và lượt gửi duyệt** (F-03, F-05) — BE chưa có hạn mức tháng (2 lượt AI + 5 lượt gửi; đối tác 6 + 10), gói Creator 99.000 đ (+6 lượt AI, +20 lượt gửi), trừ / hoàn lượt gửi duyệt. FE chưa có màn.
 - [ ] **Doanh thu ước tính** (F-20): quỹ Creator theo tháng (30% Gói Đọc + 10% Gói Sáng tạo), chia theo lượt đọc hợp lệ — chưa có BE và FE.
 - [ ] **Thống kê lượt đọc** (F-21): lượt xem, yêu thích, đọc xong, lượt đọc hợp lệ, tỉ lệ hoàn thành theo truyện và theo kỳ — chưa có BE và FE.
@@ -185,6 +185,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [ ] Trang giới thiệu hiển thị truyện đã phát hành — chờ API công khai (thư viện cộng đồng đang cần token).
 - [ ] Ảnh bìa truyện cộng đồng — chờ DTO trả ảnh bìa.
 - [ ] API lựa chọn cho form lộ trình mẫu (độ tuổi, khoảng mức đọc, số ngày) — đề xuất BE thêm `GET /RoadmapTemplate/options`; FE đang để cố định cho khớp.
+- [ ] **Lỗi 500 ở hướng dẫn sáng tác** (`GET /authoring-guides`, ghi nhận 10/11): cùng lỗi .NET 10 `.Contains` trên mảng trong truy vấn EF như lỗi Lịch sử hoạt động, tại `AuthoringGuideItemStore.cs` dòng 15 (Backend). Trang Tự viết vẫn chạy nhưng không hiện gợi ý hướng dẫn.
 - [ ] Lỗi AI phía BE (ghi nhận 09/11): "Nhận xét bản thảo" trả `AI_OUTPUT_INVALID` với bài dài; kiểm tra nội dung của phụ huynh luôn báo `SEMANTIC_SAFETY_REVIEW_REQUIRED` khi có ngưỡng an toàn; Vertex thỉnh thoảng 429 / hết thời gian.
 - [ ] BE không thống nhất định dạng âm thanh: API ghi âm nhận webm / ogg / mp4 nhưng kho media chỉ lưu WAV / MP3 (FE đang đổi sang WAV trước khi gửi).
 - [ ] Bé tự sáng tác truyện (`ChildCreationEnabled` / `ChildCreationMode` trong Safety Policy) — BE chưa có logic dùng, FE chưa có công tắc; chờ chốt.

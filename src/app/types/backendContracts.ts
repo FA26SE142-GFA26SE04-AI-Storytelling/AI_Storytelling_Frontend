@@ -2930,5 +2930,9 @@ export interface SetRoadmapItemsRequestDto {
 
 
 /** Creator Manual Phase 5 extension from the current local backend source. */
-export interface ConfirmManualContentRequest { versionId: number; revisionToken: string }
+/** `mediaMode` chỉ dùng cho Creator: 'auto' (mặc định, AI tạo hết) hoặc 'choose' (tự chọn từng phần). */
+export interface ConfirmManualContentRequest { versionId: number; revisionToken: string; mediaMode?: 'auto' | 'choose' }
+/** Lệnh chọn media cho một tranh / đoạn (upload hoặc nhờ AI) của Creator. */
+export interface CreatorMediaCommand { operationId: string; storyVersionId: number; packageRevision: number; expectedConfirmed: boolean }
+export interface CreatorSelectedMedia { assetId: number; storyVersionId: number; packageRevision: number; status: string }
 export interface ConfirmManualContentResult { storyId: number; versionId: number; jobId: number; status: string; jobStatus: string; progressUrl: string; packageUrl: string }

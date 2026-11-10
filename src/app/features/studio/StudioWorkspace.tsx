@@ -42,9 +42,11 @@ type PipelineProps = {
   /** Chọn lại bé khi chưa gửi ý tưởng (truyện chưa được tạo). */
   onChangeKid: () => void;
   go: (id: WorkspaceId) => void;
+  /** Mở một truyện có sẵn (vừa nhập) trong Studio. */
+  onOpenStory: (storyId: number) => void;
 };
 
-function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, onChangeKid, go, resumeStoryId }: PipelineProps) {
+function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, onChangeKid, go, resumeStoryId, onOpenStory }: PipelineProps) {
   const { children: kids, reload } = useWorkspaceData();
   const child = kids.find((k) => k.id === childId) ?? null;
   const [approved, setApproved] = useState(false);
@@ -119,6 +121,8 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           onOutlineApproved={() => { setApproved(true); p.refresh(); }}
           kidName={child?.nickname ?? "Bé"}
           onChangeKid={p.storyId === null && kids.length > 1 ? onChangeKid : undefined}
+          childId={childId}
+          onOpenStory={onOpenStory}
         />
       )}
       </ApproveSlot.Provider>
@@ -143,6 +147,7 @@ export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspacePro
   // Giữ qua các truyện trong phiên làm việc: thu gọn một lần là đủ.
   const [asideCollapsed, setAsideCollapsed] = useState(false);
   const toggleAside = useCallback(() => setAsideCollapsed((v) => !v), []);
+  const openStory = useCallback((id: number) => { setResumeTarget(id); setRun((n) => n + 1); }, []);
 
   const pickKid = async () => {
     const kid = await chooseChild({ title: "Tạo truyện cho bé nào?", filter: (k) => k.status === "Active" });
@@ -159,7 +164,7 @@ export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspacePro
   const sessionKid = child ?? kids[0] ?? null;
   if (user && resumeTarget && sessionKid) {
     const back = () => { removeStorySession(user.id, sessionKid.id); setResumeTarget(null); window.history.replaceState(null,'',workspaceLocation(window.location.href,'studio')); setRun((n) => n + 1); };
-    return <Pipeline resumeStoryId={resumeTarget} key={`${sessionKid.id}:${run}:${resumeTarget}`} userId={user.id} childId={sessionKid.id} prefill={null} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={(next = null) => { setPrefill(next); back(); }} onChangeKid={() => void pickKid()} go={go} />;
+    return <Pipeline resumeStoryId={resumeTarget} key={`${sessionKid.id}:${run}:${resumeTarget}`} userId={user.id} childId={sessionKid.id} prefill={null} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={(next = null) => { setPrefill(next); back(); }} onChangeKid={() => void pickKid()} go={go} onOpenStory={openStory} />;
   }
   if (user && !child && activeKids.length > 0) {
     return (
@@ -198,5 +203,5 @@ export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspacePro
     </section>
   );
   const reset = (next: Prefill = null) => { removeStorySession(user.id, child.id); setResumeTarget(null); window.history.replaceState(null,'',workspaceLocation(window.location.href,'studio')); setPrefill(next); setRun((n) => n + 1); };
-  return <Pipeline resumeStoryId={resumeTarget} key={`${child.id}:${run}:${resumeTarget ?? 'new'}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} onChangeKid={() => void pickKid()} go={go} />;
+  return <Pipeline resumeStoryId={resumeTarget} key={`${child.id}:${run}:${resumeTarget ?? 'new'}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} onChangeKid={() => void pickKid()} go={go} onOpenStory={openStory} />;
 }

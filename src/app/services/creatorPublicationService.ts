@@ -12,6 +12,17 @@ export const creatorPublicationService = {
     const body: B.SubmitPublicStoryRequestDto = { storyId, storyVersionId, contentCategoryIds: [...new Set(contentCategoryIds)] };
     return apiRequest<B.PublicStorySubmissionResultDto>('/PublicStorySubmission/submit', 'Không gửi được truyện đi duyệt.', { method: 'POST', body });
   },
+  /** Creator 'choose': tải file của mình cho một tranh (beat) hoặc một đoạn giọng đọc (segment). */
+  uploadMedia: (id: number, kind: 'image' | 'audio', targetId: number, file: File, command: B.CreatorMediaCommand, decl: { sourceDeclaration: string; rightsDeclaration: string }) => {
+    const form = new FormData();
+    form.append('file', file);
+    // Gửi đủ mọi trường, kể cả expectedConfirmed = false.
+    Object.entries({ ...command, ...decl }).forEach(([k, v]) => form.append(k, String(v)));
+    return apiRequest<B.CreatorSelectedMedia>(`${root(id)}/media/${kind === 'image' ? 'illustration-beats' : 'segments'}/${targetId}/upload`, 'Chưa tải được tệp lên.', { method: 'POST', form });
+  },
+  /** Creator 'choose': nhờ AI tạo một tranh / một đoạn chưa chọn. */
+  generateMedia: (id: number, kind: 'image' | 'audio', targetId: number, command: B.CreatorMediaCommand) =>
+    apiRequest<B.CreatorSelectedMedia>(`${root(id)}/media/${kind === 'image' ? 'illustration-beats' : 'segments'}/${targetId}/generate`, 'Chưa nhờ AI tạo được.', { method: 'POST', body: command }),
   withdraw: (itemId: number) => apiRequest<B.PublicStorySubmissionResultDto>(`/PublicStorySubmission/${itemId}/withdraw`, 'Không rút được yêu cầu.', { method: 'POST' }),
   remove: (id: number, reason: string) => apiRequest<B.CreatorPublicationResult>(`${root(id)}/removal-requests`, 'Không yêu cầu gỡ được truyện.', { method: 'POST', body: { reason } }),
   revision: (id: number, sourceVersionId: number) => apiRequest<B.CreatorPublicationResult>(`${root(id)}/revisions`, 'Không tạo được phiên bản chỉnh sửa.', { method: 'POST', body: { sourceVersionId } }),

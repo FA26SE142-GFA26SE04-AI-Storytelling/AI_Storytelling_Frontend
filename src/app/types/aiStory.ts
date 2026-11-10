@@ -255,6 +255,10 @@ export interface MediaGenerationIssue {
   attemptCount: number; nextRetryAt: string | null;
 }
 export interface StoryMediaPackage extends MediaPackageState {
+  /** Creator thủ công: 'auto' (AI tạo hết) hoặc 'choose' (tự chọn từng tranh / đoạn). */
+  mediaMode?: string;
+  /** Còn tranh / đoạn chưa chọn nguồn (chế độ choose). */
+  isAwaitingSelection?: boolean;
   replacements?: {candidateAssetId:number; previousAssetId:number; type:string; targetId:number; status:string}[];
   isReady: boolean;
   storyId: number;
@@ -263,10 +267,11 @@ export interface StoryMediaPackage extends MediaPackageState {
     sceneId: number;
     sceneIndex: number;
     text?: string;
-    audio?: { segmentId: number; segmentOrder: number; text: string; assetId: number | null; status: string; url: string | null; wordTimings: string | null }[];
+    /** `source`: Unspecified (chưa chọn), UserUpload, AiGenerated. */
+    audio?: { segmentId: number; segmentOrder: number; text: string; assetId: number | null; status: string; url: string | null; wordTimings: string | null; source?: string }[];
     illustrations: {
       beatId: number; beatOrder: number; startOffset: number; endOffset: number;
-      visualFocus: string; assetId: number | null; status: string; url: string | null;
+      visualFocus: string; assetId: number | null; status: string; url: string | null; source?: string;
     }[];
   }[];
 }

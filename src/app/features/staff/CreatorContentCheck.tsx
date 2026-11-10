@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import { Lock, RotateCcw, ShieldCheck } from 'lucide-react';
+import { Lock, RotateCcw, ShieldCheck, Sparkles, Upload } from 'lucide-react';
 import StepDone from '@/app/features/studio/StepDone';
 import { creatorPublicationService as service } from '@/app/services/creatorPublicationService';
 import { confirmDialog } from '@/app/lib/confirm';
@@ -24,6 +24,7 @@ const ERROR: Record<string, string> = {
   MANUAL_CONTENT_INVALID: 'Nội dung không hợp lệ (quá dài hoặc ngôn ngữ, nhóm tuổi không hỗ trợ).',
   INVALID_STORY_STATUS: 'Truyện không còn ở trạng thái bản nháp nên không chốt được.',
   MEDIA_JOB_ACTIVE: 'Đang có lượt tạo media chạy cho truyện này. Hãy chờ xong.',
+  MEDIA_MODE_INVALID: 'Cách tạo media không hợp lệ. Tải lại trang rồi thử lại.',
   AUTHORING_ACCESS_REQUIRED: 'Bạn không có quyền với truyện này.',
 };
 const errorText = (message: string | undefined, fallback: string) => (message && ERROR[message.trim()]) || message || fallback;
@@ -46,6 +47,8 @@ export default function CreatorContentCheck({ draft, disabled, missing, onWorkin
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
   // Chốt bị mất mạng / lỗi máy chủ: thử lại đúng lệnh cũ để không tạo trùng job media.
   const [pending, setPending] = useState<B.ConfirmManualContentRequest | null>(null);
+  // Cách tạo media sau khi chốt: AI tạo hết, hoặc tự chọn từng tranh / đoạn (tải tệp của mình hoặc nhờ AI).
+  const [mediaMode, setMediaMode] = useState<'auto' | 'choose'>('auto');
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
   useEffect(() => { onWorkingChange(busy || !!pending); return () => onWorkingChange(false); }, [busy, pending, onWorkingChange]);
@@ -66,15 +69,17 @@ export default function CreatorContentCheck({ draft, disabled, missing, onWorkin
 
   const confirm = async () => {
     if (busy || !versionId) return;
-    if (!pending && !(await confirmDialog('Chốt nội dung này? Sau khi chốt, AI sẽ tạo tranh và giọng đọc, bạn không sửa nội dung bản này được nữa.'))) return;
-    const body = pending ?? { versionId, revisionToken: draft.revisionToken };
+    if (!pending && !(await confirmDialog(mediaMode === 'auto'
+      ? 'Chốt nội dung này? Sau khi chốt, AI sẽ tạo tranh và giọng đọc, bạn không sửa nội dung bản này được nữa.'
+      : 'Chốt nội dung này? Sau khi chốt, bạn chọn tranh và giọng đọc cho từng phần ở bước 3, không sửa nội dung bản này được nữa.'))) return;
+    const body = pending ?? { versionId, revisionToken: draft.revisionToken, mediaMode };
     setBusy(true); setNote(null);
     const r = await service.confirmManual(draft.storyId, body);
     if (!alive.current) return;
     setBusy(false);
     if (r.success && r.data && r.data.versionId === versionId) {
       setPending(null);
-      setNote({ ok: true, text: 'Đã chốt nội dung. AI đang tạo tranh và giọng đọc.' });
+      setNote({ ok: true, text: body.mediaMode === 'choose' ? 'Đã chốt nội dung. Hãy chọn tranh và giọng đọc ở bước 3.' : 'Đã chốt nội dung. AI đang tạo tranh và giọng đọc.' });
       onConfirmed(r.data.status);
       return;
     }
@@ -106,6 +111,10 @@ export default function CreatorContentCheck({ draft, disabled, missing, onWorkin
           <div className="pa-step">
             <h4><span className="pa-num">2</span>Chốt nội dung</h4>
             <p className="sub">Chỉ chốt được khi kết quả kiểm tra là An toàn.</p>
+            <div className="seg" role="radiogroup" aria-label="Cách tạo tranh và giọng đọc" style={{ maxWidth: 420 }}>
+              <button type="button" role="radio" aria-checked={mediaMode === 'auto'} className={mediaMode === 'auto' ? 'on' : ''} disabled={busy || !!pending} onClick={() => setMediaMode('auto')} title="AI tạo mọi tranh và giọng đọc"><Sparkles className="ic" />AI tạo hết</button>
+              <button type="button" role="radio" aria-checked={mediaMode === 'choose'} className={mediaMode === 'choose' ? 'on' : ''} disabled={busy || !!pending} onClick={() => setMediaMode('choose')} title="Với từng tranh / đoạn: tải tệp của bạn lên hoặc nhờ AI tạo"><Upload className="ic" />Tự chọn từng phần</button>
+            </div>
             <div className="pa-actions">
               {pending
                 ? <button className="btn btn-p" disabled={busy} onClick={() => void confirm()}><RotateCcw className="ic" />Thử lại</button>

@@ -17,3 +17,15 @@
 .ma-confirm .row { flex: 1; min-width: 240px; gap: 10px; }
 .ma-done { margin: 0; display: flex; align-items: center; gap: 8px; font-weight: 800; color: var(--ok-ink); }
 .ma-done .ic { width: 18px; height: 18px; }
+/* Creator "Tự chọn từng phần": hai nút Tải lên / AI tạo cho mỗi tranh, đoạn giọng đọc đang chờ chọn. */
+.ma-choose { display: inline-flex; flex-wrap: wrap; gap: 6px; margin-left: auto; }
+.ma-choose .btn { padding: 4px 10px; min-height: 0; font-size: var(--fs-xs); gap: 4px; }
+.ma-choose .ic { width: 14px; height: 14px; }
+.ma-select-hint { margin: 0; }
+/* Thẻ tranh đang chờ chọn: chữ mô tả tranh nhỏ trong ô trống, hai nút xuống một dòng riêng dưới tên tranh. */
+.ma-item figcaption { flex-wrap: wrap; }
+.ma-item figcaption > span:first-child { white-space: nowrap; }
+.ma-item figcaption .ma-choose { flex-basis: 100%; margin-left: 0; }
+.ma-item .ma-choose .btn { flex: 1; justify-content: center; }
+.ma-empty { padding: 8px 10px; text-align: center; line-height: 1.4; overflow: hidden; font-size: var(--fs-xs); }
+.ma-select-hint { border-left: 4px solid var(--gold); }

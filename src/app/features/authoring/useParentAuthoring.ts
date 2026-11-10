@@ -29,7 +29,8 @@ export function useParentAuthoring(childId: number) {
     const run = Symbol(); scope.current = run;
     const d = await api.get(id); if (scope.current !== run) return;
     if (!d.success || !d.data) { setNote(d.message); return; }
-    if (d.data.childProfileId !== childId) { setNote('Bản này thuộc hồ sơ bé khác. Hãy chọn đúng bé trước khi chỉnh sửa.'); return; }
+    // Bản nháp giao nhiều bé (gói riêng từng bé) không gắn với một bé nào: mở được từ trang của bất kỳ bé nào.
+    if (d.data.childProfileId != null && d.data.childProfileId !== childId) { setNote('Bản này thuộc hồ sơ bé khác. Hãy chọn đúng bé trước khi chỉnh sửa.'); return; }
     const [history, ops] = await Promise.all([api.versions(id), api.workflow(id)]); if (scope.current !== run) return;
     setDraft(d.data); setVersions(history.data ?? []); setWorkflow(ops.data ?? []);
     if (replaceEditor) setVersion(history.data?.find(v => v.versionId === d.data!.story.selectedVersionId) ?? null);

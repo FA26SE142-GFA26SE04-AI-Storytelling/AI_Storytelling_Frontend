@@ -2529,7 +2529,7 @@
         "service": "creatorInputService",
         "operation": "context",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 20,
+        "line": 31,
         "callers": [
           "app/features/staff/CreatorGeneration.tsx"
         ]
@@ -2550,7 +2550,7 @@
         "service": "creatorInputService",
         "operation": "submit",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 21,
+        "line": 32,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -2571,7 +2571,7 @@
         "service": "creatorInputService",
         "operation": "progress",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 22,
+        "line": 33,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -2592,7 +2592,7 @@
         "service": "creatorInputService",
         "operation": "retry",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 23,
+        "line": 34,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -3054,8 +3054,19 @@
     "controller": "CreatorMediaUploadsController.cs",
     "action": "UploadImage",
     "controllerLine": 18,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/media/illustration-beats/{}/upload",
+        "service": "creatorPublicationService",
+        "operation": "uploadMedia",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 21,
+        "callers": [
+          "app/features/story-workflow/useMediaPackage.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -3064,8 +3075,19 @@
     "controller": "CreatorMediaUploadsController.cs",
     "action": "UploadAudio",
     "controllerLine": 23,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/media/segments/{}/upload",
+        "service": "creatorPublicationService",
+        "operation": "uploadMedia",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 21,
+        "callers": [
+          "app/features/story-workflow/useMediaPackage.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -3074,8 +3096,19 @@
     "controller": "CreatorMediaUploadsController.cs",
     "action": "GenerateImage",
     "controllerLine": 29,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/media/illustration-beats/{}/generate",
+        "service": "creatorPublicationService",
+        "operation": "generateMedia",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 25,
+        "callers": [
+          "app/features/story-workflow/useMediaPackage.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -3084,8 +3117,19 @@
     "controller": "CreatorMediaUploadsController.cs",
     "action": "GenerateAudio",
     "controllerLine": 34,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/creator/stories/{}/media/segments/{}/generate",
+        "service": "creatorPublicationService",
+        "operation": "generateMedia",
+        "file": "app/services/creatorPublicationService.ts",
+        "line": 25,
+        "callers": [
+          "app/features/story-workflow/useMediaPackage.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -3146,7 +3190,7 @@
         "service": "creatorPublicationService",
         "operation": "remove",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 16,
+        "line": 27,
         "callers": [
           "app/features/staff/CreatorPublication.tsx",
           "app/features/staff/RemovalRequestDialog.tsx"
@@ -3168,7 +3212,7 @@
         "service": "creatorPublicationService",
         "operation": "revision",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 17,
+        "line": 28,
         "callers": [
           "app/features/staff/CreatorPublication.tsx"
         ]
@@ -3211,10 +3255,12 @@
         "operation": "importStory",
         "file": "app/services/existingStoryService.ts",
         "line": 12,
-        "callers": []
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -3230,10 +3276,12 @@
         "operation": "importFile",
         "file": "app/services/existingStoryService.ts",
         "line": 26,
-        "callers": []
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -3249,10 +3297,12 @@
         "operation": "evaluate",
         "file": "app/services/existingStoryService.ts",
         "line": 37,
-        "callers": []
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -3287,10 +3337,12 @@
         "operation": "adapt",
         "file": "app/services/existingStoryService.ts",
         "line": 42,
-        "callers": []
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "PUT",
@@ -3306,10 +3358,12 @@
         "operation": "manualEdit",
         "file": "app/services/existingStoryService.ts",
         "line": 46,
-        "callers": []
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -3325,10 +3379,12 @@
         "operation": "keepOriginal",
         "file": "app/services/existingStoryService.ts",
         "line": 51,
-        "callers": []
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -4857,6 +4913,7 @@
         "file": "app/services/parentAuthoringService.ts",
         "line": 24,
         "callers": [
+          "app/features/authoring/FamilyPackages.tsx",
           "app/features/authoring/ParentAuthoringWorkspace.tsx"
         ]
       }
@@ -4901,8 +4958,19 @@
     "controller": "ParentStoryPackagesController.cs",
     "action": "FinalizeContent",
     "controllerLine": 11,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/content/finalize",
+        "service": "parentPackageService",
+        "operation": "finalize",
+        "file": "app/services/parentPackageService.ts",
+        "line": 39,
+        "callers": [
+          "app/features/authoring/FamilyPackages.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -4911,8 +4979,19 @@
     "controller": "ParentStoryPackagesController.cs",
     "action": "Reopen",
     "controllerLine": 14,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/content/reopen",
+        "service": "parentPackageService",
+        "operation": "reopen",
+        "file": "app/services/parentPackageService.ts",
+        "line": 40,
+        "callers": [
+          "app/features/authoring/FamilyPackages.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -4921,8 +5000,19 @@
     "controller": "ParentStoryPackagesController.cs",
     "action": "Create",
     "controllerLine": 17,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/packages",
+        "service": "parentPackageService",
+        "operation": "create",
+        "file": "app/services/parentPackageService.ts",
+        "line": 42,
+        "callers": [
+          "app/features/authoring/FamilyPackages.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -4931,8 +5021,20 @@
     "controller": "ParentStoryPackagesController.cs",
     "action": "List",
     "controllerLine": 21,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories/{}/packages",
+        "service": "parentPackageService",
+        "operation": "list",
+        "file": "app/services/parentPackageService.ts",
+        "line": 43,
+        "callers": [
+          "app/features/authoring/FamilyPackages.tsx",
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -4941,8 +5043,19 @@
     "controller": "ParentStoryPackagesController.cs",
     "action": "Get",
     "controllerLine": 24,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories/{}/packages/{}",
+        "service": "parentPackageService",
+        "operation": "get",
+        "file": "app/services/parentPackageService.ts",
+        "line": 44,
+        "callers": [
+          "app/features/authoring/FamilyPackages.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -4951,8 +5064,19 @@
     "controller": "ParentStoryPackagesController.cs",
     "action": "Generate",
     "controllerLine": 27,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/packages/{}/generate",
+        "service": "parentPackageService",
+        "operation": "generate",
+        "file": "app/services/parentPackageService.ts",
+        "line": 45,
+        "callers": [
+          "app/features/authoring/FamilyPackages.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -4961,8 +5085,19 @@
     "controller": "ParentStoryPackagesController.cs",
     "action": "Retry",
     "controllerLine": 31,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/packages/{}/retry",
+        "service": "parentPackageService",
+        "operation": "retry",
+        "file": "app/services/parentPackageService.ts",
+        "line": 47,
+        "callers": [
+          "app/features/authoring/FamilyPackages.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -4971,8 +5106,19 @@
     "controller": "ParentStoryPackagesController.cs",
     "action": "Revise",
     "controllerLine": 34,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/packages/{}/revise",
+        "service": "parentPackageService",
+        "operation": "revise",
+        "file": "app/services/parentPackageService.ts",
+        "line": 49,
+        "callers": [
+          "app/features/authoring/FamilyPackages.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -4981,8 +5127,19 @@
     "controller": "ParentStoryPackagesController.cs",
     "action": "Preview",
     "controllerLine": 37,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/stories/{}/packages/{}/preview",
+        "service": "parentPackageService",
+        "operation": "preview",
+        "file": "app/services/parentPackageService.ts",
+        "line": 50,
+        "callers": [
+          "app/features/authoring/FamilyPackages.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -4991,8 +5148,19 @@
     "controller": "ParentStoryPackagesController.cs",
     "action": "Confirm",
     "controllerLine": 40,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/packages/{}/confirm",
+        "service": "parentPackageService",
+        "operation": "confirm",
+        "file": "app/services/parentPackageService.ts",
+        "line": 51,
+        "callers": [
+          "app/features/authoring/FamilyPackages.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -5001,8 +5169,19 @@
     "controller": "ParentStoryPackagesController.cs",
     "action": "Deliver",
     "controllerLine": 43,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/parent/stories/{}/family-confirmations/batch",
+        "service": "parentPackageService",
+        "operation": "deliver",
+        "file": "app/services/parentPackageService.ts",
+        "line": 53,
+        "callers": [
+          "app/features/authoring/FamilyPackages.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -5646,7 +5825,7 @@
         "service": "creatorPublicationService",
         "operation": "withdraw",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 15,
+        "line": 26,
         "callers": [
           "app/features/staff/CreatorPublication.tsx"
         ]

@@ -38,8 +38,8 @@ function ProgressRow({ icon, label, done, total, state }: { icon: ReactNode; lab
  * checklist tranh / giọng đọc / xác nhận, lý do lỗi, tạo lại media, và mục "Ảnh và âm thanh thực tế".
  * `active`: đã có job media cho bản này. Chưa có thì hiện `idle` (ví dụ nút bắt đầu tạo).
  */
-export default function MediaProgress({ storyId, versionId, active, disabled, stepNo, idle, onChanged, onWorkingChange, onReady }: {
-  storyId: number; versionId: number | null; active: boolean; disabled: boolean; stepNo: number; idle?: ReactNode;
+export default function MediaProgress({ storyId, versionId, active, disabled, stepNo, idle, onChanged, onWorkingChange, onReady, selectable = false }: {
+  storyId: number; versionId: number | null; active: boolean; disabled: boolean; stepNo: number; idle?: ReactNode; selectable?: boolean;
   onChanged?: () => void; onWorkingChange?: (value: boolean) => void; onReady?: (progress: MediaProgressDto) => void;
 }) {
   const [busy, setBusy] = useState(false);
@@ -66,12 +66,15 @@ export default function MediaProgress({ storyId, versionId, active, disabled, st
   const audioTotal = current ? audioDone + (current.missingAudioSegmentIds?.length ?? 0) : null;
   const generated = !!current && (current.isGenerated || current.isAwaitingConfirmation || current.isReady);
   const failed = current?.jobStatus === 'Failed';
+  // Creator chọn "Tự chọn từng phần": còn tranh / đoạn chưa chọn nguồn thì phải hiện danh sách để chọn.
+  const selecting = selectable && !!current?.isAwaitingSelection;
   const imgState = generated || (imgTotal !== null && imgDone >= imgTotal) ? 'done' : 'active';
   const audioState = generated || (audioTotal !== null && audioTotal > 0 && audioDone >= audioTotal) ? 'done' : imgState === 'done' ? 'active' : 'todo';
   const confirmState = current?.isReady ? 'done' : current?.isAwaitingConfirmation ? 'active' : 'todo';
   const [tone, headline] = !current ? ['wait', 'Đang lấy trạng thái…']
     : current.isReady ? ['ok', 'Đã xong']
     : failed ? ['flag', 'Tạo media bị lỗi']
+    : selecting ? ['wait', 'Chờ bạn chọn tranh và giọng đọc']
     : current.isAwaitingConfirmation ? ['wait', 'Đã tạo xong, chờ bạn xác nhận']
     : ['wait', JOB[current.jobStatus] ?? 'AI đang tạo tranh và giọng đọc'];
 
@@ -85,16 +88,17 @@ export default function MediaProgress({ storyId, versionId, active, disabled, st
           <ProgressRow icon={<Volume2 className="ic" aria-hidden />} label="Giọng đọc" done={audioDone} total={audioTotal} state={audioState} />
           <ProgressRow icon={<ShieldCheck className="ic" aria-hidden />} label="Bạn xem và xác nhận gói media" done={0} total={null} state={confirmState} />
         </ul>
+        {selecting && <p className="cm-hint cm-todo"><b>Việc cần làm:</b> với từng tranh và đoạn giọng đọc ở mục bên dưới, tải tệp của bạn lên hoặc bấm <b>AI tạo</b>.</p>}
         {current?.isAwaitingConfirmation && <p className="cm-hint cm-todo"><b>Việc cần làm:</b> xem tranh, nghe giọng đọc ở mục bên dưới rồi tích ô và bấm <b>Xác nhận media</b>.</p>}
         {failed && <p className="cm-hint cm-todo">{mediaError(current?.errorCode)}</p>}
-        {!generated && !failed && current && <p className="cm-hint"><Loader2 className="ic cm-spin" aria-hidden />Trang tự cập nhật, mỗi tranh mất khoảng vài chục giây.</p>}
+        {!generated && !failed && !selecting && current && <p className="cm-hint"><Loader2 className="ic cm-spin" aria-hidden />Trang tự cập nhật, mỗi tranh mất khoảng vài chục giây.</p>}
         {progress.timedOut && <p className="notice warn" role="status">Đã dừng theo dõi tự động. Bấm Tải lại để kiểm tra.</p>}
         <div className="pa-actions">
           <button className="btn btn-s" disabled={busy} onClick={progress.refresh}><RefreshCw className="ic" />Tải lại</button>
           {failed && <button className="btn btn-s" disabled={busy || disabled} onClick={() => void retry()}><RotateCcw className="ic" />Tạo lại media</button>}
         </div>
       </div>
-      {generated && <MediaAssets key={`${current?.packageRevision}`} autoOpen={!!current?.isAwaitingConfirmation} storyId={storyId} versionId={versionId} disabled={disabled || busy} onChanged={() => { progress.refresh(); onChanged?.(); }} />}
+      {(generated || selecting) && <MediaAssets key={`${current?.packageRevision}`} autoOpen={!!current?.isAwaitingConfirmation || selecting} selectable={selectable} storyId={storyId} versionId={versionId} disabled={disabled || busy} onChanged={() => { progress.refresh(); onChanged?.(); }} />}
     </>}
   </section>;
 }

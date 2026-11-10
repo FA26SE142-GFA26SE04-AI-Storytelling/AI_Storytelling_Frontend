@@ -2,7 +2,8 @@
 import { confirmDialog } from "@/app/lib/confirm";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, ClipboardPaste, Download, FileUp, Lock, RefreshCw, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, ClipboardPaste, Download, FileUp, Lock, RefreshCw, RotateCcw } from "lucide-react";
+import { StepRail, StepReview, stepRail } from "@/app/features/story-workflow/StepRail";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { ContentSaved, CreatorDraft, CreatorResult, CreatorVersion, SaveVersionInput } from "@/app/types/creator";
 import { detectPii } from "@/app/lib/storyRules";
@@ -67,7 +68,9 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note>(null);
   const [conflict, setConflict] = useState(false);
-  const [stepId, setStepId] = useState<StepId>('write');
+  // null: mở truyện ở bước đang dở; viewId: bước cũ đang xem lại (chỉ xem).
+  const [stepId, setStepId] = useState<StepId | null>(null);
+  const [viewId, setViewId] = useState<StepId | null>(null);
   // Lệnh ghi chưa rõ kết quả (mất mạng): thử lại nguyên lệnh này, với đúng bản chụp lúc gửi.
   const [pending, setPending] = useState<Write | null>(null);
   const hasPending = pending !== null;
@@ -165,7 +168,9 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
     { id: 'media', label: 'Tranh và giọng đọc', note: mediaDone ? 'Đã sẵn sàng' : confirmed ? 'Đang xử lý' : 'Cần chốt nội dung', done: mediaDone, locked: !isSaved || !confirmed },
     { id: 'publish', label: 'Phát hành', note: mediaDone ? 'Có thể gửi duyệt' : 'Cần media sẵn sàng', done: false, locked: !isSaved },
   ];
-  const active = steps.find(s => s.id === stepId && !s.locked) ?? steps[0];
+  // Cột bước: chỉ mở bước đã qua; bấm bước cũ thì chỉ xem, sửa phải bấm Quay lại.
+  const rail = stepRail(steps, stepId, viewId, setViewId);
+  const active = rail.active;
   const saveThenNext = async () => { if (!dirty || await save()) setStepId('check'); };
   return (
     <>
@@ -183,20 +188,11 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
 
       <div className="pa-flow">
         {/* Khung trái: thứ tự các bước; bước chưa mở khoá thì mờ đi. */}
-        <nav className="pa-steps" aria-label="Các bước soạn truyện">
-          <b className="pa-steps-title">Các bước</b>
-          <ol>
-            {steps.map((s, i) => <li key={s.id}>
-              <button className={`pa-stepbtn${active.id === s.id ? ' on' : ''}${s.done ? ' done' : ''}`} disabled={s.locked} aria-current={active.id === s.id ? 'step' : undefined} onClick={() => setStepId(s.id)}>
-                <span className="pa-num">{s.done ? <Check className="ic" aria-hidden /> : i + 1}</span>
-                <span className="pa-steptxt"><b>{s.label}</b><small>{s.note}</small></span>
-              </button>
-            </li>)}
-          </ol>
-        </nav>
+        <StepRail steps={steps} rail={rail} />
 
         {/* Cả ba bước luôn được dựng, chỉ ẩn bước không chọn: các bước media và phát hành giữ trạng thái và báo khoá soạn cho trình soạn. */}
         <div className="pa-stage" ref={stageRef}>
+          <StepReview rail={rail} onEdit={setStepId}>
           <div className="pa-stage" hidden={active.id !== 'write'}>
             <section className="pa-card" aria-label="Soạn nội dung">
               <div className="pa-head"><h3><span className="pa-num">1</span>Soạn nội dung</h3></div>
@@ -257,6 +253,7 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
             <CreatorPublication storyId={storyId} versionId={draft.selectedVersionId} storyStatus={draft.status} onRevision={() => void open()} onLockChange={setPublicationLocked} showCheck={false} stepNo={4} />
             <EditorNavigation prev="media" next={null} nextOk={false} onNavigate={setStepId}/>
           </div>
+          </StepReview>
         </div>
       </div>
 

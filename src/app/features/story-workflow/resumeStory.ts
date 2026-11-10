@@ -9,7 +9,9 @@ export async function loadResumeSnapshot(id:number, requestId:number | null, sig
   const [detail, progress] = await Promise.all([storyService.getStoryById(id,signal),loadSnapshot(id,signal)]);
   if (!detail.success || !detail.data || detail.data.id !== id) return {success:false,status:detail.status,data:null,message:detail.message || 'Không mở được truyện đã chọn.'};
   const story = detail.data;
-  if (!/^ai$/i.test(story.source ?? '')) return {success:false,data:null,message:'Truyện này không thuộc luồng tạo truyện AI. Hãy mở trong khu soạn truyện tương ứng.'};
+  // Truyện nhập có sẵn (Luồng 3b) có nguồn Manual nhưng đi tiếp các bước AI (có tiến độ tạo học liệu);
+  // truyện tự viết thì Backend từ chối tiến độ này, nên vẫn bị đưa về khu soạn tương ứng.
+  if (!/^ai$/i.test(story.source ?? '') && !(progress.success && progress.data?.generation)) return {success:false,data:null,message:'Truyện này không thuộc luồng tạo truyện AI. Hãy mở trong khu soạn truyện tương ứng.'};
   if (requestId && (!progress.data || /^draft$/i.test(story.status))) {
     const input = await api.getInputProgress(id,requestId,signal);
     if (input.success && input.data?.storyId === id && input.data.inputStatus !== 'input_accepted') return {success:true,message:'',data:{story,outline:null,generation:null,input:input.data}};
