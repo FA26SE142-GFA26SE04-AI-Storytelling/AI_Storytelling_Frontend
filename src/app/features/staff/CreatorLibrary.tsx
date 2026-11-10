@@ -177,7 +177,7 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                 <div className="lib-empty">
                   <b className="display">Chưa có truyện mẫu nào</b>
                   <span className="sub">Bắt đầu bằng AI từ một ý tưởng, hoặc tự viết theo cách thủ công.</span>
-                  <div className="row"><button className="btn btn-p" onClick={() => go("create-ai")}><WandSparkles className="ic" />Dùng AI tạo truyện</button><button className="btn btn-s" onClick={() => go("create-manual")}>Viết thủ công</button></div>
+                  <div className="row"><button className="btn btn-gold" onClick={() => go("create-ai")}><WandSparkles className="ic" />Dùng AI tạo truyện</button><button className="btn btn-s" onClick={() => go("create-manual")}>Viết thủ công</button></div>
                 </div>
               ) : searching ? (
                 <Shelf title="Kết quả" sub={`${results.length} truyện`} items={results.map((s) => ({ id: s.storyId }))}>

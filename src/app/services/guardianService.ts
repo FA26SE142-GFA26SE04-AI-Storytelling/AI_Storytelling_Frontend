@@ -1,12 +1,11 @@
-import { unavailable } from './unavailable';
 import type { ApiResponse } from '@/app/types/auth';
 import type {
-  AppNotification, ChildRef, CommunitySubmission, ContentReport, Dashboard, InterventionCase, ProgressReport, ReadCompletion, ReportReason,
+  AppNotification, ChildRef, CommunitySubmission, ContentReport, ReportReason,
   RoadmapAddResult, RoadmapItem, RoadmapPosition, RoadmapStoryInput, RoadmapTemplate,
 } from '@/app/types/progress';
 import { apiRequest } from './apiClient';
 import { roadmapService } from './roadmapService';
-import { roadmapItems, roadmapAddResult, roadmapTemplate, roadmapCopyResult } from './roadmapAdapters';
+import { roadmapItems, roadmapAddResult, roadmapCopyResult } from './roadmapAdapters';
 import { communityService } from './communityService';
 import type * as B from '@/app/types/backendContracts';
 
@@ -19,8 +18,6 @@ const reportReasons = { safety_concern: 'SafetyConcern', inappropriate: 'Inappro
 export type { ChildRef };
 
 export const guardianService = {
-
-  dashboard: (childId: number): Promise<ApiResponse<Dashboard>> => unavailable('tính năng này', [childId]),
 
   async roadmap(childId: number): Promise<ApiResponse<RoadmapItem[]> & { counts?: { completed: number; total: number } }> {
     const r = await roadmapService.get(childId);
@@ -39,38 +36,12 @@ export const guardianService = {
   async clearRoadmap(childId: number): Promise<ApiResponse<null>> {
     const r = await roadmapService.clear(childId); return { ...r, data: null };
   },
-  async templates(): Promise<ApiResponse<RoadmapTemplate[]>> {
-    const items: RoadmapTemplate[] = [];
-    for (let pageIndex = 1; ; pageIndex++) {
-      const r = await roadmapService.library({ pageIndex, pageSize: 20 });
-      if (!r.success || !r.data) return { ...r, data: null };
-      const details = await Promise.all(r.data.items.map(i => roadmapService.detail(i.id)));
-      const failure = details.find(d => !d.success || !d.data);
-      if (failure) return { ...failure, data: null };
-      items.push(...details.flatMap(d => d.data ? [roadmapTemplate(d.data)] : []));
-      if (!r.data.hasNextPage) return { ...r, data: items };
-    }
-  },
   previewTemplate: (children: ChildRef[], template: RoadmapTemplate, position: RoadmapPosition, daysPerStory: number | null) =>
     roadmapService.preview(template.id, { childProfileIds: children.map(c => c.id), position: positionWire(position), daysPerStory }),
   async applyTemplate(children: ChildRef[], template: RoadmapTemplate, position: RoadmapPosition, daysPerStory: number | null): Promise<ApiResponse<RoadmapAddResult>> {
     const r = await roadmapService.copy(template.id, { childProfileIds: children.map(c => c.id), position: positionWire(position), daysPerStory });
     return { ...r, data: r.data ? roadmapCopyResult(r.data, children) : null };
   },
-
-  holdCase: (childId: number): Promise<ApiResponse<InterventionCase | null>> => unavailable('tính năng này', [childId]),
-
-  unlockHold: (childId: number, caseId: number, notes: string): Promise<ApiResponse<null>> =>
-    unavailable('tính năng này', [childId,caseId,notes]),
-
-  addHoldNotes: (childId: number, caseId: number, notes: string): Promise<ApiResponse<null>> =>
-    unavailable('tính năng này', [childId,caseId,notes]),
-
-  completions: (childId: number): Promise<ApiResponse<ReadCompletion[]>> => unavailable('tính năng này', [childId]),
-  markCompletionSeen: (childId: number, id: number): Promise<ApiResponse<null>> =>
-    unavailable('tính năng này', [childId,id]),
-
-  reports: (childId: number): Promise<ApiResponse<ProgressReport[]>> => unavailable('tính năng này', [childId]),
 
   // Điều ước của bé: xem storyWishService (parentWishService).
 

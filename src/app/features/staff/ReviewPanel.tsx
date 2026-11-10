@@ -13,6 +13,7 @@ import LearningMaterials from './LearningMaterials';
 import '@/app/features/review/review-tools.css';
 import SafeImage from "@/app/components/SafeImage";
 import { Check, CircleAlert, ExternalLink, Pencil, RefreshCw, ShieldCheck, X } from "lucide-react";
+import InfoTip from "@/app/components/InfoTip";
 import Dialog from "@/app/components/Dialog";
 import Select from "@/app/components/Select";
 import { confirmDialog } from "@/app/lib/confirm";
@@ -20,6 +21,7 @@ import ReviewPicture from './ReviewPicture';
 import ModerationEvidence from './ModerationEvidence';
 import { ListeningList, SourceNote, StoryFacts, criterionEvidence } from './PublicReviewEvidence';
 import { useRiseIn } from '@/app/lib/motion';
+import { flagsSummary } from './readableJson';
 
 /** Tên tiếng Việt của các phần cần sửa (giá trị gửi lên backend giữ nguyên). */
 const PART_LABEL: Record<string, string> = {
@@ -32,22 +34,8 @@ const COPYRIGHT: Record<string, string> = { OwnWork: 'Tác giả tự sáng tác
 /** Kết quả kiểm tra thông tin cá nhân của backend là chuỗi JSON như {"passed": true}; đổi thành câu đọc được. */
 function piiSummary(raw: string): string {
   try { const v = JSON.parse(raw) as { passed?: boolean }; if (typeof v.passed === 'boolean') return v.passed ? 'Đạt: không phát hiện thông tin cá nhân.' : 'Không đạt: có thể có thông tin cá nhân.'; } catch { /* không phải JSON thì giữ nguyên */ }
-  return raw;
-}
-/** Ghi chú của hệ thống ở backend là chuỗi JSON như {"requestReason": "..."}; lấy lý do ra, JSON khác thì liệt kê từng dòng "khóa: giá trị". */
-function flagsSummary(raw: string | null | undefined): string {
-  const text = (raw ?? '').trim();
-  if (!text) return '';
-  try {
-    const v: unknown = JSON.parse(text);
-    if (v && typeof v === 'object' && !Array.isArray(v)) {
-      const entries = Object.entries(v as Record<string, unknown>);
-      const reason = (v as { requestReason?: unknown }).requestReason;
-      if (entries.length === 1 && typeof reason === 'string') return reason;
-      return entries.map(([k, val]) => `${k}: ${typeof val === 'string' ? val : JSON.stringify(val)}`).join('\n');
-    }
-  } catch { /* không phải JSON thì giữ nguyên */ }
-  return text;
+  // JSON dạng khác thì không in thô ra giao diện.
+  return /^[[{]/.test(raw.trim()) ? 'Đã kiểm tra thông tin cá nhân.' : raw;
 }
 /** Tên ngắn của tiêu chí checklist (mã do backend định nghĩa); nhãn đầy đủ của backend hiện khi rê chuột. */
 const CRITERION_SHORT: Record<string, string> = {
@@ -83,6 +71,9 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
   const [partType, setPartType] = useState(kind === 'RoadmapTemplateReview' ? 'name_description' : 'metadata');
   const [partId, setPartId] = useState('');
   const [labelIds, setLabelIds] = useState<number[]>([]);
+  // Tập nhãn đã lưu gần nhất: nút "Lưu tập nhãn" chỉ hiện khi các ô chọn khác tập này.
+  const [savedLabelIds, setSavedLabelIds] = useState<number[]>([]);
+  const labelsDirty = [...labelIds].sort().join(',') !== [...savedLabelIds].sort().join(',');
   const [categories, setCategories] = useState<{ id: number; displayName: string }[] | null>(null);
   const [compare, setCompare] = useState<B.PublicVersionComparisonDto | null>(null);
   const labelLoader = async () => { const r = await staffService.categories(); if (r.success) setCategories(r.data ?? []); };
@@ -111,7 +102,7 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
   return <div className="st-card st-review" ref={riseRef}>
     <div className="st-group">
       <h3>{title}</h3>
-      {'claimExpiresAt' in data && <p className="sub">Hạn giữ mục: {new Date(data.claimExpiresAt ?? '').toLocaleString('vi-VN')}</p>}
+      {'claimExpiresAt' in data && <span className="pill wait" style={{ width: 'fit-content' }}>Giữ mục đến {new Date(data.claimExpiresAt ?? '').toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>}
       {message && <div className="notice" role="status">{message}</div>}
     </div>
     {item.kind === 'ContentReport' && <div className="st-group"><b className="st-group-title">Nội dung báo cáo</b>
@@ -142,8 +133,7 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
         </section>)}
       </div>
       <div className="st-group"><b className="st-group-title">Checklist chấm điểm{has('checklist_incomplete') && <Warn why="Checklist chưa chấm đủ" />}</b>
-        <div className="st-checks">{(['safety', 'ageFit', 'education', 'language', 'copyright', 'image', 'audio', 'interaction'] as const).map(key => <div className="field" key={key}><span className="st-flabel">{CHECK_LABEL[key]}{item.data.checklist[key] === null && <Warn why="Chưa chấm" />}</span>
-          <small className="st-evidence">{criterionEvidence(item.data, key)}</small>
+        <div className="st-checks">{(['safety', 'ageFit', 'education', 'language', 'copyright', 'image', 'audio', 'interaction'] as const).map(key => <div className="field" key={key}><span className="st-flabel">{CHECK_LABEL[key]} <InfoTip text={criterionEvidence(item.data, key)} />{item.data.checklist[key] === null && <Warn why="Chưa chấm" />}</span>
           <Select<string> ariaLabel={CHECK_LABEL[key]} value={item.data.checklist[key] === null ? '' : String(item.data.checklist[key])} options={CHECK_OPTIONS} onChange={v => { if (v && !busy) void setCheck(key, v === 'true'); }} /></div>)}</div>
       </div>
       {item.data.flags.length > 0 && <div className="st-group"><b className="st-group-title">Cờ cần xử lý{item.data.flags.some(f => !f.resolved) && <Warn why="Còn cờ chưa xử lý" />}</b>
@@ -164,20 +154,20 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
       {item.kind === 'CommunitySubmission' && <div className="st-group"><b className="st-group-title">Bản quyền và thông tin cá nhân{(!item.data.copyrightDeclaration || item.data.piiRescan.length > 0) && <Warn why="Cần xem lại bản quyền hoặc thông tin cá nhân" />}</b>
         <div className="st-quote"><small>Cam kết bản quyền của tác giả</small><p>{item.data.copyrightDeclaration ? (COPYRIGHT[item.data.copyrightDeclaration] ?? item.data.copyrightDeclaration) : 'Tác giả chưa ghi cam kết bản quyền.'}{!item.data.copyrightDeclaration && <Warn why="Chưa có cam kết bản quyền" />}</p></div>
         {item.data.piiCheckSummary && <div className="st-quote"><small>Kết quả kiểm tra thông tin cá nhân</small><p>{piiSummary(item.data.piiCheckSummary)}</p></div>}
-        {item.data.piiRescan.length > 0 ? <div className="st-storylist">{item.data.piiRescan.map((p,i) => <div className="st-storyrow bad" key={i}><b>{p.kind}</b><span>{p.location}<Warn why="Có thể là thông tin cá nhân, cần kiểm tra" /></span></div>)}</div> : <p className="sub">Không phát hiện thông tin cá nhân.</p>}
+        {item.data.piiRescan.length > 0 ? <div className="st-storylist">{item.data.piiRescan.map((p,i) => <div className="st-storyrow bad" key={i}><b>{p.kind}</b><span>{p.location}<Warn why="Có thể là thông tin cá nhân, cần kiểm tra" /></span></div>)}</div> : <span className="pill ok" style={{ width: 'fit-content' }}><Check className="ic" />Không phát hiện thông tin cá nhân</span>}
       </div>}
     </>}
     {item.kind === 'PublicStoryReview' && <div className="st-group"><b className="st-group-title">Nhãn nội dung{has('no_labels') && <Warn why="Creator chưa đề xuất nhãn nào" />}</b>
       {item.data.proposedLabels.length > 0
         ? <div className="st-label-pills">{item.data.proposedLabels.map(l => <span className="pill ok" key={l.contentCategoryId}>{l.displayName}</span>)}</div>
-        : <div className="st-quote"><small>Chưa có nhãn</small><p>Creator chưa đề xuất nhãn nội dung nào nên chưa thể duyệt. Moderator không tự gắn nhãn được: hãy dùng "Yêu cầu chỉnh sửa" ở phần "Thông tin chung" để Creator bổ sung nhãn.</p></div>}
+        : <div className="st-quote"><small>Chưa có nhãn</small><p>Chưa duyệt được khi chưa có nhãn. Dùng "Yêu cầu chỉnh sửa" để Creator bổ sung.</p></div>}
     </div>}
-    {item.kind === 'CommunitySubmission' && <div className="st-group"><b className="st-group-title">Nhãn nội dung</b><button className="btn btn-s" disabled={busy} onClick={() => void labelLoader()}>Chọn lại nhãn</button>
-      {categories && <><p className="sub">Chọn toàn bộ tập nhãn muốn giữ, sau đó lưu.</p><div className="st-labels">{categories.map(c => <label className="row" key={c.id}><input type="checkbox" checked={labelIds.includes(c.id)} onChange={e => setLabelIds(v => e.target.checked ? [...v,c.id] : v.filter(x => x !== c.id))} />{c.displayName}</label>)}</div><button className="btn btn-s" disabled={busy || !labelIds.length} onClick={() => void act(() => moderationService.labels(item.kind as 'PublicStoryReview' | 'CommunitySubmission', id, labelIds))}>Lưu tập nhãn</button></>}
+    {item.kind === 'CommunitySubmission' && <div className="st-group"><b className="st-group-title">Nhãn nội dung {categories && <InfoTip text="Chọn toàn bộ tập nhãn muốn giữ, sau đó lưu." />}</b><button className="btn btn-s" disabled={busy} onClick={() => void labelLoader()}>Chọn lại nhãn</button>
+      {categories && <><div className="st-labels">{categories.map(c => <label className="row" key={c.id}><input type="checkbox" checked={labelIds.includes(c.id)} onChange={e => setLabelIds(v => e.target.checked ? [...v,c.id] : v.filter(x => x !== c.id))} />{c.displayName}</label>)}</div>{labelsDirty && <button className="btn btn-s" disabled={busy || !labelIds.length} onClick={() => void act(async () => { const chosen = labelIds; const r = await moderationService.labels(item.kind as 'PublicStoryReview' | 'CommunitySubmission', id, chosen); if (r.success) setSavedLabelIds(chosen); return r; })}>Lưu tập nhãn</button>}</>}
     </div>}
     <div className="st-group"><b className="st-group-title">Quyết định</b>
       {decisionKind && blockers.length > 0 && <ul className="st-blockers" role="status" aria-label="Việc còn thiếu trước khi duyệt">{blockers.map(b => <li key={b.code}><CircleAlert className="ic" aria-hidden="true" />{b.message}</li>)}</ul>}
-      <label className="field"><span className="lbl">Lý do / ghi chú quyết định{(item.kind === 'GrayZoneStory' || item.kind === 'PublicStoryRemoval' || item.kind === 'ContentReport') ? (!reason.trim() && <Warn why="Cần nhập lý do trước khi bấm quyết định" />) : <small> (bắt buộc khi Từ chối hoặc Yêu cầu sửa)</small>}</span><textarea className="inp" maxLength={item.kind === 'GrayZoneStory' || item.kind === 'PublicStoryRemoval' ? 2000 : 1000} rows={3} value={reason} onChange={e => setReason(e.target.value)} /></label>
+      <label className="field"><span className="lbl">Lý do / ghi chú quyết định{(item.kind === 'GrayZoneStory' || item.kind === 'PublicStoryRemoval' || item.kind === 'ContentReport') ? (!reason.trim() && <Warn why="Cần nhập lý do trước khi bấm quyết định" />) : <> <InfoTip text="Bắt buộc khi Từ chối hoặc Yêu cầu sửa." /></>}</span><textarea className="inp" maxLength={item.kind === 'GrayZoneStory' || item.kind === 'PublicStoryRemoval' ? 2000 : 1000} rows={3} value={reason} onChange={e => setReason(e.target.value)} /></label>
       {decisionKind && <div className="row"><button className="btn btn-ok" disabled={busy || !canApprove} title={blockers.map(b => b.message).join(' · ') || undefined} onClick={() => void decide('Duyệt nội dung này? Nội dung sẽ được công khai theo kết quả duyệt.', () => moderationService.approve(decisionKind, id))}><Check className="ic" />Duyệt</button><button className="btn btn-no" disabled={busy || !usableReason} onClick={() => void decide('Từ chối nội dung này? Lý do sẽ được gửi cho tác giả.', () => moderationService.reject(decisionKind, id, reason))}><X className="ic" />Từ chối</button></div>}
       {item.kind === 'GrayZoneStory' && <div className="row">{(['Clear','Block'] as const).map(decision => <button className="btn btn-s" key={decision} disabled={busy || !usableReason} onClick={() => void decide(decision === 'Clear' ? 'Cho phép truyện này tiếp tục?' : 'Chặn nội dung này? Truyện sẽ không được tiếp tục.', () => moderationService.grayDecision(id, { decision, reason, rowVersion: item.data.rowVersion }))}>{decision === 'Clear' ? <Check className="ic" /> : <X className="ic" />}{decision === 'Clear' ? 'Cho phép tiếp tục' : 'Chặn nội dung'}</button>)}</div>}
       {item.kind === 'PublicStoryRemoval' && <div className="row">{[true,false].map(approve => <button className="btn btn-s" key={String(approve)} disabled={busy || !usableReason} onClick={() => void decide(approve ? 'Chấp thuận gỡ truyện này khỏi thư viện công khai?' : 'Không chấp thuận yêu cầu gỡ truyện này?', () => moderationService.removalDecision(id, { approve, reason, rowVersion: item.data.rowVersion }))}>{approve ? <Check className="ic" /> : <X className="ic" />}{approve ? 'Chấp thuận gỡ' : 'Không chấp thuận gỡ'}</button>)}</div>}

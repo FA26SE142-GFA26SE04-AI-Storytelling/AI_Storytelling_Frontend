@@ -37,6 +37,6 @@ export function mediaIssueMessage(issue: MediaGenerationIssue): string {
   if (issue.status === 'ManualReview') return 'Cần xem lại chất lượng trước khi sử dụng.';
   if (issue.errorCode === 'MEDIA_PROVIDER_TIMEOUT') return 'Xử lý quá thời gian chờ.';
   if (issue.errorCode.endsWith('_HTTP_429')) return 'Dịch vụ AI đang giới hạn lượt yêu cầu.';
-  if (issue.errorCode === 'MEDIA_ITEM_INCOMPLETE') return 'Mục này chưa hoàn thành; API hiện chưa cung cấp nguyên nhân riêng.';
+  if (issue.errorCode === 'MEDIA_ITEM_INCOMPLETE') return 'Mục này chưa hoàn thành, hệ thống chưa cho biết lý do.';
   return 'Chưa xử lý thành công mục này.';
 }

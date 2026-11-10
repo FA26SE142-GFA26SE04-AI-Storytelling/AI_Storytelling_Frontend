@@ -1,9 +1,4 @@
 /* Duyệt nội dung */
-.queue-item { display: flex; gap: 10px; padding: 9px; border-radius: 20px; border: 1px solid var(--line); background: var(--surface); text-align: left; width: 100%; transition: all .2s; }
-.queue-item:hover { border-color: var(--line-2); }
-.queue-item.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 7%, transparent); }
-.queue-item b { font-size: var(--fs-sm); display: block; }
-.queue-item small { color: var(--muted); font-size: var(--fs-xs); }
 
 /* Vùng đọc bản thảo: nền chấm, trang giấy bo góc lệch như chiếc lá */
 .review-doc { overflow-y: auto; padding: 28px; background-color: color-mix(in srgb, var(--bg) 60%, var(--panel)); background-image: radial-gradient(var(--line) 1px, transparent 1px); background-size: 20px 20px; }
@@ -13,8 +8,6 @@
 .sheet p { font-size: var(--fs-md); line-height: 1.75; color: var(--ink-warm); margin: 12px 0; }
 .sheet p.sub { font-size: var(--fs-xs); margin: 0; }
 
-.done-state { height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 6px; text-align: center; color: var(--muted); }
-.done-state b { font-size: var(--fs-xl); color: var(--text); }
 
 /* ===== Cổng duyệt (ReviewGate) ===== */
 .review-doc.gate { padding: 0; display: flex; flex-direction: column; overflow: hidden; }

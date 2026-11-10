@@ -26,9 +26,9 @@
 .created-bar { flex-wrap: nowrap; align-items: center; }
 .created-bar .created-pills { flex: 1 1 auto; min-width: 0; flex-wrap: wrap; }
 .created-bar .created-actions { flex: none; flex-wrap: nowrap; }
-.created-actions .sel { flex: none; width: 140px; }
+.created-actions .sel { flex: none; width: auto; min-width: 140px; }
 .created-actions .sel-btn { min-height: 36px; height: 36px; padding: 0 12px; border-radius: 999px; font-size: var(--fs-md); font-weight: 700; background: var(--surface-2); }
-@media (max-width: 900px) { .created-bar { flex-wrap: wrap; } .created-bar .created-actions { flex-wrap: wrap; } }
+@media (max-width: 900px) { .created-bar { flex-wrap: wrap; } .created-bar .created-actions { flex: 1 1 100%; min-width: 0; flex-wrap: wrap; } }
 
 /* Popup sửa thông tin truyện: các ô xếp dọc có khoảng cách, nút nằm bên phải. */
 .edit-story { display: flex; flex-direction: column; gap: 8px; }
@@ -71,3 +71,9 @@
 .cover-pick:focus-visible { outline: 3px solid var(--primary); outline-offset: 2px; }
 @media (prefers-reduced-motion: reduce) { .cover-pick { transition: none; } .cover-pick:hover { transform: none; } }
 @media (max-width: 520px) { .edit-story-cover { flex-direction: column; } }
+
+/* Các kệ theo trạng thái (giống Thư viện): ô tìm kiếm bên trái thanh trên, các kệ cách nhau rõ. */
+.created { gap: 34px; }
+.created-bar .created-search { flex: 0 1 420px; min-height: 42px; padding-left: 16px; }
+.created-search .inp { font-size: var(--fs-md); }
+.created .shelf-row > .bk { flex-basis: 190px; }

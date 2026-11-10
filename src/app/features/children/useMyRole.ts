@@ -5,17 +5,12 @@ import { useAuth } from "@/app/context/AuthContext";
 import type { ChildProfile } from "@/app/types/childProfile";
 import type { Permission } from "@/app/types/supervision";
 
-export type MyRole = { isOwner: boolean; perms: string[]; can: (p: Permission) => boolean };
+export type MyRole = { isOwner: boolean; can: (p: Permission) => boolean };
 
 /** Backend chỉ còn một người quản lý cho mỗi bé (OwnerUserId): chủ hồ sơ làm được mọi việc, người khác không làm được gì. */
-export function roleFor(child: ChildProfile, meId: number): MyRole {
+function roleFor(child: ChildProfile, meId: number): MyRole {
   const isOwner = child.ownerUserId === meId;
-  return { isOwner, perms: [], can: () => isOwner };
-}
-
-/** Giữ dạng bất đồng bộ cho các chỗ đang gọi; không còn gọi API giám sát. */
-export async function loadMyRole(child: ChildProfile, meId: number): Promise<MyRole> {
-  return roleFor(child, meId);
+  return { isOwner, can: () => isOwner };
 }
 
 /** Vai trò của người dùng với một bé. */

@@ -37,11 +37,13 @@ export function useAssistance(actor: 'parent' | 'creator', storyId: number) {
     void api.steps(storyId,taskId,stepPage,controller.signal).then(r => { if (alive) { setSteps(r.data); if (!r.success) setMessage(r.message); } });
     return () => { alive = false; controller.abort(); };
   }, [api,storyId,taskId,stepPage,task?.taskRevision]);
+  /** Mã lỗi thô của AI không có ý nghĩa với người dùng, đổi sang câu tiếng Việt dễ hiểu. */
+  const friendlyAiMessage = (m?: string) => /^AI_OUTPUT_INVALID$/i.test((m ?? '').trim()) ? 'AI trả về kết quả chưa dùng được. Bấm Thử lại để AI làm lại.' : m;
   const execute = async <T,>(call: () => Promise<ApiResponse<T>>) => {
     if (locked.current) return;
     locked.current = true; setBusy(true); setMessage(''); const run = scope.current;
     const r = await call(); if (scope.current !== run) return;
-    locked.current = false; setBusy(false); setMessage(r.message || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
+    locked.current = false; setBusy(false); setMessage(friendlyAiMessage(r.message) || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
     if (r.status === 0 || (r.status ?? 0)>=500) { pending.current = call; setUncertain(true); } else { pending.current = null; setUncertain(false); }
     if (r.success && r.data && typeof r.data === 'object' && 'taskId' in r.data && typeof r.data.taskId === 'number') { setTaskId(r.data.taskId); polling.refresh(); }
     if (r.status === 409) polling.refresh();
@@ -67,7 +69,7 @@ export function useAssistance(actor: 'parent' | 'creator', storyId: number) {
     if (!cancelPayload.current) cancelPayload.current = { operationId:crypto.randomUUID(),expectedTaskRevision:task.taskRevision,targetOperationId:task.activeOperation.operationId };
     const r = await api.cancel(storyId,task.taskId,cancelPayload.current);
     if (scope.current !== run) return;
-    cancelling.current = false; locked.current=false; setBusy(false); setCancelBusy(false); setMessage(r.message || (r.success ? 'Đã yêu cầu hủy thao tác.' : 'Chưa hủy được thao tác.'));
+    cancelling.current = false; locked.current=false; setBusy(false); setCancelBusy(false); setMessage(friendlyAiMessage(r.message) || (r.success ? 'Đã yêu cầu hủy thao tác.' : 'Chưa hủy được thao tác.'));
     if (r.status !== 0 && (r.status ?? 0)<500) cancelPayload.current = null;
     if(r.status===0||(r.status??0)>=500){const payload=cancelPayload.current!;pending.current=()=>api.cancel(storyId,task.taskId,payload);setUncertain(true);}
     polling.refresh();

@@ -12,11 +12,8 @@ it('ships no runtime data simulators, imports or mock switch',()=>{
  expect(source.filter(p=>/[\\/]mocks[\\/]|(?:guardian|reading|adaptive|staff|notification)Local\.ts$/.test(p))).toEqual([]);
  for(const file of source){const text=readFileSync(file,'utf8');expect(text,file).not.toMatch(/USE_MOCK|NEXT_PUBLIC_USE_MOCK|contractMock|(?:from\s+['"][^'"]*(?:\/mocks\/|(?:guardian|reading|adaptive|staff|notification)Local))/);}
 });
-it('does not simulate unsupported progress or recommendations',async()=>{
- const fetcher=vi.fn();vi.stubGlobal('fetch',fetcher);
- const result=await Promise.all([guardianService.dashboard(10),guardianService.reports(10)]);
- for(const r of result){expect(r.success).toBe(false);expect(r.status).toBe(501);expect(r.data).toBeNull();}
- expect(fetcher).not.toHaveBeenCalled();
+it('does not keep facades for removed progress, hold mode or staff APIs',()=>{
+ for(const key of ['dashboard','reports','completions','holdCase','unlockHold'])expect(key in guardianService).toBe(false);
  expect('metrics' in staffService).toBe(false);expect('applications' in staffService).toBe(false);
 });
 it('cannot be switched back to mock data by an obsolete environment flag',async()=>{

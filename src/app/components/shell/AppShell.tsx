@@ -35,7 +35,7 @@ function NavButtons({ ws, onWs, reviewCount, upward }: { ws: WorkspaceId; onWs: 
           <button className={ws === id ? "on" : ""} data-tip={label} title={label} aria-label={label} aria-current={ws === id ? "page" : undefined} onClick={() => onWs(id)}>
             <Icon />
             <span className="nav-txt">{entry.short ?? label}</span>
-            {id === "review" && reviewCount > 0 && <span className="badge">{reviewCount}</span>}
+            {id === "created" && reviewCount > 0 && <span className="badge">{reviewCount}</span>}
           </button>
         )}
       </div>
@@ -51,21 +51,26 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
   return (
     <div className="shell no-status top-nav">
       <PondBackdrop rich />
-      <header className="top">
-        <div className="logo" aria-label="Taletale"><Frog variant="face" size={46} /></div>
-        <b className="display" style={{ fontSize: "var(--fs-lg)", fontWeight: 800 }}>Taletale</b>
+      {/* Ba cột: logo | điều hướng | các nút. Hai cột bên rộng bằng nhau nên thanh điều hướng nằm đúng giữa trang. */}
+      <header className="top hdr-center">
+        <div className="hdr-l">
+          <div className="logo" aria-label="Taletale"><Frog variant="face" size={46} /></div>
+          <b className="display" style={{ fontSize: "var(--fs-lg)", fontWeight: 800 }}>Taletale</b>
+        </div>
 
         <nav ref={navRef} className="topnav" aria-label="Không gian làm việc">
           <NavButtons ws={ws} onWs={onWs} reviewCount={reviewQueue.length} />
         </nav>
         <div className="top-gap" />
 
+        <div className="hdr-r">
         {/* Chỉ hiện khi có chuyện cần biết: mất kết nối. */}
         {error && <span className="top-note err" role="status" title={error}>Lỗi kết nối</span>}
         <button className="btn btn-g" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Giao diện sáng" : "Giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
         <NotificationBell onOpen={onWs} />
         <KidButton onKid={onKid} />
         <AccountMenu ws={ws} onWs={onWs} groups={MENU_GROUPS} />
+        </div>
       </header>
 
       {/* Điện thoại: header không đủ chỗ nên điều hướng nằm ở thanh tab dưới đáy. */}

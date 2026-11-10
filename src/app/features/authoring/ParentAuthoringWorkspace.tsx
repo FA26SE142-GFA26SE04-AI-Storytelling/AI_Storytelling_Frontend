@@ -1,18 +1,26 @@
 'use client';
 import { confirmDialog } from "@/app/lib/confirm";
 import './authoring.css';
+import '@/app/features/studio/workflow.css';
 import '@/app/features/review/review-tools.css';
 import { useEffect, useRef, useState } from 'react';
-import { Check, ShieldCheck, Upload, UserRoundPen } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ClipboardPaste, Eye, FilePlus2, FileText, Lock, RefreshCw, Send, ShieldCheck, Undo2, Upload, UserRoundPen, Download } from 'lucide-react';
+import InfoTip from "@/app/components/InfoTip";
+import Dialog from '@/app/components/Dialog';
+import StepDone from '@/app/features/studio/StepDone';
 import type * as B from '@/app/types/backendContracts';
 import { parentAuthoringService as service } from '@/app/services/parentAuthoringService';
 import { useParentAuthoring } from './useParentAuthoring';
 import AssistancePanel from "./AssistancePanel";
 import AuthoringGuides from './AuthoringGuides';
 import ParentSetupPanel from './ParentSetupPanel';
+import { parseStoryFile, downloadStoryTemplate } from './parseStoryFile';
 import ParentManualMedia from './ParentManualMedia';
 import FamilyMediaPreview from './FamilyMediaPreview';
+import StoryFields from './StoryFields';
+import ReadabilityHints from './ReadabilityHints';
 import { useWorkspaceData } from '@/app/context/WorkspaceDataContext';
+import { useRiseIn } from '@/app/lib/motion';
 import { useMyRole } from '@/app/features/children/useMyRole';
 import type {AssistanceSelection} from '@/app/features/story-workflow/assistanceSelection';
 type StepId = 'write' | 'confirm' | 'media' | 'deliver';
@@ -22,6 +30,26 @@ const COVERAGE_VI: Record<string, string> = {
   'Technical limits, configured keywords in title/body and body readability only; no semantic safety assessment or AI.':
     'Chỉ kiểm tra giới hạn kỹ thuật, từ khóa cấm đã cấu hình ở tiêu đề và nội dung, và độ dễ đọc của nội dung. Không đánh giá an toàn theo ngữ nghĩa và không dùng AI, nên bạn vẫn cần tự đọc lại.',
 };
+/** Mã lỗi/cảnh báo của bước kiểm tra tự động đổi sang câu tiếng Việt nói rõ lỗi gì và cần làm gì. Mã lạ giữ nguyên. */
+const ISSUE_VI: Record<string, string> = {
+  SAFETY_MODERATION_REQUIRED: 'Truyện đang chờ kiểm duyệt an toàn. Đợi kiểm duyệt viên xử lý xong rồi kiểm tra lại.',
+  CHILD_CONTEXT_SETUP_REQUIRED: 'Ngôn ngữ hoặc độ tuổi của truyện không khớp hồ sơ bé. Hãy cập nhật hồ sơ bé hoặc thiết lập lại truyện.',
+  TITLE_REQUIRED: 'Truyện chưa có tiêu đề. Hãy nhập tiêu đề rồi lưu.',
+  CONTENT_REQUIRED: 'Truyện chưa có nội dung. Hãy viết nội dung rồi lưu.',
+  SAFETY_POLICY_REQUIRED: 'Bé chưa có chính sách an toàn. Hãy thiết lập chính sách cho bé trước.',
+  STORY_LENGTH_POLICY_INVALID: 'Giới hạn độ dài truyện trong chính sách của bé chưa hợp lệ. Hãy kiểm tra lại chính sách.',
+  STORY_TOO_LONG: 'Truyện dài hơn giới hạn cho phép của bé. Hãy rút gọn nội dung.',
+  SEMANTIC_SAFETY_REVIEW_REQUIRED: 'Chính sách của bé yêu cầu điểm an toàn theo ý nghĩa, nhưng bước kiểm tra tự động chưa chấm được. Hãy tự đọc kỹ truyện hoặc bỏ yêu cầu điểm an toàn trong chính sách.',
+  READABILITY_POLICY_INVALID: 'Ngưỡng độ dễ đọc trong chính sách của bé chưa hợp lệ. Hãy kiểm tra lại chính sách.',
+  READABILITY_POLICY_NOT_MET: 'Truyện chưa đủ dễ đọc theo mức đọc của bé. Hãy dùng câu ngắn và từ đơn giản hơn.',
+  UNFILLED_PLACEHOLDER: 'Còn chỗ trống chưa điền (dấu ___ hoặc {{ }}). Hãy điền hoặc xoá.',
+};
+function issueText(code: string) {
+  const [key, detail] = code.split(':');
+  if (key === 'BLOCKED_CATEGORY') return `Nội dung chứa chủ đề bị chặn${detail ? ` (${detail})` : ''}. Hãy sửa hoặc bỏ phần đó.`;
+  if (key === 'POLICY_REVIEW_REQUIRED') return `Nội dung có chủ đề cần bạn xem xét${detail ? ` (${detail})` : ''}. Hãy đọc lại kỹ trước khi tiếp tục.`;
+  return ISSUE_VI[key] ?? code;
+}
 const empty = { title: '', content: '', sourceDeclaration: '', rightsDeclaration: '' };
 function resultOf<T>(ops: B.ParentOperationDto[], kind: string, versionId: number | null): T | null {
   const value = ops.filter(o => o.kind === kind && o.sourceIsCurrent && o.storyVersionId === versionId && !o.revokedAt).sort((a,b) => b.id - a.id)[0]?.result;
@@ -43,19 +71,24 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
   const [title, setTitle] = useState('Truyện của gia đình');
   // Hộp đặt tên bản nháp: hiện ngay khi vào trang mà chưa mở bản nháp nào có sẵn.
   const [naming, setNaming] = useState(initialStoryId === null);
+  // Huỷ hộp đặt tên: đang có bản nháp thì chỉ đóng hộp; chưa có thì không còn gì để soạn nên về "Truyện của tôi".
+  const cancelNaming = () => { if (story) setNaming(false); else onDone?.(); };
+  const downloadTemplate = () => downloadStoryTemplate();
   const [reading, setReading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const [checklist, setChecklist] = useState<B.ParentChecklist>({ intendedMeaning:false,suitableForChild:false,privacyChecked:false,endingChecked:false });
   const [preview, setPreview] = useState<B.ParentPreparationDto | null>(null);
   const [viewVersion, setViewVersion] = useState<B.CreatorVersionDto | null>(null);
   const [stepId, setStepId] = useState<StepId>('write');
+  // Đổi bước thì các khung của bước mới hiện lần lượt.
+  const stageRef = useRiseIn<HTMLDivElement>('.pa-card, .pa-fold', [stepId, h.draft?.story.storyId ?? 0], { delay: 50, distance: 10 });
   // Chỉ nạp lại biểu mẫu khi đổi phiên bản; đổi tiêu đề truyện không được xoá nội dung đang soạn.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { setReferences([]); setForm(h.version ? { title:h.version.title,content:h.version.content,sourceDeclaration:h.version.sourceDeclaration,rightsDeclaration:h.version.rightsDeclaration } : { ...empty, title: h.draft?.story.title ?? '' }); setPreview(null); setChecklist({ intendedMeaning:false,suitableForChild:false,privacyChecked:false,endingChecked:false }); }, [h.version]);
   const story = h.draft?.story;
   const storyKey = story?.storyId ?? null;
   useEffect(() => { setStepId('write'); }, [storyKey]);
-  // Tải tệp .txt/.docx: máy chủ đọc nội dung tệp rồi đưa thẳng vào khung soạn để xem và sửa; chỉ lưu khi bấm "Lưu và tiếp tục".
+  // Tải tệp .txt/.docx: máy chủ đọc chữ trong tệp, rồi tách các dòng "Tên truyện:", "Nguồn nội dung:", "Cam kết quyền sử dụng:", "Nội dung:" vào từng ô để xem và sửa; chỉ lưu khi bấm "Lưu và tiếp tục".
   const loadFile = async (file: File) => {
     if (!story || reading) return;
     if (form.content.trim() && !await confirmDialog('Nội dung tệp sẽ thay phần đang soạn. Tiếp tục?')) return;
@@ -65,9 +98,32 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
     const r = await service.previewFile(story.storyId, body);
     setReading(false);
     if (!r.success || !r.data) { h.setNote(r.message || 'Chưa đọc được tệp này.'); return; }
-    const content = r.data.content;
-    setForm(prev => ({ ...prev, content, title: prev.title.trim() ? prev.title : file.name.replace(/.[^.]+$/, '') }));
-    h.setNote('Đã đưa nội dung tệp vào khung soạn. Đọc lại, sửa nếu cần rồi bấm "Lưu và tiếp tục".');
+    fillFrom(r.data.content, file.name.replace(/\.[^.]+$/, ''));
+    h.setNote('Đã điền thông tin từ tệp vào các ô. Đọc lại, sửa nếu cần rồi bấm "Lưu và tiếp tục".');
+  };
+  // Tách các dòng "Tên truyện:", "Nguồn nội dung:", "Cam kết quyền sử dụng:", "Nội dung:" (nếu có) vào từng ô; không có thì cả bài là nội dung.
+  const fillFrom = (text: string, fallbackTitle = '') => {
+    const f = parseStoryFile(text);
+    setForm(prev => ({
+      title: f.title || (prev.title.trim() ? prev.title : fallbackTitle),
+      content: f.content ?? prev.content,
+      sourceDeclaration: f.sourceDeclaration || prev.sourceDeclaration,
+      rightsDeclaration: f.rightsDeclaration || prev.rightsDeclaration,
+    }));
+  };
+  // Dán văn bản: POST /parent/stories/{id}/imports/preview chuẩn hoá chữ, rồi điền vào các ô. Chưa lưu cho tới khi bấm "Lưu và tiếp tục".
+  const [pasting, setPasting] = useState(false);
+  const [pasteText, setPasteText] = useState('');
+  const loadPaste = async () => {
+    if (!story || reading || !pasteText.trim()) return;
+    if (form.content.trim() && !await confirmDialog('Nội dung dán sẽ thay phần đang soạn. Tiếp tục?')) return;
+    setReading(true); h.setNote('');
+    const r = await service.previewImport(story.storyId, { operationId: crypto.randomUUID(), revisionToken: story.revisionToken, content: pasteText });
+    setReading(false);
+    if (!r.success || !r.data) { h.setNote(r.message || 'Chưa đọc được văn bản này.'); return; }
+    fillFrom(r.data.content);
+    setPasting(false); setPasteText('');
+    h.setNote('Đã điền văn bản vào các ô. Đọc lại, sửa nếu cần rồi bấm "Lưu và tiếp tục".');
   };
   const dirty = !!story && (form.title !== (h.version?.title ?? '') || form.content !== (h.version?.content ?? '') || form.sourceDeclaration !== (h.version?.sourceDeclaration ?? '') || form.rightsDeclaration !== (h.version?.rightsDeclaration ?? ''));
   const check = resultOf<B.ParentCheckDto>(h.workflow,'Check',story?.selectedVersionId ?? null);
@@ -96,8 +152,8 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
     void h.write((id, cmd) => service.check(id, cmd));
   });
   const stepNav = (prev: StepId | null, next: StepId | null, nextOk: boolean, label = 'Bước tiếp theo', onNext?: () => void | Promise<void>) => <div className="pa-actions bar">
-    {prev && <button className="btn btn-g" onClick={() => setStepId(prev)}>Quay lại</button>}
-    {next && <button className="btn btn-p push" disabled={!nextOk} onClick={() => void (onNext ? onNext() : setStepId(next))}>{label}</button>}
+    {prev && <button className="btn btn-g" onClick={() => setStepId(prev)}><ArrowLeft className="ic" />Quay lại</button>}
+    {next && <button className="btn btn-p push" disabled={!nextOk} onClick={() => void (onNext ? onNext() : setStepId(next))}>{label}<ArrowRight className="ic" /></button>}
   </div>;
   // Bước 1: chưa lưu thì nút tiếp theo tự lưu phiên bản rồi mới sang bước Kiểm tra.
   const loadPreview = () => { if (!story || !preparation) return; setPreview(null); void h.execute(() => service.preview(story.storyId, preparation.preparationId)).then(r => { if (r?.success) setPreview(r.data); }); };
@@ -105,7 +161,7 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
     <b>{preview.title}</b>
     {preview.segments.map(s => <p key={s.order}>{s.text}</p>)}
     <FamilyMediaPreview preparation={preview}/>
-    {preview.missingRequirements.map(r => <p className="notice warn" key={r}>{r}</p>)}
+    {preview.missingRequirements.length > 0 && <ul className="pa-issues">{preview.missingRequirements.map(r => <li className="warn" key={r}>{r}</li>)}</ul>}
   </div>;
   // Bước Xác nhận: nút tiếp theo xác nhận nội dung (bốn ô tích đã đủ) rồi mới sang bước sau.
   const confirmAndNext = async () => {
@@ -122,20 +178,19 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
       {/* Bé đang soạn cho, và nút tạo bản nháp khác; bản nháp đã có mở từ trang "Truyện của tôi". */}
       <div className="pa-top">
         <span className="pa-kid"><ShieldCheck className="ic" aria-hidden />Soạn cho {kidName}{onChangeKid && <button className="btn btn-g pa-kid-change" onClick={onChangeKid} title="Đổi bé" aria-label={`Đổi bé, đang soạn cho ${kidName}`}><UserRoundPen className="ic" /></button>}</span>
-        {story && <button className="btn btn-s" disabled={h.busy || h.uncertain || !canAssign} onClick={async () => { if (!dirty || await confirmDialog('Bỏ thay đổi chưa lưu để tạo bản nháp mới?')) setNaming(true); }}>Tạo bản nháp mới</button>}
+        {story && <button className="btn btn-s" disabled={h.busy || h.uncertain || !canAssign} onClick={async () => { if (!dirty || await confirmDialog('Bỏ thay đổi chưa lưu để tạo bản nháp mới?')) setNaming(true); }}><FilePlus2 className="ic" />Bản nháp mới</button>}
       </div>
 
-      {naming && <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label="Tạo bản nháp" onClick={e => { if (e.target === e.currentTarget && story) setNaming(false); }}>
-        <form className="dlg pa-namedlg" onSubmit={async e => { e.preventDefault(); if (await h.create(title.trim() || 'Truyện của gia đình')) setNaming(false); }}>
-          <b className="display" style={{ fontSize: "var(--fs-lg)" }}>Tạo bản nháp cho {kidName}</b>
-          <label className="field">Tên bản nháp<input className="inp" autoFocus maxLength={200} value={title} onChange={e => setTitle(e.target.value)} /></label>
+      {naming && <Dialog title={`Tạo bản nháp cho ${kidName}`} onClose={cancelNaming}>
+        <form className="ce-create" onSubmit={async e => { e.preventDefault(); if (await h.create(title.trim() || 'Truyện của gia đình')) setNaming(false); }}>
+          <label className="field"><span className="lbl">Tên bản nháp</span><input className="inp" autoFocus maxLength={200} value={title} onChange={e => setTitle(e.target.value)} /></label>
           {h.note && <p className="notice" role="status">{h.note}</p>}
-          <div className="pa-actions">
-            {story && <button type="button" className="btn btn-g" onClick={() => setNaming(false)}>Hủy</button>}
-            <button type="submit" className="btn btn-p push" disabled={h.busy || h.uncertain || !canAssign}>Tạo bản nháp</button>
+          <div className="ce-create-actions">
+            <button type="button" className="btn btn-g" disabled={!story && !onDone} onClick={cancelNaming}>Huỷ</button>
+            <button type="submit" className="btn btn-p" disabled={h.busy || h.uncertain || !canAssign || !title.trim()}><FilePlus2 className="ic" />Tạo bản nháp</button>
           </div>
         </form>
-      </div>}
+      </Dialog>}
 
       {story && <div className="pa-flow">
         {/* Khung trái: thứ tự các bước; bước chưa mở khoá thì mờ đi và ghi rõ cần làm gì trước. */}
@@ -151,38 +206,44 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
           </ol>
         </nav>
 
-        <div className="pa-stage">
+        <div className="pa-stage" ref={stageRef}>
           {active.id === 'write' && <>
             <section className="pa-card" aria-label="Soạn nội dung">
               <div className="pa-head">
                 <h3>{step(1)}Soạn nội dung</h3>
                 {h.draft && <span className="pa-for" title="Bản nháp này được tạo cho bé này và sẽ giao cho bé này">Dành cho: <b>{kids.find(k => k.id === h.draft!.childProfileId)?.nickname ?? `bé #${h.draft.childProfileId}`}</b></span>}
-                <span className="sub">Truyện #{story.storyId} · bản {story.selectedVersionId ?? 'chưa lưu'}{dirty ? ' · Có thay đổi chưa lưu' : ''}</span>
-                <button className="btn btn-g" disabled={h.busy || h.uncertain} onClick={() => void h.load(story.storyId)}title="Đồng bộ quyền và trạng thái, giữ bản đang sửa">Đồng bộ</button>
+                {h.version && <span className="pill draft">V{h.version.versionNo}</span>}
+                {(dirty || !h.version) && <span className="pill wait">Chưa lưu</span>}
+                {h.draft?.isReadOnly && <span className="pill draft" title="Bản này đã giao cho bé; thu hồi quyền đọc ở bước 4 trước khi sửa."><Lock className="ic" aria-hidden />Chỉ xem</span>}
+                <button className="btn btn-g icon-only" disabled={h.busy || h.uncertain} onClick={() => void h.load(story.storyId)} aria-label="Đồng bộ" title="Đồng bộ quyền và trạng thái, giữ bản đang sửa"><RefreshCw className="ic" /></button>
               </div>
-              {h.draft?.isReadOnly && <p className="notice warn">Bản này đã được giao cho bé; thu hồi quyền đọc trước khi sửa.</p>}
+              {h.draft?.isReadOnly && <p className="notice warn" role="status">Bản này đã giao cho bé nên chỉ xem được. Muốn sửa, hãy thu hồi quyền đọc ở bước Chuẩn bị và giao.</p>}
               <fieldset className="pa-fieldset" disabled={!canWrite}>
-                <label className="field">Tên truyện<input className="inp" maxLength={200} value={form.title} onChange={e => setForm({ ...form,title:e.target.value })} /></label>
-                <label className="field">Nội dung<textarea className="inp" rows={14} maxLength={200000} value={form.content} onSelect={e=>setSelection({snapshot:{title:form.title,content:e.currentTarget.value},start:e.currentTarget.selectionStart,length:e.currentTarget.selectionEnd-e.currentTarget.selectionStart})} onChange={e => setForm({ ...form,content:e.target.value })} /></label>
-                <div className="pa-fields">
-                  <label className="field">Nguồn nội dung<input className="inp" maxLength={2000} value={form.sourceDeclaration} onChange={e => setForm({ ...form,sourceDeclaration:e.target.value })} /></label>
-                  <label className="field">Cam kết quyền sử dụng<input className="inp" maxLength={2000} value={form.rightsDeclaration} onChange={e => setForm({ ...form,rightsDeclaration:e.target.value })} /></label>
-                </div>
+                <StoryFields form={form} onChange={p => setForm(f => ({ ...f, ...p }))} onSelect={setSelection} rightsLabel="Cam kết quyền sử dụng" rightsPlaceholder="VD: Tôi là tác giả hoặc có quyền dùng nội dung này" />
                 <div className="pa-actions bar">
-                  <button className="btn btn-s" disabled={reading} onClick={() => fileRef.current?.click()}><Upload className="ic" />{reading ? 'Đang đọc tệp…' : 'Tải tệp'}</button>
+                  <button className="btn btn-s" disabled={reading} title={'Tệp .txt hoặc .docx, mỗi dòng đầu một mục:\nTên truyện: …\nNguồn nội dung: …\nCam kết quyền sử dụng: …\nNội dung: … (phần truyện viết tiếp bên dưới)'} onClick={() => fileRef.current?.click()}><Upload className="ic" />{reading ? 'Đang đọc tệp…' : 'Nhập từ tệp'}</button>
+                  <button className="btn btn-s" disabled={reading} onClick={() => setPasting(true)} title="Dán cả bài; nếu bài theo mẫu (Tên truyện:, Nguồn nội dung:, …) thì tự tách vào từng ô"><ClipboardPaste className="ic" />Dán văn bản</button>
+                  <button className="btn btn-s" onClick={downloadTemplate} title="Tải tệp mẫu .txt để điền sẵn Tên truyện, Nguồn nội dung, Cam kết quyền sử dụng và Nội dung"><Download className="ic" />Tải tệp mẫu</button>
                   <input ref={fileRef} type="file" accept=".txt,.docx" hidden aria-label="Chọn tệp truyện (.txt, .docx)" onChange={e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) void loadFile(f); }} />
                 </div>
               </fieldset>
+              {pasting && <Dialog title="Dán văn bản" onClose={() => setPasting(false)} wide>
+                <label className="field"><span className="lbl">Nội dung <InfoTip text="Dán cả bài. Nếu bài theo tệp mẫu (Tên truyện:, Nguồn nội dung:, Cam kết quyền sử dụng:, Nội dung:) thì sẽ tự tách vào từng ô." /></span>
+                  <textarea className="inp" rows={12} value={pasteText} onChange={e => setPasteText(e.target.value)} placeholder="Dán truyện vào đây" autoFocus /></label>
+                <div className="row" style={{ justifyContent: 'flex-end' }}>
+                  <button className="btn btn-g" onClick={() => setPasting(false)}>Hủy</button>
+                  <button className="btn btn-p" disabled={reading || !pasteText.trim()} onClick={() => void loadPaste()}><ClipboardPaste className="ic" />{reading ? 'Đang đọc…' : 'Điền vào truyện'}</button>
+                </div>
+              </Dialog>}
               {h.draft && <ParentSetupPanel key={`${story.storyId}:${story.revisionToken}`} draft={h.draft} disabled={!canWrite||dirty} onSave={value=>void h.write((id,cmd)=>service.setup(id,{...cmd,...value}))}/>}
-              {dirty && <p className="sub">Bấm "Lưu và tiếp tục" trước khi đổi mục đích hoặc cách đọc.</p>}
             </section>
             {h.draft?.canUseAiAssistance && <details className="pa-fold"><summary>AI gợi ý theo bản nháp</summary><AssistancePanel key={`${story.storyId}:${story.selectedVersionId}`} actor="parent" story={story} selection={selection} snapshot={{title:form.title,content:form.content}} disabled={!canWrite} onApply={(next,ref) => { setForm(f => ({...f,...next})); setSelection(null);setReferences(v => v.some(r=>r.taskId===ref.taskId&&r.stepId===ref.stepId)?v:[...v,ref]); }} /></details>}
-            {h.draft && !h.draft.canUseAiAssistance && <p className="notice">Hỗ trợ AI chưa khả dụng: {h.draft.aiUnavailableReason}</p>}
+            {h.draft && !h.draft.canUseAiAssistance && <p className="notice" role="status">Hỗ trợ AI chưa khả dụng: {h.draft.aiUnavailableReason}</p>}
             <section className="pa-card"><fieldset className="pa-fieldset" disabled={!canWrite}><AuthoringGuides onInsert={text => setForm(f => ({ ...f,content:f.content ? `${f.content}\n\n${text}` : text }))} /></fieldset></section>
             <section className="pa-card" aria-label="Lịch sử phiên bản">
               <details><summary>Lịch sử phiên bản</summary>
-                {h.versions.length === 0 && <p className="sub">Chưa có phiên bản nào. Bấm "Lưu và tiếp tục" ở bước 1 để tạo phiên bản đầu tiên.</p>}
-                {h.versions.map(v => <div className="pa-ver" key={v.versionId}><span>V{v.versionNo} · {v.title}</span><button className="btn btn-g" onClick={() => void h.execute(() => service.version(story.storyId,v.versionId)).then(r => { if (r?.success) setViewVersion(r.data); })}>Xem</button><button className="btn btn-s" disabled={!canWrite || dirty} onClick={() => void h.write((id,cmd) => service.restore(id,{ ...cmd,sourceVersionId:v.versionId })).then(r => { if (r?.success) void h.load(story.storyId,true); })}>Khôi phục thành bản mới</button></div>)}
+                {h.versions.length === 0 && <p className="empty-line">Chưa có phiên bản nào. Lưu ở bước 1 để tạo bản đầu tiên.</p>}
+                {h.versions.map(v => <div className="pa-ver" key={v.versionId}><span>V{v.versionNo} · {v.title}</span><button className="btn btn-g icon-only" aria-label={`Xem V${v.versionNo}`} title="Xem" onClick={() => void h.execute(() => service.version(story.storyId,v.versionId)).then(r => { if (r?.success) setViewVersion(r.data); })}><Eye className="ic" /></button><button className="btn btn-s" disabled={!canWrite || dirty} onClick={async () => { if (!(await confirmDialog(`Khôi phục V${v.versionNo} thành bản mới?`))) return; void h.write((id,cmd) => service.restore(id,{ ...cmd,sourceVersionId:v.versionId })).then(r => { if (r?.success) void h.load(story.storyId,true); }); }}><Undo2 className="ic" />Khôi phục</button></div>)}
                 {viewVersion && <pre className="st-content">{viewVersion.content}</pre>}
               </details>
             </section>
@@ -197,22 +258,25 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
             </div>}
             {confirmation
               ? <>
-                <p className="sub">Đã xác nhận nội dung của bản này, với các mục bạn đã tích:</p>
+                <StepDone />
                 {(Object.keys(CHECK_LABEL) as (keyof B.ParentChecklist)[]).map(k => <label className="pa-check" key={k}><input type="checkbox" checked={!!confirmation.checklist?.[k]} disabled readOnly />{CHECK_LABEL[k]}</label>)}
               </>
               : <>
-                {!check && <p className="sub" role="status">{h.busy ? 'Đang kiểm tra nội dung…' : 'Chưa kiểm tra nội dung của bản đã lưu.'}</p>}
+                {!check && <span className="pill wait" role="status" style={{ width: 'fit-content' }}>{h.busy ? 'Đang kiểm tra nội dung…' : 'Chưa kiểm tra bản đã lưu'}</span>}
                 {check && <>
-                  {check.errors.map(e => <p className="notice err" key={e}>{e}</p>)}
-                  {check.warnings.map(e => <p className="notice warn" key={e}>{e}</p>)}
-                  {check.canPrepare && check.errors.length === 0 && <p className="sub">Đã kiểm tra tự động, không có lỗi.</p>}
-                  <small className="sub">{COVERAGE_VI[check.coverage] ?? check.coverage}</small>
+                  {(check.errors.length > 0 || check.warnings.length > 0) && <ul className="pa-issues">
+                    {check.errors.map(e => <li className="err" key={e}>{issueText(e)}</li>)}
+                    {check.warnings.map(e => <li className="warn" key={e}>{issueText(e)}</li>)}
+                  </ul>}
+                  {check.errors.includes('READABILITY_POLICY_NOT_MET') && h.version && <ReadabilityHints content={h.version.content} />}
+                  {check.canPrepare && check.errors.length === 0 && <span className="pill ok" style={{ width: 'fit-content' }}><Check className="ic" aria-hidden />Kiểm tra tự động: không có lỗi</span>}
+                  <span className="pill draft">{COVERAGE_VI[check.coverage] ?? check.coverage}</span>
                 </>}
                 {check?.canPrepare && <>
                   {(Object.keys(checklist) as (keyof B.ParentChecklist)[]).map(k => <label className="pa-check" key={k}><input type="checkbox" checked={checklist[k]} disabled={!canWrite} onChange={e => setChecklist(c => ({ ...c,[k]:e.target.checked }))} />{CHECK_LABEL[k]}</label>)}
                 </>}
-                {check && !check.canPrepare && <p className="sub">Quay lại bước 1 để sửa nội dung rồi lưu lại, hệ thống sẽ kiểm tra lại.</p>}
-                {(!check || !check.canPrepare) && <div className="pa-actions"><button className="btn btn-s" disabled={!canWrite} onClick={() => void h.write((id,cmd) => service.check(id,cmd))}>Kiểm tra lại</button></div>}
+                {check && !check.canPrepare && <p className="notice warn">Quay lại bước 1 sửa nội dung rồi lưu, hệ thống sẽ kiểm tra lại.</p>}
+                {(!check || !check.canPrepare) && <div className="pa-actions"><button className="btn btn-s" disabled={!canWrite} onClick={() => void h.write((id,cmd) => service.check(id,cmd))}><ShieldCheck className="ic" />Kiểm tra lại</button></div>}
               </>}
             {stepNav('write', 'media', !!confirmation || (!!check?.canPrepare && canWrite && !!canApprove && Object.values(checklist).every(Boolean)), confirmation ? 'Bước tiếp theo' : 'Xác nhận và tiếp tục', confirmation ? undefined : confirmAndNext)}
           </section>}
@@ -223,26 +287,25 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
           </>}
 
           {active.id === 'deliver' && <section className="pa-card" aria-label="Giao truyện cho bé">
-            <div className="pa-head"><h3>{step(4)}Giao truyện cho {kidName}</h3></div>
+            <div className="pa-head"><h3>{step(4)}Giao truyện cho {kidName} <InfoTip text="Chuẩn bị bản đọc từ nội dung đã xác nhận, xem trước đúng như bé sẽ thấy, rồi mới giao cho bé." /></h3></div>
             {confirmation && !grant && <div className="pa-step">
-              <p className="sub">Chuẩn bị bản đọc từ nội dung đã xác nhận, xem trước đúng như bé sẽ thấy, rồi mới giao cho bé.</p>
               <div className="pa-actions">
-                {canWrite && <button className="btn btn-s" onClick={() => { setPreview(null); void h.write((id,cmd) => service.prepare(id,{ ...cmd,contentConfirmationId:confirmation.confirmationId,segmentEnds:null })); }}>{preparation ? 'Chuẩn bị lại bản đọc' : 'Chuẩn bị bản đọc cho bé'}</button>}
-                {preparation && <button className="btn btn-s" disabled={h.busy} onClick={loadPreview}>Xem trước bản của bé</button>}
+                {canWrite && <button className="btn btn-s" onClick={() => { setPreview(null); void h.write((id,cmd) => service.prepare(id,{ ...cmd,contentConfirmationId:confirmation.confirmationId,segmentEnds:null })); }}><FileText className="ic" />{preparation ? 'Chuẩn bị lại' : 'Chuẩn bị bản đọc'}</button>}
+                {preparation && <button className="btn btn-s" disabled={h.busy} onClick={loadPreview}><Eye className="ic" />Xem trước</button>}
               </div>
               {previewBlock}
-              {preparation && preview && preview.storyVersionId === story.selectedVersionId && <div className="pa-actions"><button className="btn btn-ok" disabled={!canWrite || !canApprove || !canAssign || !preview.isReady} onClick={() => void h.write((id,cmd) => service.confirmFamily(id,{ ...cmd,preparationId:preview.preparationId }))}>Giao truyện cho bé đọc</button></div>}
+              {preparation && preview && preview.storyVersionId === story.selectedVersionId && <div className="pa-actions"><button className="btn btn-ok" disabled={!canWrite || !canApprove || !canAssign || !preview.isReady} onClick={async () => { if (!(await confirmDialog(`Giao truyện này cho ${kidName} đọc? Sau khi giao, nội dung chỉ xem được cho tới khi bạn thu hồi.`))) return; void h.write((id,cmd) => service.confirmFamily(id,{ ...cmd,preparationId:preview.preparationId })); }}><Send className="ic" />Giao cho bé</button></div>}
             </div>}
             {grant && <div className="pa-step">
-              <b>Đã giao cho {kidName} đọc.</b>
-              <p className="sub">Bé đã thấy truyện này trong thư viện của bé. Muốn sửa nội dung hoặc ngừng cho bé đọc, hãy thu hồi quyền đọc.</p>
-              {preparation && <div className="pa-actions"><button className="btn btn-s" disabled={h.busy} onClick={loadPreview}>Xem lại bản đã giao</button></div>}
+              <StepDone label={`Đã giao cho ${kidName}`} />
+              <p className="notice">Muốn sửa nội dung hoặc ngừng cho bé đọc, hãy thu hồi quyền đọc.</p>
+              {preparation && <div className="pa-actions"><button className="btn btn-s" disabled={h.busy} onClick={loadPreview}><Eye className="ic" />Xem lại bản đã giao</button></div>}
               {previewBlock}
-              <div className="pa-actions"><button className="btn btn-no" disabled={h.busy || h.uncertain || !canApprove || !canAssign} onClick={() => void h.write((id,cmd) => service.revokeFamily(id,{ ...cmd,confirmationId:grant.confirmationId }))}>Thu hồi quyền đọc của bé</button></div>
+              <div className="pa-actions"><button className="btn btn-no" disabled={h.busy || h.uncertain || !canApprove || !canAssign} onClick={async () => { if (!(await confirmDialog(`Thu hồi quyền đọc của ${kidName}? Truyện sẽ biến mất khỏi thư viện của bé cho tới khi bạn giao lại.`))) return; void h.write((id,cmd) => service.revokeFamily(id,{ ...cmd,confirmationId:grant.confirmationId })); }}><Undo2 className="ic" />Thu hồi quyền đọc</button></div>
             </div>}
             <div className="pa-actions bar">
-              <button className="btn btn-g" onClick={() => setStepId('media')}>Quay lại</button>
-              {grant && onDone && <button className="btn btn-p push" onClick={onDone}>Về Truyện của tôi</button>}
+              <button className="btn btn-g" onClick={() => setStepId('media')}><ArrowLeft className="ic" />Quay lại</button>
+              {grant && onDone && <button className="btn btn-p push" onClick={onDone}>Về Truyện của tôi<ArrowRight className="ic" /></button>}
             </div>
           </section>}
         </div>

@@ -181,4 +181,15 @@
 @media (prefers-reduced-motion: reduce) { .as-mode, .as-option { transition: none; } }
 .as-running .ic { width: 18px; height: 18px; animation: as-spin 1.1s linear infinite; }
 @keyframes as-spin { to { transform: rotate(360deg); } }
+.ic.as-spin { animation: as-spin 1.1s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .ic.as-spin { animation-duration: 3s; } }
 @media (prefers-reduced-motion: reduce) { .as-running .ic { animation: none; } }
+
+/* Kết quả kiểm tra tự động của truyện gia đình: danh sách lỗi / cảnh báo cần sửa. */
+.pa-issues { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 8px; }
+.pa-issues li { padding: 10px 14px; border-radius: 12px; border-left: 4px solid var(--line-2); background: var(--surface); font-size: var(--fs-sm); line-height: 1.5; }
+.pa-issues li.err { border-left-color: var(--danger); background: color-mix(in srgb, var(--danger) 8%, var(--surface)); }
+.pa-issues li.warn { border-left-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--surface)); }
+.pa-hints { display: flex; flex-direction: column; gap: 8px; }
+.pa-hints > b { font-size: var(--fs-md); font-weight: 800; }
+.pa-head .pill .ic, .pa-stage .pill .ic { width: 13px; height: 13px; }

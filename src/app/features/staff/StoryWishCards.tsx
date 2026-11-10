@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, Sparkles, X } from "lucide-react";
 import IconButton from "@/app/components/IconButton";
 import { wishCardService } from "@/app/services/wishCardService";
 import type { WishCardDto, WishCardGroup, WishCardMatchDto } from "@/app/types/storyWish";
@@ -10,7 +10,8 @@ import { confirmDialog } from "@/app/lib/confirm";
 const MATCH_GROUPS = WISH_GROUPS.filter((g) => g.wish);
 
 /** Gắn thẻ ước cho một truyện để hệ thống gợi ý truyện này khi bé ước những thẻ đó. */
-export default function StoryWishCards({ storyId }: { storyId: number }) {
+/** versionId: bản truyện đang công khai, AI đọc bản này để gợi ý thẻ (không có thì ẩn nút AI). */
+export default function StoryWishCards({ storyId, versionId }: { storyId: number; versionId?: number | null }) {
   const [matches, setMatches] = useState<WishCardMatchDto[] | null>(null);
   const [group, setGroup] = useState<WishCardGroup>("Character");
   const [cards, setCards] = useState<WishCardDto[]>([]);
@@ -52,6 +53,12 @@ export default function StoryWishCards({ storyId }: { storyId: number }) {
       {groupLabel(m.group)}: {m.label}{m.source === "Ai" ? " (AI)" : ""}
       <IconButton icon={X} label={`Gỡ thẻ ${m.label}`} className="btn btn-g" style={{ width: 22, height: 22 }} disabled={busy} onClick={async () => { if (!(await confirmDialog(`Gỡ thẻ ước “${m.label}” khỏi truyện?`))) return; void act(() => wishCardService.removeFromStory(storyId, m.wishCardId)); }} />
     </span>)}</div>
+    {versionId != null && <div className="row">
+      <button className="btn btn-s" disabled={busy} title="AI đọc truyện rồi tự gắn các thẻ phù hợp; bạn vẫn gỡ được thẻ không đúng" onClick={() => void act(async () => {
+        const r = await wishCardService.aiMatch(storyId, versionId);
+        return { success: r.success, message: r.success && r.data ? (r.data.addedCount ? `AI đã gắn thêm ${r.data.addedCount} thẻ.` : 'AI không tìm thấy thẻ nào mới phù hợp.') : r.message };
+      })}><Sparkles className="ic" />{busy ? 'Đang xử lý…' : 'AI gợi ý thẻ'}</button>
+    </div>}
     <div className="row st-inline">
       <select className="inp" aria-label="Nhóm thẻ" value={group} disabled={busy} onChange={(e) => setGroup(e.target.value as WishCardGroup)}>
         {MATCH_GROUPS.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}

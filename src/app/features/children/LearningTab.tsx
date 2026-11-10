@@ -1,5 +1,4 @@
 "use client";
-import DenyCover from "@/app/components/DenyCover";
 
 import { useEffect, useState } from "react";
 import { Check, Save } from "lucide-react";
@@ -54,7 +53,6 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
     <div className="sec" style={{ gap: 16 }}>
       <div style={{ position: "relative" }}>
         <LearningForm value={value} onChange={setValue} disabled={!canEdit} ageBand={child.ageBand} />
-        <DenyCover active={!canEdit} text="Bạn không đủ quyền hạn để sửa hồ sơ học tập của bé." />
       </div>
       {canEdit && (dirty || saved2) && <button className={`btn btn-p${saved2 ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={busy || !dirty} onClick={() => void save()}>{saved2 ? <Check className="ic" /> : <Save className="ic" />}{busy ? "Đang lưu…" : saved2 ? "Đã lưu" : "Lưu hồ sơ học tập"}</button>}
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}

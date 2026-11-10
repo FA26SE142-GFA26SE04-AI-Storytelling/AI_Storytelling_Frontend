@@ -83,7 +83,7 @@
   .kpi-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .kpi b { font-size: var(--fs-xl); }
   .report .pane { overflow-x: auto; }
-  .report table { min-width: 460px; }
+  .report table:not(.stack-table) { min-width: 460px; }
 
   /* Studio */
   .art { width: min(100%, 92vw); }
@@ -128,4 +128,28 @@
 /* Màn hình cảm ứng: bỏ hiệu ứng nhấc thẻ khi hover (không có hover thật) */
 @media (hover: none) {
   .card:hover, .cont:hover, .kbtn:hover:not(:disabled) { transform: none; }
+}
+
+/* Điện thoại: header về lại một hàng (điều hướng nằm ở thanh tab dưới đáy). */
+@media (max-width: 720px) {
+  .hdr-l, .hdr-r { flex: none; min-width: 0; }
+  .hdr-l { gap: 4px; }
+  .hdr-l > b.display { display: none; }
+  .hdr-r { gap: 4px; }
+}
+
+/* Bảng dữ liệu (class stack-table): trên điện thoại mỗi hàng thành một thẻ, mỗi ô ghi kèm tên cột (data-label). */
+@media (max-width: 720px) {
+  .stack-table, .stack-table tbody, .stack-table tr, .stack-table td { display: block; width: 100%; }
+  .stack-table thead { display: none; }
+  .stack-table tr { padding: 6px 12px; margin-bottom: 10px; border: 1px solid var(--line-2); border-radius: 14px; background: color-mix(in srgb, var(--panel) 72%, transparent); }
+  .stack-table tr.on td { background: none; }
+  .stack-table td { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 7px 0; border-bottom: 1px dashed var(--line); text-align: right; white-space: normal !important; overflow-wrap: anywhere; }
+  .stack-table tr td:last-child { border-bottom: 0; }
+  .stack-table td::before { content: attr(data-label); flex: none; max-width: 45%; text-align: left; font-size: var(--fs-xs); font-weight: 700; color: var(--muted); }
+  .stack-table td[data-label=""]::before, .stack-table td[colspan]::before { content: none; }
+  .stack-table td[data-label=""] { justify-content: flex-end; flex-wrap: wrap; }
+  .stack-table td > .inp { max-width: 62%; }
+  .report .stack-table td { padding: 7px 0; border-bottom: 1px dashed var(--line); }
+  .st-scroll:has(> .stack-table), .st-scroll:has(.stack-table) { overflow-x: visible; }
 }

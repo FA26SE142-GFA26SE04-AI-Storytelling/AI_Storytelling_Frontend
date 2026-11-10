@@ -107,7 +107,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
               {flow.context.interests.length > 0 && <div className="sec"><div className="sec-h">Sở thích của bé</div><div className="chips">{flow.context.interests.map((i) => <span key={i} className="chip">{i}</span>)}</div></div>}
               {flow.context.blockedCategoryCodes.length > 0 && <div className="sec"><div className="sec-h">Chủ đề bị chặn</div><div className="chips">{flow.context.blockedCategoryCodes.map((i) => <span key={i} className="chip block">{i}</span>)}</div></div>}
             </>
-          ) : <p className="sub">{storyId ? 'Đang tiếp tục truyện đã lưu. Trạng thái và quyền thao tác được kiểm tra lại từ backend của truyện này.' : 'Đang tải…'}</p>}
+          ) : <p className="sub">{storyId ? 'Đang mở lại truyện đã lưu…' : 'Đang tải…'}</p>}
       </AsidePane>
     </>
   );

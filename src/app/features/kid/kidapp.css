@@ -25,7 +25,7 @@
 .ksearch input::-webkit-search-cancel-button { cursor: pointer; }
 .ksearch svg { width: 18px; height: 18px; color: var(--muted); }
 .kchip { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 999px; background: var(--panel); border: 2px solid var(--line); font-weight: 800; font-size: var(--fs-md); color: var(--muted); }
-.kchip.on { border-color: var(--primary); color: var(--text); background: color-mix(in srgb, var(--primary) 14%, var(--panel)); }
+.kchip.on { border-color: var(--gold-deep); color: var(--text); background: color-mix(in srgb, var(--gold) 28%, var(--panel)); }
 
 .kwish { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 16px; border-radius: 24px; font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 800; color: #fff; background: linear-gradient(135deg, var(--lotus-deep), var(--primary-strong)); box-shadow: 0 12px 24px -14px var(--lotus-deep); }
 .kwish svg { width: 26px; height: 26px; }

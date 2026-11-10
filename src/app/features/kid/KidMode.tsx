@@ -13,10 +13,10 @@ import ParentalGate from "./ParentalGate";
 import KidApp from "./KidApp";
 
 /**
- * "Cho bé đọc" (Luồng 1 Bước 1.10, Luồng 3 Bước 3.0): mở phiên riêng của bé qua ProfileSwitcher.
+ * "Cho bé đọc" (Luồng 1 Bước 1.10, Luồng 3 Bước 3.0): mở phiên riêng của bé bằng mã giao máy (handover).
  * Rời chế độ của bé phải qua cổng xác nhận người lớn nếu cài đặt an toàn bật.
  */
-export default function KidMode({ child, onExit }: { child: ChildProfile; onExit: () => void }) {
+export default function KidMode({ child, storyId, onExit }: { child: ChildProfile; /** Có thì mở thẳng truyện này (Luồng 1c). */ storyId?: number | null; onExit: () => void }) {
   const { user } = useAuth();
   const [entry, setEntry] = useState<{ ok: boolean; message?: string } | null>(null);
   const [gateOn, setGateOn] = useState(true);
@@ -25,14 +25,15 @@ export default function KidMode({ child, onExit }: { child: ChildProfile; onExit
   useEffect(() => {
     if (!child) return;
     let alive = true;
-    void Promise.all([childAccessService.startSupervisedSession(child.id), childProfileService.getSafetyPolicy(child.id)]).then(([s, p]) => {
+    const session = storyId ? childAccessService.startStoryHandover(child.id, storyId) : childAccessService.startSupervisedSession(child.id);
+    void Promise.all([session, childProfileService.getSafetyPolicy(child.id)]).then(([s, p]) => {
       if (!alive) return;
       if (s.success && s.data) childAccessService.saveSession(s.data, "profile_switcher");
       setEntry({ ok: s.success, message: s.message });
       setGateOn(p.data?.parentalGateEnabled ?? true);
     });
     return () => { alive = false; };
-  }, [child]);
+  }, [child, storyId]);
 
   const leave = () => { childAccessService.clearSession(); onExit(); };
   const requestExit = () => (gateOn ? setGateOpen(true) : leave());
@@ -59,7 +60,7 @@ export default function KidMode({ child, onExit }: { child: ChildProfile; onExit
 
   return (
     <>
-      <KidApp childId={child.id} onExit={requestExit} />
+      <KidApp childId={child.id} onExit={requestExit} openStoryId={storyId} />
       {gateOpen && <ParentalGate email={user?.email ?? ""} onPass={leave} onCancel={() => setGateOpen(false)} />}
     </>
   );

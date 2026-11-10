@@ -36,7 +36,7 @@ export default function ParentSetupPanel({ draft, disabled, onSave }: { draft: P
         </label>
         <div className="field">Ngôn ngữ<span className="pa-readonly">{LANGUAGE[language] ?? language} · theo hồ sơ của bé</span></div>
       </div>
-      <div className="pa-actions"><button className="btn btn-s" disabled={unchanged} onClick={() => onSave({ purpose, language, experienceMode: mode })}>Lưu cách đọc</button></div>
+      {!unchanged && <div className="pa-actions"><button className="btn btn-s" onClick={() => onSave({ purpose, language, experienceMode: mode })}>Lưu cách đọc</button></div>}
     </fieldset>
   );
 }

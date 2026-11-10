@@ -1,5 +1,5 @@
 import type { ApiResponse } from '@/app/types/auth';
-import type { ChildAccessCredential, ChildSession, ChildSessionProfile, EasyLoginSecret } from '@/app/types/supervision';
+import type { ChildAccessCredential, ChildSession, ChildSessionProfile, ChildStoryHandover, EasyLoginSecret, StoryHandoverOptions } from '@/app/types/supervision';
 import { apiRequest } from './apiClient';
 import { API_BASE_URL } from './apiConfig';
 import { authService } from './authService';
@@ -28,6 +28,17 @@ export const childAccessService = {
   startSupervisedSession(childId: number): Promise<ApiResponse<ChildSession>> {
     const supervisorRefreshToken = authService.getStoredRefreshToken() ?? '';
     return apiRequest(`/ChildAccessCredential/${childId}/handover`, 'Bé chưa vào đọc được lúc này.', { method: 'POST', body: { supervisorRefreshToken } });
+  },
+
+  /** "Cho bé đọc truyện này": bé nào đọc được truyện (cùng luật với lúc bé mở truyện), kèm lý do và bé được gợi ý. */
+  storyHandoverOptions(storyId: number, signal?: AbortSignal): Promise<ApiResponse<StoryHandoverOptions>> {
+    return apiRequest(`/ChildAccessCredential/story-handover?storyId=${storyId}`, 'Không tải được danh sách bé đọc được truyện này.', { signal });
+  },
+
+  /** Giao máy cho bé để mở thẳng truyện đã chọn; phiên của bé gắn với phiên phụ huynh. */
+  startStoryHandover(childId: number, storyId: number): Promise<ApiResponse<ChildStoryHandover>> {
+    const supervisorRefreshToken = authService.getStoredRefreshToken() ?? '';
+    return apiRequest(`/ChildAccessCredential/${childId}/handover-story`, 'Bé chưa mở được truyện này lúc này.', { method: 'POST', body: { storyId, supervisorRefreshToken } });
   },
 
   loginWithEasyLogin(secret: string): Promise<ApiResponse<ChildSession>> {

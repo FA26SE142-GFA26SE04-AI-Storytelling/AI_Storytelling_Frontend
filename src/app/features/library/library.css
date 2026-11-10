@@ -43,8 +43,8 @@
 .bk { display: flex; flex-direction: column; gap: 6px; text-align: left; min-width: 0; border-radius: 14px; }
 .bk-cover { position: relative; display: block; aspect-ratio: 3 / 4; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--shadow) 70%, transparent); transition: transform .2s, box-shadow .2s; }
 .bk-cover::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, .35)); }
-.bk:hover .bk-cover { transform: translateY(-3px); }
-.bk.on .bk-cover { box-shadow: 0 0 0 3px var(--primary), 0 12px 26px -14px color-mix(in srgb, var(--primary) 70%, transparent); }
+.bk:hover .bk-cover { transform: translateY(-3px); box-shadow: 0 0 0 2px var(--gold), 0 14px 28px -14px color-mix(in srgb, var(--gold-deep) 60%, transparent); }
+.bk.on .bk-cover { box-shadow: 0 0 0 3px var(--gold-deep), 0 12px 26px -14px color-mix(in srgb, var(--gold-deep) 70%, transparent); }
 .bk-name { position: absolute; left: 10px; right: 10px; bottom: 18px; z-index: 1; color: #fff; font-size: var(--fs-xl); font-weight: 800; line-height: 1.1; text-align: center; text-shadow: 0 2px 8px rgba(0, 0, 0, .35); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 /* Nhãn trạng thái nằm trên ảnh bìa: nền đặc (không trong suốt) để chữ luôn đọc được trên mọi ảnh. */
 .bk-badge, .pill.bk-badge { position: absolute; top: 10px; left: 10px; z-index: 1; padding: 2px 10px; font-size: var(--fs-sm); font-weight: 700; border: 1px solid var(--line-2); background: var(--panel); color: var(--text); box-shadow: 0 2px 8px -2px rgba(0, 0, 0, .35); }
@@ -78,3 +78,22 @@
 
 /* Ảnh bìa ở khung Chi tiết: dọc 3:4 như thẻ truyện, nằm giữa khung. flex: none vì khung cuộn là cột flex, không có thì bìa bị ép thấp xuống và ảnh bị méo. */
 .cover-portrait { flex: none; aspect-ratio: 3 / 4; width: min(100%, 190px); margin-inline: auto; border-radius: 16px; }
+
+/* Thanh "Đang chọn truyện cho bé" khi mở Thư viện từ nút Thêm truyện ở trang Học tập của bé */
+.lib-pickbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; padding: 10px 12px 10px 14px; border: 2px solid var(--primary); border-radius: 18px; background: color-mix(in srgb, var(--primary) 12%, var(--surface)); animation: lib-pick-in .35s cubic-bezier(.2, .9, .3, 1.1) both; }
+.lib-pickbar .av { width: 36px; height: 36px; flex: none; font-size: var(--fs-lg); }
+.lib-pickbar b { flex: 1; min-width: 0; font-size: var(--fs-md); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@keyframes lib-pick-in { from { opacity: 0; transform: translateY(-8px); } }
+@media (prefers-reduced-motion: reduce) { .lib-pickbar { animation: none; } }
+
+/* Kệ cần chú ý (ví dụ "Chờ bạn duyệt"): nền vàng nhạt, viền vàng, dấu chấm vàng trước tiêu đề. */
+.shelf.accent { padding: 20px 22px 22px; border-radius: 26px; border: 2px solid color-mix(in srgb, var(--gold) 70%, transparent); background: color-mix(in srgb, var(--gold) 13%, transparent); }
+.shelf.accent .shelf-h h3 { display: inline-flex; align-items: center; gap: 12px; }
+.shelf.accent .shelf-h h3::before { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--gold-deep); box-shadow: 0 0 0 5px color-mix(in srgb, var(--gold) 45%, transparent); animation: shelf-dot 2s ease-in-out infinite; }
+@keyframes shelf-dot { 50% { box-shadow: 0 0 0 9px color-mix(in srgb, var(--gold) 10%, transparent); } }
+@media (prefers-reduced-motion: reduce) { .shelf.accent .shelf-h h3::before { animation: none; } }
+
+/* Thông báo "không có truyện" dạng khung viền đứt; mô tả truyện cỡ chữ thường; trạng thái dạng nhãn. */
+.lib-none { margin: 0; padding: 16px; border: 2px dashed var(--line-2); border-radius: 18px; text-align: center; font-size: var(--fs-md); color: var(--muted); }
+.lib-desc { margin: 0; font-size: var(--fs-md); line-height: 1.6; }
+.pill.lib-state { width: fit-content; font-size: var(--fs-sm); padding: 3px 12px; }

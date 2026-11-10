@@ -66,7 +66,6 @@ export function AdminStaff() {
         }}><UserX className="ic" />Vô hiệu hoá</button></div>
       </Dialog>}
 
-      <p className="notice">Backend chưa cung cấp API đăng ký và duyệt đơn Content Creator.</p>
       <div className="st-card st-scroll">
         <div className="row">
           <h3 className="grow">Moderator và Administrator</h3>
@@ -76,18 +75,18 @@ export function AdminStaff() {
             ))}
           </div>
         </div>
-        <table className="st-table">
+        <table className="st-table stack-table">
           <thead><tr><th>Họ tên</th><th>Email</th><th>Vai trò</th><th>Chuyên môn</th><th>Trạng thái</th><th>Kích hoạt / hạn mời</th><th /></tr></thead>
           <tbody>
             {staff.map((s) => (
               <tr key={s.userId}>
-                <td>{s.fullName}{s.userId === me && <small className="sub"> (bạn)</small>}</td>
-                <td>{s.email}</td>
-                <td>{ROLE[s.role]}</td>
-                <td>{s.expertise ?? "—"}</td>
-                <td><Pill status={s.status} /></td>
-                <td>{s.status === "invited" ? `Mời hết hạn ${fmtDay(s.createdAt)}` : fmtDay(s.createdAt)}</td>
-                <td style={{ whiteSpace: "nowrap" }}>
+                <td data-label="Họ tên">{s.fullName}{s.userId === me && <small className="sub"> (bạn)</small>}</td>
+                <td data-label="Email">{s.email}</td>
+                <td data-label="Vai trò">{ROLE[s.role]}</td>
+                <td data-label="Chuyên môn">{s.expertise ?? "—"}</td>
+                <td data-label="Trạng thái"><Pill status={s.status} /></td>
+                <td data-label="Kích hoạt / hạn mời">{s.status === "invited" ? `Mời hết hạn ${fmtDay(s.createdAt)}` : fmtDay(s.createdAt)}</td>
+                <td data-label="" style={{ whiteSpace: "nowrap" }}>
                   {s.status === "invited" && <>
                     <button className="btn btn-g" disabled={busy} onClick={() => void run(() => staffService.resendInvite(s.userId), "Đã gửi lại mã mời (mã cũ hết hiệu lực).")}>Gửi lại lời mời</button>
                     <button className="btn btn-no" disabled={busy} onClick={async () => {

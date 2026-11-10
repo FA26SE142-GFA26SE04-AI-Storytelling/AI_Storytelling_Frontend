@@ -51,7 +51,7 @@ describe('Backend flow contracts', () => {
     const children = [10,11].map(id => ({ id, nickname: String(id), ageBand: '6-8', status: 'Active', maxStoryLength: 1000 }));
     const r = await guardianService.addToRoadmap(children,{ storyId: 7,title: 'Truyện',ageBand:'6-8',length:100 },'next',7,'Ghi chú');
     expect(fetcher.mock.calls[0][0]).toMatch(/\/ChildRoadmap\/stories$/); expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ storyId:7,childProfileIds:[10,11],position:'NextUp',expectedDays:7,note:'Ghi chú' });
-    expect(r.data?.added).toEqual([{childProfileId:10,itemId:55,moved:false}]); expect(r.data?.skipped[0].childProfileId).toBe(11); expect(r.data?.warnings).toEqual(['10: level']);
+    expect(r.data?.added).toEqual([{childProfileId:10,itemId:55,moved:false}]); expect(r.data?.skipped[0].childProfileId).toBe(11); expect(r.data?.warnings).toEqual([{childProfileId:10,nickname:'10',text:'level'}]);
     expect((await guardianService.clearRoadmap(10)).success).toBe(false);
   });
   it('uses DELETE for clear, preview before copy and correct child context', async () => {

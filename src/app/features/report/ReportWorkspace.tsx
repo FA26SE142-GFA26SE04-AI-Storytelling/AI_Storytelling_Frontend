@@ -40,7 +40,7 @@ export default function ReportWorkspace() {
           </div>
         ))}
       </div>
-      {error && <div className="err-banner" style={{ gridColumn: "1/-1" }} role="alert">{error}</div>}
+      {error && <div className="notice err" role="alert">{error}</div>}
 
       <div className="pane" style={{ gridColumn: "1/-1" }}>
         <div className="sec-h"><span>Trạng thái truyện</span><span className="sub" style={{ fontWeight: 400 }}>{stories.length} truyện</span></div>
@@ -63,16 +63,16 @@ export default function ReportWorkspace() {
       <div className="pane" style={{ gridColumn: "1/-1" }}>
         <div className="sec-h"><span>Nhật ký truyện gần đây</span><span className="sub" style={{ fontWeight: 400 }}>Dữ liệu từ danh sách truyện của bé</span></div>
         <div style={{ overflowX: "auto" }}>
-          <table>
+          <table className="stack-table">
             <thead><tr><th>Ngày tạo</th><th>Tên truyện</th><th>Nguồn</th><th>Độ tuổi</th><th>Trạng thái</th></tr></thead>
             <tbody>
               {stories.slice(0, 12).map((s) => (
                 <tr key={s.id}>
-                  <td>{new Date(s.createdAt).toLocaleDateString("vi-VN")}</td>
-                  <td>{s.title}</td>
-                  <td>{s.fromAi ? "AI" : "Tự viết"}</td>
-                  <td>{ageLabel(s.ageBand)}</td>
-                  <td><span className={`pill ${s.tone}`}>{s.statusLabel}</span></td>
+                  <td data-label="Ngày tạo">{new Date(s.createdAt).toLocaleDateString("vi-VN")}</td>
+                  <td data-label="Tên truyện">{s.title}</td>
+                  <td data-label="Nguồn">{s.fromAi ? "AI" : "Tự viết"}</td>
+                  <td data-label="Độ tuổi">{ageLabel(s.ageBand)}</td>
+                  <td data-label="Trạng thái"><span className={`pill ${s.tone}`}>{s.statusLabel}</span></td>
                 </tr>
               ))}
               {stories.length === 0 && <tr><td colSpan={5} className="sub">Chưa có dữ liệu.</td></tr>}

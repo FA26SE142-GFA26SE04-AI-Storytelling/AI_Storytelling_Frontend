@@ -2,7 +2,7 @@
 import { confirmDialog } from "@/app/lib/confirm";
 
 import { useCallback, useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, FileUp, Lock, RefreshCw, RotateCcw } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ClipboardPaste, Download, FileUp, Lock, RefreshCw, RotateCcw } from "lucide-react";
 import { creatorService, newOperationId } from "@/app/services/creatorService";
 import type { ContentSaved, CreatorDraft, CreatorResult, CreatorVersion, SaveVersionInput } from "@/app/types/creator";
 import { detectPii } from "@/app/lib/storyRules";
@@ -11,6 +11,8 @@ import CreatorImport from "./CreatorImport";
 import "@/app/features/authoring/authoring.css";
 
 import AssistancePanel from "@/app/features/authoring/AssistancePanel";
+import StoryFields from "@/app/features/authoring/StoryFields";
+import { CREATOR_FILE_TEMPLATE, downloadStoryTemplate } from "@/app/features/authoring/parseStoryFile";
 import type { AssistanceReference } from "@/app/types/backendContracts";
 import CreatorPublication from "./CreatorPublication";
 import CreatorManualMedia from "./CreatorManualMedia";
@@ -51,7 +53,8 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
   const [saved, setSaved] = useState<SaveVersionInput>(EMPTY);
   const [versions, setVersions] = useState<CreatorVersion[] | null>(null);
   const [viewing, setViewing] = useState<CreatorVersion | null>(null);
-  const [importing, setImporting] = useState(false);
+  // Popup nhập nội dung, mở thẳng ở chế độ dán văn bản hoặc tải tệp.
+  const [importing, setImporting] = useState<"paste" | "file" | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note>(null);
   const [conflict, setConflict] = useState(false);
@@ -172,7 +175,7 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
           {editorLocked && <span className="pill draft" title={lockReason}><Lock className="ic" aria-hidden />Chỉ xem</span>}
         </div>
         <small className="sub ce-meta">{draft.ageBand} tuổi · {draft.genre || "chưa có thể loại"} · cập nhật {fmt(draft.updatedAt ?? draft.createdAt)}</small>
-        {editorLocked && <p className="notice warn" role="status">{lockReason}</p>}
+        {editorLocked && <p className="notice warn" role="status" data-inline-notice>{lockReason}</p>}
       </div>
 
       <div className="pa-flow">
@@ -195,17 +198,13 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
             <section className="pa-card" aria-label="Soạn nội dung">
               <div className="pa-head"><h3><span className="pa-num">1</span>Soạn nội dung</h3></div>
               <fieldset className="pa-fieldset" disabled={editorLocked || busy}>
-                <label className="field"><span className="lbl">Tên truyện</span><input className="inp" maxLength={200} value={form.title} onChange={(e) => set({ title: e.target.value })} /></label>
-                <label className="field"><span className="lbl">Nội dung (mỗi đoạn cách nhau một dòng trống)</span>
-                  <textarea className="inp" rows={14} maxLength={200_000} value={form.content} onSelect={e=>setSelection({snapshot:{title:form.title,content:e.currentTarget.value},start:e.currentTarget.selectionStart,length:e.currentTarget.selectionEnd-e.currentTarget.selectionStart})} onChange={(e) => set({ content: e.target.value })} /></label>
-                <div className="pa-fields">
-                  <label className="field"><span className="lbl">Nguồn nội dung</span><input className="inp" maxLength={2000} value={form.sourceDeclaration} onChange={(e) => set({ sourceDeclaration: e.target.value })} placeholder="VD: Tự sáng tác" /></label>
-                  <label className="field"><span className="lbl">Cam kết bản quyền</span><input className="inp" maxLength={2000} value={form.rightsDeclaration} onChange={(e) => set({ rightsDeclaration: e.target.value })} placeholder="VD: Tôi có quyền phát hành nội dung này" /></label>
-                </div>
+                <StoryFields form={form} onChange={set} onSelect={setSelection} />
                 {pii.length > 0 && <div className="notice err" role="alert">Truyện còn thông tin cá nhân ({[...new Set(pii.map((p) => p.kind))].join(", ")}). Hãy bỏ trước khi gửi duyệt.</div>}
                 {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
                 <div className="pa-actions bar">
-                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting(true)}><FileUp className="ic" />Nhập từ tệp</button>
+                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting("file")}><FileUp className="ic" />Nhập từ tệp</button>
+                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting("paste")}><ClipboardPaste className="ic" />Dán văn bản</button>
+                  <button className="btn btn-s" onClick={() => downloadStoryTemplate(CREATOR_FILE_TEMPLATE)} title="Tải tệp mẫu .txt để viết nội dung rồi nhập vào"><Download className="ic" />Tải tệp mẫu</button>
                   {conflict && <button className="btn btn-g" disabled={busy} onClick={() => void resync()}><RefreshCw className="ic" />Đồng bộ</button>}
                   {hasPending && <button className="btn btn-s" disabled={busy} onClick={retry}><RotateCcw className="ic" />Thử lại</button>}
                 </div>
@@ -258,7 +257,7 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
         </div>
       </div>
 
-      {importing && <CreatorImport draft={draft} defaultTitle={form.title} onClose={() => setImporting(false)}
+      {importing && <CreatorImport key={importing} initialMethod={importing} draft={draft} defaultTitle={form.title} onClose={() => setImporting(null)}
         onSaved={(r) => { const snap = fromVersion(r.version); setForm(snap); apply(r, snap); setNote({ ok: true, text: `Đã nhập nội dung (phiên bản V${r.version.versionNo}).` }); }} />}
 
     </>
