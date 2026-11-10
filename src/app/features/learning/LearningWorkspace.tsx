@@ -135,7 +135,7 @@ function LearningMain({ child, tab, setTab, bodyRef, roadmap, canEdit, onRoadmap
           {tab === "overview" && <OverviewTab child={child} items={roadmap?.items} wishCount={wishCount} onTab={setTab} />}
           {tab === "roadmap" && <RoadmapTab child={child} items={roadmap?.items} error={roadmap?.error ?? null} canEdit={canEdit} onChanged={onRoadmapChanged} go={go} />}
           {tab === "results" && <ResultsTab child={child} />}
-          {tab === "wishes" && <WishesTab child={child} wishes={wishes.data} error={wishes.error} canEdit={canEdit} go={go} onChanged={wishes.reload} />}
+          {tab === "wishes" && <WishesTab child={child} wishes={wishes.data} making={wishes.making} error={wishes.error} canEdit={canEdit} go={go} onChanged={wishes.reload} />}
         </div>
       </div>
     </div>

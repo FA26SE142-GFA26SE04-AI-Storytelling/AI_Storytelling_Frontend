@@ -1058,7 +1058,7 @@
         "service": "childNotebookService",
         "operation": "collect",
         "file": "app/services/childReadingService.ts",
-        "line": 45,
+        "line": 44,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1079,7 +1079,7 @@
         "service": "childNotebookService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 44,
+        "line": 43,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx"
         ]
@@ -1100,7 +1100,7 @@
         "service": "childNotebookService",
         "operation": "remove",
         "file": "app/services/childReadingService.ts",
-        "line": 46,
+        "line": 45,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx"
         ]
@@ -1356,7 +1356,7 @@
         "service": "childQuizService",
         "operation": "get",
         "file": "app/services/childReadingService.ts",
-        "line": 30,
+        "line": 29,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1377,7 +1377,7 @@
         "service": "childQuizService",
         "operation": "answer",
         "file": "app/services/childReadingService.ts",
-        "line": 31,
+        "line": 30,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1398,7 +1398,7 @@
         "service": "childQuizService",
         "operation": "result",
         "file": "app/services/childReadingService.ts",
-        "line": 32,
+        "line": 31,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1419,7 +1419,7 @@
         "service": "childReadingService",
         "operation": "stories",
         "file": "app/services/childReadingService.ts",
-        "line": 6,
+        "line": 5,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx"
         ]
@@ -1440,7 +1440,7 @@
         "service": "childReadingService",
         "operation": "start",
         "file": "app/services/childReadingService.ts",
-        "line": 7,
+        "line": 6,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1461,7 +1461,7 @@
         "service": "childReadingService",
         "operation": "content",
         "file": "app/services/childReadingService.ts",
-        "line": 9,
+        "line": 8,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1482,7 +1482,7 @@
         "service": "childReadingService",
         "operation": "progress",
         "file": "app/services/childReadingService.ts",
-        "line": 10,
+        "line": 9,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1503,7 +1503,7 @@
         "service": "childReadingService",
         "operation": "complete",
         "file": "app/services/childReadingService.ts",
-        "line": 11,
+        "line": 10,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1524,7 +1524,7 @@
         "service": "childReadingService",
         "operation": "bookmark",
         "file": "app/services/childReadingService.ts",
-        "line": 12,
+        "line": 11,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1545,7 +1545,7 @@
         "service": "childReadingService",
         "operation": "favorite",
         "file": "app/services/childReadingService.ts",
-        "line": 13,
+        "line": 12,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1566,7 +1566,7 @@
         "service": "childReadingService",
         "operation": "listenOnly",
         "file": "app/services/childReadingService.ts",
-        "line": 18,
+        "line": 17,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1587,7 +1587,7 @@
         "service": "childReadingService",
         "operation": "attempt",
         "file": "app/services/childReadingService.ts",
-        "line": 20,
+        "line": 19,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1608,7 +1608,7 @@
         "service": "childReadingService",
         "operation": "feeling",
         "file": "app/services/childReadingService.ts",
-        "line": 26,
+        "line": 25,
         "callers": [
           "app/features/kid/KidAfterReading.tsx"
         ]
@@ -1629,7 +1629,7 @@
         "service": "childReadingService",
         "operation": "signal",
         "file": "app/services/childReadingService.ts",
-        "line": 14,
+        "line": 13,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1650,7 +1650,7 @@
         "service": "childReadingService",
         "operation": "event",
         "file": "app/services/childReadingService.ts",
-        "line": 15,
+        "line": 14,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1671,7 +1671,7 @@
         "service": "childReadingService",
         "operation": "definition",
         "file": "app/services/childReadingService.ts",
-        "line": 16,
+        "line": 15,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1702,7 +1702,7 @@
         "service": "childRewardsService",
         "operation": "get",
         "file": "app/services/childReadingService.ts",
-        "line": 35,
+        "line": 34,
         "callers": [
           "app/features/kid/KidAfterReading.tsx",
           "app/features/kid/KidRewards.tsx"
@@ -1724,7 +1724,7 @@
         "service": "childRewardsService",
         "operation": "water",
         "file": "app/services/childReadingService.ts",
-        "line": 37,
+        "line": 36,
         "callers": [
           "app/features/kid/KidRewards.tsx"
         ]
@@ -1855,7 +1855,7 @@
         "service": "childReadingService",
         "operation": "summaryRecording",
         "file": "app/services/childReadingService.ts",
-        "line": 22,
+        "line": 21,
         "callers": [
           "app/features/kid/KidSummary.tsx"
         ]
@@ -1876,7 +1876,7 @@
         "service": "childReadingService",
         "operation": "summaryFlags",
         "file": "app/services/childReadingService.ts",
-        "line": 24,
+        "line": 23,
         "callers": [
           "app/features/kid/KidSummary.tsx"
         ]
@@ -1897,7 +1897,7 @@
         "service": "childWishService",
         "operation": "cards",
         "file": "app/services/storyWishService.ts",
-        "line": 8,
+        "line": 9,
         "callers": [
           "app/features/kid/KidWish.tsx"
         ]
@@ -1918,7 +1918,7 @@
         "service": "childWishService",
         "operation": "startDraft",
         "file": "app/services/storyWishService.ts",
-        "line": 11,
+        "line": 12,
         "callers": [
           "app/features/kid/KidWish.tsx"
         ]
@@ -1939,7 +1939,7 @@
         "service": "childWishService",
         "operation": "selectCard",
         "file": "app/services/storyWishService.ts",
-        "line": 13,
+        "line": 14,
         "callers": [
           "app/features/kid/KidWish.tsx"
         ]
@@ -1960,7 +1960,7 @@
         "service": "childWishService",
         "operation": "submit",
         "file": "app/services/storyWishService.ts",
-        "line": 15,
+        "line": 16,
         "callers": [
           "app/features/kid/KidWish.tsx"
         ]
@@ -1981,7 +1981,7 @@
         "service": "childWishService",
         "operation": "mine",
         "file": "app/services/storyWishService.ts",
-        "line": 18,
+        "line": 19,
         "callers": [
           "app/features/kid/KidWish.tsx"
         ]
@@ -4885,7 +4885,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 41,
+        "line": 40,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -5016,7 +5016,7 @@
         "service": "parentStorySummaryService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 51,
+        "line": 50,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -5037,7 +5037,7 @@
         "service": "parentStorySummaryService",
         "operation": "remove",
         "file": "app/services/childReadingService.ts",
-        "line": 52,
+        "line": 51,
         "callers": [
           "app/features/learning/ResultsTab.tsx"
         ]
@@ -5058,7 +5058,7 @@
         "service": "parentWishService",
         "operation": "suggestions",
         "file": "app/services/storyWishService.ts",
-        "line": 28,
+        "line": 32,
         "callers": [
           "app/features/learning/WishItem.tsx"
         ]
@@ -5079,7 +5079,7 @@
         "service": "parentWishService",
         "operation": "list",
         "file": "app/services/storyWishService.ts",
-        "line": 24,
+        "line": 25,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -5100,11 +5100,13 @@
         "service": "parentWishService",
         "operation": "get",
         "file": "app/services/storyWishService.ts",
-        "line": 26,
-        "callers": []
+        "line": 27,
+        "callers": [
+          "app/features/learning/WishesTab.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -5119,7 +5121,7 @@
         "service": "parentWishService",
         "operation": "generationForm",
         "file": "app/services/storyWishService.ts",
-        "line": 30,
+        "line": 34,
         "callers": [
           "app/features/studio/BriefForm.tsx"
         ]
@@ -5140,7 +5142,7 @@
         "service": "parentWishService",
         "operation": "createStory",
         "file": "app/services/storyWishService.ts",
-        "line": 33,
+        "line": 37,
         "callers": [
           "app/features/story-workflow/useAIStoryInputFlow.ts"
         ]
@@ -5155,8 +5157,19 @@
     "controller": "ParentWishesController.cs",
     "action": "GetGenerationProgress",
     "controllerLine": 45,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/parent/wishes/{}/generation",
+        "service": "parentWishService",
+        "operation": "generation",
+        "file": "app/services/storyWishService.ts",
+        "line": 30,
+        "callers": [
+          "app/features/learning/WishesTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -5171,7 +5184,7 @@
         "service": "parentWishService",
         "operation": "useExisting",
         "file": "app/services/storyWishService.ts",
-        "line": 36,
+        "line": 40,
         "callers": [
           "app/features/learning/WishItem.tsx"
         ]
@@ -5192,7 +5205,7 @@
         "service": "parentWishService",
         "operation": "decline",
         "file": "app/services/storyWishService.ts",
-        "line": 38,
+        "line": 42,
         "callers": [
           "app/features/learning/WishItem.tsx"
         ]
@@ -6892,7 +6905,8 @@
         "file": "app/services/storyService.ts",
         "line": 32,
         "callers": [
-          "app/features/library/LibraryWorkspace.tsx"
+          "app/features/library/LibraryWorkspace.tsx",
+          "app/features/roadmap/roadmapData.ts"
         ]
       },
       {
@@ -6902,7 +6916,8 @@
         "file": "app/services/storyService.ts",
         "line": 32,
         "callers": [
-          "app/features/library/LibraryWorkspace.tsx"
+          "app/features/library/LibraryWorkspace.tsx",
+          "app/features/roadmap/roadmapData.ts"
         ]
       }
     ],
@@ -7213,10 +7228,12 @@
         "operation": "get",
         "file": "app/services/wishCardService.ts",
         "line": 10,
-        "callers": []
+        "callers": [
+          "app/features/staff/WishCardManagement.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -7288,8 +7305,19 @@
     "controller": "WishCardMatchManagementController.cs",
     "action": "MatchWithAi",
     "controllerLine": 14,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/moderation/stories/{}/wish-cards/ai-match",
+        "service": "wishCardService",
+        "operation": "aiMatch",
+        "file": "app/services/wishCardService.ts",
+        "line": 28,
+        "callers": [
+          "app/features/staff/StoryWishCards.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",

@@ -46,6 +46,9 @@ const roadmapDetail = (state) => ({ id: 40, name: state.rtCreated?.name ?? '', d
   checks: [{ code: 'has_stories', passed: !!state.rtItems?.length, message: 'Có ít nhất 2 truyện', relatedRoadmapId: null }],
   canSubmit: (state.rtItems?.length ?? 0) >= 2, lastReview: null, needsUpdate: false, retiredStoryIds: [] });
 
+/** Điều ước bố mẹ đã chọn "Tạo truyện mới": truyện 50 đang được tạo. */
+const makingWish = { wishId: 6, childProfileId: 10, kind: 'Wish', status: 'Accepted', cards: [{ id: 2, group: 'Place', label: 'Khu rừng', imageUrl: '', audioUrl: null }], lessonLeftToParent: false, submittedAt: now, expiresAt: null, declineReason: null, resolutionNote: null, generatedStoryId: 50, fulfilledStoryId: null, fulfilledWithExistingStory: false, resolvedAt: null };
+
 /** API giả cho mọi trường hợp. Trả `undefined` thì rơi xuống 404 "chức năng không nằm trong smoke test". */
 function api({ path, method, body, url, state }) {
   switch (true) {
@@ -74,7 +77,9 @@ function api({ path, method, body, url, state }) {
     case path === '/ParentReadingFeedback/10': return paged([{ sessionId: 1, storyId: 7, title: 'Truyện đã đọc xong', completedAt: now, feeling: 'VeryLike', feelingLabel: 'Rất thích', quizTotalQuestions: 5, quizBestPercent: 90, conversationAnswers: [{ question: 'Em thấy thế nào?', kind: 'Emotion', answerText: 'Vui lắm', sceneIndex: 0, answeredAt: now }] }]);
     case path === '/ParentStorySummary/10': return paged(state.summaryDeleted ? [] : [{ summaryId: 3, sessionId: 1, storyId: 7, title: 'Truyện bé kể lại', createdAt: now, recordingUrl: null, recordingSentAt: null, flagsSentAt: now, flags: [] }]);
     case path === '/ParentStorySummary/10/3' && method === 'DELETE': state.summaryDeleted = true; return null;
-    case path === '/parent/wishes' && url.searchParams.get('childProfileId') === '10': return state.declined ? [] : [{ wishId: 5, childProfileId: 10, kind: 'Story', status: 'Pending', cards: [{ id: 1, group: 'Character', label: 'Thỏ con', imageUrl: '', audioUrl: null }], lessonLeftToParent: false, submittedAt: now, expiresAt: '2099-01-01T00:00:00Z', declineReason: null, resolutionNote: null, generatedStoryId: null, fulfilledStoryId: null, fulfilledWithExistingStory: false, resolvedAt: null }];
+    case path === '/parent/wishes' && url.searchParams.get('childProfileId') === '10': return [...(state.declined ? [] : [{ wishId: 5, childProfileId: 10, kind: 'Story', status: 'Pending', cards: [{ id: 1, group: 'Character', label: 'Thỏ con', imageUrl: '', audioUrl: null }], lessonLeftToParent: false, submittedAt: now, expiresAt: '2099-01-01T00:00:00Z', declineReason: null, resolutionNote: null, generatedStoryId: null, fulfilledStoryId: null, fulfilledWithExistingStory: false, resolvedAt: null }]), makingWish];
+    case path === '/parent/wishes/6': return { wish: makingWish, suggestions: { wishId: 6, items: [], emptyMessage: null } };
+    case path === '/parent/wishes/6/generation': return { storyId: 50, outputMode: 'learning', requestId: 3, inputStatus: 'input_accepted', handoffStatus: 'Completed', handoffJobId: null, attemptCount: 1, maxAttempts: 3, reasonCode: null, fallbackMessage: null, canRetry: false, createdAt: now, updatedAt: now };
     case path === '/parent/wishes': return [];
     case path === '/parent/wishes/5/suggestions': return { wishId: 5, items: [{ rank: 1, storyId: 7, communitySubmissionId: null, title: story.title, coverImageUrl: null, matchedCards: [], opened: false, completed: true, feeling: 'Like', feelingLabel: 'Thích', hint: null }], emptyMessage: null };
     case path === '/parent/wishes/5/decline': state.declined = body; return null;
@@ -243,11 +248,17 @@ try {
     await page.goto(parent('#roadmap'), { waitUntil: 'domcontentloaded' });
     await page.getByRole('tab', { name: /Điều ước/ }).click();
     await page.getByText('Bé Sen đã đọc · thích', { exact: true }).waitFor();
+    // Điều ước đang được làm thành truyện mới: có tiến độ và nút mở Studio đúng truyện.
+    const making = page.locator('.lr-card', { hasText: 'Đang tạo truyện' });
+    await making.getByText('AI đang viết truyện', { exact: true }).waitFor();
+    await making.getByText('Nơi chốn: Khu rừng', { exact: true }).waitFor();
     await page.getByRole('button', { name: 'Từ chối', exact: true }).click();
     const dialog = page.getByRole('dialog', { name: 'Từ chối điều ước' });
     await dialog.getByRole('textbox').fill('Để tuần sau');
     await dialog.getByRole('button', { name: 'Từ chối', exact: true }).click();
     await page.getByText('Bé Sen chưa có điều ước nào đang chờ', { exact: true }).waitFor();
+    await making.getByRole('button', { name: 'Mở trong Studio', exact: true }).click();
+    await page.waitForURL(/storyId=50/);
     assert.deepEqual(state.declined, { reason: 'Để tuần sau' });
   });
 

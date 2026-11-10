@@ -49,10 +49,20 @@ export default function WishCardManagement() {
   useEffect(() => { void staffService.categories().then((r) => setCats(r.data ?? [])); }, []);
   const { note, busy, run } = useAction(load);
 
+  const toForm = (c: WishCardDto) => ({ group: c.group as ManagedWishCardGroup, label: c.label, imageUrl: c.imageUrl, audioUrl: c.audioUrl ?? "", ageBand: c.ageBand ?? "", contentCategoryId: c.contentCategoryId?.toString() ?? "", sortOrder: String(c.sortOrder) });
+  /**
+   * Mở popup ngay với dữ liệu trong danh sách, rồi tải bản mới nhất của thẻ (GET /moderation/wish-cards/{id})
+   * để không sửa đè thay đổi của người khác. Chỉ thay form khi người dùng chưa kịp sửa gì.
+   */
   const edit = (c: WishCardDto) => {
-    setEditing(c);
-    setForm({ group: c.group as ManagedWishCardGroup, label: c.label, imageUrl: c.imageUrl, audioUrl: c.audioUrl ?? "", ageBand: c.ageBand ?? "", contentCategoryId: c.contentCategoryId?.toString() ?? "", sortOrder: String(c.sortOrder) });
-    setDialog(true);
+    const listed = toForm(c);
+    setEditing(c); setForm(listed); setDialog(true);
+    void wishCardService.get(c.id).then((r) => {
+      if (!r.success || !r.data) return;
+      const fresh = r.data;
+      setEditing((cur) => (cur?.id === c.id ? fresh : cur));
+      setForm((f) => (JSON.stringify(f) === JSON.stringify(listed) ? toForm(fresh) : f));
+    });
   };
   const reset = () => { setEditing(null); setForm(EMPTY); setDialog(false); };
 

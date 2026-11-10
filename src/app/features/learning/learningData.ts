@@ -58,9 +58,10 @@ export function useStorySummaries(childId: number, page: number, pageSize: numbe
   return { data, error, reload: useCallback(() => setTick((t) => t + 1), []) };
 }
 
-/** Điều ước bé gửi đang chờ bố mẹ xử lý. */
-export function usePendingWishes(childId: number): Paged<ParentWishDto[]> {
+/** data: điều ước đang chờ bố mẹ xử lý; making: điều ước bố mẹ đã chọn "Tạo truyện mới" và truyện đang được tạo. */
+export function usePendingWishes(childId: number): Paged<ParentWishDto[]> & { making: ParentWishDto[] } {
   const [data, setData] = useState<ParentWishDto[] | null>(null);
+  const [making, setMaking] = useState<ParentWishDto[]>([]);
   const [error, setError] = useState("");
   const [tick, setTick] = useState(0);
   useEffect(() => {
@@ -68,9 +69,10 @@ export function usePendingWishes(childId: number): Paged<ParentWishDto[]> {
     void parentWishService.list(childId, controller.signal).then((r) => {
       if (controller.signal.aborted) return;
       setData(r.success ? (r.data ?? []).filter((w) => w.status === "Pending") : null);
+      setMaking(r.success ? (r.data ?? []).filter((w) => w.status === "Accepted" && w.generatedStoryId != null) : []);
       setError(r.success ? "" : r.message);
     });
     return () => controller.abort();
   }, [childId, tick]);
-  return { data, error, reload: useCallback(() => setTick((t) => t + 1), []) };
+  return { data, making, error, reload: useCallback(() => setTick((t) => t + 1), []) };
 }

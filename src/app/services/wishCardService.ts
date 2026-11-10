@@ -23,4 +23,7 @@ export const wishCardService = {
     apiRequest<W.WishCardMatchDto>(`/moderation/stories/${storyId}/wish-cards`, 'Không gắn được thẻ cho truyện.', { method: 'POST', body: { wishCardId } }),
   removeFromStory: (storyId: number, wishCardId: number) =>
     apiRequest<null>(`/moderation/stories/${storyId}/wish-cards/${wishCardId}`, 'Không gỡ được thẻ khỏi truyện.', { method: 'DELETE' }),
+  /** AI đọc bản truyện rồi tự gắn các thẻ ước phù hợp (nguồn "Ai"); trả số thẻ đã thêm và đoạn trích làm bằng chứng. */
+  aiMatch: (storyId: number, storyVersionId: number) =>
+    apiRequest<W.StoryWishCardAiMatchResult>(`/moderation/stories/${storyId}/wish-cards/ai-match`, 'AI chưa gợi ý được thẻ cho truyện này.', { method: 'POST', body: { storyVersionId } }),
 };
