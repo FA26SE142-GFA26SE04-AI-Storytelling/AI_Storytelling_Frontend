@@ -16,7 +16,8 @@ import KidApp from "./KidApp";
  * "Cho bé đọc" (Luồng 1 Bước 1.10, Luồng 3 Bước 3.0): mở phiên riêng của bé bằng mã giao máy (handover).
  * Rời chế độ của bé phải qua cổng xác nhận người lớn nếu cài đặt an toàn bật.
  */
-export default function KidMode({ child, storyId, onExit }: { child: ChildProfile; /** Có thì mở thẳng truyện này (Luồng 1c). */ storyId?: number | null; onExit: () => void }) {
+export default function KidMode({ child, storyId, resume = false, onExit }: { child: ChildProfile; /** Có thì mở thẳng truyện này (Luồng 1c). */ storyId?: number | null;
+  /** Vào lại sau khi tải trang: dùng tiếp phiên của bé đã lưu thay vì xin phiên mới. */ resume?: boolean; onExit: () => void }) {
   const { user } = useAuth();
   const [entry, setEntry] = useState<{ ok: boolean; message?: string } | null>(null);
   const [gateOn, setGateOn] = useState(true);
@@ -25,15 +26,18 @@ export default function KidMode({ child, storyId, onExit }: { child: ChildProfil
   useEffect(() => {
     if (!child) return;
     let alive = true;
-    const session = storyId ? childAccessService.startStoryHandover(child.id, storyId) : childAccessService.startSupervisedSession(child.id);
+    const stored = childAccessService.readSession();
+    const reuse = resume && !storyId && stored?.childProfileId === child.id;
+    const session = reuse ? Promise.resolve(null)
+      : storyId ? childAccessService.startStoryHandover(child.id, storyId) : childAccessService.startSupervisedSession(child.id);
     void Promise.all([session, childProfileService.getSafetyPolicy(child.id)]).then(([s, p]) => {
       if (!alive) return;
-      if (s.success && s.data) childAccessService.saveSession(s.data, "profile_switcher");
-      setEntry({ ok: s.success, message: s.message });
+      if (s?.success && s.data) childAccessService.saveSession(s.data, "profile_switcher");
+      setEntry(s ? { ok: s.success, message: s.message } : { ok: true });
       setGateOn(p.data?.parentalGateEnabled ?? true);
     });
     return () => { alive = false; };
-  }, [child, storyId]);
+  }, [child, storyId, resume]);
 
   const leave = () => { childAccessService.clearSession(); onExit(); };
   const requestExit = () => (gateOn ? setGateOpen(true) : leave());

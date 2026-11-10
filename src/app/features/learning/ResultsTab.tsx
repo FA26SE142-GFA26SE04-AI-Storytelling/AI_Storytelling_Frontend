@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, MessageCircleHeart, Trash2 } from "lucide-react";
+import { ChevronDown, CircleHelp, MessageCircleHeart, Mic, Trash2 } from "lucide-react";
 import IconButton from "@/app/components/IconButton";
+import Pager from "@/app/components/Pager";
 import SafeImage from "@/app/components/SafeImage";
 import Frog from "@/app/components/brand/Frog";
 import { confirmDialog } from "@/app/lib/confirm";
@@ -13,18 +14,6 @@ import type { ParentReadingFeedbackItem, ParentSummaryItem } from "@/app/types/c
 import { FEELING_FACE, shortDate, useReadingFeedback, useStorySummaries } from "./learningData";
 
 const PAGE = 10;
-
-/** Nút trang trước / trang sau dùng chung cho hai danh sách. */
-function Pager({ page, totalPages, hasPrev, hasNext, onPage }: { page: number; totalPages: number; hasPrev: boolean; hasNext: boolean; onPage: (p: number) => void }) {
-  if (totalPages <= 1) return null;
-  return (
-    <div className="lr-pager">
-      <IconButton icon={ChevronLeft} label="Trang trước" disabled={!hasPrev} onClick={() => onPage(page - 1)} />
-      <span>{page}/{totalPages}</span>
-      <IconButton icon={ChevronRight} label="Trang sau" disabled={!hasNext} onClick={() => onPage(page + 1)} />
-    </div>
-  );
-}
 
 /** Nhãn điểm câu đố: "Không có câu đố", "Chưa làm" hoặc phần trăm tốt nhất. */
 export function quizPill(i: ParentReadingFeedbackItem) {
@@ -72,6 +61,23 @@ function ResultCard({ item }: { item: ParentReadingFeedbackItem }) {
   );
 }
 
+/** Một cảnh bé còn thắc mắc: chữ của cảnh rút gọn 2 dòng, bấm để xem hết. */
+function FlagRow({ index, text, image }: { index: number; text: string; image: string | null }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <li>
+      <SafeImage src={image} alt={`Tranh cảnh ${index + 1}`} />
+      <div className="lr-flag-body">
+        <span className="pill wait">Cảnh {index + 1}</span>
+        <p className={`lr-flag-text${open ? " open" : ""}`}>{text}</p>
+        <button type="button" className="btn btn-g lr-flag-more" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+          {open ? "Thu gọn" : "Xem cả cảnh"}<ChevronDown className="ic" aria-hidden />
+        </button>
+      </div>
+    </li>
+  );
+}
+
 /** Phần bé kể lại cuối truyện: nghe lại bản ghi âm, xem các cảnh bé còn thắc mắc, xoá khi cần. */
 function SummaryCard({ s, nickname, busy, onRemove }: { s: ParentSummaryItem; nickname: string; busy: boolean; onRemove: () => void }) {
   return (
@@ -81,16 +87,19 @@ function SummaryCard({ s, nickname, busy, onRemove }: { s: ParentSummaryItem; ni
         <span className="pill draft">{shortDate(s.createdAt)}</span>
         <IconButton icon={Trash2} label={`Xoá phần kể lại về ${s.title}`} disabled={busy} onClick={onRemove} />
       </div>
-      {s.recordingUrl && <audio controls preload="none" src={s.recordingUrl} aria-label={`Nghe ${nickname} kể lại ${s.title}`} />}
+      <div className="lr-sum-part">
+        <b className="lr-sum-h"><Mic className="ic" aria-hidden />Bản ghi âm</b>
+        {s.recordingUrl
+          ? <audio controls preload="none" src={s.recordingUrl} aria-label={`Nghe ${nickname} kể lại ${s.title}`} />
+          : <p className="sub">{nickname} chưa ghi âm phần kể lại.</p>}
+      </div>
       {s.flags.length > 0 && (
-        <ul className="lr-flags" aria-label="Chỗ bé còn thắc mắc">
-          {s.flags.map((f) => (
-            <li key={f.sceneId}>
-              <SafeImage src={f.illustrationUrl} alt="" />
-              <span><span className="pill wait">Cảnh {f.sceneIndex + 1}</span> {f.sceneText}</span>
-            </li>
-          ))}
-        </ul>
+        <div className="lr-sum-part">
+          <b className="lr-sum-h"><CircleHelp className="ic" aria-hidden />Chỗ {nickname} còn thắc mắc</b>
+          <ul className="lr-flags">
+            {s.flags.map((f) => <FlagRow key={f.sceneId} index={f.sceneIndex} text={f.sceneText} image={f.illustrationUrl} />)}
+          </ul>
+        </div>
       )}
     </li>
   );

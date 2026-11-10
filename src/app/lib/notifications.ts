@@ -35,7 +35,8 @@ const TEXT: Record<string, string> = {
   community_library_reviewed: "Truyện nộp thư viện cộng đồng đã được duyệt",
   creator_content_flagged: "Nội dung bạn tạo vừa bị gắn cờ",
   moderation_sla_warning: "Có mục kiểm duyệt sắp quá hạn xử lý",
-  payment_confirmed: "Thanh toán thành công",
+  payment_confirmed: "Thanh toán thành công, gói đã được áp",
+  subscription_expiring: "Gói của bạn sắp hết hạn, hãy gia hạn để không gián đoạn",
 };
 
 export const notificationText = (n: AppNotification) => TEXT[notificationKey(n.type)] ?? "Bạn có thông báo mới";
@@ -48,6 +49,7 @@ export function notificationTarget(n: AppNotification): WorkspaceId | null {
   const key = notificationKey(n.type);
   if (key.startsWith("roadmap_") || key === "story_summary_sent") return "roadmap";
   if (key.startsWith("story_wish_")) return "library";
+  if (key === "payment_confirmed" || key === "subscription_expiring") return "account-payment";
   switch (n.group) {
     case "supervisors":
     case "children": return "children";

@@ -1,15 +1,18 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { toWav, wavMaxSeconds } from '@/app/lib/wav';
 
-export type RecorderState = 'idle' | 'recording' | 'ready' | 'denied' | 'unsupported';
+export type RecorderState = 'idle' | 'recording' | 'converting' | 'ready' | 'denied' | 'unsupported';
 
 const MIME_CANDIDATES = ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
 
 /**
  * Ghi âm giọng bé bằng micro của trình duyệt.
- * Tự dừng khi đủ `maxSeconds` hoặc gần chạm `maxBytes`, để file gửi lên không vượt giới hạn của backend.
+ * Ghi xong thì đổi sang WAV vì kho media của backend chỉ nhận WAV/MP3; thời lượng tối đa tính theo cỡ file WAV
+ * để không vượt `maxBytes`. Máy không đổi được thì gửi nguyên bản gốc.
  */
-export function useRecorder(maxBytes: number, maxSeconds = 120) {
+export function useRecorder(maxBytes: number, maxSecondsWanted = 120) {
+  const maxSeconds = Math.max(5, Math.min(maxSecondsWanted, wavMaxSeconds(maxBytes)));
   const [state, setState] = useState<RecorderState>('idle');
   const [seconds, setSeconds] = useState(0);
   const [blob, setBlob] = useState<Blob | null>(null);
@@ -54,8 +57,11 @@ export function useRecorder(maxBytes: number, maxSeconds = 120) {
       release();
       // Backend chỉ đọc loại file, bỏ phần codecs.
       const type = (rec.mimeType || mime || 'audio/webm').split(';')[0];
-      const out = new Blob(chunks.current, { type });
-      setBlob(out); setUrl(URL.createObjectURL(out)); setState('ready');
+      const raw = new Blob(chunks.current, { type });
+      setState('converting');
+      void toWav(raw).catch(() => raw).then(out => {
+        setBlob(out); setUrl(URL.createObjectURL(out)); setState('ready');
+      });
     };
     rec.start(1000);
     setSeconds(0); setState('recording');

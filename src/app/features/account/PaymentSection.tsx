@@ -1,54 +1,193 @@
 'use client';
 import { confirmDialog } from "@/app/lib/confirm";
-import { useEffect, useState } from 'react';
-import { Check, Sparkles, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { BookOpen, Check, CircleCheck, Clock, Copy, CreditCard, Plus, Receipt, Sparkles, WandSparkles } from 'lucide-react';
+import Dialog from '@/app/components/Dialog';
+import IconButton from '@/app/components/IconButton';
+import Pager from '@/app/components/Pager';
+import SafeImage from '@/app/components/SafeImage';
+import { showToast } from '@/app/lib/toast';
 import { paymentService } from '@/app/services/paymentService';
-import type { PaymentTransactionDto, SubscriptionPlanDto } from '@/app/types/backendContracts';
+import type { MyQuotaDto, PagedResult, PaymentStatus, PaymentTransactionDto, PlanType, SubscriptionPlanDto } from '@/app/types/backendContracts';
 
-/** Trang "Nâng cấp gói": mỗi gói là một thẻ giá; chọn gói thì tạo giao dịch và hiện thông tin chuyển khoản trong popup. */
-export default function PaymentSection() {
-  const [plans,setPlans]=useState<SubscriptionPlanDto[] | null>(null);
-  const [transaction,setTransaction]=useState<PaymentTransactionDto | null>(null);
-  const [busy,setBusy]=useState(false); const [uncertain,setUncertain]=useState(false); const [note,setNote]=useState('');
-  useEffect(()=>{ const c=new AbortController(); let alive=true; void paymentService.plans(c.signal).then(r=>{if(alive){setPlans(r.data??[]);if(!r.success)setNote(r.message);}});return()=>{alive=false;c.abort();}; },[]);
-  const create=async(plan:SubscriptionPlanDto)=>{
-    if(busy||uncertain||transaction)return;
-    if(!await confirmDialog(`Tạo giao dịch mua ${plan.name}, ${plan.priceVnd.toLocaleString('vi-VN')} đồng?`))return;
-    setBusy(true);const r=await paymentService.create(plan.id);setBusy(false);
-    if(r.success&&r.data)setTransaction(r.data);else{setNote(r.message);if(r.status===0|| (r.status??0)>=500)setUncertain(true);}
-  };
-  const featured=plans?.length ? plans[plans.length-1].id : null;
-  return <section className="sec plan-page" style={{ gap: 20 }}>
-    <h3 className="display" style={{ margin: 0, textAlign: "center" }}>Nâng cấp gói</h3>
-    {note&&<p className="notice" role="status">{note}</p>}
-    {uncertain&&<p className="notice warn">Chưa rõ máy chủ đã tạo giao dịch. Kiểm tra với bộ phận hỗ trợ trước khi tạo giao dịch khác.</p>}
-    {plans===null && <p className="sub">Đang tải…</p>}
-    <div className="plan-grid">
-      {plans?.map(plan=><article key={plan.id} className={`plan-card${plan.id===featured?" featured":""}`}>
-        <div className="plan-head">
-          <Sparkles className="plan-icon" aria-hidden />
-          <b className="display plan-title">{plan.name}</b>
-          <span className="plan-tag">{plan.quotaAmount} lượt tạo truyện bằng AI</span>
-          <div className="plan-price"><b>{plan.priceVnd.toLocaleString('vi-VN')}</b><span>₫<small>mua một lần</small></span></div>
-          <button className={`btn btn-c ${plan.id===featured?"btn-p":"btn-s"}`} disabled={busy||uncertain||!!transaction} onClick={()=>void create(plan)}>Nâng cấp gói</button>
-          <small className="plan-note">Không tự gia hạn · Dùng hết lượt mới cần mua thêm</small>
+const day = (iso: string) => new Date(iso).toLocaleDateString('vi-VN');
+const time = (iso: string) => new Date(iso).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+const money = (n: number) => `${n.toLocaleString('vi-VN')} đ`;
+
+/** Quyền lợi của từng loại gói theo tài liệu cam kết (F-03). */
+const BENEFITS: Record<PlanType, (p: SubscriptionPlanDto) => string[]> = {
+  Reading: () => ['Đọc không giới hạn thư viện công khai', 'Tối đa 4 hồ sơ bé', 'Dùng lộ trình mẫu cho bé', 'Không kèm lượt tạo truyện AI'],
+  Creative: (p) => ['Mọi quyền lợi của Gói Đọc', `${p.aiCredits} lượt tạo truyện AI mỗi chu kỳ`, 'Lượt chưa dùng không chuyển sang tháng sau'],
+  AddOn: (p) => [`Thêm ${p.aiCredits} lượt tạo truyện AI`, 'Chỉ mua khi đang có gói', 'Hết hạn cùng chu kỳ gói hiện tại'],
+  Legacy: (p) => [`${p.aiCredits} lượt tạo truyện AI`],
+};
+const PLAN_ICON: Record<PlanType, typeof Sparkles> = { Reading: BookOpen, Creative: WandSparkles, AddOn: Plus, Legacy: Sparkles };
+
+const STATUS: Record<PaymentStatus, [string, string]> = {
+  Pending: ['wait', 'Chờ thanh toán'], Paid: ['ok', 'Đã thanh toán'], Expired: ['draft', 'Đã hết hạn'], MismatchAmount: ['flag', 'Sai số tiền'],
+};
+
+/** Nút và câu xác nhận của một gói, tuỳ gói đang dùng. */
+function action(plan: SubscriptionPlanDto, quota: MyQuotaDto | null): { label: string; confirm: string } {
+  const cur = quota?.plan;
+  const price = money(plan.priceVnd);
+  if (plan.planType === 'AddOn') return { label: 'Mua thêm lượt', confirm: `Mua ${plan.name} (${price}): thêm ${plan.aiCredits} lượt tạo truyện AI${cur ? `, hết hạn cùng gói ngày ${day(cur.endAt)}` : ''}.` };
+  if (!cur) return { label: 'Đăng ký', confirm: `Đăng ký ${plan.name} (${price}/tháng). Gói bắt đầu ngay khi thanh toán thành công.` };
+  const end = day(quota?.nextPlan?.endAt ?? cur.endAt);
+  if (cur.planType === plan.planType) return { label: 'Gia hạn', confirm: `Gia hạn ${plan.name} (${price}): chu kỳ mới bắt đầu sau ngày ${end}, lượt hiện tại giữ nguyên.` };
+  if (cur.planType === 'Reading' && plan.planType === 'Creative') return { label: 'Nâng cấp', confirm: `Nâng lên ${plan.name} (${price}): bắt đầu ngay khi thanh toán xong. Số ngày còn lại của Gói Đọc không được quy đổi.` };
+  return { label: 'Chuyển gói', confirm: `Chuyển sang ${plan.name} (${price}): bắt đầu sau khi gói hiện tại hết hạn ngày ${end}.` };
+}
+
+/** Thời gian còn lại tới `iso`, dạng mm:ss; hết hạn thì 0. */
+function useCountdown(iso: string | null) {
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => { if (!iso) return; const id = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(id); }, [iso]);
+  const left = iso ? Math.max(0, Math.floor((new Date(iso).getTime() - now) / 1000)) : 0;
+  return { left, text: `${String(Math.floor(left / 60)).padStart(2, '0')}:${String(left % 60).padStart(2, '0')}` };
+}
+
+/** Popup thanh toán: mã QR, nội dung chuyển khoản, đếm ngược; tự hỏi lại trạng thái mỗi 5 giây tới khi Paid / hết hạn. */
+function PayDialog({ tx, onClose, onPaid }: { tx: PaymentTransactionDto; onClose: () => void; onPaid: () => void }) {
+  const [cur, setCur] = useState(tx);
+  // Mã QR không tải được (thiếu cấu hình tài khoản nhận tiền, mạng lỗi…): ẩn ảnh, báo rõ thay vì hiện hình mặc định.
+  const [qrBroken, setQrBroken] = useState(false);
+  const pending = cur.status === 'Pending';
+  const { left, text } = useCountdown(pending ? cur.expiresAt : null);
+  useEffect(() => {
+    if (!pending) return;
+    const id = window.setInterval(() => {
+      void paymentService.myTransactions(1, 20).then((r) => {
+        const found = r.data?.items.find((t) => t.id === cur.id);
+        if (!found || found.status === 'Pending') return;
+        setCur(found);
+        if (found.status === 'Paid') onPaid();
+      });
+    }, 5000);
+    return () => window.clearInterval(id);
+  }, [pending, cur.id, onPaid]);
+  const copy = () => void navigator.clipboard?.writeText(cur.transactionCode).then(() => showToast('Đã chép nội dung chuyển khoản.'), () => showToast('Chưa chép được, bạn hãy gõ lại mã.', 'warn'));
+  return (
+    <Dialog title={cur.planName} onClose={onClose}>
+      {cur.status === 'Paid' ? (
+        <div className="pay-done" role="status"><CircleCheck aria-hidden /><b className="display">Thanh toán thành công</b><span>Gói đã được áp cho tài khoản của bạn.</span></div>
+      ) : pending && left > 0 ? (
+        <div className="pay-box">
+          {cur.qrCodeUrl && !qrBroken ? <SafeImage className="pay-qr" src={cur.qrCodeUrl} alt={`Mã QR chuyển khoản ${money(cur.amount)}`} onError={() => setQrBroken(true)} />
+            : <p className="notice warn pay-qr-missing">Chưa hiện được mã QR. Hãy thử lại sau hoặc liên hệ hỗ trợ.</p>}
+          <div className="pay-facts">
+            <div><small>Số tiền</small><b>{money(cur.amount)}</b></div>
+            <div><small>Nội dung chuyển khoản</small><span className="row" style={{ gap: 6 }}><b><code>{cur.transactionCode}</code></b><IconButton icon={Copy} label="Chép nội dung chuyển khoản" onClick={copy} /></span></div>
+            <div><small>Còn lại</small><b className={left < 120 ? 'pay-late' : ''}><Clock className="ic" aria-hidden />{text}</b></div>
+          </div>
+          <p className="pay-hint">Quét mã bằng app ngân hàng. Trang tự cập nhật khi nhận được tiền.</p>
         </div>
-        <ul className="plan-list">
-          <li><Check className="ic" />Tạo truyện bằng AI cho bé</li>
-          <li><Check className="ic" />Mỗi lần tạo trừ 1 lượt</li>
-          <li><Check className="ic" />Dùng cho mọi hồ sơ bé của bạn</li>
-          <li><Check className="ic" />Truyện lưu sẵn trong thư viện của bạn</li>
-        </ul>
-      </article>)}
-    </div>
-    {transaction&&<div className="dlg-backdrop confirm-backdrop" role="dialog" aria-modal="true" aria-label="Thanh toán" onClick={(e)=>{if(e.target===e.currentTarget)setTransaction(null);}}>
-      <div className="dlg" style={{ gap: 12, width: "min(440px, 100%)" }}>
-        <div className="row"><b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>{transaction.planName}</b><button className="btn btn-g" aria-label="Đóng" onClick={()=>setTransaction(null)}><X className="ic" /></button></div>
-        <p>Số tiền: <b>{transaction.amount.toLocaleString('vi-VN')} đồng</b></p>
-        <p>Nội dung chuyển khoản: <strong>{transaction.transactionCode}</strong></p>
-        <p>Trạng thái: {transaction.status} · Hạn: {new Date(transaction.expiresAt).toLocaleString('vi-VN')}</p>
-        {transaction.qrCodeUrl&&<a className="btn btn-p btn-c" href={transaction.qrCodeUrl} target="_blank" rel="noreferrer">Mở mã QR thanh toán</a>}
+      ) : cur.status === 'MismatchAmount' ? (
+        <p className="notice warn">Số tiền chuyển chưa khớp. Quản trị viên đang kiểm tra, bạn không cần chuyển lại.</p>
+      ) : (
+        <p className="notice warn">Giao dịch đã hết hạn. Nếu bạn đã chuyển tiền, quản trị viên sẽ kiểm tra và xác nhận; nếu chưa, hãy tạo giao dịch mới.</p>
+      )}
+    </Dialog>
+  );
+}
+
+/** Trang "Nâng cấp gói" (Luồng 2, F-03, F-05): gói đang dùng và lượt còn lại, các gói đang bán, lịch sử giao dịch. */
+export default function PaymentSection() {
+  const [quota, setQuota] = useState<MyQuotaDto | null>(null);
+  const [plans, setPlans] = useState<SubscriptionPlanDto[] | null>(null);
+  const [history, setHistory] = useState<PagedResult<PaymentTransactionDto> | null>(null);
+  const [page, setPage] = useState(1);
+  const [tx, setTx] = useState<PaymentTransactionDto | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [rev, setRev] = useState(0);
+  const reload = useCallback(() => setRev((n) => n + 1), []);
+
+  useEffect(() => {
+    const c = new AbortController(); let alive = true;
+    void Promise.all([paymentService.myQuota(c.signal), paymentService.plans(c.signal)]).then(([q, p]) => {
+      if (!alive) return;
+      setQuota(q.success ? q.data : null);
+      setPlans(p.data ?? []);
+      if (!p.success) showToast(p.message, 'err');
+    });
+    return () => { alive = false; c.abort(); };
+  }, [rev]);
+  useEffect(() => {
+    const c = new AbortController(); let alive = true;
+    void paymentService.myTransactions(page, 10, c.signal).then((r) => { if (alive) setHistory(r.success ? r.data : null); });
+    return () => { alive = false; c.abort(); };
+  }, [page, rev]);
+
+  const buy = async (plan: SubscriptionPlanDto) => {
+    if (busy) return;
+    const a = action(plan, quota);
+    if (!await confirmDialog(a.confirm)) return;
+    setBusy(true);
+    const r = await paymentService.create(plan.id);
+    setBusy(false);
+    if (r.success && r.data) { setTx(r.data); reload(); } else showToast(r.message, 'err');
+  };
+
+  const credits = quota ? [
+    ['Gói tháng', quota.cycleCredits], ['Add-on', quota.addOnCredits], ['Dùng thử', quota.trialCredits], ['Lượt khác', quota.otherCredits],
+  ].filter(([, n]) => (n as number) > 0) as [string, number][] : [];
+
+  return <section className="sec plan-page" style={{ gap: 24 }}>
+    <h3 className="display" style={{ margin: 0, textAlign: "center" }}>Nâng cấp gói</h3>
+
+    <div className="pay-current" aria-label="Gói của bạn">
+      <div className="grow">
+        <small>Gói của bạn</small>
+        <b className="display">{quota === null ? '…' : quota.plan?.planName ?? 'Miễn phí'}</b>
+        {quota?.plan && <span className="pill ok">Đến {day(quota.plan.endAt)}</span>}
+        {quota?.nextPlan && <span className="pill wait">Tiếp theo: {quota.nextPlan.planName} từ {day(quota.nextPlan.startAt)}</span>}
       </div>
-    </div>}
+      <div className="pay-credits">
+        <b>{quota?.totalRemaining ?? '…'}</b>
+        <span>lượt tạo truyện AI</span>
+        {credits.length > 0 && <div className="row" style={{ gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>{credits.map(([k, n]) => <span key={k} className="pill">{k}: {n}</span>)}</div>}
+      </div>
+    </div>
+
+    {plans === null && <p className="sub">Đang tải…</p>}
+    <div className="plan-grid">
+      {plans?.map((plan) => {
+        const Icon = PLAN_ICON[plan.planType] ?? Sparkles;
+        const a = action(plan, quota);
+        return <article key={plan.id} className={`plan-card${plan.planType === 'Creative' ? ' featured' : ''}${plan.isPurchasable ? '' : ' locked'}`}>
+          <div className="plan-head">
+            <Icon className="plan-icon" aria-hidden />
+            <b className="display plan-title">{plan.name}</b>
+            <div className="plan-price"><b>{plan.priceVnd.toLocaleString('vi-VN')}</b><span>₫<small>{plan.planType === 'AddOn' ? 'mỗi lần mua' : 'mỗi tháng'}</small></span></div>
+            <button className={`btn btn-c ${plan.planType === 'Creative' ? 'btn-p' : 'btn-s'}`} disabled={busy || !plan.isPurchasable} onClick={() => void buy(plan)}><CreditCard className="ic" />{a.label}</button>
+            {!plan.isPurchasable && plan.lockedReason && <p className="notice warn plan-locked">{plan.lockedReason}</p>}
+          </div>
+          <ul className="plan-list">{BENEFITS[plan.planType]?.(plan).map((b) => <li key={b}><Check className="ic" />{b}</li>)}</ul>
+        </article>;
+      })}
+    </div>
+
+    <div className="pay-history">
+      <h4 className="display"><Receipt className="ic" aria-hidden />Lịch sử giao dịch</h4>
+      {history === null ? <p className="sub">Đang tải…</p> : history.items.length === 0 ? <p className="empty-line">Bạn chưa có giao dịch nào.</p> : (
+        <table className="st-table stack-table">
+          <thead><tr><th>Gói</th><th>Số tiền</th><th>Mã giao dịch</th><th>Tạo lúc</th><th>Trạng thái</th><th /></tr></thead>
+          <tbody>{history.items.map((t) => {
+            const [tone, label] = STATUS[t.status] ?? ['draft', t.status];
+            return <tr key={t.id}>
+              <td data-label="Gói">{t.planName}</td>
+              <td data-label="Số tiền">{money(t.amount)}</td>
+              <td data-label="Mã giao dịch"><code>{t.transactionCode}</code></td>
+              <td data-label="Tạo lúc">{time(t.createdAt)}</td>
+              <td data-label="Trạng thái"><span className={`pill ${tone}`}>{label}</span>{t.status === 'Paid' && t.paidAt && <small className="pay-paid">{time(t.paidAt)}</small>}{t.status === 'MismatchAmount' && <small className="pay-paid">Đang chờ quản trị viên xử lý</small>}</td>
+              <td data-label="">{t.status === 'Pending' && t.qrCodeUrl && <button className="btn btn-s" onClick={() => setTx(t)}>Tiếp tục thanh toán</button>}</td>
+            </tr>;
+          })}</tbody>
+        </table>
+      )}
+      {history && <Pager page={history.pageIndex} totalPages={history.totalPages} hasPrev={history.hasPreviousPage} hasNext={history.hasNextPage} onPage={setPage} />}
+    </div>
+
+    {tx && <PayDialog key={tx.id} tx={tx} onClose={() => { setTx(null); reload(); }} onPaid={reload} />}
   </section>;
 }

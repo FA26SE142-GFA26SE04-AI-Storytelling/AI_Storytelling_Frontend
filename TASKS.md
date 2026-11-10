@@ -1,159 +1,199 @@
-# Việc cần làm — Frontend
+# Chức năng theo vai trò — đã làm / chưa làm
 
-Cập nhật: 09/11/2026. Chỉ tính phần Frontend (`src/`); không sửa Backend.
+Cập nhật: 10/11/2026.
 
 Căn cứ:
 
-- 5 tài liệu Luồng 1–5 (link trong `CLAUDE.md` ở thư mục gốc dự án).
-- Quy tắc thiết kế trong `CLAUDE.md`.
-- Kết quả chạy `node scripts/audit-core-api.mjs` ngày 09/11: Backend hiện **354** endpoint, 318 đã nối, 2 loại trừ, **34** còn thiếu (15 `SERVICE_ONLY`, 19 `MISSING`; cập nhật 10/11). "Còn thiếu" gồm cả endpoint chưa có hàm service và endpoint có hàm service nhưng chưa màn nào gọi (`SERVICE_ONLY`).
+- **Tài liệu 6 (ưu tiên)**: `SEP420_R2_BM04_Commitment` — bản cam kết sau Review 2, gồm 22 chức năng bắt buộc F-01 → F-22. Đây là phạm vi chấm ở Defense 1.1 và Viva; sau Review 2 phạm vi không đổi.
+- Tài liệu Luồng 1–5 (link trong `CLAUDE.md` ở thư mục gốc dự án).
+- Code ngày 10/11: Backend nhánh `main` (`AI_Storytelling_Backend/src/Core`) và Frontend `main` (`src/`). Audit endpoint (`node scripts/audit-core-api.mjs`): Backend có **354** endpoint, Frontend đã nối **313**, 2 loại trừ, còn **39** (21 có hàm service nhưng chưa màn nào gọi, 18 chưa có hàm).
 
-Ký hiệu: `[ ]` chưa làm · `[x]` đã làm. Ưu tiên: **P1** làm trước · **P2** làm sau · **P3** dọn dẹp.
+Ký hiệu:
+
+- `[x]` đã làm, chạy được cả Backend và Frontend.
+- `[ ]` **Một phần** — có một phần, ghi rõ còn thiếu gì và thiếu ở đâu (BE / FE).
+- `[ ]` chưa làm.
 
 ---
 
-## 1. Tương tác của trẻ khi đọc (Luồng 4b, 4c) — P1
+## Tổng quan 22 chức năng bắt buộc (tài liệu 6)
 
-Đã làm 6/7 mục. Còn lại luyện đọc to (bị chặn bởi Backend).
+| ID | Chức năng | Vai trò | Phụ trách | Trạng thái |
+| :-: | :-- | :-- | :-- | :-- |
+| F-01 | Hồ sơ bé, Learning Profile, Safety Policy | Phụ huynh | Duy | Đã làm |
+| F-02 | Bé vào app (QR, giao máy) và cổng phụ huynh | Phụ huynh, Bé | Duy | Đã làm |
+| F-03 | Gói dịch vụ và thanh toán QR SePay | Phụ huynh, Creator | Tuấn | **Một phần** — phụ huynh xong; còn gói Creator, quyền lợi theo gói |
+| F-04 | Xác nhận thanh toán, hết hạn | SePay, Hệ thống, Admin | Tuấn | **Một phần** — phụ huynh xong; còn áp gói Creator |
+| F-05 | Lượt tạo truyện AI: kiểm tra, trừ, lịch sử | Phụ huynh, Creator | Tuấn | **Một phần** — xem lượt, lịch sử xong; còn giữ/hoàn lượt, miễn phí tạo lại, lượt Creator |
+| F-06 | Tạo truyện bằng AI và duyệt nội dung | Phụ huynh, Creator | Minh | Đã làm |
+| F-07 | Tự viết và nhập truyện có sẵn | Phụ huynh, Creator | Minh | **Một phần** — FE chưa có màn nhập truyện có sẵn, chưa nối luồng gói mới |
+| F-08 | Điều ước của bé và phụ huynh đáp lại | Bé, Phụ huynh | Minh | Đã làm |
+| F-09 | Tranh, giọng đọc và xác nhận gói media | Phụ huynh, Creator | Minh | Đã làm |
+| F-10 | Gửi truyện công khai và kiểm duyệt | Phụ huynh, Creator, Moderator | Minh | Đã làm |
+| F-11 | Cấu hình kiểm duyệt: tiêu chí, thẻ ước, hướng dẫn sáng tác | Moderator | Duy | Đã làm |
+| F-12 | Lộ trình đọc và thư viện lộ trình mẫu | Phụ huynh, Moderator, Bé | Duy | Đã làm |
+| F-13 | Phiên đọc: TTS, tương tác khi nghe, luyện đọc to | Bé | Duy | **Một phần** — luyện đọc to bị chặn bởi BE |
+| F-14 | Quiz, EXP, huy hiệu, cây tri thức, sổ tay | Bé | Duy | Đã làm |
+| F-15 | Thống kê doanh thu | Admin | Tuấn | **Một phần** — báo cáo chưa có số liệu doanh thu |
+| F-16 | Báo cáo tài khoản người dùng | Admin | Tuấn | Chưa làm |
+| F-17 | Quản lý gói dịch vụ | Admin | Tuấn | **Một phần** — sửa / bật tắt gói xong; chưa tạo gói, chưa cấu hình quỹ Creator |
+| F-18 | Đối soát thanh toán – lượt | Admin | Khánh | Đã làm |
+| F-19 | Thống kê hàng đợi kiểm duyệt và SLA | Moderator | Khánh | Chưa làm |
+| F-20 | Doanh thu của Creator | Creator | Tuấn | Chưa làm |
+| F-21 | Thống kê lượt đọc của Creator | Creator | Tuấn | Chưa làm |
+| F-22 | Thống kê nội dung của Creator | Creator | Khánh | Chưa làm |
 
-- [x] **Nhiều tranh trong một cảnh** (09/11, có sửa Backend theo yêu cầu) — `GET .../content` trả thêm `illustrations` (1–3 tranh, mỗi tranh kèm đoạn chữ `[startOffset, endOffset)`) và vị trí từng đoạn âm thanh. Màn đọc xếp chồng các tranh, tự chuyển (mờ vào) khi giọng đọc tới đoạn của tranh đó (theo mốc thời gian từng chữ, không có thì ước theo thời gian); bé tự bấm chấm dưới tranh khi tự đọc. Backend cũ không có trường mới thì vẫn hiện 1 tranh. Code: [scenePictures.ts](src/app/features/kid/scenePictures.ts), `ChildReader`, `KidNarrator`. Khung chữ hiện cả cảnh và **highlight đoạn chữ của tranh đang hiện** (từ câu của tranh trong `illustration_beats` tới trước câu của tranh sau); cảnh 1 tranh thì không highlight. Không tô theo đoạn âm thanh / từng chữ (đã thử, bỏ theo yêu cầu). Mốc thời gian từng chữ hiện chưa có vì giọng Gemini TTS không tạo; muốn có thì đổi `AI:TTS` sang `GoogleCloudTTS` + `EnableWordTimings: true`.
-- [x] **Tương tác khi nghe** — `POST /child/reading/sessions/{sessionId}/interactions/{interactionId}/attempts`
-  - 5 loại: Checkpoint, RolePlay, FillBlank, EventOrdering, PicturePrediction ([KidInteraction.tsx](src/app/features/kid/KidInteraction.tsx)).
-  - Hiện khi bé nghe hết cảnh (hoặc khi bé sang cảnh khác / bấm "Em đã đọc xong" mà cảnh còn tương tác chưa trả lời). Bé có thể "Để sau". Không hiện khi bật "Chỉ nghe" hoặc cảnh đã trả lời (`attemptedInSession`).
-  - Câu điền chữ tối đa 100 ký tự. Phản hồi không có chữ "sai"; EventOrdering chưa khớp thì mời nghe lại cảnh hoặc xếp lại, từ lần sai thứ 3 hiện thứ tự đúng.
-  - Chưa làm: với PicturePrediction, backend muốn nghe hết cảnh `revealSceneIndex` rồi mới phát phản hồi; hiện phản hồi hiện ngay sau khi chọn hình.
-- [x] **Chế độ chỉ nghe** — `PUT /child/reading/sessions/{sessionId}/listen-only` (nút "Chỉ nghe" trên đầu màn đọc).
-- [x] **Tưới cây tri thức** — `POST /child/rewards/knowledge-tree/water` (nút "Tưới cây" ở [KidRewards.tsx](src/app/features/kid/KidRewards.tsx), hiện giai đoạn cây, EXP chưa tưới và số cây đã ra hoa).
-- [x] **Ghi âm tóm tắt cuối truyện** — `POST /child/reading/sessions/{sessionId}/summary/recording` ([KidSummary.tsx](src/app/features/kid/KidSummary.tsx), [useRecorder.ts](src/app/features/kid/useRecorder.ts))
-  - Tối đa 3 MB mỗi bản (tự dừng khi gần chạm giới hạn hoặc sau 120 giây); cần quyền micro (`MediaRecorder`); nghe lại trước khi gửi.
-- [x] **Đánh dấu chỗ còn thắc mắc** — `POST /child/reading/sessions/{sessionId}/summary/flags` (chọn tối đa 5 cảnh, cùng [KidSummary.tsx](src/app/features/kid/KidSummary.tsx)).
-- [x] **Phụ huynh nghe lại và xoá tóm tắt** (Luồng 4c) — `GET /ParentStorySummary/{childProfileId}`, `DELETE /ParentStorySummary/{childProfileId}/{summaryId}`. Xong 09/11: tab "Kết quả đọc" của trang Học tập của bé ([ResultsTab.tsx](src/app/features/learning/ResultsTab.tsx)), xoá có popup xác nhận. Thông báo `StorySummarySent` mở trang Học tập của bé.
-- [ ] **Luyện đọc to** — `POST /child/reading/sessions/{sessionId}/segments/{segmentId}/read-aloud` (nhận dạng giọng nói so khớp với văn bản). **Vẫn bị chặn bởi Backend** (kiểm lại 09/11): `ReadingSegmentDto` trong `GET .../content` chỉ có `SegmentOrder`, `Text`, `AudioUrl`, `WordTimingsJson`, không có `segmentId`, nên Frontend không biết gọi đoạn nào. Khi có: ghi âm bằng `useRecorder` (tối đa 1 MB), gửi multipart trường `audio`, hiện kết quả từng chữ (`good` / `retry` / `skipped`).
+**Đã làm 10/22 · Một phần 7/22 · Chưa làm 5/22** (cập nhật 10/11 sau đợt gói và thanh toán). Chưa làm: F-16, F-19, F-20, F-21, F-22 (chưa có cả Backend lẫn Frontend). Phần còn thiếu dồn ở **gói Creator** (WF-02) và **thống kê** (WF-05); WF-01, WF-03, WF-04 gần xong.
 
-Đã nối và có màn hình (trước đợt này): danh sách truyện, phiên đọc, tiến độ, hoàn thành, dấu trang, yêu thích, cảm xúc, quiz, sổ tay, nghĩa của từ, phần thưởng (chỉ xem), điều ước, lộ trình của trẻ. Phản hồi đọc của phụ huynh (`/ParentReadingFeedback`, kèm câu bé trả lời ở các điểm dừng) hiện ở tab "Kết quả đọc".
+---
 
-## 1b. Lộ trình đọc (Luồng 4a) — P2
+## 1. Phụ huynh
 
-Từ 09/11 trang "Lộ trình của con" đổi thành **"Học tập của bé"** ([LearningWorkspace.tsx](src/app/features/learning/LearningWorkspace.tsx)): cột các bé bên trái, 4 tab Tổng quan / Lộ trình / Kết quả đọc / Điều ước. Lộ trình là một tab (không còn popup), lộ trình mẫu nằm ngay dưới, mặc định lọc theo tuổi của bé. Mã trang vẫn là `roadmap` (`#roadmap`) để link và thông báo cũ mở đúng. Không bỏ hẳn lộ trình được vì Backend dùng lộ trình để quyết định bé được đọc truyện nào (`ChildStoryBrowseService`).
+### Tài khoản (F-01, Luồng 1a)
 
-Đối chiếu tài liệu "Luồng 4 – Lộ trình và trải nghiệm đọc của trẻ" (mục 4a và bảng quy tắc) với code ngày 09/11. Cả 25 endpoint của 5 controller lộ trình (`ChildRoadmap`, `MyRoadmap`, `RoadmapLibrary`, `RoadmapTemplate`, `RoadmapReview`) đều đã có hàm service và màn gọi; phần còn lại là quy tắc nghiệp vụ, hiệu năng và quy tắc thiết kế.
+- [x] Đăng ký, xác thực email, đăng nhập, quên / đổi mật khẩu, đổi email, quản lý phiên đăng nhập, xoá tài khoản (xem trước dữ liệu sẽ mất). Auth 20/20 endpoint đã nối.
+- [x] Lịch sử hoạt động của tài khoản, hiện tiếng Việt cho mọi mã hành động ([auditLabels.ts](src/app/lib/auditLabels.ts)).
 
-Đã có:
+### Hồ sơ bé (F-01)
 
-- [x] Phụ huynh xem lộ trình từng bé: bước đang đọc (Open), các bước tiếp theo (Waiting), lịch sử đã đọc / bỏ qua / đã gỡ kèm lý do bỏ qua ([RoadmapWorkspace.tsx](src/app/features/roadmap/RoadmapWorkspace.tsx)).
-- [x] Thêm truyện với vị trí "Đọc tiếp theo" (NextUp) hoặc "Thêm vào cuối" (End), số ngày mong đọc xong, lời nhắn; thêm được từ trang Lộ trình và từ Thư viện ([AddToRoadmapDialog.tsx](src/app/features/roadmap/AddToRoadmapDialog.tsx)).
-- [x] Đổi thứ tự (kéo thả và nút lên/xuống), gỡ một bước, làm trống lộ trình; gỡ và làm trống có popup xác nhận. Bước đã đọc / bỏ qua / đã gỡ không có nút gỡ.
-- [x] Nguồn của từng bước hiện rõ: bố mẹ chọn, lộ trình mẫu, từ điều ước của bé.
-- [x] Thư viện lộ trình mẫu: xem danh sách (ưu tiên đúng nhóm tuổi của bé), xem trước kế hoạch sao chép rồi mới sao chép.
-- [x] Moderator soạn lộ trình mẫu: tạo, sửa, chọn truyện, gửi duyệt, rút lại, nhân bản, lưu trữ ([RoadmapTemplates.tsx](src/app/features/staff/RoadmapTemplates.tsx)); duyệt / yêu cầu sửa / từ chối kèm checklist ở [ReviewPanel.tsx](src/app/features/staff/ReviewPanel.tsx).
-- [x] Bé xem "Hành trình của em": truyện đang mở, truyện sắp tới (khoá), số đã đọc / tổng ([ConnectedKidHome.tsx](src/app/features/kid/ConnectedKidHome.tsx)).
-- [x] Thông báo `roadmap_story_added`, `roadmap_story_removed`, `roadmap_completed` mở thẳng trang Lộ trình.
+- [x] Tạo hồ sơ Draft (tên, ảnh đại diện, nhóm tuổi 6–8 / 9–10, tiếng Việt), sửa hồ sơ.
+- [x] Learning Profile: mức đọc 1–5, chế độ đọc, mục tiêu đọc hiểu, chủ đề yêu thích / cần chú ý.
+- [x] Safety Policy: chủ đề Cho phép / Chặn, chế độ duyệt, độ dài truyện, cổng phụ huynh, điều ước, tương tác khi nghe, trả lời bằng giọng nói (kèm đồng ý mục e), ngưỡng an toàn / độ dễ đọc khi tự duyệt, mức đọc hiểu mục tiêu; đồng ý điều khoản đúng phiên bản.
+- [x] Kích hoạt, tạm dừng, tiếp tục, lưu trữ, khôi phục; lịch sử hoạt động của từng bé.
+- [ ] Nút xoá Learning Profile / Safety Policy (`DELETE /LearningProfile/{id}`, `DELETE /SafetyPolicy/{id}`): FE có hàm, chưa có nút. Quy tắc: không xoá Safety Policy khi hồ sơ Active. Cần chốt có làm không.
 
-Cần làm:
+### Cho bé vào app (F-02)
 
-- [x] **P1 — Chặn thêm truyện khi hồ sơ bé không Active** (xong 09/11). Quy tắc Luồng 4: "hồ sơ không Active thì không thêm truyện được". Hiện nút "Thêm truyện" và nút thêm từ Thư viện vẫn bấm được với bé Draft / Suspended / Archived, chỉ biết bị từ chối sau khi gọi API. Cần tắt nút và nói rõ lý do (ví dụ "Hồ sơ của bé đang tạm dừng"), trong popup chọn nhiều bé thì bỏ chọn được bé không Active.
-- [x] **P2 — Tải lộ trình mẫu chậm (N+1)** (xong 09/11: `useRoadmapTemplates` chỉ tải danh sách, chi tiết tải theo album và được nhớ lại). `guardianService.templates()` tải hết mọi trang của `/RoadmapLibrary` rồi gọi `/RoadmapLibrary/{id}` cho từng mẫu trước khi hiện. Đổi thành: hiện danh sách từ `/RoadmapLibrary` (có phân trang), chỉ gọi chi tiết khi bấm "Xem và thêm".
-- [x] **P2 — Hai popup tự viết markup `dlg-backdrop`** (xong 09/11): popup "Thêm truyện cho bé" trong RoadmapWorkspace và [AddToRoadmapDialog.tsx](src/app/features/roadmap/AddToRoadmapDialog.tsx). Chuyển sang `components/Dialog` để đồng bộ (đóng bằng Esc, focus, animation).
-- [x] **P2 — Gọn trang Lộ trình theo quy tắc thiết kế** (xong 09/11: trang làm lại thành thư viện album + cột các bé, nguồn và hạn đọc thành nhãn): khoảng 16 dòng chữ nhỏ (`<small>`, `sub`) trong RoadmapWorkspace. Gộp nguồn, ngày mở, hạn đọc thành nhãn (pill) thay vì một dòng chữ nhỏ dài; bỏ câu giải thích dưới khung khi có thể.
-- [x] **P3 — Bỏ `DenyCover` "Bạn không đủ quyền hạn…"** (xong hết 09/11: đã gỡ ở LearningTab, ProfileTab và xoá component; các ô nhập vẫn khoá khi không phải chủ hồ sơ) ở RoadmapWorkspace (và LearningTab, ProfileTab): đây là phần còn lại của bộ quyền giám sát. Mỗi bé chỉ còn chủ hồ sơ nên chỉ cần ẩn nút khi không phải chủ.
-- [x] **P3 — Nút "Lưu nháp và thứ tự"** ở RoadmapTemplates chỉ hiện khi sửa thông tin chung hoặc danh sách truyện (xong 09/11; bộ mới chưa lưu thì luôn hiện).
+- [x] Tạo / tạo lại / thu hồi mã EasyLogin (QR).
+- [x] Giao máy cho bé ("Vào trang bé") và giao máy kèm truyện ("Cho bé đọc ngay").
+- [x] Cổng phụ huynh khi bé muốn thoát (nhập lại email + mật khẩu); tải lại trang vẫn ở chế độ của bé.
 
-Ngoài phạm vi (theo mục "Còn thiếu" của tài liệu): Hold Mode, dashboard phụ huynh, báo cáo tuần, gợi ý học thích ứng, can thiệp O2O. Frontend đã gỡ phần giả lập của các mục này (mục 4).
+### Gói dịch vụ và lượt AI (F-03, F-04, F-05)
 
-## 2. Endpoint Backend chưa nối còn lại — P2
+Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS_PAYMENT_API_GUIDE.md` trong repo Backend) + Frontend 10/11.
 
-Lấy từ bản audit ngày 09/11 (39 endpoint). Cần xác nhận từng cái còn dùng hay không rồi mới nối.
+- [x] **Mua gói** ([PaymentSection.tsx](src/app/features/account/PaymentSection.tsx), trang "Nâng cấp gói"): Gói Đọc 49.000 đ, Gói Sáng tạo 99.000 đ (4 lượt AI mỗi chu kỳ), Add-on 29.000 đ (+2 lượt, khoá kèm lý do khi chưa có gói). Nút đổi theo gói đang dùng: Đăng ký / Gia hạn / Nâng cấp / Chuyển gói / Mua thêm lượt, hỏi xác nhận kèm hệ quả (ngày bắt đầu, lượt giữ hay mất).
+- [x] **Thanh toán QR**: popup hiện mã QR, số tiền, nội dung chuyển khoản (nút chép), đếm ngược 15 phút; tự hỏi lại mỗi 5 giây và báo "Thanh toán thành công" khi Paid. QR không tải được thì báo rõ thay vì hiện hình mặc định.
+- [x] **Gói của bạn và lượt còn lại** (`GET /TokenQuota/me`): tên gói, ngày hết hạn, gói đã gia hạn sẵn, tổng lượt AI tách theo gói tháng / Add-on / dùng thử / lượt khác.
+- [x] **Lịch sử giao dịch** (`GET /Payment/transactions/me`, phân trang): trạng thái, ngày trả; giao dịch chờ còn hạn có nút "Tiếp tục thanh toán"; sai số tiền ghi "Đang chờ quản trị viên xử lý".
+- [x] **Chu kỳ 1 tháng, gia hạn sớm nối tiếp, nâng Gói Đọc → Sáng tạo có hiệu lực ngay, nhắc gia hạn 3 ngày trước khi hết, hết hạn về Miễn phí** (BE `SubscriptionCycleWorker`). Thông báo "Thanh toán thành công" và "Gói sắp hết hạn" mở thẳng trang Nâng cấp gói.
+- [x] Studio hết lượt: báo "Bạn đã hết lượt tạo truyện AI" kèm nút "Nâng cấp gói"; nhãn "Còn N lượt AI".
+- [ ] **Quyền lợi theo gói** (BE chưa có, ngoài phạm vi đợt 1): Free chỉ 1 hồ sơ bé, 3 truyện mới của thư viện công khai mỗi tuần, không sao chép lộ trình mẫu; Gói Đọc / Sáng tạo tối đa 4 hồ sơ bé. Trang Nâng cấp gói đã ghi các quyền lợi này nhưng Backend chưa chặn.
+- [ ] Cảnh báo khi xoá tài khoản còn gói đang chạy — BE chưa có.
 
-**Có hàm service, chỉ thiếu màn gọi:**
+### Tạo truyện (F-06, F-07, F-08, F-09)
 
-- [ ] **Truyện có sẵn (Luồng 3b)** — `POST /stories/import`, `/stories/import-file`, `/stories/{id}/existing/{evaluate, adapt, keep-original}`, `GET .../existing/evaluation`, `PUT .../existing/content`. Đủ hàm trong [existingStoryService.ts](src/app/services/existingStoryService.ts) nhưng không màn nào import service này. Riêng `.../existing/archive` bỏ vì đã chốt không còn lưu trữ truyện.
-- [x] **Dán văn bản cho truyện của phụ huynh** (09/11) — nút "Dán văn bản" ở trang Tự viết mở popup, gọi `POST /parent/stories/{id}/imports/preview` rồi điền vào các ô (tách "Tên truyện:", "Nguồn nội dung:"… như khi nhập tệp); chỉ lưu khi bấm "Lưu và tiếp tục". `.../imports/confirm` cố ý chưa dùng vì sẽ lưu thẳng mà phụ huynh chưa xem lại.
-- [ ] **Xoá Learning Profile và Safety Policy** — `DELETE /LearningProfile/{id}`, `DELETE /SafetyPolicy/{id}`. Có `removeLearning`, `removeSafety` trong `profileLifecycleService.ts`, chưa có nút. Quy tắc: không xoá Safety Policy khi hồ sơ đang Active.
-- [x] **Điều ước của phụ huynh** (10/11) — tab Điều ước có phần "Đang tạo truyện" cho điều ước đã chọn "Tạo truyện mới": `GET /parent/wishes/{id}` (lấy lại điều ước) + `GET /parent/wishes/{id}/generation` (tiến độ, 15 giây cập nhật khi đang kiểm tra ý tưởng), nút "Mở trong Studio".
-- [x] **Thẻ ước (Moderator)** (10/11) — nút "AI gợi ý thẻ" trong khung Thẻ ước của truyện (màn Rà soát) gọi `POST /moderation/stories/{id}/wish-cards/ai-match`; mở popup sửa thẻ thì tải bản mới nhất `GET /moderation/wish-cards/{id}` (chỉ thay form khi người dùng chưa sửa).
-- [ ] `GET /ChildProfile/{id}` — chỉ có hàm service, chưa có màn dùng.
+- [x] Tạo truyện bằng AI (Studio): ý tưởng → dàn ý (sửa, viết lại, duyệt, từ chối) → nội dung, từ vựng, quiz, tương tác khi nghe (duyệt từng phần, sửa tay, nhờ AI sửa đoạn) → tranh và giọng đọc (tạo lại từng tranh / đoạn, thử lại) → xác nhận gói media → Ready.
+- [x] Tự viết truyện: soạn, nhập từ tệp, dán văn bản, lưu nhiều phiên bản, trợ lý AI gợi ý, kiểm tra nội dung, xác nhận nội dung, chuẩn bị media, xác nhận cho gia đình.
+- [x] Ảnh bìa truyện; Truyện của tôi theo kệ (Đã xong / Chờ bạn duyệt / Đang soạn).
+- [x] Điều ước của bé: xem điều ước và gợi ý truyện có sẵn, dùng truyện có sẵn, tạo truyện mới bằng AI (xem tiến độ, mở trong Studio), từ chối.
+- [ ] **Một phần — Nhập truyện có sẵn rồi AI đánh giá / chuyển thể / giữ nguyên** (Luồng 3b, `ExistingStoriesController` 8 endpoint): BE có, FE có hàm ([existingStoryService.ts](src/app/services/existingStoryService.ts)) nhưng chưa có màn.
+- [ ] **Luồng gói truyện mới của phụ huynh** (`ParentStoryPackagesController` 11 endpoint: chốt / mở lại nội dung, tạo / sinh / thử lại / sửa / xem trước / xác nhận gói, xác nhận cho nhiều bé một lần): BE có, FE chưa nối. Cần đọc lại Luồng 3 trước khi làm.
+- [ ] Lượt tạo truyện theo tài liệu 6 — xem mục Hệ thống bên dưới.
 
-**Chưa có hàm service:**
+### Cộng đồng (F-10)
 
-- [x] **Giao máy kèm truyện (Luồng 1c)** (09/11) — nút "Cho bé đọc ngay" ở khung chi tiết của truyện đã xong (Thư viện, Truyện của tôi) mở popup [StoryHandoverButton.tsx](src/app/features/kid/StoryHandoverButton.tsx): `GET /ChildAccessCredential/story-handover` cho biết bé nào đọc được (bé gợi ý viền vàng, bé không đọc được mờ kèm lý do); chọn bé thì `POST .../{childId}/handover-story` và `KidMode` mở thẳng truyện (vẫn qua cổng xác nhận người lớn khi thoát).
-- [ ] **Duyệt truyện** — `POST /stories/{id}/review/confirm-package` (chưa có hàm). `PUT /stories/{id}/review/listening/{interactionId}` (sửa tương tác khi nghe) đã có hàm nhưng chưa màn nào gọi.
-- [ ] **Media từng đoạn của Creator (mới)** — `POST /creator/stories/{id}/media/illustration-beats/{beatId}/{upload, generate}`, `POST /creator/stories/{id}/media/segments/{segmentId}/{upload, generate}`.
-- [ ] **Gói truyện của phụ huynh (mới)** — `POST /parent/stories/{id}/content/{finalize, reopen}`, `GET|POST /parent/stories/{id}/packages`, `GET .../packages/{packageId}`, `POST .../packages/{packageId}/{generate, retry, revise, confirm}`, `GET .../packages/{packageId}/preview`, `GET .../packages/{packageId}/assets/{assetId}`, `POST /parent/stories/{id}/family-confirmations/batch`. Đây là luồng mới của Backend, cần đọc lại tài liệu Luồng 3 trước khi làm.
-- [ ] **Tranh truyện tự soạn phía bé** — `GET /child/manual-stories/{confirmationId}/assets/{assetId}` trả file và cần token phiên của bé (thẻ `<img>`/`<audio>` không tự gửi được). **Bị chặn bởi Backend** (kiểm tra 10/11): (1) `ParentStoryPackageReader.PreparationAsync` dựng link bằng `ProxyAsset(x, 0)` nên link luôn là `/manual-stories/0/assets/…` (mã xác nhận 0, endpoint trả không tìm thấy); (2) `ChildMediaUrlSigner` coi link `/api/v1/child/manual-stories/…` là đường dẫn trong kho và đem ký, nên nội dung đọc của truyện gia đình có thể mất tranh / âm thanh. Khi Backend sửa: Frontend tải file kèm token rồi hiện bằng blob URL (FamilyMediaPreview, màn đọc).
+- [x] Kiểm tra điều kiện rồi gửi truyện Ready lên thư viện cộng đồng; rút lại; xem truyện cộng đồng.
+- [x] Báo cáo nội dung không phù hợp.
 
-**Test:**
+### Lộ trình và theo dõi bé (F-12, Luồng 4a, 4c)
 
-- [x] Cập nhật `docs/core-api-coverage.json` (chạy `node scripts/audit-core-api.mjs --write`) và `tests/unit/services/coreCompletion.test.ts` theo 354 endpoint: 311 đã nối, 2 loại trừ, 18 `SERVICE_ONLY`, 23 `MISSING` (09/11, 335/335 test qua).
+- [x] Thêm truyện vào lộ trình (Đọc tiếp theo / Cuối lộ trình), đổi thứ tự, gỡ một bước, làm trống; chặn khi hồ sơ không Active.
+- [x] Thư viện lộ trình mẫu: xem, xem trước, sao chép cho bé.
+- [x] Trang "Học tập của bé": Tổng quan, Lộ trình, Kết quả đọc (phản hồi đọc, câu bé trả lời, bản ghi âm kể lại, chỗ bé còn thắc mắc, xoá bản kể lại), Điều ước.
+- [x] Thông báo (đọc, đánh dấu đã đọc, xoá).
 
-## 3. Quy tắc thiết kế trong CLAUDE.md còn sót — P2
+---
 
-- [x] **Form chuyển sang popup** (xong 09/11): soạn hướng dẫn ([GuideItemEditor.tsx](src/app/features/staff/GuideItemEditor.tsx), mở khi bấm "Thêm hướng dẫn" hoặc tên hướng dẫn, lưu xong tự đóng) và nhập nội dung của Creator ([CreatorImport.tsx](src/app/features/staff/CreatorImport.tsx)).
-- [x] **Nút Lưu chỉ hiện khi có thay đổi** (xong 09/11): "Lưu nháp và thứ tự" (RoadmapTemplates), "Lưu tập nhãn" ([ReviewPanel.tsx](src/app/features/staff/ReviewPanel.tsx)).
-- [x] **Xoá `PersonalStoryEditor.tsx`** (09/11): form tạo truyện riêng cũ, không trang nào hiển thị; việc tự viết truyện đã có trang "Tự viết". `POST /Story` và `PATCH /Story/{id}/publish` chuyển sang `SERVICE_ONLY` (hàm vẫn còn trong `storyManagementService`).
-- [ ] **Tiêu chí vùng xám (Moderator) đang sửa ví dụ bằng cách gõ JSON** ([RubricWorkspace.tsx](src/app/features/staff/RubricWorkspace.tsx)), trái quy tắc "không để hiện JSON ra giao diện". Cần làm lại thành form: mỗi tiêu chí một danh sách ví dụ có nút thêm / sửa / xoá.
-- [x] **Câu báo kỹ thuật** (10/11): bỏ địa chỉ máy chủ và chữ "Backend", "API", "token" khỏi các câu hiện cho người dùng (màn đăng nhập, phiên hết hạn, trang Admin, tiến độ media, xoá danh mục, tự duyệt).
-- [x] **Rút bớt chữ nhỏ dưới component** (09/11): WishItem, BriefForm, ReviewPanel, CreatorImport, Thư viện, CreateChildWizard, trang Tự viết, màn duyệt Studio, Studio, Cài đặt an toàn, đề xuất sửa (ProposalCard), Tài khoản. Trạng thái thành nhãn, hướng dẫn thành khung thông báo, giải thích phụ vào ⓘ (`components/InfoTip`), "chưa có gì" thành khung viền đứt (`.empty-line`). Nhãn tên trường trong ô số liệu / checklist giữ nguyên.
-- [x] **Rà nhãn nút dài** (09/11): rút gọn 6 nhãn trên 24 ký tự ("Tải lại trạng thái truyện / hoàn tất" → "Tải lại", "Thử lại kiểm tra ý tưởng" → "Kiểm tra lại", "Chèn gợi ý vào bản đang sửa" → "Chèn gợi ý", "Đồng bộ bộ hướng dẫn" → "Đồng bộ", "Tạo bản nháp từ phiên bản này" → "Tạo nháp từ bản này"). Giữ "Duyệt dàn ý và viết truyện" (nút chính của Studio). Chưa kiểm tra bằng mắt ở khung hẹp / điện thoại.
-- [x] **Kiểm tra bằng mắt**: chạy app, chụp từng trang, xem bố cục, khoảng cách, tiêu đề nổi bật, đồng bộ giữa các trang, cả theme sáng và tối. Đặc biệt kiểm tra lại: viền mới đậm hơn, tiêu đề mục `.sec-h`, ảnh bìa mẫu `default-cover.svg`, popup mới.
+## 2. Bé (Child Session)
 
-## 4. Dọn code cũ — P3
+- [x] Vào app bằng QR EasyLogin (khoá thiết bị 5 phút khi quét sai nhiều lần) hoặc do phụ huynh giao máy (F-02).
+- [x] Trang chính của bé: truyện hôm nay, hành trình (lộ trình), Truyện, Sổ tay, Điều ước, Phần thưởng.
+- [x] Phiên đọc ListenFirst / ReadFirst, chỉ nghe, đoạn chữ, 1–3 tranh mỗi cảnh tự chuyển theo giọng đọc, giọng đọc TTS, từ vựng, lưu tiến độ, dấu trang, yêu thích (F-13).
+- [x] 5 loại tương tác khi nghe: Checkpoint, RolePlay, FillBlank, EventOrdering, PicturePrediction (F-13).
+- [ ] **Luyện đọc to bằng nhận dạng giọng nói** (F-13) — `POST /child/reading/sessions/{sessionId}/segments/{segmentId}/read-aloud`. **Bị chặn bởi BE** (kiểm lại 10/11 trên `main`): `ReadingSegmentDto` không có `SegmentId`, Frontend không biết gửi cho đoạn nào. Khi BE thêm: ghi âm bằng `useRecorder` (tối đa 1 MB), hiện kết quả từng chữ good / retry / skipped.
+- [x] Hoàn thành truyện, chọn cảm xúc, làm quiz (trắc nghiệm, đúng/sai, trả lời ngắn ≤ 200 ký tự) (F-14).
+- [x] EXP, 7 huy hiệu, cây tri thức 5 giai đoạn (tưới cây), sổ tay từ vựng, nghĩa của từ; đọc xong mở bước lộ trình tiếp theo (F-14).
+- [x] Cuối truyện ghi âm kể lại (đổi sang WAV trước khi gửi) và đánh dấu tối đa 5 cảnh còn thắc mắc.
+- [x] Gửi điều ước bằng thẻ (F-08).
+- [x] Đọc truyện cộng đồng đã duyệt.
+- [ ] **Tranh / âm thanh của truyện gia đình tự soạn** (`GET /child/manual-stories/{confirmationId}/assets/{assetId}`) — **bị chặn bởi BE**: link dựng với mã xác nhận 0 và bị ký nhầm như đường dẫn kho. Khi BE sửa: FE tải file kèm token phiên của bé rồi hiện bằng blob URL.
 
-Đã dọn ngày 09/11 (Backend đã xoá giám sát, Hold Mode và yêu cầu dữ liệu bằng migration `RemoveSupervisionAndRenameParentRole`, `DropRecommendationHoldModeAndIntervention`, `RemoveDataRequests`):
+---
 
-- [x] Bộ quyền giám sát cũ: bỏ `PERMISSIONS`, `DEFAULT_PRESET` khỏi [guardian.ts](src/app/lib/guardian.ts); bỏ các kiểu lời mời, chuyển quyền, yêu cầu quyền khỏi [types/supervision.ts](src/app/types/supervision.ts) (giữ `Permission` và các kiểu truy cập của bé đang dùng); [useMyRole.ts](src/app/features/children/useMyRole.ts) chỉ còn kiểm tra chủ hồ sơ (bỏ `perms`, `loadMyRole`). Chữ thông báo `supervision_*` giữ lại vì Backend vẫn giữ các loại này để đọc thông báo cũ.
-- [x] Hold Mode: xoá `HoldPanel.tsx`, `holdCase`, `unlockHold`, `addHoldNotes`; bỏ khỏi trang lộ trình.
-- [x] Dashboard và báo cáo tuần: xoá `guardianService.dashboard`, `reports`, `completions`, `markCompletionSeen`, `CompletionCard.tsx` và các kiểu `Dashboard`, `ProgressReport`, `ReadCompletion`, `InterventionCase` trong `types/progress.ts`; bỏ các khối Tiến độ, Kết quả học tập, Sở thích, Báo cáo tuần và khối "Xin quyền" trong HomeWorkspace.
-- [x] Chú thích `ProfileSwitcher` ở [KidMode.tsx](src/app/features/kid/KidMode.tsx) sửa thành mã giao máy (handover).
-- [x] Bộ lọc "Dữ liệu" và nhãn `DataRequest` ở [ActivitySection.tsx](src/app/features/account/ActivitySection.tsx) đã gỡ.
-- [x] [notifications.ts](src/app/lib/notifications.ts) đối chiếu với enum `NotificationType` của Backend: bỏ chữ cho các loại Backend không còn (`hold_mode_*`, `progress_report_ready`, `data_request_*`, `totp_reset`, `story_awaiting_approval`, `story_shared`, `assignment_cancelled`, `recommendation_awaiting_review`); thêm `story_summary_sent`.
-- [x] Lỗi ESLint có sẵn ở SafetyWorkspace, CreatorEditor, ChildReadingLibrary: chạy lại eslint không còn lỗi.
-- [x] CSS cuốn sách trong `landing.css` (`ld-book*`, `ld-rain`, `ld-pad`, `ld-frog`, `ld-leaf`, `ld-listen`, `ld-dots`, `ld-stamp`) đã xoá; mọi lớp `ld-` còn lại đều có component dùng.
+## 3. Content Creator
 
-Còn lại:
+- [x] Tạo truyện bằng AI (F-06) và tự viết (F-07): soạn, nhập, lưu phiên bản, trợ lý AI, tự kiểm tra nội dung (An toàn / Vùng xám / Bị chặn), xác nhận nội dung, tranh và giọng đọc, xác nhận gói (F-09).
+- [x] Gửi duyệt công khai: chọn ảnh bìa và nhãn nội dung, rút yêu cầu, gửi lại khi chỉ bị trả về vì nhãn, tạo bản chỉnh sửa, yêu cầu gỡ truyện đã công khai (F-10).
+- [x] Thư viện truyện mẫu, Truyện của tôi.
+- [ ] **Media từng đoạn** (`CreatorMediaUploadsController` 4 endpoint: tải lên / tạo tranh từng beat, giọng đọc từng đoạn) — BE có, FE chưa nối.
+- [ ] **Mua gói Creator, xem lượt tạo truyện và lượt gửi duyệt** (F-03, F-05) — BE chưa có hạn mức tháng (2 lượt AI + 5 lượt gửi; đối tác 6 + 10), gói Creator 99.000 đ (+6 lượt AI, +20 lượt gửi), trừ / hoàn lượt gửi duyệt. FE chưa có màn.
+- [ ] **Doanh thu ước tính** (F-20): quỹ Creator theo tháng (30% Gói Đọc + 10% Gói Sáng tạo), chia theo lượt đọc hợp lệ — chưa có BE và FE.
+- [ ] **Thống kê lượt đọc** (F-21): lượt xem, yêu thích, đọc xong, lượt đọc hợp lệ, tỉ lệ hoàn thành theo truyện và theo kỳ — chưa có BE và FE.
+- [ ] **Thống kê nội dung** (F-22): số truyện theo trạng thái, kết quả gửi duyệt trong kỳ, lượt còn lại, hạng Creator / đối tác và tiến độ 90 ngày — chưa có BE và FE.
+- [ ] Creator tự đăng ký — chưa chốt cách tạo tài khoản Creator (hiện chỉ có tài khoản seed).
 
-- [x] **Trang Tổng quan (`features/home`)** đã xoá (09/11). `WishItem` chuyển sang `features/learning`, phản hồi đọc và tóm tắt viết lại trong tab Kết quả đọc.
-- [x] CSS dashboard (`dashboard.css`, `home.css`) xoá cùng thư mục `features/home`.
+---
 
-## 5. Chờ Backend hoặc cần quyết định — để sau
+## 4. Moderator
 
-- [ ] **Gói tháng và gói bổ sung** (Luồng 2): chờ Backend có `PlanType`, chu kỳ, tách lượt cơ bản/bổ sung. Khi có: sửa [PaymentSection.tsx](src/app/features/account/PaymentSection.tsx) (khoá gói bổ sung khi chưa có gói tháng), thêm màn lịch sử giao dịch (mục 2e), quota Creator (mục 2f).
-- [x] **Backend trả link media đầy đủ cho trẻ** (06/11/2026, sửa ở Backend): thêm `ChildMediaUrlSigner` ký link (hạn 2 giờ) cho nội dung đọc, tương tác, phản hồi, âm thanh từ vựng và tranh trong tóm tắt của phụ huynh. Container `core-api` đã build lại ngày 09/11.
-- [x] Gỡ `NEXT_PUBLIC_MEDIA_BASE_URL` và `lib/mediaUrl.ts` (10/11): biến không được đặt trong `.env.local` nên hàm chỉ trả lại nguyên link; Backend đã ký sẵn link media cho bé (nội dung đọc, phản hồi tương tác). Chưa thử lại với dữ liệu thật vì Docker đang tắt lúc gỡ.
-- [ ] **Lỗi AI phía Backend** (ghi nhận 09/11, Frontend chỉ đổi câu báo lỗi): "Nhận xét bản thảo" hay trả `AI_OUTPUT_INVALID` với bài dài (AI tính sai vị trí ký tự); kiểm tra nội dung của phụ huynh luôn báo `SEMANTIC_SAFETY_REVIEW_REQUIRED` khi chính sách của bé có ngưỡng điểm an toàn; Vertex thỉnh thoảng trả 429 hoặc hết thời gian. Kiểm tra nội dung của Creator chỉ trả An toàn / Vùng xám / Bị chặn, không có lý do hay vị trí.
-- [ ] **Doanh thu của Creator**: chờ Backend có API; sau đó làm lại trang thống kê.
-- [ ] **Trang giới thiệu hiển thị truyện đã phát hành**: chờ API công khai (hiện thư viện cộng đồng cần token).
-- [ ] **Ảnh bìa truyện cộng đồng**: chờ DTO trả ảnh bìa (hiện dùng ảnh mẫu chung). Lộ trình của trẻ (`/MyRoadmap`) đã có `coverImageUrl` và đang dùng ở khung "Hôm nay em đọc".
-- [ ] **Quản lý prompt, chất lượng AI, tài khoản phụ huynh (Admin)**: chờ tài liệu và API; đã gỡ khỏi menu.
-- [ ] **API lựa chọn cho form lộ trình mẫu**: Backend chưa có API trả độ tuổi (enum `AgeBand`), khoảng mức đọc (`RoadmapTemplatePolicy.MinReadingLevel..MaxReadingLevel` = 1–10) và khoảng số ngày mỗi truyện (`MinDays..MaxDays` = 1–30). Frontend đang để cố định cho khớp, có chú thích nguồn trong [RoadmapTemplates.tsx](src/app/features/staff/RoadmapTemplates.tsx). Đề xuất thêm `GET /RoadmapTemplate/options` (chỉ đọc) rồi Frontend dựng lựa chọn từ đó. Chủ đề chính đã lấy từ `GET /ContentCategory`.
-- [ ] **Creator tự đăng ký**: chờ chốt cách có tài khoản Creator (Luồng 5, mục 5g).
+- [x] Hàng đợi kiểm duyệt: lọc trạng thái / loại mục, nhận xử lý, hạn xử lý (quá hạn), phân trang (F-10).
+- [x] Duyệt truyện công khai của Creator: hồ sơ duyệt, checklist, so sánh phiên bản, gắn nhãn, duyệt / yêu cầu sửa / từ chối, trả về chỉ vì nhãn (F-10).
+- [x] Duyệt truyện cộng đồng, vùng xám, báo cáo nội dung (chuyển lên Admin), yêu cầu gỡ của Creator (F-10).
+- [x] Rà soát truyện và lộ trình đã công khai.
+- [x] Tiêu chí vùng xám: Draft → kiểm tra → chấm thử → Active → Retired, có nhật ký (F-11).
+- [ ] **Một phần — Sửa ví dụ của tiêu chí vùng xám đang gõ JSON** ([RubricWorkspace.tsx](src/app/features/staff/RubricWorkspace.tsx)), trái quy tắc "không hiện JSON". Làm lại thành form thêm / sửa / xoá ví dụ.
+- [x] Thẻ ước: tạo, sửa, bật / tắt, gắn với truyện bằng tay hoặc AI gợi ý (F-11).
+- [x] Hướng dẫn sáng tác: soạn nháp, xem trước, phát hành phiên bản mới (F-11).
+- [x] Lộ trình mẫu: tạo, sửa, chọn truyện, gửi duyệt, rút, nhân bản, lưu trữ; duyệt lộ trình mẫu (F-12).
+- [ ] **Thống kê hàng đợi và SLA** (F-19): số mục Pending / Claimed / quá hạn theo kỳ, quyết định theo kết quả và loại mục, số lần gửi lại, số vùng xám; không trả nội dung hay dữ liệu bé; gọi thống kê của Admin thì 403 — chưa có BE và FE.
 
-## 6. Đã chốt (không cần làm)
+---
 
-- Cài đặt an toàn giữ cách tự lưu.
-- Bỏ thao tác "Lưu trữ truyện" của phụ huynh.
-- Trang giới thiệu không dùng dữ liệu mẫu.
-- Trang Nâng cấp gói giữ nguyên cho tới khi Backend làm gói tháng.
+## 5. Administrator
 
-## 7. Đã làm
+- [x] Tài khoản vận hành (mời, kích hoạt, khoá Moderator / Creator).
+- [x] Danh mục nội dung.
+- [x] Ca kiểm duyệt chuyển lên Admin; rà soát thư viện; tiêu chí, hướng dẫn, thẻ ước, lộ trình mẫu (xem).
+- [x] **Thanh toán → Giao dịch** (F-04): mọi giao dịch, lọc trạng thái, tìm theo mã / email / tên, phân trang; "Xác nhận đã trả" cho mọi giao dịch chưa Paid (kể cả Hết hạn, Sai số tiền), gói được áp như webhook.
+- [ ] **Một phần — Báo cáo nghiệp vụ** (F-15): tạo báo cáo theo kỳ, Compiling → Published, xem báo cáo mới nhất. BE chỉ có số truyện tạo / duyệt / từ chối và số phiên đọc xong. Thiếu: doanh thu từ giao dịch Paid theo PaidAt, số giao dịch theo trạng thái, doanh thu theo gói và loại gói, số phụ huynh mua / mua lại, lượt cấp và lượt dùng, quỹ Creator, chặn kỳ chồng nhau.
+- [ ] **Báo cáo tài khoản người dùng** (F-16): tổng phụ huynh cuối kỳ, đăng ký mới, đang hoạt động, bị khoá, số hồ sơ bé — chưa có BE và FE.
+- [ ] **Một phần — Quản lý gói dịch vụ** (F-17, trang "Gói dịch vụ"): xem mọi gói, sửa tên / giá / lượt AI, bật tắt bán (gói cũ không bật lại được), nút Lưu chỉ hiện khi có thay đổi; đổi giá chỉ áp cho giao dịch mới; BE ghi nhật ký. Thiếu (BE): tạo gói mới, quyền lợi theo gói, cấu hình tỉ lệ quỹ Creator, hạn mức Creator và đối tác, thời gian đọc tối thiểu.
+- [x] **Đối soát thanh toán – lượt** (F-18, trang "Thanh toán → Chờ áp gói"): job tìm giao dịch Paid chưa có chu kỳ / lô lượt, Admin bấm "Áp lại gói" (idempotent, không cộng hai lần, ngoại lệ đã xử lý không xử lý lại), có tab Đã xử lý.
+- [x] **Lượt tạo truyện** (UC-L2-08, thay trang "Token Quota" cũ): xem gói và lượt của một tài khoản phụ huynh theo mã, cấp / trừ lượt kèm lý do bắt buộc (trừ có popup xác nhận), lịch sử điều chỉnh.
 
-### 09/11/2026
+---
 
-Commit `a11f770`: trang soạn thủ công của Creator và phụ huynh dùng chung ô soạn (`StoryFields`), Creator có nút Tải tệp mẫu, dịch mã lỗi kiểm tra nội dung của phụ huynh, gợi ý các câu dài nhất khi chưa đủ dễ đọc, dịch `AI_OUTPUT_INVALID`, vòng xoay ở nút "Lấy gợi ý", nút "Lưu cách đọc" chỉ hiện khi có thay đổi, ghi chú trạng thái của Creator không bật thành toast khi mở trang.
+## 6. Hệ thống, SePay và AI
 
-Dọn code cũ ở mục 4 (chưa commit).
+- [x] Tạo giao dịch mã `SEPAY…` kèm QR, Pending 15 phút, chốt giá và số lượt lúc tạo; giao dịch gói và giao dịch Add-on tính riêng, không tạo giao dịch Pending thứ hai cùng loại; chỉ role User mua được (F-03).
+- [x] Webhook SePay có xác thực; khớp số tiền thì Paid, sai thì MismatchAmount; job hết hạn giao dịch Pending sau 15 phút; ghi nhật ký `PaymentCreditFailed` khi áp gói lỗi (F-04).
+- [x] **Áp gói theo loại khi Paid** (F-04): Gói Đọc / Sáng tạo mở chu kỳ 1 tháng hoặc nối tiếp chu kỳ đang chạy, Gói Sáng tạo cấp 4 lượt mỗi chu kỳ, Add-on +2 lượt cho chu kỳ hiện tại; mỗi giao dịch chỉ áp một lần (webhook gửi lại hoặc mark-paid sau đó không cộng thêm).
+- [x] Lượt AI là sổ lô lượt (`credit_lots`): lô gần hết hạn dùng trước; lượt dùng thử 1 lần cho phụ huynh có hồ sơ bé Active; hết lượt trả 409 (F-05).
+- [ ] **Một phần — Lượt tạo truyện AI theo tài liệu 6** (F-05, BE ngoài phạm vi đợt 1). Thiếu:
+  - Giữ lượt khi gửi, chỉ trừ khi AI viết xong nội dung / chuyển thể xong, hoàn lượt khi lỗi, bị chặn hoặc huỷ (hiện trừ ngay khi gửi yêu cầu).
+  - Miễn phí trong một truyện: viết lại dàn ý 3 lần, viết lại nội dung 2 lần, tạo lại 3 tranh.
+  - Tạo media cho truyện tự viết cũng tốn 1 lượt.
+- [ ] **Gói Creator** (F-03, F-04, F-05): hạn mức tháng của Creator (2 lượt AI + 5 lượt gửi; đối tác 6 + 10), gói Creator 99.000 đ (+6 lượt AI, +20 lượt gửi, không hết hạn), trừ / hoàn lượt gửi duyệt — BE chưa có (hiện Creator không bị kiểm tra lượt), FE chưa có màn.
+- [x] Sinh dàn ý, nội dung, học liệu, tranh, giọng đọc bằng worker; thử lại khi lỗi tạm thời; vùng xám chuyển Moderator (F-06, F-09).
 
-Commit `8bfd3ba`: trang "Học tập của bé" thay trang "Lộ trình của con" (xem mục 1b); xoá `RoadmapWorkspace.tsx`, `ChildRoadmapDialog.tsx` và thư mục `features/home`.
+---
 
-Commit `1faaa8c`: popup thêm vào lộ trình làm lại (tự tải kế hoạch, dịch mã cảnh báo, kết quả theo từng bé); nút "Thêm truyện" mở Thư viện với bé chọn sẵn rồi quay về; Thư viện và lộ trình mẫu nhớ dữ liệu trong phiên; "Truyện của tôi" chia kệ theo trạng thái; bỏ trang "Xem và duyệt" (kệ "Chờ bạn duyệt" thay thế); chỉ truyện đã xong mới đọc thử; tách nút "Viết bằng AI" / "Tự viết", căn giữa thanh điều hướng; thanh cuộn màu xanh.
+## 7. Việc kỹ thuật còn lại
 
-Commit `af6f1cd`: trang chính của bé có khung "Hôm nay em đọc", nút tab có chữ; điểm nhấn vàng cho việc cần làm.
+- [ ] Endpoint đã có hàm nhưng chưa màn nào gọi: `GET /ChildProfile/{id}`, `POST /Story`, `PATCH /Story/{id}/publish`, các endpoint duyệt cũ trong `ReviewController` (`review/*/complete`, `review/validation`, `review/approve`, `generation/confirm-content`, `PUT review/listening/{id}`). Xác nhận còn dùng không rồi nối hoặc bỏ.
+- [ ] Trang giới thiệu hiển thị truyện đã phát hành — chờ API công khai (thư viện cộng đồng đang cần token).
+- [ ] Ảnh bìa truyện cộng đồng — chờ DTO trả ảnh bìa.
+- [ ] API lựa chọn cho form lộ trình mẫu (độ tuổi, khoảng mức đọc, số ngày) — đề xuất BE thêm `GET /RoadmapTemplate/options`; FE đang để cố định cho khớp.
+- [ ] Lỗi AI phía BE (ghi nhận 09/11): "Nhận xét bản thảo" trả `AI_OUTPUT_INVALID` với bài dài; kiểm tra nội dung của phụ huynh luôn báo `SEMANTIC_SAFETY_REVIEW_REQUIRED` khi có ngưỡng an toàn; Vertex thỉnh thoảng 429 / hết thời gian.
+- [ ] BE không thống nhất định dạng âm thanh: API ghi âm nhận webm / ogg / mp4 nhưng kho media chỉ lưu WAV / MP3 (FE đang đổi sang WAV trước khi gửi).
+- [ ] Bé tự sáng tác truyện (`ChildCreationEnabled` / `ChildCreationMode` trong Safety Policy) — BE chưa có logic dùng, FE chưa có công tắc; chờ chốt.
+- [ ] Yêu cầu phi chức năng của tài liệu 6 (mục 4): test phân quyền giữa các tài khoản, idempotency thanh toán / lượt (20 request lặp), chịu lỗi AI, khớp số liệu báo cáo; ≥ 50% test chạy trong CI.
 
-Bỏ `DenyCover`, nút Lưu chỉ hiện khi có thay đổi ở RoadmapTemplates và ReviewPanel, cập nhật audit và test (335/335 qua).
+## 8. Đã chốt (không làm)
 
-Rút chữ nhỏ (WishItem, BriefForm, ReviewPanel, Thư viện, CreateChildWizard; thêm `components/InfoTip`), form soạn hướng dẫn và nhập nội dung Creator thành popup, rút gọn 6 nhãn nút dài, xoá `PersonalStoryEditor`, "Truyện của tôi" của Creator chia kệ theo trạng thái, đổi tên nút Creator thành "Viết bằng AI" / "Tự viết". Test `coreCompletion` tăng thời gian chờ lên 30 giây (chạy script audit vài giây, trước đây thỉnh thoảng quá 5 giây khi cả bộ chạy song song). Smoke test viết lại thành bộ gọn [tests/smoke/core-flows.mjs](src/tests/smoke/core-flows.mjs) (11 trường hợp: header không đè khung, Thư viện, Cho bé đọc ngay, Học tập: tổng quan / lộ trình mẫu / thêm truyện qua Thư viện / kết quả đọc / điều ước, Truyện của tôi, Creator dán văn bản, trang chính của bé); bộ cũ 37 trường hợp đã lỗi thời nên xoá. Chạy: `npm run test:smoke` (cần Frontend đang chạy; đặt `FRONTEND_SMOKE_URL` nếu không phải cổng 3107). Ngày 09/11: 11/11 qua. Smoke test bắt được một lỗi: thanh "Đang chọn truyện cho bé" không hiện ở chế độ phát triển (Strict Mode đọc rồi xoá bộ nhớ tạm hai lần), đã sửa ở `learningIntent.ts`.
+- Ngoài phạm vi (tài liệu 6 mục 5): đa ngôn ngữ, nhân bản giọng nói, đọc offline, chi trả / thuế / hoàn tiền cho Creator.
+- Đã bỏ: truyện rẽ nhánh, Hỏi nhân vật, câu thảo luận, Additional Supervisor và bộ 7 quyền, Assignment/Teacher, Hold Mode, dashboard và báo cáo tuần của phụ huynh, gợi ý học thích ứng, can thiệp O2O.
+- Cài đặt an toàn tự lưu; bỏ thao tác "Lưu trữ truyện" của phụ huynh; trang giới thiệu không dùng dữ liệu mẫu.
 
-### 06/11/2026
-
-Phần 1 (tương tác của trẻ): 6/7 mục xong, có test hợp đồng trong `tests/unit/services/childReadingContracts.test.ts`. Audit: 311/335 endpoint đã nối.
-
-Commit `c42db5c`: thang cỡ chữ, viền đậm hơn, bỏ thanh `.ph`, `SafeImage` + ảnh mặc định, ảnh bìa mẫu dùng chung (`coverFor`), toast cho lỗi, popup xác nhận, popup mời nhân sự, vô hiệu hoá, hạn mức, danh mục, nội dung theo Luồng 1–5, xoá trang chưa có API, dọn test gọi service đã xoá.
+Lịch sử các việc đã làm trước 10/11 xem trong git log và bản TASKS.md cũ (`git show 10ec335:TASKS.md`).

@@ -21,6 +21,15 @@ import { useRiseIn } from "@/app/lib/motion";
 import type {AssistanceSelection} from '@/app/features/story-workflow/assistanceSelection';
 
 type StepId = 'write' | 'check' | 'media' | 'publish';
+function EditorNavigation({ prev, next, nextOk, label = 'Bước tiếp theo', onNext, onNavigate }: {
+  prev: StepId | null; next: StepId | null; nextOk: boolean; label?: string;
+  onNext?: () => void | Promise<void>; onNavigate: (step: StepId) => void;
+}) {
+  return <div className="pa-actions bar">
+    {prev && <button className="btn btn-g" onClick={() => onNavigate(prev)}><ArrowLeft className="ic" />Quay lại</button>}
+    {next && <button className="btn btn-p push" disabled={!nextOk} onClick={() => void (onNext ? onNext() : onNavigate(next))}>{label}<ArrowRight className="ic" /></button>}
+  </div>;
+}
 /** Nhãn trạng thái truyện ở đầu trình soạn: [tông pill, chữ]. */
 const STATUS_PILL: Record<string, [string, string]> = {
   Draft: ["draft", "Nháp"], MediaProcessing: ["wait", "Đang tạo media"], MediaReview: ["wait", "Chờ xác nhận media"], Ready: ["ok", "Sẵn sàng"], Archived: ["draft", "Đã lưu trữ"],
@@ -158,12 +167,6 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
   ];
   const active = steps.find(s => s.id === stepId && !s.locked) ?? steps[0];
   const saveThenNext = async () => { if (!dirty || await save()) setStepId('check'); };
-  const nav = (prev: StepId | null, next: StepId | null, nextOk: boolean, label = 'Bước tiếp theo', onNext?: () => void | Promise<void>) => (
-    <div className="pa-actions bar">
-      {prev && <button className="btn btn-g" onClick={() => setStepId(prev)}><ArrowLeft className="ic" />Quay lại</button>}
-      {next && <button className="btn btn-p push" disabled={!nextOk} onClick={() => void (onNext ? onNext() : setStepId(next))}>{label}<ArrowRight className="ic" /></button>}
-    </div>
-  );
   return (
     <>
       <div className="st-card ce-head">
@@ -237,22 +240,22 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
                 )}
               </details>
             </section>
-            {nav(null, 'check', isSaved || (dirty && !!form.content.trim() && !busy && !editorLocked && !conflict), dirty ? 'Lưu và tiếp tục' : 'Bước tiếp theo', dirty ? saveThenNext : undefined)}
+            <EditorNavigation prev={null} next="check" nextOk={isSaved || (dirty && !!form.content.trim() && !busy && !editorLocked && !conflict)} label={dirty ? 'Lưu và tiếp tục' : 'Bước tiếp theo'} onNext={dirty ? saveThenNext : undefined} onNavigate={setStepId}/>
           </div>
 
           <div className="pa-stage" hidden={active.id !== 'check'}>
             <CreatorContentCheck key={`check:${storyId}:${draft.selectedVersionId}`} draft={draft} disabled={busy || dirty || conflict || hasPending || publicationLocked} missing={missing} onWorkingChange={setCheckLocked} onConfirmed={(status) => { mediaState(status); setStepId('media'); }} />
-            {nav('write', 'media', confirmed)}
+            <EditorNavigation prev={'write'} next={'media'} nextOk={confirmed} onNavigate={setStepId}/>
           </div>
 
           <div className="pa-stage" hidden={active.id !== 'media'}>
             <CreatorManualMedia key={`media:${storyId}:${draft.selectedVersionId}`} draft={draft} disabled={busy || dirty || conflict || hasPending || publicationLocked} onWorkingChange={setMediaLocked} onStatus={mediaState} />
-            {nav('check', 'publish', mediaDone)}
+            <EditorNavigation prev={'check'} next={'publish'} nextOk={mediaDone} onNavigate={setStepId}/>
           </div>
 
           <div className="pa-stage" hidden={active.id !== 'publish'}>
             <CreatorPublication storyId={storyId} versionId={draft.selectedVersionId} storyStatus={draft.status} onRevision={() => void open()} onLockChange={setPublicationLocked} showCheck={false} stepNo={4} />
-            {nav('media', null, false)}
+            <EditorNavigation prev="media" next={null} nextOk={false} onNavigate={setStepId}/>
           </div>
         </div>
       </div>

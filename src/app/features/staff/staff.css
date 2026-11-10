@@ -414,3 +414,6 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 .dlg.st-change-dlg .st-form { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
 .st-change-preview { max-height: 180px; overflow-y: auto; }
 .st-change-preview p, .st-change-preview .st-review-meta { overflow-wrap: anywhere; word-break: break-word; }
+/* Cột "Người mua" ở trang Thanh toán của Admin: tên trên, email dưới. */
+.pay-payer { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pay-payer small { font-size: var(--fs-xs); opacity: .75; overflow-wrap: anywhere; }

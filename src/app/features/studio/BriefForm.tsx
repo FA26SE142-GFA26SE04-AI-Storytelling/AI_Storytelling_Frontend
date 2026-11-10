@@ -93,7 +93,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   const outOfQuota = !!quota && !quota.isUnlimited && (quota.remaining ?? 1) <= 0;
   const submitDisabled = !loaded || isBusy || missingText || topicTooLong || outOfQuota;
   const submitReason = !loaded ? "Đang tải cấu hình của bé…"
-    : outOfQuota ? "Bạn đã dùng hết lượt tạo truyện của kỳ này."
+    : outOfQuota ? "Bạn đã hết lượt tạo truyện AI."
     : missingText ? "Hãy nhập ý tưởng và bài học trước."
     : topicTooLong ? `Ý tưởng tối đa ${FREE_TEXT_MAX} ký tự.` : null;
   const formRef = useRiseIn<HTMLFormElement>(".kv, .field, button[type=submit], .btn-p", [!!values && !!context], { delay: 50 });
@@ -206,7 +206,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
             <div className="brief-submit">
               {topicTooLong && <div className="notice err" role="alert" data-inline-notice>Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
               {errorMessage && <div className="notice err" role="alert">{errorMessage}</div>}
-              {outOfQuota && <div className="notice err" role="alert" data-inline-notice>Bạn đã dùng hết lượt tạo truyện của kỳ này.</div>}
+              {outOfQuota && <div className="notice err row" role="alert" data-inline-notice style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}><span>Bạn đã hết lượt tạo truyện AI. Nâng lên Gói Sáng tạo hoặc mua Add-on để tạo thêm.</span><a className="btn btn-s" href="#account-payment">Nâng cấp gói</a></div>}
               <button type="submit" className="btn btn-p brief-go" disabled={submitDisabled} aria-describedby={submitReason ? "brief-go-why" : undefined}>
                 <Sparkles className="ic" aria-hidden />{isBusy ? "Đang gửi ý tưởng…" : "Viết dàn ý"}
               </button>
@@ -215,7 +215,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
                   <CircleAlert aria-hidden />{submitReason}
                 </span>}
                 {quota && !quota.isUnlimited && (
-                  <span className={`pill ${(quota.remaining ?? 0) <= 1 ? "brief-quota-low" : "draft"}`} title="Mỗi truyện có 3 lần sửa bằng AI miễn phí">Còn {quota.remaining ?? 0}/{quota.quotaLimit ?? "?"} lượt</span>
+                  <span className={`pill ${(quota.remaining ?? 0) <= 1 ? "brief-quota-low" : "draft"}`} title="Mỗi truyện có 3 lần sửa bằng AI miễn phí">Còn {quota.remaining ?? 0} lượt AI</span>
                 )}
               </div>
             </div>

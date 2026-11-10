@@ -4,7 +4,7 @@ import "./staff.css";
 import "@/app/features/children/children.css";
 import { useEffect, useState, type ComponentType } from "react";
 import {
-  Activity, BookOpenText, ChartColumn, Coins, FolderOpen, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
+  Activity, BookOpenText, ChartColumn, Coins, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
   Shield, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
@@ -29,7 +29,7 @@ import { CreatorMyStories } from "./CreatorMyStories";
 import { AdminStaff } from "./AdminPeople";
 import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
-import { AdminBusinessReport, AdminPayments, AdminQuota } from "./AdminSystem";
+import { AdminBusinessReport, AdminPayments, AdminPlans, AdminQuota } from "./AdminSystem";
 
 /** Mọi trang nhân viên nhận go (chuyển trang, kèm id truyện cần mở) và target; trang không cần thì bỏ qua. */
 type PageDef = { id: string; label: string; icon: LucideIcon; view: ComponentType<CreatorPageProps>; hint?: string; menuLabel?: string; short?: string };
@@ -61,8 +61,9 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "catalog", label: "Danh mục nội dung", icon: ListChecks, view: AdminCatalog },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
     { id: "business", label: "Báo cáo nghiệp vụ", icon: ChartColumn, view: AdminBusinessReport },
-    { id: "payments", label: "Đối soát thanh toán", icon: Receipt, view: AdminPayments },
-    { id: "quota", label: "Token Quota", icon: Coins, view: AdminQuota },
+    { id: "payments", label: "Thanh toán", icon: Receipt, view: AdminPayments },
+    { id: "plans", label: "Gói dịch vụ", icon: Package, view: AdminPlans },
+    { id: "quota", label: "Lượt tạo truyện", icon: Coins, view: AdminQuota },
     ...ACCOUNT_PAGES,
   ],
   Moderator: [
@@ -92,7 +93,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     { label: "Kiểm duyệt", icon: Inbox, items: ["published", "escalated", "rubrics"] },
     { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards", "catalog"] },
         { label: "Người dùng", icon: Users, items: ["staff"] },
-    { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "quota"] },
+    { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "plans", "quota"] },
   ],
   Moderator: ["queue", "published", "rubrics", "authoring-guides", "templates", "wish-cards"],
   ContentCreator: ["library", "create-ai", "create-manual", "my-stories"],

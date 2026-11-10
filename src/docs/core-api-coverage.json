@@ -139,7 +139,7 @@
         "service": "accountService",
         "operation": "activateStaff",
         "file": "app/services/accountService.ts",
-        "line": 16,
+        "line": 15,
         "callers": [
           "app/components/shell/LoginScreen.tsx"
         ]
@@ -160,7 +160,7 @@
         "service": "accountService",
         "operation": "verifyEmail",
         "file": "app/services/accountService.ts",
-        "line": 11,
+        "line": 10,
         "callers": [
           "app/components/shell/LoginScreen.tsx"
         ]
@@ -189,7 +189,7 @@
         "service": "accountService",
         "operation": "resendVerificationEmail",
         "file": "app/services/accountService.ts",
-        "line": 20,
+        "line": 19,
         "callers": [
           "app/components/shell/LoginScreen.tsx"
         ]
@@ -252,7 +252,7 @@
         "service": "accountService",
         "operation": "changePassword",
         "file": "app/services/accountService.ts",
-        "line": 26,
+        "line": 25,
         "callers": [
           "app/features/account/AccountWorkspace.tsx"
         ]
@@ -325,7 +325,7 @@
         "service": "accountService",
         "operation": "updateProfile",
         "file": "app/services/accountService.ts",
-        "line": 30,
+        "line": 29,
         "callers": [
           "app/features/account/ProfileSection.tsx"
         ]
@@ -346,7 +346,7 @@
         "service": "accountService",
         "operation": "requestEmailChange",
         "file": "app/services/accountService.ts",
-        "line": 35,
+        "line": 34,
         "callers": [
           "app/features/account/ProfileSection.tsx"
         ]
@@ -367,7 +367,7 @@
         "service": "accountService",
         "operation": "confirmEmailChange",
         "file": "app/services/accountService.ts",
-        "line": 39,
+        "line": 38,
         "callers": [
           "app/features/account/ProfileSection.tsx"
         ]
@@ -388,7 +388,7 @@
         "service": "accountService",
         "operation": "getDeleteAccountPreview",
         "file": "app/services/accountService.ts",
-        "line": 43,
+        "line": 42,
         "callers": [
           "app/features/account/DeleteAccountSection.tsx"
         ]
@@ -409,7 +409,7 @@
         "service": "accountService",
         "operation": "deleteAccount",
         "file": "app/services/accountService.ts",
-        "line": 47,
+        "line": 46,
         "callers": [
           "app/features/account/DeleteAccountSection.tsx"
         ]
@@ -451,7 +451,7 @@
         "service": "accountService",
         "operation": "logoutAllDevices",
         "file": "app/services/accountService.ts",
-        "line": 59,
+        "line": 58,
         "callers": [
           "app/features/account/AccountWorkspace.tsx"
         ]
@@ -472,7 +472,7 @@
         "service": "accountService",
         "operation": "listSessions",
         "file": "app/services/accountService.ts",
-        "line": 51,
+        "line": 50,
         "callers": [
           "app/features/account/AccountWorkspace.tsx"
         ]
@@ -493,7 +493,7 @@
         "service": "accountService",
         "operation": "revokeSession",
         "file": "app/services/accountService.ts",
-        "line": 55,
+        "line": 54,
         "callers": [
           "app/features/account/AccountWorkspace.tsx"
         ]
@@ -514,7 +514,7 @@
         "service": "accountService",
         "operation": "myAuditLog",
         "file": "app/services/accountService.ts",
-        "line": 64,
+        "line": 63,
         "callers": []
       },
       {
@@ -774,7 +774,7 @@
         "service": "staffService",
         "operation": "generateReport",
         "file": "app/services/staffService.ts",
-        "line": 41,
+        "line": 36,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -795,7 +795,7 @@
         "service": "staffService",
         "operation": "publishReport",
         "file": "app/services/staffService.ts",
-        "line": 43,
+        "line": 38,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -816,7 +816,7 @@
         "service": "staffService",
         "operation": "latestReport",
         "file": "app/services/staffService.ts",
-        "line": 39,
+        "line": 34,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -2259,7 +2259,7 @@
         "service": "staffService",
         "operation": "createCategory",
         "file": "app/services/staffService.ts",
-        "line": 28,
+        "line": 27,
         "callers": [
           "app/features/staff/AdminCatalog.tsx"
         ]
@@ -2280,7 +2280,7 @@
         "service": "staffService",
         "operation": "updateCategory",
         "file": "app/services/staffService.ts",
-        "line": 31,
+        "line": 30,
         "callers": [
           "app/features/staff/AdminCatalog.tsx"
         ]
@@ -2347,7 +2347,8 @@
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
           "app/features/children/LearningForm.tsx",
-          "app/features/safety/SafetyWorkspace.tsx"
+          "app/features/safety/SafetyWorkspace.tsx",
+          "app/features/story-workflow/useCreatorPublicationLabels.ts"
         ]
       },
       {
@@ -2355,7 +2356,7 @@
         "service": "staffService",
         "operation": "categories",
         "file": "app/services/staffService.ts",
-        "line": 26,
+        "line": 25,
         "callers": [
           "app/features/staff/AdminCatalog.tsx",
           "app/features/staff/CreatorPublication.tsx",
@@ -2528,7 +2529,7 @@
         "service": "creatorInputService",
         "operation": "context",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 15,
+        "line": 20,
         "callers": [
           "app/features/staff/CreatorGeneration.tsx"
         ]
@@ -2549,7 +2550,7 @@
         "service": "creatorInputService",
         "operation": "submit",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 16,
+        "line": 21,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -2570,7 +2571,7 @@
         "service": "creatorInputService",
         "operation": "progress",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 17,
+        "line": 22,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -2591,7 +2592,7 @@
         "service": "creatorInputService",
         "operation": "retry",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 18,
+        "line": 23,
         "callers": [
           "app/features/story-workflow/useCreatorGeneration.ts"
         ]
@@ -3145,7 +3146,7 @@
         "service": "creatorPublicationService",
         "operation": "remove",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 11,
+        "line": 16,
         "callers": [
           "app/features/staff/CreatorPublication.tsx",
           "app/features/staff/RemovalRequestDialog.tsx"
@@ -3167,7 +3168,7 @@
         "service": "creatorPublicationService",
         "operation": "revision",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 12,
+        "line": 17,
         "callers": [
           "app/features/staff/CreatorPublication.tsx"
         ]
@@ -3487,7 +3488,7 @@
         "service": "aiStoryCreationService",
         "operation": "getMediaProgress",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 141,
+        "line": 143,
         "callers": [
           "app/features/staff/CreatorGeneration.tsx",
           "app/features/story-workflow/resumeStory.ts",
@@ -3511,7 +3512,7 @@
         "service": "aiStoryCreationService",
         "operation": "getMediaPackage",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 142,
+        "line": 144,
         "callers": [
           "app/features/created/CoverPickerDialog.tsx",
           "app/features/library/LibraryWorkspace.tsx",
@@ -3535,7 +3536,7 @@
         "service": "aiStoryCreationService",
         "operation": "regenerateIllustration",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 144,
+        "line": 146,
         "callers": [
           "app/features/story-workflow/useMediaPackage.ts"
         ]
@@ -3556,7 +3557,7 @@
         "service": "aiStoryCreationService",
         "operation": "confirmMedia",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 146,
+        "line": 148,
         "callers": [
           "app/features/story-workflow/useMediaPackage.ts",
           "app/features/story-workflow/useStudioCompletion.ts"
@@ -3578,7 +3579,7 @@
         "service": "aiStoryCreationService",
         "operation": "regenerateAudio",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 145,
+        "line": 147,
         "callers": [
           "app/features/story-workflow/useMediaPackage.ts"
         ]
@@ -3599,7 +3600,7 @@
         "service": "aiStoryCreationService",
         "operation": "retryMedia",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 143,
+        "line": 145,
         "callers": [
           "app/features/staff/CreatorGeneration.tsx",
           "app/features/studio/MediaProgress.tsx",
@@ -3622,7 +3623,7 @@
         "service": "aiStoryCreationService",
         "operation": "keepCurrentMedia",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 147,
+        "line": 149,
         "callers": [
           "app/features/story-workflow/useMediaPackage.ts"
         ]
@@ -3664,7 +3665,7 @@
         "service": "staffService",
         "operation": "queue",
         "file": "app/services/staffService.ts",
-        "line": 74,
+        "line": 67,
         "callers": [
           "app/features/staff/ConnectedModerationQueue.tsx"
         ]
@@ -3685,7 +3686,7 @@
         "service": "staffService",
         "operation": "claim",
         "file": "app/services/staffService.ts",
-        "line": 77,
+        "line": 70,
         "callers": [
           "app/features/staff/ConnectedModerationQueue.tsx"
         ]
@@ -3716,7 +3717,7 @@
         "service": "staffService",
         "operation": "openItem",
         "file": "app/services/staffService.ts",
-        "line": 79,
+        "line": 72,
         "callers": []
       }
     ],
@@ -5240,22 +5241,35 @@
     "authorization": "Authenticated",
     "controller": "PaymentController.cs",
     "action": "ListActivePlans",
-    "controllerLine": 23,
+    "controllerLine": 25,
     "evidence": [
-      {
-        "key": "GET /api/v1/Payment/plans",
-        "service": "accountService",
-        "operation": "plans",
-        "file": "app/services/accountService.ts",
-        "line": 69,
-        "callers": []
-      },
       {
         "key": "GET /api/v1/Payment/plans",
         "service": "paymentService",
         "operation": "plans",
         "file": "app/services/paymentService.ts",
-        "line": 4,
+        "line": 6,
+        "callers": [
+          "app/features/account/PaymentSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Payment/transactions/me",
+    "authorization": "Authenticated; Authenticated",
+    "controller": "PaymentController.cs",
+    "action": "ListMyTransactions",
+    "controllerLine": 37,
+    "evidence": [
+      {
+        "key": "GET /api/v1/Payment/transactions/me",
+        "service": "paymentService",
+        "operation": "myTransactions",
+        "file": "app/services/paymentService.ts",
+        "line": 10,
         "callers": [
           "app/features/account/PaymentSection.tsx"
         ]
@@ -5266,25 +5280,17 @@
   {
     "method": "POST",
     "route": "/api/v1/Payment/transactions",
-    "authorization": "Authenticated; Authenticated",
+    "authorization": "Authenticated; Authenticated; Authenticated",
     "controller": "PaymentController.cs",
     "action": "CreateTransaction",
-    "controllerLine": 35,
+    "controllerLine": 50,
     "evidence": [
-      {
-        "key": "POST /api/v1/Payment/transactions",
-        "service": "accountService",
-        "operation": "buyPlan",
-        "file": "app/services/accountService.ts",
-        "line": 74,
-        "callers": []
-      },
       {
         "key": "POST /api/v1/Payment/transactions",
         "service": "paymentService",
         "operation": "create",
         "file": "app/services/paymentService.ts",
-        "line": 5,
+        "line": 7,
         "callers": [
           "app/features/account/PaymentSection.tsx"
         ]
@@ -5298,7 +5304,7 @@
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "SePayWebhook",
-    "controllerLine": 48,
+    "controllerLine": 63,
     "evidence": [],
     "disposition": "SERVER_TO_SERVER"
   },
@@ -5308,14 +5314,108 @@
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "ListMismatched",
-    "controllerLine": 60,
+    "controllerLine": 75,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Payment/transactions/{transactionId}/mark-paid",
+    "authorization": "AllowAnonymous",
+    "controller": "PaymentController.cs",
+    "action": "MarkPaidManually",
+    "controllerLine": 87,
     "evidence": [
       {
-        "key": "GET /api/v1/Payment/mismatched",
-        "service": "staffService",
-        "operation": "mismatchedPayments",
-        "file": "app/services/staffService.ts",
-        "line": 44,
+        "key": "POST /api/v1/Payment/transactions/{}/mark-paid",
+        "service": "adminPaymentService",
+        "operation": "markPaid",
+        "file": "app/services/paymentService.ts",
+        "line": 20,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Payment/admin/transactions",
+    "authorization": "AllowAnonymous",
+    "controller": "PaymentController.cs",
+    "action": "ListAllTransactions",
+    "controllerLine": 99,
+    "evidence": [
+      {
+        "key": "GET /api/v1/Payment/admin/transactions",
+        "service": "adminPaymentService",
+        "operation": "transactions",
+        "file": "app/services/paymentService.ts",
+        "line": 18,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Payment/admin/plans",
+    "authorization": "AllowAnonymous",
+    "controller": "PaymentController.cs",
+    "action": "ListAllPlans",
+    "controllerLine": 111,
+    "evidence": [
+      {
+        "key": "GET /api/v1/Payment/admin/plans",
+        "service": "adminPaymentService",
+        "operation": "plans",
+        "file": "app/services/paymentService.ts",
+        "line": 24,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/Payment/admin/plans/{planId}",
+    "authorization": "AllowAnonymous",
+    "controller": "PaymentController.cs",
+    "action": "UpdatePlan",
+    "controllerLine": 123,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/Payment/admin/plans/{}",
+        "service": "adminPaymentService",
+        "operation": "updatePlan",
+        "file": "app/services/paymentService.ts",
+        "line": 25,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Payment/admin/reconciliation",
+    "authorization": "AllowAnonymous",
+    "controller": "PaymentController.cs",
+    "action": "ListReconciliationExceptions",
+    "controllerLine": 135,
+    "evidence": [
+      {
+        "key": "GET /api/v1/Payment/admin/reconciliation",
+        "service": "adminPaymentService",
+        "operation": "reconciliation",
+        "file": "app/services/paymentService.ts",
+        "line": 22,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -5325,18 +5425,18 @@
   },
   {
     "method": "POST",
-    "route": "/api/v1/Payment/transactions/{transactionId}/mark-paid",
+    "route": "/api/v1/Payment/admin/reconciliation/{exceptionId}/resolve",
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
-    "action": "MarkPaidManually",
-    "controllerLine": 72,
+    "action": "ResolveReconciliationException",
+    "controllerLine": 148,
     "evidence": [
       {
-        "key": "POST /api/v1/Payment/transactions/{}/mark-paid",
-        "service": "staffService",
-        "operation": "markPaid",
-        "file": "app/services/staffService.ts",
-        "line": 45,
+        "key": "POST /api/v1/Payment/admin/reconciliation/{}/resolve",
+        "service": "adminPaymentService",
+        "operation": "resolve",
+        "file": "app/services/paymentService.ts",
+        "line": 23,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -5525,7 +5625,7 @@
         "service": "creatorPublicationService",
         "operation": "submit",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 9,
+        "line": 13,
         "callers": [
           "app/features/staff/CreatorPublication.tsx"
         ]
@@ -5546,7 +5646,7 @@
         "service": "creatorPublicationService",
         "operation": "withdraw",
         "file": "app/services/creatorPublicationService.ts",
-        "line": 10,
+        "line": 15,
         "callers": [
           "app/features/staff/CreatorPublication.tsx"
         ]
@@ -5653,7 +5753,7 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 117,
         "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
+          "app/features/story-workflow/storyReviewBundle.ts"
         ]
       }
     ],
@@ -5706,7 +5806,7 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 119,
         "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
+          "app/features/story-workflow/storyReviewBundle.ts"
         ]
       }
     ],
@@ -5746,7 +5846,7 @@
         "service": "aiStoryCreationService",
         "operation": "partialEditStory",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 136,
+        "line": 138,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -5767,7 +5867,7 @@
         "service": "aiStoryCreationService",
         "operation": "completeStoryReview",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 129,
+        "line": 131,
         "callers": []
       },
       {
@@ -5775,13 +5875,11 @@
         "service": "aiStoryCreationService",
         "operation": "completeReview",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 130,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 132,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "GET",
@@ -5798,7 +5896,7 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 121,
         "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
+          "app/features/story-workflow/storyReviewBundle.ts"
         ]
       }
     ],
@@ -5838,7 +5936,7 @@
         "service": "aiStoryCreationService",
         "operation": "regenerateReviewArtifact",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 137,
+        "line": 139,
         "callers": [
           "app/features/review/ReviewTools.tsx",
           "app/features/story-workflow/useStoryReview.ts"
@@ -5860,13 +5958,11 @@
         "service": "aiStoryCreationService",
         "operation": "completeReview",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 130,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 132,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "GET",
@@ -5883,7 +5979,7 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 123,
         "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
+          "app/features/story-workflow/storyReviewBundle.ts"
         ]
       }
     ],
@@ -5924,7 +6020,7 @@
         "service": "aiStoryCreationService",
         "operation": "regenerateReviewArtifact",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 137,
+        "line": 139,
         "callers": [
           "app/features/review/ReviewTools.tsx",
           "app/features/story-workflow/useStoryReview.ts"
@@ -5946,13 +6042,11 @@
         "service": "aiStoryCreationService",
         "operation": "completeReview",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 130,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 132,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "GET",
@@ -5969,7 +6063,7 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 125,
         "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
+          "app/features/story-workflow/storyReviewBundle.ts"
         ]
       }
     ],
@@ -5988,7 +6082,7 @@
         "service": "aiStoryCreationService",
         "operation": "updateListeningInteraction",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 126,
+        "line": 128,
         "callers": []
       }
     ],
@@ -6007,7 +6101,7 @@
         "service": "aiStoryCreationService",
         "operation": "regenerateListening",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 127,
+        "line": 129,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -6028,7 +6122,7 @@
         "service": "aiStoryCreationService",
         "operation": "completeListening",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 128,
+        "line": 130,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -6049,13 +6143,11 @@
         "service": "aiStoryCreationService",
         "operation": "validateReview",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 131,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 133,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "POST",
@@ -6091,13 +6183,11 @@
         "service": "aiStoryCreationService",
         "operation": "confirmCreatorContent",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 132,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 134,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "POST",
@@ -6112,13 +6202,11 @@
         "service": "aiStoryCreationService",
         "operation": "approveStory",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 133,
-        "callers": [
-          "app/features/story-workflow/useStoryReview.ts"
-        ]
+        "line": 135,
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "POST",
@@ -6133,7 +6221,7 @@
         "service": "aiStoryCreationService",
         "operation": "archiveStory",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 135,
+        "line": 137,
         "callers": [
           "app/features/studio/useStoryPipeline.ts"
         ]
@@ -6154,7 +6242,7 @@
         "service": "aiStoryCreationService",
         "operation": "getProposal",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 138,
+        "line": 140,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -6175,7 +6263,7 @@
         "service": "aiStoryCreationService",
         "operation": "applyProposal",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 139,
+        "line": 141,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -6196,7 +6284,7 @@
         "service": "aiStoryCreationService",
         "operation": "discardProposal",
         "file": "app/services/aiStoryCreationService.ts",
-        "line": 140,
+        "line": 142,
         "callers": [
           "app/features/story-workflow/useStoryReview.ts"
         ]
@@ -6767,7 +6855,7 @@
         "service": "staffService",
         "operation": "staff",
         "file": "app/services/staffService.ts",
-        "line": 51,
+        "line": 44,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -6777,7 +6865,7 @@
         "service": "staffService",
         "operation": "staff",
         "file": "app/services/staffService.ts",
-        "line": 51,
+        "line": 44,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -6798,7 +6886,7 @@
         "service": "staffService",
         "operation": "invite",
         "file": "app/services/staffService.ts",
-        "line": 56,
+        "line": 49,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -6819,7 +6907,7 @@
         "service": "staffService",
         "operation": "resendInvite",
         "file": "app/services/staffService.ts",
-        "line": 61,
+        "line": 54,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -6840,7 +6928,7 @@
         "service": "staffService",
         "operation": "cancelInvite",
         "file": "app/services/staffService.ts",
-        "line": 64,
+        "line": 57,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -6861,7 +6949,7 @@
         "service": "staffService",
         "operation": "deactivate",
         "file": "app/services/staffService.ts",
-        "line": 67,
+        "line": 60,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -6882,7 +6970,7 @@
         "service": "staffService",
         "operation": "reactivate",
         "file": "app/services/staffService.ts",
-        "line": 69,
+        "line": 62,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -7126,25 +7214,15 @@
     "controller": "StoryPackageConfirmationController.cs",
     "action": "Confirm",
     "controllerLine": 19,
-    "evidence": [],
-    "disposition": "MISSING"
-  },
-  {
-    "method": "POST",
-    "route": "/api/v1/TokenQuota/config",
-    "authorization": "Roles = \"Administrator\"",
-    "controller": "TokenQuotaController.cs",
-    "action": "SetConfig",
-    "controllerLine": 23,
     "evidence": [
       {
-        "key": "POST /api/v1/TokenQuota/config",
-        "service": "staffService",
-        "operation": "setQuota",
-        "file": "app/services/staffService.ts",
-        "line": 36,
+        "key": "POST /api/v1/stories/{}/review/confirm-package",
+        "service": "aiStoryCreationService",
+        "operation": "confirmPackage",
+        "file": "app/services/aiStoryCreationService.ts",
+        "line": 127,
         "callers": [
-          "app/features/staff/AdminSystem.tsx"
+          "app/features/story-workflow/useStoryReview.ts"
         ]
       }
     ],
@@ -7152,20 +7230,20 @@
   },
   {
     "method": "GET",
-    "route": "/api/v1/TokenQuota/config",
-    "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "route": "/api/v1/TokenQuota/me",
+    "authorization": "Roles = \"User\"",
     "controller": "TokenQuotaController.cs",
-    "action": "ListConfigs",
-    "controllerLine": 35,
+    "action": "GetMyQuota",
+    "controllerLine": 23,
     "evidence": [
       {
-        "key": "GET /api/v1/TokenQuota/config",
-        "service": "staffService",
-        "operation": "quotaConfigs",
-        "file": "app/services/staffService.ts",
-        "line": 34,
+        "key": "GET /api/v1/TokenQuota/me",
+        "service": "paymentService",
+        "operation": "myQuota",
+        "file": "app/services/paymentService.ts",
+        "line": 12,
         "callers": [
-          "app/features/staff/AdminSystem.tsx"
+          "app/features/account/PaymentSection.tsx"
         ]
       }
     ],
@@ -7174,10 +7252,10 @@
   {
     "method": "GET",
     "route": "/api/v1/TokenQuota/child/{childProfileId}",
-    "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated",
+    "authorization": "Roles = \"User\"; Authenticated",
     "controller": "TokenQuotaController.cs",
     "action": "GetChildStatus",
-    "controllerLine": 46,
+    "controllerLine": 34,
     "evidence": [
       {
         "key": "GET /api/v1/TokenQuota/child/{}",
@@ -7187,6 +7265,69 @@
         "line": 117,
         "callers": [
           "app/features/studio/BriefForm.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/TokenQuota/admin/adjustments",
+    "authorization": "Roles = \"User\"; Authenticated; Roles = \"Administrator\"",
+    "controller": "TokenQuotaController.cs",
+    "action": "Adjust",
+    "controllerLine": 46,
+    "evidence": [
+      {
+        "key": "POST /api/v1/TokenQuota/admin/adjustments",
+        "service": "adminPaymentService",
+        "operation": "adjust",
+        "file": "app/services/paymentService.ts",
+        "line": 27,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/TokenQuota/admin/adjustments",
+    "authorization": "Roles = \"User\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "controller": "TokenQuotaController.cs",
+    "action": "ListAdjustments",
+    "controllerLine": 58,
+    "evidence": [
+      {
+        "key": "GET /api/v1/TokenQuota/admin/adjustments",
+        "service": "adminPaymentService",
+        "operation": "adjustments",
+        "file": "app/services/paymentService.ts",
+        "line": 29,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/TokenQuota/admin/users/{userId}",
+    "authorization": "Roles = \"User\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "controller": "TokenQuotaController.cs",
+    "action": "GetUserQuota",
+    "controllerLine": 71,
+    "evidence": [
+      {
+        "key": "GET /api/v1/TokenQuota/admin/users/{}",
+        "service": "adminPaymentService",
+        "operation": "userQuota",
+        "file": "app/services/paymentService.ts",
+        "line": 26,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
         ]
       }
     ],

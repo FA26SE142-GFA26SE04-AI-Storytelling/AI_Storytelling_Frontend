@@ -15,6 +15,7 @@ export default function StudioScenePreview({scene,text,loading,onReload,actions,
   /** Ảnh đã tải xong; chưa khớp ảnh đang chọn thì hiện vòng tải, ảnh ẩn đi để không lộ ảnh cũ. */
   const [loadedUrl,setLoadedUrl]=useState<string|null>(null);
   const [audioFailed,setAudioFailed]=useState(false);
+  const [audioReload,setAudioReload]=useState(0);
   const illustrations=scene?.illustrations.slice().sort((a,b)=>a.beatOrder-b.beatOrder)??[];
   const image=illustrations[selected];
   const url=image?.status==='Ready'?image.url:null;
@@ -39,9 +40,9 @@ export default function StudioScenePreview({scene,text,loading,onReload,actions,
     <div className="studio-scene-side">
     <div className="studio-media-text">{text}</div>
     <div className="studio-scene-controls">
-      {illustrations.length>1&&<div className="row" aria-label="Chọn tranh trong cảnh">{illustrations.length>1&&illustrations.map((i,index)=><button className="btn btn-s" key={i.beatId} aria-pressed={index===selected} onClick={()=>{setSelected(index);setFailed(null);}}>Tranh {index+1}</button>)}</div>}
+      {illustrations.length>1&&<div className="row" aria-label="Chọn tranh trong cảnh">{illustrations.map((i,index)=><button className="btn btn-s" key={i.beatId} aria-pressed={index===selected} onClick={()=>{setSelected(index);setFailed(null);}}>Tranh {index+1}</button>)}</div>}
       {scene?.audio?.slice().sort((a,b)=>a.segmentOrder-b.segmentOrder).map(a=><div className="row studio-audio-row" key={a.segmentId}>
-        {a.url&&a.status==='Ready'?<audio controls preload="none" src={a.url} aria-label={`Nghe cảnh ${(scene?.sceneIndex??0)+1}, đoạn ${a.segmentOrder+1}`} onError={()=>setAudioFailed(true)}/>:generating&&a.status!=='Ready'?<div className="studio-audio-wait" role="status" aria-label="Đang tạo giọng đọc"><Frog size={48} mood="think"/><b>Đang tạo giọng đọc…</b></div>:<p className="sub">{a.status==='Ready'?'Giọng đọc đã tạo nhưng chưa có URL nghe.':'Đoạn giọng đọc này chưa sẵn sàng.'}</p>}
+        {a.url&&a.status==='Ready'?<audio key={`${a.url}:${audioReload}`} controls preload="none" src={a.url} aria-label={`Nghe cảnh ${(scene?.sceneIndex??0)+1}, đoạn ${a.segmentOrder+1}`} onError={()=>setAudioFailed(true)}/>:generating&&a.status!=='Ready'?<div className="studio-audio-wait" role="status" aria-label="Đang tạo giọng đọc"><Frog size={48} mood="think"/><b>Đang tạo giọng đọc…</b></div>:<p className={a.status==='Ready'?'notice err':'sub'} role="status">{a.status==='Ready'?'Giọng đọc đã tạo nhưng chưa có URL nghe.':'Đoạn giọng đọc này chưa sẵn sàng.'}</p>}
         {actions&&<IconButton icon={AudioLines} label="Tạo lại giọng đọc đoạn này bằng AI" disabled={!canChange} onClick={()=>actions.regenerate('audio',a.segmentId)}/>}
       </div>)}
       {scene&&!scene.audio?.length&&(generating
@@ -49,7 +50,7 @@ export default function StudioScenePreview({scene,text,loading,onReload,actions,
         :<p className="sub">Gói media chưa có giọng đọc cho cảnh này.</p>)}
       {audioFailed&&<p className="notice err" role="alert">Không mở được giọng đọc. Hãy tải lại URL media và thử nghe lại.</p>}
       {failedReplacements.map(r=><div className="notice warn" data-inline-notice key={r.candidateAssetId}><p>Bản tạo lại {r.type==='Illustration'?'tranh':'giọng đọc'} chưa đạt.</p><button className="btn btn-s" disabled={!canChange} onClick={()=>actions?.keepCurrent(r.candidateAssetId)}><Undo2 className="ic" aria-hidden />Giữ bản cũ</button></div>)}
-      {needReload&&<div className="studio-reload"><IconButton icon={RefreshCw} label="Tải lại ảnh và giọng đọc (lấy lại đường dẫn, không tạo mới)" disabled={loading} onClick={onReload}/></div>}
+      {needReload&&<div className="studio-reload"><IconButton icon={RefreshCw} label="Tải lại ảnh và giọng đọc (lấy lại đường dẫn, không tạo mới)" disabled={loading} onClick={()=>{setAudioFailed(false);setAudioReload(n=>n+1);onReload();}}/></div>}
     </div>
     </div>
   </div>;

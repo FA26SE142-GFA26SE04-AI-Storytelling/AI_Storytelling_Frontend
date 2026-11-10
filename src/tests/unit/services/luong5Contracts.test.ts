@@ -3,6 +3,7 @@ import { authService } from '@/app/services/authService';
 import { staffService } from '@/app/services/staffService';
 import { creatorService } from '@/app/services/creatorService';
 import { accountService } from '@/app/services/accountService';
+import { adminPaymentService, paymentService } from '@/app/services/paymentService';
 import type { ImportPreview } from '@/app/types/creator';
 
 const okBody = (data: unknown = null, status = 200) => new Response(JSON.stringify({ success: true, message: 'OK', data }), { status });
@@ -12,13 +13,32 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('Luồng 5 — quản trị và kiểm duyệt', () => {
   it.each([
-    ['hạn mức riêng một tài khoản', () => staffService.setQuota({ scope: 'Personal', userId: 13, quotaLimit: 5, periodStart: '2026-10-01', periodEnd: '2026-10-31' }), '/TokenQuota/config', { scope: 'Personal', userId: 13, quotaLimit: 5, periodStart: '2026-10-01', periodEnd: '2026-10-31' }],
+    ['trừ lượt của một tài khoản kèm lý do', () => adminPaymentService.adjust({ userId: 13, amount: -2, reason: 'Bù trừ lượt cấp nhầm' }), '/TokenQuota/admin/adjustments', { userId: 13, amount: -2, reason: 'Bù trừ lượt cấp nhầm' }],
+    ['sửa giá và lượt của gói', () => adminPaymentService.updatePlan(3, { name: 'Gói Sáng tạo', priceVnd: 109000, aiCredits: 5, isActive: true }), '/Payment/admin/plans/3', { name: 'Gói Sáng tạo', priceVnd: 109000, aiCredits: 5, isActive: true }],
     ['giữ danh sách chặn theo tuổi khi sửa danh mục', () => staffService.updateCategory(2, 'Bạo lực', true, ['Age_6_8', 'Age_9_10']), '/ContentCategory/2', { displayName: 'Bạo lực', isActive: true, defaultBlockedAgeBands: ['Age_6_8', 'Age_9_10'] }],
   ] as const)('%s', async (_name, call, route, payload) => {
     const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody());
     await call();
     expect(String(spy.mock.calls[0][0])).toMatch(new RegExp(`${route.replace(/\//g, '\\/')}$`));
     expect(bodyOf(spy.mock.calls[0][1])).toEqual(payload);
+  });
+
+  it('danh sách giao dịch của Admin gửi trạng thái và từ khoá, bỏ ô trống', async () => {
+    const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody({ items: [], totalCount: 0 }));
+    await adminPaymentService.transactions({ pageIndex: 2, status: 'MismatchAmount', search: '  sepay12 ' });
+    await adminPaymentService.transactions({ pageIndex: 1, status: '', search: '' });
+    const first = new URL(String(spy.mock.calls[0][0])), second = new URL(String(spy.mock.calls[1][0]));
+    expect(first.pathname).toMatch(/\/Payment\/admin\/transactions$/);
+    expect(Object.fromEntries(first.searchParams)).toEqual({ pageIndex: '2', pageSize: '20', status: 'MismatchAmount', search: 'sepay12' });
+    expect(Object.fromEntries(second.searchParams)).toEqual({ pageIndex: '1', pageSize: '20' });
+  });
+
+  it('phụ huynh xem lịch sử giao dịch của mình và lượt còn lại', async () => {
+    const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody({ items: [] }));
+    await paymentService.myTransactions(3, 10);
+    await paymentService.myQuota();
+    expect(String(spy.mock.calls[0][0])).toMatch(/\/Payment\/transactions\/me\?pageIndex=3&pageSize=10$/);
+    expect(String(spy.mock.calls[1][0])).toMatch(/\/TokenQuota\/me$/);
   });
 
   it('hàng đợi kiểm duyệt gửi bộ lọc dạng query', async () => {

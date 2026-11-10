@@ -137,6 +137,8 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 .empty b { font-size: var(--fs-lg); color: var(--text); }
 .err-banner { margin: 10px 12px 0; padding: 8px 10px; border-radius: 10px; font-size: var(--fs-sm); background: color-mix(in srgb, var(--danger) 10%, transparent); color: var(--danger); }
 .notice { font-size: var(--fs-sm); padding: 8px 10px; border-radius: 10px; }
+/* Nút trang trước / trang sau dùng chung (components/Pager). */
+.pager { display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: 700; }
 .notice.err { background: color-mix(in srgb, var(--danger) 12%, transparent); color: var(--danger); }
 .notice.ok { background: color-mix(in srgb, var(--mint) 14%, transparent); color: var(--ok-ink); }
 .notice.warn { background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--warn-ink); }
