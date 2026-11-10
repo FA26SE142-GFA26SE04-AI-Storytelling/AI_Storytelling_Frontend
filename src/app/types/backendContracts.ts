@@ -697,6 +697,9 @@ export interface CreatorDraftDto {
   'updatedAt': string | null;
   'source': string;
   'status': string;
+  'coverImageUrl'?: string | null;
+  'isPublished'?: boolean;
+  'reviewStatus'?: string | null;
 }
 
 export interface CreatorImportFileForm {
@@ -994,9 +997,12 @@ export interface ModerationItemDetailDto {
   'status': string;
   'priority': string;
   'storyId': number | null;
+  'storyTitle': string | null;
   'storyVersionId': number | null;
   'contentReportId': number | null;
   'readingRoadmapId': number | null;
+  'createdByUserId': number | null;
+  'createdByName': string | null;
   'isResubmission': boolean;
   'slaDueAt': string | null;
   'isOverdue': boolean;
@@ -1019,9 +1025,12 @@ export interface ModerationItemSummaryDto {
   'status': string;
   'priority': string;
   'storyId': number | null;
+  'storyTitle': string | null;
   'storyVersionId': number | null;
   'contentReportId': number | null;
   'readingRoadmapId': number | null;
+  'createdByUserId': number | null;
+  'createdByName': string | null;
   'isResubmission': boolean;
   'slaDueAt': string | null;
   'isOverdue': boolean;
@@ -1384,6 +1393,9 @@ export interface PublicReviewPackageDto {
   'storyVersionId': number;
   'versionNo': number;
   'isResubmission': boolean;
+  'createdByUserId'?: number | null;
+  'createdByName'?: string | null;
+  'submittedAt'?: string;
   /** Nhãn do Creator đề xuất khi gửi duyệt; Moderator không tự gắn nhãn cho truyện công khai. */
   'proposedLabels': (PublicReviewLabelDto)[];
   'story': PublicReviewStoryDto;
@@ -1400,8 +1412,19 @@ export interface PublicReviewPackageDto {
   'checklist': PublicReviewChecklistDto;
   'approveBlockers': (ApproveBlockerDto)[];
   'canApprove': boolean;
+  'safetyScan'?: PublicReviewSafetyScanDto | null;
   'previousModeratorName': string | null;
   'reviewHistory': (PublicReviewHistoryEntryDto)[];
+}
+
+export interface PublicReviewSafetyScanDto {
+  'status': string;
+  'zone': string | null;
+  'riskScore': number | null;
+  'phase': string | null;
+  'provider': string | null;
+  'model': string | null;
+  'advisoryFindings': (PublicReviewFlagDto)[];
 }
 
 export interface PublicReviewListeningOptionDto {

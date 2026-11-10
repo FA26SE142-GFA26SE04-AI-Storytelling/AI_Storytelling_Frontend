@@ -6,6 +6,7 @@ import Select from '@/app/components/Select';
 import { staffService } from '@/app/services/staffService';
 import { useAuth } from '@/app/context/AuthContext';
 import type { QueueItem, QueueItemStatus, QueueItemType } from '@/app/types/staff';
+import { formatSubmittedAt, queueSubmitterLabel, queueWorkTitle } from './moderationQueueDisplay';
 import type { ReviewKind } from '@/app/services/moderationService';
 import { Page, Notice, useAction } from './ui';
 import { useRiseIn } from '@/app/lib/motion';
@@ -46,16 +47,44 @@ function dueInfo(iso: string | null, status: string) {
   const time = d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   return { text: `${time}, ${date}`, late: OPEN_STATUSES.includes(status) && diff < 0, done: !OPEN_STATUSES.includes(status), span };
 }
-/** Tóm tắt một mục chưa mở được nội dung: loại, trạng thái, ưu tiên, hạn và nút nhận xử lý. */
-function DetailCard({ item, me, myName, busy, onClaim }: { item: QueueItem; me?: number; myName?: string; busy: boolean; onClaim: () => void }) {
+/** Một dòng trong danh sách hàng đợi: tên tác phẩm nổi bật, tác giả gửi duyệt (với PublicStoryReview), loại/trạng thái/hạn ở dòng phụ. */
+export function QueueItemRow({ item, selected, me, onSelect }: { item: QueueItem; selected: boolean; me?: number | null; onSelect: () => void }) {
+  const due = dueInfo(item.slaDueAt, item.status);
+  const typeLabel = types[item.itemType] ?? item.itemType;
+  const workTitle = queueWorkTitle(item, typeLabel);
+  const authorLine = queueSubmitterLabel(item);
+  const meta = stateOf(item.status, !!due?.late);
+  const mineLabel = item.claimedByUserId === me ? (item.status === 'Claimed' ? ' · bạn đang giữ' : ' · bạn đã xử lý') : '';
+  const dueText = due ? (due.done ? due.text : due.late ? `quá hạn ${due.span}` : `còn ${due.span}`) : 'chưa đặt hạn';
+  return <button className={`st-item${selected ? ' on' : ''}`} onClick={onSelect}>
+    <span className="st-item-top">
+      <b className="st-item-title">{workTitle}</b>
+      <span className={`st-prio ${meta.tone}`} title={meta.label} aria-label={meta.label}><meta.Icon className="ic" /></span>
+    </span>
+    {authorLine && <span className="st-item-author">{authorLine}</span>}
+    <small className={`st-due${due?.late ? ' late' : ''}`}><Clock className="ic" />{typeLabel} · {labels[item.status] ?? item.status}{mineLabel} · {dueText}</small>
+  </button>;
+}
+
+/** Tóm tắt một mục chưa mở được nội dung: tên tác phẩm, tác giả gửi duyệt (với PublicStoryReview), thời điểm gửi, trạng thái và nút nhận xử lý. */
+export function DetailCard({ item, me, myName, busy, onClaim }: { item: QueueItem; me?: number; myName?: string; busy: boolean; onClaim: () => void }) {
   const pr = PRIORITY[item.priority]; const due = dueInfo(item.slaDueAt, item.status);
+  const typeLabel = types[item.itemType] ?? item.itemType;
+  const workTitle = queueWorkTitle(item, typeLabel);
+  const authorLine = queueSubmitterLabel(item);
   return <div className="st-card st-detail">
     <div className="st-detail-head">
       <span className="st-detail-ic" aria-hidden><Inbox className="ic" /></span>
-      <div className="grow"><b className="display">{types[item.itemType] ?? item.itemType}</b></div>
+      <div className="grow">
+        <b className="display st-detail-title">{workTitle}</b>
+        {authorLine && <span className="st-item-author">{authorLine}</span>}
+        <span className="st-review-meta">{typeLabel} · Thời điểm gửi: {formatSubmittedAt(item.createdAt)}</span>
+      </div>
       {(() => { const m = stateOf(item.status, !!due?.late); return <span className={`st-prio ${m.tone}`} title={m.label} aria-label={m.label}><m.Icon className="ic" /></span>; })()}
     </div>
     <div className="st-facts">
+      <div><small>Loại mục</small><b>{typeLabel}</b></div>
+      <div><small>Thời điểm gửi</small><b>{formatSubmittedAt(item.createdAt)}</b></div>
       <div><small>Trạng thái</small><b>{labels[item.status]}{item.claimedByUserId === me ? (item.status === 'Claimed' ? ' · bạn đang giữ' : ' · bạn đã xử lý') : ''}</b></div>
       <div><small>Người xử lý</small><b>{handlerName(item, me, myName)}</b></div>
       <div><small>Mức ưu tiên</small><b>{pr?.label ?? item.priority}</b></div>
@@ -98,15 +127,9 @@ export default function ConnectedModerationQueue({ admin }: { admin?: boolean })
       <Select<QueueItemType | ''> ariaLabel="Loại mục" value={kind} options={[{ value: '', label: 'Tất cả loại mục' }, ...Object.entries(types).map(([k, v]) => ({ value: k as QueueItemType, label: v }))]} onChange={v => { setKind(v); setPageIndex(1); }} />
       <button className="btn btn-g" aria-label="Tải lại" onClick={reload}><RefreshCw className="ic" /></button>
     </div>
-    <div className="st-split fill"><div className="st-list" ref={listRef}>{items.map(i => <button className={`st-item${selected === i.id ? ' on' : ''}`} key={i.id} onClick={() => setSelected(i.id)}>{(() => {
-          const due = dueInfo(i.slaDueAt, i.status);
-          return <>
-            <span className="st-item-top"><b>{types[i.itemType] ?? i.itemType}</b>{(() => { const m = stateOf(i.status, !!due?.late); return <span className={`st-prio ${m.tone}`} title={m.label} aria-label={m.label}><m.Icon className="ic" /></span>; })()}</span>
-            <small className={`st-due${due?.late ? ' late' : ''}`}><Clock className="ic" />{labels[i.status]}{i.claimedByUserId === user?.id ? (i.status === 'Claimed' ? ' · bạn đang giữ' : ' · bạn đã xử lý') : ''} · {due ? (due.done ? due.text : due.late ? `quá hạn ${due.span}` : `còn ${due.span}`) : 'chưa đặt hạn'}</small>
-          </>;
-        })()}</button>)}{!items.length && !error && <p>Không có mục nào ở trang này.</p>}
+    <div className="st-split fill"><div className="st-list" ref={listRef}>{items.map(i => <QueueItemRow key={i.id} item={i} selected={selected === i.id} me={user?.id} onSelect={() => setSelected(i.id)} />)}{!items.length && !error && <p>Không có mục nào ở trang này.</p>}
       <div className="row" style={{ justifyContent: 'center', gap: 12 }}><button className="btn btn-g" aria-label="Trang trước" disabled={pageIndex === 1} onClick={() => setPageIndex(p => p - 1)}><ChevronLeft className="ic" /></button><span className="sub">Trang {pageIndex}</span><button className="btn btn-g" aria-label="Trang tiếp" disabled={!hasNext} onClick={() => setPageIndex(p => p + 1)}><ChevronRight className="ic" /></button></div></div>
-      {current ? canOpen ? <ReviewPanel key={`${user?.id}:${current.id}`} kind={current.itemType as ReviewKind} id={current.id} onDecision={reload} /> : <DetailCard item={current} me={user?.id} myName={(user?.fullName || user?.username)} busy={busy} onClaim={() => void run(() => staffService.claim(current.id), 'Đã nhận mục; chọn trạng thái Đang nhận xử lý để tiếp tục.')} /> : <div className="st-card st-empty"><Frog size={120} mood="think" /><b className="display">Chọn một mục để xem</b><span className="sub">{items.length ? 'Bấm vào một mục bên trái để xem chi tiết và nhận xử lý.' : error ? 'Chưa tải được hàng đợi. Bấm nút tải lại để thử lại.' : 'Hiện chưa có mục nào cần xử lý.'}</span></div>}
+      {current ? canOpen ? <ReviewPanel key={`${user?.id}:${current.id}`} kind={current.itemType as ReviewKind} id={current.id} queueItem={current} onDecision={reload} /> : <DetailCard item={current} me={user?.id} myName={(user?.fullName || user?.username)} busy={busy} onClaim={() => void run(() => staffService.claim(current.id), 'Đã nhận mục; chọn trạng thái Đang nhận xử lý để tiếp tục.')} /> : <div className="st-card st-empty"><Frog size={120} mood="think" /><b className="display">Chọn một mục để xem</b><span className="sub">{items.length ? 'Bấm vào một mục bên trái để xem chi tiết và nhận xử lý.' : error ? 'Chưa tải được hàng đợi. Bấm nút tải lại để thử lại.' : 'Hiện chưa có mục nào cần xử lý.'}</span></div>}
     </div>
   </Page>;
 }
