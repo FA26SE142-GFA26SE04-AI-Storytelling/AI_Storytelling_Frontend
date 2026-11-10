@@ -14,7 +14,7 @@ import PaneSwap from './PaneSwap';
 import KidToday from './KidToday';
 import { Shelf, ShelfRow } from '@/app/features/library/LibraryWorkspace';
 import { coverFor } from '@/app/lib/storyView';
-import { BookOpen, Home, Lock, Moon, Sun } from 'lucide-react';
+import { BookOpen, Home, Lock, LogOut, Moon, RefreshCw, Sun } from 'lucide-react';
 import { useTheme } from '@/app/context/ThemeContext';
 import { circleReveal, usePop } from '@/app/lib/motion';
 
@@ -76,7 +76,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
     if (scope.current !== run) return;
     setBusy(false); if (r.success) setSelected(r.data); else setErrors(v => [...v,r.message]);
   };
-  return <div className={`kid${reading?' kid-focus':''}`} role="dialog" aria-label="Chế độ của bé">{!reading&&<PondBackdrop />}{!reading&&<div className="ktop"><button className="btn btn-s" onClick={onExit}>Thoát</button><b>{nickname || 'Thư viện của em'}</b><button className="btn btn-s" onClick={() => setRevision(v => v + 1)}>Tải lại</button><button className="btn btn-s kid-theme-btn" onClick={e => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'} title={theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}>{theme === 'dark' ? <Sun className="ic" aria-hidden /> : <Moon className="ic" aria-hidden />}</button></div>}
+  return <div className={`kid${reading?' kid-focus':''}`} role="dialog" aria-label="Chế độ của bé">{!reading&&<PondBackdrop />}{!reading&&<div className="ktop"><button className="btn btn-s" onClick={onExit}><LogOut className="ic" aria-hidden />Thoát</button><b>{nickname || 'Thư viện của em'}</b><button className="btn btn-s icon-only" onClick={() => setRevision(v => v + 1)} aria-label="Tải lại" title="Tải lại"><RefreshCw className="ic" aria-hidden /></button><button className="btn btn-s kid-theme-btn" onClick={e => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối'} title={theme === 'dark' ? 'Giao diện sáng' : 'Giao diện tối'}>{theme === 'dark' ? <Sun className="ic" aria-hidden /> : <Moon className="ic" aria-hidden />}</button></div>}
     <div className="kscroll"><div className="khome">
       {ended ? <section ref={endedRef} className="ksection kid-ended" role="status"><Frog mood="idle" size={150} /><h2 className="display">Phiên đọc đã kết thúc</h2><p>Em nhờ bố mẹ mở lại nhé.</p><button className="btn btn-p" onClick={onExit}><Home className="ic" aria-hidden />Về với bố mẹ</button></section> : <>
         <ChildReadingLibrary key={childId} childId={childId} community={selected} story={startStory} onStoryOpened={() => setStartStory(null)} unlockTitle={titleOf(lock.unlockStoryId)} onLockChange={setLock} onPaneChange={setPane} onCommunityOpened={() => setSelected(null)} onReadingChange={setReading} hero={<KidToday roadmap={roadmap} nickname={nickname} busy={busy} onRead={(storyId) => setStartStory({ storyId })} />}/>

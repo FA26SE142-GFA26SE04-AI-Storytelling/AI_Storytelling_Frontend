@@ -390,3 +390,11 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 
 /* Form trong popup (soạn hướng dẫn, nhập nội dung của Creator): xếp dọc, cách đều. */
 .st-guide-form, .st-import { display: flex; flex-direction: column; gap: 14px; border: 0; padding: 0; margin: 0; min-width: 0; }
+
+/* Thanh lọc của Tiêu chí vùng xám: ô chọn chiếm cả hàng để chữ không bị xuống dòng, các nút xuống hàng dưới. */
+.st-rubric-bar { flex-wrap: wrap; }
+.st-rubric-bar .sel { flex: 1 0 100%; }
+
+/* Hàng nút/ô nhập được phép xuống dòng khi màn hình hẹp. */
+.st-wrap { flex-wrap: wrap; }
+.st-wrap > .inp[type="date"] { flex: 1 1 150px; min-width: 0; }

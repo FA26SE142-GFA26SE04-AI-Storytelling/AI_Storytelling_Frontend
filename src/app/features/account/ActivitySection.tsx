@@ -58,7 +58,7 @@ export default function ActivitySection({ childId }: { childId?: number }) {
     <div className="row act-head"><h3 className="display grow" style={{ margin: 0 }}>Lịch sử hoạt động</h3>
       <Select<Group> className="act-filter" ariaLabel="Lọc lịch sử" value={group} options={GROUPS.map(g => ({ value: g.value, label: g.label }))} onChange={(v) => { setGroup(v); setPage(1); }} />
       <button className="btn btn-g" aria-label="Tải lại nhật ký" onClick={()=>setRefresh(n=>n+1)}><RefreshCw className="ic" /></button></div>
-    {error && <p className="notice err" role="alert" data-inline-notice>{error}</p>}
+    {error && <p className="notice err" role="alert">{error}</p>}
     {items === null && !error && <p className="sub">Đang tải…</p>}
     {rows.map(item => <div className="act-row" key={item.id}>
       <b>{ACTION[item.action] ?? item.action}</b>

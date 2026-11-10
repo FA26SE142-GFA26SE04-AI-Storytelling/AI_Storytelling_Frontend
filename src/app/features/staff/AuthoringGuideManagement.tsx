@@ -8,6 +8,11 @@ import type { PagedResult } from '@/app/types/backendContracts';
 import GuideItemEditor, { GUIDE_GROUPS, GUIDE_PURPOSES } from './GuideItemEditor';
 import { Page } from './ui';
 import Dialog from '@/app/components/Dialog';
+import IconButton from '@/app/components/IconButton';
+import Frog from '@/app/components/brand/Frog';
+import { ChevronLeft, ChevronRight, FilePlus2, RefreshCw } from 'lucide-react';
+
+const STATUS: Record<string, string> = { Draft: 'Bản nháp', Published: 'Đã phát hành' };
 
 export default function AuthoringGuideManagement() {
   const h = useGuideManagement(); const model = h.overview;
@@ -45,10 +50,11 @@ export default function AuthoringGuideManagement() {
   const previewValid = preview?.revisionToken === model?.revisionToken && !!preview && !dirty;
   return <Page title="Hướng dẫn sáng tác cho phụ huynh">
     {h.note && <p className="notice" role="status">{h.note}</p>}
-    {h.blocked && <p className="notice" role="status">Dữ liệu đã đổi hoặc chưa rõ kết quả thao tác. Đồng bộ trước khi sửa tiếp; nội dung đang soạn vẫn được giữ.</p>}
-    <button className="btn btn-s" disabled={h.busy || reading} onClick={() => void load()} title="Đồng bộ bộ hướng dẫn">Đồng bộ</button>
+    {h.blocked && model && <p className="notice warn" role="status">Dữ liệu đã đổi hoặc chưa rõ kết quả thao tác. Đồng bộ trước khi sửa tiếp; nội dung đang soạn vẫn được giữ.</p>}
+    <div className="row"><button className="btn btn-s" disabled={h.busy || reading} onClick={() => void load()} title="Tải lại bộ hướng dẫn mới nhất"><RefreshCw className="ic" />Đồng bộ</button></div>
+    {!model && h.blocked && <div className="st-card st-empty"><Frog size={110} mood="think" /><b className="display">Chưa tải được bộ hướng dẫn</b></div>}
     {model && <><div className="st-card"><h3>Bản đang phát hành: {model.published?.version.catalogVersion ?? 'Chưa có'}</h3><p>{model.locale} · {model.published?.items.length ?? 0} hướng dẫn</p>
-      {!model.draft && <button className="btn btn-p" disabled={disabled || !model.published} onClick={() => void write(() => api.createDraft(null))}title="Tạo bản nháp từ bản đang dùng">Tạo bản nháp</button>}
+      {!model.draft && <div className="row"><button className="btn btn-p" disabled={disabled || !model.published} onClick={() => void write(() => api.createDraft(null))} title="Tạo bản nháp từ bản đang dùng"><FilePlus2 className="ic" />Tạo bản nháp</button></div>}
     </div>
     {model.draft && <><div className="st-card"><h3>Bản nháp: {model.draft.version.catalogVersion}</h3>
       <div className="row"><button className="btn btn-s" disabled={disabled} onClick={() => select(null)}>Thêm hướng dẫn</button>
@@ -70,8 +76,8 @@ export default function AuthoringGuideManagement() {
       <button className="btn btn-ok" disabled={disabled || !previewValid} onClick={async () => { if (await confirmDialog('Phát hành cả bộ hướng dẫn này cho phụ huynh?')) void write(() => api.publish(model.revisionToken)); }}>Phát hành</button></section>
     </>}
     </>}
-    <section className="st-card"><h3>Lịch sử bộ hướng dẫn</h3>{history?.items.map(v => <button className="btn btn-s" key={v.versionId} disabled={disabled} onClick={() => { setReading(true); void api.version(v.versionId).then(r => { setReading(false); if (r.success) setVersion(r.data); else h.setNote(r.message); }); }}>{v.catalogVersion} · {v.status}</button>)}
-      <div className="row"><button className="btn btn-s" disabled={page === 1 || disabled} onClick={() => setPage(p => p - 1)}>Trước</button><button className="btn btn-s" disabled={!history?.hasNextPage || disabled} onClick={() => setPage(p => p + 1)}>Tiếp</button></div>
+    <section className="st-card"><h3>Lịch sử bộ hướng dẫn</h3>{history?.items.map(v => <button className="btn btn-s" key={v.versionId} disabled={disabled} onClick={() => { setReading(true); void api.version(v.versionId).then(r => { setReading(false); if (r.success) setVersion(r.data); else h.setNote(r.message); }); }}>{v.catalogVersion} · {STATUS[v.status] ?? v.status}</button>)}
+      <div className="row"><IconButton icon={ChevronLeft} label="Trang trước" className="btn btn-g" disabled={page === 1 || disabled} onClick={() => setPage(p => p - 1)} /><span className="sub">Trang {page}</span><IconButton icon={ChevronRight} label="Trang sau" className="btn btn-g" disabled={!history?.hasNextPage || disabled} onClick={() => setPage(p => p + 1)} /></div>
       {version && <article><h4>{version.version.catalogVersion}</h4>{version.items.map(g => <p key={g.id}><b>{g.title}</b> · {g.instruction}</p>)}{!model?.draft && version.version.status === 'Published' && <button className="btn btn-s" disabled={disabled} onClick={() => void write(() => api.createDraft(version.version.versionId))}>Tạo nháp từ bản này</button>}</article>}
     </section>
   </Page>;

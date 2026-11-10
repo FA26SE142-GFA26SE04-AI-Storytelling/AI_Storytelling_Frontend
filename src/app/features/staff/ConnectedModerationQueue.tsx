@@ -92,7 +92,7 @@ export default function ConnectedModerationQueue({ admin }: { admin?: boolean })
   const current = items.find(i => i.id === selected);
   const canOpen = current && current.itemType in types && ((current.status === 'Claimed' && current.claimedByUserId === user?.id) || (current.status === 'Escalated' && current.itemType === 'ContentReport' && user?.role === 'Administrator'));
   return <Page fit title="Hàng đợi kiểm duyệt">
-    <Notice note={note} />{error && <div className="notice err" role="alert" data-inline-notice>{error}</div>}
+    <Notice note={note} />{error && <div className="notice err" role="alert">{error}</div>}
     <div className="st-filters">
       <Select<QueueItemStatus> ariaLabel="Trạng thái" value={status} options={statuses.map(s => ({ value: s, label: labels[s] }))} onChange={v => { setStatus(v); setPageIndex(1); }} />
       <Select<QueueItemType | ''> ariaLabel="Loại mục" value={kind} options={[{ value: '', label: 'Tất cả loại mục' }, ...Object.entries(types).map(([k, v]) => ({ value: k as QueueItemType, label: v }))]} onChange={v => { setKind(v); setPageIndex(1); }} />
@@ -106,7 +106,7 @@ export default function ConnectedModerationQueue({ admin }: { admin?: boolean })
           </>;
         })()}</button>)}{!items.length && !error && <p>Không có mục nào ở trang này.</p>}
       <div className="row" style={{ justifyContent: 'center', gap: 12 }}><button className="btn btn-g" aria-label="Trang trước" disabled={pageIndex === 1} onClick={() => setPageIndex(p => p - 1)}><ChevronLeft className="ic" /></button><span className="sub">Trang {pageIndex}</span><button className="btn btn-g" aria-label="Trang tiếp" disabled={!hasNext} onClick={() => setPageIndex(p => p + 1)}><ChevronRight className="ic" /></button></div></div>
-      {current ? canOpen ? <ReviewPanel key={`${user?.id}:${current.id}`} kind={current.itemType as ReviewKind} id={current.id} onDecision={reload} /> : <DetailCard item={current} me={user?.id} myName={(user?.fullName || user?.username)} busy={busy} onClaim={() => void run(() => staffService.claim(current.id), 'Đã nhận mục; chọn trạng thái Đang nhận xử lý để tiếp tục.')} /> : <div className="st-card st-empty"><Frog size={120} mood="think" /><b className="display">Chọn một mục để xem</b><span className="sub">{items.length ? 'Bấm vào một mục bên trái để xem chi tiết và nhận xử lý.' : 'Hiện chưa có mục nào cần xử lý.'}</span></div>}
+      {current ? canOpen ? <ReviewPanel key={`${user?.id}:${current.id}`} kind={current.itemType as ReviewKind} id={current.id} onDecision={reload} /> : <DetailCard item={current} me={user?.id} myName={(user?.fullName || user?.username)} busy={busy} onClaim={() => void run(() => staffService.claim(current.id), 'Đã nhận mục; chọn trạng thái Đang nhận xử lý để tiếp tục.')} /> : <div className="st-card st-empty"><Frog size={120} mood="think" /><b className="display">Chọn một mục để xem</b><span className="sub">{items.length ? 'Bấm vào một mục bên trái để xem chi tiết và nhận xử lý.' : error ? 'Chưa tải được hàng đợi. Bấm nút tải lại để thử lại.' : 'Hiện chưa có mục nào cần xử lý.'}</span></div>}
     </div>
   </Page>;
 }

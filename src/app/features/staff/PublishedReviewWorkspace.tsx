@@ -5,7 +5,7 @@ import { moderationService as service } from '@/app/services/moderationService';
 import { useAuth } from '@/app/context/AuthContext';
 import Frog from '@/app/components/brand/Frog';
 import Select from '@/app/components/Select';
-import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Flag, Send } from 'lucide-react';
+import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Flag, RefreshCw, Send } from 'lucide-react';
 import Dialog from '@/app/components/Dialog';
 import { coverFor } from '@/app/lib/storyView';
 import '@/app/features/library/library.css';
@@ -27,6 +27,8 @@ export default function PublishedReviewWorkspace() {
   const [attachmentUrl, setAttachmentUrl] = useState('');
   const [reportOpen, setReportOpen] = useState(false);
   const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false);
+  // Tải danh sách lỗi thì không kẹt "Đang tải…" mà hiện nút thử lại.
+  const [failed, setFailed] = useState(false); const [retry, setRetry] = useState(0);
   const scope = useRef(Symbol());
   const grantView = async () => {
     if (busy || !story && !roadmap) return;
@@ -38,10 +40,10 @@ export default function PublishedReviewWorkspace() {
     setBusy(false); setMessage(r.success&&r.data?`Quyền rà soát có hiệu lực đến ${new Date(r.data.expiresAt).toLocaleString('vi-VN')}.`:r.message);
   };
   useEffect(() => { const run = Symbol(); scope.current = run; const controller = new AbortController();
-    setList(null); setStory(null); setRoadmap(null); setMessage('');
-    void service.published({source,ageBand:ageBand||null,pageIndex:page,pageSize:20},controller.signal).then(r => { if (scope.current === run) { setList(r.data); if (!r.success) setMessage(r.message); } });
+    setList(null); setStory(null); setRoadmap(null); setMessage(''); setFailed(false);
+    void service.published({source,ageBand:ageBand||null,pageIndex:page,pageSize:20},controller.signal).then(r => { if (scope.current === run) { setList(r.data); if (!r.success) { setFailed(true); setMessage(r.message); } } });
     return () => { scope.current = Symbol(); controller.abort(); };
-  }, [source,ageBand,page,user?.id]);
+  }, [source,ageBand,page,user?.id,retry]);
   const openStory = async (id: number) => { const run = scope.current; setBusy(true); const r = await service.publishedStory(id); if (scope.current !== run) return; setBusy(false); if (r.success) setStory(r.data); else setMessage(r.message); };
   const open = async (item: B.PublishedContentItemDto) => {
     setStory(null); setRoadmap(null); setDescription(''); setAttachmentUrl(''); setMessage('');
@@ -66,7 +68,7 @@ export default function PublishedReviewWorkspace() {
           <div className="st-group"><div className="row"><button className="btn btn-s" disabled={busy} onClick={()=>void grantView()}title="Ghi nhận lượt xem để rà soát"><Eye className="ic" />Bắt đầu rà soát</button></div></div>
           {roadmap && <section><div className="st-group"><h3>{roadmap.name}</h3><p>{roadmap.description}</p></div><div className="st-group"><b className="st-group-title">Truyện trong lộ trình</b><div className="row">{roadmap.stories.map(s => <button className="btn btn-s" disabled={busy} key={s.storyId} onClick={() => void openStory(s.storyId)}>{s.title}</button>)}</div></div></section>}
           {story && <section><div className="st-group"><h3>{story.story.title}</h3><p style={{whiteSpace:'pre-wrap'}}>{story.version?.content}</p></div><div className="st-group"><details open><summary>Học liệu</summary><LearningMaterials vocabulary={story.vocabulary} quizzes={story.quizzes} /></details></div>
-            {(user?.role==='Moderator'||user?.role==='Administrator') && <StoryWishCards key={story.story.storyId} storyId={story.story.storyId}/>}
+            {(user?.role==='Moderator'||user?.role==='Administrator') && <StoryWishCards key={story.story.storyId} storyId={story.story.storyId} versionId={story.version?.versionId}/>}
             {user?.role==='Moderator' && <div className="st-group"><b className="st-group-title">Báo cáo nội dung</b><div className="row"><button className="btn btn-s" disabled={busy} onClick={() => setReportOpen(true)}><Flag className="ic" />Tạo mục rà soát</button></div></div>}
           </section>}
           </div>
@@ -94,7 +96,9 @@ export default function PublishedReviewWorkspace() {
           <span className="bk-title">{i.title}</span>
           <span className="bk-meta">{i.storyCount != null ? `${i.storyCount} truyện · ` : ''}{i.ageBand}{i.labels.length ? ` · ${i.labels.map(l => l.displayName).join(', ')}` : ''}</span>
         </button>)}
-      </div> : list ? <div className="empty"><Frog size={110} mood="think" /><b className="display">Không có nội dung nào</b></div> : <p className="sub" role="status">Đang tải…</p>}
+      </div> : list ? <div className="empty"><Frog size={110} mood="think" /><b className="display">Không có nội dung nào</b></div>
+        : failed ? <div className="empty"><Frog size={110} mood="think" /><b className="display">Chưa tải được nội dung</b><button className="btn btn-s" onClick={() => setRetry(n => n + 1)}><RefreshCw className="ic" />Thử lại</button></div>
+        : <p className="sub">Đang tải…</p>}
       <div className="row" style={{ justifyContent: 'center', gap: 12 }}><button className="btn btn-g" aria-label="Trang trước" title="Trang trước" disabled={busy || page === 1} onClick={() => setPage(p => p - 1)}><ChevronLeft className="ic" /></button><span>Trang {page}</span><button className="btn btn-g" aria-label="Trang tiếp" title="Trang tiếp" disabled={busy || !list?.hasNextPage} onClick={() => setPage(p => p + 1)}><ChevronRight className="ic" /></button></div>
     </div>}
   </Page>;

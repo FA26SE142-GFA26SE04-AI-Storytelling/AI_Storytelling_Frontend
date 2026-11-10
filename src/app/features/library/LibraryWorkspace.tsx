@@ -385,7 +385,7 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
     <AsideContext.Provider value={aside}>
     <section className="ws dock lib" data-aside={asideCollapsed ? "collapsed" : undefined}>
       <div className="pane">
-        {error && <div className="err-banner" role="alert">{error}</div>}
+        {error && <div className="notice err" role="alert">{error}</div>}
         <div className="lib-scroll">
           {pickKid && (
             <div className="lib-pickbar" role="status">

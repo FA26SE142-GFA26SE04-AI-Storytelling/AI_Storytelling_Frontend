@@ -26,12 +26,12 @@ export function AdminQuota() {
     <Page title="Token Quota" sub="Số lượt tạo truyện mỗi kỳ.">
       <Notice note={note} />
       <div className="st-card st-scroll">
-        <table className="st-table">
+        <table className="st-table stack-table">
           <thead><tr><th>Phạm vi</th><th>Áp cho</th><th>Hạn mức</th><th>Đã dùng</th><th>Kỳ</th></tr></thead>
           <tbody>
             {list.map((q) => (
-              <tr key={q.id}><td>{SCOPE[q.scope] ?? q.scope}</td><td>{q.userId ? `Tài khoản #${q.userId}` : "—"}</td>
-                <td>{q.quotaLimit}</td><td>{q.quotaUsed}{q.quotaUsed > q.quotaLimit && <span className="pill flag" style={{ marginLeft: 6 }}>Vượt</span>}</td><td>{fmtDay(q.periodStart)} – {fmtDay(q.periodEnd)}</td></tr>
+              <tr key={q.id}><td data-label="Phạm vi">{SCOPE[q.scope] ?? q.scope}</td><td data-label="Áp cho">{q.userId ? `Tài khoản #${q.userId}` : "—"}</td>
+                <td data-label="Hạn mức">{q.quotaLimit}</td><td data-label="Đã dùng">{q.quotaUsed}{q.quotaUsed > q.quotaLimit && <span className="pill flag" style={{ marginLeft: 6 }}>Vượt</span>}</td><td data-label="Kỳ">{fmtDay(q.periodStart)} – {fmtDay(q.periodEnd)}</td></tr>
             ))}
           </tbody>
         </table>
@@ -79,7 +79,7 @@ export function AdminBusinessReport() {
       <Notice note={note} />
       <div className="st-card">
         <h3>Tổng hợp báo cáo mới</h3>
-        <div className="row">
+        <div className="row st-wrap">
           <input className="inp" type="date" value={period.start} onChange={(e) => setPeriod({ ...period, start: e.target.value })} aria-label="Từ ngày" />
           <input className="inp" type="date" value={period.end} onChange={(e) => setPeriod({ ...period, end: e.target.value })} aria-label="Đến ngày" />
           <button className="btn btn-p" disabled={busy} onClick={() => void run(async () => { const r = await staffService.generateReport(period.start, period.end); if (r.data) setDraft(r.data); return r; })}>Tổng hợp</button>
@@ -110,12 +110,12 @@ export function AdminPayments() {
     <Page title="Đối soát thanh toán" sub="Giao dịch SePay có số tiền không khớp gói. Không bao giờ cộng lượt khi giao dịch chưa được xác nhận đã thanh toán.">
       <Notice note={note} />
       <div className="st-card st-scroll">
-        <table className="st-table">
+        <table className="st-table stack-table">
           <thead><tr><th>Mã giao dịch</th><th>Gói</th><th>Số tiền nhận</th><th>Mã SePay</th><th>Hết hạn</th><th /></tr></thead>
           <tbody>
             {list.map((p) => (
-              <tr key={p.id}><td><code>{p.transactionCode}</code></td><td>{p.planName}</td><td>{p.amount.toLocaleString("vi-VN")}đ</td><td>{p.sepayTransactionId ?? "—"}</td><td>{fmt(p.expiresAt)}</td>
-                <td><button className="btn btn-s" disabled={busy} onClick={async () => { if (await confirmDialog("Xác nhận đã nhận đủ tiền và cộng lượt cho phụ huynh?")) void run(() => staffService.markPaid(p.id)); }}>Xác nhận đã thanh toán</button></td></tr>
+              <tr key={p.id}><td data-label="Mã giao dịch"><code>{p.transactionCode}</code></td><td data-label="Gói">{p.planName}</td><td data-label="Số tiền nhận">{p.amount.toLocaleString("vi-VN")}đ</td><td data-label="Mã SePay">{p.sepayTransactionId ?? "—"}</td><td data-label="Hết hạn">{fmt(p.expiresAt)}</td>
+                <td data-label=""><button className="btn btn-s" disabled={busy} onClick={async () => { if (await confirmDialog("Xác nhận đã nhận đủ tiền và cộng lượt cho phụ huynh?")) void run(() => staffService.markPaid(p.id)); }}>Xác nhận đã thanh toán</button></td></tr>
             ))}
             {list.length === 0 && <tr><td colSpan={6} className="sub">Không có giao dịch cần đối soát.</td></tr>}
           </tbody>

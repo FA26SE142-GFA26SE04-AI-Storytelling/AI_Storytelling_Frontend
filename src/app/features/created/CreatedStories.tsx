@@ -151,7 +151,7 @@ export default function CreatedStories({ go, onKid }: Pick<WorkspaceProps, "go" 
           </div>
         </div>
 
-        {error && <p className="notice err" role="alert" data-inline-notice>{error}</p>}
+        {error && <p className="notice err" role="alert">{error}</p>}
         {loading && !all.length && <p className="sub" role="status">Đang tải truyện đã tạo…</p>}
 
         {openShelf ? (
@@ -165,13 +165,19 @@ export default function CreatedStories({ go, onKid }: Pick<WorkspaceProps, "go" 
               <ShelfRow>{g.items.map(card)}</ShelfRow>
             </Shelf>
           ))
-        ) : !loading && (
+        ) : !loading && (error && !all.length ? (
+          <div className="empty">
+            <Frog size={110} mood="think" />
+            <b className="display">Chưa tải được truyện của bạn</b>
+            <button className="btn btn-s" onClick={() => void load()}><RefreshCw className="ic" />Thử lại</button>
+          </div>
+        ) : (
           <div className="empty">
             <Frog size={110} mood="think" />
             <b className="display">{all.length ? "Không có truyện phù hợp" : "Bạn chưa tạo truyện nào"}</b>
             <span>{all.length ? "Thử đổi từ khoá hoặc nguồn truyện." : "Tạo truyện bằng AI hoặc tự viết, truyện sẽ nằm ở đây."}</span>
           </div>
-        )}
+        ))}
       </div></div>
 
       <AsidePane title="Chi tiết" icon={Info}>

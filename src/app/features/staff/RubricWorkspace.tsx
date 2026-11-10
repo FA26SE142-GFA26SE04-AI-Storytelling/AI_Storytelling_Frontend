@@ -10,6 +10,7 @@ import IconButton from '@/app/components/IconButton';
 import Frog from '@/app/components/brand/Frog';
 import { Page, fmt } from './ui';
 import { confirmDialog } from "@/app/lib/confirm";
+import { auditActionLabel, rubricAuditLines } from './readableJson';
 const STATUS_LABEL: Record<string, string> = { Draft: 'Bản nháp', Active: 'Đang dùng', Retired: 'Đã ngừng' };
 const STATUS_OPTIONS = [{ value: '', label: 'Tất cả trạng thái' }, ...Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label }))];
 const TRIAL_OPTIONS = {
@@ -27,7 +28,6 @@ export default function RubricWorkspace() {
   const [versionNo, setVersionNo] = useState('');
   const [name, setName] = useState('');
   const [definition, setDefinition] = useState<B.RubricDefinition | null>(null);
-  const [examplesText, setExamplesText] = useState('');
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
   const [revision, setRevision] = useState(0);
@@ -42,19 +42,14 @@ export default function RubricWorkspace() {
     void service.list(status || undefined, page, controller.signal).then(r => { if (alive) { setCatalog(r.data); if (!r.success) setNote(r.message); } });
     return () => { alive = false; scope.current = Symbol(); controller.abort(); };
   }, [status, page, revision, user?.id]);
-  const examplesOf = (d: B.RubricDefinition) => JSON.stringify(d.criteria.map(c => ({ code: c.code, examples: c.examples })), null, 2);
   const dirty = !current || !definition || versionNo !== current.versionNo || name !== current.name
-    || JSON.stringify(definition) !== JSON.stringify(current.definition) || examplesText !== examplesOf(current.definition);
-  const select = (r: B.RubricDto) => { scope.current = Symbol(); setCurrent(r); setVersionNo(r.versionNo); setName(r.name); setDefinition(r.definition); setExamplesText(JSON.stringify(r.definition.criteria.map(c => ({ code: c.code, examples: c.examples })), null, 2)); setAudit(null); setEvaluation(null); setNote(''); };
+    || JSON.stringify(definition) !== JSON.stringify(current.definition);
+  const select = (r: B.RubricDto) => { scope.current = Symbol(); setCurrent(r); setVersionNo(r.versionNo); setName(r.name); setDefinition(r.definition); setAudit(null); setEvaluation(null); setNote(''); };
   const open = async (id: number) => { const run = Symbol(); scope.current = run; const r = await service.get(id); if (scope.current !== run) return; if (r.success && r.data) select(r.data); else setNote(r.message); };
   const act = async (fn: () => Promise<ApiResponse<unknown>>) => { if (busy) return; const run = scope.current; setBusy(true); setNote(''); const r = await fn(); if (scope.current !== run) return; setBusy(false); setNote(r.message || (r.success ? 'Đã thực hiện.' : 'Thao tác chưa hoàn tất.')); return r; };
   const save = async () => {
     if (!definition) return;
-    let parsed: unknown;
-    try { parsed = JSON.parse(examplesText || '[]'); } catch { setNote('Ví dụ JSON chưa hợp lệ.'); return; }
-    if (!Array.isArray(parsed) || parsed.some(c => !c || typeof c !== 'object' || !Array.isArray(c.examples))) { setNote('Ví dụ phải là danh sách {code, examples}.'); return; }
-    const d = { ...definition, criteria: definition.criteria.map(c => ({ ...c, examples: (parsed as { code: string; examples: B.RubricExample[] }[]).find(x => x.code === c.code)?.examples ?? c.examples })) };
-    const body = { name, versionNo, definition: d, revision: current?.revision ?? 0 };
+    const body = { name, versionNo, definition, revision: current?.revision ?? 0 };
     const r = await act(() => current ? service.update(current.id, body) : service.create(body));
     if (r?.success && r.data) select(r.data as B.RubricDto);
     // On conflict leave the draft intact. The explicit reload button lets the reviewer compare before editing again.
@@ -66,7 +61,7 @@ export default function RubricWorkspace() {
     {note && <div className="notice" role="status">{note}</div>}
     <div className="st-split fill">
     <div className="st-list">
-    <div className="row"><Select<string> ariaLabel="Trạng thái" value={status} options={STATUS_OPTIONS} onChange={v => { setStatus(v); setPage(1); }} /><button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.active()).then(r => { if (r?.success && r.data) void open((r.data as B.RubricSnapshot).id); })}><Eye className="ic" />Bộ đang dùng</button><IconButton icon={FilePlus2} label="Tạo bản nháp" className="btn btn-p" disabled={busy} onClick={() => { scope.current = Symbol(); setCurrent(null); setVersionNo(''); setName(''); setDefinition(emptyDefinition()); setExamplesText('[]'); setAudit(null); setEvaluation(null); }} /></div>
+    <div className="row st-rubric-bar"><Select<string> ariaLabel="Trạng thái" value={status} options={STATUS_OPTIONS} onChange={v => { setStatus(v); setPage(1); }} /><button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.active()).then(r => { if (r?.success && r.data) void open((r.data as B.RubricSnapshot).id); })}><Eye className="ic" />Bộ đang dùng</button><IconButton icon={FilePlus2} label="Tạo bản nháp" className="btn btn-p" disabled={busy} onClick={() => { scope.current = Symbol(); setCurrent(null); setVersionNo(''); setName(''); setDefinition(emptyDefinition()); setAudit(null); setEvaluation(null); }} /></div>
     {catalog?.items.map(r => <button className={`st-item${current?.id === r.id ? ' on' : ''}`} key={r.id} disabled={busy} onClick={() => void open(r.id)}><b>{r.name}</b><small>{r.versionNo} · {STATUS_LABEL[r.status] ?? r.status} · sửa lần {r.revision}</small></button>)}
     <div className="row"><button className="btn btn-g" aria-label="Trang trước" title="Trang trước" disabled={page === 1} onClick={() => setPage(p => p - 1)}><ChevronLeft className="ic" /></button><span>Trang {page}</span><button className="btn btn-g" aria-label="Trang tiếp" title="Trang tiếp" disabled={!catalog || page * catalog.pageSize >= catalog.totalCount} onClick={() => setPage(p => p + 1)}><ChevronRight className="ic" /></button></div>
     </div>
@@ -90,7 +85,7 @@ export default function RubricWorkspace() {
       </div></div>
       <div className="st-group"><details><summary>Thử đánh giá nội dung</summary><p className="sub">Thao tác này gọi AI thật và ghi lịch sử.</p><div className="row st-fields">{(['phase','ageBand','language'] as const).map(key => <div className="field" key={key}><span>{({ phase: 'Giai đoạn', ageBand: 'Độ tuổi', language: 'Ngôn ngữ' })[key]}</span><Select<string> ariaLabel={key} value={trial[key]} options={TRIAL_OPTIONS[key]} onChange={v => setTrial({ ...trial, [key]: v })} /></div>)}</div><label className="field">Tên truyện thử<input className="inp" placeholder="Nhập tên truyện cần thử đánh giá" value={trial.title} onChange={e => setTrial({ ...trial, title: e.target.value })} /></label><label className="field">Nội dung truyện thử<textarea className="inp" rows={6} placeholder="Dán nội dung truyện để AI thử đánh giá theo bộ tiêu chí này" value={trial.content} onChange={e => setTrial({ ...trial, content: e.target.value })} /></label><button className="btn btn-s" disabled={busy || !trial.title.trim() || !trial.content.trim()} onClick={() => void act(() => service.evaluate(current.id, { ...trial, revision: current.revision })).then(r => { if (r?.success) setEvaluation(r.data as RubricEvaluation); })}><Play className="ic" />Chạy thử</button>
         {evaluation && <div className="sec"><b>Mức rủi ro: {evaluation.riskScore}</b><p>{evaluation.provider} · {evaluation.model} · {evaluation.version}</p>{evaluation.findings.map((f,i) => <blockquote key={i}>{f.evidenceQuote}<p>{f.reason} · {f.contextNote}</p></blockquote>)}</div>}
-      </details></div><div className="st-group"><button className="btn btn-s st-fit" disabled={busy} onClick={() => void loadAudit(1)}><History className="ic" />Lịch sử</button>{audit && <><ul>{audit.items.map(a => <li key={a.id}>{fmt(a.createdAt)} · {a.action} · người dùng #{a.actorUserId}<details><summary>Nội dung thay đổi</summary><pre style={{ whiteSpace: 'pre-wrap' }}>{a.beforeJson}</pre><pre style={{ whiteSpace: 'pre-wrap' }}>{a.afterJson}</pre></details></li>)}</ul><div className="row"><button className="btn btn-s" disabled={busy || auditPage === 1} aria-label="Lịch sử trước" title="Lịch sử trước" onClick={() => void loadAudit(auditPage - 1)}><ChevronLeft className="ic" /></button><button className="btn btn-s" disabled={busy || auditPage * audit.pageSize >= audit.totalCount} aria-label="Lịch sử tiếp" title="Lịch sử tiếp" onClick={() => void loadAudit(auditPage + 1)}><ChevronRight className="ic" /></button></div></>}</div>
+      </details></div><div className="st-group"><button className="btn btn-s st-fit" disabled={busy} onClick={() => void loadAudit(1)}><History className="ic" />Lịch sử</button>{audit && <><ul>{audit.items.map(a => <li key={a.id}>{fmt(a.createdAt)} · <b>{auditActionLabel(a.action)}</b> · người dùng #{a.actorUserId}{(() => { const lines = rubricAuditLines(a.beforeJson, a.afterJson); return lines.length ? <details><summary>Nội dung thay đổi</summary><ul>{lines.map((l, i) => <li key={i}>{l}</li>)}</ul></details> : null; })()}</li>)}</ul><div className="row"><button className="btn btn-s" disabled={busy || auditPage === 1} aria-label="Lịch sử trước" title="Lịch sử trước" onClick={() => void loadAudit(auditPage - 1)}><ChevronLeft className="ic" /></button><button className="btn btn-s" disabled={busy || auditPage * audit.pageSize >= audit.totalCount} aria-label="Lịch sử tiếp" title="Lịch sử tiếp" onClick={() => void loadAudit(auditPage + 1)}><ChevronRight className="ic" /></button></div></>}</div>
       </>}
     </section> : <div className="st-card st-empty"><Frog size={120} mood="think" /><b className="display">Chọn một bộ tiêu chí để xem</b></div>}
     </div>

@@ -90,7 +90,7 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged, go
           <b>Đã đọc {done.length}/{total}</b>
         </div>
         {!active && <p className="notice warn lr-notice" role="status" data-inline-notice><Lock className="ic" aria-hidden /> Hồ sơ của {child.nickname} {CHILD_STATUS[child.status] ?? "không hoạt động"} nên chưa thêm truyện được.</p>}
-        {error && <p className="notice err lr-notice" role="alert" data-inline-notice>{error}</p>}
+        {error && <p className="notice err lr-notice" role="alert">{error}</p>}
 
         {items === undefined ? <p className="sub">Đang tải lộ trình…</p> : total === 0 ? (
           <p className="rm-empty">Lộ trình đang trống. Thêm một truyện hoặc chọn một lộ trình mẫu bên dưới.</p>
@@ -179,7 +179,7 @@ function TemplateShelf({ child, disabled, onAdded }: { child: ChildProfile; disa
           )}
         </div>
       </div>
-      {error && <p className="notice err lr-notice" role="alert" data-inline-notice>{error}</p>}
+      {error && <p className="notice err lr-notice" role="alert">{error}</p>}
       {templates === null ? <p className="sub">Đang tải lộ trình mẫu…</p>
         : shown.length === 0 ? <p className="rm-empty">{needle ? "Không tìm thấy lộ trình phù hợp." : "Chưa có lộ trình mẫu nào."}</p>
         : <div className="shelf-grid lr-albums">{shown.map((t) => <RoadmapAlbum key={t.id} item={t} onOpen={() => setOpened(t)} />)}</div>}
