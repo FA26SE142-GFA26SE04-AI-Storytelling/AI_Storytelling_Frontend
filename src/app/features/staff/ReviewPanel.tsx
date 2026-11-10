@@ -18,6 +18,7 @@ import Dialog from "@/app/components/Dialog";
 import Select from "@/app/components/Select";
 import { confirmDialog } from "@/app/lib/confirm";
 import ReviewPicture from './ReviewPicture';
+import ModerationEvidence from './ModerationEvidence';
 import { ListeningList, SourceNote, StoryFacts, criterionEvidence } from './PublicReviewEvidence';
 import { useRiseIn } from '@/app/lib/motion';
 import { flagsSummary } from './readableJson';
@@ -136,7 +137,7 @@ export default function ReviewPanel({ kind, id, onDecision }: { kind: ReviewKind
           <Select<string> ariaLabel={CHECK_LABEL[key]} value={item.data.checklist[key] === null ? '' : String(item.data.checklist[key])} options={CHECK_OPTIONS} onChange={v => { if (v && !busy) void setCheck(key, v === 'true'); }} /></div>)}</div>
       </div>
       {item.data.flags.length > 0 && <div className="st-group"><b className="st-group-title">Cờ cần xử lý{item.data.flags.some(f => !f.resolved) && <Warn why="Còn cờ chưa xử lý" />}</b>
-        {item.data.flags.map(f => <div className="st-scene" key={f.flagId}><b>{f.name}{f.contextNote && <> <InfoTip text={f.contextNote} /></>}{!f.resolved && <Warn why="Cờ chưa xử lý" />}</b><p>{f.reason}</p>{f.evidenceQuote && <blockquote>{f.evidenceQuote}</blockquote>}<button className="btn btn-s" disabled={busy || f.resolved} onClick={() => { setFlagReason(''); setFlagDialog({ flagId: f.flagId, name: f.name }); }}><ShieldCheck className="ic" />{f.resolved ? 'Đã xử lý' : 'An toàn'}</button></div>)}
+        {item.data.flags.map(f => <div className="st-scene" key={f.flagId}><b>{f.name}{!f.resolved && <Warn why="Cờ chưa xử lý" />}</b><ModerationEvidence flag={f} content={content}/><button className="btn btn-s" disabled={busy || f.resolved} onClick={() => { setFlagReason(''); setFlagDialog({ flagId: f.flagId, name: f.name }); }}><ShieldCheck className="ic" />{f.resolved ? 'Đã xử lý' : 'An toàn'}</button></div>)}
       </div>}
       <ListeningList items={item.data.listeningInteractions ?? []} />
       <div className="st-group"><b className="st-group-title">Học liệu và so sánh phiên bản</b>

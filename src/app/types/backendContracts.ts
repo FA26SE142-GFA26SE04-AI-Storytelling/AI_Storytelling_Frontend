@@ -2327,6 +2327,7 @@ export interface CreatorPublicationResult {
 }
 
 export interface CreatorPublicationStatus {
+  'safetyCheck'?: CreatorSafetyCheckDto;
   'storyId': number;
   'versionId': number;
   'isPublished': boolean;
@@ -2336,10 +2337,17 @@ export interface CreatorPublicationStatus {
   'openItemStatus': string | null;
   /** true khi Moderator trả về chỉ vì phần thông tin chung (nhãn): Creator chọn lại nhãn và gửi lại ngay trên phiên bản này, không cần sửa truyện hay tạo lại media. */
   'canResubmitLabels'?: boolean;
+  /** Được gửi lại cùng phiên bản sau khi rút yêu cầu lúc Pending; không mở quyền sửa content/media. */
+  'canResubmitWithdrawn'?: boolean;
   /** Nhãn đang gắn cho truyện. */
   'labels'?: (PublicReviewLabelDto)[];
   /** Bộ nhãn của lần gửi duyệt gần nhất. */
   'lastProposedLabels'?: (PublicReviewLabelDto)[];
+}
+export interface CreatorSafetyCheckDto {
+  required: boolean;
+  state: 'NotChecked' | 'Current' | 'Stale' | 'Unavailable';
+  zone: 'Safe' | 'GrayZone' | 'HardBlock' | null;
 }
 
 export interface CreatorRemovalRequest {
