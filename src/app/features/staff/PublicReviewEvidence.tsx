@@ -1,13 +1,14 @@
 'use client';
 import type * as B from '@/app/types/backendContracts';
 import SafeImage from '@/app/components/SafeImage';
-import { Check } from 'lucide-react';
+import { Check, ShieldCheck } from 'lucide-react';
 import { coverFor } from '@/app/lib/storyView';
+import ModerationEvidence from './ModerationEvidence';
+import { LISTENING_TYPE_LABELS } from './changeRequestOptions';
 
-/** Tên tương tác khi nghe (5 loại của Luồng 4); giá trị backend giữ nguyên. */
-const LISTENING: Record<string, string> = {
-  Checkpoint: 'Câu hỏi giữa truyện', RolePlay: 'Nhập vai', FillBlank: 'Điền từ', EventOrdering: 'Sắp xếp sự kiện', PicturePrediction: 'Đoán tranh',
-};
+/** Dấu ! báo mục còn thiếu; rê chuột để xem lý do. */
+export const Warn = ({ why }: { why: string }) => <span className="st-warn" role="img" aria-label={why} title={why}>!</span>;
+
 const AGE: Record<string, string> = { '6-8': '6–8 tuổi', '9-10': '9–10 tuổi' };
 
 export type CheckKey = 'safety' | 'ageFit' | 'education' | 'language' | 'copyright' | 'image' | 'audio' | 'interaction';
@@ -21,7 +22,17 @@ export function criterionEvidence(d: B.PublicReviewPackageDto, key: CheckKey): s
   const interactions = d.listeningInteractions ?? [];
   const openFlags = d.flags.filter((f) => !f.resolved).length;
   switch (key) {
-    case 'safety': return d.flags.length ? `${d.flags.length} cờ AI, còn ${openFlags} chưa xử lý` : 'AI không gắn cờ nào';
+    case 'safety': {
+      if (d.flags.length) return `${d.flags.length} cờ AI, còn ${openFlags} chưa xử lý`;
+      const scan = d.safetyScan;
+      if (scan?.status === 'Safe') {
+        const score = scan.riskScore != null ? ` · điểm rủi ro ${scan.riskScore}` : '';
+        const adv = scan.advisoryFindings?.length ? ` · ${scan.advisoryFindings.length} lưu ý nhẹ` : ' · 0 cờ';
+        return `Đã quét AI: An toàn (Safe)${score}${adv}`;
+      }
+      if (scan?.status === 'HardBlock') return 'AI đánh dấu chặn (HardBlock)';
+      return 'Chưa có kết quả quét AI trên phiên bản này';
+    }
     case 'ageFit': return [AGE[d.story.ageBand] ?? d.story.ageBand, d.story.readingLevel ? `mức đọc ${d.story.readingLevel}` : null, d.story.vocabularyLevel ? `từ vựng ${d.story.vocabularyLevel}` : null].filter(Boolean).join(' · ');
     case 'education': return `${d.vocabulary.length} từ vựng · ${d.quizzes.length} câu đố${d.story.moralLesson || d.version.lesson ? ' · có bài học' : ' · chưa có bài học'}`;
     case 'language': { const warn = segs.filter((s) => s.hasPronunciationWarning).length; return `${d.story.language === 'vi' ? 'Tiếng Việt' : d.story.language}${warn ? ` · ${warn} đoạn cảnh báo phát âm` : ''}`; }
@@ -63,6 +74,68 @@ export function StoryFacts({ d }: { d: B.PublicReviewPackageDto }) {
   </div>;
 }
 
+/** Khối kiểm tra an toàn AI & cờ cần xử lý: luôn hiện trạng thái quét AI kể cả khi Safe (0 cờ) hoặc chưa quét. */
+export function SafetyScanSection({
+  packageData,
+  content,
+  busy,
+  onResolveFlag,
+}: {
+  packageData: B.PublicReviewPackageDto;
+  content: string | null | undefined;
+  busy: boolean;
+  onResolveFlag: (flagId: string, name: string) => void;
+}) {
+  const { flags, safetyScan } = packageData;
+  const unresolved = flags.some((f) => !f.resolved);
+  const status = flags.length > 0 ? 'GrayZone' : (safetyScan?.status ?? 'NotChecked');
+  const pill = status === 'Safe'
+    ? { cls: 'ok', label: 'Đã quét AI: An toàn (Safe)' }
+    : status === 'GrayZone'
+      ? { cls: 'wait', label: 'Đã quét AI: Vùng xám (GrayZone)' }
+      : status === 'HardBlock'
+        ? { cls: 'flag', label: 'AI đánh dấu chặn (HardBlock)' }
+        : { cls: 'wait', label: 'Chưa có kết quả quét AI' };
+  const metaParts = [
+    safetyScan?.riskScore != null ? `Điểm rủi ro: ${safetyScan.riskScore}/100` : null,
+    safetyScan?.provider && safetyScan?.model ? `${safetyScan.provider} · ${safetyScan.model}` : safetyScan?.model ?? null,
+    safetyScan?.phase ? `Giai đoạn: ${safetyScan.phase}` : null,
+  ].filter(Boolean);
+  const advisory = flags.length === 0 ? (safetyScan?.advisoryFindings ?? []) : [];
+
+  return <div className="st-group">
+    <b className="st-group-title">Cờ cần xử lý{unresolved && <Warn why="Còn cờ chưa xử lý" />}</b>
+    <div className="row st-wrap">
+      <span className={`pill ${pill.cls}`}>{pill.label}</span>
+      {metaParts.length > 0 && <span className="st-review-meta">{metaParts.join(' · ')}</span>}
+    </div>
+    {flags.length > 0
+      ? flags.map((f) => <div className="st-scene" key={f.flagId}>
+          <b>{f.name}{!f.resolved && <Warn why="Cờ chưa xử lý" />}</b>
+          <ModerationEvidence flag={f} content={content} />
+          <button className="btn btn-s" disabled={busy || f.resolved} onClick={() => onResolveFlag(f.flagId, f.name)}>
+            <ShieldCheck className="ic" />{f.resolved ? 'Đã xử lý' : 'An toàn'}
+          </button>
+        </div>)
+      : <>
+          <p className="sub">
+            {status === 'Safe'
+              ? 'AI không gắn cờ vùng xám nào trên phiên bản này.'
+              : status === 'HardBlock'
+                ? 'AI đánh dấu mức chặn; Moderator không nên duyệt công khai khi chưa xử lý vấn đề an toàn.'
+                : 'Phiên bản này chưa có kết quả quét an toàn bằng AI. Hãy rà soát kỹ toàn bộ nội dung trước khi quyết định.'}
+          </p>
+          {advisory.length > 0 && <>
+            <b className="st-scene-label">Lưu ý mức nhẹ do AI ghi nhận (tham khảo, không chặn duyệt)</b>
+            {advisory.map((f) => <div className="st-scene" key={f.flagId}>
+              <b>{f.name}{f.criterionCode ? ` (${f.criterionCode})` : ''}</b>
+              <ModerationEvidence flag={f} content={content} />
+            </div>)}
+          </>}
+        </>}
+  </div>;
+}
+
 /** Nguồn của một tranh / đoạn âm thanh: AI tạo hay Creator tải lên (kèm cam kết). */
 export function SourceNote({ source, sourceDeclaration, rightsDeclaration }: { source?: string | null; sourceDeclaration?: string | null; rightsDeclaration?: string | null }) {
   if (isAi(source)) return <span className="pill draft">AI tạo</span>;
@@ -74,7 +147,7 @@ export function ListeningList({ items }: { items: B.PublicReviewListeningDto[] }
   return <div className="st-group"><b className="st-group-title">Tương tác khi nghe ({items.length})</b>
     {items.length === 0 ? <p className="sub">Truyện không có tương tác khi nghe.</p>
       : <div className="pr-list">{items.map((it, i) => <article className="pr-item" key={it.id}>
-        <div className="row"><b>{i + 1}. {LISTENING[it.type] ?? it.type}</b>{it.characterName && <span className="pill draft">{it.characterName}</span>}</div>
+        <div className="row"><b>{i + 1}. {LISTENING_TYPE_LABELS[it.type] ?? it.type}</b>{it.characterName && <span className="pill draft">{it.characterName}</span>}</div>
         {it.sourceQuote && <blockquote className="pr-quote">{it.sourceQuote}</blockquote>}
         {it.prompt && <p><b>Câu hỏi:</b> {it.prompt}</p>}
         {it.hiddenWord && <p><b>Từ cần điền:</b> {it.hiddenWord}{it.hint ? ` (gợi ý: ${it.hint})` : ''}</p>}

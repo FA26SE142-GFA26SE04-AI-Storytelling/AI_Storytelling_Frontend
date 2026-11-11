@@ -215,11 +215,13 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 .sel-btn > span:first-child { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sel-chev { width: 16px; height: 16px; flex: none; color: var(--muted); transition: transform .18s; }
 .sel-btn.open .sel-chev { transform: rotate(180deg); }
-.sel-list { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 40; margin: 0; padding: 6px; list-style: none; max-height: 280px; overflow-y: auto; border: 1px solid var(--line-2); border-radius: 14px; background: var(--panel); box-shadow: 0 14px 32px -12px color-mix(in srgb, var(--shadow) 50%, transparent); animation: sel-in .14s ease-out; }
-.sel-opt { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 12px; border-radius: 10px; font-size: var(--fs-md); cursor: pointer; }
+.sel-list { position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 40; margin: 0; padding: 6px; list-style: none; max-height: 280px; overflow-y: auto; border: 1px solid var(--line-2); border-radius: 14px; background: var(--panel); color: var(--text); box-shadow: 0 14px 32px -12px color-mix(in srgb, var(--shadow) 50%, transparent); animation: sel-in .14s ease-out; }
+.sel-list.sel-portal { position: fixed; right: auto; top: auto; z-index: 250; }
+.sel-opt { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 9px 12px; border-radius: 10px; font-size: var(--fs-md); cursor: pointer; }
+.sel-opt > span { min-width: 0; overflow-wrap: anywhere; word-break: break-word; line-height: 1.4; }
 .sel-opt.hi { background: var(--surface-2); }
 .sel-opt.on { color: var(--primary); font-weight: 700; }
-.sel-opt .ic { width: 16px; height: 16px; }
+.sel-opt .ic { width: 16px; height: 16px; flex: none; margin-top: 2px; }
 @keyframes sel-in { from { opacity: 0; transform: translateY(-4px); } }
 @media (prefers-reduced-motion: reduce) { .sel-list { animation: none; } .sel-chev { transition: none; } }
 
@@ -237,7 +239,7 @@ select.inp { appearance: none; background-image: url("data:image/svg+xml,%3Csvg 
 
 /* Chuyển động nhẹ khi khối nội dung xuất hiện (trang nhân sự, gói, lịch sử, lưu trữ); tắt khi người dùng chọn giảm chuyển động. */
 @keyframes block-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
-.st-card, .st-kpi, .plan-card, .version-row, .cpick, .sec > .notice, .sel-list { animation: block-in .32s cubic-bezier(.2, .8, .3, 1) both; }
+.st-card, .st-kpi, .plan-card, .version-row, .cpick, .sec > .notice { animation: block-in .32s cubic-bezier(.2, .8, .3, 1) both; }
 .btn:not(.icon-only):hover { transform: translateY(-1px); }
 @media (prefers-reduced-motion: reduce) {
   .st-card, .st-kpi, .plan-card, .version-row, .cpick, .sec > .notice { animation: none; }

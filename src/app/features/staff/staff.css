@@ -398,6 +398,22 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 /* Hàng nút/ô nhập được phép xuống dòng khi màn hình hẹp. */
 .st-wrap { flex-wrap: wrap; }
 .st-wrap > .inp[type="date"] { flex: 1 1 150px; min-width: 0; }
+
+/* Hàng đợi & đầu trang chi tiết: tên tác phẩm nổi bật, tác giả gửi duyệt xuống dòng gọn ở mọi độ rộng. */
+.st-item-top { min-width: 0; gap: 10px; align-items: flex-start; }
+.st-item-title, .st-detail-title { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+.st-item-author { font-size: var(--fs-sm); font-weight: 700; color: var(--text); overflow-wrap: anywhere; word-break: break-word; line-height: 1.4; }
+.st-detail-head .grow { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.st-review-meta { font-size: var(--fs-sm); color: var(--muted); font-weight: 600; }
+/* Thẻ cờ (không có tranh) xếp dọc toàn chiều rộng thẻ thay vì chia 2 cột cảnh. */
+.st-review .st-scene:not(:has(.st-scene-pics)) > * { grid-column: 1 / -1; }
+.st-review .st-scene blockquote { overflow-wrap: anywhere; }
+
+/* Hộp thoại yêu cầu chỉnh sửa: xếp dọc toàn chiều rộng để ô chọn, xem trước và ghi chú dễ đọc trên cả màn hình rộng và hẹp. */
+.dlg.st-change-dlg { width: min(560px, 100%); }
+.dlg.st-change-dlg .st-form { grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+.st-change-preview { max-height: 180px; overflow-y: auto; }
+.st-change-preview p, .st-change-preview .st-review-meta { overflow-wrap: anywhere; word-break: break-word; }
 /* Cột "Người mua" ở trang Thanh toán của Admin: tên trên, email dưới. */
 .pay-payer { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pay-payer small { font-size: var(--fs-xs); opacity: .75; overflow-wrap: anywhere; }

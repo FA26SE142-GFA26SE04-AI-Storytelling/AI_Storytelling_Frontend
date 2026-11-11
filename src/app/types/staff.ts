@@ -212,6 +212,8 @@ export interface QueueItem {
   storyVersionId: number | null;
   contentReportId: number | null;
   readingRoadmapId: number | null;
+  createdByUserId?: number | null;
+  createdByName?: string | null;
   isResubmission: boolean;
   slaDueAt: string | null;
   isOverdue: boolean;
