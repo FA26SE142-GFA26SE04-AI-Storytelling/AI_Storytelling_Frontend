@@ -1,6 +1,7 @@
 'use client';
 import { confirmDialog } from "@/app/lib/confirm";
 import { useCallback, useEffect, useState } from 'react';
+import CreatorQuotaPanel from './CreatorQuotaPanel';
 import { BookOpen, Check, CircleCheck, Clock, Copy, CreditCard, Package, Plus, Receipt, Sparkles, WandSparkles } from 'lucide-react';
 import Dialog from '@/app/components/Dialog';
 import IconButton from '@/app/components/IconButton';
@@ -148,11 +149,15 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
   ].filter(([, n]) => (n as number) > 0) as [string, number][] : [];
 
   const featured = audience === 'creator' ? 'CreatorPack' : 'Creative';
+  const pack = plans?.find((p) => p.planType === 'CreatorPack');
+  const headStyle = audience === 'creator'
+    ? { margin: 0, textAlign: 'left' as const, fontSize: 'var(--fs-2xl)' }
+    : { margin: 0, textAlign: 'center' as const };
 
   return <section className="sec plan-page" style={{ gap: 24 }}>
-    <h3 className="display" style={{ margin: 0, textAlign: "center" }}>{audience === 'creator' ? 'Gói và lượt' : 'Nâng cấp gói'}</h3>
+    <h3 className="display" style={headStyle}>{audience === 'creator' ? 'Gói và lượt' : 'Nâng cấp gói'}</h3>
 
-    {audience === 'parent' ? (
+    {audience === 'parent' && (
       <div className="pay-current" aria-label="Gói của bạn">
         <div className="grow">
           <small>Gói của bạn</small>
@@ -166,51 +171,29 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
           {credits.length > 0 && <div className="row" style={{ gap: 6, flexWrap: 'wrap', justifyContent: 'flex-end' }}>{credits.map(([k, n]) => <span key={k} className="pill">{k}: {n}</span>)}</div>}
         </div>
       </div>
-    ) : creatorError ? (
-      <p className="notice warn">Chưa tải được lượt của bạn. Hãy tải lại trang.</p>
-    ) : (
-      <>
-        <div className="creator-quota-grid" aria-label="Lượt của bạn">
-          <div className="pay-current creator-quota-card">
-            <small>Lượt tạo truyện AI</small>
-            <b className="display">{creatorQuota?.aiCredits.totalRemaining ?? '…'}</b>
-            {creatorQuota && <>
-              <span className="pill">Tháng này: {creatorQuota.aiCredits.monthlyRemaining}/{creatorQuota.aiCredits.monthlyAllowance}</span>
-              {creatorQuota.aiCredits.purchasedRemaining > 0 && <span className="pill">Đã mua: {creatorQuota.aiCredits.purchasedRemaining}</span>}
-              {creatorQuota.aiCredits.otherRemaining > 0 && <span className="pill">Khác: {creatorQuota.aiCredits.otherRemaining}</span>}
-            </>}
-          </div>
-          <div className="pay-current creator-quota-card">
-            <small>Lượt gửi duyệt</small>
-            <b className="display">{creatorQuota?.submitCredits.totalRemaining ?? '…'}</b>
-            {creatorQuota && <>
-              <span className="pill">Tháng này: {creatorQuota.submitCredits.monthlyRemaining}/{creatorQuota.submitCredits.monthlyAllowance}</span>
-              {creatorQuota.submitCredits.purchasedRemaining > 0 && <span className="pill">Đã mua: {creatorQuota.submitCredits.purchasedRemaining}</span>}
-              {creatorQuota.submitCredits.otherRemaining > 0 && <span className="pill">Khác: {creatorQuota.submitCredits.otherRemaining}</span>}
-            </>}
-          </div>
-        </div>
-        {creatorQuota && <p className="sub">Hạn mức tháng làm mới ngày {day(creatorQuota.monthlyAllowanceResetsAt)}</p>}
-      </>
     )}
 
-    {plans === null && <p className="sub">Đang tải…</p>}
-    <div className="plan-grid">
-      {plans?.map((plan) => {
-        const Icon = PLAN_ICON[plan.planType] ?? Sparkles;
-        const a = action(plan, quota);
-        return <article key={plan.id} className={`plan-card${plan.planType === featured ? ' featured' : ''}${plan.isPurchasable ? '' : ' locked'}`}>
-          <div className="plan-head">
-            <Icon className="plan-icon" aria-hidden />
-            <b className="display plan-title">{plan.name}</b>
-            <div className="plan-price"><b>{plan.priceVnd.toLocaleString('vi-VN')}</b><span>₫<small>{plan.planType === 'AddOn' || plan.planType === 'CreatorPack' ? 'mỗi lần mua' : 'mỗi tháng'}</small></span></div>
-            <button className={`btn btn-c ${plan.planType === featured ? 'btn-p' : 'btn-s'}`} disabled={busy || !plan.isPurchasable} onClick={() => void buy(plan)}><CreditCard className="ic" />{a.label}</button>
-            {!plan.isPurchasable && plan.lockedReason && <p className="notice warn plan-locked">{plan.lockedReason}</p>}
-          </div>
-          <ul className="plan-list">{BENEFITS[plan.planType]?.(plan).map((b) => <li key={b}><Check className="ic" />{b}</li>)}</ul>
-        </article>;
-      })}
-    </div>
+    {audience === 'creator' && <CreatorQuotaPanel quota={creatorQuota} error={creatorError} pack={pack} packLoading={plans === null} benefits={pack ? BENEFITS.CreatorPack(pack) : []} buyLabel={pack ? action(pack, null).label : 'Mua gói'} busy={busy} onBuy={(p) => void buy(p)} />}
+
+    {audience === 'parent' && (<>
+      {plans === null && <p className="sub">Đang tải…</p>}
+      <div className="plan-grid">
+        {plans?.map((plan) => {
+          const Icon = PLAN_ICON[plan.planType] ?? Sparkles;
+          const a = action(plan, quota);
+          return <article key={plan.id} className={`plan-card${plan.planType === featured ? ' featured' : ''}${plan.isPurchasable ? '' : ' locked'}`}>
+            <div className="plan-head">
+              <Icon className="plan-icon" aria-hidden />
+              <b className="display plan-title">{plan.name}</b>
+              <div className="plan-price"><b>{plan.priceVnd.toLocaleString('vi-VN')}</b><span>₫<small>{plan.planType === 'AddOn' || plan.planType === 'CreatorPack' ? 'mỗi lần mua' : 'mỗi tháng'}</small></span></div>
+              <button className={`btn btn-c ${plan.planType === featured ? 'btn-p' : 'btn-s'}`} disabled={busy || !plan.isPurchasable} onClick={() => void buy(plan)}><CreditCard className="ic" />{a.label}</button>
+              {!plan.isPurchasable && plan.lockedReason && <p className="notice warn plan-locked">{plan.lockedReason}</p>}
+            </div>
+            <ul className="plan-list">{BENEFITS[plan.planType]?.(plan).map((b) => <li key={b}><Check className="ic" />{b}</li>)}</ul>
+          </article>;
+        })}
+      </div>
+    </>)}
 
     <div className="pay-history">
       <h4 className="display"><Receipt className="ic" aria-hidden />Lịch sử giao dịch</h4>

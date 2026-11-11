@@ -162,7 +162,7 @@ function CreatorGenerationRun({ initialId, seed, onReset, onBuyCredits }: { init
           values={{ topic, lesson, genre, charactersText, setting, targetLength, vocabularyLevel, outputMode }} context={context} contextError={contextError} busy={flow.busy}
           ageBand={ageBand} readingLevel={readingLevel} onAudience={(a, l) => { setAgeBand(a); setReadingLevel(l); }}
           onChange={(v) => { if (v.topic !== undefined) setTopic(v.topic); if (v.lesson !== undefined) setLesson(v.lesson); if (v.genre !== undefined) setGenre(v.genre); if (v.charactersText !== undefined) setCharactersText(v.charactersText); if (v.setting !== undefined) setSetting(v.setting); if (v.targetLength !== undefined) setTargetLength(v.targetLength); if (v.vocabularyLevel !== undefined) setVocabularyLevel(v.vocabularyLevel); if (v.outputMode !== undefined) setOutputMode(v.outputMode); }}
-          onSubmit={start} />}
+          onSubmit={start} onBuyCredits={onBuyCredits} />}
         {/* Lúc AI đang làm: thẻ chờ giống phụ huynh (con cóc ngồi chờ + bước hiện tại). */}
         {waiting && <div style={{ height: '100%', minHeight: 380 }}><StageProgress stage={stage} snapshot={flow.snapshot} message={flow.error || flow.message} onRetry={refreshState} /></div>}
         <div style={{ maxWidth: 900, margin: '0 auto', display: 'grid', gap: 16 }}>

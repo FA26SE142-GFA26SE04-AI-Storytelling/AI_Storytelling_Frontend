@@ -103,6 +103,11 @@ vi.mock('@/app/lib/toast', () => ({
   showToast: host.showToast,
 }));
 
+vi.mock('@/app/lib/motion', () => ({
+  useGrowBars: () => ({ current: null }),
+  usePop: () => ({ current: null }),
+}));
+
 import PaymentSection from '@/app/features/account/PaymentSection';
 
 type Node = { type: unknown; props: Record<string, unknown> };
@@ -110,6 +115,13 @@ type Node = { type: unknown; props: Record<string, unknown> };
 function nodes(tree: ReactNode, predicate: (node: Node) => boolean): Node[] {
   if (Array.isArray(tree)) return tree.flatMap((child) => nodes(child, predicate));
   if (!isValidElement<Record<string, unknown>>(tree)) return [];
+  if (typeof tree.type === 'function') {
+    const rendered = (tree.type as (props: unknown) => ReactNode)(tree.props);
+    return [
+      ...(predicate(tree as Node) ? [tree as Node] : []),
+      ...nodes(rendered, predicate),
+    ];
+  }
   return [
     ...(predicate(tree as Node) ? [tree as Node] : []),
     ...nodes(tree.props.children as ReactNode, predicate),
@@ -121,6 +133,10 @@ function allText(tree: ReactNode): string {
   if (!tree || typeof tree !== 'object') return '';
   if (Array.isArray(tree)) return tree.map(allText).join('');
   if (isValidElement<Record<string, unknown>>(tree)) {
+    if (typeof tree.type === 'function') {
+      const rendered = (tree.type as (props: unknown) => ReactNode)(tree.props);
+      return allText(rendered);
+    }
     return allText(tree.props.children as ReactNode);
   }
   return '';
@@ -255,7 +271,10 @@ describe('PaymentSection for Creator', () => {
 
     const card = nodes(
       tree,
-      (node) => node.type === 'article' && String(node.props.className).includes('plan-card'),
+      (node) =>
+        node.type === 'article' &&
+        (String(node.props.className).includes('plan-card') ||
+          String(node.props.className).includes('cqp-pack')),
     )[0];
     expect(card).toBeDefined();
 

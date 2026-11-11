@@ -14,7 +14,6 @@ import { Notice, Page } from "./ui";
 import CreatorGeneration from "./CreatorGeneration";
 import { useAuth } from "@/app/context/AuthContext";
 import CreatorEditor from "./CreatorEditor";
-import CreatorQuotaChip from "./CreatorQuotaChip";
 
 const MODE: Record<string, string> = { reading: "Đọc", listening: "Nghe", combined: "Đọc và nghe" };
 const AGE_OPTIONS: { value: CreateDraftInput["ageBand"]; label: string }[] = [{ value: "6-8", label: "6–8 tuổi" }, { value: "9-10", label: "9–10 tuổi" }];
@@ -30,15 +29,12 @@ export function CreatorCreateAi({ go, target, resumeId = null }: CreatorPageProp
   const { user } = useAuth();
   const initialId = target ?? resumeId;
   return (
-    <>
-      <CreatorQuotaChip kind="ai" onBuy={() => go("account-plan")} />
-      <CreatorGeneration
-        key={`${user?.id}:${initialId ?? "new"}`}
-        initialId={initialId}
-        onBack={() => go("library")}
-        onBuyCredits={() => go("account-plan")}
-      />
-    </>
+    <CreatorGeneration
+      key={`${user?.id}:${initialId ?? "new"}`}
+      initialId={initialId}
+      onBack={() => go("library")}
+      onBuyCredits={() => go("account-plan")}
+    />
   );
 }
 
