@@ -13,6 +13,17 @@ import { count, money, pct, shortMoney } from "@/app/components/stats/statFormat
 import RevenueByPlanDonut from "./RevenueByPlanDonut";
 import "./AdminRevenueTab.css";
 
+/** Nguồn cấp lượt AI (CreditSource của Backend) bằng tiếng Việt; nguồn lạ thì giữ nguyên tên. */
+const CREDIT_SOURCE_LABELS: Record<string, string> = {
+  Trial: "Dùng thử",
+  Cycle: "Chu kỳ gói",
+  AddOn: "Add-on",
+  Legacy: "Gói cũ",
+  AdminAdjust: "Admin cấp",
+  CreatorMonthly: "Hạn mức Creator",
+  CreatorPack: "Gói Creator",
+};
+
 export function AdminRevenueTab({
   period,
   months,
@@ -111,86 +122,79 @@ export function AdminRevenueTab({
         selectedKey={selectedKey}
       />
 
-      <div className="pane">
-        <h3 className="sec-h">Doanh thu theo loại gói</h3>
-        <RevenueByPlanDonut items={data.revenueByPlanType} />
-      </div>
-
-      <div className="pane">
-        <h3 className="sec-h">Trạng thái giao dịch</h3>
-        <div className="rev-status-pills">
-          <span className="pill ok">
-            Đã thanh toán: {count(data.transactionsByStatus.paid)}
-          </span>
-          <span className="pill wait">
-            Chờ thanh toán: {count(data.transactionsByStatus.pending)}
-          </span>
-          <span className="pill draft">
-            Hết hạn: {count(data.transactionsByStatus.expired)}
-          </span>
-          <span className="pill flag">
-            Sai số tiền: {count(data.transactionsByStatus.mismatchAmount)}
-          </span>
-        </div>
-        <p className="sub rev-note">
-          Xác nhận tay: {count(data.manuallyMarkedPaidCount)} giao dịch, {money(data.manuallyMarkedPaidRevenueVnd)}
-        </p>
-      </div>
-
-      <div className="pane">
-        <h3 className="sec-h">Doanh thu theo gói</h3>
-        {!data.revenueByPlan || data.revenueByPlan.length === 0 ? (
-          <p className="empty-line">Chưa có giao dịch nào trong kỳ này.</p>
-        ) : (
-          <div className="st-scroll">
-            <table className="stack-table st-table">
-              <thead>
-                <tr>
-                  <th>Gói</th>
-                  <th>Giao dịch</th>
-                  <th>Doanh thu</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.revenueByPlan.map((p) => (
-                  <tr key={p.planId}>
-                    <td data-label="Gói">{p.planName}</td>
-                    <td data-label="Giao dịch">{count(p.transactionCount)}</td>
-                    <td data-label="Doanh thu">{money(p.revenueVnd)}</td>
+      <div className="rev-split">
+        <div className="pane">
+          <h3 className="sec-h">Doanh thu theo gói</h3>
+          <RevenueByPlanDonut items={data.revenueByPlanType} />
+          {data.revenueByPlan && data.revenueByPlan.length > 0 ? (
+            <div className="st-scroll">
+              <table className="stack-table st-table">
+                <thead>
+                  <tr>
+                    <th>Gói</th>
+                    <th>Giao dịch</th>
+                    <th>Doanh thu</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      <div className="pane">
-        <h3 className="sec-h">Lượt AI</h3>
-        <div className="ce-stats">
-          <StatCard
-            icon={Sparkles}
-            label="Lượt đã cấp"
-            value={count(data.creditsGranted)}
-          />
-          <StatCard
-            icon={Sparkles}
-            label="Đã dùng"
-            value={count(data.creditsUsed)}
-          />
+                </thead>
+                <tbody>
+                  {data.revenueByPlan.map((p) => (
+                    <tr key={p.planId}>
+                      <td data-label="Gói">{p.planName}</td>
+                      <td data-label="Giao dịch">{count(p.transactionCount)}</td>
+                      <td data-label="Doanh thu">{money(p.revenueVnd)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : null}
         </div>
-        {data.creditsGrantedBySource && data.creditsGrantedBySource.length > 0 ? (
-          <div className="rev-credit-sources">
-            <span className="sub">Nguồn cấp:</span>
-            <div className="rev-credit-pills">
-              {data.creditsGrantedBySource.map((s) => (
-                <span className="pill draft" key={s.source}>
-                  {s.source}: {count(s.credits)}
-                </span>
-              ))}
+
+        <div className="pane">
+          <h3 className="sec-h">Giao dịch và lượt AI</h3>
+          <div className="rev-status-pills">
+            <span className="pill ok">
+              Đã thanh toán: {count(data.transactionsByStatus.paid)}
+            </span>
+            <span className="pill wait">
+              Chờ thanh toán: {count(data.transactionsByStatus.pending)}
+            </span>
+            <span className="pill draft">
+              Hết hạn: {count(data.transactionsByStatus.expired)}
+            </span>
+            <span className="pill flag">
+              Sai số tiền: {count(data.transactionsByStatus.mismatchAmount)}
+            </span>
+          </div>
+          <p className="sub rev-note">
+            Xác nhận tay: {count(data.manuallyMarkedPaidCount)} giao dịch, {money(data.manuallyMarkedPaidRevenueVnd)}
+          </p>
+          <hr className="rev-divider" />
+          <div className="rev-mini-grid">
+            <div className="rev-mini">
+              <Sparkles aria-hidden="true" />
+              <small>Lượt đã cấp</small>
+              <b>{count(data.creditsGranted)}</b>
+            </div>
+            <div className="rev-mini">
+              <Sparkles aria-hidden="true" />
+              <small>Đã dùng</small>
+              <b>{count(data.creditsUsed)}</b>
             </div>
           </div>
-        ) : null}
+          {data.creditsGrantedBySource && data.creditsGrantedBySource.length > 0 ? (
+            <div className="rev-credit-sources">
+              <span className="sub">Nguồn cấp:</span>
+              <div className="rev-credit-pills">
+                {data.creditsGrantedBySource.map((s) => (
+                  <span className="pill draft" key={s.source}>
+                    {CREDIT_SOURCE_LABELS[s.source] ?? s.source}: {count(s.credits)}
+                  </span>
+                ))}
+              </div>
+            </div>
+          ) : null}
+        </div>
       </div>
     </div>
   );

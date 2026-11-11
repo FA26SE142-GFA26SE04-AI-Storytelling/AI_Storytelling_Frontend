@@ -4,6 +4,83 @@
   gap: 20px;
 }
 
+/* Khung .pane không có lề trong: tiêu đề đã có lề 18px, nội dung bên dưới thụt cùng mức để không sát mép. */
+.admin-rev-tab .pane {
+  gap: 14px;
+  padding-bottom: 20px;
+}
+
+.admin-rev-tab .pane > :not(.sec-h) {
+  margin-inline: 18px;
+}
+
+.admin-rev-tab .pane > .sec-h {
+  justify-content: flex-start;
+  font-size: var(--fs-lg);
+  color: var(--ink-warm);
+}
+
+/* Hai khung cạnh nhau: doanh thu theo gói (rộng) và giao dịch + lượt AI (hẹp); màn hẹp thì xếp dọc. */
+.rev-split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+  gap: 20px;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .rev-split {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.rev-divider {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin-block: 0;
+}
+
+/* Hai số lượt AI gọn, có khung viền rõ và biểu tượng vàng. */
+.rev-mini-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+}
+
+.rev-mini {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px 14px;
+  border: 2px solid var(--line-2);
+  border-radius: 18px;
+  background: var(--surface);
+}
+
+.rev-mini svg {
+  width: 20px;
+  height: 20px;
+  color: var(--gold);
+}
+
+.rev-mini small {
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.rev-mini b {
+  font-family: var(--font-display);
+  font-size: var(--fs-xl);
+  line-height: 1.1;
+}
+
+/* Danh sách loại gói gọn cạnh biểu đồ, số tiền không bị đẩy sát mép phải màn hình. */
+.rev-donut-card .dl {
+  flex: 1 1 280px;
+  max-width: 560px;
+}
+
 .rev-status-pills {
   display: flex;
   flex-wrap: wrap;
@@ -15,7 +92,6 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-top: 12px;
 }
 
 .rev-credit-pills {
@@ -26,7 +102,7 @@
 }
 
 .rev-note {
-  margin-top: 10px;
+  margin-block: 0;
   font-size: var(--fs-sm);
   color: var(--muted);
 }
