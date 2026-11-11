@@ -62,9 +62,9 @@ export const staffService = {
     apiRequest(`/StaffAccount/${userId}/reactivate`, 'Không kích hoạt lại được.', { method: 'POST' }),
 
   // ---------- Hàng đợi kiểm duyệt (backend chưa có API ra quyết định / trả lại) ----------
-  queue(query: QueueQuery = {}): Promise<ApiResponse<PagedResult<QueueItem>>> {
+  queue(query: QueueQuery = {}, signal?: AbortSignal): Promise<ApiResponse<PagedResult<QueueItem>>> {
     const params = new URLSearchParams(Object.entries({ pageSize: 100, ...query }).filter(([, v]) => v !== undefined).map(([k, v]) => [k, String(v)]));
-    return apiRequest(`/ModerationQueue?${params}`, 'Không tải được hàng đợi kiểm duyệt.');
+    return apiRequest(`/ModerationQueue?${params}`, 'Không tải được hàng đợi kiểm duyệt.', { signal });
   },
   /** Nhận xử lý (khoá 2 giờ). Không được nhận mục do chính mình tạo hoặc nộp. */
   claim: (itemId: number): Promise<ApiResponse<QueueItemDetail>> => apiRequest(`/ModerationQueue/${itemId}/claim`, 'Chưa nhận được mục này.', { method: 'POST' }),

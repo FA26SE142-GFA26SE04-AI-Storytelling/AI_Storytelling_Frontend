@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ImageOff, RefreshCw, ZoomIn } from 'lucide-react';
 
 /**
@@ -23,4 +24,24 @@ export default function ReviewPicture({ url, alt, onZoom }: { url: string; alt: 
     {state === 'loading' && <span className="st-pic-spin" role="status" aria-label="Đang tải tranh" />}
     {state === 'ready' && <ZoomIn className="ic st-pic-zoom" aria-hidden="true" />}
   </button>;
+}
+
+/** Lightbox phóng to tranh minh hoạ dùng chung cho các màn kiểm duyệt và rà soát. */
+export function ZoomLightbox({ zoom, onClose }: { zoom: { url: string; alt: string } | null; onClose: () => void }) {
+  useEffect(() => {
+    if (!zoom) return;
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [zoom, onClose]);
+
+  if (!zoom || typeof document === 'undefined') return null;
+  return createPortal(
+    <div className="dlg-backdrop st-zoom" role="dialog" aria-modal="true" aria-label="Tranh phóng to" onClick={onClose}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={zoom.url} alt={zoom.alt} onClick={e => e.stopPropagation()} />
+      <button type="button" className="btn btn-s st-zoom-close" onClick={onClose}>Đóng</button>
+    </div>,
+    document.body,
+  );
 }
