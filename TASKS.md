@@ -1,12 +1,12 @@
 # Chức năng theo vai trò — đã làm / chưa làm
 
-Cập nhật: 10/11/2026.
+Cập nhật: 11/11/2026.
 
 Căn cứ:
 
 - **Tài liệu 6 (ưu tiên)**: `SEP420_R2_BM04_Commitment` — bản cam kết sau Review 2, gồm 22 chức năng bắt buộc F-01 → F-22. Đây là phạm vi chấm ở Defense 1.1 và Viva; sau Review 2 phạm vi không đổi.
 - Tài liệu Luồng 1–5 (link trong `CLAUDE.md` ở thư mục gốc dự án).
-- Code ngày 10/11: Backend nhánh `main` (`AI_Storytelling_Backend/src/Core`) và Frontend `main` (`src/`). Audit endpoint (`node scripts/audit-core-api.mjs`): Backend có **354** endpoint, Frontend đã nối **313**, 2 loại trừ, còn **39** (21 có hàm service nhưng chưa màn nào gọi, 18 chưa có hàm).
+- Code ngày 11/11: Backend nhánh `main` (`AI_Storytelling_Backend/src/Core`) và Frontend `main` (`src/`). Backend đang checkout `main`, không phải `feature/read-aloud-f13`; fix media của bé (commit 7ecf5fe) chỉ có trên `feature/read-aloud-f13`. Audit endpoint (`node scripts/audit-core-api.mjs`): Backend có **369** endpoint, Frontend đã nối **342**, 2 loại trừ, còn **25**. Trong 25 có 7 endpoint FE đã gọi qua hàm bọc mà audit không nhận (xem mục 7), nên thật sự thiếu **18**.
 
 Ký hiệu:
 
@@ -22,9 +22,9 @@ Ký hiệu:
 | :-: | :-- | :-- | :-- | :-- |
 | F-01 | Hồ sơ bé, Learning Profile, Safety Policy | Phụ huynh | Duy | Đã làm |
 | F-02 | Bé vào app (QR, giao máy) và cổng phụ huynh | Phụ huynh, Bé | Duy | Đã làm |
-| F-03 | Gói dịch vụ và thanh toán QR SePay | Phụ huynh, Creator | Tuấn | **Một phần** — phụ huynh xong; còn gói Creator, quyền lợi theo gói |
-| F-04 | Xác nhận thanh toán, hết hạn | SePay, Hệ thống, Admin | Tuấn | **Một phần** — phụ huynh xong; còn áp gói Creator |
-| F-05 | Lượt tạo truyện AI: kiểm tra, trừ, lịch sử | Phụ huynh, Creator | Tuấn | **Một phần** — xem lượt, lịch sử xong; còn giữ/hoàn lượt, miễn phí tạo lại, lượt Creator |
+| F-03 | Gói dịch vụ và thanh toán QR SePay | Phụ huynh, Creator | Tuấn | **Một phần** — phụ huynh xong; BE đã có gói Creator, FE chưa có màn mua; còn quyền lợi theo gói |
+| F-04 | Xác nhận thanh toán, hết hạn | SePay, Hệ thống, Admin | Tuấn | **Một phần** — phụ huynh xong; BE đã áp gói Creator, FE chưa có màn mua gói Creator |
+| F-05 | Lượt tạo truyện AI: kiểm tra, trừ, lịch sử | Phụ huynh, Creator | Tuấn | **Một phần** — xem lượt, lịch sử xong; BE đã có hạn mức Creator và hoàn lượt gửi duyệt, FE chưa có màn lượt Creator; còn giữ/hoàn lượt AI, miễn phí tạo lại |
 | F-06 | Tạo truyện bằng AI và duyệt nội dung | Phụ huynh, Creator | Minh | Đã làm |
 | F-07 | Tự viết và nhập truyện có sẵn | Phụ huynh, Creator | Minh | Đã làm |
 | F-08 | Điều ước của bé và phụ huynh đáp lại | Bé, Phụ huynh | Minh | Đã làm |
@@ -32,18 +32,18 @@ Ký hiệu:
 | F-10 | Gửi truyện công khai và kiểm duyệt | Phụ huynh, Creator, Moderator | Minh | Đã làm |
 | F-11 | Cấu hình kiểm duyệt: tiêu chí, thẻ ước, hướng dẫn sáng tác | Moderator | Duy | Đã làm |
 | F-12 | Lộ trình đọc và thư viện lộ trình mẫu | Phụ huynh, Moderator, Bé | Duy | Đã làm |
-| F-13 | Phiên đọc: TTS, tương tác khi nghe, luyện đọc to | Bé | Duy | **Một phần** — luyện đọc to bị chặn bởi BE |
+| F-13 | Phiên đọc: TTS, tương tác khi nghe, luyện đọc to | Bé | Duy | Đã làm |
 | F-14 | Quiz, EXP, huy hiệu, cây tri thức, sổ tay | Bé | Duy | Đã làm |
-| F-15 | Thống kê doanh thu | Admin | Tuấn | **Một phần** — báo cáo chưa có số liệu doanh thu |
-| F-16 | Báo cáo tài khoản người dùng | Admin | Tuấn | Chưa làm |
+| F-15 | Thống kê doanh thu | Admin | Tuấn | **Một phần** — BE đã có doanh thu và tài khoản, FE chưa hiện hai số liệu này |
+| F-16 | Báo cáo tài khoản người dùng | Admin | Tuấn | **Một phần** — BE đã có `BusinessReport/admin/accounts`, FE chưa có màn |
 | F-17 | Quản lý gói dịch vụ | Admin | Tuấn | **Một phần** — sửa / bật tắt gói xong; chưa tạo gói, chưa cấu hình quỹ Creator |
 | F-18 | Đối soát thanh toán – lượt | Admin | Khánh | Đã làm |
 | F-19 | Thống kê hàng đợi kiểm duyệt và SLA | Moderator | Khánh | Chưa làm |
-| F-20 | Doanh thu của Creator | Creator | Tuấn | Chưa làm |
-| F-21 | Thống kê lượt đọc của Creator | Creator | Tuấn | Chưa làm |
+| F-20 | Doanh thu của Creator | Creator | Tuấn | **Một phần** — BE đã có `CreatorStatistics/revenue`, FE chưa có màn |
+| F-21 | Thống kê lượt đọc của Creator | Creator | Tuấn | **Một phần** — BE đã có `CreatorStatistics/reading`, FE chưa có màn |
 | F-22 | Thống kê nội dung của Creator | Creator | Khánh | Chưa làm |
 
-**Đã làm 11/22 · Một phần 6/22 · Chưa làm 5/22** (cập nhật 10/11 sau đợt Tạo truyện). Chưa làm: F-16, F-19, F-20, F-21, F-22 (chưa có cả Backend lẫn Frontend). Phần còn thiếu dồn ở **gói Creator** (WF-02) và **thống kê** (WF-05); WF-01, WF-03, WF-04 gần xong.
+**Đã làm 12/22 · Một phần 8/22 · Chưa làm 2/22** (cập nhật 11/11). Chưa làm: F-19, F-22 (chưa có cả Backend lẫn Frontend). Một phần: F-03, F-04, F-05 (BE có gói Creator, FE chưa có màn), F-15, F-16, F-17, F-20, F-21 (BE có API, FE chưa nối đủ). Phần còn thiếu dồn ở **gói Creator** (WF-02) và **thống kê** (WF-05); WF-01, WF-03, WF-04 gần xong.
 
 ---
 
@@ -111,14 +111,18 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 
 - [x] Vào app bằng QR EasyLogin (khoá thiết bị 5 phút khi quét sai nhiều lần) hoặc do phụ huynh giao máy (F-02).
 - [x] Trang chính của bé: truyện hôm nay, hành trình (lộ trình), Truyện, Sổ tay, Điều ước, Phần thưởng.
-- [x] Phiên đọc ListenFirst / ReadFirst, chỉ nghe, đoạn chữ, 1–3 tranh mỗi cảnh tự chuyển theo giọng đọc, giọng đọc TTS, từ vựng, lưu tiến độ, dấu trang, yêu thích (F-13).
+- [x] Phiên đọc ListenFirst / ReadFirst, chỉ nghe, đoạn chữ, đọc theo trang (mỗi tranh là một trang, có nút lật trước / sau; giọng kể dừng cuối trang), giọng đọc TTS, từ vựng, lưu tiến độ, dấu trang, yêu thích (F-13) (`src/app/features/kid/ChildReader.tsx`).
 - [x] 5 loại tương tác khi nghe: Checkpoint, RolePlay, FillBlank, EventOrdering, PicturePrediction (F-13).
-- [x] **Luyện đọc to bằng nhận dạng giọng nói** (F-13) — bé bấm icon micro ở đoạn đang đọc để ghi âm, bấm lại để gửi; chấm từng chữ: xanh (đúng), vàng (sai dấu, chưa rõ hoặc đọc thành chữ khác, có gợi ý), xám (bỏ qua); có nút đọc lại, thông báo bằng toast.
+- [x] **Luyện đọc to bằng nhận dạng giọng nói** (F-13) — bé bấm icon micro ở đoạn đang đọc để ghi âm, bấm lại để gửi; chấm từng chữ: xanh (đúng), vàng (sai dấu, chưa rõ hoặc đọc thành chữ khác, có gợi ý), xám (bỏ qua); có nút đọc lại, thông báo bằng toast. BE: `POST /child/reading/sessions/{id}/segments/{id}/read-aloud` (`ChildReadingController.cs`, trên `main`); FE: `childReadingService.ts`, `ChildReader.tsx`, `ChildReaderCaption.tsx`.
+- [ ] Karaoke: tô đậm từng chữ theo giọng đọc — chưa làm, không thuộc 22 chức năng bắt buộc. BE dùng Gemini TTS, `EnableWordTimings=false` nên không có mốc thời gian từng chữ; FE có `parseWordTimings` và `useNarrator.ts` xử lý mốc nhưng chưa gắn vào màn đọc.
 - [x] Hoàn thành truyện, chọn cảm xúc, làm quiz (trắc nghiệm, đúng/sai, trả lời ngắn ≤ 200 ký tự) (F-14).
 - [x] EXP, 7 huy hiệu, cây tri thức 5 giai đoạn (tưới cây), sổ tay từ vựng, nghĩa của từ; đọc xong mở bước lộ trình tiếp theo (F-14).
 - [x] Cuối truyện ghi âm kể lại (đổi sang WAV trước khi gửi) và đánh dấu tối đa 5 cảnh còn thắc mắc.
 - [x] Gửi điều ước bằng thẻ (F-08).
 - [x] Đọc truyện cộng đồng đã duyệt.
+- [ ] **Tranh / âm thanh của truyện gia đình tự soạn** (`GET /child/manual-stories/{confirmationId}/assets/{assetId}`) — **bị chặn bởi BE**: link dựng với mã xác nhận 0 và bị ký nhầm như đường dẫn kho. Khi BE sửa: FE tải file kèm token phiên của bé rồi hiện bằng blob URL.
+- [ ] **Một phần — Tranh / âm thanh của truyện gia đình tự soạn** (`GET /child/manual-stories/{confirmationId}/assets/{assetId}`): FE tải file kèm token phiên của bé rồi hiện bằng blob URL (`src/app/lib/useAuthedMediaUrl.ts`, dùng ở tranh cảnh, giọng đọc và xem trước truyện gia đình). BE còn thiếu trên `main`: fix signer bỏ qua URL /api/ (commit 7ecf5fe, `ChildMediaUrlSigner.cs`) mới nằm ở nhánh `feature/read-aloud-f13`, chưa merge vào `main`.
+=======
 - [x] **Tranh / âm thanh của truyện gia đình tự soạn** (`GET /child/manual-stories/{confirmationId}/assets/{assetId}`) — đã sửa: BE dùng mã xác nhận thật và signer bỏ qua URL /api/; FE tải file kèm token phiên của bé rồi hiện bằng blob URL (`src/app/lib/useAuthedMediaUrl.ts`, dùng ở tranh cảnh, giọng đọc và xem trước truyện gia đình).
 
 ---
@@ -129,9 +133,9 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] Gửi duyệt công khai: chọn ảnh bìa và nhãn nội dung, rút yêu cầu, gửi lại khi chỉ bị trả về vì nhãn, tạo bản chỉnh sửa, yêu cầu gỡ truyện đã công khai (F-10).
 - [x] Thư viện truyện mẫu, Truyện của tôi.
 - [x] **Media từng đoạn của Creator**: bước "Kiểm tra và chốt" chọn "AI tạo hết" hoặc "Tự chọn từng phần"; ở bước Tranh và giọng đọc, mỗi tranh / đoạn đang chờ có nút Tải lên (khai báo nguồn và quyền, ảnh JPEG/PNG/WebP ≤ 10 MB, âm thanh MP3/WAV ≤ 25 MB) và AI tạo. Đã thử thật (truyện #919).
-- [ ] **Mua gói Creator, xem lượt tạo truyện và lượt gửi duyệt** (F-03, F-05) — BE chưa có hạn mức tháng (2 lượt AI + 5 lượt gửi; đối tác 6 + 10), gói Creator 99.000 đ (+6 lượt AI, +20 lượt gửi), trừ / hoàn lượt gửi duyệt. FE chưa có màn.
-- [ ] **Doanh thu ước tính** (F-20): quỹ Creator theo tháng (30% Gói Đọc + 10% Gói Sáng tạo), chia theo lượt đọc hợp lệ — chưa có BE và FE.
-- [ ] **Thống kê lượt đọc** (F-21): lượt xem, yêu thích, đọc xong, lượt đọc hợp lệ, tỉ lệ hoàn thành theo truyện và theo kỳ — chưa có BE và FE.
+- [ ] **Một phần — Mua gói Creator, xem lượt tạo truyện và lượt gửi duyệt** (F-03, F-05): BE đã có gói Creator 99.000 đ (+6 lượt AI, +20 lượt gửi), hạn mức tháng (2 lượt AI + 5 lượt gửi), trừ / hoàn lượt gửi duyệt (`TokenQuotaService.Creator.cs`). FE chưa có màn mua gói Creator và màn xem lượt Creator. Hạn mức đối tác (6 + 10) BE ghi là hoãn, cần xác nhận.
+- [ ] **Một phần — Doanh thu ước tính** (F-20): quỹ Creator theo tháng (30% Gói Đọc + 10% Gói Sáng tạo), chia theo lượt đọc hợp lệ. BE có `GET /CreatorStatistics/revenue`; FE chưa có màn.
+- [ ] **Một phần — Thống kê lượt đọc** (F-21): lượt xem, yêu thích, đọc xong, lượt đọc hợp lệ, tỉ lệ hoàn thành theo truyện và theo kỳ. BE có `GET /CreatorStatistics/reading`; FE chưa có màn.
 - [ ] **Thống kê nội dung** (F-22): số truyện theo trạng thái, kết quả gửi duyệt trong kỳ, lượt còn lại, hạng Creator / đối tác và tiến độ 90 ngày — chưa có BE và FE.
 - [ ] Creator tự đăng ký — chưa chốt cách tạo tài khoản Creator (hiện chỉ có tài khoản seed).
 
@@ -148,7 +152,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] Thẻ ước: tạo, sửa, bật / tắt, gắn với truyện bằng tay hoặc AI gợi ý (F-11).
 - [x] Hướng dẫn sáng tác: soạn nháp, xem trước, phát hành phiên bản mới (F-11).
 - [x] Lộ trình mẫu: tạo, sửa, chọn truyện, gửi duyệt, rút, nhân bản, lưu trữ; duyệt lộ trình mẫu (F-12).
-- [ ] **Thống kê hàng đợi và SLA** (F-19): số mục Pending / Claimed / quá hạn theo kỳ, quyết định theo kết quả và loại mục, số lần gửi lại, số vùng xám; không trả nội dung hay dữ liệu bé; gọi thống kê của Admin thì 403 — chưa có BE và FE.
+- [ ] **Thống kê hàng đợi và SLA** (F-19): số mục Pending / Claimed / quá hạn theo kỳ, quyết định theo kết quả và loại mục, số lần gửi lại, số vùng xám; không trả nội dung hay dữ liệu bé; gọi thống kê của Admin thì 403 — chưa có BE và FE. BE hiện chỉ có danh sách hàng đợi (`ModerationQueueController.cs`), chưa có thống kê.
 
 ---
 
@@ -158,8 +162,8 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] Danh mục nội dung.
 - [x] Ca kiểm duyệt chuyển lên Admin; rà soát thư viện; tiêu chí, hướng dẫn, thẻ ước, lộ trình mẫu (xem).
 - [x] **Thanh toán → Giao dịch** (F-04): mọi giao dịch, lọc trạng thái, tìm theo mã / email / tên, phân trang; "Xác nhận đã trả" cho mọi giao dịch chưa Paid (kể cả Hết hạn, Sai số tiền), gói được áp như webhook.
-- [ ] **Một phần — Báo cáo nghiệp vụ** (F-15): tạo báo cáo theo kỳ, Compiling → Published, xem báo cáo mới nhất. BE chỉ có số truyện tạo / duyệt / từ chối và số phiên đọc xong. Thiếu: doanh thu từ giao dịch Paid theo PaidAt, số giao dịch theo trạng thái, doanh thu theo gói và loại gói, số phụ huynh mua / mua lại, lượt cấp và lượt dùng, quỹ Creator, chặn kỳ chồng nhau.
-- [ ] **Báo cáo tài khoản người dùng** (F-16): tổng phụ huynh cuối kỳ, đăng ký mới, đang hoạt động, bị khoá, số hồ sơ bé — chưa có BE và FE.
+- [ ] **Một phần — Báo cáo nghiệp vụ** (F-15): tạo báo cáo theo kỳ, Compiling → Published, xem báo cáo mới nhất (FE nối tại `AdminSystem.tsx`). BE đã có doanh thu (`GET /BusinessReport/admin/revenue`) và báo cáo tài khoản (`GET /BusinessReport/admin/accounts`), FE chưa hiện hai số liệu này. Cần kiểm lại BE: số giao dịch theo trạng thái, doanh thu theo gói và loại gói, quỹ Creator, chặn kỳ chồng nhau.
+- [ ] **Một phần — Báo cáo tài khoản người dùng** (F-16): tổng phụ huynh cuối kỳ, đăng ký mới, đang hoạt động, bị khoá, số hồ sơ bé. BE có `GET /BusinessReport/admin/accounts`; FE chưa có màn.
 - [ ] **Một phần — Quản lý gói dịch vụ** (F-17, trang "Gói dịch vụ"): xem mọi gói, sửa tên / giá / lượt AI, bật tắt bán (gói cũ không bật lại được), nút Lưu chỉ hiện khi có thay đổi; đổi giá chỉ áp cho giao dịch mới; BE ghi nhật ký. Thiếu (BE): tạo gói mới, quyền lợi theo gói, cấu hình tỉ lệ quỹ Creator, hạn mức Creator và đối tác, thời gian đọc tối thiểu.
 - [x] **Đối soát thanh toán – lượt** (F-18, trang "Thanh toán → Chờ áp gói"): job tìm giao dịch Paid chưa có chu kỳ / lô lượt, Admin bấm "Áp lại gói" (idempotent, không cộng hai lần, ngoại lệ đã xử lý không xử lý lại), có tab Đã xử lý.
 - [x] **Lượt tạo truyện** (UC-L2-08, thay trang "Token Quota" cũ): xem gói và lượt của một tài khoản phụ huynh theo mã, cấp / trừ lượt kèm lý do bắt buộc (trừ có popup xác nhận), lịch sử điều chỉnh.
@@ -176,13 +180,14 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
   - Giữ lượt khi gửi, chỉ trừ khi AI viết xong nội dung / chuyển thể xong, hoàn lượt khi lỗi, bị chặn hoặc huỷ (hiện trừ ngay khi gửi yêu cầu).
   - Miễn phí trong một truyện: viết lại dàn ý 3 lần, viết lại nội dung 2 lần, tạo lại 3 tranh.
   - Tạo media cho truyện tự viết cũng tốn 1 lượt.
-- [ ] **Gói Creator** (F-03, F-04, F-05): hạn mức tháng của Creator (2 lượt AI + 5 lượt gửi; đối tác 6 + 10), gói Creator 99.000 đ (+6 lượt AI, +20 lượt gửi, không hết hạn), trừ / hoàn lượt gửi duyệt — BE chưa có (hiện Creator không bị kiểm tra lượt), FE chưa có màn.
+- [ ] **Một phần — Gói Creator** (F-03, F-04, F-05): BE đã có gói Creator (cấp lượt khi Paid, `SubscriptionService.cs`), hạn mức tháng của Creator, trừ / hoàn lượt gửi duyệt. FE chưa có màn mua gói Creator và màn lượt Creator. Hạn mức đối tác (6 + 10) BE ghi là hoãn, cần xác nhận.
 - [x] Sinh dàn ý, nội dung, học liệu, tranh, giọng đọc bằng worker; thử lại khi lỗi tạm thời; vùng xám chuyển Moderator (F-06, F-09).
 
 ---
 
 ## 7. Việc kỹ thuật còn lại
 
+- [ ] Endpoint BE đã có nhưng FE chưa nối: `GET /BusinessReport/admin/revenue`, `/admin/accounts`, `/admin`, `/admin/{reportId}`; `GET /CreatorStatistics/reading`, `/revenue`; `GET /TokenQuota/creator/me`; `GET /Payment/mismatched`. Audit (`scripts/audit-core-api.mjs`) báo sai 7 endpoint đã nối qua hàm bọc (`CommunitySubmission` ×5 qua `guardianService.ts`, `parent/.../assets/...` qua `parentPackageService.ts`, `child/manual-stories/.../assets/...` qua `useAuthedMediaUrl.ts`); cần sửa audit để nhận diện hàm bọc.
 - [ ] Endpoint đã có hàm nhưng chưa màn nào gọi: `GET /ChildProfile/{id}`, `POST /Story`, `PATCH /Story/{id}/publish`, các endpoint duyệt cũ trong `ReviewController` (`review/*/complete`, `review/validation`, `review/approve`, `generation/confirm-content`, `PUT review/listening/{id}`). Xác nhận còn dùng không rồi nối hoặc bỏ.
 - [ ] Trang giới thiệu hiển thị truyện đã phát hành — chờ API công khai (thư viện cộng đồng đang cần token).
 - [ ] Ảnh bìa truyện cộng đồng — chờ DTO trả ảnh bìa.
