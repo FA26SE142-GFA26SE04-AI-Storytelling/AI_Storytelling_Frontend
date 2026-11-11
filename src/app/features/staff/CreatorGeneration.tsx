@@ -25,6 +25,7 @@ import StudioControls from '@/app/features/studio/StudioControls';
 import StageProgress from '@/app/features/studio/StageProgress';
 import CreatorBrief from './CreatorBrief';
 import CreatorMedia from './CreatorMedia';
+import { creatorPublicationState } from './creatorPublicationState';
 const continueMedia = mediaKeepPolling;
 /** Lỗi AI hay gặp, giải thích bằng tiếng Việt; mã lạ thì hiện nguyên mã. */
 const FAILURE_VI: Record<string, string> = {
@@ -67,6 +68,7 @@ function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number 
   const [locked, setLocked] = useState(true);
   const [savedStatus, setSavedStatus] = useState('');
   const [savedVersion, setSavedVersion] = useState<number | null>(null);
+  const [publicationStatus, setPublicationStatus] = useState<B.CreatorPublicationStatus | null>(null);
   const [refresh, setRefresh] = useState(0);
   const [submitted, setSubmitted] = useState<B.SubmitCreatorAIStoryInputRequestDto | null>(null);
   useEffect(() => {
@@ -100,11 +102,16 @@ function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number 
   const stage: Stage = flow.id === null ? 'brief'
     : flow.input && flow.input.inputStatus !== 'input_accepted' ? (['input_blocked', 'input_check_failed'].includes(flow.input.inputStatus) ? 'blocked' : 'checking')
     : flow.stage;
-  const progress = useSteppedProgress(studioProgress(stage, flow.snapshot, media.data, stage === 'media' ? null : failed));
+  const baseProgress = studioProgress(stage, flow.snapshot, media.data, stage === 'media' ? null : failed);
+  const publicationState = publicationStatus?.storyId === flow.id && publicationStatus.versionId === versionId
+    ? creatorPublicationState(publicationStatus) : null;
+  const progress = useSteppedProgress(baseProgress.mode === 'done'
+    ? { ...baseProgress, caption: publicationState?.kind === 'revision' ? 'Cần tạo bản chỉnh sửa để gửi lại' : publicationState?.label ?? 'Nội dung và media đã hoàn tất' }
+    : baseProgress);
   const reviewing = flow.id !== null && flow.stage === 'review' && stage === 'review';
   // Bước Tranh & giọng đọc có bố cục riêng như phụ huynh: khung giữa + cột phải cuộn riêng (không còn một trang dài cuộn dọc).
   const mediaStage = flow.id !== null && flow.stage === 'media' && stage === 'media';
-  const publication = (hidden: boolean) => flow.id !== null && <CreatorPublication storyId={flow.id} versionId={versionId} storyStatus={storyStatus} onLockChange={setLocked} onRevision={refreshState} hidden={hidden} />;
+  const publication = (hidden: boolean) => flow.id !== null && <CreatorPublication storyId={flow.id} versionId={versionId} storyStatus={storyStatus} onLockChange={setLocked} onPublicationChange={setPublicationStatus} onRevision={refreshState} hidden={hidden} />;
   const waiting = flow.id !== null && !flow.failure && ['checking', 'outline_wait', 'generating', 'moderation'].includes(stage);
   // Thử lại bước AI vừa lỗi (như phụ huynh): viết truyện / học liệu qua generation/retry, hoặc tạo dàn ý lần đầu qua outline/retry.
   // Lỗi khi viết lại dàn ý đã có thì không có ở đây: bấm "Viết lại" trong dàn ý.

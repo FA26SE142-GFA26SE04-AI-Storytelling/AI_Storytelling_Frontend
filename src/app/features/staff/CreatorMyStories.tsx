@@ -19,6 +19,7 @@ import { coverFor } from "@/app/lib/storyView";
 import { fmt } from "./ui";
 import { creatorShelfOf, currentCreatorPublication, groupCreatorStories, resolveStoryDisplayState, type CreatorPublicationSnapshot } from "./creatorStoryShelves";
 import type { CreatorPageProps } from "./CreatorStories";
+import { creatorPublicationState } from './creatorPublicationState';
 
 const AGE: Record<string, string> = { "6-8": "6–8 tuổi", "9-10": "9–10 tuổi" };
 const MODE: Record<string, string> = { reading: "Đọc", listening: "Nghe", combined: "Đọc và nghe" };
@@ -39,6 +40,7 @@ export function CreatorStoryCard({
 }) {
   const name = story.title || "Truyện chưa đặt tên";
   const shelf = creatorShelfOf(story);
+  const state = creatorPublicationState(story);
   return (
     <button
       className={`bk${selected ? " on" : ""}`}
@@ -47,7 +49,7 @@ export function CreatorStoryCard({
       aria-label={`Xem chi tiết truyện ${name}`}
     >
       <span className="bk-cover" style={{ background: coverFor(story.coverImageUrl) }}>
-        <span className={`pill ${shelf.tone} bk-badge`}>{shelf.badge}</span>
+        <span className={`pill ${shelf.tone} bk-badge`}>{state?.kind.startsWith('removal_') ? state.label : shelf.badge}</span>
         <span className="bk-name display">{name}</span>
       </span>
       <span className="bk-title">{name}</span>
@@ -68,6 +70,7 @@ export function CreatorStoryDetailMeta({
   const shelf = creatorShelfOf(merged);
   const reviewKey = pub?.reviewStatus ?? merged.reviewStatus ?? (shelf.id === "rejected" ? "Rejected" : null);
   const published = pub ? pub.isPublished : merged.isPublished;
+  const state = creatorPublicationState(merged);
   return (
     <div className="meta">
       <span>Cách tạo</span><b>{isAi(merged) ? "Do AI tạo" : "Thủ công"}</b>
@@ -78,7 +81,8 @@ export function CreatorStoryDetailMeta({
       <span>Tạo lúc</span><b>{fmt(merged.createdAt)}</b>
       {merged.updatedAt && <><span>Cập nhật</span><b>{fmt(merged.updatedAt)}</b></>}
       <span>Trạng thái</span><span className={`pill ${shelf.tone}`} style={{ width: "fit-content" }}>{shelf.title}</span>
-      <span>Kiểm duyệt</span>{reviewKey ? <span className={`pill ${REVIEW_TONE[reviewKey] ?? "draft"}`} style={{ width: "fit-content" }}>{REVIEW[reviewKey] ?? reviewKey}</span> : <b>…</b>}
+      <span>Kiểm duyệt</span>{reviewKey ? <span className={`pill ${REVIEW_TONE[reviewKey] ?? "draft"}`} style={{ width: "fit-content" }}>{state?.label ?? REVIEW[reviewKey] ?? reviewKey}</span> : <b>…</b>}
+      {state?.hint && <><span>Hướng xử lý</span><span>{state.hint}</span></>}
       <span>Công khai</span>{published !== undefined ? <span className={`pill ${published ? "ok" : "flag"}`} style={{ width: "fit-content" }}>{published ? "Đã công khai" : "Chưa công khai"}</span> : <b>…</b>}
     </div>
   );

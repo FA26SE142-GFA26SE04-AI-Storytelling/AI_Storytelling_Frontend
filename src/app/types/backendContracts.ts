@@ -681,6 +681,9 @@ export interface CreatorContentSavedDto {
 }
 
 export interface CreatorDraftDto {
+  'openItemId'?: number | null;
+  'openItemType'?: string | null;
+  'openItemStatus'?: string | null;
   'storyId': number;
   'authorUserId': number;
   'title': string;

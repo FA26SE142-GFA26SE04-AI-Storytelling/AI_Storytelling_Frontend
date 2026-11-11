@@ -103,6 +103,7 @@ describe('creatorStoryShelves (Kiểu A)', () => {
       'published',
       'changes_requested',
       'pending_review',
+      'revision_required',
       'ready',
       'review',
       'draft',
@@ -111,7 +112,8 @@ describe('creatorStoryShelves (Kiểu A)', () => {
     expect(groups.find((g) => g.id === 'published')?.items.map((x) => x.storyId)).toEqual([1]);
     expect(groups.find((g) => g.id === 'changes_requested')?.items.map((x) => x.storyId)).toEqual([2]);
     expect(groups.find((g) => g.id === 'pending_review')?.items.map((x) => x.storyId)).toEqual([3]);
-    expect(groups.find((g) => g.id === 'ready')?.items.map((x) => x.storyId)).toEqual([4, 5, 6]);
+    expect(groups.find((g) => g.id === 'ready')?.items.map((x) => x.storyId)).toEqual([4, 5]);
+    expect(groups.find((g) => g.id === 'revision_required')?.items.map((x) => x.storyId)).toEqual([6]);
     expect(groups.find((g) => g.id === 'review')?.items.map((x) => x.storyId)).toEqual([7]);
     expect(groups.find((g) => g.id === 'draft')?.items.map((x) => x.storyId)).toEqual([8]);
     expect(groups.find((g) => g.id === 'rejected')?.items.map((x) => x.storyId)).toEqual([9]);

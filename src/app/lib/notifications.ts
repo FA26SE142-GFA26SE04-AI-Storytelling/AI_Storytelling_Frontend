@@ -39,7 +39,19 @@ const TEXT: Record<string, string> = {
   subscription_expiring: "Gói của bạn sắp hết hạn, hãy gia hạn để không gián đoạn",
 };
 
-export const notificationText = (n: AppNotification) => TEXT[notificationKey(n.type)] ?? "Bạn có thông báo mới";
+export const notificationText = (n: AppNotification) => {
+  if (notificationKey(n.type) === 'content_moderation_result' && n.payload) {
+    try {
+      const p = JSON.parse(n.payload);
+      if (p?.itemType === 'PublicStoryRemoval') {
+        const title = typeof p.storyTitle === 'string' && p.storyTitle.trim() ? ` “${p.storyTitle.trim()}”` : '';
+        if (p.decision === 'approved') return `Yêu cầu gỡ truyện${title} đã được chấp thuận`;
+        if (p.decision === 'rejected') return `Yêu cầu gỡ truyện${title} đã bị từ chối`;
+      }
+    } catch { /* Keep generic text for older or invalid payloads. */ }
+  }
+  return TEXT[notificationKey(n.type)] ?? "Bạn có thông báo mới";
+};
 
 /** Backend dùng trạng thái `Unread` / `Read`. */
 export const isUnread = (n: AppNotification) => !n.readAt && n.status.toLowerCase() !== "read";
