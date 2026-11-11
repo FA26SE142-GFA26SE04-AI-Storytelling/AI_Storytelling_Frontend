@@ -4,6 +4,7 @@ import { childReadingService as api, childNotebookService as notebook } from '@/
 import type * as D from '@/app/types/childReading';
 import type { ApiResponse } from '@/app/types/auth';
 import { confirmDialog } from '@/app/lib/confirm';
+import { isAuthedMediaUrl } from '@/app/lib/useAuthedMediaUrl';
 
 /**
  * Bộ nhớ tạm đường dẫn tranh/giọng đọc theo cảnh (sống đến khi tải lại trang). Mỗi lần mở truyện backend vẫn cấp phiên đọc mới
@@ -113,9 +114,10 @@ export function useChildReader(token:string, onLibrary:()=>void) {
     const items:(HTMLImageElement|HTMLAudioElement)[]=[];
     for(const scene of [content.scenes[at],content.scenes[at+1]]){
       if(!scene)continue;
-      if(scene.illustrationUrl){const im=new Image();im.src=scene.illustrationUrl;items.push(im);}
+      // URL cần token được bỏ qua khi tải sẵn, sẽ tải khi hiện.
+      if(scene.illustrationUrl && !isAuthedMediaUrl(scene.illustrationUrl)){const im=new Image();im.src=scene.illustrationUrl;items.push(im);}
       const first=scene.segments.find(g=>g.audioUrl);
-      if(first?.audioUrl){const au=new Audio();au.preload='auto';au.src=first.audioUrl;items.push(au);}
+      if(first?.audioUrl && !isAuthedMediaUrl(first.audioUrl)){const au=new Audio();au.preload='auto';au.src=first.audioUrl;items.push(au);}
     }
     warm.current=items;
   },[content,page]);
