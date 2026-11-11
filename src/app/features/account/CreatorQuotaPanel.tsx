@@ -27,7 +27,7 @@ export default function CreatorQuotaPanel(props: {
   return (
     <div className="cqp-layout">
       <div ref={growRef} className="cqp-main">
-        <h4 className="sec-h">Lượt của bạn</h4>
+        <h3 className="cqp-title display">Lượt của bạn</h3>
         {error ? (
           <p className="notice warn">Chưa tải được lượt của bạn. Hãy tải lại trang.</p>
         ) : (
@@ -131,13 +131,10 @@ export default function CreatorQuotaPanel(props: {
               <Package className="ic" aria-hidden />
               <h3 className="cqp-pack-name display">{pack.name}</h3>
             </div>
-            <div className="cqp-price-row">
-              <span className="cqp-price">
-                <b>{pack.priceVnd.toLocaleString('vi-VN')}</b>
-                <span>₫</span>
-              </span>
-              <small className="cqp-unit">/ lần mua</small>
-            </div>
+            <p className="cqp-price-row">
+              <b className="cqp-price">{pack.priceVnd.toLocaleString('vi-VN')} ₫</b>{' '}
+              <span className="cqp-unit">/ lần mua</span>
+            </p>
             <ul className="cqp-benefits">
               {benefits.map((b, i) => (
                 <li key={i}>

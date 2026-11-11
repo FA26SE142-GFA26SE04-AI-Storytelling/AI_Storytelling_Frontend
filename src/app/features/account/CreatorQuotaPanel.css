@@ -6,11 +6,25 @@
   width: 100%;
 }
 
+/* Cột trái có khung bán trong suốt riêng, nằm trên hình trang trí nền nên chữ không bị đè. */
 .cqp-main {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+}
+
+.cqp-title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--ink-warm);
 }
 
 .cqp-card {
@@ -88,9 +102,14 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: var(--fs-xs);
-  color: var(--muted);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text);
   margin: 0;
+}
+
+.cqp-refresh .ic {
+  color: var(--gold);
 }
 
 .cqp-refresh .ic {
@@ -100,6 +119,8 @@
 }
 
 .cqp-pack {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -142,33 +163,22 @@
   line-height: 1.2;
 }
 
+/* Giá và đơn vị là chữ thường trên cùng một dòng, nên tự thẳng đường chân chữ. */
 .cqp-price-row {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
+  margin: 0;
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 .cqp-price {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 2px;
+  font-size: var(--fs-2xl);
+  font-weight: 800;
   color: var(--text);
 }
 
-.cqp-price b {
-  font-size: var(--fs-2xl);
-  font-weight: 800;
-  line-height: 1;
-}
-
-.cqp-price span {
-  font-size: var(--fs-sm);
-  font-weight: 700;
-}
-
 .cqp-unit {
-  font-size: var(--fs-xs);
+  font-size: var(--fs-md);
+  font-weight: 600;
   color: var(--muted);
 }
 
@@ -199,6 +209,11 @@
 .cqp-buy {
   width: 100%;
   justify-content: center;
+}
+
+/* Vân lá của nút nhạt hơn để nhãn "Mua gói" dễ đọc, nhất là ở theme tối. */
+.cqp-buy::before {
+  opacity: 0.06;
 }
 
 @media (max-width: 760px) {
