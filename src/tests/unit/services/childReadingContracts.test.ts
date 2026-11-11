@@ -43,6 +43,13 @@ it('keeps current media with the exact candidate, snapshot and operation ID, pre
  expect(fetcher.mock.calls[0][0]).toMatch(/\/stories\/7\/media\/replacements\/88\/keep-current$/);
  expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual(body);expect(r.status).toBe(409);expect(fetcher).toHaveBeenCalledTimes(1);
 });
+it('sends the read-aloud recording as multipart form data with field Audio and child session',async()=>{
+  await reading.readAloud('child',4,9,new Blob(['x'],{type:'audio/wav'}));
+  const [url,options]=fetcher.mock.calls[0];
+  expect(url.endsWith('/child/reading/sessions/4/segments/9/read-aloud')).toBe(true);expect(options.method).toBe('POST');
+  expect(options.body).toBeInstanceOf(FormData);expect((options.body as FormData).get('Audio')).toBeInstanceOf(Blob);
+  expect(new Headers(options.headers).get('Authorization')).toBe('Bearer child');
+});
 it('sends the summary recording as multipart form data with the child session',async()=>{
  await reading.summaryRecording('child',4,new Blob(['x'],{type:'audio/webm'}));
  const [url,options]=fetcher.mock.calls[0];

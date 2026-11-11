@@ -149,5 +149,9 @@ export function useChildReader(token:string, onLibrary:()=>void) {
     const run=scope.current; const r=await api.event(token,session.sessionId,type,payload);
     if(run===scope.current&&!r.success)setNote(r.message);
   };
-  return {token,session,content,page,mode,definition,busy,blocked,done,completed,note,listenOnly,open,close,leave,save,complete,flag,pending,attempt,lookup,collect,event};
+  const readAloud = async (segmentId:number, audio:Blob) => {
+    if (!session) return { success:false, status:401, message:'Phiên của bé đã hết hạn.', data:null };
+    return api.readAloud(token, session.sessionId, segmentId, audio);
+  };
+  return {token,session,content,page,mode,definition,busy,blocked,done,completed,note,listenOnly,open,close,leave,save,complete,flag,pending,attempt,lookup,collect,event,readAloud};
 }

@@ -19,6 +19,8 @@ export const childReadingService = {
   attempt: (token:string, id:number, interactionId:number, body:D.ListeningAttemptRequest) => apiRequest<D.ListeningAttemptResult>(`/child/reading/sessions/${id}/interactions/${interactionId}/attempts`,'Chưa gửi được câu trả lời của em.',{method:'POST',body,token,session:'child'}),
   /** Ghi âm tóm tắt gửi bố mẹ (tối đa 3 MB, mỗi phiên một bản). */
   summaryRecording: (token:string, id:number, audio:Blob) => { const form=new FormData(); form.append('audio',audio,audio.type==='audio/wav'?'summary.wav':'summary'); return apiRequest<D.StorySummarySent>(`/child/reading/sessions/${id}/summary/recording`,'Chưa gửi được bản ghi âm.',{method:'POST',form,token,session:'child'}); },
+  /** Bé đọc to một đoạn truyện để nhận dạng và chấm điểm từng chữ (F-13). */
+  readAloud: (token:string, sessionId:number, segmentId:number, audio:Blob) => { const form=new FormData(); form.append('Audio',audio,audio.type==='audio/wav'?'read-aloud.wav':'read-aloud'); return apiRequest<D.ReadAloudResult>(`/child/reading/sessions/${sessionId}/segments/${segmentId}/read-aloud`,'Chưa chấm được giọng đọc của em.',{method:'POST',form,token,session:'child'}); },
   /** Đánh dấu tối đa 5 cảnh bé còn thắc mắc, gửi cho bố mẹ. */
   summaryFlags: (token:string, id:number, sceneIds:number[]) => apiRequest<D.StorySummarySent>(`/child/reading/sessions/${id}/summary/flags`,'Chưa gửi được những chỗ em thắc mắc.',{method:'POST',body:{sceneIds},token,session:'child'}),
   /** Chỉ sau khi phiên đọc đã hoàn thành. */

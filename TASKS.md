@@ -113,7 +113,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] Trang chính của bé: truyện hôm nay, hành trình (lộ trình), Truyện, Sổ tay, Điều ước, Phần thưởng.
 - [x] Phiên đọc ListenFirst / ReadFirst, chỉ nghe, đoạn chữ, 1–3 tranh mỗi cảnh tự chuyển theo giọng đọc, giọng đọc TTS, từ vựng, lưu tiến độ, dấu trang, yêu thích (F-13).
 - [x] 5 loại tương tác khi nghe: Checkpoint, RolePlay, FillBlank, EventOrdering, PicturePrediction (F-13).
-- [ ] **Luyện đọc to bằng nhận dạng giọng nói** (F-13) — `POST /child/reading/sessions/{sessionId}/segments/{segmentId}/read-aloud`. **Bị chặn bởi BE** (kiểm lại 10/11 trên `main`): `ReadingSegmentDto` không có `SegmentId`, Frontend không biết gửi cho đoạn nào. Khi BE thêm: ghi âm bằng `useRecorder` (tối đa 1 MB), hiện kết quả từng chữ good / retry / skipped.
+- [x] **Luyện đọc to bằng nhận dạng giọng nói** (F-13) — bé bấm icon micro ở đoạn đang đọc để ghi âm, bấm lại để gửi; chấm từng chữ: xanh (đúng), vàng (sai dấu, chưa rõ hoặc đọc thành chữ khác, có gợi ý), xám (bỏ qua); có nút đọc lại, thông báo bằng toast.
 - [x] Hoàn thành truyện, chọn cảm xúc, làm quiz (trắc nghiệm, đúng/sai, trả lời ngắn ≤ 200 ký tự) (F-14).
 - [x] EXP, 7 huy hiệu, cây tri thức 5 giai đoạn (tưới cây), sổ tay từ vựng, nghĩa của từ; đọc xong mở bước lộ trình tiếp theo (F-14).
 - [x] Cuối truyện ghi âm kể lại (đổi sang WAV trước khi gửi) và đánh dấu tối đa 5 cảnh còn thắc mắc.
