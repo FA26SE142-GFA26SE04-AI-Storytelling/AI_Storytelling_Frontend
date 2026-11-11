@@ -11,6 +11,7 @@ import Frog from '@/app/components/brand/Frog';
 import { Page, fmt } from './ui';
 import { confirmDialog } from "@/app/lib/confirm";
 import { auditActionLabel, rubricAuditLines } from './readableJson';
+import RubricExamplesEditor from './RubricExamplesEditor';
 const STATUS_LABEL: Record<string, string> = { Draft: 'Bản nháp', Active: 'Đang dùng', Retired: 'Đã ngừng' };
 const STATUS_OPTIONS = [{ value: '', label: 'Tất cả trạng thái' }, ...Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label }))];
 const TRIAL_OPTIONS = {
@@ -76,6 +77,7 @@ export default function RubricWorkspace() {
         <label className="field">Cách đánh giá<textarea className="inp" maxLength={4000} value={c.check} onChange={e => updateCriterion(index, { check: e.target.value })} /></label>
         <label className="field">Ngữ cảnh<textarea className="inp" maxLength={4000} value={c.context} onChange={e => updateCriterion(index, { context: e.target.value })} /></label>
         {[0,1,2,3,4].map(level => <label className="field" key={level}>Mô tả mức {level}<textarea className="inp" maxLength={2000} value={c.levels[String(level)] ?? ''} onChange={e => updateCriterion(index, { levels: { ...c.levels, [level]: e.target.value } })} /></label>)}
+        <RubricExamplesEditor examples={c.examples ?? []} onChange={examples => updateCriterion(index, { examples })} />
       </div></details>)}
       </div>
       <div className="st-group">{dirty && <div className="row"><button className="btn btn-p" disabled={!name.trim() || !versionNo.trim()} onClick={() => void save()}><Save className="ic" />Lưu</button></div>}</div></fieldset>

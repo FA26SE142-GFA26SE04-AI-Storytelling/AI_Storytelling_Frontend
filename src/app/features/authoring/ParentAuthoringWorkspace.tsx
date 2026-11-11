@@ -15,7 +15,9 @@ import { useParentAuthoring } from './useParentAuthoring';
 import AssistancePanel from "./AssistancePanel";
 import AuthoringGuides from './AuthoringGuides';
 import ParentSetupPanel from './ParentSetupPanel';
-import { parseStoryFile, downloadStoryTemplate } from './parseStoryFile';
+import { downloadStoryTemplate, type StoryFileFields } from './parseStoryFile';
+import ParentImportPreview, { type ParentImportPending } from './ParentImportPreview';
+import { showToast } from '@/app/lib/toast';
 import ParentManualMedia from './ParentManualMedia';
 import FamilyPackages, { packageProgress, packagesBusy } from './FamilyPackages';
 import { StepRail, StepReview, stepRail } from '@/app/features/story-workflow/StepRail';
@@ -90,22 +92,23 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
     void parentPackageService.list(storyKey).then(r => { if (alive && r.success && (r.data?.length ?? 0) > 0) { setHasPackages(true); setMulti(true); setPkList(r.data!); } });
     return () => { alive = false; };
   }, [storyKey]);
-  // Tải tệp .txt/.docx: máy chủ đọc chữ trong tệp, rồi tách các dòng "Tên truyện:", "Nguồn nội dung:", "Cam kết quyền sử dụng:", "Nội dung:" vào từng ô để xem và sửa; chỉ lưu khi bấm "Lưu và tiếp tục".
+  // Nhập nội dung (tệp .txt/.docx hoặc văn bản dán): máy chủ xem trước (chưa lưu), rồi popup cho xem nội dung đã tách và
+  // "Xác nhận nhập" (tạo phiên bản mới) hoặc "Sửa trước" (điền vào các ô, lưu sau). Token và phiên bản gốc chụp lúc xem trước.
+  const [importing, setImporting] = useState<ParentImportPending | null>(null);
   const loadFile = async (file: File) => {
     if (!story || reading) return;
-    if (form.content.trim() && !await confirmDialog('Nội dung tệp sẽ thay phần đang soạn. Tiếp tục?')) return;
-    setReading(true); h.setNote('');
+    if (file.size > 5_000_000) { showToast('Tệp tối đa 5 MB.', 'warn'); return; }
+    setReading(true);
     const body = new FormData();
     body.append('File', file); body.append('RevisionToken', story.revisionToken); body.append('OperationId', crypto.randomUUID());
+    const snap = { revisionToken: story.revisionToken, baseVersionId: story.selectedVersionId };
     const r = await service.previewFile(story.storyId, body);
     setReading(false);
-    if (!r.success || !r.data) { h.setNote(r.message || 'Chưa đọc được tệp này.'); return; }
-    fillFrom(r.data.content, file.name.replace(/\.[^.]+$/, ''));
-    h.setNote('Đã điền thông tin từ tệp vào các ô. Đọc lại, sửa nếu cần rồi bấm "Lưu và tiếp tục".');
+    if (!r.success || !r.data) { showToast(r.message || 'Chưa đọc được tệp này.', 'err'); return; }
+    setImporting({ preview: r.data, ...snap, fallbackTitle: file.name.replace(/\.[^.]+$/, '') });
   };
   // Tách các dòng "Tên truyện:", "Nguồn nội dung:", "Cam kết quyền sử dụng:", "Nội dung:" (nếu có) vào từng ô; không có thì cả bài là nội dung.
-  const fillFrom = (text: string, fallbackTitle = '') => {
-    const f = parseStoryFile(text);
+  const fillFrom = (f: StoryFileFields, fallbackTitle = '') => {
     setForm(prev => ({
       title: f.title || (prev.title.trim() ? prev.title : fallbackTitle),
       content: f.content ?? prev.content,
@@ -113,19 +116,26 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
       rightsDeclaration: f.rightsDeclaration || prev.rightsDeclaration,
     }));
   };
-  // Dán văn bản: POST /parent/stories/{id}/imports/preview chuẩn hoá chữ, rồi điền vào các ô. Chưa lưu cho tới khi bấm "Lưu và tiếp tục".
+  // "Sửa trước": điền vào các ô, chưa lưu cho tới khi bấm "Lưu và tiếp tục".
+  const fillImport = async (f: StoryFileFields) => {
+    if (!importing) return;
+    if (form.content.trim() && !await confirmDialog('Nội dung nhập sẽ thay phần đang soạn. Tiếp tục?')) return;
+    fillFrom(f, importing.fallbackTitle); setImporting(null);
+    showToast('Đã điền vào các ô. Đọc lại rồi bấm "Lưu và tiếp tục".', 'info');
+  };
+  // "Xác nhận nhập" thành công: máy chủ đã tạo phiên bản mới, tải lại để biểu mẫu hiện đúng bản đó.
+  const importSaved = (saved: B.CreatorContentSavedDto) => { setImporting(null); void h.load(saved.story.storyId, true); };
   const [pasting, setPasting] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const loadPaste = async () => {
     if (!story || reading || !pasteText.trim()) return;
-    if (form.content.trim() && !await confirmDialog('Nội dung dán sẽ thay phần đang soạn. Tiếp tục?')) return;
-    setReading(true); h.setNote('');
-    const r = await service.previewImport(story.storyId, { operationId: crypto.randomUUID(), revisionToken: story.revisionToken, content: pasteText });
+    setReading(true);
+    const snap = { revisionToken: story.revisionToken, baseVersionId: story.selectedVersionId };
+    const r = await service.previewImport(story.storyId, { operationId: crypto.randomUUID(), revisionToken: snap.revisionToken, content: pasteText });
     setReading(false);
-    if (!r.success || !r.data) { h.setNote(r.message || 'Chưa đọc được văn bản này.'); return; }
-    fillFrom(r.data.content);
+    if (!r.success || !r.data) { showToast(r.message || 'Chưa đọc được văn bản này.', 'err'); return; }
     setPasting(false); setPasteText('');
-    h.setNote('Đã điền văn bản vào các ô. Đọc lại, sửa nếu cần rồi bấm "Lưu và tiếp tục".');
+    setImporting({ preview: r.data, ...snap, fallbackTitle: '' });
   };
   const dirty = !!story && (form.title !== (h.version?.title ?? '') || form.content !== (h.version?.content ?? '') || form.sourceDeclaration !== (h.version?.sourceDeclaration ?? '') || form.rightsDeclaration !== (h.version?.rightsDeclaration ?? ''));
   const check = resultOf<B.ParentCheckDto>(h.workflow,'Check',story?.selectedVersionId ?? null);
@@ -273,9 +283,14 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
                   <textarea className="inp" rows={12} value={pasteText} onChange={e => setPasteText(e.target.value)} placeholder="Dán truyện vào đây" autoFocus /></label>
                 <div className="row" style={{ justifyContent: 'flex-end' }}>
                   <button className="btn btn-g" onClick={() => setPasting(false)}>Hủy</button>
-                  <button className="btn btn-p" disabled={reading || !pasteText.trim()} onClick={() => void loadPaste()}><ClipboardPaste className="ic" />{reading ? 'Đang đọc…' : 'Điền vào truyện'}</button>
+                  <button className="btn btn-p" disabled={reading || !pasteText.trim()} onClick={() => void loadPaste()}><Eye className="ic" />{reading ? 'Đang đọc…' : 'Xem trước'}</button>
                 </div>
               </Dialog>}
+              {importing && <ParentImportPreview key={importing.preview.previewToken} storyId={story.storyId} pending={importing}
+                defaults={{ title: form.title, sourceDeclaration: form.sourceDeclaration, rightsDeclaration: form.rightsDeclaration }}
+                beforeConfirm={async () => !dirty || await confirmDialog('Phần đang soạn chưa lưu sẽ được thay bằng nội dung nhập. Tiếp tục?')}
+                onFill={f => void fillImport(f)} onSaved={importSaved}
+                onConflict={() => { setImporting(null); void h.load(story.storyId); }} onClose={() => setImporting(null)} />}
               {h.draft && <ParentSetupPanel key={`${story.storyId}:${story.revisionToken}`} draft={h.draft} disabled={!canWrite||dirty} onSave={value=>void h.write((id,cmd)=>service.setup(id,{...cmd,...value}))}/>}
             </section>
             {h.draft?.canUseAiAssistance && <details className="pa-fold"><summary>AI gợi ý theo bản nháp</summary><AssistancePanel key={`${story.storyId}:${story.selectedVersionId}`} actor="parent" story={story} selection={selection} snapshot={{title:form.title,content:form.content}} disabled={!canWrite} onApply={(next,ref) => { setForm(f => ({...f,...next})); setSelection(null);setReferences(v => v.some(r=>r.taskId===ref.taskId&&r.stepId===ref.stepId)?v:[...v,ref]); }} /></details>}

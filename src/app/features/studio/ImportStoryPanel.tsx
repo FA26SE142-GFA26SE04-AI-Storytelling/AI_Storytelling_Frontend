@@ -1,7 +1,8 @@
 "use client";
-import { useRef, useState } from "react";
-import { ArrowRight, ClipboardPaste, FileUp, PencilLine, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Archive, ArrowRight, ClipboardPaste, FileUp, PencilLine, RefreshCw, RotateCcw, ShieldCheck, Sparkles } from "lucide-react";
 import Dialog from "@/app/components/Dialog";
+import { confirmDialog } from "@/app/lib/confirm";
 import { showToast } from "@/app/lib/toast";
 import { OUTPUT_MODE } from "@/app/lib/storyRules";
 import { existingStoryService as svc } from "@/app/services/existingStoryService";
@@ -10,12 +11,34 @@ import type { StoryOutputMode } from "@/app/types/story";
 
 type Source = "paste" | "file";
 type Draft = { storyId: number; versionId: number; title: string; content: string | null };
+
 const DECISION: Record<string, [string, string, string]> = {
   Suitable: ["ok", "Phù hợp", "Truyện hợp với hồ sơ của bé, có thể tạo học liệu ngay."],
   AdaptRecommended: ["wait", "Nên chỉnh lại", "Truyện chưa thật hợp với bé. Bạn có thể nhờ AI chỉnh, tự sửa, hoặc giữ nguyên nếu được phép."],
   Blocked: ["flag", "Chưa phù hợp", "Truyện có nội dung không an toàn với bé. Hãy nhờ AI chỉnh hoặc tự sửa trước khi dùng."],
 };
 const MAX_FILE = 5_000_000;
+const SESSION_KEY = (cId: number) => `ai-story-studio:import:${cId}`;
+
+function readSavedDraft(cId: number): Draft | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = sessionStorage.getItem(SESSION_KEY(cId));
+    if (!raw) return null;
+    const p = JSON.parse(raw);
+    if (p && Number.isSafeInteger(p.storyId) && p.storyId > 0 && Number.isSafeInteger(p.versionId) && p.versionId > 0) {
+      return { storyId: p.storyId, versionId: p.versionId, title: typeof p.title === "string" ? p.title : "", content: typeof p.content === "string" ? p.content : null };
+    }
+  } catch { /* ignore */ }
+  return null;
+}
+function writeSavedDraft(cId: number, d: Draft | null) {
+  if (typeof window === "undefined") return;
+  try {
+    if (!d) sessionStorage.removeItem(SESSION_KEY(cId));
+    else sessionStorage.setItem(SESSION_KEY(cId), JSON.stringify(d));
+  } catch { /* ignore */ }
+}
 
 /**
  * Luồng 3b — nhập truyện có sẵn: dán văn bản hoặc tải tệp .txt/.docx → AI đánh giá mức phù hợp với bé
@@ -30,19 +53,47 @@ export default function ImportStoryPanel({ childId, kidName, onOpen }: { childId
   const [busy, setBusy] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [evaluation, setEvaluation] = useState<ExistingStoryEvaluation | null>(null);
-  const [dialog, setDialog] = useState<"adapt" | "edit" | "keep" | null>(null);
+  const [dialog, setDialog] = useState<"adapt" | "edit" | "keep" | "archive" | null>(null);
   const [guideline, setGuideline] = useState("");
   const [edit, setEdit] = useState({ title: "", content: "", lesson: "" });
   const [reason, setReason] = useState("");
+  const [archiveReason, setArchiveReason] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const lastLoadedRef = useRef<{ storyId: number; versionId: number } | null>(null);
 
   const ready = source === "paste" ? text.trim().length > 0 : !!file;
-  const evaluate = async (storyId: number, versionId: number) => {
+
+  const fetchOrEvaluate = useCallback(async (storyId: number, versionId: number) => {
+    setBusy("Đang tải đánh giá truyện…");
+    const r = await svc.evaluation(storyId, versionId);
+    if (r.success && r.data) { setBusy(null); setEvaluation(r.data); return; }
     setBusy("AI đang đánh giá truyện…");
-    const r = await svc.evaluate(storyId, versionId);
+    const evalRes = await svc.evaluate(storyId, versionId);
     setBusy(null);
-    if (r.success && r.data) setEvaluation(r.data); else showToast(r.message, "err");
+    if (evalRes.success && evalRes.data) setEvaluation(evalRes.data);
+    else showToast(evalRes.message || r.message, "err");
+  }, []);
+
+  const reevaluate = async () => {
+    if (!draft || busy) return;
+    setBusy("AI đang đánh giá lại truyện…");
+    const r = await svc.evaluate(draft.storyId, draft.versionId);
+    setBusy(null);
+    if (r.success && r.data) { setEvaluation(r.data); showToast("Đã đánh giá lại truyện thành công."); }
+    else showToast(r.message || "Chưa đánh giá lại được truyện.", "err");
   };
+
+  useEffect(() => {
+    const target = readSavedDraft(childId);
+    if (target) {
+      if (lastLoadedRef.current?.storyId !== target.storyId || lastLoadedRef.current?.versionId !== target.versionId) {
+        lastLoadedRef.current = { storyId: target.storyId, versionId: target.versionId };
+        setDraft(target);
+        writeSavedDraft(childId, target);
+        void fetchOrEvaluate(target.storyId, target.versionId);
+      }
+    }
+  }, [childId, fetchOrEvaluate]);
 
   const submit = async () => {
     if (!ready || busy) return;
@@ -55,19 +106,25 @@ export default function ImportStoryPanel({ childId, kidName, onOpen }: { childId
     setBusy(null);
     if (!r.success || !r.data) { showToast(r.message, "err"); return; }
     if (!r.data.canProceed) { showToast(r.data.fallbackMessage || "Nội dung này chưa nhập được. Hãy kiểm tra lại truyện.", "err"); return; }
-    const next = { storyId: r.data.storyId, versionId: r.data.storyVersionId, title: title.trim(), content: source === "paste" ? text.trim() : null };
+    const next: Draft = { storyId: r.data.storyId, versionId: r.data.storyVersionId, title: title.trim(), content: source === "paste" ? text.trim() : null };
+    lastLoadedRef.current = { storyId: next.storyId, versionId: next.versionId };
     setDraft(next);
-    await evaluate(next.storyId, next.versionId);
+    writeSavedDraft(childId, next);
+    await fetchOrEvaluate(next.storyId, next.versionId);
   };
 
   /** Sau khi chỉnh / sửa: phù hợp thì Backend đã xếp việc tạo học liệu, mở Studio; còn lại đánh giá bản mới. */
   const afterMutation = async (r: Awaited<ReturnType<typeof svc.adapt>>, content: string | null) => {
     if (!r.success || !r.data || !draft) { setBusy(null); showToast(r.message, "err"); return; }
-    setDraft({ ...draft, versionId: r.data.storyVersionId, content });
+    const nextDraft: Draft = { ...draft, versionId: r.data.storyVersionId, content };
+    lastLoadedRef.current = { storyId: nextDraft.storyId, versionId: nextDraft.versionId };
+    setDraft(nextDraft);
+    writeSavedDraft(childId, nextDraft);
     setDialog(null);
     if (r.data.decision === "Suitable") { setBusy(null); showToast("Truyện đã phù hợp. Đang tạo học liệu."); onOpen(draft.storyId); return; }
-    await evaluate(draft.storyId, r.data.storyVersionId);
+    await fetchOrEvaluate(draft.storyId, r.data.storyVersionId);
   };
+
   const adapt = async () => {
     if (!draft) return;
     setBusy("AI đang chỉnh truyện cho hợp với bé…");
@@ -83,9 +140,25 @@ export default function ImportStoryPanel({ childId, kidName, onOpen }: { childId
     setBusy("Đang chuyển sang tạo học liệu…");
     const r = await svc.keepOriginal(draft.storyId, draft.versionId, why);
     setBusy(null);
-    if (r.success) { setDialog(null); onOpen(draft.storyId); } else showToast(r.message, "err");
+    if (r.success) { writeSavedDraft(childId, null); setDialog(null); onOpen(draft.storyId); }
+    else showToast(r.message, "err");
   };
-  const reset = () => { setDraft(null); setEvaluation(null); setText(""); setFile(null); setTitle(""); setGuideline(""); };
+  const reset = () => {
+    lastLoadedRef.current = null;
+    writeSavedDraft(childId, null);
+    setDraft(null); setEvaluation(null);
+    setText(""); setFile(null); setTitle(""); setGuideline(""); setReason(""); setArchiveReason("");
+  };
+  const onArchiveConfirm = async () => {
+    if (!draft || archiveReason.trim().length < 3) return;
+    const ok = await confirmDialog("Lưu trữ truyện này? Truyện sẽ được chuyển vào mục lưu trữ và dừng tạo học liệu cho bé.");
+    if (!ok) return;
+    setBusy("Đang lưu trữ truyện…");
+    const r = await svc.archive(draft.storyId, archiveReason.trim());
+    setBusy(null);
+    if (r.success) { setDialog(null); setArchiveReason(""); showToast("Đã lưu trữ truyện thành công."); reset(); }
+    else showToast(r.message || "Không lưu trữ được truyện.", "err");
+  };
 
   if (draft && evaluation) {
     const [tone, label, hint] = DECISION[evaluation.decisionText] ?? ["draft", evaluation.decisionText, ""];
@@ -94,11 +167,7 @@ export default function ImportStoryPanel({ childId, kidName, onOpen }: { childId
     return (
       <div className="pb brief import-panel">
         <div className="import-result">
-          <div className="row" style={{ gap: 10, alignItems: "center" }}>
-            <ShieldCheck className="ic" aria-hidden />
-            <b className="display grow">Kết quả đánh giá cho {kidName}</b>
-            <span className={`pill ${tone}`}>{label}</span>
-          </div>
+          <div className="row" style={{ gap: 10, alignItems: "center" }}><ShieldCheck className="ic" style={{ color: "var(--gold-deep)" }} aria-hidden /><b className="display grow">Kết quả đánh giá cho {kidName}</b><span className={`pill ${tone}`}>{label}</span></div>
           <p className="import-hint">{hint}</p>
           <div className="st-grid">
             <div className="st-kpi"><small>Điểm an toàn</small><b>{evaluation.safetyScore ?? "—"}</b></div>
@@ -110,36 +179,53 @@ export default function ImportStoryPanel({ childId, kidName, onOpen }: { childId
         {busy ? <p className="notice" data-inline-notice>{busy}</p> : (
           <div className="import-actions">
             {suitable
-              ? <button className="btn btn-p" onClick={() => void keep("Truyện phù hợp với hồ sơ của bé")}><ArrowRight className="ic" />Tiếp tục tạo học liệu</button>
-              : <button className="btn btn-p" onClick={() => { setGuideline(""); setDialog("adapt"); }}><Sparkles className="ic" />Nhờ AI chỉnh</button>}
-            <button className="btn btn-s" onClick={() => { setEdit({ title: draft.title, content: draft.content ?? "", lesson: "" }); setDialog("edit"); }}><PencilLine className="ic" />Tự sửa</button>
-            {!suitable && evaluation.canKeepOriginal && <button className="btn btn-s" onClick={() => { setReason(""); setDialog("keep"); }}>Giữ nguyên</button>}
+              ? <button type="button" className="btn btn-gold" onClick={() => void keep("Truyện phù hợp với hồ sơ của bé")}><ArrowRight className="ic" />Tiếp tục tạo học liệu</button>
+              : <button type="button" className="btn btn-gold" onClick={() => { setGuideline(""); setDialog("adapt"); }}><Sparkles className="ic" />Nhờ AI chỉnh</button>}
+            <button type="button" className="btn btn-s" onClick={() => { setEdit({ title: draft.title, content: draft.content ?? "", lesson: "" }); setDialog("edit"); }}><PencilLine className="ic" />Tự sửa</button>
+            {!suitable && evaluation.canKeepOriginal && <button type="button" className="btn btn-s" onClick={() => { setReason(""); setDialog("keep"); }}>Giữ nguyên</button>}
+            <button type="button" className="btn btn-s" disabled={!!busy} onClick={() => void reevaluate()}><RefreshCw className="ic" />Đánh giá lại</button>
+            <button type="button" className="btn btn-no" disabled={!!busy} onClick={() => { setArchiveReason(""); setDialog("archive"); }}><Archive className="ic" />Lưu trữ</button>
             <span className="grow" />
-            <button className="btn btn-g" onClick={reset}><RotateCcw className="ic" />Nhập truyện khác</button>
+            <button type="button" className="btn btn-g" onClick={reset}><RotateCcw className="ic" />Nhập truyện khác</button>
           </div>
         )}
-        {dialog === "adapt" && <Dialog title="Nhờ AI chỉnh truyện" onClose={() => setDialog(null)}>
-          <div className="st-form">
-            <p className="notice">AI chỉnh độ dài, từ ngữ và độ khó cho hợp với {kidName}; giữ nhân vật, cốt truyện và bài học.</p>
-            <label className="field"><span className="lbl">Lưu ý thêm cho AI (không bắt buộc)</span><textarea className="inp" rows={3} maxLength={500} value={guideline} onChange={(e) => setGuideline(e.target.value)} placeholder="Ví dụ: bỏ đoạn đánh nhau, giữ tên nhân vật" /></label>
-            <div className="row"><button className="btn btn-g" onClick={() => setDialog(null)}>Huỷ</button><span className="grow" /><button className="btn btn-p" disabled={!!busy} onClick={() => void adapt()}><Sparkles className="ic" />Chỉnh truyện</button></div>
-          </div>
-        </Dialog>}
-        {dialog === "edit" && <Dialog title="Tự sửa truyện" wide onClose={() => setDialog(null)}>
-          <div className="st-form">
-            <label className="field"><span className="lbl">Tên truyện</span><input className="inp" maxLength={200} value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} /></label>
-            <label className="field"><span className="lbl">Nội dung</span><textarea className="inp" rows={12} value={edit.content} onChange={(e) => setEdit({ ...edit, content: e.target.value })} placeholder={draft.content === null ? "Dán lại nội dung truyện đã sửa" : undefined} /></label>
-            <label className="field"><span className="lbl">Bài học của truyện</span><input className="inp" maxLength={300} value={edit.lesson} onChange={(e) => setEdit({ ...edit, lesson: e.target.value })} /></label>
-            <div className="row"><button className="btn btn-g" onClick={() => setDialog(null)}>Huỷ</button><span className="grow" /><button className="btn btn-p" disabled={!!busy || !edit.title.trim() || !edit.content.trim()} onClick={() => void saveEdit()}>Lưu và đánh giá lại</button></div>
-          </div>
-        </Dialog>}
-        {dialog === "keep" && <Dialog title="Giữ nguyên truyện" onClose={() => setDialog(null)}>
-          <div className="st-form">
-            <p className="notice warn">Truyện được dùng như bản gốc dù chưa thật hợp với {kidName}. Lý do được ghi vào nhật ký.</p>
-            <label className="field"><span className="lbl">Lý do giữ nguyên</span><textarea className="inp" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
-            <div className="row"><button className="btn btn-g" onClick={() => setDialog(null)}>Huỷ</button><span className="grow" /><button className="btn btn-p" disabled={!!busy || !reason.trim()} onClick={() => void keep(reason.trim())}>Giữ nguyên và tiếp tục</button></div>
-          </div>
-        </Dialog>}
+        {dialog === "adapt" && (
+          <Dialog title="Nhờ AI chỉnh truyện" onClose={() => setDialog(null)}>
+            <div className="st-form">
+              <p className="notice">AI chỉnh độ dài, từ ngữ và độ khó cho hợp với {kidName}; giữ nhân vật, cốt truyện và bài học.</p>
+              <label className="field"><span className="lbl">Lưu ý thêm cho AI (không bắt buộc)</span><textarea className="inp" rows={3} maxLength={500} value={guideline} onChange={(e) => setGuideline(e.target.value)} placeholder="Ví dụ: bỏ đoạn đánh nhau, giữ tên nhân vật" /></label>
+              <div className="row"><button type="button" className="btn btn-g" onClick={() => setDialog(null)}>Huỷ</button><span className="grow" /><button type="button" className="btn btn-p" disabled={!!busy} onClick={() => void adapt()}><Sparkles className="ic" />Chỉnh truyện</button></div>
+            </div>
+          </Dialog>
+        )}
+        {dialog === "edit" && (
+          <Dialog title="Tự sửa truyện" wide onClose={() => setDialog(null)}>
+            <div className="st-form">
+              <label className="field"><span className="lbl">Tên truyện</span><input className="inp" maxLength={200} value={edit.title} onChange={(e) => setEdit({ ...edit, title: e.target.value })} /></label>
+              <label className="field"><span className="lbl">Nội dung</span><textarea className="inp" rows={12} value={edit.content} onChange={(e) => setEdit({ ...edit, content: e.target.value })} placeholder={draft.content === null ? "Dán lại nội dung truyện đã sửa" : undefined} /></label>
+              <label className="field"><span className="lbl">Bài học của truyện</span><input className="inp" maxLength={300} value={edit.lesson} onChange={(e) => setEdit({ ...edit, lesson: e.target.value })} /></label>
+              <div className="row"><button type="button" className="btn btn-g" onClick={() => setDialog(null)}>Huỷ</button><span className="grow" /><button type="button" className="btn btn-p" disabled={!!busy || !edit.title.trim() || !edit.content.trim()} onClick={() => void saveEdit()}>Lưu và đánh giá lại</button></div>
+            </div>
+          </Dialog>
+        )}
+        {dialog === "keep" && (
+          <Dialog title="Giữ nguyên truyện" onClose={() => setDialog(null)}>
+            <div className="st-form">
+              <p className="notice warn">Truyện được dùng như bản gốc dù chưa thật hợp với {kidName}. Lý do được ghi vào nhật ký.</p>
+              <label className="field"><span className="lbl">Lý do giữ nguyên</span><textarea className="inp" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
+              <div className="row"><button type="button" className="btn btn-g" onClick={() => setDialog(null)}>Huỷ</button><span className="grow" /><button type="button" className="btn btn-p" disabled={!!busy || !reason.trim()} onClick={() => void keep(reason.trim())}>Giữ nguyên và tiếp tục</button></div>
+            </div>
+          </Dialog>
+        )}
+        {dialog === "archive" && (
+          <Dialog title="Lưu trữ truyện" onClose={() => setDialog(null)}>
+            <div className="st-form">
+              <p style={{ margin: 0 }}>Truyện “{draft.title || "này"}” sẽ được chuyển vào mục lưu trữ và dừng tiến trình tạo học liệu cho bé {kidName}.</p>
+              <label className="field"><span className="lbl">Lý do lưu trữ <em className="rt-req" style={{ color: "var(--danger)", fontStyle: "normal" }}>*</em></span><textarea className="inp" rows={3} maxLength={500} value={archiveReason} onChange={(e) => setArchiveReason(e.target.value)} placeholder="Nhập lý do lưu trữ (ít nhất 3 ký tự)" autoFocus /></label>
+              <div className="row" style={{ justifyContent: "flex-end", gap: 10 }}><button type="button" className="btn btn-g" onClick={() => setDialog(null)}>Huỷ</button><button type="button" className="btn btn-no" disabled={!!busy || archiveReason.trim().length < 3} onClick={() => void onArchiveConfirm()}><Archive className="ic" />Lưu trữ</button></div>
+            </div>
+          </Dialog>
+        )}
       </div>
     );
   }
@@ -149,26 +235,26 @@ export default function ImportStoryPanel({ childId, kidName, onOpen }: { childId
       <label className="field"><span className="lbl">Tên truyện</span><input className="inp" maxLength={200} value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ví dụ: Thỏ và Rùa" /></label>
       <div className="field">
         <span className="lbl">Nội dung truyện</span>
-        <div className="seg" role="radiogroup" aria-label="Cách nhập" style={{ maxWidth: 320 }}>
-          <button type="button" role="radio" aria-checked={source === "paste"} className={source === "paste" ? "on" : ""} onClick={() => setSource("paste")}><ClipboardPaste className="ic" />Dán văn bản</button>
-          <button type="button" role="radio" aria-checked={source === "file"} className={source === "file" ? "on" : ""} onClick={() => setSource("file")}><FileUp className="ic" />Tải tệp</button>
-        </div>
-        {source === "paste"
-          ? <textarea className="inp" rows={10} value={text} onChange={(e) => setText(e.target.value)} placeholder="Dán nội dung truyện, mỗi đoạn cách nhau một dòng trống" aria-label="Nội dung truyện" />
-          : <div className="import-file">
-              <input ref={fileRef} type="file" accept=".txt,.docx" hidden aria-label="Chọn tệp truyện (.txt, .docx)" onChange={(e) => { setFile(e.target.files?.[0] ?? null); e.target.value = ""; }} />
-              <button type="button" className="btn btn-s" onClick={() => fileRef.current?.click()}><FileUp className="ic" />{file ? "Chọn tệp khác" : "Chọn tệp .txt hoặc .docx"}</button>
-              {file && <span className="pill">{file.name}</span>}
-            </div>}
+        <div className="seg" role="radiogroup" aria-label="Cách nhập" style={{ maxWidth: 320 }}><button type="button" role="radio" aria-checked={source === "paste"} className={source === "paste" ? "on" : ""} onClick={() => setSource("paste")}><ClipboardPaste className="ic" />Dán văn bản</button><button type="button" role="radio" aria-checked={source === "file"} className={source === "file" ? "on" : ""} onClick={() => setSource("file")}><FileUp className="ic" />Tải tệp</button></div>
+        {source === "paste" ? <textarea className="inp" rows={10} value={text} onChange={(e) => setText(e.target.value)} placeholder="Dán nội dung truyện, mỗi đoạn cách nhau một dòng trống" aria-label="Nội dung truyện" /> : (
+          <div className="import-file">
+            <input ref={fileRef} type="file" accept=".txt,.docx" hidden aria-label="Chọn tệp truyện (.txt, .docx)" onChange={(e) => { setFile(e.target.files?.[0] ?? null); e.target.value = ""; }} />
+            <button type="button" className="btn btn-s" onClick={() => fileRef.current?.click()}><FileUp className="ic" />{file ? "Chọn tệp khác" : "Chọn tệp .txt hoặc .docx"}</button>
+            {file && <span className="pill">{file.name}</span>}
+          </div>
+        )}
       </div>
       <div className="field">
         <span className="lbl">Kiểu truyện</span>
         <div className="seg" role="radiogroup" aria-label="Kiểu truyện" style={{ maxWidth: 360 }}>
-          {(Object.keys(OUTPUT_MODE) as StoryOutputMode[]).map((m) => <button key={m} type="button" role="radio" aria-checked={mode === m} title={OUTPUT_MODE[m].hint} className={mode === m ? "on" : ""} onClick={() => setMode(m)}>{OUTPUT_MODE[m].label}</button>)}
+          {(Object.keys(OUTPUT_MODE) as StoryOutputMode[]).map((m) => (
+            <button key={m} type="button" role="radio" aria-checked={mode === m} title={OUTPUT_MODE[m].hint} className={mode === m ? "on" : ""} onClick={() => setMode(m)}>{OUTPUT_MODE[m].label}</button>
+          ))}
         </div>
       </div>
-      {busy ? <p className="notice" data-inline-notice>{busy}</p>
-        : <button className="btn btn-p import-go" disabled={!ready} onClick={() => void submit()}><ShieldCheck className="ic" />Nhập và kiểm tra</button>}
+      {busy ? <p className="notice" data-inline-notice>{busy}</p> : (
+        <button type="button" className="btn btn-p import-go" disabled={!ready} onClick={() => void submit()}><ShieldCheck className="ic" />Nhập và kiểm tra</button>
+      )}
     </div>
   );
 }

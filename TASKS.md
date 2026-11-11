@@ -60,7 +60,7 @@ Ký hiệu:
 - [x] Learning Profile: mức đọc 1–5, chế độ đọc, mục tiêu đọc hiểu, chủ đề yêu thích / cần chú ý.
 - [x] Safety Policy: chủ đề Cho phép / Chặn, chế độ duyệt, độ dài truyện, cổng phụ huynh, điều ước, tương tác khi nghe, trả lời bằng giọng nói (kèm đồng ý mục e), ngưỡng an toàn / độ dễ đọc khi tự duyệt, mức đọc hiểu mục tiêu; đồng ý điều khoản đúng phiên bản.
 - [x] Kích hoạt, tạm dừng, tiếp tục, lưu trữ, khôi phục; lịch sử hoạt động của từng bé.
-- [ ] Nút xoá Learning Profile / Safety Policy (`DELETE /LearningProfile/{id}`, `DELETE /SafetyPolicy/{id}`): FE có hàm, chưa có nút. Quy tắc: không xoá Safety Policy khi hồ sơ Active. Cần chốt có làm không.
+- [x] Nút xoá hồ sơ học tập và cài đặt an toàn của bé (`DELETE /LearningProfile/{id}`, `DELETE /SafetyPolicy/{id}`), có popup xác nhận; nút xoá cài đặt an toàn bị khoá khi hồ sơ bé đang Active.
 
 ### Cho bé vào app (F-02)
 
@@ -84,6 +84,8 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 ### Tạo truyện (F-06, F-07, F-08, F-09)
 
 - [x] Tạo truyện bằng AI (Studio): ý tưởng → dàn ý (sửa, viết lại, duyệt, từ chối) → nội dung, từ vựng, quiz, tương tác khi nghe (duyệt từng phần, sửa tay, nhờ AI sửa đoạn) → tranh và giọng đọc (tạo lại từng tranh / đoạn, thử lại) → xác nhận gói media → Ready.
+- [x] Nhập truyện tự viết từ tệp / dán văn bản có bước xác nhận (popup xem trước → `POST /parent/stories/{id}/imports/confirm`); tranh / âm thanh của gói học liệu tải qua `GET /parent/stories/{id}/packages/{pid}/assets/{aid}`.
+- [x] Truyện có sẵn của phụ huynh: nhớ truyện đang đánh giá trong tab, mở lại thì lấy đánh giá đã lưu (`GET /stories/{id}/existing/evaluation`), nút "Đánh giá lại", nút "Lưu trữ" có popup lý do (`POST /stories/{id}/existing/archive`) ([ImportStoryPanel.tsx](src/app/features/studio/ImportStoryPanel.tsx)).
 - [x] Tự viết truyện: soạn, nhập từ tệp, dán văn bản, lưu nhiều phiên bản, trợ lý AI gợi ý, kiểm tra nội dung, xác nhận nội dung, chuẩn bị media, xác nhận cho gia đình.
 - [x] Ảnh bìa truyện; Truyện của tôi theo kệ (Đã xong / Chờ bạn duyệt / Đang soạn).
 - [x] Điều ước của bé: xem điều ước và gợi ý truyện có sẵn, dùng truyện có sẵn, tạo truyện mới bằng AI (xem tiến độ, mở trong Studio), từ chối.
@@ -142,7 +144,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] Duyệt truyện cộng đồng, vùng xám, báo cáo nội dung (chuyển lên Admin), yêu cầu gỡ của Creator (F-10).
 - [x] Rà soát truyện và lộ trình đã công khai.
 - [x] Tiêu chí vùng xám: Draft → kiểm tra → chấm thử → Active → Retired, có nhật ký (F-11).
-- [ ] **Một phần — Sửa ví dụ của tiêu chí vùng xám đang gõ JSON** ([RubricWorkspace.tsx](src/app/features/staff/RubricWorkspace.tsx)), trái quy tắc "không hiện JSON". Làm lại thành form thêm / sửa / xoá ví dụ.
+- [x] Ví dụ của tiêu chí vùng xám: form thêm / sửa / xoá ví dụ (nội dung, mức 0–4, lý do), không còn gõ JSON ([RubricExamplesEditor.tsx](src/app/features/staff/RubricExamplesEditor.tsx)).
 - [x] Thẻ ước: tạo, sửa, bật / tắt, gắn với truyện bằng tay hoặc AI gợi ý (F-11).
 - [x] Hướng dẫn sáng tác: soạn nháp, xem trước, phát hành phiên bản mới (F-11).
 - [x] Lộ trình mẫu: tạo, sửa, chọn truyện, gửi duyệt, rút, nhân bản, lưu trữ; duyệt lộ trình mẫu (F-12).

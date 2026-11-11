@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Save } from "lucide-react";
+import { Check, Save, Trash2 } from "lucide-react";
+import IconButton from "@/app/components/IconButton";
+import { confirmDialog } from "@/app/lib/confirm";
+import { showToast } from "@/app/lib/toast";
 import { useFlash } from "@/app/lib/useFlash";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ChildProfile } from "@/app/types/childProfile";
@@ -45,6 +48,26 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
     }
   };
 
+  // Xoá hồ sơ học tập (chỉ Owner): bé quay về trạng thái chưa có, truyện tạo sau dùng mức đọc mặc định theo tuổi.
+  const remove = async () => {
+    if (!await confirmDialog(`Xoá hồ sơ học tập của ${child.nickname}? Mức đọc, chế độ đọc, mục tiêu đọc hiểu và các chủ đề yêu thích sẽ bị xoá và không khôi phục được. Truyện tạo sau sẽ dùng mức đọc mặc định theo tuổi cho tới khi bạn thiết lập lại.`)) return;
+    setBusy(true);
+    setNote(null);
+    const r = await profileLifecycleService.removeLearning(child.id);
+    setBusy(false);
+    // 404: hồ sơ học tập đã không còn (có thể đã bị xoá ở nơi khác) nên vẫn đưa về trạng thái chưa có.
+    if (!r.success && r.status !== 404) {
+      showToast(r.status === 403 ? "Chỉ người quản lý chính của bé mới xoá được hồ sơ học tập." : "Chưa xoá được hồ sơ học tập. Vui lòng thử lại.", "err");
+      return;
+    }
+    const empty = learningFrom(null, child.ageBand);
+    setExists(false);
+    setValue(empty);
+    setSaved(JSON.stringify(empty));
+    showToast(`Đã xoá hồ sơ học tập của ${child.nickname}.`, "ok");
+    onSaved();
+  };
+
   // Chỉ cho lưu khi có thay đổi so với lần tải/lưu gần nhất, hoặc khi bé chưa có hồ sơ học tập.
   const dirty = !exists || JSON.stringify(value) !== saved;
 
@@ -54,7 +77,13 @@ export default function LearningTab({ child, canEdit, onSaved }: { child: ChildP
       <div style={{ position: "relative" }}>
         <LearningForm value={value} onChange={setValue} disabled={!canEdit} ageBand={child.ageBand} />
       </div>
-      {canEdit && (dirty || saved2) && <button className={`btn btn-p${saved2 ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={busy || !dirty} onClick={() => void save()}>{saved2 ? <Check className="ic" /> : <Save className="ic" />}{busy ? "Đang lưu…" : saved2 ? "Đã lưu" : "Lưu hồ sơ học tập"}</button>}
+      {canEdit && (dirty || saved2 || exists) && (
+        <div className="row" style={{ gap: 10 }}>
+          {(dirty || saved2) && <button className={`btn btn-p${saved2 ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={busy || !dirty} onClick={() => void save()}>{saved2 ? <Check className="ic" /> : <Save className="ic" />}{busy ? "Đang lưu…" : saved2 ? "Đã lưu" : "Lưu hồ sơ học tập"}</button>}
+          <span className="grow" />
+          {exists && <IconButton icon={Trash2} className="btn btn-no" label="Xoá hồ sơ học tập" disabled={busy} onClick={() => void remove()} />}
+        </div>
+      )}
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
     </div>
   );

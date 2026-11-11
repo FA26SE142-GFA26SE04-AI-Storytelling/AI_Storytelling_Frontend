@@ -52,13 +52,20 @@ export const parentPackageService = {
   /** Giao cùng lúc: một gói lỗi thì không bé nào được giao (Backend rollback cả lô). */
   deliver: (id: number, packages: ParentPackage[]) => apiRequest<PackageGrant[]>(`${root(id)}/family-confirmations/batch`, 'Chưa giao được truyện.', { method: 'POST', body: { operationId: op(), packages: packages.map((p) => ({ packageId: p.packageId, packageToken: p.packageToken })) } }),
   /** Ảnh / âm thanh xem trước cần Bearer token: tải về thành blob rồi tạo object URL (nhớ revoke khi bỏ). */
-  async mediaBlob(previewUrl: string, signal?: AbortSignal): Promise<ApiResponse<{ url: string; type: string }>> {
-    try {
-      const origin = new URL(API_BASE_URL).origin;
-      const res = await authService.authenticatedFetch(new URL(previewUrl, origin).toString(), { signal, cache: 'no-store' });
-      if (!res.ok) return { success: false, status: res.status, message: 'Chưa tải được tệp xem trước.', data: null };
-      const blob = await res.blob();
-      return { success: true, message: '', data: { url: URL.createObjectURL(blob), type: blob.type } };
-    } catch { return { success: false, status: 0, message: 'Chưa tải được tệp xem trước.', data: null }; }
-  },
+  mediaBlob: (previewUrl: string, signal?: AbortSignal) => blobOf(previewUrl, signal),
+  /**
+   * GET /parent/stories/{id}/packages/{packageId}/assets/{assetId} (role User, Bearer): trả thẳng tệp (stream, có Range),
+   * chỉ cho tài sản nằm trong manifest của gói. Thẻ img/audio không gửi được token nên tải về thành blob URL (nhớ revoke).
+   */
+  asset: (id: number, packageId: number, assetId: number, signal?: AbortSignal) => blobOf(`/api/v1${root(id)}/packages/${packageId}/assets/${assetId}`, signal),
 };
+
+async function blobOf(path: string, signal?: AbortSignal): Promise<ApiResponse<{ url: string; type: string }>> {
+  try {
+    const origin = new URL(API_BASE_URL).origin;
+    const res = await authService.authenticatedFetch(new URL(path, origin).toString(), { signal, cache: 'no-store' });
+    if (!res.ok) return { success: false, status: res.status, message: 'Chưa tải được tệp xem trước.', data: null };
+    const blob = await res.blob();
+    return { success: true, message: '', data: { url: URL.createObjectURL(blob), type: blob.type } };
+  } catch { return { success: false, status: 0, message: 'Chưa tải được tệp xem trước.', data: null }; }
+}
