@@ -2,7 +2,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {ArrowLeft,ChevronLeft,ChevronRight,Heart,Bookmark,Sparkles,BookOpen,Check,Volume2,Headphones,Mic,RotateCcw} from 'lucide-react';
 import Frog from '@/app/components/brand/Frog';
-import SafeImage from '@/app/components/SafeImage';
+import {AuthedImage} from '@/app/components/AuthedMedia';
 import type {useChildReader} from './useChildReader';
 import KidNarrator from './KidNarrator';
 import KidAfterReading from './KidAfterReading';
@@ -35,7 +35,7 @@ function ScenePictures({pictures,active,onPick,alt,children}:{pictures:ScenePict
   const [ready,setReady]=useState(false);
   return <div className={`kid-story-picture${ready?'':' loading'}${pictures.length>1?' multi':''}`}>
     {pictures.map((p,i)=><span key={i} className={`kid-pic-layer${i===active?' on':''}`} aria-hidden={i!==active}>
-      <SafeImage src={p.url} alt={pictures.length>1?`${alt}, tranh ${i+1}`:alt} onLoad={()=>{if(i===0)setReady(true);}} onError={()=>{if(i===0)setReady(true);}}/>
+      <AuthedImage src={p.url} alt={pictures.length>1?`${alt}, tranh ${i+1}`:alt} onLoad={()=>{if(i===0)setReady(true);}} onError={()=>{if(i===0)setReady(true);}}/>
     </span>)}
     {!ready&&<span className="kid-skeleton" role="status" aria-label="Đang tải tranh"/>}
     {pictures.length>1&&<div className="kid-pic-dots" role="group" aria-label="Chọn tranh">
