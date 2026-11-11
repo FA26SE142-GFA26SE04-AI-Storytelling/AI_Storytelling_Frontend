@@ -4,8 +4,8 @@ import "./staff.css";
 import "@/app/features/children/children.css";
 import { useEffect, useState, type ComponentType } from "react";
 import {
-  Activity, BookOpenText, ChartColumn, Coins, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
-  Shield, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
+  Activity, Archive, BookOpenText, ChartColumn, Coins, Flag, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
+  Shield, ShieldAlert, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import { useAuth } from "@/app/context/AuthContext";
@@ -18,9 +18,14 @@ import NavMenuButton from "@/app/components/shell/NavMenuButton";
 import AccountMenu from "@/app/components/shell/AccountMenu";
 import { circleReveal, useRiseIn } from "@/app/lib/motion";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
+import ContentReportsWorkspace from "./ContentReportsWorkspace";
+import CreatorStoryReviewWorkspace from "./CreatorStoryReviewWorkspace";
+import GrayZoneReviewWorkspace from "./GrayZoneReviewWorkspace";
 import { ModerationQueue } from "./Moderation";
 import RoadmapTemplates from "./RoadmapTemplates";
 import PublishedReviewWorkspace from "./PublishedReviewWorkspace";
+import RemovalRecordsWorkspace from "./RemovalRecordsWorkspace";
+import RemovalRequestsWorkspace from "./RemovalRequestsWorkspace";
 import RubricWorkspace from "./RubricWorkspace";
 import AuthoringGuideManagement from "./AuthoringGuideManagement";
 import { CreatorCreateAi, CreatorCreateManual, type CreatorPageProps } from "./CreatorStories";
@@ -67,8 +72,12 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     ...ACCOUNT_PAGES,
   ],
   Moderator: [
-    { id: "queue", label: "Hàng đợi kiểm duyệt", short: "Hàng đợi duyệt", icon: Inbox, view: () => <ModerationQueue /> },
-    { id: "published", label: "Rà soát thư viện", short: "Rà soát truyện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và lộ trình mẫu đang công khai" },
+    { id: "queue", label: "Duyệt truyện", menuLabel: "Duyệt truyện", short: "Duyệt truyện", icon: Inbox, view: CreatorStoryReviewWorkspace, hint: "Tiếp nhận và duyệt truyện Creator nộp công khai" },
+    { id: "published", label: "Thư viện cộng đồng", short: "Thư viện cộng đồng", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện Creator đang công khai" },
+    { id: "removal-records", label: "Hồ sơ gỡ truyện", short: "Hồ sơ gỡ", icon: Archive, view: RemovalRecordsWorkspace, hint: "Theo dõi các hồ sơ gỡ truyện và vi phạm theo 2 nguồn độc lập" },
+    { id: "gray-zone", label: "Kiểm tra vùng xám", short: "Vùng xám", icon: ShieldAlert, view: GrayZoneReviewWorkspace, hint: "Kiểm tra nội dung rơi vào vùng xám an toàn" },
+    { id: "content-reports", label: "Báo cáo nội dung", short: "Báo cáo", icon: Flag, view: ContentReportsWorkspace, hint: "Tiếp nhận và xử lý báo cáo vi phạm nội dung" },
+    { id: "removal-requests", label: "Yêu cầu gỡ truyện", short: "Yêu cầu gỡ", icon: Archive, view: RemovalRequestsWorkspace, hint: "Xử lý yêu cầu gỡ truyện công khai từ Creator" },
     { id: "rubrics", label: "Tiêu chí vùng xám", short: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", short: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Lộ trình mẫu", icon: Route, view: RoadmapTemplates },
@@ -95,7 +104,13 @@ const NAV: Record<StaffRole, NavEntry[]> = {
         { label: "Người dùng", icon: Users, items: ["staff"] },
     { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "plans", "quota"] },
   ],
-  Moderator: ["queue", "published", "rubrics", "authoring-guides", "templates", "wish-cards"],
+  Moderator: [
+    "queue",
+    { label: "Thư viện", icon: LibraryBig, items: ["published", "removal-records"] },
+    { label: "Xử lý an toàn", icon: ShieldAlert, items: ["gray-zone", "content-reports", "removal-requests"] },
+    { label: "Công cụ", icon: ListChecks, items: ["rubrics", "authoring-guides", "wish-cards"] },
+    "templates",
+  ],
   ContentCreator: ["library", "create-ai", "create-manual", "my-stories"],
 };
 
@@ -112,11 +127,14 @@ function StaffNav({ role, pageId, onPage, upward }: { role: StaffRole; pageId: s
 }
 
 export default function StaffApp({ role }: { role: StaffRole }) {
+  const { user } = useAuth();
+  return <StaffAppInner key={`${role}:${user?.id ?? "anon"}`} role={role} userId={user?.id ?? null} />;
+}
+
+function StaffAppInner({ role, userId }: { role: StaffRole; userId: number | null }) {
   const { theme, toggleTheme } = useTheme();
   const navRef = useRiseIn<HTMLElement>("button", [], { delay: 40, distance: 10 });
   const pages = PAGES[role];
-  const { user } = useAuth();
-  const userId = user?.id ?? null;
   // Tải lại trang hay quay lại từ tab khác thì quay về đúng trang (và truyện AI đang soạn), không về trang đầu.
   const [initial] = useState(() => {
     const saved = userId !== null ? readStaffWorkspace(userId) : null;
@@ -160,7 +178,7 @@ export default function StaffApp({ role }: { role: StaffRole }) {
         <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} upward />
       </nav>
 
-      <main className="stage"><View key={`${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} /></main>
+      <main className="stage"><View key={`${userId ?? "anon"}:${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} /></main>
     </div>
   );
 }

@@ -101,3 +101,12 @@
 .rt-search > .ic { width: 18px; height: 18px; color: var(--muted); flex: none; }
 .rt-search input { flex: 1; min-width: 0; border: 0; outline: none; background: none; color: var(--text); font: inherit; font-size: var(--fs-md); }
 .rt-pick { flex: 1 1 auto; min-height: 0; }
+
+/* Thanh chuyển 4 phân khu của Lộ trình mẫu (tài liệu 08) */
+.rt-wrap { display: flex; flex-direction: column; flex: 1; min-height: 0; height: 100%; }
+.rt-modebar { flex: none; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; padding: 10px 20px; border-bottom: 1px solid var(--line); background: color-mix(in srgb, var(--surface) 78%, transparent); }
+.rt-modepills { display: flex; flex-wrap: wrap; gap: 6px; }
+.rt-modepills button { padding: 6px 14px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); color: var(--muted); font-size: var(--fs-sm); font-weight: 700; transition: background .15s, color .15s, border-color .15s; }
+.rt-modepills button.on { background: color-mix(in srgb, var(--primary) 16%, var(--surface)); border-color: var(--primary); color: var(--text); }
+.rt-stage { flex: 1; min-height: 0; display: grid; }
+@media (max-width: 720px) { .rt-modebar { padding: 8px 12px; } }
