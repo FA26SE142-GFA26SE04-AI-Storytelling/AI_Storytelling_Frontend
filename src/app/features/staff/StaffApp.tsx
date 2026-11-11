@@ -4,7 +4,7 @@ import "./staff.css";
 import "@/app/features/children/children.css";
 import { useEffect, useState, type ComponentType } from "react";
 import {
-  Activity, Archive, BookOpenText, ChartColumn, Coins, Flag, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
+  Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
   Shield, ShieldAlert, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
@@ -43,15 +43,17 @@ type NavEntry = string | { label: string; icon: LucideIcon; items: string[] };
 
 const ROLE_LABEL: Record<StaffRole, string> = { Administrator: "Admin Portal", Moderator: "Kiểm duyệt", ContentCreator: "Content Workspace" };
 
-/** Các trang tài khoản, mở từ menu avatar; dùng chung cho mọi vai trò nhân viên (không có mục mua lượt). */
+/** Các trang tài khoản dùng cho Admin và Moderator, mở từ menu avatar (không có mục gói và lượt). */
 const ACCOUNT_PAGES: PageDef[] = [
   { id: "account", label: "Thông tin cá nhân", icon: UserRound, view: () => <AccountWorkspace page="profile" /> },
   { id: "account-activity", label: "Lịch sử hoạt động", icon: Activity, view: () => <AccountWorkspace page="activity" /> },
 ];
 
-/** Trang riêng của Content Creator trong menu avatar: doanh thu và thống kê theo tháng. */
+/** Trang riêng của Content Creator trong menu avatar: thông tin cá nhân, gói và lượt, lịch sử hoạt động. */
 const CREATOR_ACCOUNT_PAGES: PageDef[] = [
-  ...ACCOUNT_PAGES,
+  { id: "account", label: "Thông tin cá nhân", icon: UserRound, view: () => <AccountWorkspace page="profile" /> },
+  { id: "account-plan", label: "Gói và lượt", icon: CreditCard, view: () => <AccountWorkspace page="payment" audience="creator" /> },
+  { id: "account-activity", label: "Lịch sử hoạt động", icon: Activity, view: () => <AccountWorkspace page="activity" /> },
 ];
 
 /** Luồng 5 — ba khu tách biệt theo vai trò; mỗi tài khoản đúng một vai trò (BR-5.7a). */

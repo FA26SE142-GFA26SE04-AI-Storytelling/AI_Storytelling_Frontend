@@ -6,6 +6,7 @@ import type * as B from '@/app/types/backendContracts';
 import { creatorInputService } from '@/app/services/creatorPublicationService';
 import { creatorService } from '@/app/services/creatorService';
 import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationService';
+import { notifyCreatorQuotaChanged } from '@/app/services/paymentService';
 import { useCreatorGeneration } from '@/app/features/story-workflow/useCreatorGeneration';
 import { lengthPresets } from '@/app/features/story-workflow/aiStoryInputFlowUtils';
 import { useStoryProgressPolling } from '@/app/features/story-workflow/useStoryProgressPolling';
@@ -39,12 +40,12 @@ type Seed = { topic: string; lesson: string; genre: string; charactersText: stri
  * Vỏ ngoài: "bỏ truyện / quay lại sửa ý tưởng" dựng lại toàn bộ luồng bằng key mới, nên mọi trạng thái cũ (dàn ý, tiến trình) sạch hẳn.
  * Content Creator không có API huỷ truyện, nên đây chỉ là làm mới form; bản nháp vẫn nằm trong Thư viện.
  */
-export default function CreatorGeneration({ initialId = null }: { initialId?: number | null; onBack: () => void }) {
+export default function CreatorGeneration({ initialId = null, onBuyCredits }: { initialId?: number | null; onBack: () => void; onBuyCredits?: () => void }) {
   const [run, setRun] = useState(0);
   const [seed, setSeed] = useState<Seed>(null);
-  return <CreatorGenerationRun key={run} initialId={run === 0 ? initialId : null} seed={seed} onReset={(next) => { setSeed(next); setRun((n) => n + 1); }} />;
+  return <CreatorGenerationRun key={run} initialId={run === 0 ? initialId : null} seed={seed} onReset={(next) => { setSeed(next); setRun((n) => n + 1); }} onBuyCredits={onBuyCredits} />;
 }
-function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number | null; seed: Seed; onReset: (seed: Seed) => void }) {
+function CreatorGenerationRun({ initialId, seed, onReset, onBuyCredits }: { initialId: number | null; seed: Seed; onReset: (seed: Seed) => void; onBuyCredits?: () => void }) {
   const flow = useCreatorGeneration(initialId);
   // Nhớ truyện AI đang soạn để tải lại trang vẫn mở lại đúng truyện (truyện mới bắt đầu thì xóa).
   const { user: sessionUser } = useAuth();
@@ -91,7 +92,8 @@ function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number 
   };
   const start = () => {
     const body = { ...creative(), ageBand, readingLevel, outputMode, existingStoryId: null, idempotencyKey: `creator-${crypto.randomUUID()}` };
-    setSubmitted(body); void flow.submit(body);
+    // Tải lại số lượt sau khi Backend nhận yêu cầu (đã trừ lượt), không phải ngay lúc bấm.
+    setSubmitted(body); void Promise.resolve(flow.submit(body)).finally(notifyCreatorQuotaChanged);
   };
   const outline = flow.snapshot?.outline?.currentVersion ?? null;
   const storyStatus = media.data?.storyStatus ?? savedStatus;
@@ -104,7 +106,7 @@ function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number 
   const reviewing = flow.id !== null && flow.stage === 'review' && stage === 'review';
   // Bước Tranh & giọng đọc có bố cục riêng như phụ huynh: khung giữa + cột phải cuộn riêng (không còn một trang dài cuộn dọc).
   const mediaStage = flow.id !== null && flow.stage === 'media' && stage === 'media';
-  const publication = (hidden: boolean) => flow.id !== null && <CreatorPublication storyId={flow.id} versionId={versionId} storyStatus={storyStatus} onLockChange={setLocked} onRevision={refreshState} hidden={hidden} />;
+  const publication = (hidden: boolean) => flow.id !== null && <CreatorPublication storyId={flow.id} versionId={versionId} storyStatus={storyStatus} onLockChange={setLocked} onRevision={refreshState} hidden={hidden} onBuyCredits={onBuyCredits} />;
   const waiting = flow.id !== null && !flow.failure && ['checking', 'outline_wait', 'generating', 'moderation'].includes(stage);
   // Thử lại bước AI vừa lỗi (như phụ huynh): viết truyện / học liệu qua generation/retry, hoặc tạo dàn ý lần đầu qua outline/retry.
   // Lỗi khi viết lại dàn ý đã có thì không có ở đây: bấm "Viết lại" trong dàn ý.

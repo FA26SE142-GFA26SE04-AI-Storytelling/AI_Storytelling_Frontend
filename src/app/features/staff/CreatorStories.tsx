@@ -14,6 +14,7 @@ import { Notice, Page } from "./ui";
 import CreatorGeneration from "./CreatorGeneration";
 import { useAuth } from "@/app/context/AuthContext";
 import CreatorEditor from "./CreatorEditor";
+import CreatorQuotaChip from "./CreatorQuotaChip";
 
 const MODE: Record<string, string> = { reading: "Đọc", listening: "Nghe", combined: "Đọc và nghe" };
 const AGE_OPTIONS: { value: CreateDraftInput["ageBand"]; label: string }[] = [{ value: "6-8", label: "6–8 tuổi" }, { value: "9-10", label: "9–10 tuổi" }];
@@ -28,7 +29,17 @@ export type CreatorPageProps = { go: (pageId: string, target?: number | null) =>
 export function CreatorCreateAi({ go, target, resumeId = null }: CreatorPageProps) {
   const { user } = useAuth();
   const initialId = target ?? resumeId;
-  return <CreatorGeneration key={`${user?.id}:${initialId ?? "new"}`} initialId={initialId} onBack={() => go("library")} />;
+  return (
+    <>
+      <CreatorQuotaChip kind="ai" onBuy={() => go("account-plan")} />
+      <CreatorGeneration
+        key={`${user?.id}:${initialId ?? "new"}`}
+        initialId={initialId}
+        onBack={() => go("library")}
+        onBuyCredits={() => go("account-plan")}
+      />
+    </>
+  );
 }
 
 /** Trang "Thủ công" (Luồng 5 Bước 5.8): tạo bản nháp mới rồi soạn, hoặc mở bản nháp có sẵn từ Thư viện (`target`). Mỗi lần lưu là một phiên bản. */
@@ -57,7 +68,7 @@ export function CreatorCreateManual({ go, target }: CreatorPageProps) {
   if (openId !== null) {
     return (
       <Page title="Soạn truyện mẫu" sub="Truyện mẫu dành cho Thư viện chung, bằng tiếng Việt và không chứa thông tin cá nhân của người thật.">
-        <CreatorEditor key={openId} storyId={openId} onBack={() => go("library")} />
+        <CreatorEditor key={openId} storyId={openId} onBack={() => go("library")} onBuyCredits={() => go("account-plan")} />
       </Page>
     );
   }

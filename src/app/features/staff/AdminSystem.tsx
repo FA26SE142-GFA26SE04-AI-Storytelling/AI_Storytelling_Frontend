@@ -16,7 +16,7 @@ import { Notice, Page, fmt, fmtDay, useAction } from "./ui";
 const monthStart = () => new Date().toISOString().slice(0, 8) + "01";
 const monthEnd = () => { const d = new Date(); return new Date(Date.UTC(d.getFullYear(), d.getMonth() + 1, 0)).toISOString().slice(0, 10); };
 const money = (n: number) => `${n.toLocaleString("vi-VN")}đ`;
-const PLAN_TYPE: Record<PlanType, string> = { Reading: "Gói Đọc", Creative: "Gói Sáng tạo", AddOn: "Add-on", Legacy: "Gói cũ" };
+const PLAN_TYPE: Record<PlanType, string> = { Reading: "Gói Đọc", Creative: "Gói Sáng tạo", AddOn: "Add-on", Legacy: "Gói cũ", CreatorPack: "Gói Creator" };
 const PAY_STATUS: Record<PaymentStatus, [string, string]> = {
   Pending: ["wait", "Chờ thanh toán"], Paid: ["ok", "Đã thanh toán"], Expired: ["draft", "Hết hạn"], MismatchAmount: ["flag", "Sai số tiền"],
 };

@@ -10,6 +10,8 @@ export const paymentService = {
     apiRequest<B.PagedResult<B.PaymentTransactionDto>>(`/Payment/transactions/me${apiQuery({ pageIndex, pageSize })}`, 'Không tải được lịch sử giao dịch.', { signal }),
   /** Gói hiện tại và lượt AI còn lại (chỉ tài khoản phụ huynh). */
   myQuota: (signal?: AbortSignal) => apiRequest<B.MyQuotaDto>('/TokenQuota/me', 'Không tải được gói và lượt của bạn.', { signal }),
+  /** Lượt của Content Creator (Gói Creator): lượt tạo truyện AI và lượt gửi duyệt. Chỉ role ContentCreator; không gọi /TokenQuota/me. */
+  creatorQuota: (signal?: AbortSignal) => apiRequest<B.CreatorQuotaDto>('/TokenQuota/creator/me', 'Không tải được lượt tạo truyện và gửi duyệt.', { signal }),
 };
 
 /** Luồng 2, mục 5 của hướng dẫn API: công cụ Admin cho giao dịch, lượt và gói. Chỉ role Administrator. */
@@ -28,3 +30,7 @@ export const adminPaymentService = {
   adjustments: (userId: number | null, pageIndex: number) =>
     apiRequest<B.PagedResult<B.CreditAdjustmentDto>>(`/TokenQuota/admin/adjustments${apiQuery({ userId: userId ?? undefined, pageIndex, pageSize: 20 })}`, 'Không tải được lịch sử điều chỉnh lượt.'),
 };
+
+/** Sự kiện trình duyệt báo lượt Creator vừa đổi (sau khi tạo truyện AI hoặc gửi duyệt) để chip lượt tải lại số. */
+export const CREATOR_QUOTA_CHANGED = 'creator-quota-changed';
+export const notifyCreatorQuotaChanged = () => window.dispatchEvent(new Event(CREATOR_QUOTA_CHANGED));

@@ -767,7 +767,7 @@
     "authorization": "Roles = \"Administrator\"",
     "controller": "BusinessReportController.cs",
     "action": "Generate",
-    "controllerLine": 23,
+    "controllerLine": 30,
     "evidence": [
       {
         "key": "POST /api/v1/BusinessReport/generate",
@@ -788,7 +788,7 @@
     "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"",
     "controller": "BusinessReportController.cs",
     "action": "Publish",
-    "controllerLine": 36,
+    "controllerLine": 43,
     "evidence": [
       {
         "key": "POST /api/v1/BusinessReport/{}/publish",
@@ -809,7 +809,7 @@
     "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated",
     "controller": "BusinessReportController.cs",
     "action": "GetLatestPublished",
-    "controllerLine": 48,
+    "controllerLine": 55,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/latest-published",
@@ -823,6 +823,46 @@
       }
     ],
     "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/BusinessReport/admin/revenue",
+    "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated; Roles = \"Administrator\"",
+    "controller": "BusinessReportController.cs",
+    "action": "GetRevenue",
+    "controllerLine": 67,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/BusinessReport/admin/accounts",
+    "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "controller": "BusinessReportController.cs",
+    "action": "GetAccounts",
+    "controllerLine": 79,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/BusinessReport/admin",
+    "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "controller": "BusinessReportController.cs",
+    "action": "List",
+    "controllerLine": 91,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/BusinessReport/admin/{reportId}",
+    "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "controller": "BusinessReportController.cs",
+    "action": "GetById",
+    "controllerLine": 103,
+    "evidence": [],
+    "disposition": "MISSING"
   },
   {
     "method": "GET",
@@ -1058,7 +1098,7 @@
         "service": "childNotebookService",
         "operation": "collect",
         "file": "app/services/childReadingService.ts",
-        "line": 44,
+        "line": 46,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1079,7 +1119,7 @@
         "service": "childNotebookService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 43,
+        "line": 45,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx"
         ]
@@ -1100,7 +1140,7 @@
         "service": "childNotebookService",
         "operation": "remove",
         "file": "app/services/childReadingService.ts",
-        "line": 45,
+        "line": 47,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx"
         ]
@@ -1356,7 +1396,7 @@
         "service": "childQuizService",
         "operation": "get",
         "file": "app/services/childReadingService.ts",
-        "line": 29,
+        "line": 31,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1377,7 +1417,7 @@
         "service": "childQuizService",
         "operation": "answer",
         "file": "app/services/childReadingService.ts",
-        "line": 30,
+        "line": 32,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1398,7 +1438,7 @@
         "service": "childQuizService",
         "operation": "result",
         "file": "app/services/childReadingService.ts",
-        "line": 31,
+        "line": 33,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1608,7 +1648,7 @@
         "service": "childReadingService",
         "operation": "feeling",
         "file": "app/services/childReadingService.ts",
-        "line": 25,
+        "line": 27,
         "callers": [
           "app/features/kid/KidAfterReading.tsx"
         ]
@@ -1713,7 +1753,7 @@
         "service": "childRewardsService",
         "operation": "get",
         "file": "app/services/childReadingService.ts",
-        "line": 34,
+        "line": 36,
         "callers": [
           "app/features/kid/KidAfterReading.tsx",
           "app/features/kid/KidRewards.tsx"
@@ -1735,7 +1775,7 @@
         "service": "childRewardsService",
         "operation": "water",
         "file": "app/services/childReadingService.ts",
-        "line": 36,
+        "line": 38,
         "callers": [
           "app/features/kid/KidRewards.tsx"
         ]
@@ -1887,7 +1927,7 @@
         "service": "childReadingService",
         "operation": "summaryFlags",
         "file": "app/services/childReadingService.ts",
-        "line": 23,
+        "line": 25,
         "callers": [
           "app/features/kid/KidSummary.tsx"
         ]
@@ -3248,6 +3288,26 @@
       }
     ],
     "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/CreatorStatistics/reading",
+    "authorization": "Roles = \"ContentCreator\"",
+    "controller": "CreatorStatisticsController.cs",
+    "action": "GetReading",
+    "controllerLine": 26,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/CreatorStatistics/revenue",
+    "authorization": "Roles = \"ContentCreator\"",
+    "controller": "CreatorStatisticsController.cs",
+    "action": "GetRevenue",
+    "controllerLine": 40,
+    "evidence": [],
+    "disposition": "MISSING"
   },
   {
     "method": "POST",
@@ -4963,7 +5023,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 40,
+        "line": 42,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -5216,7 +5276,7 @@
         "service": "parentStorySummaryService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 50,
+        "line": 52,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -5237,7 +5297,7 @@
         "service": "parentStorySummaryService",
         "operation": "remove",
         "file": "app/services/childReadingService.ts",
-        "line": 51,
+        "line": 53,
         "callers": [
           "app/features/learning/ResultsTab.tsx"
         ]
@@ -5530,7 +5590,7 @@
         "service": "adminPaymentService",
         "operation": "markPaid",
         "file": "app/services/paymentService.ts",
-        "line": 20,
+        "line": 22,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -5551,7 +5611,7 @@
         "service": "adminPaymentService",
         "operation": "transactions",
         "file": "app/services/paymentService.ts",
-        "line": 18,
+        "line": 20,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -5572,7 +5632,7 @@
         "service": "adminPaymentService",
         "operation": "plans",
         "file": "app/services/paymentService.ts",
-        "line": 24,
+        "line": 26,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -5593,7 +5653,7 @@
         "service": "adminPaymentService",
         "operation": "updatePlan",
         "file": "app/services/paymentService.ts",
-        "line": 25,
+        "line": 27,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -5614,7 +5674,7 @@
         "service": "adminPaymentService",
         "operation": "reconciliation",
         "file": "app/services/paymentService.ts",
-        "line": 22,
+        "line": 24,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -5635,7 +5695,7 @@
         "service": "adminPaymentService",
         "operation": "resolve",
         "file": "app/services/paymentService.ts",
-        "line": 23,
+        "line": 25,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -7199,7 +7259,7 @@
     "authorization": "Roles = \"User,ContentCreator,Moderator,Administrator\"",
     "controller": "StoryCommunityController.cs",
     "action": "GetStories",
-    "controllerLine": 25,
+    "controllerLine": 26,
     "evidence": [
       {
         "key": "GET /api/v1/Story/community",
@@ -7232,7 +7292,7 @@
     "authorization": "Roles = \"User,ContentCreator,Moderator,Administrator\"",
     "controller": "StoryCommunityController.cs",
     "action": "GetStoryMedia",
-    "controllerLine": 34,
+    "controllerLine": 35,
     "evidence": [
       {
         "key": "GET /api/v1/Story/community/{}/media",
@@ -7407,7 +7467,7 @@
     "authorization": "Roles = \"User,ContentCreator\"",
     "controller": "StoryCoverController.cs",
     "action": "SetCover",
-    "controllerLine": 23,
+    "controllerLine": 24,
     "evidence": [
       {
         "key": "PUT /api/v1/stories/{}/cover",
@@ -7466,11 +7526,32 @@
   },
   {
     "method": "GET",
+    "route": "/api/v1/TokenQuota/creator/me",
+    "authorization": "Roles = \"User\"; Roles = \"ContentCreator\"",
+    "controller": "TokenQuotaController.cs",
+    "action": "GetCreatorQuota",
+    "controllerLine": 34,
+    "evidence": [
+      {
+        "key": "GET /api/v1/TokenQuota/creator/me",
+        "service": "paymentService",
+        "operation": "creatorQuota",
+        "file": "app/services/paymentService.ts",
+        "line": 14,
+        "callers": [
+          "app/features/account/PaymentSection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
     "route": "/api/v1/TokenQuota/child/{childProfileId}",
-    "authorization": "Roles = \"User\"; Authenticated",
+    "authorization": "Roles = \"User\"; Roles = \"ContentCreator\"; Authenticated",
     "controller": "TokenQuotaController.cs",
     "action": "GetChildStatus",
-    "controllerLine": 34,
+    "controllerLine": 45,
     "evidence": [
       {
         "key": "GET /api/v1/TokenQuota/child/{}",
@@ -7488,36 +7569,15 @@
   {
     "method": "POST",
     "route": "/api/v1/TokenQuota/admin/adjustments",
-    "authorization": "Roles = \"User\"; Authenticated; Roles = \"Administrator\"",
+    "authorization": "Roles = \"User\"; Roles = \"ContentCreator\"; Authenticated; Roles = \"Administrator\"",
     "controller": "TokenQuotaController.cs",
     "action": "Adjust",
-    "controllerLine": 46,
+    "controllerLine": 57,
     "evidence": [
       {
         "key": "POST /api/v1/TokenQuota/admin/adjustments",
         "service": "adminPaymentService",
         "operation": "adjust",
-        "file": "app/services/paymentService.ts",
-        "line": 27,
-        "callers": [
-          "app/features/staff/AdminSystem.tsx"
-        ]
-      }
-    ],
-    "disposition": "CONNECTED_SOURCE"
-  },
-  {
-    "method": "GET",
-    "route": "/api/v1/TokenQuota/admin/adjustments",
-    "authorization": "Roles = \"User\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"",
-    "controller": "TokenQuotaController.cs",
-    "action": "ListAdjustments",
-    "controllerLine": 58,
-    "evidence": [
-      {
-        "key": "GET /api/v1/TokenQuota/admin/adjustments",
-        "service": "adminPaymentService",
-        "operation": "adjustments",
         "file": "app/services/paymentService.ts",
         "line": 29,
         "callers": [
@@ -7529,18 +7589,39 @@
   },
   {
     "method": "GET",
+    "route": "/api/v1/TokenQuota/admin/adjustments",
+    "authorization": "Roles = \"User\"; Roles = \"ContentCreator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "controller": "TokenQuotaController.cs",
+    "action": "ListAdjustments",
+    "controllerLine": 69,
+    "evidence": [
+      {
+        "key": "GET /api/v1/TokenQuota/admin/adjustments",
+        "service": "adminPaymentService",
+        "operation": "adjustments",
+        "file": "app/services/paymentService.ts",
+        "line": 31,
+        "callers": [
+          "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
     "route": "/api/v1/TokenQuota/admin/users/{userId}",
-    "authorization": "Roles = \"User\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "authorization": "Roles = \"User\"; Roles = \"ContentCreator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
     "controller": "TokenQuotaController.cs",
     "action": "GetUserQuota",
-    "controllerLine": 71,
+    "controllerLine": 82,
     "evidence": [
       {
         "key": "GET /api/v1/TokenQuota/admin/users/{}",
         "service": "adminPaymentService",
         "operation": "userQuota",
         "file": "app/services/paymentService.ts",
-        "line": 26,
+        "line": 28,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]

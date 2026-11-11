@@ -2009,7 +2009,7 @@ export interface SubmitPublicStoryRequestDto {
 }
 
 /** Loại gói (Luồng 2): Gói Đọc, Gói Sáng tạo, Add-on; `Legacy` là gói Personal cũ, chỉ còn trong lịch sử. */
-export type PlanType = 'Reading' | 'Creative' | 'AddOn' | 'Legacy';
+export type PlanType = 'Reading' | 'Creative' | 'AddOn' | 'Legacy' | 'CreatorPack';
 export interface SubscriptionPlanDto {
   'id': number;
   'name': string;
@@ -2020,6 +2020,24 @@ export interface SubscriptionPlanDto {
   'isPurchasable': boolean;
   /** Lý do chưa mua được (ví dụ Add-on khi chưa có gói). */
   'lockedReason': string | null;
+  'audience'?: string;
+  'submitCredits'?: number;
+}
+
+/** `GET /TokenQuota/creator/me` (chỉ role ContentCreator): lượt tạo truyện AI và lượt gửi duyệt. */
+export interface CreatorQuotaDto {
+  'aiCredits': CreatorCreditBalanceDto;
+  'submitCredits': CreatorCreditBalanceDto;
+  'monthlyAllowanceResetsAt': string;
+}
+
+/** Số lượt của một loại. Hạn mức tháng dùng trước; lượt mua không hết hạn. */
+export interface CreatorCreditBalanceDto {
+  'monthlyAllowance': number;
+  'monthlyRemaining': number;
+  'purchasedRemaining': number;
+  'otherRemaining': number;
+  'totalRemaining': number;
 }
 
 export interface AdminSubscriptionPlanDto {
