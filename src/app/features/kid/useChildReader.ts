@@ -44,7 +44,9 @@ export function useChildReader(token:string, onLibrary:()=>void) {
   const close = () => { scope.current++; ticket.current++; lock.current=false; setBusy(false); setContent(null); setSession(null); setDefinition(null); onLibrary(); };
   /** Thoát khi chưa đọc xong thì hỏi lại; tiến độ vẫn được lưu. */
   const leave = async () => { if (!done && !completed && !await confirmDialog('Em muốn thoát truyện?')) return; close(); };
-  useEffect(() => () => { scope.current++; }, [token]);
+  // Đổi phiên bé hoặc gỡ màn: bỏ kết quả đang chờ và nhả khóa. React (dev) gỡ rồi gắn lại màn ngay lúc mở,
+  // nếu không nhả khóa thì lần mở truyện chạy lại bị chặn còn lần đầu bị bỏ, truyện giao từ phụ huynh không bao giờ hiện.
+  useEffect(() => () => { scope.current++; ticket.current++; lock.current=false; }, [token]);
   useEffect(()=>{
     if(!content||done)return;
     const timer=setInterval(()=>{if(document.visibilityState==='visible'&&document.hasFocus())activeSeconds.current=Math.min(600,activeSeconds.current+1);},1000);
@@ -86,14 +88,16 @@ export function useChildReader(token:string, onLibrary:()=>void) {
     if (lock.current) return;
     setBlocked(false); setDone(false); setCompleted(null); setContent(null); setSession(null); setDefinition(null); setAttempted([]);
     activeSeconds.current=0;
-    lock.current=true; setBusy(true); setNote(''); const run=++scope.current; ticket.current++;
+    lock.current=true; setBusy(true); setNote(''); const run=++scope.current; const mine=++ticket.current;
+    // Lần mở bị thay thế giữa chừng vẫn phải nhả khóa nếu chưa có thao tác mới giữ, kẻo mọi lần mở sau bị chặn.
+    const release = () => { if (ticket.current===mine) { lock.current=false; setBusy(false); } };
     const started=await api.start(token,target);
-    if (run!==scope.current) return;
+    if (run!==scope.current) { release(); return; }
     if (!started.success || !started.data || target.storyId != null && started.data.storyId!==target.storyId) {
       lock.current=false; setBusy(false); setNote(started.message || 'Không mở được truyện.'); return;
     }
     const loaded=await api.content(token,started.data.sessionId);
-    if (run!==scope.current) return;
+    if (run!==scope.current) { release(); return; }
     lock.current=false; setBusy(false);
     if (!loaded.success || !loaded.data || loaded.data.sessionId!==started.data.sessionId || loaded.data.storyId!==started.data.storyId) { setNote(loaded.message || 'Nội dung không khớp phiên đọc.'); return; }
     const desired=targetPage ?? started.data.lastPage;
