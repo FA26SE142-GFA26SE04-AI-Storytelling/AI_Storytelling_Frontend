@@ -1,144 +1,297 @@
-"use client";
-import { useCallback, useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Eye, EyeOff, Pencil, Plus, Save, X } from "lucide-react";
-import IconButton from "@/app/components/IconButton";
-import { wishCardService } from "@/app/services/wishCardService";
-import { staffService } from "@/app/services/staffService";
-import type { ContentCategory } from "@/app/types/childProfile";
-import type { PagedResult } from "@/app/types/backendContracts";
-import type { ManagedWishCardGroup, WishCardDto } from "@/app/types/storyWish";
-import "@/app/features/review/review-tools.css";
-import { Notice, Page, useAction } from "./ui";
-import SafeImage from "@/app/components/SafeImage";
+'use client';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, Eye, EyeOff, FileText, Pencil, Plus, RefreshCw } from 'lucide-react';
+import IconButton from '@/app/components/IconButton';
+import SafeImage from '@/app/components/SafeImage';
+import Select from '@/app/components/Select';
+import { wishCardService } from '@/app/services/wishCardService';
+import { staffService } from '@/app/services/staffService';
+import type { ContentCategory } from '@/app/types/childProfile';
+import type { PagedResult } from '@/app/types/backendContracts';
+import type { ManagedWishCardGroup, WishCardDto } from '@/app/types/storyWish';
+import '@/app/features/review/review-tools.css';
+import { Page } from './ui';
+import WishCardDialog, {
+  EMPTY_WISH_FORM,
+  type WishCardForm,
+  wishCardValidationProblem,
+} from './WishCardDialog';
 
 export const WISH_GROUPS: { id: ManagedWishCardGroup; label: string; wish: boolean }[] = [
-  { id: "Character", label: "Nhân vật", wish: true },
-  { id: "Place", label: "Nơi chốn", wish: true },
-  { id: "Challenge", label: "Thử thách", wish: true },
-  { id: "Lesson", label: "Bài học", wish: true },
-  { id: "Desire", label: "Bạn ấy muốn gì (Bé sáng tác)", wish: false },
-  { id: "Event", label: "Chuyện gì xảy ra (Bé sáng tác)", wish: false },
-  { id: "Ending", label: "Kết thúc (Bé sáng tác)", wish: false },
+  { id: 'Character', label: 'Nhân vật', wish: true },
+  { id: 'Place', label: 'Nơi chốn', wish: true },
+  { id: 'Challenge', label: 'Thử thách', wish: true },
+  { id: 'Lesson', label: 'Bài học', wish: true },
+  { id: 'Desire', label: 'Bạn ấy muốn gì (Bé sáng tác)', wish: false },
+  { id: 'Event', label: 'Chuyện gì xảy ra (Bé sáng tác)', wish: false },
+  { id: 'Ending', label: 'Kết thúc (Bé sáng tác)', wish: false },
 ];
-export const groupLabel = (g: string) => WISH_GROUPS.find((x) => x.id === g)?.label ?? g;
-const AGE_OPTIONS = [["", "Mọi nhóm tuổi"], ["6-8", "6–8 tuổi"], ["9-10", "9–10 tuổi"]] as const;
-const LABEL_MAX = 100, URL_MAX = 500;
 
-type Form = { group: ManagedWishCardGroup; label: string; imageUrl: string; audioUrl: string; ageBand: string; contentCategoryId: string; sortOrder: string };
-const EMPTY: Form = { group: "Character", label: "", imageUrl: "", audioUrl: "", ageBand: "", contentCategoryId: "", sortOrder: "0" };
-const isUrl = (v: string) => /^https?:\/\/\S+$/i.test(v) && v.length <= URL_MAX;
+export const groupLabel = (g: string) => WISH_GROUPS.find(x => x.id === g)?.label ?? g;
 
-/** Moderator/Administrator quản lý bộ thẻ cho "Bé ước". Thẻ chỉ ẩn, không xóa; muốn đổi nhóm thì tạo thẻ mới rồi ẩn thẻ cũ. */
+const GROUP_OPTIONS: { value: ManagedWishCardGroup | ''; label: string }[] = [
+  { value: '', label: 'Mọi nhóm' },
+  ...WISH_GROUPS.map(g => ({ value: g.id, label: g.label })),
+];
+
+const ACTIVE_OPTIONS: { value: '' | 'true' | 'false'; label: string }[] = [
+  { value: '', label: 'Đang dùng và đã ẩn' },
+  { value: 'true', label: 'Đang dùng' },
+  { value: 'false', label: 'Đã ẩn' },
+];
+
+const toForm = (c: WishCardDto): WishCardForm => ({
+  group: c.group as ManagedWishCardGroup,
+  label: c.label,
+  imageUrl: c.imageUrl,
+  audioUrl: c.audioUrl ?? '',
+  ageBand: c.ageBand ?? '',
+  contentCategoryId: c.contentCategoryId?.toString() ?? '',
+  sortOrder: String(c.sortOrder),
+});
+
+/** Moderator/Administrator quản lý bộ thẻ ước (catalog/trạng thái hoạt động). Thẻ chỉ ẩn, không xóa. */
 export default function WishCardManagement() {
-  const [group, setGroup] = useState<ManagedWishCardGroup | "">("");
-  const [active, setActive] = useState<"" | "true" | "false">("");
+  const [group, setGroup] = useState<ManagedWishCardGroup | ''>('');
+  const [active, setActive] = useState<'' | 'true' | 'false'>('');
   const [page, setPage] = useState(1);
   const [list, setList] = useState<PagedResult<WishCardDto> | null>(null);
   const [cats, setCats] = useState<ContentCategory[]>([]);
-  const [loadError, setLoadError] = useState("");
+  const [loadError, setLoadError] = useState('');
+  const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const [saveError, setSaveError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [modal, setModal] = useState<{ open: boolean; mode: 'view' | 'edit' | 'create' }>({ open: false, mode: 'create' });
   const [editing, setEditing] = useState<WishCardDto | null>(null);
-  const [form, setForm] = useState<Form>(EMPTY);
-  const [dialog, setDialog] = useState(false);
+  const [form, setForm] = useState<WishCardForm>(EMPTY_WISH_FORM);
+  const [rowAudioErrors, setRowAudioErrors] = useState<Record<number, boolean>>({});
+  const listScope = useRef(Symbol());
+  const detailCtrl = useRef<AbortController | null>(null);
+  const submitLock = useRef(false);
+  const triggerRef = useRef<HTMLElement | null>(null);
 
-  const load = useCallback(async () => {
-    const r = await wishCardService.list({ group: group || undefined, isActive: active === "" ? undefined : active === "true", pageIndex: page, pageSize: 20 });
-    setList(r.data);
-    setLoadError(r.success ? "" : r.message);
+  const loadList = useCallback(async (signal?: AbortSignal) => {
+    const run = Symbol();
+    listScope.current = run;
+    const r = await wishCardService.list(
+      { group: group || undefined, isActive: active === '' ? undefined : active === 'true', pageIndex: page, pageSize: 20 },
+      signal,
+    );
+    if (signal?.aborted || listScope.current !== run) return;
+    if (r.success && r.data) {
+      setList(r.data);
+      setLoadError('');
+      setRowAudioErrors({});
+    } else {
+      setLoadError(r.message || 'Không tải được danh sách thẻ ước.');
+    }
   }, [group, active, page]);
-  useEffect(() => { void load(); }, [load]);
-  useEffect(() => { void staffService.categories().then((r) => setCats(r.data ?? [])); }, []);
-  const { note, busy, run } = useAction(load);
 
-  const toForm = (c: WishCardDto) => ({ group: c.group as ManagedWishCardGroup, label: c.label, imageUrl: c.imageUrl, audioUrl: c.audioUrl ?? "", ageBand: c.ageBand ?? "", contentCategoryId: c.contentCategoryId?.toString() ?? "", sortOrder: String(c.sortOrder) });
-  /**
-   * Mở popup ngay với dữ liệu trong danh sách, rồi tải bản mới nhất của thẻ (GET /moderation/wish-cards/{id})
-   * để không sửa đè thay đổi của người khác. Chỉ thay form khi người dùng chưa kịp sửa gì.
-   */
-  const edit = (c: WishCardDto) => {
-    const listed = toForm(c);
-    setEditing(c); setForm(listed); setDialog(true);
-    void wishCardService.get(c.id).then((r) => {
-      if (!r.success || !r.data) return;
+  useEffect(() => {
+    const controller = new AbortController();
+    void loadList(controller.signal);
+    return () => controller.abort();
+  }, [loadList]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    void staffService.categories().then(r => {
+      if (!controller.signal.aborted && r.data) setCats(r.data);
+    });
+    return () => controller.abort();
+  }, []);
+
+  const restoreFocus = () => {
+    const el = triggerRef.current;
+    triggerRef.current = null;
+    if (el && typeof el.focus === 'function') queueMicrotask(() => el.focus());
+  };
+
+  const closeDialog = () => {
+    detailCtrl.current?.abort();
+    setModal({ open: false, mode: 'create' });
+    setEditing(null);
+    setForm(EMPTY_WISH_FORM);
+    setSaveError('');
+    restoreFocus();
+  };
+
+  const fetchLatestCard = (cardId: number, baselineForm: WishCardForm | null, forceFormUpdate = false) => {
+    detailCtrl.current?.abort();
+    const controller = new AbortController();
+    detailCtrl.current = controller;
+    void wishCardService.get(cardId, controller.signal).then(r => {
+      if (controller.signal.aborted) return;
+      if (!r.success || !r.data) {
+        setSaveError(r.message || 'Không tải lại được chi tiết thẻ.');
+        return;
+      }
       const fresh = r.data;
-      setEditing((cur) => (cur?.id === c.id ? fresh : cur));
-      setForm((f) => (JSON.stringify(f) === JSON.stringify(listed) ? toForm(fresh) : f));
+      setEditing(cur => (cur?.id === cardId ? fresh : cur));
+      if (forceFormUpdate || !baselineForm) {
+        setForm(toForm(fresh));
+      } else {
+        setForm(prev => (JSON.stringify(prev) === JSON.stringify(baselineForm) ? toForm(fresh) : prev));
+      }
     });
   };
-  const reset = () => { setEditing(null); setForm(EMPTY); setDialog(false); };
 
-  const label = form.label.trim(), image = form.imageUrl.trim(), audio = form.audioUrl.trim();
-  const problem = !label ? "Nhập nhãn thẻ." : label.length > LABEL_MAX ? `Nhãn tối đa ${LABEL_MAX} ký tự.`
-    : !isUrl(image) ? "Đường dẫn hình phải bắt đầu bằng http:// hoặc https://."
-    : audio && !isUrl(audio) ? "Đường dẫn âm thanh phải bắt đầu bằng http:// hoặc https://."
-    : !/^-?\d+$/.test(form.sortOrder.trim()) ? "Thứ tự phải là số nguyên." : null;
-  const save = async () => {
-    if (problem) return;
-    const body = { label, imageUrl: image, audioUrl: audio || null, ageBand: form.ageBand || null, contentCategoryId: form.contentCategoryId ? Number(form.contentCategoryId) : null, sortOrder: Number(form.sortOrder) };
-    const ok = await run(() => editing ? wishCardService.update(editing.id, body) : wishCardService.create({ ...body, group: form.group }));
-    if (ok) reset();
+  const openExisting = (c: WishCardDto, mode: 'view' | 'edit') => {
+    triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const listed = toForm(c);
+    setEditing(c);
+    setForm(listed);
+    setSaveError('');
+    setModal({ open: true, mode });
+    fetchLatestCard(c.id, listed, false);
   };
-  const catName = (id: number | null) => (id == null ? "—" : cats.find((c) => c.id === id)?.displayName ?? `#${id}`);
 
-  return <Page title="Thẻ ước" sub="Thẻ hình bé chọn khi ước một câu chuyện. Ẩn thẻ chỉ bỏ khỏi lựa chọn mới, điều ước và truyện đã gắn thẻ vẫn giữ nguyên.">
-    <Notice note={note} />
-    {loadError && <p className="notice err" role="alert">{loadError}</p>}
-    <div className="row">
-      <select className="inp" aria-label="Lọc theo nhóm" value={group} onChange={(e) => { setGroup(e.target.value as ManagedWishCardGroup | ""); setPage(1); }}>
-        <option value="">Mọi nhóm</option>{WISH_GROUPS.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
-      </select>
-      <select className="inp" aria-label="Lọc theo trạng thái" value={active} onChange={(e) => { setActive(e.target.value as "" | "true" | "false"); setPage(1); }}>
-        <option value="">Đang dùng và đã ẩn</option><option value="true">Đang dùng</option><option value="false">Đã ẩn</option>
-      </select>
-      <IconButton icon={Plus} label="Thêm thẻ mới" className="btn btn-p" style={{ flex: "none", minWidth: 44 }} disabled={busy} onClick={() => { setEditing(null); setForm(EMPTY); setDialog(true); }} />
-    </div>
-    <div className="st-card">
-      <table className="st-table stack-table">
-        <thead><tr><th>Hình</th><th>Nhãn</th><th>Nhóm</th><th>Tuổi</th><th>Nhãn nội dung</th><th>Thứ tự</th><th>Trạng thái</th><th /></tr></thead>
-        <tbody>
-          {list?.items.map((c) => <tr key={c.id} className={editing?.id === c.id ? "on" : undefined}>
-            <td data-label="Hình"><SafeImage src={c.imageUrl} alt="" width={44} height={44} style={{ objectFit: "contain", borderRadius: 8 }} /></td>
-            <td data-label="Nhãn"><b>{c.label}</b>{c.audioUrl && <div><audio controls preload="none" src={c.audioUrl} style={{ height: 28, maxWidth: 180 }} /></div>}</td>
-            <td data-label="Nhóm">{groupLabel(c.group)}</td>
-            <td data-label="Tuổi">{c.ageBand ?? "Mọi tuổi"}</td>
-            <td data-label="Nhãn nội dung">{catName(c.contentCategoryId)}</td>
-            <td data-label="Thứ tự">{c.sortOrder}</td>
-            <td data-label="Trạng thái"><span className={`pill ${c.isActive ? "ok" : "draft"}`}>{c.isActive ? "Đang dùng" : "Đã ẩn"}</span></td>
-            <td data-label=""><div className="row">
-              <IconButton icon={Pencil} label={`Sửa thẻ ${c.label}`} disabled={busy} onClick={() => edit(c)} />
-              <IconButton icon={c.isActive ? EyeOff : Eye} label={`${c.isActive ? "Ẩn" : "Hiện lại"} thẻ ${c.label}`} className="btn btn-g" disabled={busy} onClick={() => void run(() => wishCardService.setActive(c.id, !c.isActive))} />
-            </div></td>
-          </tr>)}
-          {list && !list.items.length && <tr><td colSpan={8} className="sub">Chưa có thẻ nào khớp bộ lọc.</td></tr>}
-        </tbody>
-      </table>
-      <div className="row"><IconButton icon={ChevronLeft} label="Trang trước" disabled={busy || page === 1} onClick={() => setPage((p) => p - 1)} /><span>Trang {page}{list ? `/${Math.max(1, list.totalPages)}` : ""}</span><IconButton icon={ChevronRight} label="Trang sau" disabled={busy || !list?.hasNextPage} onClick={() => setPage((p) => p + 1)} /></div>
-    </div>
+  const openCreate = () => {
+    triggerRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    detailCtrl.current?.abort();
+    setEditing(null);
+    setForm(EMPTY_WISH_FORM);
+    setSaveError('');
+    setModal({ open: true, mode: 'create' });
+  };
 
-    {dialog && <div className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={editing ? "Sửa thẻ" : "Thêm thẻ mới"} onClick={(e) => { if (e.target === e.currentTarget && !busy) reset(); }}>
-    <div className="dlg wide st-dlg">
-      <div className="row"><h3 className="grow">{editing ? `Sửa thẻ "${editing.label}"` : "Thêm thẻ mới"}</h3><IconButton icon={X} label="Đóng" className="btn btn-g" disabled={busy} onClick={reset} /></div>
-      <div className="st-form">
-        <label className="field">Nhóm
-          <select className="inp" value={form.group} disabled={!!editing} onChange={(e) => setForm({ ...form, group: e.target.value as ManagedWishCardGroup })}>
-            {WISH_GROUPS.map((g) => <option key={g.id} value={g.id}>{g.label}</option>)}
-          </select>
-        </label>
-        <label className="field">Nhãn<input className="inp" maxLength={LABEL_MAX} value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })} placeholder="Ví dụ: Thỏ con" /></label>
-        <label className="field">Đường dẫn hình<input className="inp" maxLength={URL_MAX} value={form.imageUrl} onChange={(e) => setForm({ ...form, imageUrl: e.target.value })} placeholder="https://…" /></label>
-        <label className="field">Đường dẫn âm thanh (không bắt buộc)<input className="inp" maxLength={URL_MAX} value={form.audioUrl} onChange={(e) => setForm({ ...form, audioUrl: e.target.value })} placeholder="https://…" /></label>
-        <label className="field">Nhóm tuổi<select className="inp" value={form.ageBand} onChange={(e) => setForm({ ...form, ageBand: e.target.value })}>{AGE_OPTIONS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}</select></label>
-        <label className="field">Nhãn nội dung<select className="inp" value={form.contentCategoryId} onChange={(e) => setForm({ ...form, contentCategoryId: e.target.value })}>
-          <option value="">Không gắn</option>{cats.filter((c) => c.isActive || String(c.id) === form.contentCategoryId).map((c) => <option key={c.id} value={c.id}>{c.displayName}</option>)}
-        </select></label>
-        <label className="field">Thứ tự hiển thị<input className="inp" inputMode="numeric" value={form.sortOrder} onChange={(e) => setForm({ ...form, sortOrder: e.target.value })} /></label>
+  const save = async () => {
+    if (busy || submitLock.current || wishCardValidationProblem(form)) return;
+    submitLock.current = true;
+    setBusy(true);
+    setSaveError('');
+    setNote(null);
+    const body = {
+      label: form.label.trim(),
+      imageUrl: form.imageUrl.trim(),
+      audioUrl: form.audioUrl.trim() || null,
+      ageBand: form.ageBand || null,
+      contentCategoryId: form.contentCategoryId ? Number(form.contentCategoryId) : null,
+      sortOrder: Number(form.sortOrder),
+    };
+    const r = editing
+      ? await wishCardService.update(editing.id, body)
+      : await wishCardService.create({ ...body, group: form.group });
+    submitLock.current = false;
+    setBusy(false);
+    if (!r.success) {
+      setSaveError(r.message || 'Không lưu được thẻ ước; dữ liệu bạn vừa nhập vẫn được giữ.');
+      return;
+    }
+    setNote({ ok: true, text: r.message || (editing ? 'Đã lưu thẻ ước.' : 'Đã thêm thẻ ước mới.') });
+    closeDialog();
+    await loadList();
+  };
+
+  const toggleActive = async (c: WishCardDto) => {
+    if (busy || submitLock.current) return;
+    submitLock.current = true;
+    setBusy(true);
+    setNote(null);
+    const r = await wishCardService.setActive(c.id, !c.isActive);
+    submitLock.current = false;
+    setBusy(false);
+    if (!r.success) {
+      setNote({ ok: false, text: r.message || 'Không đổi được trạng thái thẻ; giữ nguyên trạng thái từ máy chủ.' });
+      await loadList();
+      return;
+    }
+    setNote({ ok: true, text: r.message || (c.isActive ? `Đã ẩn thẻ “${c.label}”.` : `Đã bật lại thẻ “${c.label}”.`) });
+    await loadList();
+  };
+
+  const catName = (id: number | null) => (id == null ? '—' : cats.find(c => c.id === id)?.displayName ?? `#${id}`);
+
+  return (
+    <Page title="Thẻ ước" sub="Thẻ hình bé chọn khi ước một câu chuyện. Ẩn thẻ chỉ bỏ khỏi lựa chọn mới; điều ước và truyện đã gắn thẻ vẫn giữ nguyên.">
+      {note && <p className={`notice ${note.ok ? 'ok' : 'err'}`} role={note.ok ? 'status' : 'alert'} data-inline-notice>{note.text}</p>}
+      {loadError && <p className="notice err" role="alert" data-inline-notice>{loadError}</p>}
+
+      <div className="row st-wrap">
+        <Select<ManagedWishCardGroup | ''>
+          ariaLabel="Lọc theo nhóm"
+          value={group}
+          options={GROUP_OPTIONS}
+          onChange={v => { setGroup(v); setPage(1); }}
+        />
+        <Select<'' | 'true' | 'false'>
+          ariaLabel="Lọc theo trạng thái"
+          value={active}
+          options={ACTIVE_OPTIONS}
+          onChange={v => { setActive(v); setPage(1); }}
+        />
+        <button type="button" className="btn btn-g" disabled={busy} onClick={() => void loadList()}>
+          <RefreshCw className="ic" />Tải lại
+        </button>
+        <IconButton icon={Plus} label="Thêm thẻ mới" className="btn btn-p" style={{ flex: 'none', minWidth: 44 }} disabled={busy} onClick={openCreate} />
       </div>
-      {editing && <small className="sub">Không đổi được nhóm của thẻ đã tạo. Muốn đổi nhóm, hãy tạo thẻ mới rồi ẩn thẻ này.</small>}
-      {isUrl(image) && <div className="row"><SafeImage src={image} alt="Xem trước hình thẻ" width={88} height={88} style={{ objectFit: "contain", borderRadius: 12 }} /><span className="sub">Xem trước hình thẻ</span></div>}
-      {problem && (label || image) && <small className="sub">{problem}</small>}
-      <div className="row">
-        <IconButton icon={editing ? Save : Plus} label={editing ? "Lưu thay đổi" : "Thêm thẻ"} className="btn btn-p" disabled={busy || !!problem} onClick={() => void save()} />
-        <IconButton icon={X} label="Hủy" className="btn btn-g" disabled={busy} onClick={reset} />
+
+      <div className="st-card">
+        <table className="st-table stack-table">
+          <thead>
+            <tr><th>Hình</th><th>Nhãn</th><th>Nhóm</th><th>Tuổi</th><th>Nhãn nội dung</th><th>Thứ tự</th><th>Trạng thái</th><th /></tr>
+          </thead>
+          <tbody>
+            {list?.items.map(c => (
+              <tr key={c.id} className={editing?.id === c.id ? 'on' : undefined}>
+                <td data-label="Hình">
+                  <SafeImage src={c.imageUrl} alt="" width={44} height={44} style={{ objectFit: 'contain', borderRadius: 8 }} />
+                </td>
+                <td data-label="Nhãn">
+                  <b>{c.label}</b>
+                  {c.audioUrl && (
+                    <div>
+                      <audio controls preload="none" src={c.audioUrl} style={{ height: 28, maxWidth: 180 }} onError={() => setRowAudioErrors(prev => ({ ...prev, [c.id]: true }))} />
+                      {rowAudioErrors[c.id] && <small className="sub" style={{ display: 'block' }}>Không tải được âm thanh.</small>}
+                    </div>
+                  )}
+                </td>
+                <td data-label="Nhóm">{groupLabel(c.group)}</td>
+                <td data-label="Tuổi">{c.ageBand ?? 'Mọi tuổi'}</td>
+                <td data-label="Nhãn nội dung">{catName(c.contentCategoryId)}</td>
+                <td data-label="Thứ tự">{c.sortOrder}</td>
+                <td data-label="Trạng thái"><span className={`pill ${c.isActive ? 'ok' : 'draft'}`}>{c.isActive ? 'Đang dùng' : 'Đã ẩn'}</span></td>
+                <td data-label="Thao tác">
+                  <div className="row">
+                    <IconButton icon={FileText} label={`Xem thẻ ${c.label}`} disabled={busy} onClick={() => openExisting(c, 'view')} />
+                    <IconButton icon={Pencil} label={`Sửa thẻ ${c.label}`} disabled={busy} onClick={() => openExisting(c, 'edit')} />
+                    <IconButton
+                      icon={c.isActive ? EyeOff : Eye}
+                      label={`${c.isActive ? 'Ẩn' : 'Hiện lại'} thẻ ${c.label}`}
+                      className="btn btn-g"
+                      disabled={busy}
+                      onClick={() => void toggleActive(c)}
+                    />
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {list && !list.items.length && <tr><td colSpan={8} className="sub">Chưa có thẻ nào khớp bộ lọc.</td></tr>}
+          </tbody>
+        </table>
+        <div className="row">
+          <IconButton icon={ChevronLeft} label="Trang trước" disabled={busy || page === 1} onClick={() => setPage(p => p - 1)} />
+          <span>Trang {page}{list ? `/${Math.max(1, list.totalPages)}` : ''}</span>
+          <IconButton icon={ChevronRight} label="Trang sau" disabled={busy || !list?.hasNextPage} onClick={() => setPage(p => p + 1)} />
+        </div>
       </div>
-    </div></div>}
-  </Page>;
+
+      {modal.open && (
+        <WishCardDialog
+          mode={modal.mode}
+          editing={editing}
+          form={form}
+          categories={cats}
+          groups={WISH_GROUPS}
+          busy={busy}
+          saveError={saveError}
+          onFormChange={setForm}
+          onSwitchToEdit={() => { setSaveError(''); setModal(prev => ({ ...prev, mode: 'edit' })); }}
+          onReloadCard={() => { if (editing) fetchLatestCard(editing.id, null, true); }}
+          onSave={() => void save()}
+          onClose={closeDialog}
+        />
+      )}
+    </Page>
+  );
 }

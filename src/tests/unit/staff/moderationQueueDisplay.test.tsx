@@ -123,7 +123,7 @@ describe('Moderation queue work title & submitter display', () => {
     expect(html).toContain('Mái Nhà Ấm Áp Sau Cơn Mưa');
     expect(html).toContain('Tác giả gửi duyệt: Nguyễn Văn A');
     expect(html).toContain('Truyện công khai');
-    expect(html).toContain('Đang chờ');
+    expect(html).toContain('Chờ tiếp nhận');
   });
 
   it('renders pre-claim DetailCard with title, submitter, submitted timestamp, claim button and zero draft leakage', () => {

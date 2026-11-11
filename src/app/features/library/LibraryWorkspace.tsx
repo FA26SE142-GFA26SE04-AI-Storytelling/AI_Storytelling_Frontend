@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { aiStoryCreationService } from "@/app/services/aiStoryCreationService";
 import AudioRing from "./AudioRing";
-import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, Send, WandSparkles, X } from "lucide-react";
+import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, WandSparkles, X } from "lucide-react";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
@@ -25,12 +25,7 @@ import { useRoadmapTemplates } from "@/app/features/roadmap/roadmapData";
 import { roadmapTemplate } from "@/app/services/roadmapAdapters";
 import type { RoadmapTemplate } from "@/app/types/progress";
 import type * as B from "@/app/types/backendContracts";
-import { guardianService } from "@/app/services/guardianService";
-import type { CommunitySubmission, ContentReport } from "@/app/types/progress";
-import { CommunityDialog, ReportDialog } from "./ModerationDialogs";
-import { confirmDialog } from "@/app/lib/confirm";
-
-const SUB_STATUS: Record<string, string> = { pending: "Đang chờ duyệt", approved: "Đã có trong thư viện cộng đồng", rejected: "Bị từ chối — có thể nộp lại", withdrawn: "Đã rút", removed: "Đã gỡ" };
+import { ReportDialog } from "./ModerationDialogs";
 
 /** Luồng 2 mục 6.9 — nhóm trạng thái hiển thị cho phụ huynh. */
 const STATUS_GROUPS: { id: string; label: string; keys: string[] }[] = [
@@ -325,8 +320,7 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
   const [srcF, setSrcF] = useState("all");
   const [q, setQ] = useState("");
   const [selected, setSelected] = useState<number | null>(null);
-  const [dialog, setDialog] = useState<"preview" | "roadmap" | "report" | "community" | null>(null);
-  const [mod, setMod] = useState<{ reports: ContentReport[]; submission: CommunitySubmission | null } | null>(null);
+  const [dialog, setDialog] = useState<"preview" | "roadmap" | "report" | null>(null);
   const [toast, setToast] = useState("");
   // Khung "Chi tiết" bên phải thu gọn được; cột lưới co theo bằng CSS (library.css).
   // Mới vào thì thu gọn; bấm vào một truyện sẽ tự mở khung chi tiết.
@@ -372,14 +366,7 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
   const pick = (id: number) => { setSelected(id); if (asideCollapsed) setAsideCollapsed(false); };
   const card = (s: StoryCard, rank?: number) => <BookCard key={s.id} story={s} rank={rank} on={sel?.id === s.id} onPick={() => pick(s.id)} />;
   const selStatus = sel ? statusOf(sel) : null;
-  // Quản lý (nộp thư viện cộng đồng, rút) chỉ dành cho truyện của chính bạn; truyện của người khác chỉ xem, xem trước, báo cáo hoặc thêm vào lộ trình.
-  const mine = !!sel && sel.raw.authorUserId === user?.id;
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(""), 3200); };
-  const loadMod = async () => { if (sel) setMod((await guardianService.storyModeration(sel.id)).data); };
-  useEffect(() => {
-    setMod(null);
-    if (sel && !sel.family && sel.raw.authorUserId === user?.id && statusOf(sel) === "ready") void guardianService.storyModeration(sel.id).then((r) => setMod(r.data));
-  }, [sel, user?.id]);
 
   return (
     <AsideContext.Provider value={aside}>
@@ -519,15 +506,7 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
               {selStatus === "moderation" && <span className="pill wait lib-state" title="Kiểm duyệt viên thường xem trong 24 giờ">Đang chờ kiểm duyệt</span>}
               {selStatus === "ready" && <StoryHandoverButton storyId={sel.id} title={sel.title} onKid={onKid} />}
               {selStatus === "ready" && <button className="btn btn-p btn-c" onClick={() => setDialog("roadmap")}><Route className="ic" />Thêm vào lộ trình</button>}
-              {selStatus === "ready" && mod?.submission && <span className="pill draft lib-state">Cộng đồng: {SUB_STATUS[mod.submission.status] ?? mod.submission.status}</span>}
-              {mine && selStatus === "ready" && mod?.submission && ((mod.submission.canWithdraw ?? mod.submission.status === "pending") || (mod.submission.canRemove ?? mod.submission.status === "approved")) && (
-                <button className="btn btn-s btn-c" onClick={async () => { const withdraw = mod.submission!.status === "pending"; if (!(await confirmDialog(withdraw ? "Rút yêu cầu nộp thư viện cộng đồng? Truyện sẽ không còn chờ duyệt." : "Gỡ truyện khỏi thư viện cộng đồng? Mọi người sẽ không còn thấy truyện này."))) return; void (mod.submission!.canRemove ?? mod.submission!.status === "approved" ? guardianService.removeCommunity(mod.submission!.id) : guardianService.withdrawCommunity(mod.submission!.id)).then((r) => { flash(r.message); void loadMod(); }); }}>{mod.submission.status === "pending" ? "Rút yêu cầu" : "Gỡ khỏi thư viện cộng đồng"}</button>
-              )}
-              {mine && selStatus === "ready" && !(mod?.submission && ["pending", "approved"].includes(mod.submission.status)) && (
-                <button className="btn btn-s btn-c" disabled={!!mod?.reports.some((r) => r.status === "pending")} title={mod?.reports.some((r) => r.status === "pending") ? "Truyện đang có báo cáo chờ xử lý" : undefined} onClick={() => setDialog("community")}><Send className="ic" />Nộp thư viện cộng đồng</button>
-              )}
               {selStatus === "ready" && <button className="btn btn-g btn-c" onClick={() => setDialog("report")}><Flag className="ic" />Báo cáo nội dung</button>}
-              {mod?.reports.some((r) => r.status === "pending") && <span className="pill flag lib-state">Có báo cáo đang chờ xử lý</span>}
               {selStatus === "ready" && <button className="btn btn-s btn-c" onClick={() => setDialog("preview")}><Eye className="ic" />Xem trước như bé thấy</button>}
               </>}
             </>
@@ -537,8 +516,7 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
       {openedTpl && <TemplateDialog item={openedTpl} onClose={() => setOpenedTpl(null)} onAdd={(d) => { setOpenedTpl(null); setAddingTpl(roadmapTemplate(d)); }} />}
       {addingTpl && <AddToRoadmapDialog template={addingTpl} childId={pickKid?.id} single={!!pickKid} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setAddingTpl(null))} />}
       {sel && dialog === "roadmap" &&<AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} childId={pickKid?.id} single={!!pickKid} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setDialog(null))} />}
-      {sel && dialog === "report" && <ReportDialog story={sel} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
-      {sel && dialog === "community" && <CommunityDialog story={sel} nickname="" onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
+      {sel && dialog === "report" && <ReportDialog story={sel} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </section>
     </AsideContext.Provider>

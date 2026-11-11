@@ -1,2 +1,6 @@
 import ConnectedModerationQueue from './ConnectedModerationQueue';
-export function ModerationQueue({admin}:{admin?:boolean}){return <ConnectedModerationQueue admin={admin}/>;}
+
+/** Hàng đợi kiểm duyệt dùng cho luồng Administrator xử lý các ca chuyển cấp. */
+export function ModerationQueue({ admin }: { admin?: boolean }) {
+  return <ConnectedModerationQueue admin={admin} />;
+}

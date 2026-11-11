@@ -1,214 +1,40 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { createPortal } from 'react-dom';
-import type * as B from '@/app/types/backendContracts';
-import { moderationService, type ReviewKind, type ReviewPackage } from '@/app/services/moderationService';
-import { staffService } from '@/app/services/staffService';
 import type { QueueItem } from '@/app/types/staff';
-import { formatSubmittedAt, reviewPackageSubmittedAt, reviewPackageSubmitterLabel, reviewPackageTitle } from './moderationQueueDisplay';
-import type { ApiResponse } from '@/app/types/auth';
-import { useAuth } from '@/app/context/AuthContext';
-import { useReviewItem } from './useReviewItem';
-import VersionComparison from './VersionComparison';
-import SegmentAudio from './SegmentAudio';
-import LearningMaterials from './LearningMaterials';
-import '@/app/features/review/review-tools.css';
-import SafeImage from "@/app/components/SafeImage";
-import { Check, CircleAlert, ExternalLink, Pencil, RefreshCw, ShieldCheck, X } from "lucide-react";
-import InfoTip from "@/app/components/InfoTip";
-import Dialog from "@/app/components/Dialog";
-import Select from "@/app/components/Select";
-import { confirmDialog } from "@/app/lib/confirm";
-import ReviewPicture from './ReviewPicture';
-import { ListeningList, SafetyScanSection, SourceNote, StoryFacts, Warn, criterionEvidence } from './PublicReviewEvidence';
-import ChangeRequestDialog from './ChangeRequestDialog';
-import { useRiseIn } from '@/app/lib/motion';
-import { flagsSummary } from './readableJson';
+import type { ReviewKind } from '@/app/services/moderationService';
+import CommunitySubmissionReviewPanel from './CommunitySubmissionReviewPanel';
+import ContentReportReviewPanel from './ContentReportReviewPanel';
+import GrayZoneReviewPanel from './GrayZoneReviewPanel';
+import PublicStoryRemovalPanel from './PublicStoryRemovalPanel';
+import PublicStoryReviewPanel from './PublicStoryReviewPanel';
+import { ReviewPanelHeader } from './ReviewPanelHeader';
+import RoadmapReviewPanel from './RoadmapReviewPanel';
 
-const COPYRIGHT: Record<string, string> = { OwnWork: 'Tác giả tự sáng tác', AiGenerated: 'Do AI của nền tảng tạo ra', FamilyUse: 'Chỉ dùng trong gia đình' };
-/** Kết quả kiểm tra thông tin cá nhân của backend là chuỗi JSON như {"passed": true}; đổi thành câu đọc được. */
-function piiSummary(raw: string): string {
-  try { const v = JSON.parse(raw) as { passed?: boolean }; if (typeof v.passed === 'boolean') return v.passed ? 'Đạt: không phát hiện thông tin cá nhân.' : 'Không đạt: có thể có thông tin cá nhân.'; } catch { /* không phải JSON thì giữ nguyên */ }
-  // JSON dạng khác thì không in thô ra giao diện.
-  return /^[[{]/.test(raw.trim()) ? 'Đã kiểm tra thông tin cá nhân.' : raw;
-}
-/** Tên ngắn của tiêu chí checklist (mã do backend định nghĩa); nhãn đầy đủ của backend hiện khi rê chuột. */
-const CRITERION_SHORT: Record<string, string> = {
-  safety_baseline: 'An toàn', no_personal_info: 'Không lộ thông tin cá nhân', metadata_labels: 'Nhãn nội dung đúng',
-  order: 'Thứ tự theo độ khó', theme: 'Cùng chủ đề chính', name_description: 'Tên và mô tả phù hợp', age_level: 'Độ tuổi, mức đọc khớp',
-};
-const CHECK_LABEL = { safety: 'An toàn', ageFit: 'Phù hợp tuổi', education: 'Giá trị giáo dục', language: 'Ngôn ngữ', copyright: 'Bản quyền', image: 'Tranh', audio: 'Âm thanh', interaction: 'Tương tác' } as const;
-const CHECK_OPTIONS = [{ value: '', label: 'Chưa chấm' }, { value: 'true', label: 'Đạt' }, { value: 'false', label: 'Không đạt' }];
-const PASS_OPTIONS = [{ value: 'false', label: 'Chưa đạt' }, { value: 'true', label: 'Đạt' }];
-const ARCHIVE_OPTIONS = [{ value: 'SafetyConcern', label: 'Không an toàn' }, { value: 'Copyright', label: 'Bản quyền' }, { value: 'Inappropriate', label: 'Không phù hợp' }] as const;
-const REPORT_REASON: Record<string, string> = { SafetyConcern: 'Không an toàn', Inappropriate: 'Không phù hợp', WrongAgeBand: 'Không đúng độ tuổi', Copyright: 'Bản quyền', Cultural: 'Văn hoá', Other: 'Khác' };
+export { ReviewPanelHeader };
 
-
-
-export function ReviewPanelHeader({ item, queueItem, message }: { item: ReviewPackage; queueItem?: QueueItem; message: string }) {
-  const { data } = item;
-  const title = reviewPackageTitle(item, queueItem);
-  const authorLine = reviewPackageSubmitterLabel(item, queueItem);
-  const submittedAt = reviewPackageSubmittedAt(item, queueItem);
-  return <div className="st-group">
-    <h3 className="st-detail-title">{title}</h3>
-    {authorLine && <span className="st-item-author">{authorLine}</span>}
-    <div className="row st-wrap">
-      <span className="st-review-meta">Thời điểm gửi: {formatSubmittedAt(submittedAt)}</span>
-      {'claimExpiresAt' in data && <span className="pill wait" style={{ width: 'fit-content' }}>Giữ mục đến {new Date(data.claimExpiresAt ?? '').toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span>}
-    </div>
-    {message && <div className="notice" role="status">{message}</div>}
-  </div>;
-}
-
-export default function ReviewPanel({ kind, id, queueItem, onDecision }: { kind: ReviewKind; id: number; queueItem?: QueueItem; onDecision: () => void }) {
-  const { item, message, busy, act, patch, refresh } = useReviewItem(kind, id, onDecision);
-  /** Bấm "Xác nhận đã xem": đổi dấu ! thành đã xem ngay, không đợi tải lại cả gói (gói có nhiều tranh/âm thanh nên tải khá lâu). Lỗi thì tải lại để trả về đúng trạng thái. */
-  /** Chấm một tiêu chí checklist: ô chọn đổi ngay, gói mới từ backend tải ngầm rồi thay thế; lỗi thì tải lại để trả về giá trị cũ. */
-  const setCheck = async (key: 'safety' | 'ageFit' | 'education' | 'language' | 'copyright' | 'image' | 'audio' | 'interaction', value: boolean) => {
-    patch(cur => cur.kind === 'PublicStoryReview' ? { ...cur, data: { ...cur.data, checklist: { ...cur.data.checklist, [key]: value } } } : cur);
-    if (!(await act(() => moderationService.publicChecklist(id, { [key]: value })))) refresh();
-  };
-  const viewScene = async (sceneId: number) => {
-    patch(cur => cur.kind === 'PublicStoryReview' ? { ...cur, data: { ...cur.data, scenes: cur.data.scenes.map(s => s.sceneId === sceneId ? { ...s, viewed: true } : s) } } : cur);
-    if (!(await act(() => moderationService.view(id, 'scene', sceneId)))) refresh();
-  };
-  const { user } = useAuth();
-  // Mỗi lần mở một mục, các nhóm thông tin hiện lần lượt thay vì bật ra cùng lúc.
-  const riseRef = useRiseIn<HTMLDivElement>('.st-group', [kind, id, item ? 1 : 0], { delay: 40, distance: 10 });
-  const [reason, setReason] = useState('');
-  const [archiveReason, setArchiveReason] = useState<'SafetyConcern' | 'Copyright' | 'Inappropriate'>('SafetyConcern');
-  const [labelIds, setLabelIds] = useState<number[]>([]);
-  // Tập nhãn đã lưu gần nhất: nút "Lưu tập nhãn" chỉ hiện khi các ô chọn khác tập này.
-  const [savedLabelIds, setSavedLabelIds] = useState<number[]>([]);
-  const labelsDirty = [...labelIds].sort().join(',') !== [...savedLabelIds].sort().join(',');
-  const [categories, setCategories] = useState<{ id: number; displayName: string }[] | null>(null);
-  const [compare, setCompare] = useState<B.PublicVersionComparisonDto | null>(null);
-  const labelLoader = async () => { const r = await staffService.categories(); if (r.success) setCategories(r.data ?? []); };
-  const [changeOpen, setChangeOpen] = useState(false);
-  const [changeFailed, setChangeFailed] = useState(false);
-  useEffect(() => { setChangeOpen(false); setChangeFailed(false); }, [kind, id]);
-  const [flagDialog, setFlagDialog] = useState<{ flagId: string; name: string } | null>(null);
-  const [flagReason, setFlagReason] = useState('');
-  const [zoom, setZoom] = useState<{ url: string; alt: string } | null>(null);
-  useEffect(() => {
-    if (!zoom) return;
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setZoom(null); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [zoom]);
-  const usableReason = !!reason.trim();
-  /** Quyết định cuối (duyệt, từ chối, gỡ, chặn…) luôn hỏi xác nhận trước khi gửi. */
-  const decide = async (question: string, fn: () => Promise<ApiResponse<unknown>>) => { if (await confirmDialog(question)) void act(fn, true); };
-  if (!item) return <div className="st-card"><p role="status">{message || 'Đang tải gói kiểm duyệt…'}</p><button className="btn btn-s" onClick={refresh}><RefreshCw className="ic" />Tải lại</button></div>;
-  const data = item.data;
-  const canApprove = 'canApprove' in data && data.canApprove;
-  const blockers = 'approveBlockers' in data ? data.approveBlockers : 'blockers' in data ? data.blockers : [];
-  const has = (code: string) => blockers.some(b => b.code === code);
-  const decisionKind = item.kind === 'PublicStoryReview' || item.kind === 'CommunitySubmission' || item.kind === 'RoadmapTemplateReview' ? item.kind : null;
-  const content = item.kind === 'PublicStoryReview' ? item.data.version.content : item.kind === 'CommunitySubmission' ? item.data.version.content : item.kind === 'ContentReport' ? item.data.version?.content : item.kind === 'GrayZoneStory' ? item.data.content : null;
-  return <div className="st-card st-review" ref={riseRef}>
-    <ReviewPanelHeader item={item} queueItem={queueItem} message={message} />
-    {item.kind === 'ContentReport' && <div className="st-group"><b className="st-group-title">Nội dung báo cáo</b>
-      <div className="st-facts">
-        <div><small>Lý do báo cáo</small><b>{REPORT_REASON[item.data.reason] ?? item.data.reason}</b></div>
-        <div><small>Gửi lúc</small><b>{new Date(item.data.createdAt).toLocaleString('vi-VN')}</b></div>
-      </div>
-      <div className="st-quote"><small>Mô tả của người báo cáo</small><p>{item.data.description || 'Người báo cáo không ghi mô tả.'}</p></div>
-      {item.data.attachmentUrl && <a className="btn btn-s" href={item.data.attachmentUrl} target="_blank" rel="noreferrer" title="Mở bằng chứng đính kèm"><ExternalLink className="ic" />Bằng chứng</a>}
-      {item.data.escalationReason && <div className="st-quote"><small>Lý do chuyển cấp</small><p>{item.data.escalationReason}</p></div>}
-    </div>}
-    {(item.kind === 'GrayZoneStory' || item.kind === 'PublicStoryRemoval') && <div className="st-group"><b className="st-group-title">{item.kind === 'GrayZoneStory' ? 'Vì sao truyện bị đưa vào vùng xám' : 'Yêu cầu gỡ truyện'}</b>
-      {item.kind === 'GrayZoneStory' && <div className="st-facts"><div><small>Độ tuổi</small><b>{item.data.ageBand}</b></div><div><small>Mức đọc</small><b>{item.data.readingLevel ?? '—'}</b></div><div><small>Phiên bản</small><b>Bản {item.data.versionNo}</b></div></div>}
-      <div className="st-quote"><small>{item.kind === 'PublicStoryRemoval' ? 'Lý do Creator yêu cầu gỡ' : 'Ghi chú của hệ thống'}</small><p style={{ whiteSpace: 'pre-wrap' }}>{flagsSummary(item.data.flags) || (item.kind === 'PublicStoryRemoval' ? 'Creator không ghi lý do.' : 'Không có ghi chú.')}</p></div>
-    </div>}
-    {/* Gói duyệt truyện công khai đã hiện chữ từng cảnh ở dưới, nên không hiện lại cả bài ở đây. */}
-    {content && !(item.kind === 'PublicStoryReview' && item.data.scenes.length > 0) && <div className="st-group"><b className="st-group-title">{item.kind === 'ContentReport' ? 'Truyện bị báo cáo' : 'Nội dung cần xem'}</b>
-      <div className="st-content" style={{ whiteSpace: 'pre-wrap' }}>{content}</div>
-    </div>}
-    {item.kind === 'PublicStoryReview' && <>
-      <StoryFacts d={item.data} />
-      <div className="st-group"><b className="st-group-title">Các cảnh cần xem và nghe{has('views_incomplete') && <Warn why="Chưa xem đủ các cảnh hoặc chưa nghe audio" />}</b>
-        {item.data.scenes.map(scene => <section className={`st-scene${scene.viewed ? ' viewed' : ''}`} key={scene.sceneId}>
-          <b>Cảnh {scene.sceneIndex + 1}{!scene.viewed && <Warn why="Chưa xác nhận đã xem cảnh này" />}</b><p className="st-scene-text">{scene.sceneText}</p>
-          {scene.illustrations.length > 0 && <div className="st-scene-part st-scene-pics"><b className="st-scene-label">Tranh minh hoạ</b><div className="st-pics">{scene.illustrations.map(i => <div className="pr-pic" key={i.beatOrder}>{i.url ? <ReviewPicture url={i.url} alt={i.visualFocus} onZoom={(url, alt) => setZoom({ url, alt })} /> : <div className="st-pic st-pic-empty"><span>Tranh chưa sẵn sàng</span></div>}<SourceNote source={i.source} sourceDeclaration={i.sourceDeclaration} rightsDeclaration={i.rightsDeclaration} /></div>)}</div></div>}
-          {scene.segments.length > 0 && <div className="st-scene-part st-scene-audio"><b className="st-scene-label">Âm thanh</b>{scene.segments.map(s => <div key={s.segmentId} className="st-seg"><div className="row"><SourceNote source={s.audioSource} sourceDeclaration={s.sourceDeclaration} rightsDeclaration={s.rightsDeclaration} />{s.hasPronunciationWarning && <span className="pill wait">Cần nghe kỹ phát âm</span>}</div>{!scene.sceneText.includes(s.text.trim()) && <p>{s.text}</p>}<SegmentAudio url={s.audioUrl} heard={s.heard} onHeard={() => void act(() => moderationService.view(id, 'audio', s.segmentId))} /></div>)}</div>}
-          <button className="btn btn-s" disabled={busy || scene.viewed} onClick={() => void viewScene(scene.sceneId)}><Check className="ic" aria-hidden="true" />{scene.viewed ? 'Đã xem' : 'Xác nhận đã xem'}</button>
-        </section>)}
-      </div>
-      <div className="st-group"><b className="st-group-title">Checklist chấm điểm{has('checklist_incomplete') && <Warn why="Checklist chưa chấm đủ" />}</b>
-        <div className="st-checks">{(['safety', 'ageFit', 'education', 'language', 'copyright', 'image', 'audio', 'interaction'] as const).map(key => <div className="field" key={key}><span className="st-flabel">{CHECK_LABEL[key]} <InfoTip text={criterionEvidence(item.data, key)} />{item.data.checklist[key] === null && <Warn why="Chưa chấm" />}</span>
-          <Select<string> ariaLabel={CHECK_LABEL[key]} value={item.data.checklist[key] === null ? '' : String(item.data.checklist[key])} options={CHECK_OPTIONS} onChange={v => { if (v && !busy) void setCheck(key, v === 'true'); }} /></div>)}</div>
-      </div>
-      <SafetyScanSection
-        packageData={item.data}
-        content={content}
-        busy={busy}
-        onResolveFlag={(flagId, name) => { setFlagReason(''); setFlagDialog({ flagId, name }); }}
-      />
-      <ListeningList items={item.data.listeningInteractions ?? []} />
-      <div className="st-group"><b className="st-group-title">Học liệu và so sánh phiên bản</b>
-        <details open><summary>Học liệu</summary><LearningMaterials vocabulary={item.data.vocabulary} quizzes={item.data.quizzes} /></details>
-        <div className="row">{(['previous','public'] as const).map(against => <button key={against} className="btn btn-s" disabled={busy} onClick={() => void moderationService.compare(id, against).then(r => { if (r.success) setCompare(r.data); })}>So với {against === 'previous' ? 'bản trước' : 'bản công khai'}</button>)}</div>
-        {compare && <details open><summary>So sánh phiên bản</summary><VersionComparison data={compare} /></details>}
-      </div>
-    </>}
-    {(item.kind === 'RoadmapTemplateReview' || item.kind === 'CommunitySubmission') && <>
-      <div className="st-group"><b className="st-group-title">Checklist chấm điểm{has('checklist_incomplete') && <Warn why="Checklist chưa đạt đủ" />}</b>
-        <div className="st-checks">{item.data.checklist.map(entry => <div className="field" key={entry.code}><span className="st-flabel" title={entry.label}>{CRITERION_SHORT[entry.code] ?? entry.label}{!entry.passed && <Warn why="Chưa đạt / chưa chấm" />}</span><Select<string> ariaLabel={CRITERION_SHORT[entry.code] ?? entry.label} value={String(entry.passed)} options={PASS_OPTIONS} onChange={v => { if (busy) return; const updated = { ...entry, passed: v === 'true' }; void act(() => item.kind === 'CommunitySubmission' ? moderationService.communityChecklist(id, [updated]) : moderationService.roadmapChecklist(id, [updated])); }} /></div>)}</div>
-      </div>
-      {item.kind === 'RoadmapTemplateReview' && <div className="st-group"><b className="st-group-title">Truyện trong lộ trình</b><div className="st-storylist">{item.data.stories.map(s => <div className={`st-storyrow${s.isEligible ? '' : ' bad'}`} key={s.storyId}><b>{s.title}</b><span>{s.isEligible ? 'Đủ điều kiện' : 'Không còn đủ điều kiện'}{!s.isEligible && <Warn why="Truyện không còn đủ điều kiện, hãy chọn Yêu cầu sửa" />}</span></div>)}</div></div>}
-      {item.kind === 'CommunitySubmission' && <div className="st-group"><b className="st-group-title">Bản quyền và thông tin cá nhân{(!item.data.copyrightDeclaration || item.data.piiRescan.length > 0) && <Warn why="Cần xem lại bản quyền hoặc thông tin cá nhân" />}</b>
-        <div className="st-quote"><small>Cam kết bản quyền của tác giả</small><p>{item.data.copyrightDeclaration ? (COPYRIGHT[item.data.copyrightDeclaration] ?? item.data.copyrightDeclaration) : 'Tác giả chưa ghi cam kết bản quyền.'}{!item.data.copyrightDeclaration && <Warn why="Chưa có cam kết bản quyền" />}</p></div>
-        {item.data.piiCheckSummary && <div className="st-quote"><small>Kết quả kiểm tra thông tin cá nhân</small><p>{piiSummary(item.data.piiCheckSummary)}</p></div>}
-        {item.data.piiRescan.length > 0 ? <div className="st-storylist">{item.data.piiRescan.map((p,i) => <div className="st-storyrow bad" key={i}><b>{p.kind}</b><span>{p.location}<Warn why="Có thể là thông tin cá nhân, cần kiểm tra" /></span></div>)}</div> : <span className="pill ok" style={{ width: 'fit-content' }}><Check className="ic" />Không phát hiện thông tin cá nhân</span>}
-      </div>}
-    </>}
-    {item.kind === 'PublicStoryReview' && <div className="st-group"><b className="st-group-title">Nhãn nội dung{has('no_labels') && <Warn why="Creator chưa đề xuất nhãn nào" />}</b>
-      {item.data.proposedLabels.length > 0
-        ? <div className="st-label-pills">{item.data.proposedLabels.map(l => <span className="pill ok" key={l.contentCategoryId}>{l.displayName}</span>)}</div>
-        : <div className="st-quote"><small>Chưa có nhãn</small><p>Chưa duyệt được khi chưa có nhãn. Dùng "Yêu cầu chỉnh sửa" để Creator bổ sung.</p></div>}
-    </div>}
-    {item.kind === 'CommunitySubmission' && <div className="st-group"><b className="st-group-title">Nhãn nội dung {categories && <InfoTip text="Chọn toàn bộ tập nhãn muốn giữ, sau đó lưu." />}</b><button className="btn btn-s" disabled={busy} onClick={() => void labelLoader()}>Chọn lại nhãn</button>
-      {categories && <><div className="st-labels">{categories.map(c => <label className="row" key={c.id}><input type="checkbox" checked={labelIds.includes(c.id)} onChange={e => setLabelIds(v => e.target.checked ? [...v,c.id] : v.filter(x => x !== c.id))} />{c.displayName}</label>)}</div>{labelsDirty && <button className="btn btn-s" disabled={busy || !labelIds.length} onClick={() => void act(async () => { const chosen = labelIds; const r = await moderationService.labels(item.kind as 'PublicStoryReview' | 'CommunitySubmission', id, chosen); if (r.success) setSavedLabelIds(chosen); return r; })}>Lưu tập nhãn</button>}</>}
-    </div>}
-    <div className="st-group"><b className="st-group-title">Quyết định</b>
-      {decisionKind && blockers.length > 0 && <ul className="st-blockers" role="status" aria-label="Việc còn thiếu trước khi duyệt">{blockers.map(b => <li key={b.code}><CircleAlert className="ic" aria-hidden="true" />{b.message}</li>)}</ul>}
-      <label className="field"><span className="lbl">Lý do / ghi chú quyết định{(item.kind === 'GrayZoneStory' || item.kind === 'PublicStoryRemoval' || item.kind === 'ContentReport') ? (!reason.trim() && <Warn why="Cần nhập lý do trước khi bấm quyết định" />) : <> <InfoTip text="Bắt buộc khi Từ chối hoặc Yêu cầu sửa." /></>}</span><textarea className="inp" maxLength={item.kind === 'GrayZoneStory' || item.kind === 'PublicStoryRemoval' ? 2000 : 1000} rows={3} value={reason} onChange={e => setReason(e.target.value)} /></label>
-      {decisionKind && <div className="row"><button className="btn btn-ok" disabled={busy || !canApprove} title={blockers.map(b => b.message).join(' · ') || undefined} onClick={() => void decide('Duyệt nội dung này? Nội dung sẽ được công khai theo kết quả duyệt.', () => moderationService.approve(decisionKind, id))}><Check className="ic" />Duyệt</button><button className="btn btn-no" disabled={busy || !usableReason} onClick={() => void decide('Từ chối nội dung này? Lý do sẽ được gửi cho tác giả.', () => moderationService.reject(decisionKind, id, reason))}><X className="ic" />Từ chối</button></div>}
-      {item.kind === 'GrayZoneStory' && <div className="row">{(['Clear','Block'] as const).map(decision => <button className="btn btn-s" key={decision} disabled={busy || !usableReason} onClick={() => void decide(decision === 'Clear' ? 'Cho phép truyện này tiếp tục?' : 'Chặn nội dung này? Truyện sẽ không được tiếp tục.', () => moderationService.grayDecision(id, { decision, reason, rowVersion: item.data.rowVersion }))}>{decision === 'Clear' ? <Check className="ic" /> : <X className="ic" />}{decision === 'Clear' ? 'Cho phép tiếp tục' : 'Chặn nội dung'}</button>)}</div>}
-      {item.kind === 'PublicStoryRemoval' && <div className="row">{[true,false].map(approve => <button className="btn btn-s" key={String(approve)} disabled={busy || !usableReason} onClick={() => void decide(approve ? 'Chấp thuận gỡ truyện này khỏi thư viện công khai?' : 'Không chấp thuận yêu cầu gỡ truyện này?', () => moderationService.removalDecision(id, { approve, reason, rowVersion: item.data.rowVersion }))}>{approve ? <Check className="ic" /> : <X className="ic" />}{approve ? 'Chấp thuận gỡ' : 'Không chấp thuận gỡ'}</button>)}</div>}
-      {item.kind === 'ContentReport' && <><div className="field"><span className="lbl">Lý do gỡ truyện</span><Select<typeof archiveReason> ariaLabel="Lý do gỡ truyện" value={archiveReason} options={[...ARCHIVE_OPTIONS]} onChange={setArchiveReason} /></div><div className="row">{(['dismiss','archive','escalate'] as const).filter(action => action !== 'escalate' || user?.role === 'Moderator').map(action => <button className="btn btn-s" key={action} disabled={busy || !usableReason} onClick={() => void decide(({ dismiss: 'Bỏ qua báo cáo này?', archive: 'Gỡ truyện vi phạm khỏi thư viện?', escalate: 'Chuyển báo cáo này lên Administrator?' })[action], () => moderationService.reportDecision(id, action, reason, archiveReason))}>{({ dismiss: 'Bỏ qua báo cáo', archive: 'Gỡ truyện vi phạm', escalate: 'Chuyển Administrator' })[action]}</button>)}</div></>}
-    </div>
-    {(item.kind === 'PublicStoryReview' || item.kind === 'RoadmapTemplateReview') && <div className="st-group"><b className="st-group-title">Yêu cầu chỉnh sửa</b><div className="row"><button className="btn btn-s" disabled={busy} onClick={() => { setChangeFailed(false); setChangeOpen(true); }}><Pencil className="ic" />Yêu cầu sửa</button></div></div>}
-    {(item.kind === 'PublicStoryReview' || item.kind === 'RoadmapTemplateReview') && (
-      <ChangeRequestDialog
-        open={changeOpen}
-        item={item}
-        initialNote={reason}
-        busy={busy}
-        errorMessage={changeFailed ? message : ''}
-        onClose={() => { setChangeFailed(false); setChangeOpen(false); }}
-        onSubmit={async (payload) => {
-          setChangeFailed(false);
-          const ok = await act(
-            () => payload.kind === 'PublicStoryReview'
-              ? moderationService.publicChanges(id, payload.body)
-              : moderationService.roadmapChanges(id, payload.body),
-            true,
-          );
-          if (!ok) setChangeFailed(true);
-          return ok;
-        }}
-      />
-    )}
-    {flagDialog && <Dialog title={`Xác nhận cờ “${flagDialog.name}” là an toàn`} onClose={() => setFlagDialog(null)}>
-      <label className="field"><span className="lbl">Lý do</span><textarea className="inp" autoFocus rows={3} maxLength={1000} placeholder="Ví dụ: Tên nhân vật hư cấu, không phải thông tin thật của trẻ" value={flagReason} onChange={e => setFlagReason(e.target.value)} /></label>
-      <div className="row"><button className="btn btn-g" disabled={busy} onClick={() => setFlagDialog(null)}>Huỷ</button><button className="btn btn-p" disabled={busy || !flagReason.trim()} onClick={() => { const d = flagDialog; setFlagDialog(null); void act(() => moderationService.resolveFlag(id, d.flagId, flagReason)); }}><ShieldCheck className="ic" />Xác nhận</button></div>
-    </Dialog>}
-    {zoom && createPortal(<div className="dlg-backdrop st-zoom" role="dialog" aria-modal="true" aria-label="Tranh phóng to" onClick={() => setZoom(null)}>
-      <SafeImage src={zoom.url} alt={zoom.alt} />
-      <button type="button" className="btn btn-s st-zoom-close" onClick={() => setZoom(null)}>Đóng</button>
-    </div>, document.body)}
-  </div>;
+/** Bộ định tuyến panel kiểm duyệt theo đúng `ReviewKind` backend (cả Moderator và Administrator). */
+export default function ReviewPanel({
+  kind,
+  id,
+  queueItem,
+  onDecision,
+}: {
+  kind: ReviewKind;
+  id: number;
+  queueItem?: QueueItem;
+  onDecision: () => void;
+}) {
+  switch (kind) {
+    case 'PublicStoryReview':
+      return <PublicStoryReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
+    case 'CommunitySubmission':
+      return <CommunitySubmissionReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
+    case 'GrayZoneStory':
+      return <GrayZoneReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
+    case 'ContentReport':
+      return <ContentReportReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
+    case 'PublicStoryRemoval':
+      return <PublicStoryRemovalPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
+    case 'RoadmapTemplateReview':
+      return <RoadmapReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
+  }
 }
