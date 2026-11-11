@@ -1686,8 +1686,19 @@
     "controller": "ChildReadingController.cs",
     "action": "ReadAloud",
     "controllerLine": 170,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/reading/sessions/{}/segments/{}/read-aloud",
+        "service": "childReadingService",
+        "operation": "readAloud",
+        "file": "app/services/childReadingService.ts",
+        "line": 23,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
