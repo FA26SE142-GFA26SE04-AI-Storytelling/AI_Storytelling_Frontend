@@ -1,12 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, BookOpen, Check, ChevronDown, Lock, Plus, Search, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ChevronDown, Lock, Plus, Search, Trash2, X } from "lucide-react";
 import { guardianService } from "@/app/services/guardianService";
 import { roadmapTemplate } from "@/app/services/roadmapAdapters";
 import { confirmDialog } from "@/app/lib/confirm";
 import { showToast } from "@/app/lib/toast";
-import { fmtDate } from "@/app/lib/guardian";
 import type * as B from "@/app/types/backendContracts";
 import type { ChildProfile } from "@/app/types/childProfile";
 import type { RoadmapItem, RoadmapTemplate } from "@/app/types/progress";
@@ -17,6 +16,8 @@ import TemplateDialog from "@/app/features/roadmap/TemplateDialog";
 import { useRoadmapTemplates, useStoryCovers } from "@/app/features/roadmap/roadmapData";
 import { splitRoadmap } from "./learningData";
 import { pickStoryInLibrary } from "./learningIntent";
+import LilyPondRoadmap, { type LilyStep } from "@/app/components/roadmap/LilyPondRoadmap";
+import Dialog from "@/app/components/Dialog";
 
 const SOURCE: Record<string, string> = { parent: "Bố mẹ chọn", template: "Lộ trình mẫu", wish: "Điều ước của bé" };
 const SKIP_REASON: Record<string, string> = {
@@ -42,11 +43,11 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged, go
 }) {
   const [busy, setBusy] = useState(false);
   const [showOff, setShowOff] = useState(false);
+  const [picked, setPicked] = useState<number | null>(null);
 
   const { done, open, queued, off, total } = splitRoadmap(items);
   const cover = useStoryCovers([...done, ...(open ? [open] : []), ...queued].map((i) => i.storyId));
   const active = child.status === "Active";
-  const percent = total ? Math.round((done.length / total) * 100) : 0;
 
   const act = async (fn: () => Promise<{ success: boolean; message: string }>, okText: string) => {
     setBusy(true);
@@ -70,6 +71,15 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged, go
     if (await confirmDialog(`Gỡ mọi truyện chưa đọc khỏi lộ trình của ${child.nickname}? Truyện đã đọc vẫn được giữ.`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình.");
   };
 
+  const steps: LilyStep[] = [
+    ...done.map(d => ({ key: d.id, storyId: d.storyId, title: d.title, cover: cover(d.storyId), status: "done" as const, parentPick: d.source === "parent" })),
+    ...(open ? [{ key: open.id, storyId: open.storyId, title: open.title, cover: cover(open.storyId), status: "current" as const, parentPick: open.source === "parent" }] : []),
+    ...queued.map(q => ({ key: q.id, storyId: q.storyId, title: q.title, cover: cover(q.storyId), status: "next" as const, parentPick: q.source === "parent" })),
+  ];
+
+  const pickedItem = [...done, ...(open ? [open] : []), ...queued].find((i) => i.id === picked) ?? null;
+  const qi = queued.findIndex((q) => q.id === pickedItem?.id);
+
   return (
     <>
       <section className="lr-card">
@@ -83,53 +93,10 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged, go
           )}
         </div>
 
-        <div className="rm-progress">
-          <div className="rm-progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done.length} aria-label="Tiến độ đọc">
-            <i style={{ width: `${percent}%` }} />
-          </div>
-          <b>Đã đọc {done.length}/{total}</b>
-        </div>
         {!active && <p className="notice warn lr-notice" role="status" data-inline-notice><Lock className="ic" aria-hidden /> Hồ sơ của {child.nickname} {CHILD_STATUS[child.status] ?? "không hoạt động"} nên chưa thêm truyện được.</p>}
         {error && <p className="notice err lr-notice" role="alert">{error}</p>}
 
-        {items === undefined ? <p className="sub">Đang tải lộ trình…</p> : total === 0 ? (
-          <p className="rm-empty">Lộ trình đang trống. Thêm một truyện hoặc chọn một lộ trình mẫu bên dưới.</p>
-        ) : (
-          <ol className="rm-steps lr-steps">
-            {done.map((d) => (
-              <li key={d.id} className="rm-step done">
-                <span className="rm-step-n"><Check className="ic" aria-hidden /></span>
-                <span className="rm-step-cover" style={{ background: cover(d.storyId) }} aria-hidden />
-                <span className="grow"><b>{d.title}</b></span>
-                <span className="pill ok" title={`Đọc xong ${fmtDate(d.completedAt)}`}>Đã đọc</span>
-              </li>
-            ))}
-            {open && (
-              <li className="rm-step now">
-                <span className="rm-step-n"><BookOpen className="ic" aria-hidden /></span>
-                <span className="rm-step-cover" style={{ background: cover(open.storyId) }} aria-hidden />
-                <span className="grow"><b>{open.title}</b>{open.note && <em>💌 {open.note}</em>}</span>
-                <span className="pill wait">Đang đọc</span>
-                {open.dueAt && <span className={`pill ${Date.parse(open.dueAt) < Date.now() ? "flag" : "draft"}`}>Hạn {fmtDate(open.dueAt)}</span>}
-                <span className="pill draft">{SOURCE[open.source]}</span>
-                {canEdit && <button className="btn btn-g icon-only" aria-label="Gỡ" title="Gỡ" disabled={busy} onClick={() => void remove(open)}><Trash2 className="ic" /></button>}
-              </li>
-            )}
-            {queued.map((q, i) => (
-              <li key={q.id} className="rm-step">
-                <span className="rm-step-n">{done.length + (open ? 1 : 0) + i + 1}</span>
-                <span className="rm-step-cover" style={{ background: cover(q.storyId) }} aria-hidden />
-                <span className="grow"><b>{q.title}</b>{q.note && <em>💌 {q.note}</em>}</span>
-                <span className="pill draft">{SOURCE[q.source]}</span>
-                {canEdit && <>
-                  <button className="btn btn-g icon-only" aria-label="Lên" title="Lên" disabled={busy || i === 0} onClick={() => move(q.id, -1)}><ArrowUp className="ic" /></button>
-                  <button className="btn btn-g icon-only" aria-label="Xuống" title="Xuống" disabled={busy || i === queued.length - 1} onClick={() => move(q.id, 1)}><ArrowDown className="ic" /></button>
-                  <button className="btn btn-g icon-only" aria-label="Gỡ" title="Gỡ" disabled={busy} onClick={() => void remove(q)}><Trash2 className="ic" /></button>
-                </>}
-              </li>
-            ))}
-          </ol>
-        )}
+        {items === undefined ? <p className="sub">Đang tải lộ trình…</p> : <LilyPondRoadmap steps={steps} mode="parent" storageKey={`parent:${child.id}`} done={done.length} total={total} emptyText="Lộ trình đang trống. Thêm một truyện hoặc chọn một lộ trình mẫu bên dưới." onStepClick={(s) => setPicked(s.key)} />}
 
         {off.length > 0 && (
           <div className="rm-off">
@@ -145,6 +112,60 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged, go
       </section>
 
       {canEdit && <TemplateShelf child={child} disabled={!active} onAdded={onChanged} />}
+
+      {pickedItem && (
+        <Dialog title={pickedItem.title} onClose={() => setPicked(null)}>
+          <div className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <span className="rm-step-cover" style={{ background: cover(pickedItem.storyId) }} aria-hidden />
+            {pickedItem.status === "completed" && <span className="pill ok">Đã đọc</span>}
+            {pickedItem.status === "open" && <span className="pill wait">Đang đọc</span>}
+            {pickedItem.status === "queued" && <span className="pill draft">Chưa tới</span>}
+            <span className="pill draft">{SOURCE[pickedItem.source]}</span>
+          </div>
+          {pickedItem.note && <p className="sub">💌 {pickedItem.note}</p>}
+          {canEdit && (pickedItem.status === "queued" || pickedItem.status === "open") ? (
+            <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 14 }}>
+              {canEdit && pickedItem.status === "queued" && (
+                <button
+                  className="btn btn-g icon-only"
+                  aria-label="Lên"
+                  title="Đưa lên trước"
+                  disabled={busy || qi <= 0}
+                  onClick={() => { setPicked(null); move(pickedItem.id, -1); }}
+                >
+                  <ArrowUp className="ic" />
+                </button>
+              )}
+              {canEdit && pickedItem.status === "queued" && (
+                <button
+                  className="btn btn-g icon-only"
+                  aria-label="Xuống"
+                  title="Đưa xuống sau"
+                  disabled={busy || qi === queued.length - 1}
+                  onClick={() => { setPicked(null); move(pickedItem.id, 1); }}
+                >
+                  <ArrowDown className="ic" />
+                </button>
+              )}
+              {canEdit && (pickedItem.status === "queued" || pickedItem.status === "open") && (
+                <button
+                  className="btn btn-no icon-only"
+                  aria-label="Gỡ khỏi lộ trình"
+                  title="Gỡ khỏi lộ trình"
+                  disabled={busy}
+                  onClick={() => { setPicked(null); void remove(pickedItem); }}
+                >
+                  <Trash2 className="ic" />
+                </button>
+              )}
+            </div>
+          ) : pickedItem.status === "completed" ? (
+            <p className="sub">Truyện đã đọc xong, không đổi được.</p>
+          ) : !canEdit ? (
+            <p className="sub">Chỉ chủ hồ sơ mới sắp xếp được lộ trình.</p>
+          ) : null}
+        </Dialog>
+      )}
 
     </>
   );

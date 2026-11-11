@@ -1,7 +1,7 @@
 "use client";
 
 import "./kid.css";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { childAccessService } from "@/app/services/childAccessService";
@@ -11,6 +11,15 @@ import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import Frog from "@/app/components/brand/Frog";
 import ParentalGate from "./ParentalGate";
 import KidApp from "./KidApp";
+
+/** Xin phiên của bé (giao máy / giám sát / dùng lại phiên đã lưu) và cài đặt an toàn cùng lúc. */
+function enterKid(child: ChildProfile, storyId: number | null | undefined, resume: boolean) {
+  const stored = childAccessService.readSession();
+  const reuse = resume && !storyId && stored?.childProfileId === child.id;
+  const session = reuse ? Promise.resolve(null)
+    : storyId ? childAccessService.startStoryHandover(child.id, storyId) : childAccessService.startSupervisedSession(child.id);
+  return Promise.all([session, childProfileService.getSafetyPolicy(child.id)]);
+}
 
 /**
  * "Cho bé đọc" (Luồng 1 Bước 1.10, Luồng 3 Bước 3.0): mở phiên riêng của bé bằng mã giao máy (handover).
@@ -23,14 +32,15 @@ export default function KidMode({ child, storyId, resume = false, onExit }: { ch
   const [gateOn, setGateOn] = useState(true);
   const [gateOpen, setGateOpen] = useState(false);
 
+  // Giữ yêu cầu đang chạy theo (bé, truyện): React (dev) chạy effect hai lần lúc mở, không giữ thì gửi giao máy hai lần, tạo hai phiên.
+  const request = useRef<{ key: string; result: ReturnType<typeof enterKid> } | null>(null);
+
   useEffect(() => {
     if (!child) return;
     let alive = true;
-    const stored = childAccessService.readSession();
-    const reuse = resume && !storyId && stored?.childProfileId === child.id;
-    const session = reuse ? Promise.resolve(null)
-      : storyId ? childAccessService.startStoryHandover(child.id, storyId) : childAccessService.startSupervisedSession(child.id);
-    void Promise.all([session, childProfileService.getSafetyPolicy(child.id)]).then(([s, p]) => {
+    const key = `${child.id}:${storyId ?? ""}:${resume}`;
+    if (request.current?.key !== key) request.current = { key, result: enterKid(child, storyId, resume) };
+    void request.current.result.then(([s, p]) => {
       if (!alive) return;
       if (s?.success && s.data) childAccessService.saveSession(s.data, "profile_switcher");
       setEntry(s ? { ok: s.success, message: s.message } : { ok: true });

@@ -120,11 +120,10 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] Cuối truyện ghi âm kể lại (đổi sang WAV trước khi gửi) và đánh dấu tối đa 5 cảnh còn thắc mắc.
 - [x] Gửi điều ước bằng thẻ (F-08).
 - [x] Đọc truyện cộng đồng đã duyệt.
-<<<<<<< Updated upstream
 - [ ] **Tranh / âm thanh của truyện gia đình tự soạn** (`GET /child/manual-stories/{confirmationId}/assets/{assetId}`) — **bị chặn bởi BE**: link dựng với mã xác nhận 0 và bị ký nhầm như đường dẫn kho. Khi BE sửa: FE tải file kèm token phiên của bé rồi hiện bằng blob URL.
-=======
 - [ ] **Một phần — Tranh / âm thanh của truyện gia đình tự soạn** (`GET /child/manual-stories/{confirmationId}/assets/{assetId}`): FE tải file kèm token phiên của bé rồi hiện bằng blob URL (`src/app/lib/useAuthedMediaUrl.ts`, dùng ở tranh cảnh, giọng đọc và xem trước truyện gia đình). BE còn thiếu trên `main`: fix signer bỏ qua URL /api/ (commit 7ecf5fe, `ChildMediaUrlSigner.cs`) mới nằm ở nhánh `feature/read-aloud-f13`, chưa merge vào `main`.
->>>>>>> Stashed changes
+=======
+- [x] **Tranh / âm thanh của truyện gia đình tự soạn** (`GET /child/manual-stories/{confirmationId}/assets/{assetId}`) — đã sửa: BE dùng mã xác nhận thật và signer bỏ qua URL /api/; FE tải file kèm token phiên của bé rồi hiện bằng blob URL (`src/app/lib/useAuthedMediaUrl.ts`, dùng ở tranh cảnh, giọng đọc và xem trước truyện gia đình).
 
 ---
 

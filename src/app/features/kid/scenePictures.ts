@@ -76,3 +76,31 @@ export function charInSegment(text: string, timings: Timing[], seconds: number, 
   if (!duration || !Number.isFinite(duration)) return 0;
   return Math.min(text.length - 1, Math.floor((seconds / duration) * text.length));
 }
+
+/**
+ * Số giây tương ứng vị trí ký tự charOffset trong text.
+ * Có timings: mốc start của từ chứa charOffset hoặc từ đầu tiên có vị trí >= charOffset.
+ * Không có timings: tỉ lệ theo ký tự trong [0, duration].
+ */
+export function secondsAtChar(text: string, timings: Timing[] | null | undefined, charOffset: number, duration: number): number {
+  if (!duration || !Number.isFinite(duration) || duration <= 0) return 0;
+  if (!text || charOffset <= 0) return 0;
+  if (charOffset >= text.length) return duration;
+
+  if (timings && timings.length) {
+    let cursor = 0;
+    for (const t of timings) {
+      const at = text.indexOf(t.word, cursor);
+      if (at < 0) continue;
+      const endAt = at + t.word.length;
+      if (charOffset < endAt || at >= charOffset) {
+        return Math.min(Math.max(0, t.start), duration);
+      }
+      cursor = endAt;
+    }
+    return duration;
+  }
+
+  const ratio = (duration * charOffset) / text.length;
+  return Math.min(Math.max(0, ratio), duration);
+}
