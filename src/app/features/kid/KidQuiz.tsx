@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
+import { shuffle } from '@/app/lib/shuffle';
 import { BookOpen, Check, ChevronRight, Flag, RotateCcw, SkipForward } from 'lucide-react';
 import IconButton from '@/app/components/IconButton';
 import { childQuizService } from '@/app/services/childReadingService';
@@ -22,12 +23,16 @@ export default function KidQuiz({ token, sessionId, onDone, onLibrary }: { token
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
   const gained = useRef({ exp: 0, badges: [] as string[] });
+  // Đáp án của từng câu đã xáo trộn: xáo khi tải câu đố và xáo lại khi bé làm lại, để không học thuộc vị trí.
+  const [shuffled, setShuffled] = useState<string[][]>([]);
+  const reshuffle = (q: ChildQuiz) => setShuffled(q.questions.map(item => shuffle(item.choices)));
+  const choices = shuffled[index] ?? quiz?.questions[index]?.choices ?? [];
 
   useEffect(() => {
     const controller = new AbortController();
     void childQuizService.get(token, sessionId, controller.signal).then(r => {
       if (controller.signal.aborted) return;
-      if (r.success && r.data) setQuiz(r.data); else setNote(r.message);
+      if (r.success && r.data) { setQuiz(r.data); setShuffled(r.data.questions.map(item => shuffle(item.choices))); } else setNote(r.message);
     });
     return () => controller.abort();
   }, [token, sessionId]);
@@ -52,7 +57,7 @@ export default function KidQuiz({ token, sessionId, onDone, onLibrary }: { token
     gained.current = { exp: gained.current.exp + r.data.expGained, badges: [...gained.current.badges, ...r.data.newBadges] };
     setAnswer(r.data);
   };
-  const restart = () => { setResult(null); setIndex(0); setAnswer(null); setText(''); setPicked(''); gained.current = { exp: 0, badges: [] }; };
+  const restart = () => { if (quiz) reshuffle(quiz); setResult(null); setIndex(0); setAnswer(null); setText(''); setPicked(''); gained.current = { exp: 0, badges: [] }; };
 
   if (!quiz) return <section className="kid-quiz">{note ? <p className="notice" role="status">{note}</p> : <p role="status">Đang mở câu đố…</p>}</section>;
   if (!quiz.questions.length) return <section className="kid-quiz"><p>Truyện này chưa có câu đố.</p></section>;
@@ -72,7 +77,7 @@ export default function KidQuiz({ token, sessionId, onDone, onLibrary }: { token
     <p className="kid-overline">CÂU {index + 1}/{quiz.questions.length}{quiz.bestPercent != null ? ` · TỐT NHẤT ${pct(quiz.bestPercent)}` : ''}</p>
     <h3 className="display">{q.question}</h3>
     {note && <p className="notice" role="status">{note}</p>}
-    {q.choices.length > 0 && <div className="kid-quiz-choices">{q.choices.map((c, i) => {
+    {choices.length > 0 && <div className="kid-quiz-choices">{choices.map((c, i) => {
       // Backend không lộ đáp án: chỉ tô màu lựa chọn bé đã chọn, xanh nếu đúng, đỏ nếu sai.
       const mine = !!answer && c === picked;
       return <button key={c} className={`kid-choice${mine ? (answer!.isCorrect ? ' right' : ' wrong') : ''}`} disabled={busy || !!answer} onClick={() => void send(c)}><span className="kid-choice-letter" aria-hidden="true">{String.fromCharCode(65 + i)}</span><span className="kid-choice-text">{c}</span></button>;
