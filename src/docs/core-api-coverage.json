@@ -2067,7 +2067,7 @@
         "file": "app/services/moderationService.ts",
         "line": 27,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/CommunitySubmissionReviewPanel.tsx"
         ]
       }
     ],
@@ -2088,7 +2088,7 @@
         "file": "app/services/moderationService.ts",
         "line": 22,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/CommunitySubmissionReviewPanel.tsx"
         ]
       }
     ],
@@ -2109,7 +2109,9 @@
         "file": "app/services/moderationService.ts",
         "line": 25,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
+          "app/features/staff/PublicStoryReviewPanel.tsx",
+          "app/features/staff/RoadmapReviewPanel.tsx"
         ]
       }
     ],
@@ -2130,7 +2132,9 @@
         "file": "app/services/moderationService.ts",
         "line": 26,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
+          "app/features/staff/PublicStoryReviewPanel.tsx",
+          "app/features/staff/RoadmapReviewPanel.tsx"
         ]
       }
     ],
@@ -2150,12 +2154,10 @@
         "operation": "check",
         "file": "app/services/communityService.ts",
         "line": 5,
-        "callers": [
-          "app/features/library/ModerationDialogs.tsx"
-        ]
+        "callers": []
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "POST",
@@ -2172,12 +2174,11 @@
         "file": "app/services/communityService.ts",
         "line": 6,
         "callers": [
-          "app/services/guardianService.ts",
-          "app/features/library/ModerationDialogs.tsx"
+          "app/services/guardianService.ts"
         ]
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "POST",
@@ -2194,12 +2195,11 @@
         "file": "app/services/communityService.ts",
         "line": 8,
         "callers": [
-          "app/services/guardianService.ts",
-          "app/features/library/LibraryWorkspace.tsx"
+          "app/services/guardianService.ts"
         ]
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "POST",
@@ -2216,12 +2216,11 @@
         "file": "app/services/communityService.ts",
         "line": 9,
         "callers": [
-          "app/services/guardianService.ts",
-          "app/features/library/LibraryWorkspace.tsx"
+          "app/services/guardianService.ts"
         ]
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "GET",
@@ -2238,13 +2237,11 @@
         "file": "app/services/communityService.ts",
         "line": 7,
         "callers": [
-          "app/services/guardianService.ts",
-          "app/features/library/LibraryWorkspace.tsx",
-          "app/features/library/ModerationDialogs.tsx"
+          "app/services/guardianService.ts"
         ]
       }
     ],
-    "disposition": "CONNECTED_SOURCE"
+    "disposition": "SERVICE_ONLY"
   },
   {
     "method": "POST",
@@ -2359,9 +2356,9 @@
         "line": 25,
         "callers": [
           "app/features/staff/AdminCatalog.tsx",
+          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
           "app/features/staff/CreatorPublication.tsx",
-          "app/features/staff/ReviewPanel.tsx",
-          "app/features/staff/RoadmapTemplates.tsx",
+          "app/features/staff/RoadmapAuthoringWorkspace.tsx",
           "app/features/staff/WishCardManagement.tsx"
         ]
       }
@@ -2468,7 +2465,7 @@
         "file": "app/services/moderationService.ts",
         "line": 31,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/ContentReportReviewPanel.tsx"
         ]
       }
     ],
@@ -2489,7 +2486,7 @@
         "file": "app/services/moderationService.ts",
         "line": 31,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/ContentReportReviewPanel.tsx"
         ]
       }
     ],
@@ -2510,7 +2507,7 @@
         "file": "app/services/moderationService.ts",
         "line": 31,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/ContentReportReviewPanel.tsx"
         ]
       }
     ],
@@ -3235,7 +3232,7 @@
         "file": "app/services/moderationService.ts",
         "line": 32,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/PublicStoryRemovalPanel.tsx"
         ]
       }
     ],
@@ -3318,10 +3315,12 @@
         "operation": "evaluation",
         "file": "app/services/existingStoryService.ts",
         "line": 10,
-        "callers": []
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -3400,10 +3399,12 @@
         "operation": "archive",
         "file": "app/services/existingStoryService.ts",
         "line": 55,
-        "callers": []
+        "callers": [
+          "app/features/studio/ImportStoryPanel.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -3441,7 +3442,7 @@
         "file": "app/services/moderationService.ts",
         "line": 30,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/GrayZoneReviewPanel.tsx"
         ]
       }
     ],
@@ -3526,10 +3527,12 @@
         "operation": "removeLearning",
         "file": "app/services/profileLifecycleService.ts",
         "line": 9,
-        "callers": []
+        "callers": [
+          "app/features/children/LearningTab.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -3723,7 +3726,8 @@
         "file": "app/services/staffService.ts",
         "line": 67,
         "callers": [
-          "app/features/staff/ConnectedModerationQueue.tsx"
+          "app/features/staff/ConnectedModerationQueue.tsx",
+          "app/features/staff/useModerationSectionQueue.ts"
         ]
       }
     ],
@@ -3744,7 +3748,8 @@
         "file": "app/services/staffService.ts",
         "line": 70,
         "callers": [
-          "app/features/staff/ConnectedModerationQueue.tsx"
+          "app/features/staff/ConnectedModerationQueue.tsx",
+          "app/features/staff/useModerationSectionQueue.ts"
         ]
       }
     ],
@@ -4575,6 +4580,7 @@
         "line": 8,
         "callers": [
           "app/features/authoring/AuthoringWorkspace.tsx",
+          "app/features/authoring/ParentAuthoringWorkspace.tsx",
           "app/features/authoring/useParentAuthoring.ts",
           "app/features/created/CreatedStories.tsx",
           "app/features/library/LibraryWorkspace.tsx"
@@ -4726,7 +4732,8 @@
         "file": "app/services/parentAuthoringService.ts",
         "line": 15,
         "callers": [
-          "app/features/authoring/ParentAuthoringWorkspace.tsx"
+          "app/features/authoring/ParentAuthoringWorkspace.tsx",
+          "app/features/authoring/ParentImportPreview.tsx"
         ]
       }
     ],
@@ -4767,10 +4774,12 @@
         "operation": "confirmImport",
         "file": "app/services/parentAuthoringService.ts",
         "line": 17,
-        "callers": []
+        "callers": [
+          "app/features/authoring/ParentImportPreview.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -4987,7 +4996,7 @@
         "file": "app/services/parentPackageService.ts",
         "line": 40,
         "callers": [
-          "app/features/authoring/FamilyPackages.tsx"
+          "app/features/authoring/ParentAuthoringWorkspace.tsx"
         ]
       }
     ],
@@ -5659,7 +5668,7 @@
         "file": "app/services/moderationService.ts",
         "line": 19,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/PublicStoryReviewPanel.tsx"
         ]
       }
     ],
@@ -5680,7 +5689,7 @@
         "file": "app/services/moderationService.ts",
         "line": 20,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/PublicStoryReviewPanel.tsx"
         ]
       }
     ],
@@ -5701,7 +5710,7 @@
         "file": "app/services/moderationService.ts",
         "line": 21,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/PublicStoryReviewPanel.tsx"
         ]
       }
     ],
@@ -5722,7 +5731,9 @@
         "file": "app/services/moderationService.ts",
         "line": 25,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
+          "app/features/staff/PublicStoryReviewPanel.tsx",
+          "app/features/staff/RoadmapReviewPanel.tsx"
         ]
       }
     ],
@@ -5743,7 +5754,7 @@
         "file": "app/services/moderationService.ts",
         "line": 23,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/PublicStoryReviewPanel.tsx"
         ]
       }
     ],
@@ -5764,7 +5775,9 @@
         "file": "app/services/moderationService.ts",
         "line": 26,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
+          "app/features/staff/PublicStoryReviewPanel.tsx",
+          "app/features/staff/RoadmapReviewPanel.tsx"
         ]
       }
     ],
@@ -5785,7 +5798,7 @@
         "file": "app/services/moderationService.ts",
         "line": 24,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/PublicStoryReviewPanel.tsx"
         ]
       }
     ],
@@ -5848,7 +5861,8 @@
         "file": "app/services/moderationService.ts",
         "line": 33,
         "callers": [
-          "app/features/staff/PublishedReviewWorkspace.tsx"
+          "app/features/staff/PublishedReviewWorkspace.tsx",
+          "app/features/staff/RoadmapPublishedView.tsx"
         ]
       }
     ],
@@ -5890,7 +5904,8 @@
         "file": "app/services/moderationService.ts",
         "line": 35,
         "callers": [
-          "app/features/staff/PublishedReviewWorkspace.tsx"
+          "app/features/staff/PublishedReviewWorkspace.tsx",
+          "app/features/staff/RoadmapPublishedView.tsx"
         ]
       }
     ],
@@ -6593,7 +6608,7 @@
         "file": "app/services/moderationService.ts",
         "line": 28,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/RoadmapReviewPanel.tsx"
         ]
       }
     ],
@@ -6614,7 +6629,9 @@
         "file": "app/services/moderationService.ts",
         "line": 25,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
+          "app/features/staff/PublicStoryReviewPanel.tsx",
+          "app/features/staff/RoadmapReviewPanel.tsx"
         ]
       }
     ],
@@ -6635,7 +6652,7 @@
         "file": "app/services/moderationService.ts",
         "line": 29,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/RoadmapReviewPanel.tsx"
         ]
       }
     ],
@@ -6656,7 +6673,9 @@
         "file": "app/services/moderationService.ts",
         "line": 26,
         "callers": [
-          "app/features/staff/ReviewPanel.tsx"
+          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
+          "app/features/staff/PublicStoryReviewPanel.tsx",
+          "app/features/staff/RoadmapReviewPanel.tsx"
         ]
       }
     ],
@@ -6677,7 +6696,8 @@
         "file": "app/services/roadmapTemplateService.ts",
         "line": 5,
         "callers": [
-          "app/features/staff/RoadmapTemplates.tsx"
+          "app/features/staff/RoadmapAuthoringWorkspace.tsx",
+          "app/features/staff/RoadmapPublishedView.tsx"
         ]
       }
     ],
@@ -6698,7 +6718,8 @@
         "file": "app/services/roadmapTemplateService.ts",
         "line": 6,
         "callers": [
-          "app/features/staff/RoadmapTemplates.tsx"
+          "app/features/staff/RoadmapAuthoringWorkspace.tsx",
+          "app/features/staff/RoadmapPublishedView.tsx"
         ]
       }
     ],
@@ -6719,7 +6740,7 @@
         "file": "app/services/roadmapTemplateService.ts",
         "line": 7,
         "callers": [
-          "app/features/staff/RoadmapTemplates.tsx"
+          "app/features/staff/RoadmapStoryPicker.tsx"
         ]
       }
     ],
@@ -6740,7 +6761,7 @@
         "file": "app/services/roadmapTemplateService.ts",
         "line": 8,
         "callers": [
-          "app/features/staff/RoadmapTemplates.tsx"
+          "app/features/staff/RoadmapAuthoringWorkspace.tsx"
         ]
       }
     ],
@@ -6761,7 +6782,7 @@
         "file": "app/services/roadmapTemplateService.ts",
         "line": 9,
         "callers": [
-          "app/features/staff/RoadmapTemplates.tsx"
+          "app/features/staff/RoadmapAuthoringWorkspace.tsx"
         ]
       }
     ],
@@ -6782,7 +6803,7 @@
         "file": "app/services/roadmapTemplateService.ts",
         "line": 10,
         "callers": [
-          "app/features/staff/RoadmapTemplates.tsx"
+          "app/features/staff/RoadmapAuthoringWorkspace.tsx"
         ]
       }
     ],
@@ -6803,7 +6824,7 @@
         "file": "app/services/roadmapTemplateService.ts",
         "line": 11,
         "callers": [
-          "app/features/staff/RoadmapTemplates.tsx"
+          "app/features/staff/RoadmapAuthoringWorkspace.tsx"
         ]
       }
     ],
@@ -6824,7 +6845,7 @@
         "file": "app/services/roadmapTemplateService.ts",
         "line": 12,
         "callers": [
-          "app/features/staff/RoadmapTemplates.tsx"
+          "app/features/staff/RoadmapAuthoringWorkspace.tsx"
         ]
       }
     ],
@@ -6845,7 +6866,8 @@
         "file": "app/services/roadmapTemplateService.ts",
         "line": 13,
         "callers": [
-          "app/features/staff/RoadmapTemplates.tsx"
+          "app/features/staff/RoadmapAuthoringWorkspace.tsx",
+          "app/features/staff/RoadmapPublishedView.tsx"
         ]
       }
     ],
@@ -6866,7 +6888,8 @@
         "file": "app/services/roadmapTemplateService.ts",
         "line": 14,
         "callers": [
-          "app/features/staff/RoadmapTemplates.tsx"
+          "app/features/staff/RoadmapAuthoringWorkspace.tsx",
+          "app/features/staff/RoadmapPublishedView.tsx"
         ]
       }
     ],
@@ -7016,10 +7039,12 @@
         "operation": "removeSafety",
         "file": "app/services/profileLifecycleService.ts",
         "line": 11,
-        "callers": []
+        "callers": [
+          "app/features/safety/SafetyWorkspace.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -7163,7 +7188,7 @@
     "authorization": "Roles = \"User,ContentCreator,Moderator,Administrator\"",
     "controller": "StoryCommunityController.cs",
     "action": "GetStories",
-    "controllerLine": 26,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "GET /api/v1/Story/community",
@@ -7196,7 +7221,7 @@
     "authorization": "Roles = \"User,ContentCreator,Moderator,Administrator\"",
     "controller": "StoryCommunityController.cs",
     "action": "GetStoryMedia",
-    "controllerLine": 35,
+    "controllerLine": 34,
     "evidence": [
       {
         "key": "GET /api/v1/Story/community/{}/media",
@@ -7371,7 +7396,7 @@
     "authorization": "Roles = \"User,ContentCreator\"",
     "controller": "StoryCoverController.cs",
     "action": "SetCover",
-    "controllerLine": 24,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "PUT /api/v1/stories/{}/cover",
