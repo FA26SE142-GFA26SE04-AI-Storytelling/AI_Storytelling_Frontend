@@ -2,7 +2,8 @@ import type { ApiResponse } from '@/app/types/auth';
 import type { ContentCategory } from '@/app/types/childProfile';
 import type { PagedResult } from '@/app/types/story';
 import type { BusinessReport, InviteStaffInput, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, StaffAccountDto, StaffAccountRole } from '@/app/types/staff';
-import { apiRequest } from './apiClient';
+import type * as B from '@/app/types/backendContracts';
+import { apiRequest, apiQuery } from './apiClient';
 
 /**
  * Luồng 5 — Admin Portal và Moderation.
@@ -31,6 +32,10 @@ export const staffService = {
 
 
   // ---------- Báo cáo nghiệp vụ ----------
+  revenueStats: (periodStart: string, periodEnd: string, signal?: AbortSignal) => apiRequest<B.RevenueStatisticsDto>(`/BusinessReport/admin/revenue${apiQuery({ periodStart, periodEnd })}`, 'Không tải được số liệu doanh thu.', { signal }),
+  accountStats: (periodStart: string, periodEnd: string, signal?: AbortSignal) => apiRequest<B.UserAccountStatisticsDto>(`/BusinessReport/admin/accounts${apiQuery({ periodStart, periodEnd })}`, 'Không tải được số liệu tài khoản.', { signal }),
+  listReports: (pageIndex: number, pageSize = 10) => apiRequest<B.PagedResult<B.AdminBusinessReportDto>>(`/BusinessReport/admin${apiQuery({ pageIndex, pageSize })}`, 'Không tải được danh sách báo cáo.'),
+  getReport: (id: number) => apiRequest<B.AdminBusinessReportDto>(`/BusinessReport/admin/${id}`, 'Không tải được báo cáo.'),
   latestReport: (): Promise<ApiResponse<BusinessReport>> => apiRequest('/BusinessReport/latest-published', 'Chưa có báo cáo.'),
   generateReport: (periodStart: string, periodEnd: string): Promise<ApiResponse<BusinessReport>> =>
     apiRequest('/BusinessReport/generate', 'Không tổng hợp được báo cáo.', { method: 'POST', body: { periodStart, periodEnd } }),

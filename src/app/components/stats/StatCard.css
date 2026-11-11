@@ -1,0 +1,73 @@
+.ce-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+  gap: 16px;
+}
+
+.ce-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 20px 22px;
+  border-radius: 24px;
+  border: 3px solid var(--line-2);
+  background: var(--surface);
+  text-align: left;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.ce-stat.on {
+  border-color: var(--primary);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--primary) 14%, var(--surface)), var(--surface) 70%);
+  box-shadow: 0 14px 28px -18px color-mix(in srgb, var(--primary-strong) 70%, transparent);
+}
+
+.ce-stat-ic {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--primary-strong);
+  color: #fff;
+}
+
+.ce-stat-ic svg {
+  width: 22px;
+  height: 22px;
+}
+
+.ce-stat-name {
+  font-size: var(--fs-md);
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.ce-stat-sub {
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.stat-card .ce-stat-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-value {
+  font-size: var(--fs-2xl);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.stat-card-gold {
+  border: 3px solid var(--gold);
+  background: color-mix(in srgb, var(--gold) 14%, var(--surface));
+}
+
+.stat-card-gold .ce-stat-ic {
+  background: var(--gold-deep);
+  color: #fff;
+}

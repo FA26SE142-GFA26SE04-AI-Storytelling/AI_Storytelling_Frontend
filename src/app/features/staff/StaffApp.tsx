@@ -31,10 +31,12 @@ import AuthoringGuideManagement from "./AuthoringGuideManagement";
 import { CreatorCreateAi, CreatorCreateManual, type CreatorPageProps } from "./CreatorStories";
 import { CreatorLibrary } from "./CreatorLibrary";
 import { CreatorMyStories } from "./CreatorMyStories";
+import { CreatorStatistics } from "./CreatorStatistics";
 import { AdminStaff } from "./AdminPeople";
 import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
-import { AdminBusinessReport, AdminPayments, AdminPlans, AdminQuota } from "./AdminSystem";
+import { AdminPayments, AdminPlans, AdminQuota } from "./AdminSystem";
+import { AdminBusinessReport } from "./AdminBusinessReport";
 
 /** Mọi trang nhân viên nhận go (chuyển trang, kèm id truyện cần mở) và target; trang không cần thì bỏ qua. */
 type PageDef = { id: string; label: string; icon: LucideIcon; view: ComponentType<CreatorPageProps>; hint?: string; menuLabel?: string; short?: string };
@@ -91,6 +93,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "create-ai", label: "Viết truyện bằng AI", menuLabel: "Viết bằng AI", short: "Viết bằng AI", icon: WandSparkles, view: CreatorCreateAi, hint: "AI viết truyện mẫu từ ý tưởng của bạn" },
     { id: "create-manual", label: "Tự viết truyện", menuLabel: "Tự viết", short: "Tự viết", icon: PencilLine, view: CreatorCreateManual, hint: "Bạn tự viết nội dung, lưu thành từng phiên bản" },
     { id: "my-stories", label: "Truyện của tôi", short: "Truyện của tôi", icon: FolderOpen, view: CreatorMyStories, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở" },
+    { id: "stats", label: "Thống kê", short: "Thống kê", icon: ChartColumn, view: CreatorStatistics, hint: "Lượt đọc và thu nhập ước tính của truyện" },
     ...CREATOR_ACCOUNT_PAGES,
   ],
 };
@@ -113,7 +116,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     { label: "Công cụ", icon: ListChecks, items: ["rubrics", "authoring-guides", "wish-cards"] },
     "templates",
   ],
-  ContentCreator: ["library", "create-ai", "create-manual", "my-stories"],
+  ContentCreator: ["library", "create-ai", "create-manual", "my-stories", "stats"],
 };
 
 function StaffNav({ role, pageId, onPage, upward }: { role: StaffRole; pageId: string; onPage: (id: string) => void; upward?: boolean }) {

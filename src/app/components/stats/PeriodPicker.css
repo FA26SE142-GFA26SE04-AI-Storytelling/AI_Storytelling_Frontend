@@ -1,0 +1,20 @@
+.period-picker {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.period-picker .btn-s.on {
+  background: color-mix(in srgb, var(--gold) 20%, transparent);
+  border-color: color-mix(in srgb, var(--gold) 60%, var(--gold-deep));
+  color: var(--text);
+}
+
+.period-picker .inp {
+  width: auto;
+}
+
+.period-picker .notice.warn {
+  width: 100%;
+}

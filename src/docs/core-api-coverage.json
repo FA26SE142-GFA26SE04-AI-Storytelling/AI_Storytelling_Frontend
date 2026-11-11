@@ -774,9 +774,9 @@
         "service": "staffService",
         "operation": "generateReport",
         "file": "app/services/staffService.ts",
-        "line": 36,
+        "line": 41,
         "callers": [
-          "app/features/staff/AdminSystem.tsx"
+          "app/features/staff/AdminSavedReportsTab.tsx"
         ]
       }
     ],
@@ -795,9 +795,9 @@
         "service": "staffService",
         "operation": "publishReport",
         "file": "app/services/staffService.ts",
-        "line": 38,
+        "line": 43,
         "callers": [
-          "app/features/staff/AdminSystem.tsx"
+          "app/features/staff/AdminSavedReportsTab.tsx"
         ]
       }
     ],
@@ -816,9 +816,9 @@
         "service": "staffService",
         "operation": "latestReport",
         "file": "app/services/staffService.ts",
-        "line": 34,
+        "line": 39,
         "callers": [
-          "app/features/staff/AdminSystem.tsx"
+          "app/features/staff/AdminSavedReportsTab.tsx"
         ]
       }
     ],
@@ -831,8 +831,19 @@
     "controller": "BusinessReportController.cs",
     "action": "GetRevenue",
     "controllerLine": 67,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/BusinessReport/admin/revenue",
+        "service": "staffService",
+        "operation": "revenueStats",
+        "file": "app/services/staffService.ts",
+        "line": 35,
+        "callers": [
+          "app/features/staff/AdminRevenueTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -841,8 +852,19 @@
     "controller": "BusinessReportController.cs",
     "action": "GetAccounts",
     "controllerLine": 79,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/BusinessReport/admin/accounts",
+        "service": "staffService",
+        "operation": "accountStats",
+        "file": "app/services/staffService.ts",
+        "line": 36,
+        "callers": [
+          "app/features/staff/AdminAccountsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -851,8 +873,19 @@
     "controller": "BusinessReportController.cs",
     "action": "List",
     "controllerLine": 91,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/BusinessReport/admin",
+        "service": "staffService",
+        "operation": "listReports",
+        "file": "app/services/staffService.ts",
+        "line": 37,
+        "callers": [
+          "app/features/staff/AdminSavedReportsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -861,8 +894,19 @@
     "controller": "BusinessReportController.cs",
     "action": "GetById",
     "controllerLine": 103,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/BusinessReport/admin/{}",
+        "service": "staffService",
+        "operation": "getReport",
+        "file": "app/services/staffService.ts",
+        "line": 38,
+        "callers": [
+          "app/features/staff/AdminReportDetailDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -2307,7 +2351,7 @@
         "service": "staffService",
         "operation": "createCategory",
         "file": "app/services/staffService.ts",
-        "line": 27,
+        "line": 28,
         "callers": [
           "app/features/staff/AdminCatalog.tsx"
         ]
@@ -2328,7 +2372,7 @@
         "service": "staffService",
         "operation": "updateCategory",
         "file": "app/services/staffService.ts",
-        "line": 30,
+        "line": 31,
         "callers": [
           "app/features/staff/AdminCatalog.tsx"
         ]
@@ -2404,7 +2448,7 @@
         "service": "staffService",
         "operation": "categories",
         "file": "app/services/staffService.ts",
-        "line": 25,
+        "line": 26,
         "callers": [
           "app/features/staff/AdminCatalog.tsx",
           "app/features/staff/CommunitySubmissionReviewPanel.tsx",
@@ -3296,8 +3340,19 @@
     "controller": "CreatorStatisticsController.cs",
     "action": "GetReading",
     "controllerLine": 26,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/CreatorStatistics/reading",
+        "service": "creatorStatisticsService",
+        "operation": "reading",
+        "file": "app/services/creatorStatisticsService.ts",
+        "line": 7,
+        "callers": [
+          "app/features/staff/CreatorReadingTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -3306,8 +3361,19 @@
     "controller": "CreatorStatisticsController.cs",
     "action": "GetRevenue",
     "controllerLine": 40,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/CreatorStatistics/revenue",
+        "service": "creatorStatisticsService",
+        "operation": "revenue",
+        "file": "app/services/creatorStatisticsService.ts",
+        "line": 13,
+        "callers": [
+          "app/features/staff/CreatorIncomeTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -3795,7 +3861,7 @@
         "service": "staffService",
         "operation": "queue",
         "file": "app/services/staffService.ts",
-        "line": 67,
+        "line": 72,
         "callers": [
           "app/features/staff/ConnectedModerationQueue.tsx",
           "app/features/staff/useModerationSectionQueue.ts"
@@ -3817,7 +3883,7 @@
         "service": "staffService",
         "operation": "claim",
         "file": "app/services/staffService.ts",
-        "line": 70,
+        "line": 75,
         "callers": [
           "app/features/staff/ConnectedModerationQueue.tsx",
           "app/features/staff/useModerationSectionQueue.ts"
@@ -3849,7 +3915,7 @@
         "service": "staffService",
         "operation": "openItem",
         "file": "app/services/staffService.ts",
-        "line": 72,
+        "line": 77,
         "callers": []
       }
     ],
@@ -7130,7 +7196,7 @@
         "service": "staffService",
         "operation": "staff",
         "file": "app/services/staffService.ts",
-        "line": 44,
+        "line": 49,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -7140,7 +7206,7 @@
         "service": "staffService",
         "operation": "staff",
         "file": "app/services/staffService.ts",
-        "line": 44,
+        "line": 49,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -7161,7 +7227,7 @@
         "service": "staffService",
         "operation": "invite",
         "file": "app/services/staffService.ts",
-        "line": 49,
+        "line": 54,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -7182,7 +7248,7 @@
         "service": "staffService",
         "operation": "resendInvite",
         "file": "app/services/staffService.ts",
-        "line": 54,
+        "line": 59,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -7203,7 +7269,7 @@
         "service": "staffService",
         "operation": "cancelInvite",
         "file": "app/services/staffService.ts",
-        "line": 57,
+        "line": 62,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -7224,7 +7290,7 @@
         "service": "staffService",
         "operation": "deactivate",
         "file": "app/services/staffService.ts",
-        "line": 60,
+        "line": 65,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
@@ -7245,7 +7311,7 @@
         "service": "staffService",
         "operation": "reactivate",
         "file": "app/services/staffService.ts",
-        "line": 62,
+        "line": 67,
         "callers": [
           "app/features/staff/AdminPeople.tsx"
         ]
