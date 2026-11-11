@@ -9,9 +9,10 @@ import { Warn } from './PublicReviewEvidence';
 import { ReviewPanelHeader } from './ReviewPanelHeader';
 import { moderationStatusLabel } from './moderationConfig';
 import { formatSubmittedAt, queueDueInfo } from './moderationQueueDisplay';
+import { extractRemovalRequestReason } from './readableJson';
 import { useReviewItem } from './useReviewItem';
 
-/** Tài liệu 07 — Panel Yêu cầu gỡ truyện công khai: dùng metadata ModerationItemDetailDto, không suy diễn Flags/Creator. */
+/** Tài liệu 07 — Panel Yêu cầu gỡ truyện công khai: hiển thị `Flags.requestReason` và metadata hàng đợi hiện có. */
 export default function PublicStoryRemovalPanel({
   id,
   queueItem,
@@ -55,13 +56,14 @@ export default function PublicStoryRemovalPanel({
 
   const d = item.data;
   const due = queueDueInfo(d.slaDueAt, d.status);
+  const requestReason = extractRemovalRequestReason(d.flags);
   const usableReason = !!reason.trim();
   const locked = busy || claimBlocked;
 
   const submitDecision = async (approve: boolean) => {
     const question = approve
-      ? 'Chấp thuận gỡ truyện khỏi thư viện công khai? Hệ thống sẽ đánh dấu ngừng công khai (IsPublished=false, gắn RemovedAt) và chuyển hồ sơ sang Đã chấp thuận gỡ.'
-      : 'Không chấp thuận yêu cầu gỡ truyện này? Lưu ý: thao tác không khẳng định truyện vẫn công khai nếu truyện đã bị gỡ từ báo cáo vi phạm khác.';
+      ? 'Chấp thuận gỡ truyện khỏi thư viện công khai? Truyện sẽ ngừng hiển thị trên thư viện công khai và hồ sơ được chuyển sang mục Đã chấp thuận gỡ.'
+      : 'Không chấp thuận yêu cầu gỡ truyện này? Hồ sơ sẽ chuyển sang mục Đã từ chối yêu cầu gỡ; lưu ý thao tác này không đồng nghĩa truyện vẫn đang công khai nếu đã bị gỡ do vi phạm khác.';
     if (!(await confirmDialog(question))) return;
     const trimmed = reason.trim();
     const ok = await act(
@@ -76,23 +78,24 @@ export default function PublicStoryRemovalPanel({
       <ReviewPanelHeader item={item} queueItem={queueItem} message={message} sourceTag="Yêu cầu gỡ truyện" />
 
       <div className="st-group">
-        <b className="st-group-title">Thông tin yêu cầu gỡ (từ hàng đợi hiện có)</b>
-        <div className="notice" role="status" data-inline-notice>
-          <span>
-            Chưa có thông tin chi tiết yêu cầu trong API hiện tại (lý do gỡ chi tiết và trạng thái hiển thị đầy đủ chưa được trả về trong{' '}
-            <code>ModerationItemDetailDto</code>). Không gọi thay thế API Creator hoặc suy diễn từ trường kỹ thuật.
-          </span>
-        </div>
+        <b className="st-group-title">Thông tin yêu cầu gỡ</b>
+        {!requestReason && (
+          <div className="notice" role="status" data-inline-notice>
+            <span>
+              Hồ sơ này chưa có nội dung lý do từ Creator; bạn có thể quay lại danh sách hoặc tải lại nếu chưa đủ cơ sở quyết định.
+            </span>
+          </div>
+        )}
         <div className="st-facts">
           <div><small>Hồ sơ</small><b>#{d.id}</b></div>
           <div><small>Truyện</small><b>{d.storyId != null ? `#${d.storyId}` : '—'}{d.storyTitle ? ` · ${d.storyTitle}` : ''}</b></div>
           <div><small>Phiên bản</small><b>{d.storyVersionId != null ? `#${d.storyVersionId}` : 'Chưa gắn phiên bản'}</b></div>
           <div><small>Trạng thái hồ sơ</small><b>{moderationStatusLabel('PublicStoryRemoval', d.status)}</b></div>
           <div><small>Thời điểm gửi</small><b>{formatSubmittedAt(d.createdAt)}</b></div>
-          <div><small>Phiên bản dữ liệu (rowVersion)</small><b>v{d.rowVersion}</b></div>
+          <div><small>Phiên bản dữ liệu</small><b>v{d.rowVersion}</b></div>
           <div>
             <small>Tác giả gửi yêu cầu</small>
-            <b>{d.createdByName?.trim() || 'Chưa có thông tin trong tóm tắt API hiện tại'}</b>
+            <b>{d.createdByName?.trim() || 'Không hiển thị trong hồ sơ hàng đợi'}</b>
           </div>
           {due && (
             <div>
@@ -103,7 +106,9 @@ export default function PublicStoryRemovalPanel({
         </div>
         <div className="st-quote">
           <small>Lý do Creator yêu cầu gỡ</small>
-          <p>Chưa có thông tin chi tiết yêu cầu trong API hiện tại.</p>
+          <p style={{ whiteSpace: 'pre-wrap' }}>
+            {requestReason || 'Creator không ghi lý do hoặc chưa có dữ liệu lý do.'}
+          </p>
         </div>
         <div className="row st-wrap">
           {onBack && (
@@ -142,7 +147,7 @@ export default function PublicStoryRemovalPanel({
           />
         </label>
         <p className="sub">
-          Không bắt buộc phải quyết định ngay nếu bạn nhận thấy thông tin từ API hiện tại chưa đủ; có thể bấm Quay lại hoặc Tải lại.
+          Nếu chưa đủ cơ sở quyết định, bạn có thể bấm Quay lại danh sách hoặc Tải lại hồ sơ bất cứ lúc nào.
         </p>
         <div className="row st-wrap">
           <button

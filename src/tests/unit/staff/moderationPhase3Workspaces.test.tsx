@@ -85,7 +85,7 @@ const removalQueueItem: QueueItem = {
 };
 
 describe('Moderator Phase 3 workspaces (specs 07-10, 12-13)', () => {
-  it('spec 07: defines PublicStoryRemoval sections, never infers reason from Flags or CreatorName, and locks actions on conflict', () => {
+  it('spec 07: defines PublicStoryRemoval sections, renders Flags.requestReason cleanly without leaking private fields, and locks actions on conflict', () => {
     expect(PUBLIC_STORY_REMOVAL_SECTIONS.map(s => s.status)).toEqual([
       'Pending', 'Claimed', 'Approved', 'Rejected', 'Closed',
     ]);
@@ -102,7 +102,7 @@ describe('Moderator Phase 3 workspaces (specs 07-10, 12-13)', () => {
           ...removalQueueItem,
           storyVersionId: null,
           rowVersion: 3,
-          flags: '{"requestReason":"KHONG_DUOC_SUY_DIEN_TU_FLAGS","secretActor":"Creator Gia"}',
+          flags: '{"requestReason":"Cần chỉnh sửa phần kết cho phù hợp hơn","secretActor":"Creator Gia"}',
           checklist: null,
           reviewProgress: null,
         },
@@ -112,16 +112,57 @@ describe('Moderator Phase 3 workspaces (specs 07-10, 12-13)', () => {
     const html = renderToStaticMarkup(
       <PublicStoryRemovalPanel id={601} queueItem={removalQueueItem} onBack={() => {}} onDecision={() => {}} />,
     );
-    expect(html).toContain('Chưa có thông tin chi tiết yêu cầu trong API hiện tại');
-    expect(html).toContain('Chưa có thông tin trong tóm tắt API hiện tại');
-    expect(html).not.toContain('KHONG_DUOC_SUY_DIEN_TU_FLAGS');
+    expect(html).toContain('Cần chỉnh sửa phần kết cho phù hợp hơn');
+    expect(html).toContain('Không hiển thị trong hồ sơ hàng đợi');
     expect(html).not.toContain('Creator Gia');
+    expect(html).not.toContain('secretActor');
+    expect(html).not.toContain('ModerationItemDetailDto');
+    expect(html).not.toContain('Chưa có thông tin chi tiết yêu cầu trong API hiện tại');
     expect(html).toContain('Quay lại danh sách');
     expect(html).toContain('Tải lại hồ sơ');
     expect(html).toContain('Chấp thuận gỡ');
     expect(html).toContain('Không chấp thuận gỡ');
     expect(html).toContain('readOnly=""');
     expect(html).toContain('disabled=""');
+
+    testState.reviewHookState = {
+      ...testState.reviewHookState,
+      claimBlocked: false,
+      item: {
+        kind: 'PublicStoryRemoval',
+        data: {
+          ...removalQueueItem,
+          rowVersion: 3,
+          flags: '{broken',
+          checklist: null,
+          reviewProgress: null,
+        },
+      },
+    };
+    const emptyReasonHtml = renderToStaticMarkup(
+      <PublicStoryRemovalPanel id={601} queueItem={removalQueueItem} onBack={() => {}} onDecision={() => {}} />,
+    );
+    expect(emptyReasonHtml).toContain('Creator không ghi lý do hoặc chưa có dữ liệu lý do.');
+    expect(emptyReasonHtml).not.toContain('{broken');
+
+    for (const file of [
+      'app/features/staff/PublicStoryRemovalPanel.tsx',
+      'app/features/staff/RemovalRequestsWorkspace.tsx',
+      'app/features/staff/GrayZoneReviewPanel.tsx',
+      'app/features/staff/GrayZoneReviewWorkspace.tsx',
+      'app/features/staff/ContentReportReviewPanel.tsx',
+      'app/features/staff/ContentReportsWorkspace.tsx',
+    ]) {
+      const src = readFileSync(path.resolve(process.cwd(), file), 'utf8');
+      expect(src, file).not.toContain('IsPublished');
+      expect(src, file).not.toContain('RemovedAt');
+      expect(src, file).not.toContain('PublicStoryRemoval / Approved');
+      expect(src, file).not.toContain('(Clear)');
+      expect(src, file).not.toContain('(Block)');
+      expect(src, file).not.toContain('(Cleared)');
+      expect(src, file).not.toContain('(Archived)');
+      expect(src, file).not.toContain('(SafetyConcern)');
+    }
   });
 
   it('spec 08: defines RoadmapTemplateReview sections, renders roadmap review checklist/ineligibility, and preserves Authoring groups + Role-based Library view', () => {

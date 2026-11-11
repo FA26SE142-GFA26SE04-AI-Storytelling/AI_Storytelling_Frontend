@@ -24,9 +24,9 @@ const REPORT_REASON: Record<string, string> = {
 };
 
 const ARCHIVE_OPTIONS = [
-  { value: 'SafetyConcern', label: 'Không an toàn (SafetyConcern)' },
-  { value: 'Copyright', label: 'Vi phạm bản quyền (Copyright)' },
-  { value: 'Inappropriate', label: 'Nội dung không phù hợp (Inappropriate)' },
+  { value: 'SafetyConcern', label: 'Không an toàn' },
+  { value: 'Copyright', label: 'Vi phạm bản quyền' },
+  { value: 'Inappropriate', label: 'Nội dung không phù hợp' },
 ] as const;
 
 /** Chỉ cho phép liên kết HTTP(S) hợp lệ để tránh javascript:/data: khi hiển thị minh chứng báo cáo. */
@@ -93,8 +93,8 @@ export default function ContentReportReviewPanel({
   const submitAction = async (action: 'dismiss' | 'archive' | 'escalate') => {
     const selectedLabel = ARCHIVE_OPTIONS.find(opt => opt.value === archiveReason)?.label ?? archiveReason;
     const prompts = {
-      dismiss: 'Bác báo cáo này? Truyện giữ nguyên trạng thái hiện tại và hồ sơ chuyển sang Đã bác báo cáo.',
-      archive: `Gỡ truyện vi phạm (${selectedLabel})? Thao tác sẽ đánh dấu lưu trữ để ngừng hiển thị công khai (không xóa vật lý dữ liệu gốc) và đóng hồ sơ liên quan.`,
+      dismiss: 'Bỏ qua báo cáo này? Truyện giữ nguyên trạng thái hiện tại và hồ sơ được chuyển sang mục Đã bác báo cáo.',
+      archive: `Gỡ truyện vi phạm vì lý do “${selectedLabel}”? Truyện sẽ ngừng hiển thị trên thư viện công khai và các hồ sơ báo cáo liên quan sẽ được đóng.`,
       escalate: 'Chuyển hồ sơ này lên Administrator? Sau khi chuyển cấp, Moderator không còn quyền mở chi tiết hay tự ra quyết định cho hồ sơ này.',
     };
     if (!(await confirmDialog(prompts[action]))) return;

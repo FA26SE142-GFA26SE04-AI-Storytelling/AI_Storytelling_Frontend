@@ -19,6 +19,18 @@ const get = (o: unknown, key: string): unknown => {
 const str = (v: unknown) => (typeof v === 'string' ? v.trim() : typeof v === 'number' ? String(v) : '');
 const short = (s: string, max = 120) => (s.length > max ? `${s.slice(0, max - 1)}…` : s);
 
+/** Trích xuất lý do Creator yêu cầu gỡ từ trường JSON `Flags.requestReason` (trả về null nếu trống hoặc không hợp lệ). */
+export function extractRemovalRequestReason(raw: string | null | undefined): string | null {
+  const text = (raw ?? '').trim();
+  if (!text) return null;
+  if (/^[[{]/.test(text)) {
+    const v = parse(text);
+    if (!isObj(v)) return null;
+    return str(get(v, 'requestReason')) || str(get(v, 'reason')) || null;
+  }
+  return text;
+}
+
 const ZONE: Record<string, string> = { Safe: 'An toàn', GrayZone: 'Vùng xám, cần người duyệt', HardBlock: 'Bị chặn', '1': 'An toàn', '2': 'Vùng xám, cần người duyệt', '3': 'Bị chặn' };
 
 /** Ghi chú hệ thống của một mục trong hàng đợi kiểm duyệt. Không phải JSON thì giữ nguyên chữ. */

@@ -70,8 +70,8 @@ export default function GrayZoneReviewPanel({
 
   const submitDecision = async (decision: 'Clear' | 'Block') => {
     const question = decision === 'Clear'
-      ? 'Xác nhận Cho phép tiếp tục (Clear)? Lưu ý: quyết định này KHÔNG xuất bản truyện ra thư viện công khai.'
-      : 'Xác nhận Chặn nội dung (Block)? Phiên bản này sẽ bị chặn và không thể đi tiếp.';
+      ? 'Cho phép phiên bản này tiếp tục? Lưu ý: quyết định này chỉ mở khóa quy trình nguồn, KHÔNG xuất bản truyện lên thư viện công khai.'
+      : 'Chặn nội dung phiên bản này? Phiên bản sẽ bị dừng xử lý và không thể tiếp tục.';
     if (!(await confirmDialog(question))) return;
     const ok = await act(
       () => moderationService.grayDecision(id, { decision, reason: reason.trim(), rowVersion: d.rowVersion }),
@@ -187,8 +187,8 @@ export default function GrayZoneReviewPanel({
       <div id="gz-sec-decision" className="st-group mod-anchor-target">
         <b className="st-group-title">Quyết định</b>
         <p className="sub">
-          <strong>Cho phép tiếp tục (Clear)</strong> chỉ cho quy trình nguồn chạy tiếp và KHÔNG tự động xuất bản truyện lên thư viện cộng đồng.{' '}
-          <strong>Chặn nội dung (Block)</strong> sẽ dừng phiên bản này.
+          <strong>Cho phép tiếp tục</strong> chỉ cho quy trình nguồn chạy tiếp và KHÔNG tự động xuất bản truyện lên thư viện cộng đồng.{' '}
+          <strong>Chặn nội dung</strong> sẽ dừng phiên bản này.
         </p>
         <div className="row st-wrap">
           <button

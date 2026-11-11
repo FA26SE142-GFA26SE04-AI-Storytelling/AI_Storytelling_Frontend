@@ -14,7 +14,7 @@ export default function GrayZoneReviewWorkspace() {
   const mine = !!current && current.status === 'Claimed' && q.user?.id != null && current.claimedByUserId === q.user.id;
 
   const summaryNotice = current?.status === 'Cleared'
-    ? 'Hồ sơ vùng xám đã được cho phép tiếp tục (Cleared). Quyết định này KHÔNG xuất bản truyện ra thư viện công khai.'
+    ? 'Hồ sơ vùng xám đã được cho phép tiếp tục. Quyết định này KHÔNG xuất bản truyện ra thư viện công khai.'
     : current?.status === 'Blocked'
       ? 'Hồ sơ vùng xám đã bị chặn theo quyết định kiểm duyệt.'
       : undefined;

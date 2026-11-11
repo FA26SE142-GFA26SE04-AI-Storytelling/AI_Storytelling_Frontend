@@ -15,7 +15,7 @@ export default function RemovalRequestsWorkspace({ go }: { go?: (pageId: string)
   const mine = !!current && current.status === 'Claimed' && q.user?.id != null && current.claimedByUserId === q.user.id;
 
   const summaryNotice = current?.status === 'Approved'
-    ? 'Yêu cầu gỡ đã được chấp thuận (Approved, KHÔNG phải duyệt đăng). Kết quả cũ này không khẳng định toàn bộ trạng thái công khai hiện tại.'
+    ? 'Yêu cầu gỡ truyện đã được chấp thuận (không phải quyết định duyệt đăng). Kết quả này không khẳng định toàn bộ trạng thái công khai hiện tại của truyện.'
     : current?.status === 'Rejected'
       ? 'Yêu cầu gỡ đã bị từ chối (không phải từ chối xuất bản và không khẳng định truyện vẫn công khai nếu đã bị gỡ qua báo cáo khác).'
       : undefined;
@@ -48,7 +48,7 @@ export default function RemovalRequestsWorkspace({ go }: { go?: (pageId: string)
 
   const banner = outcomeBanner === 'Approved' ? (
     <div className="notice ok mod-banner" role="status" data-inline-notice>
-      <span>Đã chấp thuận gỡ truyện khỏi thư viện công khai (PublicStoryRemoval / Approved).</span>
+      <span>Đã chấp thuận gỡ truyện khỏi thư viện công khai.</span>
       {go && (
         <button type="button" className="btn btn-s" onClick={() => go('removal-records')}>
           <Archive className="ic" />Mở Hồ sơ gỡ truyện
@@ -66,7 +66,7 @@ export default function RemovalRequestsWorkspace({ go }: { go?: (pageId: string)
   return (
     <ModerationWorkspaceShell
       title="Yêu cầu gỡ truyện"
-      description="Tiếp nhận và xử lý yêu cầu gỡ truyện công khai từ Creator dựa trên metadata hàng đợi hiện có."
+      description="Tiếp nhận và xử lý yêu cầu gỡ truyện công khai từ Creator."
       sections={PUBLIC_STORY_REMOVAL_SECTIONS}
       status={q.status}
       onStatusChange={next => {
