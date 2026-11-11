@@ -708,3 +708,21 @@
 .kid-pic-part { background: color-mix(in srgb, var(--gold) 70%, transparent); color: var(--on-gold); border-radius: 6px; padding: 1px 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; animation: kid-part-in .5s ease both; }
 @keyframes kid-part-in { from { background: transparent; } }
 @media (prefers-reduced-motion: reduce) { .kid-pic-part { animation: none; } }
+
+.kid-read-aloud-btn { min-width:0; min-height:44px; padding:0; background:var(--surface-2); color:var(--text); border:2px solid var(--gold); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:background .15s,transform .15s; }
+.kid-read-aloud-btn svg { width:24px; height:24px; flex-shrink:0; }
+.kid-read-aloud-btn:hover:not(:disabled) { background:color-mix(in srgb,var(--gold) 25%,transparent); }
+.kid-read-aloud-btn:disabled { cursor:not-allowed; opacity:.6; }
+.kid-read-aloud-btn--recording { background:var(--gold); color:var(--on-gold); animation:kid-mic-pulse 1s ease-in-out infinite; }
+.kid-read-aloud-btn--busy { cursor:progress; }
+.kid-read-aloud-btn--busy svg { animation:kid-spin 1s linear infinite; }
+.kid-story-navigation .kid-read-aloud-retry { min-width: 0; width: 44px; height: 44px; min-height: 44px; padding: 0; }
+.kid-story-navigation .kid-read-aloud-btn svg, .kid-story-navigation .kid-read-aloud-retry svg { width: 20px; height: 20px; }
+@keyframes kid-mic-pulse { 0%,100% { box-shadow:0 0 0 0 color-mix(in srgb,var(--gold) 55%,transparent); } 50% { box-shadow:0 0 0 10px color-mix(in srgb,var(--gold) 0%,transparent); } }
+.kid-word--good { color:var(--primary); font-weight:700; }
+.kid-word--retry { background:color-mix(in srgb,var(--gold) 40%,transparent); border-radius:6px; padding:0 3px; }
+.kid-word--skipped { color:var(--muted); opacity:.6; }
+.kid-word--good,.kid-word--retry,.kid-word--skipped { animation:kid-word-in .35s ease both; }
+@keyframes kid-word-in { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion: reduce) { .kid-read-aloud-btn, .kid-read-aloud-btn svg, .kid-word--good, .kid-word--retry, .kid-word--skipped { animation:none !important; } }
+
