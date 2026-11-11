@@ -4,8 +4,10 @@ import { confirmDialog } from "@/app/lib/confirm";
 import "./safety.css";
 import "../children/children.css";
 import { useCallback, useEffect, useState, useRef } from "react";
-import { Clock, FileCheck, Inbox, Target, ShieldCheck, Sparkles, Mic } from "lucide-react";
+import { Clock, FileCheck, Inbox, Target, ShieldCheck, Sparkles, Mic, Trash2 } from "lucide-react";
 import Dialog from "@/app/components/Dialog";
+import IconButton from "@/app/components/IconButton";
+import { showToast } from "@/app/lib/toast";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ApprovalMode, ContentCategory, PolicyRule, SafetyPolicy } from "@/app/types/childProfile";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
@@ -106,6 +108,17 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
       setVoiceAccepted(false);
       setRules(Object.fromEntries(pol.categories.map((x) => [x.contentCategoryId, normalizeRule(x.rule)])));
     } else {
+      // Chưa có (hoặc vừa xoá) cài đặt an toàn: hiện các giá trị mặc định.
+      setMode("AlwaysManual");
+      setLen(2000);
+      setGate(true);
+      setWishes(true);
+      setInteractive(true);
+      setThreshold(70);
+      setSafetyTh(null);
+      setReadTh(null);
+      setVoice(false);
+      setVoiceAccepted(false);
       setConsent(false);
       setRules(Object.fromEntries(presetBlocked(active, ageBand).map((id) => [id, "Blocked" as const])));
     }
@@ -202,11 +215,39 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
     if (res.success && res.data) apply(res.data, cats, child.ageBand);
   };
 
+  // Backend không cho xoá khi hồ sơ bé đang hoạt động vì bé đang dùng các quy tắc này.
+  const activeChild = child.status === "Active";
+  const removeLabel = activeChild ? `Không xoá được khi hồ sơ của ${child.nickname} đang hoạt động. Hãy tạm dừng hồ sơ trước.` : "Xoá cài đặt an toàn";
+  const removePolicy = async () => {
+    if (!await confirmDialog(`Xoá cài đặt an toàn của ${child.nickname}? Chế độ duyệt, các chủ đề bị chặn, giới hạn độ dài truyện, các tính năng cho bé và ghi nhận đồng ý của bạn sẽ bị xoá và không khôi phục được. Bạn cần thiết lập và đồng ý lại trước khi kích hoạt hồ sơ cho bé.`)) return;
+    setSaving(true);
+    setNote(null);
+    const res = await profileLifecycleService.removeSafety(child.id);
+    setSaving(false);
+    // 404: cài đặt đã không còn nên vẫn đưa về trạng thái chưa có.
+    if (!res.success && res.status !== 404) {
+      showToast(res.status === 400 ? `Không xoá được vì hồ sơ của ${child.nickname} đang hoạt động. Hãy tạm dừng hồ sơ trước.`
+        : res.status === 403 ? "Chỉ người quản lý chính của bé mới xoá được cài đặt an toàn."
+        : "Chưa xoá được cài đặt an toàn. Vui lòng thử lại.", "err");
+      return;
+    }
+    apply(null, cats, child.ageBand);
+    showToast(`Đã xoá cài đặt an toàn của ${child.nickname}.`, "ok");
+    void reloadChildren();
+  };
+
   return (
     <div className="safety-tab">
-      <nav className="safety-jump" aria-label="Các mục cài đặt an toàn">
-        {NAV.map((n) => <button key={n.id} type="button" onClick={() => jump(n.id)}><n.icon className="ic" />{n.label}</button>)}
-      </nav>
+      <div className="row" style={{ alignItems: "flex-start", gap: 10 }}>
+        <nav className="safety-jump grow" aria-label="Các mục cài đặt an toàn">
+          {NAV.map((n) => <button key={n.id} type="button" onClick={() => jump(n.id)}><n.icon className="ic" />{n.label}</button>)}
+        </nav>
+        {isOwner && policy && !loading && (
+          <span title={removeLabel}>
+            <IconButton icon={Trash2} className="btn btn-no" label={removeLabel} disabled={saving || activeChild} onClick={() => void removePolicy()} />
+          </span>
+        )}
+      </div>
 
       <div ref={bodyRef} className="setbody">
         {role && !canEdit && !loading && <div className="safety-deny" onClick={deny} aria-hidden />}

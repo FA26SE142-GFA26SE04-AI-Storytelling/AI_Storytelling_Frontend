@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Check, Eye, Loader2, Lock, LockOpen, PackagePlus, RefreshCw, RotateCcw, Send, Sparkles, Undo2, User, Wand2 } from 'lucide-react';
 import Dialog from '@/app/components/Dialog';
+import SafeImage, { DEFAULT_IMAGE } from '@/app/components/SafeImage';
 import { confirmDialog } from '@/app/lib/confirm';
 import { showToast } from '@/app/lib/toast';
 import type * as B from '@/app/types/backendContracts';
@@ -71,19 +72,22 @@ function PartPicker({ value, onChange, disabled }: { value: PackageComponents; o
   </div>;
 }
 
-/** Ảnh / âm thanh xem trước: tải kèm token rồi hiện bằng blob, thu hồi blob khi đóng. */
-function ProtectedMedia({ url }: { url: string }) {
+/** Ảnh / âm thanh xem trước: tải tệp của gói kèm token (GET …/packages/{packageId}/assets/{assetId}) rồi hiện bằng blob, thu hồi blob khi đóng. */
+function ProtectedMedia({ storyId, packageId, assetId }: { storyId: number; packageId: number; assetId: number }) {
   const [media, setMedia] = useState<{ url: string; type: string } | null>(null);
   const [failed, setFailed] = useState(false);
   useEffect(() => {
     const c = new AbortController(); let made: string | null = null;
-    void svc.mediaBlob(url, c.signal).then((r) => { if (r.success && r.data) { made = r.data.url; setMedia(r.data); } else if (!c.signal.aborted) setFailed(true); });
+    void svc.asset(storyId, packageId, assetId, c.signal).then((r) => {
+      if (r.success && r.data) { if (c.signal.aborted) URL.revokeObjectURL(r.data.url); else { made = r.data.url; setMedia(r.data); } }
+      else if (!c.signal.aborted) setFailed(true);
+    });
     return () => { c.abort(); if (made) URL.revokeObjectURL(made); };
-  }, [url]);
-  if (failed) return <div className="fp-media-empty">Chưa tải được tệp</div>;
+  }, [storyId, packageId, assetId]);
+  // Không tải được thì hiện hình mặc định thay cho ô vỡ.
+  if (failed) return <SafeImage src={DEFAULT_IMAGE} alt="Chưa tải được tệp này" title="Chưa tải được tệp này" />;
   if (!media) return <div className="fp-media-empty">Đang tải…</div>;
-  // eslint-disable-next-line @next/next/no-img-element
-  return media.type.startsWith('audio') ? <audio controls src={media.url} /> : <img src={media.url} alt="Tranh trong gói" />;
+  return media.type.startsWith('audio') ? <audio controls src={media.url} /> : <SafeImage src={media.url} alt="Tranh trong gói" />;
 }
 
 const choicesOf = (c: unknown): string[] => {
@@ -99,7 +103,7 @@ function PreviewDialog({ storyId, pkg, kidName, onClose }: { storyId: number; pk
   return <Dialog title={`Xem trước gói của ${kidName}`} wide onClose={onClose}>
     {error ? <p className="notice err" data-inline-notice>{error}</p> : !data ? <p className="sub">Đang tải…</p> : <div className="fp-preview">
       <section><h4>{data.title}</h4>{data.content.split(/\n\s*\n/).map((t, i) => <p key={i}>{t}</p>)}</section>
-      {(data.media ?? []).length > 0 && <section><h4>Tranh và giọng đọc</h4><div className="fp-media">{(data.media ?? []).map((m) => <ProtectedMedia key={m.assetId} url={m.previewUrl} />)}</div></section>}
+      {(data.media ?? []).length > 0 && <section><h4>Tranh và giọng đọc</h4><div className="fp-media">{(data.media ?? []).map((m) => <ProtectedMedia key={m.assetId} storyId={storyId} packageId={pkg.packageId} assetId={m.assetId} />)}</div></section>}
       {(data.vocabulary ?? []).length > 0 && <section><h4>Từ vựng</h4><ul className="fp-list">{(data.vocabulary ?? []).map((w) => <li key={w.id}><b>{w.term}</b>{w.definition && <> — {w.definition}</>}{w.example && <small>Ví dụ: {w.example}</small>}</li>)}</ul></section>}
       {(data.quiz ?? []).length > 0 && <section><h4>Câu đố (có đáp án, bé không thấy phần này)</h4><ol className="fp-list">{(data.quiz ?? []).map((q) => <li key={q.id}><b>{q.question}</b>
         {choicesOf(q.choices).length > 0 && <span className="fp-choices">{choicesOf(q.choices).map((c) => <span key={c} className={`pill${c === q.correctAnswer ? ' ok' : ''}`}>{c}</span>)}</span>}

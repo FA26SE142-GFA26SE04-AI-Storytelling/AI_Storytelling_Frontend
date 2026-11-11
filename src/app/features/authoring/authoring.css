@@ -254,3 +254,11 @@
 /* Báo đang tạo học liệu ở đầu khung gói: viền vàng, biểu tượng xoay. */
 .fp-running { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 14px; border-radius: 12px; border-left: 5px solid var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--surface)); font-weight: 600; }
 .fp-running .ic { color: var(--gold-deep); flex-shrink: 0; }
+
+/* Popup xem trước nội dung nhập (phụ huynh): nội dung đã tách, ba ô khai báo xếp từ trên xuống, nút ở cuối. */
+.pa-import { display: flex; flex-direction: column; gap: 14px; }
+.pa-import .field { display: flex; flex-direction: column; gap: 6px; }
+.pa-import .field > .lbl { font-size: var(--fs-md); font-weight: 700; }
+.pa-import .pa-confirmed { animation: pa-import-in .25s ease-out; }
+@keyframes pa-import-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .pa-import .pa-confirmed { animation: none; } }
