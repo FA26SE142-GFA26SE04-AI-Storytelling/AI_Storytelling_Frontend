@@ -9,6 +9,15 @@ import { staffService } from '@/app/services/staffService';
 import type { ApiResponse } from '@/app/types/auth';
 import type { QueueItem } from '@/app/types/staff';
 import LearningMaterials from './LearningMaterials';
+import {
+  EditorialReviewSplit,
+  InspectionSnapshotBar,
+  ManuscriptCard,
+  ReadingFilterBar,
+  SceneCardShell,
+  countWords,
+  type SnapshotMetric,
+} from './ModerationInspectionPrimitives';
 import { Warn } from './PublicReviewEvidence';
 import ReviewPicture, { ZoomLightbox } from './ReviewPicture';
 import { ReviewPanelHeader } from './ReviewPanelHeader';
@@ -52,6 +61,54 @@ function jumpTo(id: string) {
   });
 }
 
+function buildCommunityMetrics(
+  d: Extract<import('@/app/services/moderationService').ReviewPackage, { kind: 'CommunitySubmission' }>['data'],
+): SnapshotMetric[] {
+  const passedChecks = d.checklist.filter(c => c.passed).length;
+  return [
+    {
+      id: 'scenes',
+      label: 'Nội dung & cảnh',
+      value: d.scenes.length > 0 ? `${d.scenes.length} cảnh` : 'Toàn văn',
+      hint: `${d.vocabulary.length} từ vựng · ${d.quizzes.length} câu đố`,
+      tone: 'draft',
+      targetId: 'shared-sec-content',
+    },
+    {
+      id: 'pii',
+      label: 'Thông tin cá nhân',
+      value: d.piiRescan.length > 0 ? `${d.piiRescan.length} cảnh báo` : 'Sạch',
+      hint: d.copyrightDeclaration ? COPYRIGHT[d.copyrightDeclaration] ?? d.copyrightDeclaration : 'Thiếu cam kết',
+      tone: d.piiRescan.length > 0 || !d.copyrightDeclaration ? 'flag' : 'ok',
+      targetId: 'shared-sec-checks',
+    },
+    {
+      id: 'checks',
+      label: 'Checklist chia sẻ',
+      value: `${passedChecks}/${d.checklist.length}`,
+      hint: passedChecks === d.checklist.length ? 'Đủ tiêu chí' : `Còn ${d.checklist.length - passedChecks} mục`,
+      tone: passedChecks === d.checklist.length ? 'ok' : 'wait',
+      targetId: 'shared-sec-checks',
+    },
+    {
+      id: 'labels',
+      label: 'Nhãn nội dung',
+      value: d.labels.length > 0 ? `${d.labels.length} nhãn` : 'Chưa gắn',
+      hint: d.labels.length > 0 ? 'Đã phân loại' : 'Bắt buộc gắn nhãn',
+      tone: d.labels.length > 0 ? 'ok' : 'wait',
+      targetId: 'shared-sec-checks',
+    },
+    {
+      id: 'blockers',
+      label: 'Chặn duyệt',
+      value: d.blockers.length === 0 ? 'Sẵn sàng' : `${d.blockers.length} mục`,
+      hint: d.blockers.length === 0 ? 'Đủ điều kiện chia sẻ' : 'Xem mục cần gỡ',
+      tone: d.blockers.length === 0 ? 'ok' : 'flag',
+      targetId: 'shared-sec-decision',
+    },
+  ];
+}
+
 export default function CommunitySubmissionReviewPanel({
   id,
   queueItem,
@@ -69,12 +126,14 @@ export default function CommunitySubmissionReviewPanel({
   const riseRef = useRiseIn<HTMLDivElement>('.st-group', [id, item ? 1 : 0], { delay: 40, distance: 10 });
 
   const [reason, setReason] = useState('');
+  const [readTab, setReadTab] = useState<'all' | 'brief' | 'scenes' | 'learning'>('all');
   const [labelIds, setLabelIds] = useState<number[]>([]);
   const [savedLabelIds, setSavedLabelIds] = useState<number[]>([]);
   const [categories, setCategories] = useState<{ id: number; displayName: string }[] | null>(null);
   const [zoom, setZoom] = useState<{ url: string; alt: string } | null>(null);
 
   useEffect(() => {
+    setReadTab('all');
     setCategories(null);
     setLabelIds([]);
     setSavedLabelIds([]);
@@ -110,6 +169,10 @@ export default function CommunitySubmissionReviewPanel({
   const labelsDirty = [...labelIds].sort().join(',') !== [...savedLabelIds].sort().join(',');
   const has = (code: string) => d.blockers.some(b => b.code === code);
   const usableReason = !!reason.trim();
+  const jumpShared = (targetId: string) => {
+    if (targetId === 'shared-sec-content') setReadTab('all');
+    requestAnimationFrame(() => jumpTo(targetId));
+  };
 
   const loadCategories = async () => {
     const r = await staffService.categories();
@@ -126,102 +189,125 @@ export default function CommunitySubmissionReviewPanel({
     if (ok) onDecision(outcome);
   };
 
-  return (
-    <div className="st-card st-review" ref={riseRef}>
-      <nav className="mod-anchors" aria-label="Điều hướng nhanh hồ sơ chia sẻ">
-        <button type="button" onClick={() => jumpTo('shared-sec-content')}>Nội dung</button>
-        <button type="button" onClick={() => jumpTo('shared-sec-checks')}>Kiểm tra chia sẻ</button>
-        <button type="button" onClick={() => jumpTo('shared-sec-decision')}>Quyết định</button>
-      </nav>
+  const showBrief = readTab === 'all' || readTab === 'brief';
+  const showScenes = readTab === 'all' || readTab === 'scenes';
+  const showLearning = readTab === 'all' || readTab === 'learning';
 
-      <ReviewPanelHeader item={item} queueItem={queueItem} message={message} sourceTag="Gia đình chia sẻ" />
-
+  const header = (
+    <>
+      <ReviewPanelHeader
+        item={item}
+        queueItem={queueItem}
+        message={message}
+        sourceTag="Gia đình chia sẻ"
+        snapshot={<InspectionSnapshotBar metrics={buildCommunityMetrics(d)} onJump={jumpShared} />}
+      />
       {claimBlocked && (
         <div className="notice err row st-wrap" role="alert" data-inline-notice>
           <span>Quyền giữ hồ sơ không còn hiệu lực hoặc dữ liệu đã thay đổi. Ghi chú chưa gửi vẫn được giữ nguyên; hãy tải lại hồ sơ.</span>
           <button type="button" className="btn btn-s" onClick={refresh}><RefreshCw className="ic" />Tải lại quyền</button>
         </div>
       )}
+    </>
+  );
 
-      <div id="shared-sec-content" className="mod-anchor-target">
-        <div className="st-group">
-          <b className="st-group-title">Thông tin truyện chia sẻ</b>
-          <div className="st-facts">
-            <div><small>Nguồn</small><b>Gia đình chia sẻ</b></div>
-            <div><small>Độ tuổi</small><b>{AGE[d.story.ageBand] ?? d.story.ageBand}</b></div>
-            <div><small>Mức đọc</small><b>{d.story.readingLevel ?? '—'}</b></div>
-            <div><small>Thể loại</small><b>{d.story.genre ?? '—'}</b></div>
-            <div><small>Phiên bản</small><b>V{d.version.versionNo}{d.isResubmission ? ' · gửi lại' : ''}</b></div>
-          </div>
-          {d.story.description && <div className="st-quote"><small>Mô tả</small><p>{d.story.description}</p></div>}
-          <div className="st-quote"><small>Bài học</small><p>{d.version.lesson || 'Chưa có thông tin bài học.'}</p></div>
+  const left = (
+    <div id="shared-sec-content" className="mod-anchor-target">
+      <div className={`st-group${showBrief ? '' : ' mod-hidden-section'}`}>
+        <b className="st-group-title">Thông tin truyện chia sẻ</b>
+        <div className="st-facts">
+          <div><small>Nguồn</small><b>Gia đình chia sẻ</b></div>
+          <div><small>Độ tuổi</small><b>{AGE[d.story.ageBand] ?? d.story.ageBand}</b></div>
+          <div><small>Mức đọc</small><b>{d.story.readingLevel ?? '—'}</b></div>
+          <div><small>Thể loại</small><b>{d.story.genre ?? '—'}</b></div>
+          <div><small>Phiên bản</small><b>V{d.version.versionNo}{d.isResubmission ? ' · gửi lại' : ''}</b></div>
         </div>
-
-        <div className="st-group">
-          <b className="st-group-title">Nội dung truyện &amp; media</b>
-          {d.scenes.length > 0 ? (
-            d.scenes.slice().sort((a, b) => a.sceneIndex - b.sceneIndex).map(scene => (
-              <section className="st-scene" key={scene.sceneIndex}>
-                <b>Cảnh {scene.sceneIndex + 1}</b>
-                <p className="st-scene-text">{scene.text}</p>
-                <div className="st-scene-part st-scene-pics">
-                  <b className="st-scene-label">Tranh minh hoạ</b>
-                  {scene.imageUrls.length > 0 ? (
-                    <div className="st-pics">
-                      {scene.imageUrls.map((url, idx) => (
-                        <ReviewPicture key={idx} url={url} alt={`Cảnh ${scene.sceneIndex + 1}`} onZoom={(u, alt) => setZoom({ url: u, alt })} />
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="sub">Cảnh này chưa có tranh minh hoạ.</p>
-                  )}
-                </div>
-                <div className="st-scene-part st-scene-audio">
-                  <b className="st-scene-label">Âm thanh</b>
-                  {scene.audioUrls.length > 0 ? (
-                    scene.audioUrls.map((url, idx) => (
-                      <div key={idx} className="st-seg">
-                        <audio controls preload="none" src={url} />
-                      </div>
-                    ))
-                  ) : (
-                    <p className="sub">Cảnh này chưa có âm thanh.</p>
-                  )}
-                </div>
-              </section>
-            ))
-          ) : (
-            <>
-              <p className="sub">Truyện chia sẻ này chưa có cảnh tranh/âm thanh trong gói.</p>
-              {d.version.content
-                ? <div className="st-content" style={{ whiteSpace: 'pre-wrap' }}>{d.version.content}</div>
-                : <p className="sub">Không có văn bản nội dung.</p>}
-            </>
-          )}
-        </div>
-
-        <div className="st-group">
-          <b className="st-group-title">Học liệu đi kèm</b>
-          {d.vocabulary.length === 0 && d.quizzes.length === 0 && d.discussionQuestions.length === 0 ? (
-            <p className="sub">Truyện chia sẻ này chưa có từ vựng, câu đố hoặc câu hỏi thảo luận.</p>
-          ) : (
-            <>
-              <LearningMaterials vocabulary={d.vocabulary} quizzes={d.quizzes} />
-              {d.discussionQuestions.length > 0 && (
-                <div className="st-learn" style={{ marginTop: 12 }}>
-                  <section>
-                    <b className="st-learn-title">Câu hỏi thảo luận ({d.discussionQuestions.length})</b>
-                    {d.discussionQuestions.map((dq, idx) => (
-                      <p key={idx}>• {dq.question}{dq.isMoralLesson ? ' (Bài học đạo đức)' : ''}</p>
-                    ))}
-                  </section>
-                </div>
-              )}
-            </>
-          )}
+        <div className="mod-brief-pair">
+          {d.story.description && <ManuscriptCard variant="brief" label="Mô tả" text={d.story.description} />}
+          <ManuscriptCard variant="brief" label="Bài học" text={d.version.lesson} emptyText="Chưa có thông tin bài học." />
         </div>
       </div>
 
+      <div className={`st-group${showScenes ? '' : ' mod-hidden-section'}`}>
+        <b className="st-group-title">Nội dung truyện &amp; media</b>
+        {d.scenes.length > 0 && d.version.content?.trim() && (
+          <details className="mod-fulltext-acc">
+            <summary>Đọc toàn văn bản gốc ({countWords(d.version.content)} từ)</summary>
+            <ManuscriptCard variant="story" label="Toàn văn tác phẩm" text={d.version.content} />
+          </details>
+        )}
+        {d.scenes.length > 0 ? (
+          d.scenes.slice().sort((a, b) => a.sceneIndex - b.sceneIndex).map(scene => (
+            <SceneCardShell
+              key={scene.sceneIndex}
+              sceneNumber={scene.sceneIndex + 1}
+              prose={scene.text}
+              hasMedia
+              mediaSlot={
+                <>
+                  <div className="st-scene-part st-scene-pics">
+                    <b className="st-scene-label">Tranh minh hoạ</b>
+                    {scene.imageUrls.length > 0 ? (
+                      <div className="st-pics">
+                        {scene.imageUrls.map((url, idx) => (
+                          <ReviewPicture key={idx} url={url} alt={`Cảnh ${scene.sceneIndex + 1}`} onZoom={(u, alt) => setZoom({ url: u, alt })} />
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="sub">Cảnh này chưa có tranh minh hoạ.</p>
+                    )}
+                  </div>
+                  <div className="st-scene-part st-scene-audio">
+                    <b className="st-scene-label">Âm thanh</b>
+                    {scene.audioUrls.length > 0 ? (
+                      scene.audioUrls.map((url, idx) => (
+                        <div key={idx} className="st-seg">
+                          <audio controls preload="none" src={url} />
+                        </div>
+                      ))
+                    ) : (
+                      <p className="sub">Cảnh này chưa có âm thanh.</p>
+                    )}
+                  </div>
+                </>
+              }
+            />
+          ))
+        ) : (
+          <>
+            <p className="sub">Truyện chia sẻ này chưa có cảnh tranh/âm thanh trong gói.</p>
+            {d.version.content
+              ? <ManuscriptCard variant="story" label="Văn bản nội dung" text={d.version.content} />
+              : <p className="sub">Không có văn bản nội dung.</p>}
+          </>
+        )}
+      </div>
+
+      <div className={`st-group${showLearning ? '' : ' mod-hidden-section'}`}>
+        <b className="st-group-title">Học liệu đi kèm</b>
+        {d.vocabulary.length === 0 && d.quizzes.length === 0 && d.discussionQuestions.length === 0 ? (
+          <p className="sub">Truyện chia sẻ này chưa có từ vựng, câu đố hoặc câu hỏi thảo luận.</p>
+        ) : (
+          <>
+            <LearningMaterials vocabulary={d.vocabulary} quizzes={d.quizzes} />
+            {d.discussionQuestions.length > 0 && (
+              <div className="st-learn">
+                <section>
+                  <b className="st-learn-title">Câu hỏi thảo luận ({d.discussionQuestions.length})</b>
+                  {d.discussionQuestions.map((dq, idx) => (
+                    <p key={idx}>• {dq.question}{dq.isMoralLesson ? ' (Bài học đạo đức)' : ''}</p>
+                  ))}
+                </section>
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+
+  const right = (
+    <>
       <div id="shared-sec-checks" className="mod-anchor-target">
         <div className="st-group">
           <b className="st-group-title">
@@ -251,7 +337,7 @@ export default function CommunitySubmissionReviewPanel({
               ))}
             </div>
           ) : (
-            <span className="pill ok" style={{ width: 'fit-content' }}>
+            <span className="pill ok mod-inline-pill">
               <Check className="ic" />Không phát hiện thông tin cá nhân
             </span>
           )}
@@ -336,17 +422,17 @@ export default function CommunitySubmissionReviewPanel({
         </div>
       </div>
 
-      <div id="shared-sec-decision" className="st-group mod-anchor-target">
+      <div id="shared-sec-decision" className="st-group mod-anchor-target mod-decision-dock">
         <b className="st-group-title">Quyết định</b>
         {d.blockers.length > 0 && (
           <ul className="st-blockers" role="status" aria-label="Việc còn thiếu trước khi duyệt">
             {d.blockers.map(b => (
               <li key={b.code} className="mod-blocker-item">
-                <span className="row" style={{ flex: '1 1 220px' }}>
+                <span className="row mod-blocker-copy">
                   <CircleAlert className="ic" aria-hidden="true" />
                   <span>{b.message}</span>
                 </span>
-                <button type="button" className="mod-blocker-link" onClick={() => jumpTo('shared-sec-checks')}>
+                <button type="button" className="mod-blocker-link" onClick={() => jumpShared('shared-sec-checks')}>
                   Xem Kiểm tra chia sẻ
                 </button>
               </li>
@@ -384,8 +470,30 @@ export default function CommunitySubmissionReviewPanel({
           </button>
         </div>
       </div>
+    </>
+  );
 
+  return (
+    <>
+      <EditorialReviewSplit
+        innerRef={riseRef}
+        header={header}
+        readingControls={
+          <ReadingFilterBar
+            value={readTab}
+            onChange={setReadTab}
+            tabs={[
+              { id: 'all', label: 'Tất cả nội dung' },
+              { id: 'brief', label: 'Thông tin truyện' },
+              { id: 'scenes', label: `Cảnh & Media (${d.scenes.length})` },
+              { id: 'learning', label: 'Học liệu đi kèm' },
+            ]}
+          />
+        }
+        left={left}
+        right={right}
+      />
       <ZoomLightbox zoom={zoom} onClose={() => setZoom(null)} />
-    </div>
+    </>
   );
 }

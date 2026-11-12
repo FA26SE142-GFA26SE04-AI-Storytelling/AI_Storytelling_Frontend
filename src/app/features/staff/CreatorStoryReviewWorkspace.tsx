@@ -69,6 +69,7 @@ export default function CreatorStoryReviewWorkspace({ go }: { go?: (pageId: stri
       }}
       priority={q.priority}
       onPriorityChange={q.setPriority}
+      showPriorityFilter={false}
       onlyOverdue={q.onlyOverdue}
       onOnlyOverdueChange={q.setOnlyOverdue}
       items={q.items}

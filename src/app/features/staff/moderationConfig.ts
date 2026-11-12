@@ -89,7 +89,7 @@ const FALLBACK_STATUS_LABELS: Record<string, string> = {
 export const PUBLIC_STORY_SECTIONS: ModerationSectionDef[] = [
   { status: 'Pending', label: 'Chờ tiếp nhận', group: 'work', hint: 'Hồ sơ Creator mới gửi, chưa có người nhận duyệt.' },
   { status: 'Claimed', label: 'Đang xử lý', group: 'work', hint: 'Hồ sơ đang được giữ xử lý (tối đa 2 giờ).' },
-  { status: 'ChangesRequested', label: 'Chờ Creator sửa', group: 'waiting', hint: 'Đã gửi yêu cầu chỉnh sửa cho Creator; chỉ xem tóm tắt.' },
+  { status: 'ChangesRequested', label: 'Chờ sửa', group: 'waiting', hint: 'Đã gửi yêu cầu chỉnh sửa cho Creator; chỉ xem tóm tắt.' },
   { status: 'Approved', label: 'Đã duyệt', group: 'results', hint: 'Hồ sơ đã được duyệt công khai.' },
   { status: 'Rejected', label: 'Từ chối', group: 'results', hint: 'Hồ sơ đã bị từ chối.' },
   { status: 'Withdrawn', label: 'Đã rút', group: 'results', hint: 'Creator đã rút yêu cầu khi đang chờ.' },

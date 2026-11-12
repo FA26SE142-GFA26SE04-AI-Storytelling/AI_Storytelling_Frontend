@@ -16,7 +16,7 @@ function choiceList(choices: Quiz['choices']): string[] {
 export default function LearningMaterials({ vocabulary, quizzes }: Props) {
   return <div className="st-learn">
     <section><b className="st-learn-title">Từ vựng ({vocabulary.length})</b>
-      {vocabulary.length ? vocabulary.map((v, i) => <p key={i}><b>{v.term}</b> — {v.definition}</p>) : <p className="sub">Chưa có từ vựng.</p>}
+      {vocabulary.length ? <div className="st-learn-vocab">{vocabulary.map((v, i) => <div className="st-learn-vitem" key={i}><b>{v.term}</b><span>{v.definition}</span></div>)}</div> : <p className="sub">Chưa có từ vựng.</p>}
     </section>
     <section><b className="st-learn-title">Câu đố ({quizzes.length})</b>
       {quizzes.length ? quizzes.map((q, i) => { const choices = choiceList(q.choices); return <div className="st-learn-item" key={i}>

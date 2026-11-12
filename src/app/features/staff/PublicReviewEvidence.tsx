@@ -3,7 +3,9 @@ import type * as B from '@/app/types/backendContracts';
 import SafeImage from '@/app/components/SafeImage';
 import { Check, ShieldCheck } from 'lucide-react';
 import { coverFor } from '@/app/lib/storyView';
-import ModerationEvidence from './ModerationEvidence';
+import ModerationEvidence, { ModerationFlagHeader } from './ModerationEvidence';
+import { formatFlagName } from './moderationFlagDisplay';
+import { CreatorOutlineStrip, ManuscriptCard } from './ModerationInspectionPrimitives';
 import { LISTENING_TYPE_LABELS } from './changeRequestOptions';
 
 /** Dấu ! báo mục còn thiếu; rê chuột để xem lý do. */
@@ -55,7 +57,7 @@ function resolveCover(d: B.PublicReviewPackageDto): string | null {
   return pic ? `${pic.url}${m[2] ?? ''}` : null;
 }
 
-/** Thông tin chung của truyện: ảnh bìa, độ tuổi, mức đọc, thể loại, mô tả, bài học. */
+/** Thông tin chung của truyện: ảnh bìa, độ tuổi, mức đọc, thể loại, dàn ý, mô tả, bài học. */
 export function StoryFacts({ d }: { d: B.PublicReviewPackageDto }) {
   const lesson = d.story.moralLesson || d.version.lesson;
   return <div className="st-group"><b className="st-group-title">Thông tin truyện</b>
@@ -69,8 +71,15 @@ export function StoryFacts({ d }: { d: B.PublicReviewPackageDto }) {
         <div><small>Phiên bản</small><b>V{d.versionNo}{d.isResubmission ? ' · gửi lại' : ''}</b></div>
       </div>
     </div>
-    {d.story.description && <div className="st-quote"><small>Mô tả</small><p>{d.story.description}</p></div>}
-    <div className="st-quote"><small>Bài học</small><p>{lesson || 'Creator chưa ghi bài học.'}</p></div>
+    <CreatorOutlineStrip
+      opening={d.version.outlineOpening}
+      development={d.version.outlineDevelopment}
+      ending={d.version.outlineEnding}
+    />
+    <div className="mod-brief-pair">
+      {d.story.description && <ManuscriptCard variant="brief" label="Mô tả truyện" text={d.story.description} />}
+      <ManuscriptCard variant="brief" label="Bài học" text={lesson} emptyText="Creator chưa ghi bài học." />
+    </div>
   </div>;
 }
 
@@ -110,13 +119,17 @@ export function SafetyScanSection({
       {metaParts.length > 0 && <span className="st-review-meta">{metaParts.join(' · ')}</span>}
     </div>
     {flags.length > 0
-      ? flags.map((f) => <div className="st-scene" key={f.flagId}>
-          <b>{f.name}{!f.resolved && <Warn why="Cờ chưa xử lý" />}</b>
-          <ModerationEvidence flag={f} content={content} />
-          <button className="btn btn-s" disabled={busy || f.resolved} onClick={() => onResolveFlag(f.flagId, f.name)}>
-            <ShieldCheck className="ic" />{f.resolved ? 'Đã xử lý' : 'An toàn'}
-          </button>
-        </div>)
+      ? flags.map((f) => {
+          const displayName = formatFlagName(f.name, f.kind);
+          return <div className="st-scene mod-flag-card" key={f.flagId}>
+            <ModerationFlagHeader flag={f} trailing={!f.resolved && <Warn why="Cờ chưa xử lý" />} />
+            <ModerationEvidence flag={f} content={content} />
+            {f.resolved && f.resolvedReason && <p className="sub mod-flag-note">Ghi chú xử lý: {f.resolvedReason}</p>}
+            <button className="btn btn-s" disabled={busy || f.resolved} onClick={() => onResolveFlag(f.flagId, displayName)}>
+              <ShieldCheck className="ic" />{f.resolved ? 'Đã xử lý' : 'An toàn'}
+            </button>
+          </div>;
+        })
       : <>
           <p className="sub">
             {status === 'Safe'
@@ -127,8 +140,8 @@ export function SafetyScanSection({
           </p>
           {advisory.length > 0 && <>
             <b className="st-scene-label">Lưu ý mức nhẹ do AI ghi nhận (tham khảo, không chặn duyệt)</b>
-            {advisory.map((f) => <div className="st-scene" key={f.flagId}>
-              <b>{f.name}{f.criterionCode ? ` (${f.criterionCode})` : ''}</b>
+            {advisory.map((f) => <div className="st-scene mod-flag-card" key={f.flagId}>
+              <ModerationFlagHeader flag={f} />
               <ModerationEvidence flag={f} content={content} />
             </div>)}
           </>}

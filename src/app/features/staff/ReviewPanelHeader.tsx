@@ -1,4 +1,5 @@
 'use client';
+import type { ReactNode } from 'react';
 import type { ReviewPackage } from '@/app/services/moderationService';
 import type { QueueItem } from '@/app/types/staff';
 import { formatSubmittedAt, reviewPackageSubmittedAt, reviewPackageSubmitterLabel, reviewPackageTitle } from './moderationQueueDisplay';
@@ -8,11 +9,13 @@ export function ReviewPanelHeader({
   queueItem,
   message,
   sourceTag,
+  snapshot,
 }: {
   item: ReviewPackage;
   queueItem?: QueueItem;
   message: string;
   sourceTag?: string | null;
+  snapshot?: ReactNode;
 }) {
   const { data } = item;
   const title = reviewPackageTitle(item, queueItem);
@@ -28,11 +31,12 @@ export function ReviewPanelHeader({
         {sourceTag && <span className="pill draft">{sourceTag}</span>}
         <span className="st-review-meta">Thời điểm gửi: {formatSubmittedAt(submittedAt)}</span>
         {expiryIso && (
-          <span className="pill wait" style={{ width: 'fit-content' }}>
+          <span className="pill wait mod-inline-pill">
             Giữ mục đến {new Date(expiryIso).toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
           </span>
         )}
       </div>
+      {snapshot}
       {message && <div className="notice" role="status" data-inline-notice>{message}</div>}
     </div>
   );

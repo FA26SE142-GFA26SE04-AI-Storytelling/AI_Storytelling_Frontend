@@ -12,6 +12,16 @@ import type { ApiResponse } from '@/app/types/auth';
 import type { QueueItem } from '@/app/types/staff';
 import ChangeRequestDialog from './ChangeRequestDialog';
 import LearningMaterials from './LearningMaterials';
+import {
+  EditorialReviewSplit,
+  InspectionSnapshotBar,
+  ManuscriptCard,
+  ReadingFilterBar,
+  ReviewHistoryList,
+  SceneCardShell,
+  countWords,
+  type SnapshotMetric,
+} from './ModerationInspectionPrimitives';
 import { ListeningList, SafetyScanSection, SourceNote, StoryFacts, Warn, criterionEvidence } from './PublicReviewEvidence';
 import ReviewPicture, { ZoomLightbox } from './ReviewPicture';
 import { ReviewPanelHeader } from './ReviewPanelHeader';
@@ -53,6 +63,61 @@ function jumpTo(id: string) {
   });
 }
 
+function buildPublicMetrics(d: B.PublicReviewPackageDto): SnapshotMetric[] {
+  const totalScenes = d.scenes.length;
+  const viewedScenes = d.scenes.filter(s => s.viewed).length;
+  const segments = d.scenes.flatMap(s => s.segments);
+  const audioSegments = segments.filter(s => s.audioUrl);
+  const audioTotal = audioSegments.length;
+  const audioHeard = audioSegments.filter(s => s.heard).length;
+  const openFlags = d.flags.filter(f => !f.resolved).length;
+  const checkKeys = Object.keys(CHECK_LABEL) as (keyof typeof CHECK_LABEL)[];
+  const checkedDone = checkKeys.filter(k => d.checklist[k] !== null).length;
+
+  return [
+    {
+      id: 'scenes',
+      label: 'Cảnh đã xem',
+      value: totalScenes === 0 ? 'Văn bản' : `${viewedScenes}/${totalScenes}`,
+      hint: totalScenes === 0 ? 'Bản không chia cảnh' : viewedScenes === totalScenes ? 'Đủ các cảnh' : 'Cần bấm Đã xem',
+      tone: totalScenes === 0 || viewedScenes === totalScenes ? 'ok' : 'wait',
+      targetId: 'creator-sec-media',
+    },
+    {
+      id: 'audio',
+      label: 'Âm thanh đã nghe',
+      value: audioTotal === 0 ? 'Không có' : `${audioHeard}/${audioTotal}`,
+      hint: audioTotal === 0 ? 'Chưa có tệp audio' : audioHeard >= audioTotal ? 'Đã nghe hết' : 'Nghe đoạn cảnh báo',
+      tone: audioTotal === 0 || audioHeard >= audioTotal ? 'ok' : 'wait',
+      targetId: 'creator-sec-media',
+    },
+    {
+      id: 'ai',
+      label: 'Quét an toàn AI',
+      value: openFlags > 0 ? `${openFlags} cờ mở` : d.safetyScan?.status === 'HardBlock' ? 'HardBlock' : 'Ổn định',
+      hint: d.flags.length ? `${d.flags.length} cờ vùng xám` : d.safetyScan?.status === 'Safe' ? 'Safe (0 cờ)' : 'Chưa phát hiện cờ',
+      tone: openFlags > 0 || d.safetyScan?.status === 'HardBlock' ? 'flag' : 'ok',
+      targetId: 'creator-sec-ai',
+    },
+    {
+      id: 'checks',
+      label: 'Checklist',
+      value: `${checkedDone}/${checkKeys.length}`,
+      hint: checkedDone === checkKeys.length ? 'Đã chấm đủ' : `Còn ${checkKeys.length - checkedDone} mục`,
+      tone: checkedDone === checkKeys.length ? 'ok' : 'wait',
+      targetId: 'creator-sec-checklist',
+    },
+    {
+      id: 'blockers',
+      label: 'Chặn duyệt',
+      value: d.approveBlockers.length === 0 ? 'Sẵn sàng' : `${d.approveBlockers.length} mục`,
+      hint: d.approveBlockers.length === 0 ? 'Đủ điều kiện duyệt' : 'Xem mục cần gỡ',
+      tone: d.approveBlockers.length === 0 ? 'ok' : 'flag',
+      targetId: 'creator-sec-decision',
+    },
+  ];
+}
+
 export default function PublicStoryReviewPanel({
   id,
   queueItem,
@@ -70,6 +135,7 @@ export default function PublicStoryReviewPanel({
   const riseRef = useRiseIn<HTMLDivElement>('.st-group', [id, item ? 1 : 0], { delay: 40, distance: 10 });
 
   const [reason, setReason] = useState('');
+  const [readTab, setReadTab] = useState<'all' | 'brief' | 'scenes' | 'learning'>('all');
   const [compare, setCompare] = useState<B.PublicVersionComparisonDto | null>(null);
   const [changeOpen, setChangeOpen] = useState(false);
   const [changeFailed, setChangeFailed] = useState(false);
@@ -78,6 +144,7 @@ export default function PublicStoryReviewPanel({
   const [zoom, setZoom] = useState<{ url: string; alt: string } | null>(null);
 
   useEffect(() => {
+    setReadTab('all');
     setCompare(null);
     setChangeOpen(false);
     setChangeFailed(false);
@@ -103,6 +170,10 @@ export default function PublicStoryReviewPanel({
   const has = (code: string) => blockers.some(b => b.code === code);
   const locked = busy || claimBlocked;
   const usableReason = !!reason.trim();
+  const jumpPublic = (targetId: string) => {
+    if (targetId === 'creator-sec-media' || targetId === 'creator-sec-learning') setReadTab('all');
+    requestAnimationFrame(() => jumpTo(targetId));
+  };
 
   const setCheck = async (key: keyof typeof CHECK_LABEL, value: boolean) => {
     patch(cur => cur.kind === 'PublicStoryReview'
@@ -128,94 +199,128 @@ export default function PublicStoryReviewPanel({
     if (ok) onDecision(outcome);
   };
 
-  return (
-    <div className="st-card st-review" ref={riseRef}>
-      <nav className="mod-anchors" aria-label="Điều hướng nhanh gói duyệt">
-        <button type="button" onClick={() => jumpTo('creator-sec-media')}>Nội dung &amp; media</button>
-        <button type="button" onClick={() => jumpTo('creator-sec-learning')}>Học liệu</button>
-        <button type="button" onClick={() => jumpTo('creator-sec-ai')}>Bằng chứng AI</button>
-        <button type="button" onClick={() => jumpTo('creator-sec-decision')}>Quyết định</button>
-      </nav>
+  const showBrief = readTab === 'all' || readTab === 'brief';
+  const showScenes = readTab === 'all' || readTab === 'scenes';
+  const showLearning = readTab === 'all' || readTab === 'learning';
 
-      <ReviewPanelHeader item={item} queueItem={queueItem} message={message} />
-
+  const header = (
+    <>
+      <ReviewPanelHeader
+        item={item}
+        queueItem={queueItem}
+        message={message}
+        snapshot={<InspectionSnapshotBar metrics={buildPublicMetrics(d)} onJump={jumpPublic} />}
+      />
       {claimBlocked && (
         <div className="notice err row st-wrap" role="alert" data-inline-notice>
           <span>Quyền giữ hồ sơ không còn hiệu lực hoặc dữ liệu đã thay đổi. Ghi chú chưa gửi vẫn được giữ nguyên; hãy tải lại danh sách để kiểm tra trạng thái mới.</span>
           <button type="button" className="btn btn-s" onClick={refresh}><RefreshCw className="ic" />Tải lại quyền</button>
         </div>
       )}
+      <ReviewHistoryList history={d.reviewHistory ?? []} />
+    </>
+  );
 
+  const left = (
+    <>
       <div id="creator-sec-media" className="mod-anchor-target">
-        <StoryFacts d={d} />
-        <div className="st-group">
+        <div className={showBrief ? '' : 'mod-hidden-section'}>
+          <StoryFacts d={d} />
+        </div>
+        <div className={`st-group${showScenes ? '' : ' mod-hidden-section'}`}>
           <b className="st-group-title">
             Các cảnh cần xem và nghe
             {has('views_incomplete') && <Warn why="Chưa xem đủ các cảnh hoặc chưa nghe audio" />}
           </b>
+          {d.scenes.length > 0 && content.trim().length > 0 && (
+            <details className="mod-fulltext-acc">
+              <summary>Đọc toàn văn bản gốc Creator gửi ({countWords(content)} từ)</summary>
+              <ManuscriptCard variant="story" label="Toàn văn tác phẩm" text={content} />
+            </details>
+          )}
           {d.scenes.length === 0 ? (
-            content
-              ? <div className="st-content" style={{ whiteSpace: 'pre-wrap' }}>{content}</div>
+            content.trim()
+              ? <ManuscriptCard variant="story" label="Toàn văn tác phẩm Creator gửi" text={content} />
               : <p className="sub">Phiên bản này chưa có cảnh hoặc nội dung văn bản.</p>
           ) : (
-            d.scenes.map(scene => (
-              <section className={`st-scene${scene.viewed ? ' viewed' : ''}`} key={scene.sceneId}>
-                <b>
-                  Cảnh {scene.sceneIndex + 1}
-                  {!scene.viewed && <Warn why="Chưa xác nhận đã xem cảnh này" />}
-                </b>
-                <p className="st-scene-text">{scene.sceneText}</p>
-                {scene.illustrations.length > 0 && (
-                  <div className="st-scene-part st-scene-pics">
-                    <b className="st-scene-label">Tranh minh hoạ</b>
-                    <div className="st-pics">
-                      {scene.illustrations.map(i => (
-                        <div className="pr-pic" key={i.beatOrder}>
-                          {i.url
-                            ? <ReviewPicture url={i.url} alt={i.visualFocus} onZoom={(url, alt) => setZoom({ url, alt })} />
-                            : <div className="st-pic st-pic-empty"><span>Tranh chưa sẵn sàng</span></div>}
-                          <SourceNote source={i.source} sourceDeclaration={i.sourceDeclaration} rightsDeclaration={i.rightsDeclaration} />
+            d.scenes.map(scene => {
+              const hasMedia = scene.illustrations.length > 0 || scene.segments.length > 0;
+              return (
+                <SceneCardShell
+                  key={scene.sceneId}
+                  sceneNumber={scene.sceneIndex + 1}
+                  viewed={scene.viewed}
+                  headerBadge={!scene.viewed ? <Warn why="Chưa xác nhận đã xem cảnh này" /> : null}
+                  prose={scene.sceneText}
+                  hasMedia={hasMedia}
+                  mediaSlot={
+                    <>
+                      {scene.illustrations.length > 0 && (
+                        <div className="st-scene-part st-scene-pics">
+                          <b className="st-scene-label">Tranh minh hoạ</b>
+                          <div className="st-pics">
+                            {scene.illustrations.map(i => (
+                              <div className="pr-pic" key={i.beatOrder}>
+                                {i.url
+                                  ? <ReviewPicture url={i.url} alt={i.visualFocus} onZoom={(url, alt) => setZoom({ url, alt })} />
+                                  : <div className="st-pic st-pic-empty"><span>Tranh chưa sẵn sàng</span></div>}
+                                <SourceNote source={i.source} sourceDeclaration={i.sourceDeclaration} rightsDeclaration={i.rightsDeclaration} />
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {scene.segments.length > 0 && (
-                  <div className="st-scene-part st-scene-audio">
-                    <b className="st-scene-label">Âm thanh</b>
-                    {scene.segments.map(s => (
-                      <div key={s.segmentId} className="st-seg">
-                        <div className="row">
-                          <SourceNote source={s.audioSource} sourceDeclaration={s.sourceDeclaration} rightsDeclaration={s.rightsDeclaration} />
-                          {s.hasPronunciationWarning && <span className="pill wait">Cần nghe kỹ phát âm</span>}
+                      )}
+                      {scene.segments.length > 0 && (
+                        <div className="st-scene-part st-scene-audio">
+                          <b className="st-scene-label">Âm thanh</b>
+                          {scene.segments.map(s => (
+                            <div key={s.segmentId} className="st-seg">
+                              <div className="row st-wrap">
+                                <SourceNote source={s.audioSource} sourceDeclaration={s.sourceDeclaration} rightsDeclaration={s.rightsDeclaration} />
+                                {s.hasPronunciationWarning && <span className="pill wait">Cần nghe kỹ phát âm</span>}
+                              </div>
+                              {!scene.sceneText.includes(s.text.trim()) && <p className="mod-pre">{s.text}</p>}
+                              <SegmentAudio
+                                url={s.audioUrl}
+                                heard={s.heard}
+                                onHeard={() => void act(() => moderationService.view(id, 'audio', s.segmentId))}
+                              />
+                            </div>
+                          ))}
                         </div>
-                        {!scene.sceneText.includes(s.text.trim()) && <p>{s.text}</p>}
-                        <SegmentAudio
-                          url={s.audioUrl}
-                          heard={s.heard}
-                          onHeard={() => void act(() => moderationService.view(id, 'audio', s.segmentId))}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-                <button type="button" className="btn btn-s" disabled={locked || scene.viewed} onClick={() => void viewScene(scene.sceneId)}>
-                  <Check className="ic" aria-hidden="true" />
-                  {scene.viewed ? 'Đã xem' : 'Xác nhận đã xem'}
-                </button>
-              </section>
-            ))
+                      )}
+                    </>
+                  }
+                  actionSlot={
+                    <button type="button" className="btn btn-s" disabled={locked || scene.viewed} onClick={() => void viewScene(scene.sceneId)}>
+                      <Check className="ic" aria-hidden="true" />
+                      {scene.viewed ? 'Đã xem' : 'Xác nhận đã xem'}
+                    </button>
+                  }
+                />
+              );
+            })
           )}
         </div>
       </div>
 
-      <div id="creator-sec-learning" className="mod-anchor-target">
+      <div id="creator-sec-learning" className={`mod-anchor-target${showLearning ? '' : ' mod-hidden-section'}`}>
         <ListeningList items={d.listeningInteractions ?? []} />
         <div className="st-group">
           <b className="st-group-title">Học liệu và so sánh phiên bản</b>
           <details open>
             <summary>Học liệu</summary>
             <LearningMaterials vocabulary={d.vocabulary} quizzes={d.quizzes} />
+            {d.discussionQuestions.length > 0 && (
+              <div className="st-learn">
+                <section>
+                  <b className="st-learn-title">Câu hỏi thảo luận ({d.discussionQuestions.length})</b>
+                  {d.discussionQuestions.map((dq, idx) => (
+                    <p key={idx}>• {dq.question}{dq.isMoralLesson ? ' (Bài học đạo đức)' : ''}</p>
+                  ))}
+                </section>
+              </div>
+            )}
           </details>
           <div className="row">
             {(['previous', 'public'] as const).map(against => (
@@ -238,7 +343,11 @@ export default function PublicStoryReviewPanel({
           )}
         </div>
       </div>
+    </>
+  );
 
+  const right = (
+    <>
       <div id="creator-sec-ai" className="mod-anchor-target">
         <SafetyScanSection
           packageData={d}
@@ -254,21 +363,25 @@ export default function PublicStoryReviewPanel({
           {has('checklist_incomplete') && <Warn why="Checklist chưa chấm đủ" />}
         </b>
         <div className="st-checks">
-          {(Object.keys(CHECK_LABEL) as (keyof typeof CHECK_LABEL)[]).map(key => (
-            <div className="field" key={key}>
-              <span className="st-flabel">
-                {CHECK_LABEL[key]} <InfoTip text={criterionEvidence(d, key)} />
-                {d.checklist[key] === null && <Warn why="Chưa chấm" />}
-              </span>
-              <Select<string>
-                ariaLabel={CHECK_LABEL[key]}
-                disabled={locked}
-                value={d.checklist[key] === null ? '' : String(d.checklist[key])}
-                options={CHECK_OPTIONS}
-                onChange={v => { if (v && !locked) void setCheck(key, v === 'true'); }}
-              />
-            </div>
-          ))}
+          {(Object.keys(CHECK_LABEL) as (keyof typeof CHECK_LABEL)[]).map(key => {
+            const evidence = criterionEvidence(d, key);
+            return (
+              <div className="field" key={key}>
+                <span className="st-flabel">
+                  {CHECK_LABEL[key]} <InfoTip text={evidence} />
+                  {d.checklist[key] === null && <Warn why="Chưa chấm" />}
+                </span>
+                <p className="mod-evidence-inline">{evidence}</p>
+                <Select<string>
+                  ariaLabel={CHECK_LABEL[key]}
+                  disabled={locked}
+                  value={d.checklist[key] === null ? '' : String(d.checklist[key])}
+                  options={CHECK_OPTIONS}
+                  onChange={v => { if (v && !locked) void setCheck(key, v === 'true'); }}
+                />
+              </div>
+            );
+          })}
         </div>
       </div>
 
@@ -289,7 +402,7 @@ export default function PublicStoryReviewPanel({
         )}
       </div>
 
-      <div id="creator-sec-decision" className="st-group mod-anchor-target">
+      <div id="creator-sec-decision" className="st-group mod-anchor-target mod-decision-dock">
         <b className="st-group-title">Quyết định</b>
         {blockers.length > 0 && (
           <ul className="st-blockers" role="status" aria-label="Việc còn thiếu trước khi duyệt">
@@ -297,11 +410,11 @@ export default function PublicStoryReviewPanel({
               const target = publicBlockerAnchor(b.code);
               return (
                 <li key={b.code} className="mod-blocker-item">
-                  <span className="row" style={{ flex: '1 1 220px' }}>
+                  <span className="row mod-blocker-copy">
                     <CircleAlert className="ic" aria-hidden="true" />
                     <span>{b.message}</span>
                   </span>
-                  <button type="button" className="mod-blocker-link" onClick={() => jumpTo(target.id)}>
+                  <button type="button" className="mod-blocker-link" onClick={() => jumpPublic(target.id)}>
                     {target.label}
                   </button>
                 </li>
@@ -350,6 +463,29 @@ export default function PublicStoryReviewPanel({
           </button>
         </div>
       </div>
+    </>
+  );
+
+  return (
+    <>
+      <EditorialReviewSplit
+        innerRef={riseRef}
+        header={header}
+        readingControls={
+          <ReadingFilterBar
+            value={readTab}
+            onChange={setReadTab}
+            tabs={[
+              { id: 'all', label: 'Tất cả nội dung' },
+              { id: 'brief', label: 'Thông tin & Dàn ý' },
+              { id: 'scenes', label: `Cảnh & Media (${d.scenes.length})` },
+              { id: 'learning', label: 'Học liệu & So sánh' },
+            ]}
+          />
+        }
+        left={left}
+        right={right}
+      />
 
       <ChangeRequestDialog
         open={changeOpen}
@@ -401,6 +537,6 @@ export default function PublicStoryReviewPanel({
       )}
 
       <ZoomLightbox zoom={zoom} onClose={() => setZoom(null)} />
-    </div>
+    </>
   );
 }
