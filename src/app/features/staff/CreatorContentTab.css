@@ -1,0 +1,134 @@
+/* Tiêu đề nhóm nổi bật hơn chữ thường; icon (i) nằm ngay cạnh chữ. */
+.cct-tab .sec-h {
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 2px;
+  margin: 18px 0 10px;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 800;
+  color: var(--text);
+}
+
+.cct-tab > .sec-h:first-child {
+  margin-top: 4px;
+}
+
+/* Hàng 4 thẻ luôn đủ 4 cột (2 cột trên màn hẹp) để không có thẻ lẻ một mình. */
+.cct-tab .ce-stats.cct-four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .cct-tab .ce-stats.cct-four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.cct-partner {
+  border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line));
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  padding: 16px 20px;
+  margin-top: 16px;
+}
+
+.cct-partner-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.cct-tier {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--ink-warm);
+  background: color-mix(in srgb, var(--gold) 30%, transparent);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+}
+
+.cct-eligible {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+}
+
+.cct-crit {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.cct-row {
+  display: grid;
+  /* Cột nhãn và cột giá trị cố định để các thanh thẳng hàng. */
+  grid-template-columns: 13rem minmax(0, 1fr) 6.5rem 20px;
+  gap: 12px;
+  align-items: center;
+  font-size: var(--fs-md);
+}
+
+.cct-bar {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--gold) 15%, transparent);
+}
+
+/* Chiều rộng = % tiêu chí (inline style); thanh mọc ngang từ 0 khi vào tab. */
+.cct-bar > i {
+  display: block;
+  height: 100%;
+  background: var(--gold);
+  border-radius: inherit;
+  animation: cct-grow 0.75s ease-out both;
+}
+
+.cct-row:nth-child(2) .cct-bar > i { animation-delay: 70ms; }
+.cct-row:nth-child(3) .cct-bar > i { animation-delay: 140ms; }
+.cct-row:nth-child(4) .cct-bar > i { animation-delay: 210ms; }
+
+@keyframes cct-grow {
+  from { width: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cct-bar > i { animation: none; }
+}
+
+.cct-val {
+  font-weight: 700;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.cct-ok {
+  color: var(--primary);
+}
+
+.cct-no {
+  color: var(--gold-deep);
+}
+
+@media (max-width: 640px) {
+  .cct-row {
+    grid-template-columns: 1fr auto 20px;
+  }
+
+  .cct-bar {
+    grid-column: 1 / -1;
+    order: 1;
+  }
+}

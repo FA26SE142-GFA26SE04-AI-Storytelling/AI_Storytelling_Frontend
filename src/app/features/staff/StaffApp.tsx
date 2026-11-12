@@ -32,6 +32,7 @@ import { CreatorCreateAi, CreatorCreateManual, type CreatorPageProps } from "./C
 import { CreatorLibrary } from "./CreatorLibrary";
 import { CreatorMyStories } from "./CreatorMyStories";
 import { CreatorStatistics } from "./CreatorStatistics";
+import ModeratorStatistics from "./ModeratorStatistics";
 import { AdminStaff } from "./AdminPeople";
 import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
@@ -86,6 +87,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", short: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Lộ trình mẫu", icon: Route, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
+    { id: "stats", label: "Thống kê", short: "Thống kê", icon: ChartColumn, view: ModeratorStatistics, hint: "Hàng đợi, SLA và quyết định của bạn" },
     ...ACCOUNT_PAGES,
   ],
   ContentCreator: [
@@ -93,7 +95,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "create-ai", label: "Viết truyện bằng AI", menuLabel: "Viết bằng AI", short: "Viết bằng AI", icon: WandSparkles, view: CreatorCreateAi, hint: "AI viết truyện mẫu từ ý tưởng của bạn" },
     { id: "create-manual", label: "Tự viết truyện", menuLabel: "Tự viết", short: "Tự viết", icon: PencilLine, view: CreatorCreateManual, hint: "Bạn tự viết nội dung, lưu thành từng phiên bản" },
     { id: "my-stories", label: "Truyện của tôi", short: "Truyện của tôi", icon: FolderOpen, view: CreatorMyStories, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở" },
-    { id: "stats", label: "Thống kê", short: "Thống kê", icon: ChartColumn, view: CreatorStatistics, hint: "Lượt đọc và thu nhập ước tính của truyện" },
+    { id: "stats", label: "Thống kê", short: "Thống kê", icon: ChartColumn, view: CreatorStatistics, hint: "Lượt đọc, thu nhập và nội dung truyện" },
     ...CREATOR_ACCOUNT_PAGES,
   ],
 };
@@ -115,6 +117,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     { label: "Xử lý an toàn", icon: ShieldAlert, items: ["gray-zone", "content-reports", "removal-requests"] },
     { label: "Công cụ", icon: ListChecks, items: ["rubrics", "authoring-guides", "wish-cards"] },
     "templates",
+    "stats",
   ],
   ContentCreator: ["library", "create-ai", "create-manual", "my-stories", "stats"],
 };

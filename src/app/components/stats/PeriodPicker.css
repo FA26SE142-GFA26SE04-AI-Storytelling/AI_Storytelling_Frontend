@@ -18,3 +18,29 @@
 .period-picker .notice.warn {
   width: 100%;
 }
+
+/* Điện thoại: 4 nút kỳ chia đều một hàng (bỏ icon lịch cho đủ chỗ); ô chọn ngày xuống hàng dưới. */
+@media (max-width: 480px) {
+  .period-picker {
+    gap: 6px;
+  }
+
+  .period-picker > .ic {
+    display: none;
+  }
+
+  /* Mỗi nút chiếm đúng 1/4 hàng (trừ khoảng cách) để hai ô ngày không chen lên cùng hàng. */
+  .period-picker > .btn {
+    flex: 1 1 calc(25% - 6px);
+    min-width: 0;
+    padding-inline: 6px;
+    justify-content: center;
+    white-space: nowrap;
+    font-size: var(--fs-xs);
+  }
+
+  .period-picker .inp {
+    flex: 1 1 calc(50% - 6px);
+    min-width: 0;
+  }
+}

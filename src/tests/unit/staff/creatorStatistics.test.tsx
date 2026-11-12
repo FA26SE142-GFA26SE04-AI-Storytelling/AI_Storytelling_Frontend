@@ -2,6 +2,7 @@ import { isValidElement, type ReactNode } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { MonthPeriod, Period } from '@/app/lib/monthPeriods';
 import type {
+  CreatorContentStatisticsDto,
   CreatorReadingStatisticsDto,
   CreatorRevenueStatisticsDto,
 } from '@/app/types/backendContracts';
@@ -15,11 +16,13 @@ const host = vi.hoisted(() => {
 
   const reading = vi.fn();
   const revenue = vi.fn();
+  const content = vi.fn();
   const showToast = vi.fn();
 
   return {
     reading,
     revenue,
+    content,
     showToast,
     begin() {
       cursor = 0;
@@ -87,6 +90,7 @@ vi.mock('@/app/services/creatorStatisticsService', () => ({
   creatorStatisticsService: {
     reading: host.reading,
     revenue: host.revenue,
+    content: host.content,
   },
 }));
 
@@ -105,6 +109,7 @@ vi.mock('@/app/lib/toast', () => ({
 
 import { CreatorReadingTab } from '@/app/features/staff/CreatorReadingTab';
 import { CreatorIncomeTab } from '@/app/features/staff/CreatorIncomeTab';
+import CreatorContentTab from '@/app/features/staff/CreatorContentTab';
 
 type Node = { type: unknown; props: Record<string, unknown> };
 
@@ -223,6 +228,33 @@ const revenueFixture: CreatorRevenueStatisticsDto = {
   ],
 };
 
+const contentFixture: CreatorContentStatisticsDto = {
+  periodStart: '2026-11-01',
+  periodEnd: '2026-11-30',
+  draft: 3,
+  ready: 2,
+  pendingReview: 1,
+  published: 12,
+  submissionsApproved: 5,
+  submissionsRejected: 1,
+  submissionsChangesRequested: 2,
+  submissionsWithdrawn: 0,
+  remainingAiCredits: 8,
+  remainingSubmitCredits: 4,
+  tier: 'Creator',
+  partnerProgress: {
+    windowStart: '2026-08-14',
+    windowEnd: '2026-11-12',
+    isEligible: true,
+    criteria: [
+      { key: 'published_stories', current: 12, target: 10, met: true },
+      { key: 'completion_rate', current: 0.75, target: 0.6, met: true },
+      { key: 'valid_reads', current: 1500, target: 1000, met: true },
+      { key: 'no_violation_removals', current: 0, target: 0, met: true },
+    ],
+  },
+};
+
 function renderReading(period = testPeriod, months = testMonths) {
   host.begin();
   const tree = CreatorReadingTab({ period, months });
@@ -233,6 +265,13 @@ function renderReading(period = testPeriod, months = testMonths) {
 function renderIncome(period = testPeriod, months = testMonths) {
   host.begin();
   const tree = CreatorIncomeTab({ period, months });
+  host.commit();
+  return tree;
+}
+
+function renderContent(period = testPeriod) {
+  host.begin();
+  const tree = CreatorContentTab({ period });
   host.commit();
   return tree;
 }
@@ -248,6 +287,11 @@ describe('Creator Statistics Tabs', () => {
       success: true,
       message: '',
       data: revenueFixture,
+    });
+    host.content.mockResolvedValue({
+      success: true,
+      message: '',
+      data: contentFixture,
     });
   });
 
@@ -328,6 +372,55 @@ describe('Creator Statistics Tabs', () => {
       expect(host.showToast).toHaveBeenCalledWith('Lỗi tải thu nhập', 'err');
       const text = allText(tree);
       expect(text).not.toContain('250.000 đ');
+    });
+  });
+
+  describe('CreatorContentTab', () => {
+    it('shows published count, the 4 partner criteria and the "Đủ điều kiện" badge when isEligible is true', async () => {
+      renderContent();
+      await tick();
+      const tree = renderContent();
+
+      const text = allText(tree);
+      expect(text).toContain('Đã xuất bản');
+      expect(text).toContain('12');
+      expect(text).toContain('Truyện đã xuất bản');
+      expect(text).toContain('Tỉ lệ đọc xong');
+      expect(text).toContain('Lượt đọc hợp lệ');
+      expect(text).toContain('Không bị gỡ vì vi phạm');
+      expect(text).toContain('Đủ điều kiện');
+    });
+
+    it('hides "Đủ điều kiện" and calls showToast when isEligible is false / service fails', async () => {
+      host.content.mockResolvedValue({
+        success: true,
+        message: '',
+        data: {
+          ...contentFixture,
+          partnerProgress: {
+            ...contentFixture.partnerProgress,
+            isEligible: false,
+          },
+        },
+      });
+
+      renderContent();
+      await tick();
+      const tree = renderContent();
+      expect(allText(tree)).not.toContain('Đủ điều kiện');
+
+      host.reset();
+      host.content.mockResolvedValue({
+        success: false,
+        message: 'Lỗi tải nội dung',
+        data: null,
+      });
+
+      renderContent();
+      await tick();
+      expect(host.showToast).toHaveBeenCalledWith('Lỗi tải nội dung', 'err');
+      const text2 = allText(renderContent());
+      expect(text2).not.toContain('Đã xuất bản');
     });
   });
 });
