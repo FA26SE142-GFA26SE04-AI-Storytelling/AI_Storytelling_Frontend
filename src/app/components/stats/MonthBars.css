@@ -1,0 +1,110 @@
+/* Biểu đồ cột thống kê theo tháng */
+.mb-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mb-chart h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--fs-lg);
+}
+
+/*
+ * Lưới ba hàng (số trên cột / vùng cột / nhãn tháng). Cột đầu là trục các mức; mỗi .ce-bar dùng
+ * display: contents để ba phần tử con rơi vào ba hàng của cột kế tiếp, nên đường kẻ ngang trong
+ * vùng cột luôn thẳng với trục dù số và nhãn tháng cao thấp khác nhau.
+ */
+.ce-bars {
+  display: grid;
+  grid-auto-flow: column;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: auto repeat(var(--cols), minmax(44px, 1fr));
+  row-gap: 8px;
+  height: 280px;
+  padding-top: 12px;
+}
+
+.ce-bar {
+  display: contents;
+}
+
+.ce-axis {
+  position: relative;
+  min-width: 44px;
+}
+
+.ce-axis span {
+  position: absolute;
+  right: 10px;
+  transform: translateY(50%);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Đường kẻ ngang ở mỗi mức (n khoảng đều nhau), đường đáy đậm hơn. */
+.ce-bar-track {
+  position: relative;
+  background: linear-gradient(color-mix(in srgb, var(--line-2) 70%, transparent) 1px, transparent 1px) 0 0 / 100% calc(100% / var(--n)) repeat-y;
+  border-bottom: 1px solid var(--line-2);
+}
+
+.ce-bar-fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(64px, 80%);
+  border-radius: 12px 12px 4px 4px;
+  background: linear-gradient(180deg, var(--primary), var(--primary-strong));
+  transition: height 0.4s ease;
+}
+
+.ce-bar-fill.on {
+  background: var(--gold);
+}
+
+.ce-bar-val {
+  justify-self: center;
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ce-bar-month {
+  justify-self: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: var(--fs-md);
+  font-weight: 800;
+  line-height: 1.15;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.ce-bar-month small {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .ce-bars {
+    overflow-x: auto;
+    grid-template-columns: auto repeat(var(--cols), minmax(40px, 1fr));
+  }
+
+  .ce-axis {
+    min-width: 36px;
+  }
+
+  .ce-bar-month,
+  .ce-bar-val {
+    font-size: var(--fs-sm);
+  }
+}

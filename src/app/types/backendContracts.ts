@@ -2012,7 +2012,7 @@ export interface SubmitPublicStoryRequestDto {
 }
 
 /** Loại gói (Luồng 2): Gói Đọc, Gói Sáng tạo, Add-on; `Legacy` là gói Personal cũ, chỉ còn trong lịch sử. */
-export type PlanType = 'Reading' | 'Creative' | 'AddOn' | 'Legacy';
+export type PlanType = 'Reading' | 'Creative' | 'AddOn' | 'Legacy' | 'CreatorPack';
 export interface SubscriptionPlanDto {
   'id': number;
   'name': string;
@@ -2023,6 +2023,24 @@ export interface SubscriptionPlanDto {
   'isPurchasable': boolean;
   /** Lý do chưa mua được (ví dụ Add-on khi chưa có gói). */
   'lockedReason': string | null;
+  'audience'?: string;
+  'submitCredits'?: number;
+}
+
+/** `GET /TokenQuota/creator/me` (chỉ role ContentCreator): lượt tạo truyện AI và lượt gửi duyệt. */
+export interface CreatorQuotaDto {
+  'aiCredits': CreatorCreditBalanceDto;
+  'submitCredits': CreatorCreditBalanceDto;
+  'monthlyAllowanceResetsAt': string;
+}
+
+/** Số lượt của một loại. Hạn mức tháng dùng trước; lượt mua không hết hạn. */
+export interface CreatorCreditBalanceDto {
+  'monthlyAllowance': number;
+  'monthlyRemaining': number;
+  'purchasedRemaining': number;
+  'otherRemaining': number;
+  'totalRemaining': number;
 }
 
 export interface AdminSubscriptionPlanDto {
@@ -2962,3 +2980,35 @@ export interface ConfirmManualContentRequest { versionId: number; revisionToken:
 export interface CreatorMediaCommand { operationId: string; storyVersionId: number; packageRevision: number; expectedConfirmed: boolean }
 export interface CreatorSelectedMedia { assetId: number; storyVersionId: number; packageRevision: number; status: string }
 export interface ConfirmManualContentResult { storyId: number; versionId: number; jobId: number; status: string; jobStatus: string; progressUrl: string; packageUrl: string }
+
+/** `GET /BusinessReport/admin/{reportId}` và `/admin` (danh sách): báo cáo đã lưu, có số liệu doanh thu/tài khoản nếu là báo cáo mới; báo cáo cũ thì revenue và accounts là null. */
+export interface AdminBusinessReportDto {
+  'id': number; 'periodStart': string; 'periodEnd': string; 'storiesGenerated': number; 'storiesApproved': number; 'storiesRejected': number; 'readingSessionsCompleted': number; 'status': string; 'publishedAt': string | null;
+  'revenue': RevenueStatisticsDto | null; 'accounts': UserAccountStatisticsDto | null;
+}
+export interface RevenueStatisticsDto {
+  'periodStart': string; 'periodEnd': string; 'totalRevenueVnd': number; 'paidTransactionCount': number;
+  'transactionsByStatus': TransactionStatusCountsDto; 'revenueByPlan': PlanRevenueDto[]; 'revenueByPlanType': PlanTypeRevenueDto[];
+  'buyingParents': number; 'repeatBuyingParents': number; 'manuallyMarkedPaidCount': number; 'manuallyMarkedPaidRevenueVnd': number;
+  'creditsGranted': number; 'creditsGrantedBySource': CreditSourceCountDto[]; 'creditsUsed': number;
+  'readingFundRate': number; 'creativeFundRate': number; 'creatorFundVnd': number;
+}
+export interface TransactionStatusCountsDto { 'paid': number; 'pending': number; 'expired': number; 'mismatchAmount': number; }
+export interface PlanRevenueDto { 'planId': number; 'planName': string; 'planType': string; 'transactionCount': number; 'revenueVnd': number; }
+export interface PlanTypeRevenueDto { 'planType': string; 'transactionCount': number; 'revenueVnd': number; }
+export interface CreditSourceCountDto { 'source': string; 'credits': number; }
+export interface UserAccountStatisticsDto {
+  'periodStart': string; 'periodEnd': string; 'totalParentAccounts': number; 'newAccounts': number; 'activeAccounts': number; 'lockedOrDisabledAccounts': number; 'childProfiles': number;
+}
+/** `GET /CreatorStatistics/reading`. favorites là số hiện tại, không theo kỳ. completionRate từ 0 đến 1. */
+export interface CreatorReadingStatisticsDto {
+  'periodStart': string; 'periodEnd': string; 'views': number; 'favorites': number; 'completedReadings': number; 'validReads': number; 'completionRate': number; 'stories': CreatorStoryReadingDto[];
+}
+export interface CreatorStoryReadingDto { 'storyId': number; 'title': string; 'views': number; 'favorites': number; 'completedReadings': number; 'validReads': number; 'completionRate': number; }
+/** `GET /CreatorStatistics/revenue`. */
+export interface CreatorRevenueStatisticsDto {
+  'periodStart': string; 'periodEnd': string; 'creatorFundVnd': number; 'readingFundRate': number; 'creativeFundRate': number; 'minimumReadSeconds': number;
+  'totalValidReadsAllCreators': number; 'myValidReads': number; 'estimatedEarningsVnd': number; 'stories': CreatorStoryRevenueDto[];
+}
+export interface CreatorStoryRevenueDto { 'storyId': number; 'title': string; 'validReads': number; 'estimatedEarningsVnd': number; }
+

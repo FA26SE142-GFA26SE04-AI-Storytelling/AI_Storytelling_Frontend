@@ -271,12 +271,6 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 .ce-stat-name { font-size: var(--fs-md); font-weight: 800; color: var(--muted); }
 .ce-stat b { font-size: var(--fs-2xl); font-weight: 800; line-height: 1.15; }
 .ce-stat-sub { font-size: var(--fs-md); font-weight: 700; color: var(--muted); }
-.ce-chart h3 { display: flex; align-items: center; gap: 8px; font-size: var(--fs-lg); }
-.ce-bars { display: flex; align-items: stretch; gap: clamp(8px, 2vw, 24px); height: 320px; padding-top: 12px; }
-.ce-bar { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 8px; }
-.ce-bar-fill { width: min(64px, 80%); border-radius: 12px 12px 4px 4px; background: linear-gradient(180deg, var(--primary), var(--primary-strong)); min-height: 2px; transition: height .4s ease; }
-.ce-bar-val { font-size: var(--fs-sm); font-weight: 800; white-space: nowrap; }
-.ce-bar-month { font-size: var(--fs-md); font-weight: 800; color: var(--muted); }
 
 /* Gói duyệt truyện: khung cảnh và tranh có viền nổi, nền trong suốt; tranh có trạng thái tải/lỗi; nút duyệt cảnh vừa chữ. */
 .st-review .st-scene { border: 2px solid var(--line-2); background: color-mix(in srgb, var(--panel) 55%, transparent); }

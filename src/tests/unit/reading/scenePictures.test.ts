@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { charInSegment, parseWordTimings, pictureAt, pictureParts, scenePictures, segmentStarts } from '@/app/features/kid/scenePictures';
+import { charInSegment, parseWordTimings, pictureAt, pictureParts, scenePictures, secondsAtChar, segmentStarts } from '@/app/features/kid/scenePictures';
 import type { ReadingScene } from '@/app/types/childReading';
 
 const text = 'Thỏ ra vườn. Thỏ thấy cà rốt. Thỏ chia cho bạn.';
@@ -66,5 +66,39 @@ describe('vị trí đang đọc', () => {
     expect(charInSegment('Thỏ thấy cà rốt.', timings, 0.65, 1)).toBe(9);
     expect(charInSegment('Thỏ thấy cà rốt.', [], 0.5, 2)).toBe(4);
     expect(charInSegment('Thỏ thấy cà rốt.', [], 1, Number.NaN)).toBe(0);
+  });
+
+  describe('mốc thời gian theo vị trí ký tự (secondsAtChar)', () => {
+    const sampleText = 'Thỏ thấy cà rốt.';
+    const timings = parseWordTimings('[{"word":"Thỏ","start":0,"end":0.3},{"word":"thấy","start":0.3,"end":0.6},{"word":"cà","start":0.6,"end":0.8},{"word":"rốt","start":0.8,"end":1.0}]');
+
+    it('không có timings: tính theo tỉ lệ ký tự', () => {
+      expect(secondsAtChar(sampleText, null, 8, 16)).toBe(8);
+      expect(secondsAtChar(sampleText, [], 4, 16)).toBe(4);
+    });
+
+    it('có timings: lấy mốc thời gian của từ tương ứng', () => {
+      expect(secondsAtChar(sampleText, timings, 1, 1.0)).toBe(0);
+      expect(secondsAtChar(sampleText, timings, 5, 1.0)).toBe(0.3);
+      expect(secondsAtChar(sampleText, timings, 9, 1.0)).toBe(0.6);
+    });
+
+    it('charOffset = 0 hoặc <= 0 trả về 0', () => {
+      expect(secondsAtChar(sampleText, timings, 0, 1.0)).toBe(0);
+      expect(secondsAtChar(sampleText, null, 0, 1.0)).toBe(0);
+      expect(secondsAtChar(sampleText, timings, -2, 1.0)).toBe(0);
+    });
+
+    it('charOffset >= length trả về duration', () => {
+      expect(secondsAtChar(sampleText, timings, sampleText.length, 1.5)).toBe(1.5);
+      expect(secondsAtChar(sampleText, timings, sampleText.length + 5, 2.0)).toBe(2.0);
+      expect(secondsAtChar(sampleText, null, sampleText.length, 3.0)).toBe(3.0);
+    });
+
+    it('duration không hợp lệ (NaN hoặc <= 0) trả về 0', () => {
+      expect(secondsAtChar(sampleText, timings, 5, Number.NaN)).toBe(0);
+      expect(secondsAtChar(sampleText, timings, 5, 0)).toBe(0);
+      expect(secondsAtChar(sampleText, timings, 5, -1)).toBe(0);
+    });
   });
 });

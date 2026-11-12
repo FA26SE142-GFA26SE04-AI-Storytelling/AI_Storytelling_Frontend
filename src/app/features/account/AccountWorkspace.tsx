@@ -22,7 +22,7 @@ type Note = { ok: boolean; text: string } | null;
 export type AccountPage = "profile" | "payment" | "activity";
 
 /** Luồng 1 Bước 1.1b — quản lý tài khoản cá nhân: thông tin, email, mật khẩu, phiên đăng nhập, xoá tài khoản. */
-export default function AccountWorkspace({ page }: { page?: AccountPage }) {
+export default function AccountWorkspace({ page, audience = 'parent' }: { page?: AccountPage; audience?: 'parent' | 'creator' }) {
   const show = (p: AccountPage) => !page || page === p;
   const { user, logout } = useAuth();
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
@@ -77,7 +77,7 @@ export default function AccountWorkspace({ page }: { page?: AccountPage }) {
         <div className="pb children-body">
           <div className={`sec${page === "profile" || page === "activity" ? " acc-wrap" : ""}`} style={page === "profile" || page === "activity" ? undefined : { gap: 28, maxWidth: page === "payment" ? undefined : 560 }}>
             {show("profile") && (page ? <section className="acc-card"><ProfileSection /></section> : <ProfileSection />)}
-            {show("payment") && <PaymentSection />}
+            {show("payment") && <PaymentSection audience={audience} />}
             {show("activity") && <><section className="acc-card"><ActivitySection /></section><section className="acc-card"><ConnectionStatus /></section></>}
 
             {show("profile") && <>

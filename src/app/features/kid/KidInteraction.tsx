@@ -4,6 +4,7 @@ import { Check, RotateCcw, SkipForward, Volume2 } from 'lucide-react';
 import Frog from '@/app/components/brand/Frog';
 import SafeImage from '@/app/components/SafeImage';
 import type { ListeningAttemptRequest, ListeningAttemptResult, ReadingInteraction } from '@/app/types/childReading';
+import { shuffle } from '@/app/lib/shuffle';
 import { useDialog } from './useDialog';
 
 /** Câu trả lời ngắn của bé tối đa 100 ký tự (giới hạn của backend). */
@@ -41,7 +42,8 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
     play(r.feedbackAudioUrl);
   };
 
-  const options = q.options;
+  // Xáo trộn một lần mỗi khi mở câu hỏi (component được gắn key theo câu), để bé không học thuộc vị trí.
+  const [options] = useState(() => shuffle(q.options));
   const optionText = (id: number) => options.find(o => o.id === id)?.text ?? '';
   const pickFeedback = chosen != null ? options.find(o => o.id === chosen)?.feedback : null;
   // Đã trả lời xong thì chỉ còn nút đi tiếp; EventOrdering chưa khớp thì cho xếp lại hoặc nghe lại.

@@ -5,6 +5,7 @@ import type * as B from "@/app/types/backendContracts";
 import { copyrightHits, GENRES, OUTPUT_MODE } from "@/app/lib/storyRules";
 import { clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, type LengthPreset } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
 import { detectPii, piiMessage } from "@/app/features/story-workflow/piiHints";
+import CreatorQuotaChip from "./CreatorQuotaChip";
 
 const LENGTHS: [LengthPreset, string][] = [["short", "Ngắn"], ["medium", "Vừa"], ["long", "Dài"]];
 
@@ -19,10 +20,12 @@ type Props = {
   onAudience: (ageBand: string, readingLevel: number) => void;
   onChange: (patch: Partial<CreatorBriefValues>) => void;
   onSubmit: () => void;
+  /** Mở trang Gói và lượt khi hết lượt AI. */
+  onBuyCredits?: () => void;
 };
 
 /** Form ý tưởng cho Content Creator: cùng bố cục và kiểu chữ với form của phụ huynh trong Studio (xem studio/BriefForm). */
-export default function CreatorBrief({ values, context, contextError, busy, ageBand, readingLevel, onAudience, onChange, onSubmit }: Props) {
+export default function CreatorBrief({ values, context, contextError, busy, ageBand, readingLevel, onAudience, onChange, onSubmit, onBuyCredits }: Props) {
   const loaded = !!context;
   const max = context ? Math.min(context.maximumLength, 5000) : 1000;
   const presets = lengthPresets(max, context?.readingLevel ?? 2, context?.recommendedTargetLength);
@@ -41,6 +44,7 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
         <h3 className="display">Truyện mẫu mới</h3>
         <span className="brief-tag"><Lock aria-hidden />{ageBand.replace("-", "–")} tuổi</span>
         <span className="brief-tag"><Lock aria-hidden />Mức đọc {readingLevel}</span>
+        <CreatorQuotaChip kind="ai" onBuy={onBuyCredits} />
       </div>
       {contextError && <div className="notice err" role="alert">{contextError}</div>}
 

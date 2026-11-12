@@ -689,19 +689,13 @@
 .kid .shelf-h h3 { position: relative; padding-bottom: 6px; }
 .kid .shelf-h h3::after { content: ""; position: absolute; left: 0; bottom: 0; width: 56px; height: 6px; border-radius: 99px; background: var(--gold); }
 
-/* Nhiều tranh trong một cảnh: xếp chồng, tranh đang hiện rõ dần (mờ vào), tranh cũ mờ đi; chấm dưới tranh để bé tự chọn. */
+/* Nhiều tranh trong một cảnh: xếp chồng, tranh đang hiện rõ dần (mờ vào), tranh cũ mờ đi. */
 .kid-story-picture { position: relative; }
 .kid-pic-layer { position: absolute; inset: 0; display: block; opacity: 0; transform: scale(1.02); transition: opacity .7s ease, transform 1.2s ease; pointer-events: none; }
 .kid-pic-layer:first-child { position: relative; height: 100%; }
 .kid-pic-layer.on { opacity: 1; transform: none; pointer-events: auto; z-index: 1; }
 .kid-pic-layer img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.kid-pic-dots { position: absolute; left: 50%; bottom: 12px; z-index: 3; transform: translateX(-50%); display: flex; gap: 6px; padding: 6px 10px; border-radius: 999px; background: color-mix(in srgb, #000 35%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
-.kid-pic-dot { width: 32px; height: 32px; padding: 0; border: 0; border-radius: 50%; background: transparent; display: grid; place-items: center; cursor: pointer; }
-.kid-pic-dot::before { content: ""; width: 12px; height: 12px; border-radius: 50%; background: color-mix(in srgb, #fff 55%, transparent); transition: transform .2s, background .2s; }
-.kid-pic-dot.on::before { background: #fff; transform: scale(1.35); }
-.kid-pic-dot:hover::before { background: #fff; }
-.kid-pic-dot:focus-visible { outline: 3px solid var(--primary); outline-offset: 1px; }
-@media (prefers-reduced-motion: reduce) { .kid-pic-layer, .kid-pic-dot::before { transition: none; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .kid-pic-layer { transition: none; transform: none; } }
 
 
 /* Đoạn thuộc tranh đang hiện: highlight như bút dạ quang (nền vàng bo tròn); đổi tranh thì nền hiện dần vào. */
