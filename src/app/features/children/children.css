@@ -222,3 +222,54 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
 /* Ghi chú trong trình tạo hồ sơ bé: khung có biểu tượng thay cho dòng chữ nhỏ. */
 .wiz-note { display: flex; align-items: center; gap: 8px; margin: 0; font-size: var(--fs-sm); }
 .wiz-note .ic { width: 18px; height: 18px; flex: none; color: var(--primary-strong); }
+
+/* F-03: Giới hạn suất đọc truyện theo gói */
+.reading-slot-banner {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid color-mix(in srgb, var(--gold-deep) 55%, transparent);
+  background: color-mix(in srgb, var(--gold) 22%, transparent);
+  color: var(--warn-ink);
+  font-size: var(--fs-md);
+  border-radius: 14px;
+}
+.reading-slot-banner > span {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.reading-slot-lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--gold) 26%, transparent);
+  color: var(--warn-ink);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.reading-slot-lock .ic {
+  width: 12px;
+  height: 12px;
+  flex: none;
+}
+.reading-slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reading-slot-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
