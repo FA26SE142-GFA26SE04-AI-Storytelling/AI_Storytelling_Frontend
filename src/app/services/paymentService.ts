@@ -1,4 +1,5 @@
 import type * as B from '@/app/types/backendContracts';
+import type { CreateSubscriptionPlanRequest, PlanSettings, UpdatePlanSettingsRequest } from '@/app/types/planSettings';
 import { apiRequest, apiQuery } from './apiClient';
 
 /** Luồng 2: gói, giao dịch SePay và lượt tạo truyện AI của người đang đăng nhập. */
@@ -25,6 +26,9 @@ export const adminPaymentService = {
   resolve: (id: number) => apiRequest<B.ReconciliationExceptionDto>(`/Payment/admin/reconciliation/${id}/resolve`, 'Chưa áp lại được gói.', { method: 'POST' }),
   plans: () => apiRequest<B.AdminSubscriptionPlanDto[]>('/Payment/admin/plans', 'Không tải được danh sách gói.'),
   updatePlan: (id: number, body: B.UpdateSubscriptionPlanRequestDto) => apiRequest<B.AdminSubscriptionPlanDto>(`/Payment/admin/plans/${id}`, 'Không lưu được gói.', { method: 'PUT', body }),
+  createPlan: (body: CreateSubscriptionPlanRequest) => apiRequest<B.AdminSubscriptionPlanDto>('/Payment/admin/plans', 'Không tạo được gói.', { method: 'POST', body }),
+  settings: (signal?: AbortSignal) => apiRequest<PlanSettings>('/Payment/admin/settings', 'Không tải được cài đặt gói.', { signal }),
+  updateSettings: (body: UpdatePlanSettingsRequest) => apiRequest<PlanSettings>('/Payment/admin/settings', 'Không lưu được cài đặt gói.', { method: 'PUT', body }),
   userQuota: (userId: number) => apiRequest<B.MyQuotaDto>(`/TokenQuota/admin/users/${userId}`, 'Không tải được lượt của tài khoản.'),
   adjust: (body: B.AdjustCreditsRequestDto) => apiRequest<B.CreditAdjustmentDto>('/TokenQuota/admin/adjustments', 'Không điều chỉnh được lượt.', { method: 'POST', body }),
   adjustments: (userId: number | null, pageIndex: number) =>
