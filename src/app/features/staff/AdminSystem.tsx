@@ -2,7 +2,7 @@
 import { confirmDialog } from "@/app/lib/confirm";
 
 import { useCallback, useEffect, useState } from "react";
-import { BadgeCheck, Coins, Pencil, RefreshCw, Search, SlidersHorizontal, Wrench } from "lucide-react";
+import { BadgeCheck, Coins, Pencil, Plus, RefreshCw, Search, Settings, SlidersHorizontal, Wrench } from "lucide-react";
 import Dialog from "@/app/components/Dialog";
 import IconButton from "@/app/components/IconButton";
 import Pager from "@/app/components/Pager";
@@ -10,6 +10,8 @@ import Select from "@/app/components/Select";
 import { adminPaymentService as pay } from "@/app/services/paymentService";
 import type { AdminPaymentTransactionDto, AdminSubscriptionPlanDto, CreditAdjustmentDto, MyQuotaDto, PagedResult, PaymentStatus, PlanType, ReconciliationExceptionDto } from "@/app/types/backendContracts";
 import { Notice, Page, fmt, fmtDay, useAction } from "./ui";
+import CreatePlanDialog from "./CreatePlanDialog";
+import PlanSettingsDialog from "./PlanSettingsDialog";
 
 const money = (n: number) => `${n.toLocaleString("vi-VN")}đ`;
 const PLAN_TYPE: Record<PlanType, string> = { Reading: "Gói Đọc", Creative: "Gói Sáng tạo", AddOn: "Add-on", Legacy: "Gói cũ", CreatorPack: "Gói Creator" };
@@ -205,6 +207,8 @@ type PlanForm = { name: string; priceVnd: number; aiCredits: number; isActive: b
 export function AdminPlans() {
   const [plans, setPlans] = useState<AdminSubscriptionPlanDto[] | null>(null);
   const [edit, setEdit] = useState<AdminSubscriptionPlanDto | null>(null);
+  const [creating, setCreating] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [form, setForm] = useState<PlanForm>({ name: "", priceVnd: 0, aiCredits: 0, isActive: true });
   const load = useCallback(async () => { const r = await pay.plans(); setPlans(r.data ?? []); return r.success ? null : r.message; }, []);
   const { note, setNote, busy, run } = useAction(load);
@@ -213,7 +217,13 @@ export function AdminPlans() {
   const changed = !!edit && (form.name !== edit.name || form.priceVnd !== edit.priceVnd || form.aiCredits !== edit.aiCredits || form.isActive !== edit.isActive);
   const valid = form.name.trim().length > 0 && form.name.length <= 150 && form.priceVnd > 0 && form.aiCredits >= 0;
   return (
-    <Page title="Gói dịch vụ">
+    <Page
+      title="Gói dịch vụ"
+      actions={<>
+        <IconButton icon={Settings} label="Cài đặt gói" className="btn btn-s" onClick={() => setSettingsOpen(true)} />
+        <IconButton icon={Plus} label="Tạo gói" className="btn btn-p" onClick={() => setCreating(true)} />
+      </>}
+    >
       <Notice note={note} />
       <div className="st-card st-scroll">
         <table className="st-table stack-table">
@@ -228,6 +238,8 @@ export function AdminPlans() {
           </tbody>
         </table>
       </div>
+      <CreatePlanDialog open={creating} onClose={() => setCreating(false)} onCreated={() => void load()} />
+      <PlanSettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       {edit && <Dialog title={`Sửa ${edit.name}`} onClose={() => setEdit(null)}>
         <div className="st-form">
           <label className="field"><span className="lbl">Tên gói</span><input className="inp" maxLength={150} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>

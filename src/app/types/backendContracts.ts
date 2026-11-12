@@ -3007,5 +3007,66 @@ export interface CreatorRevenueStatisticsDto {
   'periodStart': string; 'periodEnd': string; 'creatorFundVnd': number; 'readingFundRate': number; 'creativeFundRate': number; 'minimumReadSeconds': number;
   'totalValidReadsAllCreators': number; 'myValidReads': number; 'estimatedEarningsVnd': number; 'stories': CreatorStoryRevenueDto[];
 }
+
+export interface CreatorContentStatisticsDto {
+  periodStart: string;
+  periodEnd: string;
+  draft: number;
+  ready: number;
+  pendingReview: number;
+  published: number;
+  submissionsApproved: number;
+  submissionsRejected: number;
+  submissionsChangesRequested: number;
+  submissionsWithdrawn: number;
+  remainingAiCredits: number;
+  remainingSubmitCredits: number;
+  tier: string;
+  partnerProgress: PartnerProgressDto;
+}
+
+export interface PartnerProgressDto {
+  windowStart: string;
+  windowEnd: string;
+  isEligible: boolean;
+  criteria: PartnerCriterionDto[];
+}
+
+export interface PartnerCriterionDto {
+  key: string;
+  current: number;
+  target: number;
+  met: boolean;
+}
+
+export interface ModerationStatisticsDto {
+  periodStart: string;
+  periodEnd: string;
+  asOfUtc: string;
+  pending: number;
+  claimed: number;
+  overdue: number;
+  queueByType: ModerationQueueCountDto[];
+  myApproved: number;
+  myRejected: number;
+  myChangesRequested: number;
+  myDecisionsByType: ModerationDecisionCountDto[];
+  resubmissionCount: number;
+  grayZoneCount: number;
+}
+
+export interface ModerationQueueCountDto {
+  itemType: string;
+  pending: number;
+  claimed: number;
+  overdue: number;
+}
+
+export interface ModerationDecisionCountDto {
+  itemType: string;
+  approved: number;
+  rejected: number;
+  changesRequested: number;
+}
 export interface CreatorStoryRevenueDto { 'storyId': number; 'title': string; 'validReads': number; 'estimatedEarningsVnd': number; }
 

@@ -1203,19 +1203,61 @@
     "disposition": "MISSING"
   },
   {
-    "method": "POST",
-    "route": "/api/v1/ChildProfile",
+    "method": "GET",
+    "route": "/api/v1/ChildProfile/reading-slots",
     "authorization": "Roles = \"User\"",
     "controller": "ChildProfileController.cs",
+    "action": "GetReadingSlots",
+    "controllerLine": 33,
+    "evidence": [
+      {
+        "key": "GET /api/v1/ChildProfile/reading-slots",
+        "service": "childProfileService",
+        "operation": "getReadingSlots",
+        "file": "app/services/childProfileService.ts",
+        "line": 123,
+        "callers": [
+          "app/features/children/ChildrenWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/ChildProfile/reading-slots",
+    "authorization": "Roles = \"User\"; Roles = \"User\"",
+    "controller": "ChildProfileController.cs",
+    "action": "SelectReadingSlots",
+    "controllerLine": 45,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/ChildProfile/reading-slots",
+        "service": "childProfileService",
+        "operation": "selectReadingSlots",
+        "file": "app/services/childProfileService.ts",
+        "line": 128,
+        "callers": [
+          "app/features/children/ReadingSlotsDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ChildProfile",
+    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
+    "controller": "ChildProfileController.cs",
     "action": "CreateChildProfile",
-    "controllerLine": 29,
+    "controllerLine": 57,
     "evidence": [
       {
         "key": "POST /api/v1/ChildProfile",
         "service": "childProfileService",
         "operation": "createChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 29,
+        "line": 30,
         "callers": [
           "app/features/children/CreateChildWizard.tsx"
         ]
@@ -1226,17 +1268,17 @@
   {
     "method": "GET",
     "route": "/api/v1/ChildProfile/mine",
-    "authorization": "Roles = \"User\"; Roles = \"User\"",
+    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildProfileController.cs",
     "action": "ListMyChildProfiles",
-    "controllerLine": 45,
+    "controllerLine": 73,
     "evidence": [
       {
         "key": "GET /api/v1/ChildProfile/mine",
         "service": "childProfileService",
         "operation": "getMyChildProfiles",
         "file": "app/services/childProfileService.ts",
-        "line": 20,
+        "line": 21,
         "callers": [
           "app/context/WorkspaceDataContext.tsx"
         ]
@@ -1247,17 +1289,17 @@
   {
     "method": "GET",
     "route": "/api/v1/ChildProfile/{id}",
-    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
+    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildProfileController.cs",
     "action": "GetChildProfileById",
-    "controllerLine": 57,
+    "controllerLine": 85,
     "evidence": [
       {
         "key": "GET /api/v1/ChildProfile/{}",
         "service": "childProfileService",
         "operation": "getChildProfileById",
         "file": "app/services/childProfileService.ts",
-        "line": 24,
+        "line": 25,
         "callers": []
       }
     ],
@@ -1266,17 +1308,17 @@
   {
     "method": "GET",
     "route": "/api/v1/ChildProfile/{id}/audit-log",
-    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
+    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildProfileController.cs",
     "action": "GetChildProfileAuditLog",
-    "controllerLine": 69,
+    "controllerLine": 97,
     "evidence": [
       {
         "key": "GET /api/v1/ChildProfile/{}/audit-log",
         "service": "childProfileService",
         "operation": "getChildAuditLog",
         "file": "app/services/childProfileService.ts",
-        "line": 70,
+        "line": 71,
         "callers": []
       },
       {
@@ -1295,17 +1337,17 @@
   {
     "method": "PUT",
     "route": "/api/v1/ChildProfile/{id}",
-    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
+    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildProfileController.cs",
     "action": "UpdateChildProfile",
-    "controllerLine": 83,
+    "controllerLine": 111,
     "evidence": [
       {
         "key": "PUT /api/v1/ChildProfile/{}",
         "service": "childProfileService",
         "operation": "updateChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 37,
+        "line": 38,
         "callers": [
           "app/features/children/ProfileTab.tsx"
         ]
@@ -1316,17 +1358,17 @@
   {
     "method": "PATCH",
     "route": "/api/v1/ChildProfile/{id}/activate",
-    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
+    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildProfileController.cs",
     "action": "ActivateChildProfile",
-    "controllerLine": 95,
+    "controllerLine": 123,
     "evidence": [
       {
         "key": "PATCH /api/v1/ChildProfile/{}/activate",
         "service": "childProfileService",
         "operation": "activateChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 45,
+        "line": 46,
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
           "app/features/children/ProfileTab.tsx"
@@ -1338,17 +1380,17 @@
   {
     "method": "PATCH",
     "route": "/api/v1/ChildProfile/{id}/suspend",
-    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
+    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildProfileController.cs",
     "action": "SuspendChildProfile",
-    "controllerLine": 107,
+    "controllerLine": 135,
     "evidence": [
       {
         "key": "PATCH /api/v1/ChildProfile/{}/suspend",
         "service": "childProfileService",
         "operation": "suspendChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 50,
+        "line": 51,
         "callers": [
           "app/features/children/ProfileTab.tsx"
         ]
@@ -1359,17 +1401,17 @@
   {
     "method": "PATCH",
     "route": "/api/v1/ChildProfile/{id}/resume",
-    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
+    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildProfileController.cs",
     "action": "ResumeChildProfile",
-    "controllerLine": 119,
+    "controllerLine": 147,
     "evidence": [
       {
         "key": "PATCH /api/v1/ChildProfile/{}/resume",
         "service": "childProfileService",
         "operation": "resumeChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 55,
+        "line": 56,
         "callers": [
           "app/features/children/ProfileTab.tsx"
         ]
@@ -1380,17 +1422,17 @@
   {
     "method": "PATCH",
     "route": "/api/v1/ChildProfile/{id}/restore",
-    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
+    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildProfileController.cs",
     "action": "RestoreChildProfile",
-    "controllerLine": 132,
+    "controllerLine": 160,
     "evidence": [
       {
         "key": "PATCH /api/v1/ChildProfile/{}/restore",
         "service": "childProfileService",
         "operation": "restoreChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 65,
+        "line": 66,
         "callers": [
           "app/features/children/ChildrenWorkspace.tsx"
         ]
@@ -1409,17 +1451,17 @@
   {
     "method": "DELETE",
     "route": "/api/v1/ChildProfile/{id}",
-    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
+    "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildProfileController.cs",
     "action": "ArchiveChildProfile",
-    "controllerLine": 145,
+    "controllerLine": 173,
     "evidence": [
       {
         "key": "DELETE /api/v1/ChildProfile/{}",
         "service": "childProfileService",
         "operation": "archiveChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 60,
+        "line": 61,
         "callers": [
           "app/features/children/ProfileTab.tsx"
         ]
@@ -2085,260 +2127,6 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
-    "method": "GET",
-    "route": "/api/v1/CommunityLibrary",
-    "authorization": "Policy = \"ChildSession\"",
-    "controller": "CommunityLibraryController.cs",
-    "action": "List",
-    "controllerLine": 24,
-    "evidence": [
-      {
-        "key": "GET /api/v1/CommunityLibrary",
-        "service": "communityService",
-        "operation": "library",
-        "file": "app/services/communityService.ts",
-        "line": 10,
-        "callers": [
-          "app/features/kid/ConnectedKidHome.tsx"
-        ]
-      }
-    ],
-    "disposition": "CONNECTED_SOURCE"
-  },
-  {
-    "method": "GET",
-    "route": "/api/v1/CommunityLibrary/{submissionId}",
-    "authorization": "Policy = \"ChildSession\"",
-    "controller": "CommunityLibraryController.cs",
-    "action": "Get",
-    "controllerLine": 33,
-    "evidence": [
-      {
-        "key": "GET /api/v1/CommunityLibrary/{}",
-        "service": "communityService",
-        "operation": "detail",
-        "file": "app/services/communityService.ts",
-        "line": 11,
-        "callers": [
-          "app/features/kid/ConnectedKidHome.tsx"
-        ]
-      }
-    ],
-    "disposition": "CONNECTED_SOURCE"
-  },
-  {
-    "method": "GET",
-    "route": "/api/v1/CommunityReview/{itemId}",
-    "authorization": "Roles = \"Moderator,Administrator\"",
-    "controller": "CommunityReviewController.cs",
-    "action": "GetPackage",
-    "controllerLine": 24,
-    "evidence": [
-      {
-        "key": "GET /api/v1/CommunityReview/{}",
-        "service": "moderationService",
-        "operation": "package",
-        "file": "app/services/moderationService.ts",
-        "line": 16,
-        "callers": [
-          "app/features/staff/useReviewItem.ts"
-        ]
-      }
-    ],
-    "disposition": "CONNECTED_SOURCE"
-  },
-  {
-    "method": "PUT",
-    "route": "/api/v1/CommunityReview/{itemId}/checklist",
-    "authorization": "Roles = \"Moderator,Administrator\"",
-    "controller": "CommunityReviewController.cs",
-    "action": "SaveChecklist",
-    "controllerLine": 33,
-    "evidence": [
-      {
-        "key": "PUT /api/v1/CommunityReview/{}/checklist",
-        "service": "moderationService",
-        "operation": "communityChecklist",
-        "file": "app/services/moderationService.ts",
-        "line": 27,
-        "callers": [
-          "app/features/staff/CommunitySubmissionReviewPanel.tsx"
-        ]
-      }
-    ],
-    "disposition": "CONNECTED_SOURCE"
-  },
-  {
-    "method": "PUT",
-    "route": "/api/v1/CommunityReview/{itemId}/labels",
-    "authorization": "Roles = \"Moderator,Administrator\"",
-    "controller": "CommunityReviewController.cs",
-    "action": "SetLabels",
-    "controllerLine": 42,
-    "evidence": [
-      {
-        "key": "PUT /api/v1/CommunityReview/{}/labels",
-        "service": "moderationService",
-        "operation": "labels",
-        "file": "app/services/moderationService.ts",
-        "line": 22,
-        "callers": [
-          "app/features/staff/CommunitySubmissionReviewPanel.tsx"
-        ]
-      }
-    ],
-    "disposition": "CONNECTED_SOURCE"
-  },
-  {
-    "method": "POST",
-    "route": "/api/v1/CommunityReview/{itemId}/approve",
-    "authorization": "Roles = \"Moderator,Administrator\"",
-    "controller": "CommunityReviewController.cs",
-    "action": "Approve",
-    "controllerLine": 55,
-    "evidence": [
-      {
-        "key": "POST /api/v1/CommunityReview/{}/approve",
-        "service": "moderationService",
-        "operation": "approve",
-        "file": "app/services/moderationService.ts",
-        "line": 25,
-        "callers": [
-          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
-          "app/features/staff/PublicStoryReviewPanel.tsx",
-          "app/features/staff/RoadmapReviewPanel.tsx"
-        ]
-      }
-    ],
-    "disposition": "CONNECTED_SOURCE"
-  },
-  {
-    "method": "POST",
-    "route": "/api/v1/CommunityReview/{itemId}/reject",
-    "authorization": "Roles = \"Moderator,Administrator\"",
-    "controller": "CommunityReviewController.cs",
-    "action": "Reject",
-    "controllerLine": 64,
-    "evidence": [
-      {
-        "key": "POST /api/v1/CommunityReview/{}/reject",
-        "service": "moderationService",
-        "operation": "reject",
-        "file": "app/services/moderationService.ts",
-        "line": 26,
-        "callers": [
-          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
-          "app/features/staff/PublicStoryReviewPanel.tsx",
-          "app/features/staff/RoadmapReviewPanel.tsx"
-        ]
-      }
-    ],
-    "disposition": "CONNECTED_SOURCE"
-  },
-  {
-    "method": "POST",
-    "route": "/api/v1/CommunitySubmission/check",
-    "authorization": "Roles = \"User\"",
-    "controller": "CommunitySubmissionController.cs",
-    "action": "Check",
-    "controllerLine": 24,
-    "evidence": [
-      {
-        "key": "POST /api/v1/CommunitySubmission/check",
-        "service": "communityService",
-        "operation": "check",
-        "file": "app/services/communityService.ts",
-        "line": 5,
-        "callers": []
-      }
-    ],
-    "disposition": "SERVICE_ONLY"
-  },
-  {
-    "method": "POST",
-    "route": "/api/v1/CommunitySubmission",
-    "authorization": "Roles = \"User\"",
-    "controller": "CommunitySubmissionController.cs",
-    "action": "Submit",
-    "controllerLine": 37,
-    "evidence": [
-      {
-        "key": "POST /api/v1/CommunitySubmission",
-        "service": "communityService",
-        "operation": "submit",
-        "file": "app/services/communityService.ts",
-        "line": 6,
-        "callers": [
-          "app/services/guardianService.ts"
-        ]
-      }
-    ],
-    "disposition": "SERVICE_ONLY"
-  },
-  {
-    "method": "POST",
-    "route": "/api/v1/CommunitySubmission/{itemId}/withdraw",
-    "authorization": "Roles = \"User\"",
-    "controller": "CommunitySubmissionController.cs",
-    "action": "Withdraw",
-    "controllerLine": 46,
-    "evidence": [
-      {
-        "key": "POST /api/v1/CommunitySubmission/{}/withdraw",
-        "service": "communityService",
-        "operation": "withdraw",
-        "file": "app/services/communityService.ts",
-        "line": 8,
-        "callers": [
-          "app/services/guardianService.ts"
-        ]
-      }
-    ],
-    "disposition": "SERVICE_ONLY"
-  },
-  {
-    "method": "POST",
-    "route": "/api/v1/CommunitySubmission/{itemId}/remove",
-    "authorization": "Roles = \"User\"",
-    "controller": "CommunitySubmissionController.cs",
-    "action": "Remove",
-    "controllerLine": 55,
-    "evidence": [
-      {
-        "key": "POST /api/v1/CommunitySubmission/{}/remove",
-        "service": "communityService",
-        "operation": "remove",
-        "file": "app/services/communityService.ts",
-        "line": 9,
-        "callers": [
-          "app/services/guardianService.ts"
-        ]
-      }
-    ],
-    "disposition": "SERVICE_ONLY"
-  },
-  {
-    "method": "GET",
-    "route": "/api/v1/CommunitySubmission/mine",
-    "authorization": "Roles = \"User\"",
-    "controller": "CommunitySubmissionController.cs",
-    "action": "ListMine",
-    "controllerLine": 64,
-    "evidence": [
-      {
-        "key": "GET /api/v1/CommunitySubmission/mine",
-        "service": "communityService",
-        "operation": "mine",
-        "file": "app/services/communityService.ts",
-        "line": 7,
-        "callers": [
-          "app/services/guardianService.ts"
-        ]
-      }
-    ],
-    "disposition": "SERVICE_ONLY"
-  },
-  {
     "method": "POST",
     "route": "/api/v1/ContentCategory",
     "authorization": "Roles = \"Administrator\"",
@@ -2435,7 +2223,7 @@
         "service": "childProfileService",
         "operation": "getContentCategories",
         "file": "app/services/childProfileService.ts",
-        "line": 113,
+        "line": 114,
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
           "app/features/children/LearningForm.tsx",
@@ -3356,11 +3144,30 @@
   },
   {
     "method": "GET",
+    "route": "/api/v1/CreatorStatistics/content",
+    "authorization": "Roles = \"ContentCreator\"",
+    "controller": "CreatorStatisticsController.cs",
+    "action": "GetContent",
+    "controllerLine": 40,
+    "evidence": [
+      {
+        "key": "GET /api/v1/CreatorStatistics/content",
+        "service": "creatorStatisticsService",
+        "operation": "content",
+        "file": "app/services/creatorStatisticsService.ts",
+        "line": 19,
+        "callers": []
+      }
+    ],
+    "disposition": "SERVICE_ONLY"
+  },
+  {
+    "method": "GET",
     "route": "/api/v1/CreatorStatistics/revenue",
     "authorization": "Roles = \"ContentCreator\"",
     "controller": "CreatorStatisticsController.cs",
     "action": "GetRevenue",
-    "controllerLine": 40,
+    "controllerLine": 53,
     "evidence": [
       {
         "key": "GET /api/v1/CreatorStatistics/revenue",
@@ -3598,7 +3405,7 @@
         "service": "childProfileService",
         "operation": "setLearningProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 79,
+        "line": 80,
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
           "app/features/children/LearningTab.tsx"
@@ -3641,7 +3448,7 @@
         "service": "childProfileService",
         "operation": "getLearningProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 74,
+        "line": 75,
         "callers": [
           "app/features/children/LearningTab.tsx",
           "app/features/children/ProfileTab.tsx"
@@ -3828,12 +3635,31 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
+    "method": "GET",
+    "route": "/api/v1/ModerationQueue/statistics",
+    "authorization": "Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"",
+    "controller": "ModerationQueueController.cs",
+    "action": "GetStatistics",
+    "controllerLine": 33,
+    "evidence": [
+      {
+        "key": "GET /api/v1/ModerationQueue/statistics",
+        "service": "moderationStatisticsService",
+        "operation": "get",
+        "file": "app/services/moderationStatisticsService.ts",
+        "line": 7,
+        "callers": []
+      }
+    ],
+    "disposition": "SERVICE_ONLY"
+  },
+  {
     "method": "POST",
     "route": "/api/v1/ModerationQueue/review-views",
-    "authorization": "Roles = \"Moderator,Administrator\"",
+    "authorization": "Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"",
     "controller": "ModerationQueueController.cs",
     "action": "GrantReviewView",
-    "controllerLine": 26,
+    "controllerLine": 43,
     "evidence": [
       {
         "key": "POST /api/v1/ModerationQueue/review-views",
@@ -3851,10 +3677,10 @@
   {
     "method": "GET",
     "route": "/api/v1/ModerationQueue",
-    "authorization": "Roles = \"Moderator,Administrator\"",
+    "authorization": "Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"",
     "controller": "ModerationQueueController.cs",
     "action": "List",
-    "controllerLine": 35,
+    "controllerLine": 52,
     "evidence": [
       {
         "key": "GET /api/v1/ModerationQueue",
@@ -3873,10 +3699,10 @@
   {
     "method": "POST",
     "route": "/api/v1/ModerationQueue/{itemId}/claim",
-    "authorization": "Roles = \"Moderator,Administrator\"",
+    "authorization": "Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"",
     "controller": "ModerationQueueController.cs",
     "action": "Claim",
-    "controllerLine": 44,
+    "controllerLine": 61,
     "evidence": [
       {
         "key": "POST /api/v1/ModerationQueue/{}/claim",
@@ -3895,10 +3721,10 @@
   {
     "method": "GET",
     "route": "/api/v1/ModerationQueue/{itemId}",
-    "authorization": "Roles = \"Moderator,Administrator\"",
+    "authorization": "Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"",
     "controller": "ModerationQueueController.cs",
     "action": "Open",
-    "controllerLine": 53,
+    "controllerLine": 70,
     "evidence": [
       {
         "key": "GET /api/v1/ModerationQueue/{}",
@@ -3909,14 +3735,6 @@
         "callers": [
           "app/features/staff/useReviewItem.ts"
         ]
-      },
-      {
-        "key": "GET /api/v1/ModerationQueue/{}",
-        "service": "staffService",
-        "operation": "openItem",
-        "file": "app/services/staffService.ts",
-        "line": 77,
-        "callers": []
       }
     ],
     "disposition": "CONNECTED_SOURCE"
@@ -5566,14 +5384,14 @@
     "authorization": "Authenticated",
     "controller": "PaymentController.cs",
     "action": "ListActivePlans",
-    "controllerLine": 25,
+    "controllerLine": 30,
     "evidence": [
       {
         "key": "GET /api/v1/Payment/plans",
         "service": "paymentService",
         "operation": "plans",
         "file": "app/services/paymentService.ts",
-        "line": 6,
+        "line": 7,
         "callers": [
           "app/features/account/PaymentSection.tsx"
         ]
@@ -5587,14 +5405,14 @@
     "authorization": "Authenticated; Authenticated",
     "controller": "PaymentController.cs",
     "action": "ListMyTransactions",
-    "controllerLine": 37,
+    "controllerLine": 42,
     "evidence": [
       {
         "key": "GET /api/v1/Payment/transactions/me",
         "service": "paymentService",
         "operation": "myTransactions",
         "file": "app/services/paymentService.ts",
-        "line": 10,
+        "line": 11,
         "callers": [
           "app/features/account/PaymentSection.tsx"
         ]
@@ -5608,14 +5426,14 @@
     "authorization": "Authenticated; Authenticated; Authenticated",
     "controller": "PaymentController.cs",
     "action": "CreateTransaction",
-    "controllerLine": 50,
+    "controllerLine": 55,
     "evidence": [
       {
         "key": "POST /api/v1/Payment/transactions",
         "service": "paymentService",
         "operation": "create",
         "file": "app/services/paymentService.ts",
-        "line": 7,
+        "line": 8,
         "callers": [
           "app/features/account/PaymentSection.tsx"
         ]
@@ -5629,7 +5447,7 @@
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "SePayWebhook",
-    "controllerLine": 63,
+    "controllerLine": 68,
     "evidence": [],
     "disposition": "SERVER_TO_SERVER"
   },
@@ -5639,7 +5457,7 @@
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "ListMismatched",
-    "controllerLine": 75,
+    "controllerLine": 80,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -5649,14 +5467,14 @@
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "MarkPaidManually",
-    "controllerLine": 87,
+    "controllerLine": 92,
     "evidence": [
       {
         "key": "POST /api/v1/Payment/transactions/{}/mark-paid",
         "service": "adminPaymentService",
         "operation": "markPaid",
         "file": "app/services/paymentService.ts",
-        "line": 22,
+        "line": 23,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -5670,14 +5488,14 @@
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "ListAllTransactions",
-    "controllerLine": 99,
+    "controllerLine": 104,
     "evidence": [
       {
         "key": "GET /api/v1/Payment/admin/transactions",
         "service": "adminPaymentService",
         "operation": "transactions",
         "file": "app/services/paymentService.ts",
-        "line": 20,
+        "line": 21,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -5691,16 +5509,37 @@
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "ListAllPlans",
-    "controllerLine": 111,
+    "controllerLine": 116,
     "evidence": [
       {
         "key": "GET /api/v1/Payment/admin/plans",
         "service": "adminPaymentService",
         "operation": "plans",
         "file": "app/services/paymentService.ts",
-        "line": 26,
+        "line": 27,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/Payment/admin/plans",
+    "authorization": "AllowAnonymous",
+    "controller": "PaymentController.cs",
+    "action": "CreatePlan",
+    "controllerLine": 129,
+    "evidence": [
+      {
+        "key": "POST /api/v1/Payment/admin/plans",
+        "service": "adminPaymentService",
+        "operation": "createPlan",
+        "file": "app/services/paymentService.ts",
+        "line": 29,
+        "callers": [
+          "app/features/staff/CreatePlanDialog.tsx"
         ]
       }
     ],
@@ -5712,16 +5551,56 @@
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "UpdatePlan",
-    "controllerLine": 123,
+    "controllerLine": 143,
     "evidence": [
       {
         "key": "PUT /api/v1/Payment/admin/plans/{}",
         "service": "adminPaymentService",
         "operation": "updatePlan",
         "file": "app/services/paymentService.ts",
-        "line": 27,
+        "line": 28,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/Payment/admin/settings",
+    "authorization": "AllowAnonymous",
+    "controller": "PaymentController.cs",
+    "action": "GetSettings",
+    "controllerLine": 156,
+    "evidence": [
+      {
+        "key": "GET /api/v1/Payment/admin/settings",
+        "service": "adminPaymentService",
+        "operation": "settings",
+        "file": "app/services/paymentService.ts",
+        "line": 30,
+        "callers": []
+      }
+    ],
+    "disposition": "SERVICE_ONLY"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/Payment/admin/settings",
+    "authorization": "AllowAnonymous",
+    "controller": "PaymentController.cs",
+    "action": "UpdateSettings",
+    "controllerLine": 167,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/Payment/admin/settings",
+        "service": "adminPaymentService",
+        "operation": "updateSettings",
+        "file": "app/services/paymentService.ts",
+        "line": 31,
+        "callers": [
+          "app/features/staff/PlanSettingsDialog.tsx"
         ]
       }
     ],
@@ -5733,14 +5612,14 @@
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "ListReconciliationExceptions",
-    "controllerLine": 135,
+    "controllerLine": 179,
     "evidence": [
       {
         "key": "GET /api/v1/Payment/admin/reconciliation",
         "service": "adminPaymentService",
         "operation": "reconciliation",
         "file": "app/services/paymentService.ts",
-        "line": 24,
+        "line": 25,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -5754,14 +5633,14 @@
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "ResolveReconciliationException",
-    "controllerLine": 148,
+    "controllerLine": 192,
     "evidence": [
       {
         "key": "POST /api/v1/Payment/admin/reconciliation/{}/resolve",
         "service": "adminPaymentService",
         "operation": "resolve",
         "file": "app/services/paymentService.ts",
-        "line": 25,
+        "line": 26,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -7045,7 +6924,7 @@
         "service": "childProfileService",
         "operation": "setSafetyPolicy",
         "file": "app/services/childProfileService.ts",
-        "line": 99,
+        "line": 100,
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
           "app/features/safety/SafetyWorkspace.tsx"
@@ -7088,7 +6967,7 @@
         "service": "childProfileService",
         "operation": "getSafetyPolicy",
         "file": "app/services/childProfileService.ts",
-        "line": 91,
+        "line": 92,
         "callers": [
           "app/features/children/ProfileTab.tsx",
           "app/features/kid/KidMode.tsx",
@@ -7112,7 +6991,7 @@
         "service": "childProfileService",
         "operation": "reconsent",
         "file": "app/services/childProfileService.ts",
-        "line": 104,
+        "line": 105,
         "callers": [
           "app/features/safety/SafetyWorkspace.tsx"
         ]
@@ -7154,7 +7033,7 @@
         "service": "childProfileService",
         "operation": "applyAgePreset",
         "file": "app/services/childProfileService.ts",
-        "line": 109,
+        "line": 110,
         "callers": [
           "app/features/safety/SafetyWorkspace.tsx"
         ]
@@ -7582,7 +7461,7 @@
         "service": "paymentService",
         "operation": "myQuota",
         "file": "app/services/paymentService.ts",
-        "line": 12,
+        "line": 13,
         "callers": [
           "app/features/account/PaymentSection.tsx"
         ]
@@ -7603,7 +7482,7 @@
         "service": "paymentService",
         "operation": "creatorQuota",
         "file": "app/services/paymentService.ts",
-        "line": 14,
+        "line": 15,
         "callers": [
           "app/features/account/PaymentSection.tsx"
         ]
@@ -7624,7 +7503,7 @@
         "service": "childProfileService",
         "operation": "getTokenQuotaForChild",
         "file": "app/services/childProfileService.ts",
-        "line": 117,
+        "line": 118,
         "callers": [
           "app/features/studio/BriefForm.tsx"
         ]
@@ -7645,7 +7524,7 @@
         "service": "adminPaymentService",
         "operation": "adjust",
         "file": "app/services/paymentService.ts",
-        "line": 29,
+        "line": 33,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -7666,7 +7545,7 @@
         "service": "adminPaymentService",
         "operation": "adjustments",
         "file": "app/services/paymentService.ts",
-        "line": 31,
+        "line": 35,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
@@ -7687,7 +7566,7 @@
         "service": "adminPaymentService",
         "operation": "userQuota",
         "file": "app/services/paymentService.ts",
-        "line": 28,
+        "line": 32,
         "callers": [
           "app/features/staff/AdminSystem.tsx"
         ]
