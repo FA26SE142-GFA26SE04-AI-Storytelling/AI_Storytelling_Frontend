@@ -1,7 +1,10 @@
-import type { PagedResult } from '@/app/types/story';
+import type { ApiResponse } from '@/app/types/auth';
+import type { PagedResult, StoryFilterRequest } from '@/app/types/story';
+import type { CommunityLibraryStoryDto, CommunityStoryOrderBy } from '@/app/types/backendContracts';
 import type {
   ContentSaved, CreateDraftInput, CreatorDraft, CreatorResult, CreatorVersion, ImportPreview, SaveVersionInput,
 } from '@/app/types/creator';
+import { apiRequest } from './apiClient';
 import { API_BASE_URL } from './apiConfig';
 import { authService } from './authService';
 
@@ -69,6 +72,16 @@ export const creatorService = {
       method: 'POST',
       body: { operationId, revisionToken, baseVersionId, previewToken: preview.previewToken, content: preview.content, ...input },
     }),
+
+  /** `GET /creator/stories/published`: truyện đang công khai của chính Creator, kèm viewCount và favoriteCount. */
+  creatorPublishedStories(filter: StoryFilterRequest & { orderBy?: CommunityStoryOrderBy } = {}): Promise<ApiResponse<PagedResult<CommunityLibraryStoryDto>>> {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(filter)) {
+      if (value !== undefined && value !== null && value !== '') params.append(key, String(value));
+    }
+    const query = params.toString();
+    return apiRequest(`/creator/stories/published${query ? `?${query}` : ''}`, 'Không tải được truyện đã công khai.');
+  },
 };
 
 export const newOperationId = (kind: string) => `${kind}-${crypto.randomUUID()}`;

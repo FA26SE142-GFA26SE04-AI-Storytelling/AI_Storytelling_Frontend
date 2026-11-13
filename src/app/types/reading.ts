@@ -103,8 +103,6 @@ export interface KidHome {
   roadmap: RoadmapView | null;
   holdMode: HoldModeView | null;
   wishes: StoryWish[];
-  /** Truyện cộng đồng (`/CommunityLibrary`, phiên bé). Backend chưa có API đọc nội dung nên chỉ hiện để biết trước. */
-  community?: { submissionId: number; title: string; description: string | null }[];
 }
 
 export interface StartSessionResult {

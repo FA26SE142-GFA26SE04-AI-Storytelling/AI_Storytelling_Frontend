@@ -26,6 +26,8 @@ import { roadmapTemplate } from "@/app/services/roadmapAdapters";
 import type { RoadmapTemplate } from "@/app/types/progress";
 import type * as B from "@/app/types/backendContracts";
 import { ReportDialog } from "./ModerationDialogs";
+import { useCommunityStatShelves } from "./useCommunityStatShelves";
+import { StoryStatsBadge } from "@/app/components/StoryStatsBadge";
 
 /** Luồng 2 mục 6.9 — nhóm trạng thái hiển thị cho phụ huynh. */
 const STATUS_GROUPS: { id: string; label: string; keys: string[] }[] = [
@@ -163,10 +165,12 @@ const IN_PROGRESS = ["media"];
 /** Thẻ truyện bìa đứng: tên truyện in trên bìa, nhãn trạng thái ở góc, số thứ tự lớn khi xếp hạng. */
 function BookCard({ story, rank, on, onPick }: { story: StoryCard; rank?: number; on: boolean; onPick: () => void }) {
   const ready = statusOf(story) === "ready";
+  const hasStats = story.viewCount !== undefined || story.favoriteCount !== undefined;
   return (
     <button className={`bk${on ? " on" : ""}`} onClick={onPick} aria-pressed={on}>
       <span className="bk-cover" style={{ background: story.cover }}>
         {!ready ? <span className={`pill ${story.tone} bk-badge`}>{story.statusLabel}</span> : isNew(story) && <span className="bk-badge bk-new">Mới</span>}
+        {hasStats && <StoryStatsBadge viewCount={story.viewCount} favoriteCount={story.favoriteCount} />}
         <span className="bk-name display">{story.title}</span>
         {rank !== undefined && <span className="bk-rank display" aria-hidden>{rank}</span>}
       </span>
@@ -238,11 +242,13 @@ let pubCache: { userId: number; cards: StoryCard[]; at: number } | null = null;
 const PUB_FRESH_MS = 30_000;
 
 /** Tải lần lượt mọi trang của một API danh sách (mỗi trang tối đa 100 truyện, giới hạn của backend). */
-async function loadAllPages(fetchPage: (pageIndex: number) => ReturnType<typeof storyService.getStories>) {
-  const items: StoryDto[] = [];
+async function loadAllPages<T extends StoryDto = StoryDto>(
+  fetchPage: (pageIndex: number) => Promise<{ success: boolean; data?: { items?: T[]; hasNextPage?: boolean; totalCount?: number } | null; message?: string | null }>
+) {
+  const items: T[] = [];
   for (let pageIndex = 1; pageIndex <= 50; pageIndex++) {
     const res = await fetchPage(pageIndex);
-    if (!res.success) return { items, message: res.message };
+    if (!res.success) return { items, message: res.message ?? null };
     const page = res.data?.items ?? [];
     items.push(...page);
     if (page.length === 0 || res.data?.hasNextPage === false || items.length >= (res.data?.totalCount ?? Infinity)) break;
@@ -274,9 +280,14 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
       loadAllPages((pageIndex) => storyService.getCommunityStories({ pageIndex, pageSize: 100, isDescending: true })),
     ]);
     const ids = new Set(mine.items.map((s) => s.id));
-    const creatorIds = new Set(community.items.map((s) => s.id));
+    const communityMap = new Map(community.items.map((s) => [s.id, s]));
     const all = [...mine.items, ...community.items.filter((s) => !ids.has(s.id))];
-    const cards = all.map((s) => (creatorIds.has(s.id) ? { ...toCard(s), creator: true } : toCard(s)));
+    const cards: StoryCard[] = all.map((s) => {
+      const comm = communityMap.get(s.id);
+      return comm
+        ? { ...toCard(s), creator: true, viewCount: comm.viewCount, favoriteCount: comm.favoriteCount }
+        : toCard(s);
+    });
     const message = mine.message ?? community.message;
     setPub(cards);
     if (!message && user) pubCache = { userId: user.id, cards, at: Date.now() };
@@ -344,6 +355,15 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
   // Đang tìm hoặc lọc trạng thái thì bỏ các kệ, chỉ hiện một lưới kết quả.
   const filtering = genreF !== "all" || ageF !== "all" || srcF !== "all";
   const searching = q.trim() !== "" || status !== "all" || filtering;
+  const { mostViewed, mostFavorited } = useCommunityStatShelves(!searching);
+  const viewedCards = useMemo(
+    () => mostViewed.map((s) => ({ ...toCard(s), creator: true, viewCount: s.viewCount, favoriteCount: s.favoriteCount })),
+    [mostViewed],
+  );
+  const favoritedCards = useMemo(
+    () => mostFavorited.map((s) => ({ ...toCard(s), creator: true, viewCount: s.viewCount, favoriteCount: s.favoriteCount })),
+    [mostFavorited],
+  );
   const ageBands = useMemo(() => [...new Set(sorted.map((s) => s.ageBand).filter(Boolean))], [sorted]);
   const results = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -453,6 +473,16 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
             </Shelf>
           ) : (
             <>
+              {viewedCards.length > 0 && (
+                <Shelf title="Đọc nhiều nhất" items={viewedCards} onAll={() => setExpanded({ title: "Đọc nhiều nhất", items: viewedCards })}>
+                  <ShelfRow>{viewedCards.map((s, i) => card(s, i + 1))}</ShelfRow>
+                </Shelf>
+              )}
+              {favoritedCards.length > 0 && (
+                <Shelf title="Được yêu thích" items={favoritedCards} onAll={() => setExpanded({ title: "Được yêu thích", items: favoritedCards })}>
+                  <ShelfRow>{favoritedCards.map((s, i) => card(s, i + 1))}</ShelfRow>
+                </Shelf>
+              )}
               {latest.length > 0 && (
                 <Shelf title="Mới nhất" items={latest} onAll={released.length > latest.length ? () => setExpanded({ title: "Mới nhất", items: released }) : undefined}>
                   <ShelfRow>{latest.map((s, i) => card(s, i + 1))}</ShelfRow>
