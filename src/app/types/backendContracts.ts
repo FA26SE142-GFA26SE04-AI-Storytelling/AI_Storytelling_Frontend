@@ -539,16 +539,16 @@ export interface ContentReportDetailDto {
   'description': string | null;
   'attachmentUrl': string | null;
   'isReviewItem': boolean;
+  /** Moderator tạo yêu cầu rà soát; chỉ có khi isReviewItem = true. Report của phụ huynh luôn null. */
+  'requestedByUserId': number | null;
+  'requestedByName': string | null;
   'itemStatus': string;
-  'escalationReason': string | null;
-  'escalatedAt': string | null;
   'createdAt': string;
   'story': ReportedStoryDto;
   'version': ReportedVersionDto | null;
   'scenes': (ReportedSceneDto)[];
   'vocabulary': (ReportedVocabularyDto)[];
   'quizzes': (ReportedQuizDto)[];
-  'discussionQuestions': (ReportedDiscussionDto)[];
 }
 
 export type ContentReportReason = 1 | 2 | 3 | 4 | 5 | 6;
@@ -1416,7 +1416,8 @@ export interface PublicReviewPackageDto {
   'quizzes': (PublicReviewQuizDto)[];
   /** Tương tác khi nghe của phiên bản đang duyệt. */
   'listeningInteractions'?: (PublicReviewListeningDto)[];
-  'discussionQuestions': (PublicReviewDiscussionDto)[];
+  /** Backend đã bỏ câu hỏi thảo luận (thay bằng listeningInteractions); giữ tuỳ chọn cho dữ liệu cũ. */
+  'discussionQuestions'?: (PublicReviewDiscussionDto)[];
   'flags': (PublicReviewFlagDto)[];
   'allFlagsResolved': boolean;
   'progress': PublicReviewProgressDto;
@@ -1668,6 +1669,9 @@ export interface ReportedStoryDto {
   'language': string;
   'scope': string;
   'isArchived': boolean;
+  /** Creator tác giả; chỉ có ở chi tiết report khi scope = "Creator". */
+  'authorUserId': number | null;
+  'authorName': string | null;
   'labels': (ReportedLabelDto)[];
 }
 
@@ -1925,6 +1929,15 @@ export interface StoryDto {
   'createdAt': string;
   'updatedAt': string | null;
 }
+
+/** Truyện trong thư viện cộng đồng (`GET /Story/community`, `GET /creator/stories/published`), kèm số tổng hợp. */
+export interface CommunityLibraryStoryDto extends StoryDto {
+  'viewCount': number;
+  'favoriteCount': number;
+}
+
+/** `orderBy` của thư viện cộng đồng; bỏ trống = theo ngày tạo. */
+export type CommunityStoryOrderBy = 'views' | 'favorites';
 
 export interface StoryFilterRequestDto {
   'pageIndex': number;
@@ -2384,7 +2397,8 @@ export interface CommunityReviewPackageDto {
   'scenes': (ReportedSceneDto)[];
   'vocabulary': (ReportedVocabularyDto)[];
   'quizzes': (ReportedQuizDto)[];
-  'discussionQuestions': (ReportedDiscussionDto)[];
+  /** Backend đã bỏ câu hỏi thảo luận; giữ tuỳ chọn cho dữ liệu cũ. */
+  'discussionQuestions'?: (ReportedDiscussionDto)[];
   'labels': (CommunityLabelDto)[];
   'copyrightDeclaration': string | null;
   'piiCheckSummary': string | null;
@@ -2480,10 +2494,6 @@ export interface CreatorRemovalRequest {
 
 export interface CreatorRevisionRequest {
   'sourceVersionId': number;
-}
-
-export interface EscalateReportRequestDto {
-  'reason': string;
 }
 
 export interface GrayZoneContentCheckDto {

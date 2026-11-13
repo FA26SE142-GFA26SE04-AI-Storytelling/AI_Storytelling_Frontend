@@ -25,7 +25,7 @@ for(const file of all.filter(p=>p.includes(`${path.sep}services${path.sep}`))) {
    if(n.text==='API_BASE_URL')return [''];
    if(env[n.text])return env[n.text];
    if(['artifact'].includes(n.text))return ['story','vocabulary','quiz','discussion'];
-   if(n.text==='action')return ['dismiss','archive','escalate'];
+   if(n.text==='action')return ['dismiss','archive'];
    const v=vars.get(n.text);return v?values(v,env,depth+1):['{}'];
   }
   if(ts.isTemplateExpression(n)){let out=[n.head.text];for(const part of n.templateSpans)out=combine(combine(out,values(part.expression,env,depth+1)),[part.literal.text]);return out;}

@@ -2304,7 +2304,7 @@
         "service": "guardianService",
         "operation": "reportStory",
         "file": "app/services/guardianService.ts",
-        "line": 49,
+        "line": 47,
         "callers": [
           "app/features/library/ModerationDialogs.tsx"
         ]
@@ -2315,10 +2315,10 @@
   {
     "method": "GET",
     "route": "/api/v1/ContentReportReview/{itemId}",
-    "authorization": "Roles = \"Moderator,Administrator\"",
+    "authorization": "Roles = \"Moderator\"",
     "controller": "ContentReportReviewController.cs",
     "action": "GetDetail",
-    "controllerLine": 22,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "GET /api/v1/ContentReportReview/{}",
@@ -2336,10 +2336,10 @@
   {
     "method": "POST",
     "route": "/api/v1/ContentReportReview/{itemId}/dismiss",
-    "authorization": "Roles = \"Moderator,Administrator\"",
+    "authorization": "Roles = \"Moderator\"",
     "controller": "ContentReportReviewController.cs",
     "action": "Dismiss",
-    "controllerLine": 32,
+    "controllerLine": 33,
     "evidence": [
       {
         "key": "POST /api/v1/ContentReportReview/{}/dismiss",
@@ -2357,34 +2357,13 @@
   {
     "method": "POST",
     "route": "/api/v1/ContentReportReview/{itemId}/archive",
-    "authorization": "Roles = \"Moderator,Administrator\"",
+    "authorization": "Roles = \"Moderator\"",
     "controller": "ContentReportReviewController.cs",
     "action": "Archive",
-    "controllerLine": 44,
+    "controllerLine": 45,
     "evidence": [
       {
         "key": "POST /api/v1/ContentReportReview/{}/archive",
-        "service": "moderationService",
-        "operation": "reportDecision",
-        "file": "app/services/moderationService.ts",
-        "line": 31,
-        "callers": [
-          "app/features/staff/ContentReportReviewPanel.tsx"
-        ]
-      }
-    ],
-    "disposition": "CONNECTED_SOURCE"
-  },
-  {
-    "method": "POST",
-    "route": "/api/v1/ContentReportReview/{itemId}/escalate",
-    "authorization": "Roles = \"Moderator,Administrator\"",
-    "controller": "ContentReportReviewController.cs",
-    "action": "Escalate",
-    "controllerLine": 56,
-    "evidence": [
-      {
-        "key": "POST /api/v1/ContentReportReview/{}/escalate",
         "service": "moderationService",
         "operation": "reportDecision",
         "file": "app/services/moderationService.ts",
@@ -2725,7 +2704,7 @@
         "service": "creatorService",
         "operation": "create",
         "file": "app/services/creatorService.ts",
-        "line": 39,
+        "line": 42,
         "callers": [
           "app/features/staff/CreatorStories.tsx"
         ]
@@ -2746,7 +2725,7 @@
         "service": "creatorService",
         "operation": "list",
         "file": "app/services/creatorService.ts",
-        "line": 34,
+        "line": 37,
         "callers": [
           "app/features/staff/CreatorLibrary.tsx",
           "app/features/staff/CreatorMyStories.tsx"
@@ -2768,7 +2747,7 @@
         "service": "creatorService",
         "operation": "get",
         "file": "app/services/creatorService.ts",
-        "line": 36,
+        "line": 39,
         "callers": [
           "app/features/staff/CreatorEditor.tsx",
           "app/features/staff/CreatorGeneration.tsx",
@@ -2792,7 +2771,7 @@
         "service": "creatorService",
         "operation": "save",
         "file": "app/services/creatorService.ts",
-        "line": 43,
+        "line": 46,
         "callers": [
           "app/features/staff/CreatorEditor.tsx"
         ]
@@ -2813,7 +2792,7 @@
         "service": "creatorService",
         "operation": "versions",
         "file": "app/services/creatorService.ts",
-        "line": 45,
+        "line": 48,
         "callers": [
           "app/features/staff/CreatorEditor.tsx"
         ]
@@ -2834,7 +2813,7 @@
         "service": "creatorService",
         "operation": "version",
         "file": "app/services/creatorService.ts",
-        "line": 48,
+        "line": 51,
         "callers": [
           "app/features/staff/CreatorEditor.tsx",
           "app/features/staff/CreatorPreview.tsx"
@@ -2856,7 +2835,7 @@
         "service": "creatorService",
         "operation": "restore",
         "file": "app/services/creatorService.ts",
-        "line": 52,
+        "line": 55,
         "callers": [
           "app/features/staff/CreatorEditor.tsx"
         ]
@@ -2877,7 +2856,7 @@
         "service": "creatorService",
         "operation": "previewText",
         "file": "app/services/creatorService.ts",
-        "line": 56,
+        "line": 59,
         "callers": [
           "app/features/staff/CreatorImport.tsx"
         ]
@@ -2898,7 +2877,7 @@
         "service": "creatorService",
         "operation": "previewFile",
         "file": "app/services/creatorService.ts",
-        "line": 63,
+        "line": 66,
         "callers": [
           "app/features/staff/CreatorImport.tsx"
         ]
@@ -2919,7 +2898,7 @@
         "service": "creatorService",
         "operation": "confirmImport",
         "file": "app/services/creatorService.ts",
-        "line": 68,
+        "line": 71,
         "callers": [
           "app/features/staff/CreatorImport.tsx"
         ]
@@ -4004,7 +3983,7 @@
         "service": "guardianService",
         "operation": "notifications",
         "file": "app/services/guardianService.ts",
-        "line": 72,
+        "line": 53,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -4025,7 +4004,7 @@
         "service": "guardianService",
         "operation": "unreadNotificationCount",
         "file": "app/services/guardianService.ts",
-        "line": 83,
+        "line": 64,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -4046,7 +4025,7 @@
         "service": "guardianService",
         "operation": "markNotificationRead",
         "file": "app/services/guardianService.ts",
-        "line": 76,
+        "line": 57,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -4067,7 +4046,7 @@
         "service": "guardianService",
         "operation": "markAllNotificationsRead",
         "file": "app/services/guardianService.ts",
-        "line": 79,
+        "line": 60,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -4088,7 +4067,7 @@
         "service": "guardianService",
         "operation": "deleteNotification",
         "file": "app/services/guardianService.ts",
-        "line": 87,
+        "line": 68,
         "callers": [
           "app/components/shell/NotificationBell.tsx"
         ]
@@ -7204,16 +7183,17 @@
     "authorization": "Roles = \"User,ContentCreator,Moderator,Administrator\"",
     "controller": "StoryCommunityController.cs",
     "action": "GetStories",
-    "controllerLine": 26,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "GET /api/v1/Story/community",
         "service": "storyService",
         "operation": "getCommunityStories",
         "file": "app/services/storyService.ts",
-        "line": 32,
+        "line": 38,
         "callers": [
           "app/features/library/LibraryWorkspace.tsx",
+          "app/features/library/useCommunityStatShelves.ts",
           "app/features/roadmap/roadmapData.ts"
         ]
       },
@@ -7222,9 +7202,10 @@
         "service": "storyService",
         "operation": "getCommunityStories",
         "file": "app/services/storyService.ts",
-        "line": 32,
+        "line": 38,
         "callers": [
           "app/features/library/LibraryWorkspace.tsx",
+          "app/features/library/useCommunityStatShelves.ts",
           "app/features/roadmap/roadmapData.ts"
         ]
       }
@@ -7233,18 +7214,49 @@
   },
   {
     "method": "GET",
+    "route": "/api/v1/creator/stories/published",
+    "authorization": "Roles = \"User,ContentCreator,Moderator,Administrator\"; Roles = \"ContentCreator\"",
+    "controller": "StoryCommunityController.cs",
+    "action": "GetMyPublishedStories",
+    "controllerLine": 35,
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/stories/published",
+        "service": "creatorService",
+        "operation": "creatorPublishedStories",
+        "file": "app/services/creatorService.ts",
+        "line": 83,
+        "callers": [
+          "app/features/staff/CreatorMyStories.tsx"
+        ]
+      },
+      {
+        "key": "GET /api/v1/creator/stories/published",
+        "service": "creatorService",
+        "operation": "creatorPublishedStories",
+        "file": "app/services/creatorService.ts",
+        "line": 83,
+        "callers": [
+          "app/features/staff/CreatorMyStories.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
     "route": "/api/v1/Story/community/{id}/media",
-    "authorization": "Roles = \"User,ContentCreator,Moderator,Administrator\"",
+    "authorization": "Roles = \"User,ContentCreator,Moderator,Administrator\"; Roles = \"ContentCreator\"",
     "controller": "StoryCommunityController.cs",
     "action": "GetStoryMedia",
-    "controllerLine": 35,
+    "controllerLine": 44,
     "evidence": [
       {
         "key": "GET /api/v1/Story/community/{}/media",
         "service": "storyService",
         "operation": "getCommunityStoryMedia",
         "file": "app/services/storyService.ts",
-        "line": 48,
+        "line": 54,
         "callers": [
           "app/features/library/LibraryWorkspace.tsx"
         ]
@@ -7265,7 +7277,7 @@
         "service": "storyService",
         "operation": "getStories",
         "file": "app/services/storyService.ts",
-        "line": 22,
+        "line": 23,
         "callers": [
           "app/context/WorkspaceDataContext.tsx",
           "app/features/created/CreatedStories.tsx",
@@ -7277,7 +7289,7 @@
         "service": "storyService",
         "operation": "getStories",
         "file": "app/services/storyService.ts",
-        "line": 22,
+        "line": 23,
         "callers": [
           "app/context/WorkspaceDataContext.tsx",
           "app/features/created/CreatedStories.tsx",
@@ -7300,7 +7312,7 @@
         "service": "storyService",
         "operation": "getStoryById",
         "file": "app/services/storyService.ts",
-        "line": 52,
+        "line": 58,
         "callers": [
           "app/features/library/LibraryWorkspace.tsx",
           "app/features/roadmap/roadmapData.ts",
@@ -7350,7 +7362,7 @@
         "service": "storyService",
         "operation": "updateStoryInfo",
         "file": "app/services/storyService.ts",
-        "line": 60,
+        "line": 66,
         "callers": [
           "app/features/created/CreatedStories.tsx"
         ]
@@ -7379,7 +7391,7 @@
         "service": "storyService",
         "operation": "deleteStory",
         "file": "app/services/storyService.ts",
-        "line": 67,
+        "line": 73,
         "callers": [
           "app/features/created/CreatedStories.tsx"
         ]
@@ -7419,7 +7431,7 @@
         "service": "storyService",
         "operation": "setCover",
         "file": "app/services/storyService.ts",
-        "line": 40,
+        "line": 46,
         "callers": [
           "app/features/created/CoverPickerDialog.tsx"
         ]
@@ -7693,7 +7705,7 @@
         "service": "wishCardService",
         "operation": "aiMatch",
         "file": "app/services/wishCardService.ts",
-        "line": 28,
+        "line": 31,
         "callers": [
           "app/features/staff/StoryWishCards.tsx"
         ]
@@ -7723,19 +7735,40 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
+    "method": "GET",
+    "route": "/api/v1/moderation/stories/{storyId}/wish-cards/coverage",
+    "authorization": "Roles = \"Moderator,Administrator\"",
+    "controller": "WishCardMatchManagementController.cs",
+    "action": "Coverage",
+    "controllerLine": 25,
+    "evidence": [
+      {
+        "key": "GET /api/v1/moderation/stories/{}/wish-cards/coverage",
+        "service": "wishCardService",
+        "operation": "storyCoverage",
+        "file": "app/services/wishCardService.ts",
+        "line": 24,
+        "callers": [
+          "app/features/staff/StoryWishCards.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
     "method": "POST",
     "route": "/api/v1/moderation/stories/{storyId}/wish-cards",
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "WishCardMatchManagementController.cs",
     "action": "Add",
-    "controllerLine": 23,
+    "controllerLine": 28,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/stories/{}/wish-cards",
         "service": "wishCardService",
         "operation": "addToStory",
         "file": "app/services/wishCardService.ts",
-        "line": 23,
+        "line": 26,
         "callers": [
           "app/features/staff/StoryWishCards.tsx"
         ]
@@ -7749,14 +7782,14 @@
     "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "WishCardMatchManagementController.cs",
     "action": "Remove",
-    "controllerLine": 29,
+    "controllerLine": 34,
     "evidence": [
       {
         "key": "DELETE /api/v1/moderation/stories/{}/wish-cards/{}",
         "service": "wishCardService",
         "operation": "removeFromStory",
         "file": "app/services/wishCardService.ts",
-        "line": 25,
+        "line": 28,
         "callers": [
           "app/features/staff/StoryWishCards.tsx"
         ]
