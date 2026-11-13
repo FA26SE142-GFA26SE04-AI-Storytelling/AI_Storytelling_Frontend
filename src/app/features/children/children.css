@@ -60,6 +60,13 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
 .acc-wrap { gap: 16px; width: min(640px, 100%); margin: 0 auto; padding: 12px 16px 24px; }
 .acc-card { display: flex; flex-direction: column; gap: 10px; padding: 18px 20px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
 .session-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--line); font-size: var(--fs-sm); }
+/* Màn hẹp: dòng thời gian đăng nhập chiếm cả hàng, nhãn hết hạn và nút Đăng xuất xuống hàng dưới thay vì bóp chữ. */
+@media (max-width: 560px) {
+  .session-row { flex-wrap: wrap; row-gap: 6px; }
+  .session-row > .grow { flex: 1 1 calc(100% - 40px); }
+  .session-row > .pill { margin-left: 28px; }
+  .session-row > .btn { margin-left: auto; white-space: nowrap; }
+}
 
 /* Cổng xác nhận người lớn */
 /* Cổng xác nhận người lớn (ParentalGate). Tên riêng "parental-gate": CSS trong Next.js dùng chung toàn app, ".gate" đã là cột đọc của màn Duyệt nội dung. */
