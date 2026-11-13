@@ -32,7 +32,7 @@ describe('Current controller contracts', () => {
   });
   it('saves the guide draft with its revision and preserves a 409 without retrying',async() => {
     fetcher.mockResolvedValueOnce(new Response(JSON.stringify({success:false,message:'GUIDE_CATALOG_CHANGED',data:null}),{status:409}));
-    const body = {revisionToken:'r1',purposes:['free'],supportGroup:'ending',itemType:'template',title:'Kết',instruction:'Điền',example:null,templateText:'{{name}}',placeholderDefinitions:['name'],order:1};
+    const body = {revisionToken:'r1',purposes:['free'],supportGroup:'ending',itemType:'template',title:'Kết',instruction:'Điền',example:null,templateText:'{{name}}',placeholderDefinitions:[{key:'name',label:'Tên',hint:null}],order:1};
     const result = await guides.upsert('ending',body);
     expect(fetcher.mock.calls[0][0]).toMatch(/\/draft\/items\/ending$/);
     expect(fetcher.mock.calls[0][1].method).toBe('PUT');
