@@ -71,11 +71,9 @@ export interface OwnedChildProfileSummary {
   status: string;
 }
 
-/** Trước khi xoá tài khoản: hồ sơ bé đang chặn việc xoá và hồ sơ nháp sẽ bị xoá cùng. */
+/** Trước khi xoá tài khoản: hồ sơ bé còn lại sẽ bị xoá vĩnh viễn cùng tài khoản nếu người dùng đồng ý. */
 export interface DeleteAccountPreview {
-  blockingProfiles: OwnedChildProfileSummary[];
-  draftProfiles: OwnedChildProfileSummary[];
-  canDelete: boolean;
+  childProfiles: OwnedChildProfileSummary[];
 }
 
 export interface ForgotPasswordRequest {

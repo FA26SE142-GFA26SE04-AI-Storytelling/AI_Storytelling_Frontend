@@ -15,7 +15,7 @@ describe('Luồng 1 — hợp đồng API đã đăng nhập', () => {
     ['đổi email', () => accountService.requestEmailChange('pw', ' moi@x.vn '), '/Auth/change-email', { currentPassword: 'pw', newEmail: 'moi@x.vn' }],
     ['xác nhận đổi email', () => accountService.confirmEmailChange(' 654321 '), '/Auth/change-email/confirm', { otp: '654321' }],
     ['sửa thông tin', () => accountService.updateProfile({ fullName: ' Thu Hà ', avatarUrl: '' }), '/Auth/me', { fullName: 'Thu Hà', avatarUrl: null }],
-    ['xoá tài khoản', () => accountService.deleteAccount('pw', true), '/Auth/me', { currentPassword: 'pw', deleteDraftProfiles: true }],
+    ['xoá tài khoản', () => accountService.deleteAccount('pw', true), '/Auth/me', { currentPassword: 'pw', deleteChildProfiles: true }],
   ] as const)('%s gửi đúng tên trường backend', async (_name, call, route, payload) => {
     const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody());
     await call();

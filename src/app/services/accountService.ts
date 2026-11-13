@@ -42,8 +42,8 @@ export const accountService = {
     return apiRequest('/Auth/me/delete-preview', 'Không kiểm tra được tài khoản.');
   },
 
-  deleteAccount(currentPassword: string, deleteDraftProfiles: boolean): Promise<ApiResponse<null>> {
-    return apiRequest('/Auth/me', 'Không xoá được tài khoản.', { method: 'DELETE', body: { currentPassword, deleteDraftProfiles } });
+  deleteAccount(currentPassword: string, deleteChildProfiles: boolean): Promise<ApiResponse<null>> {
+    return apiRequest('/Auth/me', 'Không xoá được tài khoản.', { method: 'DELETE', body: { currentPassword, deleteChildProfiles } });
   },
 
   listSessions(): Promise<ApiResponse<LoginSession[]>> {
