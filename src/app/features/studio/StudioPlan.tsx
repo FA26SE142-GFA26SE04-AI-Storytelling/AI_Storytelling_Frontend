@@ -93,6 +93,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
             )}
             {view === "status" && (
               <StageProgress
+                outputMode={flow.values?.outputMode}
                 stage={stage}
                 snapshot={snapshot}
                 message={blocked ? flow.errorMessage : statusError}

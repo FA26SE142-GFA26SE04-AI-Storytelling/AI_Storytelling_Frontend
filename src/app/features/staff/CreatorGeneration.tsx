@@ -171,7 +171,7 @@ function CreatorGenerationRun({ initialId, seed, onReset, onBuyCredits }: { init
           onChange={(v) => { if (v.topic !== undefined) setTopic(v.topic); if (v.lesson !== undefined) setLesson(v.lesson); if (v.genre !== undefined) setGenre(v.genre); if (v.charactersText !== undefined) setCharactersText(v.charactersText); if (v.setting !== undefined) setSetting(v.setting); if (v.targetLength !== undefined) setTargetLength(v.targetLength); if (v.vocabularyLevel !== undefined) setVocabularyLevel(v.vocabularyLevel); if (v.outputMode !== undefined) setOutputMode(v.outputMode); }}
           onSubmit={start} onBuyCredits={onBuyCredits} />}
         {/* Lúc AI đang làm: thẻ chờ giống phụ huynh (con cóc ngồi chờ + bước hiện tại). */}
-        {waiting && <div style={{ height: '100%', minHeight: 380 }}><StageProgress stage={stage} snapshot={flow.snapshot} message={flow.error || flow.message} onRetry={refreshState} /></div>}
+        {waiting && <div style={{ height: '100%', minHeight: 380 }}><StageProgress stage={stage} snapshot={flow.snapshot} outputMode={outputMode} message={flow.error || flow.message} onRetry={refreshState} /></div>}
         <div style={{ maxWidth: 900, margin: '0 auto', display: 'grid', gap: 16 }}>
           {notices}
           {flow.id !== null && flow.stage === 'outline' && outline && <div className="st-card"><OutlinePanel key={outline.versionNo} storyId={flow.id} version={outline} editable={!locked} visible onReveal={() => {}} onApproved={refreshState} onChanged={refreshState} /></div>}

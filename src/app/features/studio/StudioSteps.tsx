@@ -14,12 +14,13 @@ export default function StudioSteps({ progress, children, context }: { progress:
   const capRef = useRiseIn<HTMLDivElement>(":scope > span", [progress.caption], { distance: 6 });
   const Icon = CAPTION_ICON[progress.mode];
   const current = progress.current;
+  const steps = progress.steps ?? STUDIO_STEPS;
   const shown = Math.max(current, 0) + 1;
 
   return (
     <nav className={`studio-steps${context ? ' has-story' : ''}`} aria-label="Tiến trình tạo truyện">
       <ol>
-        {STUDIO_STEPS.map((label, i) => {
+        {steps.map((label, i) => {
           const mode = stepMode(i, progress);
           return (
             <li key={label} className={`ss ${mode}`} aria-current={i === progress.current ? "step" : undefined}>
@@ -31,7 +32,7 @@ export default function StudioSteps({ progress, children, context }: { progress:
       </ol>
       <div ref={capRef} className={`ss-caption ${progress.mode}`} role="status">
         <Icon className={`ic${progress.mode === "run" ? " spin" : ""}`} />
-        <span><small>{progress.current >= 0 ? `Bước ${shown}/${STUDIO_STEPS.length}` : "Đã dừng"}</small>{progress.caption}</span>
+        <span><small>{progress.current >= 0 ? `Bước ${shown}/${steps.length}` : "Đã dừng"}</small>{progress.caption}</span>
       </div>
       {children}
       {context && <div className="studio-story-resume">{context}</div>}

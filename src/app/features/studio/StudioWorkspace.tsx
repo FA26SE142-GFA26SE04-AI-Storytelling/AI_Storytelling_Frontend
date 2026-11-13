@@ -77,7 +77,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
     onNew(idea);
   };
   // Lỗi cũ của bước viết truyện không áp cho bước media.
-  const progress = useSteppedProgress(studioProgress(p.stage, p.snapshot, media.data, p.stage === "media" ? null : p.errorCode));
+  const progress = useSteppedProgress(studioProgress(p.stage, p.snapshot, media.data, p.stage === "media" ? null : p.errorCode, p.flow.values?.outputMode));
 
   // Cột phải thu gọn ở mọi state; cột lưới co giãn mượt bằng CSS (studio.css) và khung bên trong là AsidePane.
   const aside = useMemo(() => ({ collapsed: asideCollapsed, toggle: onToggleAside }), [asideCollapsed, onToggleAside]);
