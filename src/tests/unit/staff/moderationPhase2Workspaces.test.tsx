@@ -281,9 +281,9 @@ describe('Moderator Phase 2 workspaces (specs 04-06 & 12)', () => {
         description: 'Lời thoại không hợp độ tuổi 6-8.',
         attachmentUrl: 'javascript:alert(1)',
         isReviewItem: false,
+        requestedByUserId: 5,
+        requestedByName: 'Moderator An',
         itemStatus: 'Claimed',
-        escalationReason: null,
-        escalatedAt: null,
         createdAt: '2026-11-10T09:15:00Z',
         story: {
           storyId: 55,
@@ -295,6 +295,8 @@ describe('Moderator Phase 2 workspaces (specs 04-06 & 12)', () => {
           language: 'vi',
           scope: 'Parent',
           isArchived: false,
+          authorUserId: 9,
+          authorName: 'Tác giả Minh',
           labels: [{ code: 'adv', displayName: 'Phiêu lưu' }],
         },
         version: {
@@ -309,7 +311,6 @@ describe('Moderator Phase 2 workspaces (specs 04-06 & 12)', () => {
         ],
         vocabulary: [{ term: 'can đảm', definition: 'không sợ hãi' }],
         quizzes: [],
-        discussionQuestions: [{ question: 'Bé học được gì?', isMoralLesson: true }],
       },
     };
 
@@ -326,10 +327,14 @@ describe('Moderator Phase 2 workspaces (specs 04-06 & 12)', () => {
     expect(modPanelHtml).toContain('Quyết định');
     expect(modPanelHtml).toContain('Cảnh một trong rừng');
     expect(modPanelHtml).toContain('can đảm');
-    expect(modPanelHtml).toContain('Bé học được gì?');
+    // Backend đã bỏ discussionQuestions khỏi gói report (thay bằng listening); thiếu trường này không được làm crash panel.
     expect(modPanelHtml).toContain('Bỏ qua báo cáo');
     expect(modPanelHtml).toContain('Gỡ truyện vi phạm');
-    expect(modPanelHtml).toContain('Chuyển Administrator');
+    expect(modPanelHtml).not.toContain('Chuyển Administrator');
+    expect(modPanelHtml).toContain('Người yêu cầu rà soát');
+    expect(modPanelHtml).toContain('Moderator An');
+    expect(modPanelHtml).toContain('Tác giả');
+    expect(modPanelHtml).toContain('Tác giả Minh');
     expect(modPanelHtml).toContain('đã chặn mở liên kết');
     expect(modPanelHtml).not.toContain('href="javascript:');
     expect(modPanelHtml).not.toContain('Phụ huynh Lan Anh');
@@ -340,14 +345,12 @@ describe('Moderator Phase 2 workspaces (specs 04-06 & 12)', () => {
       ...testState.reviewHookState,
       item: {
         kind: 'ContentReport',
-        data: { ...pkgBase.data, itemStatus: 'Escalated', escalationReason: 'Cần Admin xử lý', attachmentUrl: 'https://example.com/proof.png' },
+        data: { ...pkgBase.data, itemStatus: 'Claimed' },
       },
     };
     const adminPanelHtml = renderToStaticMarkup(
-      <ContentReportReviewPanel id={401} queueItem={{ ...contentReportPending, status: 'Escalated' }} onDecision={() => {}} />,
+      <ContentReportReviewPanel id={401} queueItem={contentReportPending} onDecision={() => {}} />,
     );
-    expect(adminPanelHtml).toContain('href="https://example.com/proof.png"');
-    expect(adminPanelHtml).toContain('Cần Admin xử lý');
     expect(adminPanelHtml).not.toContain('Chuyển Administrator');
   });
 
@@ -373,7 +376,7 @@ describe('Moderator Phase 2 workspaces (specs 04-06 & 12)', () => {
 
     const reportsWsSrc = readFileSync(path.resolve(process.cwd(), 'app/features/staff/ContentReportsWorkspace.tsx'), 'utf8');
     expect(reportsWsSrc).toContain("current.status === 'Claimed'");
-    expect(reportsWsSrc).toContain("current?.status === 'Escalated'");
+    expect(reportsWsSrc).not.toContain("'Escalated'");
 
     for (const file of [
       'app/features/staff/RemovalRecordsWorkspace.tsx',

@@ -28,7 +28,7 @@ export const moderationService = {
   roadmapChecklist: (id: number, entries: B.RoadmapChecklistEntryDto[]) => send<B.RoadmapChecklistEntryDto[]>(`/RoadmapReview/${id}/checklist`, 'PUT', { entries }),
   roadmapChanges: (id: number, body: B.RequestRoadmapChangesDto) => send<B.RoadmapReviewDecisionResultDto>(`/RoadmapReview/${id}/request-changes`, 'POST', body),
   grayDecision: (id: number, body: B.GrayZoneDecisionRequest) => send<null>(`/moderation/gray-zone-stories/${id}/decision`, 'POST', body),
-  reportDecision: (id: number, action: 'dismiss' | 'archive' | 'escalate', reason: string, archiveReason: 'SafetyConcern' | 'Copyright' | 'Inappropriate' = 'SafetyConcern') => send<B.ContentReportDecisionResultDto>(`/ContentReportReview/${id}/${action}`, 'POST', action === 'archive' ? { reason, archiveReason } : { reason }),
+  reportDecision: (id: number, action: 'dismiss' | 'archive', reason: string, archiveReason: 'SafetyConcern' | 'Copyright' | 'Inappropriate' = 'SafetyConcern') => send<B.ContentReportDecisionResultDto>(`/ContentReportReview/${id}/${action}`, 'POST', action === 'archive' ? { reason, archiveReason } : { reason }),
   removalDecision: (id: number, body: B.RemovalDecisionRequest) => send<B.CreatorPublicationResult>(`/moderation/public-story-removals/${id}/decision`, 'POST', body),
   published: (query: Partial<B.PublishedContentQueryDto> = {}, signal?: AbortSignal) => send<B.PagedResult<B.PublishedContentItemDto>>(`/PublishedContentReview${apiQuery(query)}`, 'GET', undefined, signal),
   publishedStory: (storyId: number) => send<B.PublishedStoryContentDto>(`/PublishedContentReview/stories/${storyId}`),

@@ -192,13 +192,13 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
       {message && (
         <div className="notice row st-wrap" role="status" data-inline-notice>
           <span className="grow">{message}</span>
-          {createdReportId != null && go && (
+          {createdReportId != null && go && user?.role !== 'Administrator' && (
             <button
               type="button"
               className="btn btn-s"
-              onClick={() => go(user?.role === 'Administrator' ? 'escalated' : 'content-reports')}
+              onClick={() => go('content-reports')}
             >
-              {user?.role === 'Administrator' ? 'Mở Hàng đợi quản trị' : 'Mở Báo cáo nội dung'}
+              Mở Báo cáo nội dung
             </button>
           )}
         </div>
