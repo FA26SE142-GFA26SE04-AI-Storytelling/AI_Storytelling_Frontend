@@ -703,6 +703,9 @@
 @keyframes kid-part-in { from { background: transparent; } }
 @media (prefers-reduced-motion: reduce) { .kid-pic-part { animation: none; } }
 
+/* Chữ giọng kể đang đọc: nền vàng như bút dạ quang, chạy theo lời kể. */
+.kid-reading-word { background: color-mix(in srgb, var(--gold) 70%, transparent); color: var(--on-gold); border-radius: 6px; padding: 0 2px; margin: 0 -2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; transition: background-color .15s ease; }
+
 .kid-read-aloud-btn { min-width:0; min-height:44px; padding:0; background:var(--surface-2); color:var(--text); border:2px solid var(--gold); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:background .15s,transform .15s; }
 .kid-read-aloud-btn svg { width:24px; height:24px; flex-shrink:0; }
 .kid-read-aloud-btn:hover:not(:disabled) { background:color-mix(in srgb,var(--gold) 25%,transparent); }

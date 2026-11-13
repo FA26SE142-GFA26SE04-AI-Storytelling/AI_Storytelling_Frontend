@@ -11,7 +11,7 @@ import { avatarOf, childStatus } from "@/app/lib/guardian";
 import { ageLabel } from "@/app/lib/storyView";
 import { useRiseIn } from "@/app/lib/motion";
 import CreateChildWizard from "./CreateChildWizard";
-import { clearChildIntent, wantsChildCreate } from "./childrenIntent";
+import { clearChildIntent, markChildCreate, readChildDraft, wantsChildCreate } from "./childrenIntent";
 import ProfileTab from "./ProfileTab";
 import LearningTab from "./LearningTab";
 import SafetyTab from "@/app/features/safety/SafetyWorkspace";
@@ -59,9 +59,9 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
     };
   }, []);
 
-  // Mở từ nút "+ Thêm bé" ở màn khác thì vào thẳng form tạo hồ sơ.
+  // Mở từ nút "+ Thêm bé" ở màn khác, hoặc tải lại trang khi đang ở form tạo hồ sơ, thì vào thẳng form.
   const [mode, setMode] = useState<"view" | "create">(() => (wantsChildCreate() || !kids.length ? "create" : "view"));
-  useEffect(() => { clearChildIntent(); }, []);
+  useEffect(() => { if (mode === "create") markChildCreate(); else clearChildIntent(); }, [mode]);
   const [tab, setTab] = useState<Tab>("profile");
   const listRef = useRiseIn<HTMLDivElement>(".kid-item", [kids.length]);
   const meId = user?.id ?? -1;
@@ -85,14 +85,21 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
   };
 
   const open = async (id: number, nextTab: Tab = "profile") => {
+    // Rời form tạo trước khi tải lại danh sách: hồ sơ mới làm đủ số của gói thì không chớp màn "đã đủ hồ sơ".
+    setMode("view");
     await reloadChildren();
     setSelId(id);
-    setMode("view");
     setTab(nextTab);
   };
 
   // Mỗi bé chỉ còn một người quản lý (chủ hồ sơ), nên chủ hồ sơ làm được mọi việc.
   const isOwner = !!child && child.ownerUserId === meId;
+
+  // Giống backend: hồ sơ Nháp / Đang hoạt động / Tạm ngưng của chính mình chiếm chỗ trong số hồ sơ tối đa của gói
+  // (reading-slots trả về đúng số đó). Bản nháp đã tạo hồ sơ trên server thì vẫn cho mở lại để làm nốt.
+  const occupied = kids.filter((k) => k.ownerUserId === meId && ["Draft", "Active", "Suspended"].includes(k.status)).length;
+  const draftHasProfile = readChildDraft(meId, Number.MAX_SAFE_INTEGER)?.createdId != null;
+  const atLimit = !!slots && occupied >= slots.slots && !draftHasProfile;
 
   return (
     <section className="ws dock" style={{ gridTemplateColumns: "250px 1fr", ...(slots?.isOverLimit ? { gridTemplateRows: "auto minmax(0, 1fr)" } : {}) }}>
@@ -128,7 +135,11 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
               </button>
             );
           })}
-          <button className={`btn btn-p btn-c${mode === "create" ? " on" : ""}`} style={{ marginTop: 8 }} onClick={() => setMode("create")}><Plus className="ic" />Thêm bé</button>
+          <button className={`btn btn-p btn-c${mode === "create" ? " on" : ""}`} style={{ marginTop: 8 }} disabled={atLimit} title={atLimit ? "Đã đủ số hồ sơ của gói hiện tại" : undefined} onClick={() => setMode("create")}><Plus className="ic" />Thêm bé</button>
+          {atLimit && slots && <div className="notice warn sec" role="status" data-inline-notice style={{ gap: 8 }}>
+            <span>Gói hiện tại cho tối đa {slots.slots} hồ sơ bé. Nâng cấp gói để thêm bé.</span>
+            <a className="btn btn-s" href="#account-payment">Nâng cấp gói</a>
+          </div>}
           {archived.length > 0 && <div className="sec" style={{ gap: 4, marginTop: 12 }}>
             <small className="sub">Vừa lưu trữ</small>
             {archived.map(c => <div key={c.id} className="row" style={{ gap: 6 }}>
@@ -141,10 +152,19 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
       </div>
 
       <div className="pane children-main">
-        {mode === "create" && (
-          <>
-            <CreateChildWizard onDone={(id) => void open(id)} onCancel={() => setMode("view")} />
-          </>
+        {mode === "create" && atLimit && (
+          <div className="empty">
+            <Frog size={110} mood="think" />
+            <b className="display">Đã đủ số hồ sơ bé của gói</b>
+            <span>Gói hiện tại cho tối đa {slots?.slots} hồ sơ bé. Nâng cấp gói để thêm bé; các thông tin bạn đã điền vẫn được giữ.</span>
+            <div className="row" style={{ gap: 8, marginTop: 8 }}>
+              <button type="button" className="btn btn-g" onClick={() => setMode("view")}>Về danh sách</button>
+              <a className="btn btn-p" href="#account-payment">Nâng cấp gói</a>
+            </div>
+          </div>
+        )}
+        {mode === "create" && !atLimit && (
+          <CreateChildWizard onDone={(id) => void open(id)} onCancel={() => setMode("view")} />
         )}
         {mode === "view" && !child && (
           <div className="empty"><Frog size={110} mood="think" /><b className="display">Chưa có hồ sơ bé</b><span>Thêm hồ sơ để bắt đầu.</span></div>

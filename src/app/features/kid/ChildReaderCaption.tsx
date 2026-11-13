@@ -27,8 +27,9 @@ function renderWords(words: ReadAloudWord[]) {
 
 /**
  * Chữ của tranh đang hiện; khi có kết quả luyện đọc thì thay vùng segment tương ứng.
+ * reading: chữ giọng kể đang đọc (vị trí trong chữ của cảnh), được tô sáng theo lời kể.
  */
-export function Caption({text,part,result,segment,segmentStart}:{text:string;part:{start:number;end:number}|null;result:ReadAloudResult|null;segment:ReadingSegment|null;segmentStart:number}) {
+export function Caption({text,part,result,segment,segmentStart,reading}:{text:string;part:{start:number;end:number}|null;result:ReadAloudResult|null;segment:ReadingSegment|null;segmentStart:number;reading?:{start:number;end:number}|null}) {
   const mark=useRef<HTMLElement>(null);
   useEffect(()=>{mark.current?.scrollIntoView({block:'nearest',behavior:'smooth'});},[part?.start]);
   const ps=part?part.start:0, pe=part?part.end:text.length;
@@ -46,6 +47,10 @@ export function Caption({text,part,result,segment,segmentStart}:{text:string;par
       return <p>{s>ps?text.slice(ps,s):null}<mark ref={mark} key={s} className="kid-pic-part">{renderWords(words)}</mark>{e<pe?text.slice(e,pe):null}</p>;
     }
     return <p>{renderWords(result.words)}</p>;
+  }
+  if(reading){
+    const from=Math.max(reading.start,ps), to=Math.min(reading.end,pe);
+    if(to>from)return <p>{text.slice(ps,from)}<span className="kid-reading-word">{text.slice(from,to)}</span>{text.slice(to,pe)}</p>;
   }
   return <p>{text.slice(ps,pe)}</p>;
 }

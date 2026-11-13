@@ -78,6 +78,21 @@ export function charInSegment(text: string, timings: Timing[], seconds: number, 
 }
 
 /**
+ * Chữ chứa vị trí ký tự offset: [start, end) trong text, không gồm khoảng trắng.
+ * offset rơi vào khoảng trắng thì lấy chữ ngay sau; ngoài phạm vi hoặc không còn chữ thì null.
+ */
+export function wordAt(text: string, offset: number): { start: number; end: number } | null {
+  if (!text || offset < 0 || offset >= text.length) return null;
+  let start = offset;
+  while (start < text.length && /\s/.test(text[start])) start++;
+  if (start >= text.length) return null;
+  while (start > 0 && !/\s/.test(text[start - 1])) start--;
+  let end = start;
+  while (end < text.length && !/\s/.test(text[end])) end++;
+  return { start, end };
+}
+
+/**
  * Số giây tương ứng vị trí ký tự charOffset trong text.
  * Có timings: mốc start của từ chứa charOffset hoặc từ đầu tiên có vị trí >= charOffset.
  * Không có timings: tỉ lệ theo ký tự trong [0, duration].

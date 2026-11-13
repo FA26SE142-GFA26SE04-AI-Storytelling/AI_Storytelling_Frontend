@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { charInSegment, parseWordTimings, pictureAt, pictureParts, scenePictures, secondsAtChar, segmentStarts } from '@/app/features/kid/scenePictures';
+import { charInSegment, parseWordTimings, pictureAt, pictureParts, scenePictures, secondsAtChar, segmentStarts, wordAt } from '@/app/features/kid/scenePictures';
 import type { ReadingScene } from '@/app/types/childReading';
 
 const text = 'Thỏ ra vườn. Thỏ thấy cà rốt. Thỏ chia cho bạn.';
@@ -100,5 +100,23 @@ describe('vị trí đang đọc', () => {
       expect(secondsAtChar(sampleText, timings, 5, 0)).toBe(0);
       expect(secondsAtChar(sampleText, timings, 5, -1)).toBe(0);
     });
+  });
+});
+
+describe('wordAt: chữ đang được kể để tô sáng', () => {
+  it('trả cả chữ chứa vị trí, kể cả khi vị trí nằm giữa chữ', () => {
+    expect(wordAt(text, 0)).toEqual({ start: 0, end: 3 });
+    expect(wordAt(text, 5)).toEqual({ start: 4, end: 6 });
+    expect(text.slice(7, 12)).toBe('vườn.');
+    expect(wordAt(text, 9)).toEqual({ start: 7, end: 12 });
+  });
+  it('vị trí rơi vào khoảng trắng thì lấy chữ ngay sau', () => {
+    expect(wordAt(text, 3)).toEqual({ start: 4, end: 6 });
+  });
+  it('ngoài phạm vi hoặc chỉ còn khoảng trắng thì null', () => {
+    expect(wordAt(text, -1)).toBeNull();
+    expect(wordAt(text, text.length)).toBeNull();
+    expect(wordAt('abc   ', 4)).toBeNull();
+    expect(wordAt('', 0)).toBeNull();
   });
 });
