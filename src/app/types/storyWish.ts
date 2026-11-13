@@ -109,6 +109,9 @@ export interface UpdateWishCardRequestDto {
 }
 export interface CreateWishCardRequestDto extends UpdateWishCardRequestDto { group: ManagedWishCardGroup }
 
+/** `GET /moderation/stories/{storyId}/wish-cards/coverage`: truyện thiếu cả thẻ Nhân vật lẫn Nơi chốn thì không vào gợi ý điều ước. */
+export interface StoryWishCardCoverageDto { storyId: number; canBeSuggested: boolean; hasCharacterCard: boolean; hasPlaceCard: boolean; warning: string | null }
+
 /** Thẻ đã gắn cho một truyện; source là "Moderator" hoặc "Ai". */
 export interface WishCardMatchDto { storyId: number; wishCardId: number; group: string; label: string; source: string }
 

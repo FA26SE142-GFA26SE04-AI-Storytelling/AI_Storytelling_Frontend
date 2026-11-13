@@ -1,6 +1,6 @@
 # Chức năng theo vai trò — đã làm / chưa làm
 
-Cập nhật: 12/11/2026.
+Cập nhật: 13/11/2026 (đồng bộ Backend `31840c8`: bỏ escalate report lên Admin, lượt xem / yêu thích thư viện cộng đồng, cảnh báo thiếu thẻ ước).
 
 Căn cứ:
 
@@ -95,7 +95,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 
 ### Cộng đồng (F-10)
 
-- [x] Kiểm tra điều kiện rồi gửi truyện Ready lên thư viện cộng đồng; rút lại; xem truyện cộng đồng.
+- [x] Xem thư viện cộng đồng (`GET /Story/community`): kệ "Đọc nhiều nhất" và "Được yêu thích" (`orderBy=views|favorites`, 13/11), bìa truyện Creator có lượt xem / yêu thích ([StoryStatsBadge.tsx](src/app/components/StoryStatsBadge.tsx)). Phụ huynh không còn gửi truyện lên cộng đồng (BE gỡ `CommunitySubmission` 11/11; FE gỡ hàm gọi 13/11).
 - [x] Báo cáo nội dung không phù hợp.
 
 ### Lộ trình và theo dõi bé (F-12, Luồng 4a, 4c)
@@ -119,7 +119,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] EXP, 7 huy hiệu, cây tri thức 5 giai đoạn (tưới cây), sổ tay từ vựng, nghĩa của từ; đọc xong mở bước lộ trình tiếp theo (F-14).
 - [x] Cuối truyện ghi âm kể lại (đổi sang WAV trước khi gửi) và đánh dấu tối đa 5 cảnh còn thắc mắc.
 - [x] Gửi điều ước bằng thẻ (F-08).
-- [x] Đọc truyện cộng đồng đã duyệt.
+- [x] Kệ "Khám phá truyện cộng đồng" ở trang chủ bé **đã gỡ** (13/11): BE xoá `/CommunityLibrary`, API mới `/Story/community` không cho phiên bé. Bé đọc truyện Creator qua lộ trình phụ huynh thêm.
 - [ ] **Một phần — Tranh / âm thanh của truyện gia đình tự soạn** (`GET /child/manual-stories/{confirmationId}/assets/{assetId}`): FE tải file kèm token phiên của bé rồi hiện bằng blob URL (`src/app/lib/useAuthedMediaUrl.ts`, dùng ở tranh cảnh, giọng đọc và xem trước truyện gia đình). BE fix signer bỏ qua URL /api/ (commit 7ecf5fe, `ChildMediaUrlSigner.cs`) đã có trong `main` (cac1271); còn kiểm tra thực tế rồi chuyển thành `[x]`.
 
 ---
@@ -128,7 +128,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 
 - [x] Tạo truyện bằng AI (F-06) và tự viết (F-07): soạn, nhập, lưu phiên bản, trợ lý AI, tự kiểm tra nội dung (An toàn / Vùng xám / Bị chặn), xác nhận nội dung, tranh và giọng đọc, xác nhận gói (F-09).
 - [x] Gửi duyệt công khai: chọn ảnh bìa và nhãn nội dung, rút yêu cầu, gửi lại khi chỉ bị trả về vì nhãn, tạo bản chỉnh sửa, yêu cầu gỡ truyện đã công khai (F-10).
-- [x] Thư viện truyện mẫu, Truyện của tôi.
+- [x] Thư viện truyện mẫu, Truyện của tôi (thẻ truyện đã công khai có lượt xem / yêu thích từ `GET /creator/stories/published`, 13/11).
 - [x] **Media từng đoạn của Creator**: bước "Kiểm tra và chốt" chọn "AI tạo hết" hoặc "Tự chọn từng phần"; ở bước Tranh và giọng đọc, mỗi tranh / đoạn đang chờ có nút Tải lên (khai báo nguồn và quyền, ảnh JPEG/PNG/WebP ≤ 10 MB, âm thanh MP3/WAV ≤ 25 MB) và AI tạo. Đã thử thật (truyện #919).
 - [x] **Mua gói Creator, xem lượt tạo truyện và lượt gửi duyệt** (F-03, F-04, F-05): BE có gói Creator 99.000 đ (+6 lượt AI, +20 lượt gửi), hạn mức tháng (2 lượt AI + 5 lượt gửi), trừ / hoàn lượt gửi duyệt (`TokenQuotaService.Creator.cs`); FE có màn mua và xem lượt ([PaymentSection.tsx](src/app/features/account/PaymentSection.tsx) audience creator, [CreatorQuotaPanel.tsx](src/app/features/account/CreatorQuotaPanel.tsx), `GET /TokenQuota/creator/me`), chip lượt ở Viết bằng AI và nút gửi duyệt. Hạn mức đối tác (6 + 10) BE ghi là hoãn, cần xác nhận.
 - [x] **Doanh thu ước tính** (F-20): quỹ Creator theo tháng (30% Gói Đọc + 10% Gói Sáng tạo), chia theo lượt đọc hợp lệ. BE `GET /CreatorStatistics/revenue`; FE [CreatorIncomeTab.tsx](src/app/features/staff/CreatorIncomeTab.tsx) trong [CreatorStatistics.tsx](src/app/features/staff/CreatorStatistics.tsx) (nút "Thống kê").
@@ -142,11 +142,11 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 
 - [x] Hàng đợi kiểm duyệt: lọc trạng thái / loại mục, nhận xử lý, hạn xử lý (quá hạn), phân trang (F-10).
 - [x] Duyệt truyện công khai của Creator: hồ sơ duyệt, checklist, so sánh phiên bản, gắn nhãn, duyệt / yêu cầu sửa / từ chối, trả về chỉ vì nhãn (F-10).
-- [x] Duyệt truyện cộng đồng, vùng xám, báo cáo nội dung (chuyển lên Admin), yêu cầu gỡ của Creator (F-10).
+- [x] Duyệt vùng xám, báo cáo nội dung, yêu cầu gỡ của Creator (F-10). Report chỉ Moderator xử lý (bỏ escalate lên Admin, 13/11); chi tiết report hiện người yêu cầu rà soát / tác giả Creator khi BE trả; hàng đợi hiện tên Creator ở mục xin gỡ.
 - [x] Rà soát truyện và lộ trình đã công khai.
 - [x] Tiêu chí vùng xám: Draft → kiểm tra → chấm thử → Active → Retired, có nhật ký (F-11).
 - [x] Ví dụ của tiêu chí vùng xám: form thêm / sửa / xoá ví dụ (nội dung, mức 0–4, lý do), không còn gõ JSON ([RubricExamplesEditor.tsx](src/app/features/staff/RubricExamplesEditor.tsx)).
-- [x] Thẻ ước: tạo, sửa, bật / tắt, gắn với truyện bằng tay hoặc AI gợi ý (F-11).
+- [x] Thẻ ước: tạo, sửa, bật / tắt, gắn với truyện bằng tay hoặc AI gợi ý (F-11). Banner vàng khi truyện thiếu thẻ Nhân vật / Nơi chốn (`GET .../wish-cards/coverage`, tải lại sau mỗi lần gắn / gỡ / AI gợi ý, 13/11).
 - [x] Hướng dẫn sáng tác: soạn nháp, xem trước, phát hành phiên bản mới (F-11).
 - [x] Lộ trình mẫu: tạo, sửa, chọn truyện, gửi duyệt, rút, nhân bản, lưu trữ; duyệt lộ trình mẫu (F-12).
 - [x] **Thống kê hàng đợi và SLA** (F-19): số mục Pending / Claimed / quá hạn theo kỳ, quyết định theo kết quả và loại mục, số lần gửi lại, số vùng xám; không trả nội dung hay dữ liệu bé; gọi thống kê của Admin thì 403. BE `GET /ModerationQueue/statistics` (chỉ Moderator); FE mục "Thống kê" trên menu Moderator, [ModeratorStatistics.tsx](src/app/features/staff/ModeratorStatistics.tsx).
@@ -157,7 +157,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 
 - [x] Tài khoản vận hành (mời, kích hoạt, khoá Moderator / Creator).
 - [x] Danh mục nội dung.
-- [x] Ca kiểm duyệt chuyển lên Admin; rà soát thư viện; tiêu chí, hướng dẫn, thẻ ước, lộ trình mẫu (xem).
+- [x] Rà soát thư viện; tiêu chí, hướng dẫn, thẻ ước, lộ trình mẫu (xem). Admin không xử lý report nội dung (BE 403, 13/11): đã gỡ menu "ca chuyển lên" và nút nhận mục ContentReport.
 - [x] **Thanh toán → Giao dịch** (F-04): mọi giao dịch, lọc trạng thái, tìm theo mã / email / tên, phân trang; "Xác nhận đã trả" cho mọi giao dịch chưa Paid (kể cả Hết hạn, Sai số tiền), gói được áp như webhook.
 - [x] **Báo cáo nghiệp vụ** (F-15, [AdminBusinessReport.tsx](src/app/features/staff/AdminBusinessReport.tsx), [AdminRevenueTab.tsx](src/app/features/staff/AdminRevenueTab.tsx)): tạo báo cáo theo kỳ (BE chặn kỳ trùng / chồng lên báo cáo đã có), Compiling → Published, xem báo cáo mới nhất; hiện doanh thu, quỹ Creator, số giao dịch theo trạng thái, doanh thu theo gói và theo loại gói. BE `GET /BusinessReport/admin/revenue`.
 - [x] **Báo cáo tài khoản người dùng** (F-16, [AdminAccountsTab.tsx](src/app/features/staff/AdminAccountsTab.tsx)): tổng phụ huynh cuối kỳ, đăng ký mới, đang hoạt động, bị khoá, số hồ sơ bé. BE `GET /BusinessReport/admin/accounts`.
@@ -188,6 +188,8 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [ ] Hàm đã có nhưng không màn nào gọi (cần quyết định nối hoặc bỏ): `GET /ChildProfile/{id}` (`childProfileService.getChildProfileById`, dư). Duyệt: Parent và Creator đang dùng `review/confirm-package` (BE cho cả ContentCreator), còn `review/approve`, `creator/.../generation/confirm-content` (BE: Creator xác nhận nội dung trước khi tạo media, DS-03b) và `review/*/complete` (`completeReview`, `completeStoryReview`) chưa có ai gọi; cần chốt một luồng Creator rồi bỏ hàm thừa. `GET review/validation`: state `validation` trong `useStoryReview.ts` không bao giờ được nạp, kiểm tra nội dung đang lấy từ đâu cần xác minh. `PUT review/listening/{id}` (`updateListeningInteraction`): không màn nào gọi, nên mục "sửa tay tương tác khi nghe" (mục 1, F-06/F-07) cần kiểm tra lại.
 - [ ] Trang giới thiệu hiển thị truyện đã phát hành — chờ API công khai (thư viện cộng đồng đang cần token).
 - [ ] Ảnh bìa truyện cộng đồng — chờ DTO trả ảnh bìa.
+- [ ] Tách [LibraryWorkspace.tsx](src/app/features/library/LibraryWorkspace.tsx) (~554 dòng, quy ước ~250) theo vùng giao diện — việc riêng (13/11).
+- [x] Panel report crash khi BE không còn `discussionQuestions` (BE thay bằng listening từ commit 7874b1b0): đã gỡ khối câu hỏi thảo luận ở report, chặn null ở panel cộng đồng (13/11).
 - [ ] API lựa chọn cho form lộ trình mẫu (độ tuổi, khoảng mức đọc, số ngày) — đề xuất BE thêm `GET /RoadmapTemplate/options`; FE đang để cố định cho khớp.
 - [ ] **Lỗi 500 ở hướng dẫn sáng tác** (`GET /authoring-guides`, ghi nhận 10/11): cùng lỗi .NET 10 `.Contains` trên mảng trong truy vấn EF như lỗi Lịch sử hoạt động, tại `AuthoringGuideItemStore.cs` dòng 15 (Backend). Trang Tự viết vẫn chạy nhưng không hiện gợi ý hướng dẫn.
 - [ ] Lỗi AI phía BE (ghi nhận 09/11): "Nhận xét bản thảo" trả `AI_OUTPUT_INVALID` với bài dài; kiểm tra nội dung của phụ huynh luôn báo `SEMANTIC_SAFETY_REVIEW_REQUIRED` khi có ngưỡng an toàn; Vertex thỉnh thoảng 429 / hết thời gian.

@@ -20,20 +20,23 @@ export function DetailCard({
   myName,
   busy,
   onClaim,
+  userRole,
 }: {
   item: QueueItem;
   me?: number;
   myName?: string;
   busy: boolean;
-  onClaim: () => void;
+  onClaim?: () => void;
+  userRole?: string;
 }) {
+  const cannotClaim = userRole === 'Administrator' && item.itemType === 'ContentReport';
   return (
     <QueueSummaryCard
       item={item}
       me={me}
       myName={myName}
       busy={busy}
-      onClaim={item.status === 'Pending' ? onClaim : undefined}
+      onClaim={item.status === 'Pending' && !cannotClaim ? onClaim : undefined}
     />
   );
 }
@@ -64,19 +67,17 @@ const ALL_STATUSES: QueueItemStatus[] = [
 ];
 
 export default function ConnectedModerationQueue({
-  admin,
   allowedTypes,
   title = 'Hàng đợi kiểm duyệt',
   description,
 }: {
-  admin?: boolean;
   allowedTypes?: QueueItemType[];
   title?: string;
   description?: string;
 }) {
   const { user } = useAuth();
   const visibleTypes = allowedTypes && allowedTypes.length > 0 ? allowedTypes : ALL_TYPES;
-  const [status, setStatus] = useState<QueueItemStatus>(admin ? 'Escalated' : 'Pending');
+  const [status, setStatus] = useState<QueueItemStatus>('Pending');
   const [kind, setKind] = useState<QueueItemType | ''>(allowedTypes?.length ? allowedTypes[0] : '');
   const [pageIndex, setPageIndex] = useState(1);
   const [items, setItems] = useState<QueueItem[]>([]);
@@ -132,8 +133,9 @@ export default function ConnectedModerationQueue({
   const canOpen =
     !!current &&
     visibleTypes.includes(current.itemType as QueueItemType) &&
-    ((current.status === 'Claimed' && current.claimedByUserId === user?.id) ||
-      (current.status === 'Escalated' && current.itemType === 'ContentReport' && user?.role === 'Administrator'));
+    current.status === 'Claimed' &&
+    current.claimedByUserId === user?.id;
+  const canClaim = !(user?.role === 'Administrator' && current?.itemType === 'ContentReport');
 
   const typeOptions: { value: QueueItemType | ''; label: string }[] = allowedTypes?.length
     ? visibleTypes.map(k => ({ value: k, label: MODERATION_TYPE_LABELS[k] }))
@@ -215,7 +217,8 @@ export default function ConnectedModerationQueue({
               me={user?.id}
               myName={user?.fullName || user?.username}
               busy={busy}
-              onClaim={() => void run(() => staffService.claim(current.id), 'Đã nhận mục; chọn trạng thái Đang xử lý để tiếp tục.')}
+              userRole={user?.role}
+              onClaim={canClaim ? () => void run(() => staffService.claim(current.id), 'Đã nhận mục; chọn trạng thái Đang xử lý để tiếp tục.') : undefined}
             />
           )
         ) : (

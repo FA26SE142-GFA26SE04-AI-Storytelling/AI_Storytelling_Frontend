@@ -1,5 +1,6 @@
 import type { ApiResponse } from '@/app/types/auth';
 import type { PagedResult, StoryDto, StoryFilterRequest } from '@/app/types/story';
+import type { CommunityLibraryStoryDto, CommunityStoryOrderBy } from '@/app/types/backendContracts';
 import type { StoryMediaPackage } from '@/app/types/aiStory';
 import { apiRequest } from './apiClient';
 
@@ -12,7 +13,7 @@ import { apiRequest } from './apiClient';
 export const storyService = {
   /**
    * Backend chưa có bộ lọc theo hồ sơ bé (`StoryDto` không có `childProfileId`), nên gọi theo người tạo truyện.
-     */
+   */
   getStories(filter: StoryFilterRequest = {}): Promise<ApiResponse<PagedResult<StoryDto>>> {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(filter)) {
@@ -22,8 +23,13 @@ export const storyService = {
     return apiRequest(`/Story${query ? `?${query}` : ''}`, 'Không tải được danh sách truyện.');
   },
 
-  /** `GET /Story/community`: truyện của Creator đã được duyệt và công khai, cho mọi vai trò đăng nhập (User, Creator, Moderator, Admin). */
-  getCommunityStories(filter: StoryFilterRequest = {}): Promise<ApiResponse<PagedResult<StoryDto>>> {
+  /**
+   * `GET /Story/community`: truyện của Creator đã được duyệt và công khai, cho mọi vai trò đăng nhập (User, Creator, Moderator, Admin).
+   * Hỗ trợ `orderBy` (`'views'` | `'favorites'`) kèm `isDescending`; bỏ trống thì theo ngày tạo.
+   */
+  getCommunityStories(
+    filter: StoryFilterRequest & { orderBy?: CommunityStoryOrderBy } = {}
+  ): Promise<ApiResponse<PagedResult<CommunityLibraryStoryDto>>> {
     const params = new URLSearchParams();
     for (const [key, value] of Object.entries(filter)) {
       if (value !== undefined && value !== null && value !== '') params.append(key, String(value));

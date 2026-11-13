@@ -1,0 +1,43 @@
+/*
+ * Huy hiệu hiển thị số liệu truyện (lượt đọc, lượt yêu thích).
+ * Lưu ý: Phần tử cha chứa .story-stats-badge phải có position: relative.
+ */
+
+.story-stats-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 8px;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--text);
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  z-index: 1;
+}
+
+.story-stats-badge.below-pill {
+  top: 40px;
+  left: 10px;
+  right: auto;
+}
+
+.story-stats-badge .story-stats-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.story-stats-badge svg {
+  display: block;
+  flex-shrink: 0;
+}
+
+.story-stats-badge .story-stats-heart {
+  color: var(--gold-deep);
+}

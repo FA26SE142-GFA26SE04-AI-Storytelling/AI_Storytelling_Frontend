@@ -117,7 +117,7 @@ export const GRAY_ZONE_SECTIONS: ModerationSectionDef[] = [
 export const CONTENT_REPORT_SECTIONS: ModerationSectionDef[] = [
   { status: 'Pending', label: 'Chờ tiếp nhận', group: 'work', hint: 'Báo cáo nội dung mới, chưa có Moderator nhận xử lý.' },
   { status: 'Claimed', label: 'Đang xử lý', group: 'work', hint: 'Hồ sơ báo cáo đang được giữ xử lý. Chỉ người đang giữ mới mở được chi tiết.' },
-  { status: 'Escalated', label: 'Đã chuyển Admin', group: 'waiting', hint: 'Ca đã chuyển lên Administrator; Moderator chỉ xem tóm tắt, không mở gói chi tiết hay tự quyết định.' },
+  { status: 'Escalated', label: 'Đã chuyển Admin', group: 'waiting', hint: 'Dữ liệu cũ: ca đã chuyển lên Administrator trước đây; không còn tạo ca mới.' },
   { status: 'Dismissed', label: 'Đã bác báo cáo', group: 'results', hint: 'Báo cáo đã được bác, giữ nguyên nội dung.' },
   { status: 'Archived', label: 'Đã xử lý gỡ vi phạm', group: 'results', hint: 'Đã xử lý lưu trữ hoặc gỡ nội dung vi phạm từ báo cáo.' },
   { status: 'Closed', label: 'Hồ sơ đã đóng', group: 'results', hint: 'Hồ sơ báo cáo đã đóng.' },

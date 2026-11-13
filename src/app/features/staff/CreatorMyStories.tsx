@@ -2,7 +2,7 @@
 
 import "@/app/features/library/library.css";
 import "@/app/features/created/created.css";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Eye, Info, PencilLine, RefreshCw, Search, Undo2, WandSparkles, X } from "lucide-react";
 import { Shelf, ShelfRow } from "@/app/features/library/LibraryWorkspace";
 import CreatorPreview from "./CreatorPreview";
@@ -16,6 +16,7 @@ import Frog from "@/app/components/brand/Frog";
 import { creatorService } from "@/app/services/creatorService";
 import type { CreatorDraft } from "@/app/types/creator";
 import { coverFor } from "@/app/lib/storyView";
+import { StoryStatsBadge } from "@/app/components/StoryStatsBadge";
 import { fmt } from "./ui";
 import { creatorShelfOf, currentCreatorPublication, groupCreatorStories, resolveStoryDisplayState, type CreatorPublicationSnapshot } from "./creatorStoryShelves";
 import type { CreatorPageProps } from "./CreatorStories";
@@ -32,10 +33,12 @@ export function CreatorStoryCard({
   story,
   selected,
   onPick,
+  stats,
 }: {
   story: CreatorDraft;
   selected: boolean;
   onPick: () => void;
+  stats?: { viewCount: number; favoriteCount: number } | null;
 }) {
   const name = story.title || "Truyện chưa đặt tên";
   const shelf = creatorShelfOf(story);
@@ -49,6 +52,7 @@ export function CreatorStoryCard({
       <span className="bk-cover" style={{ background: coverFor(story.coverImageUrl) }}>
         <span className={`pill ${shelf.tone} bk-badge`}>{shelf.badge}</span>
         <span className="bk-name display">{name}</span>
+        {stats && <StoryStatsBadge viewCount={stats.viewCount} favoriteCount={stats.favoriteCount} belowPill />}
       </span>
       <span className="bk-title">{name}</span>
       <span className="bk-meta">{isAi(story) ? "Do AI tạo" : "Thủ công"} · {AGE[story.ageBand] ?? story.ageBand}</span>
@@ -102,19 +106,65 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
   const pub = currentCreatorPublication(publicationSnapshot, list, selected, pubTick);
   const [collapsed, setCollapsed] = useState(true);
   const aside = useMemo(() => ({ collapsed, toggle: () => setCollapsed((v) => !v) }), [collapsed]);
-
-  const load = useCallback(async () => {
-    setLoading(true); setError("");
-    const all: CreatorDraft[] = [];
-    for (let pageIndex = 1; pageIndex <= 50; pageIndex++) {
-      const r = await creatorService.list(pageIndex, 100);
-      if (!r.ok) { setError(r.message); break; }
-      all.push(...(r.data?.items ?? []));
-      if (!r.data?.hasNextPage) break;
-    }
-    setList(all); setLoading(false);
+  const [statsMap, setStatsMap] = useState<Map<number, { viewCount: number; favoriteCount: number }>>(new Map());
+  const aliveRef = useRef(true);
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+    };
   }, []);
-  useEffect(() => { void load(); }, [load]);
+
+  const load = useCallback(async (signal?: AbortSignal) => {
+    setLoading(true); setError("");
+
+    const loadDrafts = async () => {
+      const all: CreatorDraft[] = [];
+      for (let pageIndex = 1; pageIndex <= 50; pageIndex++) {
+        if (signal?.aborted || !aliveRef.current) return null;
+        const r = await creatorService.list(pageIndex, 100);
+        if (signal?.aborted || !aliveRef.current) return null;
+        if (!r.ok) { setError(r.message); break; }
+        all.push(...(r.data?.items ?? []));
+        if (!r.data?.hasNextPage) break;
+      }
+      return all;
+    };
+
+    const loadStats = async () => {
+      const map = new Map<number, { viewCount: number; favoriteCount: number }>();
+      try {
+        for (let pageIndex = 1; pageIndex <= 50; pageIndex++) {
+          if (signal?.aborted || !aliveRef.current) return null;
+          const res = await creatorService.creatorPublishedStories({ pageIndex, pageSize: 100, isDescending: true });
+          if (signal?.aborted || !aliveRef.current) return null;
+          if (!res.success || !res.data) break;
+          const items = res.data.items ?? [];
+          for (const item of items) {
+            const sid = item.id;
+            if (sid) {
+              map.set(sid, { viewCount: item.viewCount, favoriteCount: item.favoriteCount });
+            }
+          }
+          if (items.length === 0 || res.data.hasNextPage === false || (res.data.totalPages && pageIndex >= res.data.totalPages)) break;
+        }
+      } catch {
+        // Lỗi tải số liệu thì im lặng: không hiện toast, không hiện thông báo lỗi, không làm hỏng danh sách chính
+      }
+      return map;
+    };
+
+    const [all, stats] = await Promise.all([loadDrafts(), loadStats()]);
+    if (signal?.aborted || !aliveRef.current) return;
+    if (all !== null) setList(all);
+    if (stats !== null) setStatsMap(stats);
+    setLoading(false);
+  }, []);
+  useEffect(() => {
+    const c = new AbortController();
+    void load(c.signal);
+    return () => c.abort();
+  }, [load]);
 
   const all = useMemo(() => [...(list ?? [])].sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime()), [list]);
   const needle = q.trim().toLowerCase();
@@ -137,7 +187,13 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
   }, [selected, pubTick, list]);
   const canRemove = !!pub && pub.isPublished && !pub.openItemId;
   const card = (s: CreatorDraft) => (
-    <CreatorStoryCard key={s.storyId} story={s} selected={selected === s.storyId} onPick={() => pick(s)} />
+    <CreatorStoryCard
+      key={s.storyId}
+      story={s}
+      selected={selected === s.storyId}
+      onPick={() => pick(s)}
+      stats={statsMap.get(s.storyId)}
+    />
   );
   const open = (s: CreatorDraft) => go(isAi(s) ? "create-ai" : "create-manual", s.storyId);
 
