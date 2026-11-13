@@ -7,6 +7,7 @@ import { prefersReducedMotion, useRiseIn } from '@/app/lib/motion';
 import { moderationService } from '@/app/services/moderationService';
 import type { QueueItem } from '@/app/types/staff';
 import ChangeRequestDialog from './ChangeRequestDialog';
+import { EditorialReviewSplit, InspectionSnapshotBar, ManuscriptCard, type SnapshotMetric } from './ModerationInspectionPrimitives';
 import { Warn } from './PublicReviewEvidence';
 import { ReviewPanelHeader } from './ReviewPanelHeader';
 import { formatSubmittedAt } from './moderationQueueDisplay';
@@ -31,6 +32,48 @@ function jumpTo(id: string) {
     behavior: prefersReducedMotion() ? 'auto' : 'smooth',
     block: 'start',
   });
+}
+
+function buildRoadmapMetrics(
+  d: Extract<import('@/app/services/moderationService').ReviewPackage, { kind: 'RoadmapTemplateReview' }>['data'],
+): SnapshotMetric[] {
+  const autoFail = d.checks.filter(c => !c.passed).length;
+  const checkDone = d.checklist.filter(c => c.passed).length;
+  const eligibleStories = d.stories.filter(s => s.isEligible).length;
+  return [
+    {
+      id: 'auto',
+      label: 'Kiểm tra hệ thống',
+      value: autoFail === 0 ? 'Đạt hết' : `${autoFail} lỗi`,
+      hint: `${d.checks.length} kiểm tra tự động`,
+      tone: autoFail === 0 ? 'ok' : 'flag',
+      targetId: 'rt-sec-info',
+    },
+    {
+      id: 'checks',
+      label: 'Checklist',
+      value: `${checkDone}/${d.checklist.length}`,
+      hint: checkDone === d.checklist.length ? 'Đủ tiêu chí' : `Còn ${d.checklist.length - checkDone} mục`,
+      tone: checkDone === d.checklist.length ? 'ok' : 'wait',
+      targetId: 'rt-sec-checklist',
+    },
+    {
+      id: 'stories',
+      label: 'Truyện thành phần',
+      value: `${eligibleStories}/${d.stories.length}`,
+      hint: eligibleStories === d.stories.length ? 'Đủ điều kiện' : 'Có truyện không đạt',
+      tone: eligibleStories === d.stories.length ? 'ok' : 'flag',
+      targetId: 'rt-sec-stories',
+    },
+    {
+      id: 'blockers',
+      label: 'Chặn duyệt',
+      value: d.blockers.length === 0 ? 'Sẵn sàng' : `${d.blockers.length} mục`,
+      hint: d.blockers.length === 0 ? 'Có thể duyệt' : 'Xem mục chặn duyệt',
+      tone: d.blockers.length === 0 ? 'ok' : 'flag',
+      targetId: 'rt-sec-decision',
+    },
+  ];
 }
 
 /** Tài liệu 08 — Panel duyệt lộ trình mẫu: thông tin lộ trình, checklist, truyện thành phần, blockers và quyết định. */
@@ -88,142 +131,152 @@ export default function RoadmapReviewPanel({
   };
 
   return (
-    <div className="st-card st-review" ref={riseRef}>
-      <nav className="mod-anchors" aria-label="Điều hướng nhanh duyệt lộ trình">
-        <button type="button" onClick={() => jumpTo('rt-sec-info')}>Thông tin lộ trình</button>
-        <button type="button" onClick={() => jumpTo('rt-sec-checklist')}>Checklist</button>
-        <button type="button" onClick={() => jumpTo('rt-sec-stories')}>Truyện thành phần</button>
-        <button type="button" onClick={() => jumpTo('rt-sec-decision')}>Quyết định</button>
-      </nav>
-
-      <ReviewPanelHeader item={item} queueItem={queueItem} message={message} sourceTag="Duyệt lộ trình mẫu" />
-
-      <div id="rt-sec-info" className="st-group mod-anchor-target">
-        <b className="st-group-title">Thông tin lộ trình</b>
-        <div className="st-facts">
-          <div><small>Mã lộ trình</small><b>#{r.id}</b></div>
-          <div><small>Độ tuổi</small><b>{AGE_LABELS[r.ageBand] ?? r.ageBand}</b></div>
-          <div><small>Chủ đề chính</small><b>{r.mainCategory?.displayName ?? 'Chưa gắn'}</b></div>
-          <div><small>Khoảng mức đọc</small><b>Mức {r.readingLevelMin} – {r.readingLevelMax}</b></div>
-          <div><small>Số ngày mỗi truyện</small><b>{r.defaultDaysPerStory} ngày</b></div>
-          <div><small>Người tạo</small><b>{r.createdByName?.trim() || `Tài khoản #${r.createdByUserId}`}</b></div>
-          {r.submittedAt && <div><small>Gửi duyệt lúc</small><b>{formatSubmittedAt(r.submittedAt)}</b></div>}
-        </div>
-        {r.description && <div className="st-quote"><small>Mô tả lộ trình</small><p>{r.description}</p></div>}
-        {d.checks.length > 0 && (
-          <ul className="st-blockers" aria-label="Kiểm tra tự động của hệ thống">
-            {d.checks.map(c => (
-              <li key={c.code}>
-                {c.passed ? <Check className="ic" aria-hidden /> : <CircleAlert className="ic" aria-hidden />}
-                <span>{c.message}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
-
-      <div id="rt-sec-checklist" className="st-group mod-anchor-target">
-        <b className="st-group-title">
-          Checklist chấm điểm
-          {hasBlocker('checklist_incomplete') && <Warn why="Checklist chưa đạt đủ" />}
-        </b>
-        <div className="st-checks">
-          {d.checklist.map(entry => (
-            <div className="field" key={entry.code}>
-              <span className="st-flabel" title={entry.label}>
-                {CRITERION_SHORT[entry.code] ?? entry.label}
-                {!entry.passed && <Warn why="Chưa đạt / chưa chấm" />}
-              </span>
-              <Select<string>
-                ariaLabel={CRITERION_SHORT[entry.code] ?? entry.label}
-                disabled={locked}
-                value={String(entry.passed)}
-                options={PASS_OPTIONS}
-                onChange={v => {
-                  if (locked) return;
-                  const updated = { ...entry, passed: v === 'true' };
-                  void act(() => moderationService.roadmapChecklist(id, [updated]));
-                }}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div id="rt-sec-stories" className="st-group mod-anchor-target">
-        <b className="st-group-title">Truyện trong lộ trình ({sortedStories.length})</b>
-        <div className="st-storylist">
-          {sortedStories.map((s, idx) => (
-            <div className={`st-storyrow${s.isEligible ? '' : ' bad'}`} key={s.storyId}>
-              <b>{idx + 1}. {s.title || `Truyện #${s.storyId}`}</b>
-              <span>
-                {s.ageBand}
-                {s.readingLevel != null ? ` · Mức ${s.readingLevel}` : ''}
-                {s.days != null ? ` · ${s.days} ngày` : ''}
-                {' · '}
-                {s.isEligible ? 'Đủ điều kiện' : 'Không còn đủ điều kiện'}
-                {!s.isEligible && <Warn why="Truyện không còn đủ điều kiện, cần yêu cầu sửa lộ trình" />}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div id="rt-sec-decision" className="st-group mod-anchor-target">
-        <b className="st-group-title">Quyết định</b>
-        {claimBlocked && (
-          <div className="notice err" role="alert" data-inline-notice>
-            <span>Phiên giữ hoặc trạng thái hồ sơ vừa thay đổi (403/409). Các nút quyết định đã bị khóa; ghi chú của bạn vẫn được giữ.</span>
-          </div>
-        )}
-        {d.blockers.length > 0 && (
-          <ul className="st-blockers" role="status" aria-label="Việc còn thiếu trước khi duyệt">
-            {d.blockers.map(b => <li key={b.code}><CircleAlert className="ic" aria-hidden />{b.message}</li>)}
-          </ul>
-        )}
-        <label className="field">
-          <span className="lbl">
-            Lý do / ghi chú quyết định
-            {!usableReason && !claimBlocked && <Warn why="Cần nhập lý do trước khi từ chối hoặc yêu cầu sửa" />}
-          </span>
-          <textarea
-            className="inp"
-            maxLength={1000}
-            rows={3}
-            readOnly={claimBlocked}
-            placeholder="Nhập lý do từ chối hoặc ghi chú phản hồi cho người soạn (tối đa 1000 ký tự)."
-            value={reason}
-            onChange={e => setReason(e.target.value)}
+    <>
+      <EditorialReviewSplit
+        innerRef={riseRef}
+        header={
+          <ReviewPanelHeader
+            item={item}
+            queueItem={queueItem}
+            message={message}
+            sourceTag="Duyệt lộ trình mẫu"
+            snapshot={<InspectionSnapshotBar metrics={buildRoadmapMetrics(d)} onJump={jumpTo} />}
           />
-        </label>
-        <div className="row st-wrap">
-          <button
-            type="button"
-            className="btn btn-ok"
-            disabled={locked || !d.canApprove}
-            title={d.blockers.map(b => b.message).join(' · ') || undefined}
-            onClick={() => void decide('Duyệt lộ trình này? Lộ trình sẽ được công khai.', 'Approved', () => moderationService.approve('RoadmapTemplateReview', id))}
-          >
-            <Check className="ic" />Duyệt
-          </button>
-          <button
-            type="button"
-            className="btn btn-s"
-            disabled={locked}
-            onClick={() => { setChangeFailed(false); setChangeOpen(true); }}
-          >
-            <Pencil className="ic" />Yêu cầu sửa
-          </button>
-          <button
-            type="button"
-            className="btn btn-no"
-            disabled={locked || !usableReason}
-            onClick={() => void decide('Từ chối lộ trình này?', 'Rejected', () => moderationService.reject('RoadmapTemplateReview', id, reason.trim()))}
-          >
-            <X className="ic" />Từ chối
-          </button>
-        </div>
-      </div>
+        }
+        left={
+          <>
+            <div id="rt-sec-info" className="st-group mod-anchor-target">
+              <b className="st-group-title">Thông tin lộ trình</b>
+              <div className="st-facts">
+                <div><small>Mã lộ trình</small><b>#{r.id}</b></div>
+                <div><small>Độ tuổi</small><b>{AGE_LABELS[r.ageBand] ?? r.ageBand}</b></div>
+                <div><small>Chủ đề chính</small><b>{r.mainCategory?.displayName ?? 'Chưa gắn'}</b></div>
+                <div><small>Khoảng mức đọc</small><b>Mức {r.readingLevelMin} – {r.readingLevelMax}</b></div>
+                <div><small>Số ngày mỗi truyện</small><b>{r.defaultDaysPerStory} ngày</b></div>
+                <div><small>Người tạo</small><b>{r.createdByName?.trim() || `Tài khoản #${r.createdByUserId}`}</b></div>
+                {r.submittedAt && <div><small>Gửi duyệt lúc</small><b>{formatSubmittedAt(r.submittedAt)}</b></div>}
+              </div>
+              {r.description && <ManuscriptCard variant="brief" label="Mô tả lộ trình" text={r.description} />}
+              {d.checks.length > 0 && (
+                <ul className="st-blockers" aria-label="Kiểm tra tự động của hệ thống">
+                  {d.checks.map(c => (
+                    <li key={c.code}>
+                      {c.passed ? <Check className="ic" aria-hidden /> : <CircleAlert className="ic" aria-hidden />}
+                      <span>{c.message}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+
+            <div id="rt-sec-stories" className="st-group mod-anchor-target">
+              <b className="st-group-title">Truyện trong lộ trình ({sortedStories.length})</b>
+              <div className="st-storylist">
+                {sortedStories.map((s, idx) => (
+                  <div className={`st-storyrow${s.isEligible ? '' : ' bad'}`} key={s.storyId}>
+                    <b>{idx + 1}. {s.title || `Truyện #${s.storyId}`}</b>
+                    <span>
+                      {s.ageBand}
+                      {s.readingLevel != null ? ` · Mức ${s.readingLevel}` : ''}
+                      {s.days != null ? ` · ${s.days} ngày` : ''}
+                      {' · '}
+                      {s.isEligible ? 'Đủ điều kiện' : 'Không còn đủ điều kiện'}
+                      {!s.isEligible && <Warn why="Truyện không còn đủ điều kiện, cần yêu cầu sửa lộ trình" />}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        }
+        right={
+          <>
+            <div id="rt-sec-checklist" className="st-group mod-anchor-target">
+              <b className="st-group-title">
+                Checklist chấm điểm
+                {hasBlocker('checklist_incomplete') && <Warn why="Checklist chưa đạt đủ" />}
+              </b>
+              <div className="st-checks">
+                {d.checklist.map(entry => (
+                  <div className="field" key={entry.code}>
+                    <span className="st-flabel" title={entry.label}>
+                      {CRITERION_SHORT[entry.code] ?? entry.label}
+                      {!entry.passed && <Warn why="Chưa đạt / chưa chấm" />}
+                    </span>
+                    <Select<string>
+                      ariaLabel={CRITERION_SHORT[entry.code] ?? entry.label}
+                      disabled={locked}
+                      value={String(entry.passed)}
+                      options={PASS_OPTIONS}
+                      onChange={v => {
+                        if (locked) return;
+                        const updated = { ...entry, passed: v === 'true' };
+                        void act(() => moderationService.roadmapChecklist(id, [updated]));
+                      }}
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div id="rt-sec-decision" className="st-group mod-anchor-target mod-decision-dock">
+              <b className="st-group-title">Quyết định</b>
+              {claimBlocked && (
+                <div className="notice err" role="alert" data-inline-notice>
+                  <span>Phiên giữ hoặc trạng thái hồ sơ vừa thay đổi (403/409). Các nút quyết định đã bị khóa; ghi chú của bạn vẫn được giữ.</span>
+                </div>
+              )}
+              {d.blockers.length > 0 && (
+                <ul className="st-blockers" role="status" aria-label="Việc còn thiếu trước khi duyệt">
+                  {d.blockers.map(b => <li key={b.code}><CircleAlert className="ic" aria-hidden />{b.message}</li>)}
+                </ul>
+              )}
+              <label className="field">
+                <span className="lbl">
+                  Lý do / ghi chú quyết định
+                  {!usableReason && !claimBlocked && <Warn why="Cần nhập lý do trước khi từ chối hoặc yêu cầu sửa" />}
+                </span>
+                <textarea
+                  className="inp"
+                  maxLength={1000}
+                  rows={3}
+                  readOnly={claimBlocked}
+                  placeholder="Nhập lý do từ chối hoặc ghi chú phản hồi cho người soạn (tối đa 1000 ký tự)."
+                  value={reason}
+                  onChange={e => setReason(e.target.value)}
+                />
+              </label>
+              <div className="row st-wrap">
+                <button
+                  type="button"
+                  className="btn btn-ok"
+                  disabled={locked || !d.canApprove}
+                  title={d.blockers.map(b => b.message).join(' · ') || undefined}
+                  onClick={() => void decide('Duyệt lộ trình này? Lộ trình sẽ được công khai.', 'Approved', () => moderationService.approve('RoadmapTemplateReview', id))}
+                >
+                  <Check className="ic" />Duyệt
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-s"
+                  disabled={locked}
+                  onClick={() => { setChangeFailed(false); setChangeOpen(true); }}
+                >
+                  <Pencil className="ic" />Yêu cầu sửa
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-no"
+                  disabled={locked || !usableReason}
+                  onClick={() => void decide('Từ chối lộ trình này?', 'Rejected', () => moderationService.reject('RoadmapTemplateReview', id, reason.trim()))}
+                >
+                  <X className="ic" />Từ chối
+                </button>
+              </div>
+            </div>
+          </>
+        }
+      />
 
       <ChangeRequestDialog
         open={changeOpen}
@@ -241,6 +294,6 @@ export default function RoadmapReviewPanel({
           return ok;
         }}
       />
-    </div>
+    </>
   );
 }

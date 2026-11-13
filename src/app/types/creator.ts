@@ -31,6 +31,9 @@ export interface CreatorDraft {
   isPublished?: boolean;
   /** Trạng thái Moderator kiểm duyệt phiên bản hiện tại: None, Pending, Approved, ChangesRequested, Rejected. */
   reviewStatus?: string | null;
+  openItemId?: number | null;
+  openItemType?: string | null;
+  openItemStatus?: string | null;
 }
 
 /** `GET /creator/stories/{id}/publication`. `reviewStatus`: None, Pending, Approved, ChangesRequested, Rejected. */

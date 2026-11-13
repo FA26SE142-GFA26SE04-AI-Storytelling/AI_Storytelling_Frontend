@@ -28,8 +28,8 @@ export default function VersionComparison({ data }: { data: B.PublicVersionCompa
       {data.changedFields.length > 0 && <div className="st-compare-sec"><b>Trường đã thay đổi</b><div className="chips">{data.changedFields.map(f => <span className="chip" key={f}>{FIELD[f] ?? f}</span>)}</div></div>}
       {data.textDiff.length > 0 && <div className="st-compare-sec"><b>Thay đổi văn bản</b>{data.textDiff.map((d, i) => <div className="st-diff" key={i}>
         <span className={`st-diff-tag ${d.type}`}>{CHANGE[d.type] ?? d.type}</span>
-        {d.before && <p className="st-diff-before">{d.before}</p>}
-        {d.after && <p className="st-diff-after">{d.after}</p>}
+        {d.before && <p className="st-diff-before">− {d.before}</p>}
+        {d.after && <p className="st-diff-after">+ {d.after}</p>}
       </div>)}</div>}
       {data.sceneChanges.length > 0 && <div className="st-compare-sec"><b>Thay đổi theo cảnh</b>{data.sceneChanges.map(s => <p key={s.sceneIndex}>Cảnh {s.sceneIndex + 1}: {CHANGE[s.change] ?? s.change}
         {[s.textChanged && 'chữ', s.imageChanged && 'tranh', s.audioChanged && 'âm thanh'].filter(Boolean).length > 0 && <> ({[s.textChanged && 'chữ', s.imageChanged && 'tranh', s.audioChanged && 'âm thanh'].filter(Boolean).join(', ')})</>}</p>)}</div>}

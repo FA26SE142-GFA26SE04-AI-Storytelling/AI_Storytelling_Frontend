@@ -8,8 +8,8 @@ export const GENRES = ["Cổ tích", "Phiêu lưu", "Động vật", "Khoa học
 
 /** Chế độ đầu ra của truyện (Studio và Nhập truyện có sẵn). */
 export const OUTPUT_MODE: Record<StoryOutputMode, { label: string; hint: string }> = {
-  learning: { label: "Kèm học liệu", hint: "AI tạo thêm từ vựng và câu đố để bé học sau khi đọc." },
-  reading_media_only: { label: "Chỉ để đọc", hint: "Chỉ có truyện, tranh và giọng đọc; không có từ vựng hay câu đố." },
+  learning: { label: "Kèm học liệu", hint: "Có truyện, tranh, giọng đọc cùng từ vựng, câu đố và tương tác lúc nghe theo kế hoạch của truyện." },
+  reading_media_only: { label: "Chỉ đọc/nghe", hint: "Có truyện, tranh và giọng đọc; không tạo từ vựng, câu đố hoặc tương tác lúc nghe." },
 };
 export const isReadingOnly = (mode?: string | null) => mode === "reading_media_only";
 

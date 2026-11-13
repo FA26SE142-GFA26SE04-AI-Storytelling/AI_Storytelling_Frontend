@@ -2,6 +2,8 @@
  * Backend lưu một số dữ liệu kiểm duyệt dưới dạng chuỗi JSON (ghi chú hệ thống, lịch sử bộ tiêu chí).
  * Các hàm ở đây đổi chúng thành câu tiếng Việt để không bao giờ hiện JSON thô ra giao diện.
  */
+import { formatFlagCriterion, formatFlagKind, formatFlagName, formatFlagReason } from './moderationFlagDisplay';
+
 type Obj = Record<string, unknown>;
 
 const parse = (raw: string | null | undefined): unknown => {
@@ -18,6 +20,18 @@ const get = (o: unknown, key: string): unknown => {
 };
 const str = (v: unknown) => (typeof v === 'string' ? v.trim() : typeof v === 'number' ? String(v) : '');
 const short = (s: string, max = 120) => (s.length > max ? `${s.slice(0, max - 1)}…` : s);
+
+/** Trích xuất lý do Creator yêu cầu gỡ từ trường JSON `Flags.requestReason` (trả về null nếu trống hoặc không hợp lệ). */
+export function extractRemovalRequestReason(raw: string | null | undefined): string | null {
+  const text = (raw ?? '').trim();
+  if (!text) return null;
+  if (/^[[{]/.test(text)) {
+    const v = parse(text);
+    if (!isObj(v)) return null;
+    return str(get(v, 'requestReason')) || str(get(v, 'reason')) || null;
+  }
+  return text;
+}
 
 const ZONE: Record<string, string> = { Safe: 'An toàn', GrayZone: 'Vùng xám, cần người duyệt', HardBlock: 'Bị chặn', '1': 'An toàn', '2': 'Vùng xám, cần người duyệt', '3': 'Bị chặn' };
 
@@ -41,15 +55,36 @@ export function flagsSummary(raw: string | null | undefined): string {
   if (Array.isArray(findings) && findings.length) {
     lines.push('Điểm cần xem:');
     for (const f of findings) {
-      const name = str(get(f, 'name')) || str(get(f, 'category')) || str(get(f, 'kind'));
-      const why = str(get(f, 'reason'));
+      const kind = str(get(f, 'kind'));
+      const rawName = str(get(f, 'name'));
+      const rawCategory = str(get(f, 'criterionCode')) || str(get(f, 'category'));
+      const name = rawName ? formatFlagName(rawName, kind) : (formatFlagCriterion(rawCategory) || formatFlagKind(kind) || '');
+      const rawWhy = str(get(f, 'reason'));
+      const why = rawWhy ? formatFlagReason(rawWhy) : '';
       const quote = str(get(f, 'evidenceQuote'));
       lines.push(`• ${[name, why].filter(Boolean).join(': ')}${quote ? ` (“${short(quote, 90)}”)` : ''}`);
     }
   }
+  const sections = get(v, 'sections');
+  if (Array.isArray(sections) && sections.length) {
+    lines.push(`Phần cần rà soát: ${sections.map((s) => formatFlagName(str(s), 'section')).filter(Boolean).join(', ')}`);
+  }
+  const artifacts = get(v, 'artifacts');
+  if (Array.isArray(artifacts) && artifacts.length) {
+    lines.push(`Học liệu cần rà soát: ${artifacts.map((a) => formatFlagName(str(a), 'artifact')).filter(Boolean).join(', ')}`);
+  }
+  const rawSummaryReason = str(get(v, 'reason'));
+  if (!(Array.isArray(findings) && findings.length) && rawSummaryReason) {
+    lines.push(formatFlagReason(rawSummaryReason));
+  }
   const scores = get(v, 'scores');
   if (Array.isArray(scores) && scores.length) {
-    const parts = scores.map((s) => `${str(get(s, 'code'))} mức ${str(get(s, 'level'))}`).filter((p) => !p.startsWith(' '));
+    const parts = scores
+      .map((s) => {
+        const code = formatFlagCriterion(str(get(s, 'code'))) ?? str(get(s, 'code'));
+        return `${code} mức ${str(get(s, 'level'))}`;
+      })
+      .filter((p) => !p.startsWith(' '));
     if (parts.length) lines.push(`Điểm theo tiêu chí: ${parts.join(', ')}`);
   }
   const resolved = get(v, 'resolved');
