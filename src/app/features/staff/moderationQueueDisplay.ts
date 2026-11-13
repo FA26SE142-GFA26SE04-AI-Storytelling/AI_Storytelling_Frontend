@@ -91,7 +91,7 @@ export function reviewPackageTitle(
       `Truyện #${item.data.storyId}`
     );
   }
-  if (item.kind === 'CommunitySubmission' || item.kind === 'ContentReport') {
+  if (item.kind === 'ContentReport') {
     return (
       item.data.version?.title?.trim() ||
       item.data.story.title?.trim() ||

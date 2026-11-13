@@ -385,8 +385,15 @@ export interface AuthoringGuide {
   'instruction': string;
   'example': string | null;
   'templateText': string | null;
-  'placeholderDefinitions': (string)[];
+  /** Biến `{{key}}` trong templateText; khi Moderator/Admin lưu nháp, BE bắt buộc `label` (≤100), `hint` ≤200. */
+  'placeholderDefinitions': (GuidePlaceholder)[];
   'order': number;
+}
+
+export interface GuidePlaceholder {
+  'key': string;
+  'label': string | null;
+  'hint': string | null;
 }
 
 export interface BusinessReportDto {
@@ -758,14 +765,14 @@ export interface DataRequestDto {
 }
 
 export interface DeleteAccountPreviewDto {
-  'blockingProfiles': (OwnedChildProfileSummaryDto)[];
-  'draftProfiles': (OwnedChildProfileSummaryDto)[];
-  'canDelete': boolean;
+  /** Mọi hồ sơ bé (trừ Deleted) sẽ bị xoá cùng tài khoản khi deleteChildProfiles = true. */
+  'childProfiles': (OwnedChildProfileSummaryDto)[];
 }
 
 export interface DeleteAccountRequestDto {
   'currentPassword': string;
-  'deleteDraftProfiles': boolean;
+  /** Bắt buộc true khi còn hồ sơ bé, nếu không BE trả 400. */
+  'deleteChildProfiles': boolean;
 }
 
 export interface DiscussionItemDto {
@@ -2344,109 +2351,9 @@ export interface ChildRoadmapItemDto {
   'isStoryAvailable': boolean;
 }
 
-export interface CommunityBlockerDto {
-  'code': string;
-  'message': string;
-}
-
-export interface CommunityChecklistEntryDto {
-  'code': string;
-  'label': string;
-  'passed': boolean;
-  'note': string | null;
-}
-
-export interface CommunityEligibilityDto {
-  'storyId': number;
-  'canSubmit': boolean;
-  'storyVersionId': number | null;
-  'requiredDeclaration': string;
-  'blockers': (CommunityBlockerDto)[];
-  'piiFindings': (PiiFindingDto)[];
-}
-
-export interface CommunityLabelDto {
-  'id': number;
-  'code': string;
-  'displayName': string;
-}
-
 export interface CommunityLibraryQueryDto {
   'pageIndex': number;
   'pageSize': number;
-}
-
-export interface CommunityPiiLocationDto {
-  'kind': string;
-  'location': string;
-}
-
-export interface CommunityReviewBlockerDto {
-  'code': string;
-  'message': string;
-}
-
-export interface CommunityReviewDecisionResultDto {
-  'itemId': number;
-  'decision': string;
-  'storyId': number;
-  'decidedAt': string;
-}
-
-export interface CommunityReviewPackageDto {
-  'itemId': number;
-  'story': ReportedStoryDto;
-  'version': ReportedVersionDto;
-  'scenes': (ReportedSceneDto)[];
-  'vocabulary': (ReportedVocabularyDto)[];
-  'quizzes': (ReportedQuizDto)[];
-  /** Backend đã bỏ câu hỏi thảo luận; giữ tuỳ chọn cho dữ liệu cũ. */
-  'discussionQuestions'?: (ReportedDiscussionDto)[];
-  'labels': (CommunityLabelDto)[];
-  'copyrightDeclaration': string | null;
-  'piiCheckSummary': string | null;
-  'piiRescan': (CommunityPiiLocationDto)[];
-  'isResubmission': boolean;
-  'checklist': (CommunityChecklistEntryDto)[];
-  'blockers': (CommunityReviewBlockerDto)[];
-  'canApprove': boolean;
-  'claimExpiresAt': string;
-}
-
-export interface CommunityStoryDto {
-  'submissionId': number;
-  'title': string;
-  'description': string | null;
-  'ageBand': string;
-  'readingLevel': number | null;
-  'labels': (CommunityLabelDto)[];
-  'author': string;
-  'approvedAt': string | null;
-}
-
-export interface CommunitySubmissionDto {
-  'itemId': number;
-  'storyId': number;
-  'storyTitle': string | null;
-  'status': string;
-  'submittedAt': string;
-  'decidedAt': string | null;
-  'rejectReason': string | null;
-  'canWithdraw': boolean;
-  'canRemove': boolean;
-}
-
-export interface CommunitySubmitRequestDto {
-  'storyId': number;
-  'confirmNoPersonalInfo': boolean;
-  'copyrightDeclaration': CopyrightDeclaration | null;
-}
-
-export interface CommunitySubmitResultDto {
-  'itemId': number;
-  'storyId': number;
-  'storyVersionId': number;
-  'status': string;
 }
 
 export type CopyrightDeclaration = 1 | 2 | 3;
@@ -2629,10 +2536,6 @@ export interface PublishedStoryContentDto {
   'vocabulary': (ReportedVocabularyDto)[];
   'quizzes': (ReportedQuizDto)[];
   'discussionQuestions': (ReportedDiscussionDto)[];
-}
-
-export interface RejectCommunityRequestDto {
-  'reason': string;
 }
 
 export interface RejectRoadmapRequestDto {
@@ -2956,10 +2859,6 @@ export interface RubricWriteRequest {
   'revision': number;
 }
 
-export interface SaveCommunityChecklistRequestDto {
-  'entries': (CommunityChecklistEntryDto)[];
-}
-
 export interface SaveRoadmapChecklistRequestDto {
   'entries': (RoadmapChecklistEntryDto)[];
 }
@@ -2972,10 +2871,6 @@ export interface SaveRoadmapRequestDto {
   'readingLevelMin': number;
   'readingLevelMax': number;
   'defaultDaysPerStory': number;
-}
-
-export interface SetCommunityLabelsRequestDto {
-  'contentCategoryIds': (number)[];
 }
 
 export interface SetRoadmapItemsRequestDto {

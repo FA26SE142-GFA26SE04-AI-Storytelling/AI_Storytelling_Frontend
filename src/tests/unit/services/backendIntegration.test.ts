@@ -69,9 +69,9 @@ describe('Backend flow contracts', () => {
     await moderationService.removalDecision(9,{approve:true,reason:'Gỡ',rowVersion:4}); expect(fetcher.mock.calls[2][0]).toMatch(/\/moderation\/public-story-removals\/9\/decision$/);
   });
   it('loads the specialized package, checks gray-zone rowVersion and rubric revision', async () => {
-    fetcher.mockResolvedValue(response({ itemId:9 })); await moderationService.package('CommunitySubmission',9); expect(fetcher.mock.calls[0][0]).toMatch(/\/CommunityReview\/9$/);
-    await moderationService.grayDecision(9,{decision:'Clear',reason:'Đã xem',rowVersion:3}); expect(JSON.parse(fetcher.mock.calls[1][1].body).rowVersion).toBe(3);
-    await rubricService.activate(2,5); expect(JSON.parse(fetcher.mock.calls[2][1].body)).toEqual({ revision:5 });
-    await rubricService.remove(2,5); expect(fetcher.mock.calls[3][0]).toMatch(/\/moderation\/rubrics\/2\?revision=5$/); expect(fetcher.mock.calls[3][1].method).toBe('DELETE');
+    fetcher.mockResolvedValue(response({ itemId:9 }));
+    await moderationService.grayDecision(9,{decision:'Clear',reason:'Đã xem',rowVersion:3}); expect(JSON.parse(fetcher.mock.calls[0][1].body).rowVersion).toBe(3);
+    await rubricService.activate(2,5); expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual({ revision:5 });
+    await rubricService.remove(2,5); expect(fetcher.mock.calls[2][0]).toMatch(/\/moderation\/rubrics\/2\?revision=5$/); expect(fetcher.mock.calls[2][1].method).toBe('DELETE');
   });
 });

@@ -295,7 +295,7 @@ describe('Moderator Phase 3 workspaces (specs 07-10, 12-13)', () => {
           instruction: 'Gợi ý kết thúc',
           example: null,
           templateText: 'Bé {{name}} đã mỉm cười',
-          placeholderDefinitions: ['name'],
+          placeholderDefinitions: [{ key: 'name', label: 'Tên bé', hint: null }],
           order: 1,
         }}
         values={{ name: 'Bông' }}
@@ -355,7 +355,6 @@ describe('Moderator Phase 3 workspaces (specs 07-10, 12-13)', () => {
     expect(reviewPanelSrc).not.toContain('LegacyReviewPanel');
     for (const kind of [
       'PublicStoryReview',
-      'CommunitySubmission',
       'GrayZoneStory',
       'ContentReport',
       'PublicStoryRemoval',

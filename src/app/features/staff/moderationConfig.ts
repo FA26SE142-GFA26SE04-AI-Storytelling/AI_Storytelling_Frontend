@@ -96,16 +96,6 @@ export const PUBLIC_STORY_SECTIONS: ModerationSectionDef[] = [
   { status: 'Closed', label: 'Đã đóng', group: 'results', hint: 'Hồ sơ đã được hệ thống đóng.' },
 ];
 
-export const COMMUNITY_SUBMISSION_SECTIONS: ModerationSectionDef[] = [
-  { status: 'Pending', label: 'Chờ tiếp nhận', group: 'work', hint: 'Truyện gia đình gửi chia sẻ cộng đồng, chưa có người nhận.' },
-  { status: 'Claimed', label: 'Đang xử lý', group: 'work', hint: 'Hồ sơ chia sẻ đang được giữ kiểm tra.' },
-  { status: 'Approved', label: 'Đã duyệt chia sẻ', group: 'results', hint: 'Truyện đã được duyệt vào thư viện chia sẻ.' },
-  { status: 'Rejected', label: 'Từ chối chia sẻ', group: 'results', hint: 'Yêu cầu chia sẻ đã bị từ chối.' },
-  { status: 'Withdrawn', label: 'Đã rút yêu cầu', group: 'results', hint: 'Hồ sơ đã được rút lại.' },
-  { status: 'Removed', label: 'Đã gỡ chia sẻ', group: 'results', hint: 'Truyện chia sẻ đã bị gỡ.' },
-  { status: 'Closed', label: 'Hồ sơ đã đóng', group: 'results', hint: 'Hồ sơ đã đóng theo trạng thái hệ thống.' },
-];
-
 export const GRAY_ZONE_SECTIONS: ModerationSectionDef[] = [
   { status: 'Pending', label: 'Chờ tiếp nhận', group: 'work', hint: 'Hồ sơ vùng xám mới vào hàng đợi, chưa có Moderator nhận kiểm tra.' },
   { status: 'Claimed', label: 'Đang kiểm tra', group: 'work', hint: 'Hồ sơ đang được giữ kiểm tra (tối đa 2 giờ). Hiển thị tất cả hồ sơ kèm người giữ.' },

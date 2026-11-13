@@ -6,6 +6,7 @@ import Select from '@/app/components/Select';
 import { useAuth } from '@/app/context/AuthContext';
 import { useRiseIn } from '@/app/lib/motion';
 import { staffService } from '@/app/services/staffService';
+import type { ReviewKind } from '@/app/services/moderationService';
 import type { QueueItem, QueueItemStatus, QueueItemType } from '@/app/types/staff';
 import { MODERATION_TYPE_LABELS, moderationStatusLabel } from './moderationConfig';
 import { QueueItemRow, QueueSummaryCard } from './ModerationQueuePrimitives';
@@ -43,7 +44,6 @@ export function DetailCard({
 
 const ALL_TYPES: QueueItemType[] = [
   'PublicStoryReview',
-  'CommunitySubmission',
   'GrayZoneStory',
   'ContentReport',
   'PublicStoryRemoval',
@@ -203,10 +203,14 @@ export default function ConnectedModerationQueue({
           </div>
         </div>
         {current ? (
-          canOpen ? (
+          current.itemType === 'CommunitySubmission' ? (
+            <div className="st-card st-empty">
+              <b className="display">Loại mục này không còn được hỗ trợ</b>
+            </div>
+          ) : canOpen ? (
             <ReviewPanel
               key={`${user?.id}:${current.id}`}
-              kind={current.itemType as QueueItemType}
+              kind={current.itemType as ReviewKind}
               id={current.id}
               queueItem={current}
               onDecision={reload}

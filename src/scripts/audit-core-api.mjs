@@ -24,7 +24,7 @@ for(const file of all.filter(p=>p.includes(`${path.sep}services${path.sep}`))) {
   if(ts.isIdentifier(n)){
    if(n.text==='API_BASE_URL')return [''];
    if(env[n.text])return env[n.text];
-   if(['artifact'].includes(n.text))return ['story','vocabulary','quiz','discussion'];
+   if(['artifact'].includes(n.text))return ['story','vocabulary','quiz'];
    if(n.text==='action')return ['dismiss','archive'];
    const v=vars.get(n.text);return v?values(v,env,depth+1):['{}'];
   }
@@ -33,7 +33,7 @@ for(const file of all.filter(p=>p.includes(`${path.sep}services${path.sep}`))) {
   if(ts.isConditionalExpression(n))return [...values(n.whenTrue,env,depth+1),...values(n.whenFalse,env,depth+1)];
   if(ts.isElementAccessExpression(n)){
    const v=vars.get(n.expression.getText(source));
-   if(v&&ts.isObjectLiteralExpression(v))return v.properties.flatMap(p=>ts.isPropertyAssignment(p)?values(p.initializer,env,depth+1):[]);
+   if(v&&ts.isObjectLiteralExpression(v)){const keys=ts.isIdentifier(n.argumentExpression)?env[n.argumentExpression.text]:undefined;return v.properties.filter(p=>!keys||keys.includes(p.name?.getText(source))).flatMap(p=>ts.isPropertyAssignment(p)?values(p.initializer,env,depth+1):[]);}
   }
   if(ts.isCallExpression(n)){
    if(/apiQuery|URLSearchParams/.test(n.expression.getText(source)))return [''];
@@ -56,7 +56,7 @@ for(const file of all.filter(p=>p.includes(`${path.sep}services${path.sep}`))) {
    const env={};
    const fn=owner && ts.isPropertyAssignment(owner)?owner.initializer:owner;
    for(const param of fn?.parameters ?? []){const literals=[];const scan=n=>{if(ts.isLiteralTypeNode(n)&&ts.isStringLiteral(n.literal))literals.push(n.literal.text);ts.forEachChild(n,scan);};if(param.type)scan(param.type);if(literals.length)env[param.name.getText(source)]=literals;}
-   if(fn?.parameters?.some(p=>p.name.getText(source)==='artifact'&&p.type?.getText(source).startsWith('Exclude')))env.artifact=['vocabulary','quiz','discussion'];
+   if(fn?.parameters?.some(p=>p.name.getText(source)==='artifact'&&p.type?.getText(source).startsWith('Exclude')))env.artifact=['vocabulary','quiz'];
    let paths=values(args[0],env);
    const wrapper=vars.get(n.expression.getText(source));
    if(wrapper && ts.isArrowFunction(wrapper) && ts.isCallExpression(wrapper.body) && wrapper.body.expression.getText(source)==='apiRequest'){
@@ -64,7 +64,8 @@ for(const file of all.filter(p=>p.includes(`${path.sep}services${path.sep}`))) {
     paths=values(wrapper.body.arguments[0],next);
    }
    for(let route of paths){
-    route=route.replace(/^\{\}/,'');
+    if(route.startsWith('{}'))continue;
+    route=route.replace(/([A-Za-z0-9_-])\{\}$/,'$1');
     if(!route.startsWith('/')||route.includes('//'))continue;
     if(!route.startsWith('/api/v1/'))route='/api/v1'+route;
     const key=method+' '+normalize(route);
@@ -103,8 +104,11 @@ for(const r of report){
  else if(r.route==='/api/v1/stories/{storyId}/artifacts/generate'){r.disposition='COMPATIBILITY_ALIAS';r.canonical='/api/v1/stories/{storyId}/review/artifacts/generate';}
  else r.disposition=r.evidence.length?(r.evidence.some(e=>e.callers.some(c=>!c.startsWith('app/services/')))?'CONNECTED_SOURCE':'SERVICE_ONLY'):'MISSING';
 }
+const beKeys = new Set(report.map(r => r.method + ' ' + normalize(r.route)));
+const frontendOnly = [...new Map(evidence.filter(e => !beKeys.has(e.key)).map(e => [e.key, e])).values()].map(e => ({ method: e.key.slice(0, e.key.indexOf(' ')), route: e.key.slice(e.key.indexOf(' ') + 1), service: e.service, operation: e.operation, file: e.file, line: e.line }));
 fs.mkdirSync('out',{recursive:true});fs.writeFileSync('out/core-api-audit.json',JSON.stringify(report,null,2));
+fs.writeFileSync('out/core-api-frontend-only.json', JSON.stringify(frontendOnly, null, 2));
 if(process.argv.includes('--write'))fs.writeFileSync('docs/core-api-coverage.json',JSON.stringify(report,null,2)+'\n');
 const missing=report.filter(r=>['MISSING','SERVICE_ONLY'].includes(r.disposition));
-console.log(JSON.stringify({total:report.length,connected:report.filter(r=>r.disposition==='CONNECTED_SOURCE').length,excluded:report.filter(r=>['SERVER_TO_SERVER','COMPATIBILITY_ALIAS'].includes(r.disposition)).length,missing:missing.map(r=>r.method+' '+r.route)},null,2));
-if(process.argv.includes('--check')&&missing.length)process.exitCode=1;
+console.log(JSON.stringify({total:report.length,connected:report.filter(r=>r.disposition==='CONNECTED_SOURCE').length,excluded:report.filter(r=>['SERVER_TO_SERVER','COMPATIBILITY_ALIAS'].includes(r.disposition)).length,missing:missing.map(r=>r.method+' '+r.route),frontendOnly:frontendOnly.map(r=>r.method+' '+r.route)},null,2));
+if(process.argv.includes('--check')&&(missing.length||frontendOnly.length))process.exitCode=1;

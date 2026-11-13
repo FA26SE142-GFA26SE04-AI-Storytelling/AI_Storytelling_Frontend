@@ -74,10 +74,10 @@ export default function GuidePreviewSection({
             {selectedGuide.placeholderDefinitions.length === 0 ? (
               <p className="sub">Hướng dẫn này không có biến placeholder cần điền.</p>
             ) : (
-              selectedGuide.placeholderDefinitions.map(key => (
-                <label className="field" key={key}>
-                  <span>{key}</span>
-                  <input className="inp" value={values[key] ?? ''} onChange={e => onValueChange(key, e.target.value)} />
+              selectedGuide.placeholderDefinitions.map(p => (
+                <label className="field" key={p.key}>
+                  <span>{p.label ?? p.key}</span>
+                  <input className="inp" placeholder={p.hint ?? undefined} value={values[p.key] ?? ''} onChange={e => onValueChange(p.key, e.target.value)} />
                 </label>
               ))
             )}

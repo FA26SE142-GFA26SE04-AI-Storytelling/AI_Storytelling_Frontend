@@ -5,7 +5,6 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { authService } from '@/app/services/authService';
 import { staffService } from '@/app/services/staffService';
 import {
-  COMMUNITY_SUBMISSION_SECTIONS,
   PUBLIC_STORY_SECTIONS,
   claimOwnershipBadge,
   moderationStatusLabel,
@@ -20,10 +19,8 @@ import {
   resolvePostClaimSelection,
 } from '@/app/features/staff/useModerationSectionQueue';
 import { publicBlockerAnchor } from '@/app/features/staff/PublicStoryReviewPanel';
-import { queueSourceLabel, reviewPackageTitle } from '@/app/features/staff/moderationQueueDisplay';
-import { ReviewPanelHeader } from '@/app/features/staff/ReviewPanelHeader';
+import { queueSourceLabel } from '@/app/features/staff/moderationQueueDisplay';
 import type { QueueItem } from '@/app/types/staff';
-import type { ReviewPackage } from '@/app/services/moderationService';
 
 afterEach(() => {
   vi.restoreAllMocks();
@@ -83,9 +80,6 @@ describe('Moderator workspaces (specs 00-03 & 12)', () => {
     expect(moderationStatusLabel('GrayZoneStory', 'Cleared')).toBe('Đã cho phép tiếp tục');
     expect(PUBLIC_STORY_SECTIONS.map(s => s.status)).toEqual([
       'Pending', 'Claimed', 'ChangesRequested', 'Approved', 'Rejected', 'Withdrawn', 'Closed',
-    ]);
-    expect(COMMUNITY_SUBMISSION_SECTIONS.map(s => s.status)).toEqual([
-      'Pending', 'Claimed', 'Approved', 'Rejected', 'Withdrawn', 'Removed', 'Closed',
     ]);
   });
 
@@ -195,22 +189,6 @@ describe('Moderator workspaces (specs 00-03 & 12)', () => {
     expect(summaryHtml).toContain('API hiện tại chỉ trả thông tin tóm tắt của hàng đợi');
     expect(summaryHtml).not.toContain('Nhận xử lý');
     expect(summaryHtml).not.toContain('555');
-
-    const pkg = {
-      kind: 'CommunitySubmission',
-      data: {
-        itemId: 202,
-        claimExpiresAt: '2026-11-11T11:00:00Z',
-        story: { storyId: 88, title: 'Buổi Sáng Của Mèo Con' },
-        version: { versionId: 555, versionNo: 2, title: 'Buổi Sáng Của Mèo Con (Sửa)' },
-      },
-    } as unknown as ReviewPackage;
-    expect(reviewPackageTitle(pkg)).toBe('Buổi Sáng Của Mèo Con (Sửa)');
-    const headerHtml = renderToStaticMarkup(
-      <ReviewPanelHeader item={pkg} queueItem={communityClaimedOther} message="" sourceTag="Gia đình chia sẻ" />,
-    );
-    expect(headerHtml).toContain('Gia đình chia sẻ');
-    expect(headerHtml).not.toContain('Tác giả gửi duyệt');
   });
 
   it('maps PublicStoryReview blocker codes to anchored DOM section IDs', () => {
@@ -236,7 +214,6 @@ describe('Moderator workspaces (specs 00-03 & 12)', () => {
       'app/services/staffService.ts',
       'app/services/moderationService.ts',
       'app/features/staff/CreatorStoryReviewWorkspace.tsx',
-      'app/features/staff/SharedStoryReviewWorkspace.tsx',
       'app/features/staff/PublishedReviewWorkspace.tsx',
     ]) {
       const text = readFileSync(path.resolve(process.cwd(), file), 'utf8');
