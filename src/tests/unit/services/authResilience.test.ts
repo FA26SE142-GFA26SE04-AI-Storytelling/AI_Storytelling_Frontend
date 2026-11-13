@@ -94,3 +94,27 @@ describe('chỉ đăng xuất khi backend từ chối phiên', () => {
     expect(localStorage.getItem('taletale_access_token')).toBeNull();
   });
 });
+
+describe('đăng xuất xoá phiên của tài khoản trong tab', () => {
+  it('xoá sessionStorage và vị trí trang trên URL để tài khoản sau không mở lại chỗ của tài khoản trước', async () => {
+    const replaceState = vi.fn();
+    vi.stubGlobal('window', { location: { pathname: '/' }, history: { replaceState } });
+    sessionStorage.setItem('ai-story-studio:v1:1:7', JSON.stringify({ storyId: 10, requestId: 20 }));
+    sessionStorage.setItem('ai-story-studio:import:7', '{}');
+    sessionStorage.setItem('taletale-studio-prefill', '{}');
+    sessionStorage.setItem('taletale-child-draft:1', '{}');
+    sessionStorage.setItem('taletale-child-session', '{}');
+    const { authService } = await import('@/app/services/authService');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(json({ success: true }));
+    await authService.logout();
+    expect(sessionStorage.length).toBe(0);
+    expect(replaceState).toHaveBeenCalledWith(null, '', '/');
+    expect(localStorage.getItem('taletale_access_token')).toBeNull();
+  });
+  it('token hết hạn thì không xoá sessionStorage (phiên đọc của bé bằng mã QR vẫn giữ)', async () => {
+    sessionStorage.setItem('taletale-child-session', '{}');
+    const { authService } = await import('@/app/services/authService');
+    authService.clearStoredAuth();
+    expect(sessionStorage.getItem('taletale-child-session')).toBe('{}');
+  });
+});

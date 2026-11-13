@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { UserProfile, LoginRequest, RegisterRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse } from '@/app/types/auth';
 import { authService } from '@/app/services/authService';
-import { clearStorySessions } from '@/app/features/story-workflow/storyStudioSession';
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -163,7 +162,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async (): Promise<void> => {
     setIsLoading(true);
-    clearStorySessions();
+    // authService.logout xoá token, toàn bộ sessionStorage của tab và vị trí trang trên URL.
     await authService.logout();
     setAccessToken(null);
     setUser(null);

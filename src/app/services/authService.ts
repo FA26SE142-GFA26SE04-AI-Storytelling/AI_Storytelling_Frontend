@@ -438,6 +438,7 @@ export const authService = {
       console.warn('Logout API warning:', error);
     } finally {
       this.clearStoredAuth();
+      this.clearAccountSession();
       this.notifyAuthStateChange(null, null);
     }
 
@@ -536,5 +537,19 @@ export const authService = {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(REFRESH_TOKEN_STORAGE_KEY);
     localStorage.removeItem(USER_STORAGE_KEY);
+  },
+
+  /**
+   * Chỉ gọi khi người dùng chủ động đăng xuất: xoá mọi dữ liệu phiên của tài khoản trong tab
+   * (truyện đang tạo, bản nháp, phiên của bé, trang đang mở) và vị trí trang trên URL (#studio, ?storyId=),
+   * để tài khoản đăng nhập sau trên cùng tab không mở lại đúng chỗ của tài khoản trước.
+   * Không gọi khi token hết hạn: phiên đọc của bé (đăng nhập bằng mã QR) cũng nằm trong sessionStorage.
+   */
+  clearAccountSession() {
+    if (typeof window === 'undefined') return;
+    try { sessionStorage.clear(); } catch { /* trình duyệt chặn lưu trữ: không có gì để xoá */ }
+    try {
+      if (window.location && window.history) window.history.replaceState(null, '', window.location.pathname);
+    } catch { /* bỏ qua */ }
   },
 };
