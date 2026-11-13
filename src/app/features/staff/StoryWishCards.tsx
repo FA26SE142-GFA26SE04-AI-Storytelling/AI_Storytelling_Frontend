@@ -1,10 +1,11 @@
 'use client';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Plus, Sparkles, X } from 'lucide-react';
+import { AlertTriangle, Plus, Sparkles, X } from 'lucide-react';
 import IconButton from '@/app/components/IconButton';
 import { confirmDialog } from '@/app/lib/confirm';
+import { usePop } from '@/app/lib/motion';
 import { wishCardService } from '@/app/services/wishCardService';
-import type { WishCardDto, WishCardGroup, WishCardMatchDto } from '@/app/types/storyWish';
+import type { StoryWishCardCoverageDto, WishCardDto, WishCardGroup, WishCardMatchDto } from '@/app/types/storyWish';
 import { groupLabel, WISH_GROUPS } from './WishCardManagement';
 
 const MATCH_GROUPS = WISH_GROUPS.filter(g => g.wish);
@@ -12,6 +13,7 @@ const MATCH_GROUPS = WISH_GROUPS.filter(g => g.wish);
 /** Gắn thẻ ước trong ngữ cảnh truyện và phiên bản đang công khai; giữ guard chống gửi lặp / ghi đè chéo story. */
 export default function StoryWishCards({ storyId, versionId }: { storyId: number; versionId?: number | null }) {
   const [matches, setMatches] = useState<WishCardMatchDto[] | null>(null);
+  const [coverage, setCoverage] = useState<StoryWishCardCoverageDto | null>(null);
   const [group, setGroup] = useState<WishCardGroup>('Character');
   const [cards, setCards] = useState<WishCardDto[]>([]);
   const [cardId, setCardId] = useState('');
@@ -19,12 +21,28 @@ export default function StoryWishCards({ storyId, versionId }: { storyId: number
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(null);
   const storyScope = useRef(storyId);
   const submitLock = useRef(false);
+  const warnRef = usePop<HTMLDivElement>(coverage);
 
   const load = useCallback(async (signal?: AbortSignal) => {
     const r = await wishCardService.storyCards(storyId, signal);
     if (signal?.aborted || storyScope.current !== storyId) return;
     setMatches(r.data ?? []);
     if (!r.success) setMessage({ ok: false, text: r.message });
+  }, [storyId]);
+
+  const loadCoverage = useCallback(async (signal?: AbortSignal) => {
+    try {
+      const r = await wishCardService.storyCoverage(storyId, signal);
+      if (signal?.aborted || storyScope.current !== storyId) return;
+      if (r.success && r.data) {
+        setCoverage(r.data);
+      } else {
+        setCoverage(null);
+      }
+    } catch {
+      if (signal?.aborted || storyScope.current !== storyId) return;
+      setCoverage(null);
+    }
   }, [storyId]);
 
   useEffect(() => {
@@ -37,6 +55,13 @@ export default function StoryWishCards({ storyId, versionId }: { storyId: number
     void load(c.signal);
     return () => c.abort();
   }, [storyId, load]);
+
+  useEffect(() => {
+    setCoverage(null);
+    const c = new AbortController();
+    void loadCoverage(c.signal);
+    return () => c.abort();
+  }, [storyId, loadCoverage]);
 
   useEffect(() => {
     const c = new AbortController();
@@ -61,6 +86,7 @@ export default function StoryWishCards({ storyId, versionId }: { storyId: number
     if (r.success) {
       setCardId('');
       await load();
+      await loadCoverage();
     }
   };
 
@@ -71,6 +97,12 @@ export default function StoryWishCards({ storyId, versionId }: { storyId: number
       <summary><b>Thẻ ước của truyện</b></summary>
       <p className="sub">Khi bé ước các thẻ này, truyện có thể xuất hiện trong danh sách gợi ý cho bé và bố mẹ.</p>
       {message && <p className={`notice ${message.ok ? 'ok' : 'err'}`} role="status" data-inline-notice>{message.text}</p>}
+      {coverage && coverage.canBeSuggested === false && coverage.warning && (
+        <div role="alert" className="st-coverage-warn" ref={warnRef}>
+          <AlertTriangle className="ic" aria-hidden />
+          <span>{coverage.warning}</span>
+        </div>
+      )}
       {!matches && <p role="status">Đang tải thẻ của truyện…</p>}
       {matches && !matches.length && <p className="sub">Truyện chưa được gắn thẻ nào.</p>}
       <div className="chips">

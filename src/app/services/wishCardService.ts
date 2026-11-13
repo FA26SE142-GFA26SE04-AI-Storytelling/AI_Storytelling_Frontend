@@ -19,6 +19,9 @@ export const wishCardService = {
   /** Thẻ gắn cho truyện, dùng để gợi ý truyện có sẵn khi bé ước. */
   storyCards: (storyId: number, signal?: AbortSignal) =>
     apiRequest<W.WishCardMatchDto[]>(`/moderation/stories/${storyId}/wish-cards`, 'Không tải được thẻ của truyện.', { signal }),
+  /** Độ phủ thẻ của truyện: có đủ thẻ Nhân vật hoặc Nơi chốn để được gợi ý cho bé không; warning là cảnh báo từ máy chủ (hoặc null). */
+  storyCoverage: (storyId: number, signal?: AbortSignal) =>
+    apiRequest<W.StoryWishCardCoverageDto>(`/moderation/stories/${storyId}/wish-cards/coverage`, 'Không kiểm tra được độ phủ thẻ của truyện.', { signal }),
   addToStory: (storyId: number, wishCardId: number) =>
     apiRequest<W.WishCardMatchDto>(`/moderation/stories/${storyId}/wish-cards`, 'Không gắn được thẻ cho truyện.', { method: 'POST', body: { wishCardId } }),
   removeFromStory: (storyId: number, wishCardId: number) =>

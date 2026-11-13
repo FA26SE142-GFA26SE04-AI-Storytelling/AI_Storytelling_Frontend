@@ -173,4 +173,21 @@ describe('Moderator Phase 4 WishCards & Spec 12-14 boundaries', () => {
       expect(text, file).not.toMatch(/\/history|escalation-summary|removed-stories|community-library|assignment=|statuses=/);
     }
   });
+
+  it('spec 11 / story coverage: displays coverage warning banner when canBeSuggested is false, hides banner when warning is null, and reloads coverage after act', () => {
+    // 1. Kiểm tra service storyCoverage endpoint
+    const serviceSrc = readFileSync(path.resolve(process.cwd(), 'app/services/wishCardService.ts'), 'utf8');
+    expect(serviceSrc).toContain("storyCoverage: (storyId: number, signal?: AbortSignal)");
+    expect(serviceSrc).toContain("`/moderation/stories/${storyId}/wish-cards/coverage`");
+
+    // 2. Kiểm tra mã nguồn StoryWishCards.tsx đáp ứng các điều kiện hiển thị banner và reload
+    const storyWishCardsSrc = readFileSync(path.resolve(process.cwd(), 'app/features/staff/StoryWishCards.tsx'), 'utf8');
+    expect(storyWishCardsSrc).toContain('const [coverage, setCoverage] = useState<StoryWishCardCoverageDto | null>(null);');
+    expect(storyWishCardsSrc).toContain('st-coverage-warn');
+    // Banner chỉ hiện khi canBeSuggested === false và có warning (ẩn khi canBeSuggested=true hoặc warning null)
+    expect(storyWishCardsSrc).toContain('coverage.canBeSuggested === false && coverage.warning');
+    // loadCoverage được gọi sau khi act() thành công
+    expect(storyWishCardsSrc).toContain('await loadCoverage();');
+    expect(storyWishCardsSrc).toMatch(/if\s*\(\s*r\.success\s*\)\s*\{[\s\S]*?await\s+loadCoverage\(\);/);
+  });
 });
