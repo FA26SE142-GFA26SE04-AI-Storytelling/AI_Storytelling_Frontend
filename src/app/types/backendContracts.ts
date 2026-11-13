@@ -633,7 +633,7 @@ export interface CreateInvitationRequestDto {
 
 export interface CreateParentDraftRequest {
   'operationId': string;
-  'childProfileId': number;
+  'childProfileId'?: number | null;
   'title': string;
   'language': string | null;
   'purpose': string | null;
@@ -689,6 +689,9 @@ export interface CreatorContentSavedDto {
 }
 
 export interface CreatorDraftDto {
+  'openItemId'?: number | null;
+  'openItemType'?: string | null;
+  'openItemStatus'?: string | null;
   'storyId': number;
   'authorUserId': number;
   'title': string;

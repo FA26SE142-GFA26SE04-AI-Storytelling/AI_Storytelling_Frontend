@@ -2,6 +2,7 @@ import { generationDisplayPhase } from "@/app/features/story-workflow/storyGener
 import type { MediaProgressDto } from "@/app/types/aiStory";
 import type { Stage, StatusSnapshot } from "./useStoryPipeline";
 import { mediaPackageDisplay } from '@/app/features/story-workflow/studioMediaState';
+import { isReadingOnly } from '@/app/lib/storyRules';
 
 /** Các bước người dùng thấy trên thanh tiến trình của Studio (gộp 5 Phase của Luồng 2 thành ngôn ngữ phụ huynh). */
 export const STUDIO_STEPS = [
@@ -19,6 +20,7 @@ export const STUDIO_STEPS = [
 export type StepMode = "done" | "run" | "you" | "error" | "todo";
 
 export interface StudioProgress {
+  steps?: readonly string[];
   /** Vị trí bước hiện tại; -1 khi truyện đã dừng. */
   current: number;
   mode: StepMode;
@@ -30,9 +32,14 @@ export function studioProgress(
   snapshot: StatusSnapshot | null,
   media: MediaProgressDto | null = null,
   errorCode: string | null = null,
+  outputMode?: string | null,
 ): StudioProgress {
+  const readingOnly = isReadingOnly(snapshot?.generation?.outputMode ?? snapshot?.story?.outputMode ?? snapshot?.input?.outputMode ?? outputMode);
+  const steps = readingOnly ? STUDIO_STEPS.filter((_, i) => i !== 4) : STUDIO_STEPS;
   const at = (current: number, mode: StepMode, caption: string): StudioProgress =>
-    errorCode && mode === "run" ? { current, mode: "error", caption: "Có lỗi, hãy thử lại" } : { current, mode, caption };
+    ({ current: readingOnly && current > 4 ? current - 1 : current, steps,
+      mode: errorCode && mode === "run" ? "error" : mode,
+      caption: errorCode && mode === "run" ? "Có lỗi, hãy thử lại" : caption });
 
   switch (stage) {
     case "brief": return at(0, "you", "Nhập ý tưởng để bắt đầu");
@@ -41,6 +48,7 @@ export function studioProgress(
     case "outline_wait": return at(2, "run", "AI đang viết dàn ý");
     case "outline": return at(2, "you", "Chờ bạn duyệt dàn ý");
     case "generating":
+      if (readingOnly) return at(3, "run", snapshot?.generation?.content === "stable" ? "Đang hoàn tất nội dung truyện" : "AI đang viết truyện");
       return generationDisplayPhase(snapshot?.generation ?? null) === "learning"
         ? at(4, "run", "AI đang soạn học liệu")
         : at(3, "run", "AI đang viết truyện");
@@ -48,12 +56,12 @@ export function studioProgress(
     case "moderation": return at(5, "run", "Đang chờ kiểm duyệt an toàn");
     case "review": return at(5, "you", "Chờ bạn duyệt truyện");
     case "media":
-      if (media?.isReady) return { current: 7, mode: "done", caption: "Truyện đã sẵn sàng" };
+      if (media?.isReady) return at(7, "done", "Truyện đã sẵn sàng");
       {
         const display=mediaPackageDisplay(media);
-        return {current:6,mode:display.kind==='failed'?'error':display.kind==='confirm'||display.kind==='selection'?'you':'run',caption:display.label};
+        return at(6,display.kind==='failed'?'error':display.kind==='confirm'||display.kind==='selection'?'you':'run',display.label);
       }
-    case "stopped": return { current: -1, mode: "error", caption: "Truyện đã dừng" };
+    case "stopped": return at(-1, "error", "Truyện đã dừng");
   }
 }
 

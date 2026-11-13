@@ -17,7 +17,7 @@ export default function ContentReportsWorkspace() {
     && current.claimedByUserId === q.user.id;
 
   const summaryNotice = current?.status === 'Archived'
-    ? 'Hồ sơ báo cáo đã xử lý gỡ vi phạm (Archived). Thao tác chỉ đánh dấu lưu trữ và đóng các mục liên quan theo quy trình backend.'
+    ? 'Hồ sơ báo cáo đã xử lý gỡ vi phạm. Truyện đã được ngừng hiển thị và các hồ sơ liên quan đã được đóng.'
     : current?.status === 'Dismissed'
       ? 'Báo cáo đã được bác; nội dung giữ nguyên trạng thái.'
       : undefined;

@@ -16,9 +16,10 @@ type Props = {
   /** Gọi API thử lại của backend cho bước AI vừa lỗi. */
   onRetryFailed?: () => Promise<{ success: boolean; message: string }>;
   onEdit?: () => void;
+  outputMode?: string;
 };
 
-export default function StageProgress({ stage, snapshot, message, errorCode, timedOut, onRetry, onRetryFailed, onEdit }: Props) {
+export default function StageProgress({ stage, snapshot, message, errorCode, timedOut, onRetry, onRetryFailed, onEdit, outputMode }: Props) {
   const emptyRef = useRiseIn<HTMLDivElement>(":scope > *", [stage], { delay: 70 });
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
@@ -30,7 +31,8 @@ export default function StageProgress({ stage, snapshot, message, errorCode, tim
     setRetrying(false);
     if (!r.success) setRetryError(r.message || "Chưa thử lại được.");
   };
-  const progress = studioProgress(stage, snapshot, null, errorCode ?? null);
+  const progress = studioProgress(stage, snapshot, null, errorCode ?? null, outputMode);
+  const steps = progress.steps ?? STUDIO_STEPS;
   // Khung thẻ và chú ếch đứng yên; chỉ phần chữ đổi theo bước mới hiện dần, nên không nháy cả thẻ.
   const textRef = useRiseIn<HTMLDivElement>(".pipe-text > *", [progress.current, progress.mode], { delay: 40, distance: 8 });
   if (stage === "brief") {
@@ -70,7 +72,7 @@ export default function StageProgress({ stage, snapshot, message, errorCode, tim
       <div className="pipe-card pipe-now" aria-busy={progress.mode === 'run'}>
         <Frog size={96} mood={waitingUser ? "happy" : "think"} />
         <div ref={textRef} className="pipe-text">
-          <small className="hint">Bước {progress.current + 1}/{STUDIO_STEPS.length} · {STUDIO_STEPS[progress.current]}</small>
+          <small className="hint">Bước {progress.current + 1}/{steps.length} · {steps[progress.current]}</small>
           <h3 className="display">{waitingUser ? "Dàn ý đã sẵn sàng" : progress.caption}</h3>
           <p className="sub">{waitingUser ? "Mở tab Dàn ý để xem và duyệt, rồi AI sẽ viết truyện." : errorCode
             ? 'Máy chủ xác nhận lần xử lý này đã thất bại. Bạn có thể thử lại khi sẵn sàng.'

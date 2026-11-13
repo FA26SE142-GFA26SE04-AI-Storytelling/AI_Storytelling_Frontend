@@ -23,6 +23,17 @@ describe('studio progress bar', () => {
     expect(studioProgress('generating', snap(generation('stable', 9))).current).toBe(4);
   });
 
+  it('omits learning steps for reading-only creation and resumed media', () => {
+    const reading = { ...generation('stable', 9), outputMode: 'reading_media_only' };
+    const writing = studioProgress('generating', snap(reading));
+    expect(writing.steps).not.toContain('Học liệu');
+    expect(writing.caption).not.toContain('học liệu');
+    expect(writing.current).toBe(3);
+    expect(studioProgress('review', snap(reading)).current).toBe(4);
+    expect(studioProgress('media', snap(reading), media({ isReady: true }))).toMatchObject({ current: 6, mode: 'done' });
+    expect(studioProgress('brief', null, null, null, 'reading_media_only').steps).toHaveLength(7);
+  });
+
   it('follows media progress until the story is ready', () => {
     expect(studioProgress('media', null, media({}))).toMatchObject({ current: 6, mode: 'run' });
     expect(studioProgress('media', null, media({ errorCode: 'x' }))).toMatchObject({ current: 6, mode: 'error' });

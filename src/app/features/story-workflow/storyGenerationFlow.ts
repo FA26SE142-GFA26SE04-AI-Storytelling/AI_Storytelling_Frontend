@@ -18,7 +18,7 @@ export function contentDestination(progress: ContentGenerationProgressDto): 'med
 
 export function generationDisplayPhase(progress: ContentGenerationProgressDto | null): 'content' | 'learning' {
   // A candidate or a completed AI call is not enough: the backend must promote stable content.
-  return progress?.content === 'stable' && typeof progress.stableStoryVersionId === 'number' && progress.stableStoryVersionId > 0
+  return progress?.outputMode !== 'reading_media_only' && progress?.content === 'stable' && typeof progress.stableStoryVersionId === 'number' && progress.stableStoryVersionId > 0
     ? 'learning'
     : 'content';
 }

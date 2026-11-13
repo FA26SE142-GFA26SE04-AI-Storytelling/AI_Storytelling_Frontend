@@ -254,9 +254,49 @@ describe('Moderator Phase 2 workspaces (specs 04-06 & 12)', () => {
       <GrayZoneReviewPanel id={301} queueItem={grayZoneClaimedOther} onDecision={() => {}} />,
     );
     expect(withEvidenceHtml).toContain('Cảnh rượt đuổi căng thẳng');
+    expect(withEvidenceHtml).toContain('Tiêu chí vùng xám');
     expect(withEvidenceHtml).toContain('mild_fear');
     expect(withEvidenceHtml).toContain('<mark');
     expect(withEvidenceHtml).toContain('tiếng bước chân dồn dập phía sau');
+
+    testState.reviewHookState = {
+      ...testState.reviewHookState,
+      item: {
+        kind: 'GrayZoneStory',
+        data: {
+          itemId: 301,
+          storyVersionId: 1201,
+          versionNo: 2,
+          title: 'Khu Rừng Sương Mù',
+          content: 'Nội dung diễn biến cần rà soát nhóm tuổi.',
+          ageBand: '6-8',
+          readingLevel: 1,
+          flags: JSON.stringify([
+            {
+              Id: 'section:development',
+              Kind: 'section',
+              Name: 'development',
+              CriterionCode: null,
+              Reason: 'age_band_review',
+              EvidenceQuote: '',
+              ContextNote: '',
+              StartOffset: null,
+              EndOffset: null,
+            },
+          ]),
+          rowVersion: 4,
+        },
+      },
+    };
+    const sectionFlagHtml = renderToStaticMarkup(
+      <GrayZoneReviewPanel id={301} queueItem={grayZoneClaimedOther} onDecision={() => {}} />,
+    );
+    expect(sectionFlagHtml).toContain('Diễn biến');
+    expect(sectionFlagHtml).toContain('Phần nội dung');
+    expect(sectionFlagHtml).toContain('Cần rà soát mức độ phù hợp với nhóm tuổi mục tiêu.');
+    expect(sectionFlagHtml).toContain('Không có đoạn trích dẫn cụ thể cho cờ này.');
+    expect(sectionFlagHtml).not.toContain('age_band_review');
+    expect(sectionFlagHtml).not.toContain('đoạn trích evidence');
   });
 
   it('validates HTTP(S) URLs strictly, hides reporter identity, and enforces role-appropriate ContentReport actions', () => {

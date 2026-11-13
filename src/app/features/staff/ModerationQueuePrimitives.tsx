@@ -1,8 +1,8 @@
 'use client';
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   AlarmClock, Archive, ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, ChevronsUp,
-  CircleCheck, CircleX, Clock, Equal, HandHelping, Hourglass, Inbox, RefreshCw, ShieldAlert, UserCheck,
+  CircleCheck, CircleX, Clock, Equal, HandHelping, Hourglass, Inbox, PanelLeftClose, PanelLeftOpen, RefreshCw, ShieldAlert, UserCheck,
   type LucideIcon,
 } from 'lucide-react';
 import Frog from '@/app/components/brand/Frog';
@@ -154,7 +154,7 @@ export function QueueSummaryCard({
         </span>
       </div>
 
-      <p className="st-review-meta" style={{ margin: 0 }}>
+      <p className="st-review-meta mod-meta-line">
         Hồ sơ #{item.id}
         {item.storyId != null ? ` · Truyện #${item.storyId}` : ''}
         {item.isResubmission ? ' · Hồ sơ gửi lại' : ''}
@@ -263,17 +263,30 @@ export function ModerationQueueFrame({
   banner?: ReactNode;
   detail: ReactNode;
 }) {
+  const [listCollapsed, setListCollapsed] = useState(false);
   const hasSelection = selectedId !== null;
+  const collapseList = hasSelection && listCollapsed;
 
   return (
-    <section className="ws dock" style={{ gridTemplateColumns: '1fr' }}>
-      <div className={`pane st-page mod-shell${hasSelection ? ' has-detail' : ''}`}>
+    <section className="ws dock mod-ws-single">
+      <div className={`pane st-page mod-shell${hasSelection ? ' has-detail' : ''}${collapseList ? ' list-collapsed' : ''}`}>
         <header className="mod-head">
           <div className="mod-head-text">
             <h1 className="display">{title}</h1>
             <p className="sub">{description}</p>
           </div>
           <div className="mod-head-actions">
+            {hasSelection && (
+              <button
+                type="button"
+                className="btn btn-s mod-list-toggle"
+                aria-pressed={listCollapsed}
+                onClick={() => setListCollapsed(v => !v)}
+              >
+                {listCollapsed ? <PanelLeftOpen className="ic" /> : <PanelLeftClose className="ic" />}
+                <span>{listCollapsed ? 'Hiện danh sách' : 'Ẩn danh sách'}</span>
+              </button>
+            )}
             <button type="button" className="btn btn-g" disabled={loading} onClick={onReload} aria-label="Tải lại danh sách" title="Tải lại">
               <RefreshCw className="ic" />
               <span>Tải lại</span>
@@ -294,9 +307,9 @@ export function ModerationQueueFrame({
           </div>
         )}
 
-        <div className="mod-grid">
-          {sidebar}
+        {sidebar}
 
+        <div className="mod-grid">
           <div className="mod-list-col">
             <div className="mod-list-tools">
               <div className="mod-list-info">
@@ -386,6 +399,7 @@ export function ModerationWorkspaceShell({
   onStatusChange,
   priority,
   onPriorityChange,
+  showPriorityFilter = true,
   onlyOverdue,
   onOnlyOverdueChange,
   items,
@@ -411,6 +425,7 @@ export function ModerationWorkspaceShell({
   onStatusChange: (s: QueueItemStatus) => void;
   priority: QueuePriorityFilter;
   onPriorityChange: (p: QueuePriorityFilter) => void;
+  showPriorityFilter?: boolean;
   onlyOverdue: boolean;
   onOnlyOverdueChange: (v: boolean) => void;
   items: QueueItem[];
@@ -431,14 +446,70 @@ export function ModerationWorkspaceShell({
 }) {
   const workSections = sections.filter(s => s.group !== 'results');
   const resultSections = sections.filter(s => s.group === 'results');
+  const hasTwoGroups = workSections.length > 0 && resultSections.length > 0;
   const activeSection = sections.find(s => s.status === status);
+  const activeGroup: 'work' | 'results' =
+    hasTwoGroups && activeSection?.group === 'results' ? 'results' : 'work';
+  const visibleSections = !hasTwoGroups
+    ? sections
+    : activeGroup === 'results'
+      ? resultSections
+      : workSections;
+  const [rememberedByGroup, setRememberedByGroup] = useState<{
+    work?: QueueItemStatus;
+    results?: QueueItemStatus;
+  }>({});
   const showDueFilter = status === 'Pending' || status === 'Claimed';
+
+  const selectGroup = (targetGroup: 'work' | 'results') => {
+    if (!hasTwoGroups || targetGroup === activeGroup) return;
+    setRememberedByGroup(prev => ({ ...prev, [activeGroup]: status }));
+    const pool = targetGroup === 'results' ? resultSections : workSections;
+    const saved = rememberedByGroup[targetGroup];
+    const nextStatus =
+      (saved && pool.some(s => s.status === saved) ? saved : pool[0]?.status) ?? status;
+    if (nextStatus !== status) {
+      onStatusChange(nextStatus);
+    }
+  };
 
   const sidebar = (
     <aside className="mod-nav" aria-label="Khu công việc">
-      <div className="mod-nav-group">
-        <span className="mod-nav-title">Xử lý hồ sơ</span>
-        {workSections.map(s => (
+      {hasTwoGroups && (
+        <div className="mod-nav-tiers" role="tablist" aria-label="Phân loại hồ sơ">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeGroup === 'work'}
+            className={`mod-tier-tab mod-tier-tab--work${activeGroup === 'work' ? ' on' : ''}`}
+            onClick={() => selectGroup('work')}
+          >
+            <Inbox className="ic" aria-hidden />
+            <span>Xử lý hồ sơ</span>
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeGroup === 'results'}
+            className={`mod-tier-tab mod-tier-tab--results${activeGroup === 'results' ? ' on' : ''}`}
+            onClick={() => selectGroup('results')}
+          >
+            <Archive className="ic" aria-hidden />
+            <span>Kết quả xử lý</span>
+          </button>
+        </div>
+      )}
+      <div
+        className={`mod-nav-group mod-nav-group--${activeGroup}`}
+        role={hasTwoGroups ? 'tabpanel' : undefined}
+        aria-label={hasTwoGroups ? (activeGroup === 'results' ? 'Kết quả xử lý' : 'Xử lý hồ sơ') : 'Trạng thái hồ sơ'}
+      >
+        {!hasTwoGroups && (
+          <span className="mod-nav-title">
+            {activeGroup === 'results' ? 'Kết quả xử lý' : 'Xử lý hồ sơ'}
+          </span>
+        )}
+        {visibleSections.map(s => (
           <button
             key={s.status}
             type="button"
@@ -451,34 +522,17 @@ export function ModerationWorkspaceShell({
           </button>
         ))}
       </div>
-      {resultSections.length > 0 && (
-        <div className="mod-nav-group">
-          <span className="mod-nav-title">Kết quả xử lý</span>
-          {resultSections.map(s => (
-            <button
-              key={s.status}
-              type="button"
-              className={status === s.status ? 'on' : ''}
-              aria-current={status === s.status ? 'page' : undefined}
-              onClick={() => onStatusChange(s.status)}
-            >
-              <span>{s.label}</span>
-              {status === s.status && !loading && !error && <em>{totalCount}</em>}
-            </button>
-          ))}
-        </div>
-      )}
     </aside>
   );
 
   const filters = (
     <div className="mod-filter-row">
-      <Select<QueuePriorityFilter>
+      {showPriorityFilter && <Select<QueuePriorityFilter>
         ariaLabel="Lọc theo mức ưu tiên"
         value={priority}
         options={PRIORITY_OPTIONS}
         onChange={onPriorityChange}
-      />
+      />}
       {showDueFilter && (
         <button
           type="button"

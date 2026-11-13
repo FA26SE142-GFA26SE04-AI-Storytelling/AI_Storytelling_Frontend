@@ -129,7 +129,10 @@ describe('Public review AI safety scan & evidence visibility', () => {
     );
     expect(html).toContain('Đã quét AI: An toàn (Safe)');
     expect(html).toContain('25/100');
-    expect(html).toContain('paragraph:5');
+    expect(html).toContain('Đoạn 6');
+    expect(html).toContain('Đoạn văn');
+    expect(html).toContain('GZ02 · Hành vi nguy hiểm dễ bắt chước');
+    expect(html).not.toContain('paragraph:5');
     expect(html).toContain('Nhân vật tự thắp đèn dầu trong nhà.');
     expect(html).toContain('Bà nội đang ngồi ngay gần đó.');
     expect(html).toContain('Đối chiếu trong bản nộp');
@@ -197,5 +200,64 @@ describe('Public review AI safety scan & evidence visibility', () => {
     expect(html).toContain('Đối chiếu trong bản nộp');
     expect(html).toContain('<mark');
     expect(html).toContain('An toàn');
+  });
+
+  it('localizes raw backend section, artifact, kind, criterion and reason codes without leaking English evidence jargon', () => {
+    const resolvedNames: string[] = [];
+    const pkg = makePkg({
+      allFlagsResolved: false,
+      canApprove: false,
+      flags: [
+        {
+          flagId: 'section:development',
+          kind: 'section',
+          name: 'development',
+          criterionCode: null,
+          reason: 'age_band_review',
+          evidenceQuote: null,
+          contextNote: null,
+          startOffset: null,
+          endOffset: null,
+          resolved: false,
+          resolvedReason: null,
+        },
+        {
+          flagId: 'artifact:quiz',
+          kind: 'artifact',
+          name: 'quiz',
+          criterionCode: 'GZ03',
+          reason: 'Hard rule matched',
+          evidenceQuote: null,
+          contextNote: null,
+          startOffset: null,
+          endOffset: null,
+          resolved: false,
+          resolvedReason: null,
+        },
+      ],
+    });
+
+    const html = renderToStaticMarkup(
+      <SafetyScanSection
+        packageData={pkg}
+        content={storyContent}
+        busy={false}
+        onResolveFlag={(_, name) => resolvedNames.push(name)}
+      />,
+    );
+    expect(html).toContain('Diễn biến');
+    expect(html).toContain('Phần nội dung');
+    expect(html).toContain('Cần rà soát mức độ phù hợp với nhóm tuổi mục tiêu.');
+    expect(html).toContain('Không có đoạn trích dẫn cụ thể cho cờ này.');
+    expect(html).toContain('Câu hỏi trắc nghiệm');
+    expect(html).toContain('Học liệu');
+    expect(html).toContain('GZ03 · Phù hợp độ tuổi');
+    expect(html).toContain('Khớp quy tắc chặn cứng của hệ thống');
+    expect(html).not.toContain('>development<');
+    expect(html).not.toContain('>section<');
+    expect(html).not.toContain('age_band_review');
+    expect(html).not.toContain('Hard rule matched');
+    expect(html).not.toContain('đoạn trích evidence');
+    expect(resolvedNames).toEqual([]);
   });
 });

@@ -14,6 +14,7 @@ import CoverPickerDialog, { CoverPickerPanel, prefetchCoverPictures } from '@/ap
 import { creatorService } from '@/app/services/creatorService';
 import { coverFor } from '@/app/lib/storyView';
 import CreatorSafetyPanel from './CreatorSafetyPanel';
+import { creatorPublicationState } from './creatorPublicationState';
 import { canSubmitWithSafety } from '@/app/features/story-workflow/creatorSafety';
 import { publicationLabelIds, togglePublicationLabel, type PublicationLabelSelection } from '@/app/features/story-workflow/publicationLabelSelection';
 import { staffService } from '@/app/services/staffService';
@@ -30,7 +31,7 @@ export const REVIEW: Record<string, string> = {
 };
 const OPEN_ITEM: Record<string, string> = { Pending: 'đang chờ Moderator nhận', Claimed: 'Moderator đang xem xét', Approved: 'đã duyệt', Rejected: 'bị từ chối' };
 
-export default function CreatorPublication({ storyId, versionId, storyStatus, onRevision, onLockChange, onBuyCredits, hidden = false, showCheck = true, stepNo = 3 }: { storyId: number; versionId: number | null; storyStatus?: string; onRevision: () => void; onLockChange?: (locked: boolean) => void; onBuyCredits?: () => void; hidden?: boolean; showCheck?: boolean; stepNo?: number }) {
+export default function CreatorPublication({ storyId, versionId, storyStatus, onRevision, onLockChange, onPublicationChange, onBuyCredits, hidden = false, showCheck = true, stepNo = 3 }: { storyId: number; versionId: number | null; storyStatus?: string; onRevision: () => void; onLockChange?: (locked: boolean) => void; onPublicationChange?: (status: B.CreatorPublicationStatus | null) => void; onBuyCredits?: () => void; hidden?: boolean; showCheck?: boolean; stepNo?: number }) {
   const { user } = useAuth();
   const [status, setStatus] = useState<B.CreatorPublicationStatus | null>(null);
   const [reason, setReason] = useState('');
@@ -68,7 +69,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
   // Ignore publication/check results from earlier stories, versions or accounts.
   useEffect(() => {
     const controller = new AbortController(); const run = Symbol(); scope.current = run;
-    setStatus(null); setBusy(false); checkRequest.current = null; onLockChange?.(true);
+    setStatus(null); onPublicationChange?.(null); setBusy(false); checkRequest.current = null; onLockChange?.(true);
     if (!versionId) { onLockChange?.(false); return; }
     void service.status(storyId, controller.signal).then(r => {
       if (scope.current !== run) return;
@@ -76,20 +77,21 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
       const s = r.data;
       if (s.storyId !== storyId || s.versionId !== versionId) { setNote('Trạng thái không khớp phiên bản hiện tại. Hãy tải lại trạng thái.'); return; }
       setStatus(s);
+      onPublicationChange?.(s);
       if (s.reviewStatus !== 'None' || s.openItemId) { knownSubmitted.current = s.versionId; setSubmittedVersion(s.versionId); }
       // Content/media remain read-only; resubmission after withdrawal is a separate command.
       const locked = s.isPublished || !!s.openItemId || s.reviewStatus !== 'None' || knownSubmitted.current === s.versionId || ['Ready','Archived'].includes(storyStatus ?? '');
       onLockChange?.(locked);
     });
-    return () => { scope.current = Symbol(); controller.abort(); };
-  }, [storyId, versionId, storyStatus, refresh, user?.id, onLockChange]);
+    return () => { scope.current = Symbol(); controller.abort(); onPublicationChange?.(null); };
+  }, [storyId, versionId, storyStatus, refresh, user?.id, onLockChange, onPublicationChange]);
   const toggleLabel = (id: number) => setLabelSelection(current => togglePublicationLabel(current, labelScope, suggestedLabelIds, categories, id));
   const act = async (fn: () => Promise<ApiResponse<unknown>>, revision = false, lockVersion = true) => {
     if (busy) return;
     setBusy(true); setNote(''); const run = scope.current;
     const r = await fn(); if (run !== scope.current) return;
     setBusy(false); setNote(r.message || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
-    if (r.success) { setRemoving(false); setReason(''); if (revision) onRevision(); else { if (lockVersion) { knownSubmitted.current = status?.versionId ?? null; setSubmittedVersion(status?.versionId ?? null); onLockChange?.(true); } setRefresh(n => n + 1); } }
+    if (r.success) { setRemoving(false); setReason(''); if (revision) { setStatus(null); onPublicationChange?.(null); onRevision(); } else { if (lockVersion) { knownSubmitted.current = status?.versionId ?? null; setSubmittedVersion(status?.versionId ?? null); onLockChange?.(true); } setRefresh(n => n + 1); } }
     else if (r.status === 409) setRefresh(n => n + 1);
   };
   const runCheck = async () => {
@@ -131,14 +133,15 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
   }, [labelsNeeded, categories]);
   const safetyReady = canSubmitWithSafety(status?.safetyCheck);
   const checkable = !!status && !status.isPublished && !status.openItemId && status.reviewStatus === 'None';
+  const publicationState = status ? creatorPublicationState(status) : null;
   const headline = !status ? 'Đang tải trạng thái…'
-    : status.isPublished ? 'Đã công khai'
+    : publicationState ? publicationState.label
     : withdrawn ? 'Đã rút yêu cầu duyệt'
     : grayWaiting ? 'Đang chờ Moderator xem xét vùng xám'
     : status.openItemId ? `${REVIEW[status.reviewStatus] ?? status.reviewStatus}${status.openItemStatus ? ` (${OPEN_ITEM[status.openItemStatus] ?? status.openItemStatus})` : ''}`
     : REVIEW[status.reviewStatus] ?? status.reviewStatus;
   const blocker = !status ? null
-    : status.isPublished ? 'Truyện đang công khai. Muốn sửa, hãy yêu cầu gỡ ở phần cuối trang.'
+    : publicationState ? publicationState.hint
     : pendingReview ? 'Khi Moderator chưa nhận xử lý, bạn có thể rút yêu cầu và giữ nguyên truyện cùng media đã xác nhận.'
     : grayWaiting ? 'Truyện đang chờ Moderator xem xét vùng xám nên chưa gửi duyệt được.'
     : !ready ? 'Truyện chưa sẵn sàng: hoàn tất bước 2 (media tạo xong và bạn đã xác nhận gói) rồi mới gửi duyệt được.'
@@ -174,18 +177,18 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
   return <section className="pa-card" aria-label="Phát hành"><div className="pa-head"><h3><span className="pa-num">{stepNo}</span>Phát hành truyện</h3></div>
     {note && <p className="notice" role="status">{note}</p>}
     <p style={{ margin: 0, fontWeight: 800, fontSize: "var(--fs-md)" }}>{headline}</p>
-    <p className="sub">Gửi bản hiện tại cho Moderator duyệt công khai. Khi yêu cầu còn chờ nhận, bạn có thể rút và gửi lại cùng phiên bản. Nếu sửa nội dung đã nộp, hãy tạo phiên bản chỉnh sửa mới.</p>
+    {status && !publicationState && <p className="sub">Gửi bản hiện tại cho Moderator duyệt công khai. Khi yêu cầu còn chờ nhận, bạn có thể rút và gửi lại cùng phiên bản. Nếu sửa nội dung đã nộp, hãy tạo phiên bản chỉnh sửa mới.</p>}
 
     {showCheck && <CreatorSafetyPanel check={status?.safetyCheck} busy={busy} checkable={checkable} onCheck={() => void runCheck()}/>}
 
     <div className="pa-step">
-      <b>Gửi duyệt công khai</b>
+      <b>{publicationState?.kind === 'revision' ? 'Chuẩn bị phiên bản gửi lại' : publicationState ? 'Trạng thái phát hành' : 'Gửi duyệt công khai'}</b>
       {blocker && <p className="sub">{blocker}</p>}
       {!dock && pickers}
       <div className="pa-actions">
         {canSubmit && <><CreatorQuotaChip kind="submit" onBuy={onBuyCredits} /><button className="btn btn-p" disabled={busy || !safetyReady || !cover || labelIds.length === 0 || sameAsReturned} title={!cover ? 'Chọn ảnh bìa trước khi gửi' : labelIds.length === 0 ? 'Chọn ít nhất một nhãn nội dung trước khi gửi' : sameAsReturned ? 'Hãy thay đổi bộ nhãn so với lần bị trả về' : undefined} onClick={() => { if (safetyReady && !checkRequest.current && status?.storyId === storyId && status.versionId === versionId) void act(() => service.submit(storyId, status.versionId, labelIds).then((r) => { if (r.success) notifyCreatorQuotaChanged(); return r; })); }}><Send className="ic" />{labelsOnlyReturn ? 'Gửi lại với nhãn mới' : withdrawn ? 'Gửi lại phiên bản hiện tại' : 'Gửi bản hiện tại cho Moderator'}</button></>}
         {pendingReview && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Rút yêu cầu duyệt? Nội dung, tranh và giọng đọc đã xác nhận được giữ nguyên. Bạn có thể gửi lại cùng phiên bản khi sẵn sàng."))) return; void act(() => service.withdraw(status!.openItemId!)); }}>Rút yêu cầu duyệt</button>}
-        {canRevise && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Tạo bản chỉnh sửa mới? Bản hiện tại giữ nguyên trong lịch sử, bạn sẽ soạn và làm lại media cho bản mới."))) return; void act(() => service.revision(storyId, status!.versionId), true); }}><FilePen className="ic" />Tạo bản chỉnh sửa</button>}
+        {canRevise && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Tạo bản chỉnh sửa mới? Nội dung và học liệu được sao chép sang bản mới. Bản cũ cùng media được giữ nguyên trong lịch sử; bạn cần chuẩn bị media riêng cho bản mới."))) return; void act(() => service.revision(storyId, status!.versionId), true); }}><FilePen className="ic" />{publicationState?.kind === 'revision' ? 'Tạo bản chỉnh sửa để gửi lại' : 'Tạo bản chỉnh sửa'}</button>}
         <button className="btn btn-g icon-only" aria-label="Tải lại trạng thái" title="Tải lại trạng thái" disabled={busy} onClick={() => setRefresh(n => n + 1)}><RefreshCw className="ic" /></button>
       </div>
     </div>

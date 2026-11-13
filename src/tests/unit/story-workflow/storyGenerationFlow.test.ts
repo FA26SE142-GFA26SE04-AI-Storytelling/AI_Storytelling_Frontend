@@ -24,6 +24,7 @@ describe('backend-driven story transitions', () => {
     expect(generationDisplayPhase({ ...content, content: 'failed', stableStoryVersionId: null, currentStep: 'failed_content' })).toBe('content');
     expect(generationDisplayPhase({ ...content, stableStoryVersionId: null })).toBe('content');
     expect(generationDisplayPhase(content)).toBe('learning');
+    expect(generationDisplayPhase({ ...content, outputMode: 'reading_media_only' })).toBe('content');
   });
   it('requires both content_review and isComplete for manual review', () => {
     expect(contentDestination({ ...content, isComplete: true })).toBe('waiting');

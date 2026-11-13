@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import type * as B from '@/app/types/backendContracts';
 import LearningMaterials from './LearningMaterials';
+import { ManuscriptCard, SceneCardShell, countWords } from './ModerationInspectionPrimitives';
 import ReviewPicture, { ZoomLightbox } from './ReviewPicture';
 
 const SCOPE_LABELS: Record<string, string> = {
@@ -36,40 +37,60 @@ export default function ReportedContentSection({ detail: d }: { detail: B.Conten
           {d.story.labels.map(l => <span key={l.code} className="pill ok">{l.displayName}</span>)}
         </div>
       )}
-      {d.story.description && <div className="st-quote"><small>Mô tả truyện</small><p>{d.story.description}</p></div>}
-      {d.version?.lesson && <div className="st-quote"><small>Bài học</small><p>{d.version.lesson}</p></div>}
+      {(d.story.description || d.version?.lesson) && (
+        <div className="mod-brief-pair">
+          {d.story.description && <ManuscriptCard variant="brief" label="Mô tả truyện" text={d.story.description} />}
+          {d.version?.lesson && <ManuscriptCard variant="brief" label="Bài học" text={d.version.lesson} />}
+        </div>
+      )}
+
+      {sortedScenes.length > 0 && d.version?.content?.trim() && (
+        <details className="mod-fulltext-acc">
+          <summary>Đọc toàn văn phiên bản bị báo cáo ({countWords(d.version.content)} từ)</summary>
+          <ManuscriptCard variant="story" label="Văn bản phiên bản bị báo cáo" text={d.version.content} />
+        </details>
+      )}
 
       {sortedScenes.length > 0 ? (
         <div className="st-scenes">
-          {sortedScenes.map(sc => (
-            <section className="st-scene" key={sc.sceneIndex}>
-              <b>Cảnh {sc.sceneIndex + 1}</b>
-              <p className="st-scene-text">{sc.text}</p>
-              {sc.imageUrls.length > 0 && (
-                <div className="st-scene-part st-scene-pics">
-                  <b className="st-scene-label">Tranh minh họa</b>
-                  <div className="st-pics">
-                    {sc.imageUrls.map((url, idx) => (
-                      <ReviewPicture key={idx} url={url} alt={`Cảnh ${sc.sceneIndex + 1}`} onZoom={(u, alt) => setZoom({ url: u, alt })} />
-                    ))}
-                  </div>
-                </div>
-              )}
-              {sc.audioUrls.length > 0 && (
-                <div className="st-scene-part st-scene-audio">
-                  <b className="st-scene-label">Âm thanh</b>
-                  {sc.audioUrls.map((url, idx) => (
-                    <div key={idx} className="st-seg">
-                      <audio controls preload="none" src={url} />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </section>
-          ))}
+          {sortedScenes.map(sc => {
+            const hasMedia = sc.imageUrls.length > 0 || sc.audioUrls.length > 0;
+            return (
+              <SceneCardShell
+                key={sc.sceneIndex}
+                sceneNumber={sc.sceneIndex + 1}
+                prose={sc.text}
+                hasMedia={hasMedia}
+                mediaSlot={
+                  <>
+                    {sc.imageUrls.length > 0 && (
+                      <div className="st-scene-part st-scene-pics">
+                        <b className="st-scene-label">Tranh minh họa</b>
+                        <div className="st-pics">
+                          {sc.imageUrls.map((url, idx) => (
+                            <ReviewPicture key={idx} url={url} alt={`Cảnh ${sc.sceneIndex + 1}`} onZoom={(u, alt) => setZoom({ url: u, alt })} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {sc.audioUrls.length > 0 && (
+                      <div className="st-scene-part st-scene-audio">
+                        <b className="st-scene-label">Âm thanh</b>
+                        {sc.audioUrls.map((url, idx) => (
+                          <div key={idx} className="st-seg">
+                            <audio controls preload="none" src={url} />
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                }
+              />
+            );
+          })}
         </div>
       ) : d.version?.content ? (
-        <div className="st-content" style={{ whiteSpace: 'pre-wrap' }}>{d.version.content}</div>
+        <ManuscriptCard variant="story" label="Văn bản phiên bản bị báo cáo" text={d.version.content} />
       ) : (
         <p className="sub">Phiên bản bị báo cáo chưa có nội dung cảnh hoặc văn bản.</p>
       )}

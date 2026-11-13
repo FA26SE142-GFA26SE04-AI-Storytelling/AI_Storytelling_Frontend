@@ -26,6 +26,7 @@ import StudioControls from '@/app/features/studio/StudioControls';
 import StageProgress from '@/app/features/studio/StageProgress';
 import CreatorBrief from './CreatorBrief';
 import CreatorMedia from './CreatorMedia';
+import { creatorPublicationState } from './creatorPublicationState';
 const continueMedia = mediaKeepPolling;
 /** Lỗi AI hay gặp, giải thích bằng tiếng Việt; mã lạ thì hiện nguyên mã. */
 const FAILURE_VI: Record<string, string> = {
@@ -68,6 +69,7 @@ function CreatorGenerationRun({ initialId, seed, onReset, onBuyCredits }: { init
   const [locked, setLocked] = useState(true);
   const [savedStatus, setSavedStatus] = useState('');
   const [savedVersion, setSavedVersion] = useState<number | null>(null);
+  const [publicationStatus, setPublicationStatus] = useState<B.CreatorPublicationStatus | null>(null);
   const [refresh, setRefresh] = useState(0);
   const [submitted, setSubmitted] = useState<B.SubmitCreatorAIStoryInputRequestDto | null>(null);
   useEffect(() => {
@@ -102,11 +104,16 @@ function CreatorGenerationRun({ initialId, seed, onReset, onBuyCredits }: { init
   const stage: Stage = flow.id === null ? 'brief'
     : flow.input && flow.input.inputStatus !== 'input_accepted' ? (['input_blocked', 'input_check_failed'].includes(flow.input.inputStatus) ? 'blocked' : 'checking')
     : flow.stage;
-  const progress = useSteppedProgress(studioProgress(stage, flow.snapshot, media.data, stage === 'media' ? null : failed));
+  const baseProgress = studioProgress(stage, flow.snapshot, media.data, stage === 'media' ? null : failed);
+  const publicationState = publicationStatus?.storyId === flow.id && publicationStatus.versionId === versionId
+    ? creatorPublicationState(publicationStatus) : null;
+  const progress = useSteppedProgress(baseProgress.mode === 'done'
+    ? { ...baseProgress, caption: publicationState?.kind === 'revision' ? 'Cần tạo bản chỉnh sửa để gửi lại' : publicationState?.label ?? 'Nội dung và media đã hoàn tất' }
+    : baseProgress);
   const reviewing = flow.id !== null && flow.stage === 'review' && stage === 'review';
   // Bước Tranh & giọng đọc có bố cục riêng như phụ huynh: khung giữa + cột phải cuộn riêng (không còn một trang dài cuộn dọc).
   const mediaStage = flow.id !== null && flow.stage === 'media' && stage === 'media';
-  const publication = (hidden: boolean) => flow.id !== null && <CreatorPublication storyId={flow.id} versionId={versionId} storyStatus={storyStatus} onLockChange={setLocked} onRevision={refreshState} hidden={hidden} onBuyCredits={onBuyCredits} />;
+  const publication = (hidden: boolean) => flow.id !== null && <CreatorPublication storyId={flow.id} versionId={versionId} storyStatus={storyStatus} onLockChange={setLocked} onPublicationChange={setPublicationStatus} onRevision={refreshState} hidden={hidden} onBuyCredits={onBuyCredits} />;
   const waiting = flow.id !== null && !flow.failure && ['checking', 'outline_wait', 'generating', 'moderation'].includes(stage);
   // Thử lại bước AI vừa lỗi (như phụ huynh): viết truyện / học liệu qua generation/retry, hoặc tạo dàn ý lần đầu qua outline/retry.
   // Lỗi khi viết lại dàn ý đã có thì không có ở đây: bấm "Viết lại" trong dàn ý.
@@ -164,7 +171,7 @@ function CreatorGenerationRun({ initialId, seed, onReset, onBuyCredits }: { init
           onChange={(v) => { if (v.topic !== undefined) setTopic(v.topic); if (v.lesson !== undefined) setLesson(v.lesson); if (v.genre !== undefined) setGenre(v.genre); if (v.charactersText !== undefined) setCharactersText(v.charactersText); if (v.setting !== undefined) setSetting(v.setting); if (v.targetLength !== undefined) setTargetLength(v.targetLength); if (v.vocabularyLevel !== undefined) setVocabularyLevel(v.vocabularyLevel); if (v.outputMode !== undefined) setOutputMode(v.outputMode); }}
           onSubmit={start} onBuyCredits={onBuyCredits} />}
         {/* Lúc AI đang làm: thẻ chờ giống phụ huynh (con cóc ngồi chờ + bước hiện tại). */}
-        {waiting && <div style={{ height: '100%', minHeight: 380 }}><StageProgress stage={stage} snapshot={flow.snapshot} message={flow.error || flow.message} onRetry={refreshState} /></div>}
+        {waiting && <div style={{ height: '100%', minHeight: 380 }}><StageProgress stage={stage} snapshot={flow.snapshot} outputMode={outputMode} message={flow.error || flow.message} onRetry={refreshState} /></div>}
         <div style={{ maxWidth: 900, margin: '0 auto', display: 'grid', gap: 16 }}>
           {notices}
           {flow.id !== null && flow.stage === 'outline' && outline && <div className="st-card"><OutlinePanel key={outline.versionNo} storyId={flow.id} version={outline} editable={!locked} visible onReveal={() => {}} onApproved={refreshState} onChanged={refreshState} /></div>}

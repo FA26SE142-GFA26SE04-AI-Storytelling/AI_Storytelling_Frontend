@@ -29,7 +29,7 @@ export function snapshotStage(snap: StatusSnapshot | null, approvedLocally: bool
   if (["approved", "media_processing", "media_review", "ready"].includes(status)) return "media";
   if (status !== 'content_review' && outlineJobRunning(snap)) return 'outline_wait';
   if (/^(pending|generating)_/.test(snap.generation?.currentStep ?? '')) return 'generating';
-  if (status === "content_review") return "review";
+  if (status === "content_review") return snap.generation && !snap.generation.isComplete ? "generating" : "review";
   if (status === "outline_review") {
     if (snap.outline?.currentVersion?.outlineApprovedAt || approvedLocally) return "generating";
     return snap.outline && outlineReady(snap.outline) ? "outline" : "outline_wait";

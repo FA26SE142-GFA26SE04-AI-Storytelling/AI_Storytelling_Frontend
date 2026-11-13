@@ -15,6 +15,7 @@ export function currentCreatorPublication(
   revision: number,
 ): CreatorPublicationStatus | null {
   return snapshot?.list === list && snapshot.revision === revision && snapshot.data.storyId === selected
+    && snapshot.data.versionId === list?.find(s => s.storyId === selected)?.selectedVersionId
     ? snapshot.data : null;
 }
 
@@ -22,6 +23,8 @@ export type CreatorShelfId =
   | 'published'
   | 'changes_requested'
   | 'pending_review'
+  | 'claimed_review'
+  | 'revision_required'
   | 'ready'
   | 'review'
   | 'draft'
@@ -40,7 +43,9 @@ export interface CreatorShelfMeta {
 export const CREATOR_SHELVES: CreatorShelfMeta[] = [
   { id: 'published', title: 'Đã công khai', badge: 'Đã công khai', tone: 'ok' },
   { id: 'changes_requested', title: 'Moderator yêu cầu sửa', badge: 'Yêu cầu sửa', tone: 'wait' },
-  { id: 'pending_review', title: 'Chờ Moderator duyệt', badge: 'Chờ duyệt', tone: 'wait' },
+  { id: 'pending_review', title: 'Chờ Moderator tiếp nhận', badge: 'Chờ tiếp nhận', tone: 'wait' },
+  { id: 'claimed_review', title: 'Moderator đang xử lý', badge: 'Đang xử lý', tone: 'wait' },
+  { id: 'revision_required', title: 'Cần tạo bản chỉnh sửa', badge: 'Cần bản chỉnh sửa', tone: 'draft' },
   { id: 'ready', title: 'Sẵn sàng gửi duyệt', badge: 'Sẵn sàng gửi', tone: 'draft' },
   { id: 'review', title: 'Đang chuẩn bị', badge: 'Đang chuẩn bị', tone: 'wait' },
   { id: 'draft', title: 'Đang soạn', badge: 'Đang soạn', tone: 'draft' },
@@ -70,17 +75,20 @@ export function resolveStoryDisplayState(
   story: CreatorDraft,
   publication: CreatorPublication | null | undefined,
 ): CreatorDraft {
-  if (!publication || publication.storyId !== story.storyId) return story;
+  if (!publication || publication.storyId !== story.storyId || publication.versionId !== story.selectedVersionId) return story;
   return {
     ...story,
     isPublished: publication.isPublished,
     reviewStatus: publication.reviewStatus,
+    openItemId: publication.openItemId,
+    openItemType: publication.openItemType,
+    openItemStatus: publication.openItemStatus,
   };
 }
 
 /** Phân loại mỗi truyện vào đúng 1 section theo trạng thái biên soạn + kiểm duyệt công khai. */
 export function creatorShelfOf(
-  story: Pick<CreatorDraft, 'status' | 'isPublished' | 'reviewStatus'>,
+  story: Pick<CreatorDraft, 'status' | 'isPublished' | 'reviewStatus' | 'openItemType' | 'openItemStatus'>,
 ): CreatorShelfMeta {
   const status = normalizeKey(story.status) || 'draft';
   const review = normalizeKey(story.reviewStatus);
@@ -95,8 +103,10 @@ export function creatorShelfOf(
     return SHELF_BY_ID.get('changes_requested')!;
   }
   if (review === 'pending') {
+    if (story.openItemType === 'PublicStoryReview' && story.openItemStatus === 'Claimed') return SHELF_BY_ID.get('claimed_review')!;
     return SHELF_BY_ID.get('pending_review')!;
   }
+  if (review === 'approved' && story.isPublished === false) return SHELF_BY_ID.get('revision_required')!;
   if (status === 'ready' || status === 'published') {
     return SHELF_BY_ID.get('ready')!;
   }

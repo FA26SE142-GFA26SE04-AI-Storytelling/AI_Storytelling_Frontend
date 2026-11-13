@@ -2315,10 +2315,10 @@
   {
     "method": "GET",
     "route": "/api/v1/ContentReportReview/{itemId}",
-    "authorization": "Roles = \"Moderator\"",
+    "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ContentReportReviewController.cs",
     "action": "GetDetail",
-    "controllerLine": 23,
+    "controllerLine": 22,
     "evidence": [
       {
         "key": "GET /api/v1/ContentReportReview/{}",
@@ -2336,10 +2336,10 @@
   {
     "method": "POST",
     "route": "/api/v1/ContentReportReview/{itemId}/dismiss",
-    "authorization": "Roles = \"Moderator\"",
+    "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ContentReportReviewController.cs",
     "action": "Dismiss",
-    "controllerLine": 33,
+    "controllerLine": 32,
     "evidence": [
       {
         "key": "POST /api/v1/ContentReportReview/{}/dismiss",
@@ -2357,10 +2357,10 @@
   {
     "method": "POST",
     "route": "/api/v1/ContentReportReview/{itemId}/archive",
-    "authorization": "Roles = \"Moderator\"",
+    "authorization": "Roles = \"Moderator,Administrator\"",
     "controller": "ContentReportReviewController.cs",
     "action": "Archive",
-    "controllerLine": 45,
+    "controllerLine": 44,
     "evidence": [
       {
         "key": "POST /api/v1/ContentReportReview/{}/archive",
@@ -2374,6 +2374,16 @@
       }
     ],
     "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/ContentReportReview/{itemId}/escalate",
+    "authorization": "Roles = \"Moderator,Administrator\"",
+    "controller": "ContentReportReviewController.cs",
+    "action": "Escalate",
+    "controllerLine": 56,
+    "evidence": [],
+    "disposition": "MISSING"
   },
   {
     "method": "GET",
@@ -7424,7 +7434,7 @@
     "authorization": "Roles = \"User,ContentCreator\"",
     "controller": "StoryCoverController.cs",
     "action": "SetCover",
-    "controllerLine": 24,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "PUT /api/v1/stories/{}/cover",

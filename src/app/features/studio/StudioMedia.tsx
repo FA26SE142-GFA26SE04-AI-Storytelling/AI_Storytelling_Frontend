@@ -119,7 +119,7 @@ export default function StudioMedia({ storyId, media }: Props) {
             <div className="sec-h"><span>Nội dung</span></div>
             <div className="prep-stats">
               {bundle && isReadingOnly(bundle.summary.outputMode) ? (
-                <div className="prep-stat wide"><small>Kiểu truyện</small><b>Chỉ để đọc</b></div>
+                <div className="prep-stat wide"><small>Kiểu truyện</small><b>Chỉ đọc/nghe</b></div>
               ) : (
                 <>
                   <div className="prep-stat"><small>Từ vựng</small><b>{count(bundle?.vocabulary.items.length)}</b></div>

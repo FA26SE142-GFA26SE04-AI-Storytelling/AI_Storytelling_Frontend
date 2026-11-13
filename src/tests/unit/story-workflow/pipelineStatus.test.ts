@@ -6,6 +6,14 @@ const snapshot=(step='generating_content'):StatusSnapshot=>({
  generation:{storyId:7,storyStatus:'OutlineReview',currentStep:step,isComplete:false,lastErrorCode:null,content:'processing'} as ContentGenerationProgressDto,
 });
 describe('Backend-driven pending/running/terminal generation status',()=>{
+ it('keeps ContentReview waiting until requested learning is complete',()=>{
+  const s=snapshot('failed_quiz');s.outline!.storyStatus='ContentReview';s.generation!.storyStatus='content_review';
+  s.generation!.lastErrorCode='QUIZ_VALIDATION_FAILED';
+  expect(snapshotStage(s,false)).toBe('generating');
+  expect(pipelineFailure(s,'generating')?.code).toBe('QUIZ_VALIDATION_FAILED');
+  s.generation!.isComplete=true;
+  expect(snapshotStage(s,false)).toBe('review');
+ });
  it.each(['pending_content','generating_content','generating_vocabulary'])('ignores an old outline error during %s',step=>{
   const s=snapshot(step);expect(snapshotStage(s,false)).toBe('generating');
   expect(pipelineFailure(s,'generating')).toBeNull();expect(keepSnapshotPolling(s)).toBe(true);

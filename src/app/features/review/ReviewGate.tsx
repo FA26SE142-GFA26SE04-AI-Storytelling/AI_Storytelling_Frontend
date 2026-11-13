@@ -127,7 +127,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
               <div className="row">
                 <span className={`pill ${tone}`}>{statusLabel}</span>
                 <span className="pill ai">Do AI tạo</span>
-                {!learning && <span className="pill draft">Chỉ để đọc</span>}
+                {!learning && <span className="pill draft">Chỉ đọc/nghe</span>}
                 <span className="row" style={{ marginLeft: "auto", gap: 6 }}><span className="pill draft">Bản #{summary.storyVersionId}</span><span className="pill draft">{countWords(content)} tiếng</span></span>
               </div>
               {editing ? (
@@ -166,7 +166,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
             <button className="ck ck-link" onClick={() => setTab("story")}>
               <span className="st ok"><BookOpenText /></span>Truyện<small>{countWords(content)} tiếng{summary.readabilityFkgl !== null && ` · FKGL ${summary.readabilityFkgl.toFixed(1)}`}</small>
             </button>
-            {!learning && <span className="pill draft" style={{ width: "fit-content" }}>Chỉ để đọc: không có từ vựng, câu đố</span>}
+            {!learning && <span className="pill draft" style={{ width: "fit-content" }}>Chỉ đọc/nghe: không có học liệu hoặc tương tác lúc nghe</span>}
             {artifacts.map((k) => (
               <button key={k} className="ck ck-link" onClick={() => setTab(k)}>
                 <span className={`st ${items[k].length > 0 ? "ok" : "warn"}`}>{items[k].length > 0 ? <Check /> : <CircleAlert />}</span>
