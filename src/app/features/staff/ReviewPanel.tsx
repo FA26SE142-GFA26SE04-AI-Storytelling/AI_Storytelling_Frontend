@@ -1,7 +1,6 @@
 'use client';
 import type { QueueItem } from '@/app/types/staff';
 import type { ReviewKind } from '@/app/services/moderationService';
-import CommunitySubmissionReviewPanel from './CommunitySubmissionReviewPanel';
 import ContentReportReviewPanel from './ContentReportReviewPanel';
 import GrayZoneReviewPanel from './GrayZoneReviewPanel';
 import PublicStoryRemovalPanel from './PublicStoryRemovalPanel';
@@ -26,8 +25,6 @@ export default function ReviewPanel({
   switch (kind) {
     case 'PublicStoryReview':
       return <PublicStoryReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
-    case 'CommunitySubmission':
-      return <CommunitySubmissionReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
     case 'GrayZoneStory':
       return <GrayZoneReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
     case 'ContentReport':
