@@ -21,11 +21,18 @@ export default function AudioRing({ urls, label }: { urls: string[]; label: stri
   /** Đang chờ âm thanh tải về (bấm phát lần đầu, hoặc chuyển sang đoạn kế): hiện vòng xoay thay vì nút phát. */
   const [loading, setLoading] = useState(false);
 
-  // Đổi sang đoạn kế tiếp trong lúc đang phát thì phát tiếp ngay khi nguồn mới nạp xong.
+  /**
+   * Đoạn trước vừa phát hết nên phát tiếp đoạn kế. Không dựa vào `playing`: trình duyệt bắn
+   * sự kiện pause ngay trước ended, nên lúc chuyển đoạn `playing` đã về false.
+   */
+  const continueNext = useRef(false);
   useEffect(() => {
     const el = audio.current;
-    if (el && playing) { setLoading(true); void el.play().catch(() => { setPlaying(false); setLoading(false); }); }
-  }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!el || !continueNext.current) return;
+    continueNext.current = false;
+    setLoading(true);
+    void el.play().catch(() => { setPlaying(false); setLoading(false); });
+  }, [index]);
   // Rời trang / đóng hộp thoại thì dừng tiếng.
   useEffect(() => () => audio.current?.pause(), []);
 
@@ -43,7 +50,7 @@ export default function AudioRing({ urls, label }: { urls: string[]; label: stri
     setProgress(Math.min(1, (index + part) / urls.length));
   };
   const onEnded = () => {
-    if (index < urls.length - 1) { setIndex(index + 1); return; }
+    if (index < urls.length - 1) { continueNext.current = true; setIndex(index + 1); return; }
     setPlaying(false); setIndex(0); setProgress(0);
   };
 

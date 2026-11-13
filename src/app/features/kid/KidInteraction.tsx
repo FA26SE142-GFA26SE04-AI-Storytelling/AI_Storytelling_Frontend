@@ -15,14 +15,14 @@ type Props = {
   busy: boolean;
   /** Gửi câu trả lời; trả về kết quả của backend, hoặc null khi gửi không được. */
   onSubmit: (body: ListeningAttemptRequest) => Promise<ListeningAttemptResult | null>;
-  /** Bé đã xong (hoặc bỏ qua): đóng cửa sổ và đi tiếp. */
-  onContinue: () => void;
+  /** Bé đã xong (hoặc bỏ qua): đóng cửa sổ và đi tiếp. resume = true khi bé bấm "Đọc tiếp" hoặc "Để sau": giọng kể phát tiếp; đóng hộp (Esc) thì false. */
+  onContinue: (resume: boolean) => void;
   /** Bé muốn nghe lại một cảnh (số thứ tự cảnh, bắt đầu từ 0). */
   onReplay: (sceneIndex: number) => void;
 };
 
 export default function KidInteraction({ interaction: q, busy, onSubmit, onContinue, onReplay }: Props) {
-  const ref = useDialog<HTMLDivElement>(onContinue);
+  const ref = useDialog<HTMLDivElement>(() => onContinue(false));
   const player = useRef<HTMLAudioElement | null>(null);
   const [result, setResult] = useState<ListeningAttemptResult | null>(null);
   const [answer, setAnswer] = useState('');
@@ -113,8 +113,8 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
         </div>}
       </div>}
       <div className="kid-actions">
-        {finished && <button type="button" className="kid-listen-primary" onClick={onContinue}><Check aria-hidden="true" />Đọc tiếp</button>}
-        {!finished && <button type="button" className="kid-soft-button" disabled={busy} onClick={onContinue}><SkipForward aria-hidden="true" />Để sau</button>}
+        {finished && <button type="button" className="kid-listen-primary" onClick={() => onContinue(true)}><Check aria-hidden="true" />Đọc tiếp</button>}
+        {!finished && <button type="button" className="kid-soft-button" disabled={busy} onClick={() => onContinue(true)}><SkipForward aria-hidden="true" />Để sau</button>}
       </div>
     </div>
   </div>;
