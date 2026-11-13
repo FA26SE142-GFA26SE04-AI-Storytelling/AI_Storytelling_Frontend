@@ -155,7 +155,6 @@ describe('Moderator Phase 4 WishCards & Spec 12-14 boundaries', () => {
       'app/services/authoringGuideManagementService.ts',
       'app/services/roadmapTemplateService.ts',
       'app/features/staff/CreatorStoryReviewWorkspace.tsx',
-      'app/features/staff/SharedStoryReviewWorkspace.tsx',
       'app/features/staff/PublishedReviewWorkspace.tsx',
       'app/features/staff/RemovalRecordsWorkspace.tsx',
       'app/features/staff/GrayZoneReviewWorkspace.tsx',
