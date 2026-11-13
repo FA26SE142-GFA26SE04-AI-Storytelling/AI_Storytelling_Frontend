@@ -3,7 +3,6 @@ import { apiRequest } from '@/app/services/apiClient';
 import { authService } from '@/app/services/authService';
 import { guardianService } from '@/app/services/guardianService';
 import { roadmapService } from '@/app/services/roadmapService';
-import { communityService } from '@/app/services/communityService';
 import { creatorPublicationService } from '@/app/services/creatorPublicationService';
 import { moderationService } from '@/app/services/moderationService';
 import { rubricService } from '@/app/services/rubricService';
@@ -60,11 +59,9 @@ describe('Backend flow contracts', () => {
     await roadmapService.preview(2,{ childProfileIds:[10], position:'End', daysPerStory:3 }); expect(fetcher.mock.calls[1][0]).toMatch(/\/RoadmapLibrary\/2\/preview$/);
     await roadmapService.mine('child'); expect(fetcher.mock.calls[2][0]).toMatch(/\/MyRoadmap$/); expect(new Headers(fetcher.mock.calls[2][1].headers).get('Authorization')).toBe('Bearer child');
   });
-  it('maps report reasons and community attestation without fabricating a timestamp', async () => {
-    fetcher.mockResolvedValueOnce(response({ reportId:8,storyId:7,reason:'SafetyConcern',status:'Pending',createdAt:'2026-10-21T00:00:00Z' })).mockResolvedValueOnce(response({itemId:9,storyId:7,storyVersionId:12,status:'Pending'})).mockResolvedValueOnce(response([]));
+  it('maps report reasons', async () => {
+    fetcher.mockResolvedValueOnce(response({ reportId:8,storyId:7,reason:'SafetyConcern',status:'Pending',createdAt:'2026-10-21T00:00:00Z' }));
     const r = await guardianService.reportStory(7,'safety_concern','Xem lại'); expect(r.data?.id).toBe(8); expect(fetcher.mock.calls[0][0]).toMatch(/\/ContentReport$/); expect(JSON.parse(fetcher.mock.calls[0][1].body).reason).toBe('SafetyConcern');
-    await guardianService.submitCommunity(7,true,true); expect(fetcher.mock.calls[1][0]).toMatch(/\/CommunitySubmission$/); expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual({storyId:7,confirmNoPersonalInfo:true,copyrightDeclaration:2});
-    await communityService.remove(9); expect(fetcher.mock.calls[3][0]).toMatch(/\/CommunitySubmission\/9\/remove$/);
   });
   it('pins version for Creator submission and uses separate confirmation/removal APIs', async () => {
     fetcher.mockResolvedValue(response(null)); await creatorPublicationService.submit(7,12,[1,5]); expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({storyId:7,storyVersionId:12,contentCategoryIds:[1,5]});

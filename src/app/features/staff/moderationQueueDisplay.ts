@@ -15,13 +15,18 @@ export function queueWorkTitle(
   return typeLabel;
 }
 
-/** Chỉ hiển thị người gửi cho PublicStoryReview; không làm lộ danh tính người báo cáo hoặc trẻ em. */
+/** Hiển thị nhãn người gửi cho PublicStoryReview và PublicStoryRemoval khi có giá trị; không hiện cho báo cáo nội dung để bảo vệ danh tính người báo cáo. */
 export function queueSubmitterLabel(
   item: Pick<QueueItem, 'itemType' | 'createdByName'>,
 ): string | null {
-  if (item.itemType !== 'PublicStoryReview') return null;
-  const name = item.createdByName?.trim() || MISSING_AUTHOR;
-  return `Tác giả gửi duyệt: ${name}`;
+  const name = item.createdByName?.trim();
+  if (item.itemType === 'PublicStoryReview') {
+    return `Tác giả gửi duyệt: ${name || MISSING_AUTHOR}`;
+  }
+  if (item.itemType === 'PublicStoryRemoval') {
+    return name ? `Người gửi: ${name}` : null;
+  }
+  return null;
 }
 
 /** Nguồn hiển thị an toàn cho các loại cần phân biệt nguồn mà không lộ danh tính (như CommunitySubmission). */

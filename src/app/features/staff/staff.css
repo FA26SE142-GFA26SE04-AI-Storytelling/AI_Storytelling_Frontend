@@ -100,6 +100,8 @@
 .st-group .btn { align-self: flex-start; }
 .st-group .row .btn { align-self: auto; }
 .st-group.st-wish { border: 0; border-top: 1px solid var(--line); border-radius: 0; background: none; }
+.st-coverage-warn { display: flex; gap: 8px; align-items: flex-start; padding: 10px 12px; margin: 8px 0; border: 1px solid var(--gold-deep); border-radius: 10px; background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--warn-ink); font-size: var(--fs-sm); line-height: 1.45; }
+.st-coverage-warn .ic { flex: none; margin-top: 2px; }
 .st-acc details { padding: 4px 0; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); }
 .st-acc details > summary { padding: 10px 14px; }
 .st-acc details > .sec, .st-acc details > p, .st-acc details > textarea { margin: 0 14px 14px; width: calc(100% - 28px); }

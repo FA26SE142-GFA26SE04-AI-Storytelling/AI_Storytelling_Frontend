@@ -165,6 +165,7 @@ export default function CommunitySubmissionReviewPanel({
   }
 
   const d = item.data;
+  const discussion = d.discussionQuestions ?? [];
   const locked = busy || claimBlocked;
   const labelsDirty = [...labelIds].sort().join(',') !== [...savedLabelIds].sort().join(',');
   const has = (code: string) => d.blockers.some(b => b.code === code);
@@ -285,16 +286,16 @@ export default function CommunitySubmissionReviewPanel({
 
       <div className={`st-group${showLearning ? '' : ' mod-hidden-section'}`}>
         <b className="st-group-title">Học liệu đi kèm</b>
-        {d.vocabulary.length === 0 && d.quizzes.length === 0 && d.discussionQuestions.length === 0 ? (
+        {d.vocabulary.length === 0 && d.quizzes.length === 0 && discussion.length === 0 ? (
           <p className="sub">Truyện chia sẻ này chưa có từ vựng, câu đố hoặc câu hỏi thảo luận.</p>
         ) : (
           <>
             <LearningMaterials vocabulary={d.vocabulary} quizzes={d.quizzes} />
-            {d.discussionQuestions.length > 0 && (
+            {discussion.length > 0 && (
               <div className="st-learn">
                 <section>
-                  <b className="st-learn-title">Câu hỏi thảo luận ({d.discussionQuestions.length})</b>
-                  {d.discussionQuestions.map((dq, idx) => (
+                  <b className="st-learn-title">Câu hỏi thảo luận ({discussion.length})</b>
+                  {discussion.map((dq, idx) => (
                     <p key={idx}>• {dq.question}{dq.isMoralLesson ? ' (Bài học đạo đức)' : ''}</p>
                   ))}
                 </section>

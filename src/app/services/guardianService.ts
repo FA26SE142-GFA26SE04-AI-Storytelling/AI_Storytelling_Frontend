@@ -1,17 +1,15 @@
 import type { ApiResponse } from '@/app/types/auth';
 import type {
-  AppNotification, ChildRef, CommunitySubmission, ContentReport, ReportReason,
+  AppNotification, ChildRef, ContentReport, ReportReason,
   RoadmapAddResult, RoadmapItem, RoadmapPosition, RoadmapStoryInput, RoadmapTemplate,
 } from '@/app/types/progress';
 import { apiRequest } from './apiClient';
 import { roadmapService } from './roadmapService';
 import { roadmapItems, roadmapAddResult, roadmapCopyResult } from './roadmapAdapters';
-import { communityService } from './communityService';
 import type * as B from '@/app/types/backendContracts';
 
 /** Parent workspace facade: available operations always use the Core API. */
 
-const communityItem = (s: B.CommunitySubmissionDto): CommunitySubmission => ({ id: s.itemId, storyId: s.storyId, status: s.status.toLowerCase() as CommunitySubmission['status'], createdAt: s.submittedAt, canWithdraw: s.canWithdraw, canRemove: s.canRemove, rejectReason: s.rejectReason });
 const positionWire = (p: RoadmapPosition) => p === 'next' ? 'NextUp' as const : 'End' as const;
 const reportReasons = { safety_concern: 'SafetyConcern', inappropriate: 'Inappropriate', wrong_age_band: 'WrongAgeBand', copyright: 'Copyright', cultural: 'Cultural', other: 'Other' } as const;
 
@@ -48,23 +46,6 @@ export const guardianService = {
   async reportStory(storyId: number, reason: ReportReason, description: string): Promise<ApiResponse<ContentReport>> {
     const r = await apiRequest<B.ContentReportResultDto>('/ContentReport', 'Không gửi được báo cáo.', { method: 'POST', body: { storyId, reason: reportReasons[reason], description: description || null } });
     return { ...r, data: r.data ? { id: r.data.reportId, storyId: r.data.storyId, reason, description, status: r.data.status.toLowerCase() as ContentReport['status'], createdAt: r.data.createdAt } : null };
-  },
-  async storyModeration(storyId: number): Promise<ApiResponse<{ reports: ContentReport[]; submission: CommunitySubmission | null }>> {
-    const r = await communityService.mine();
-    return { ...r, data: r.data ? { reports: [], submission: r.data.filter(s => s.storyId === storyId).sort((a,b) => Date.parse(b.submittedAt) - Date.parse(a.submittedAt)).map(communityItem)[0] ?? null } : null };
-  },
-  async submitCommunity(storyId: number, confirmNoPersonalInfo = false, ownWork = false): Promise<ApiResponse<CommunitySubmission>> {
-    const r = await communityService.submit({ storyId, confirmNoPersonalInfo, copyrightDeclaration: ownWork ? 2 : null });
-    if (!r.success || !r.data) return { ...r, data: null };
-    // Fetch server timestamps/permissions instead of manufacturing a submission record.
-    const mine = await communityService.mine();
-    return mine.success && mine.data ? { ...r, data: mine.data.map(communityItem).find(s => s.id === r.data!.itemId) ?? null } : { ...r, data: null };
-  },
-  async withdrawCommunity(itemId: number): Promise<ApiResponse<null>> {
-    const r = await communityService.withdraw(itemId); return { ...r, data: null };
-  },
-  async removeCommunity(itemId: number): Promise<ApiResponse<null>> {
-    const r = await communityService.remove(itemId); return { ...r, data: null };
   },
 
   // ---------- Thông báo (API đã có ở backend) ----------

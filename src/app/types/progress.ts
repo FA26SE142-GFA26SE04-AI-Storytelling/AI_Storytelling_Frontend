@@ -65,16 +65,6 @@ export interface ContentReport {
   createdAt: string;
 }
 
-export interface CommunitySubmission {
-  canWithdraw?: boolean;
-  canRemove?: boolean;
-  rejectReason?: string | null;
-  id: number;
-  storyId: number;
-  status: 'pending' | 'approved' | 'rejected' | 'withdrawn' | 'removed';
-  createdAt: string;
-}
-
 export interface AppNotification {
   id: number;
   /** Hồ sơ trẻ liên quan đến thông báo, nếu có. */

@@ -19,7 +19,7 @@ import PaneSwap from './PaneSwap';
 const TABS=[{id:'stories' as const,label:'Truyện',icon:BookOpen},{id:'notebook' as const,label:'Sổ tay',icon:NotebookPen},{id:'wishes' as const,label:'Điều ước',icon:Sparkles},{id:'rewards' as const,label:'Phần thưởng',icon:Award}];
 const SOURCES=[{id:'',label:'Tất cả'},{id:'mine',label:'Của em'},{id:'library',label:'Thư viện'}];
 
-export default function ChildReadingLibrary({childId,community,story,unlockTitle,hero,onCommunityOpened,onStoryOpened,onLockChange,onPaneChange,onReadingChange}:{childId:number;/** Khung "Hôm nay em đọc" hiện đầu tab Truyện. */hero?:ReactNode;community?:{submissionId:number;title:string}|null;story?:{storyId:number}|null;unlockTitle?:string;onCommunityOpened?:()=>void;onStoryOpened?:()=>void;onLockChange?:(lock:{locked:boolean;unlockStoryId:number|null})=>void;onPaneChange?:(pane:string)=>void;onReadingChange?:(active:boolean)=>void}) {
+export default function ChildReadingLibrary({childId,story,unlockTitle,hero,onStoryOpened,onLockChange,onPaneChange,onReadingChange}:{childId:number;/** Khung "Hôm nay em đọc" hiện đầu tab Truyện. */hero?:ReactNode;story?:{storyId:number}|null;unlockTitle?:string;onStoryOpened?:()=>void;onLockChange?:(lock:{locked:boolean;unlockStoryId:number|null})=>void;onPaneChange?:(pane:string)=>void;onReadingChange?:(active:boolean)=>void}) {
   const session=childAccessService.readSession();
   const token=session?.childProfileId===childId?session.accessToken:'';
   const [revision,setRevision]=useState(0);
@@ -34,13 +34,6 @@ export default function ChildReadingLibrary({childId,community,story,unlockTitle
   const setPane=(next:Pane)=>setNav(cur=>({pane:next,dir:PANE_ORDER.indexOf(next)>=PANE_ORDER.indexOf(cur.pane)?1:-1}));
   // Các kệ bên dưới chỉ thuộc tab Truyện của em; báo tab đang chọn cho trang cha.
   useEffect(()=>{onPaneChange?.(pane);},[pane,onPaneChange]);
-  // Bé bấm bìa truyện cộng đồng ở kệ bên dưới thì mở đọc luôn, không cần bấm thêm nút nào.
-  useEffect(()=>{
-    if(!community)return;
-    void reader.open({communitySubmissionId:community.submissionId});
-    onCommunityOpened?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  },[community?.submissionId]);
   // Bé bấm truyện trong "Hành trình của em" thì mở đọc luôn (backend vẫn tự kiểm quyền đọc).
   useEffect(()=>{
     if(!story)return;

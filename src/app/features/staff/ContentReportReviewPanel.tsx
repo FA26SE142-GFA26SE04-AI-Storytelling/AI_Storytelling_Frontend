@@ -1,8 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Archive, Check, ExternalLink, RefreshCw, ShieldAlert } from 'lucide-react';
+import { Archive, Check, ExternalLink, RefreshCw } from 'lucide-react';
 import Select from '@/app/components/Select';
-import { useAuth } from '@/app/context/AuthContext';
 import { confirmDialog } from '@/app/lib/confirm';
 import { useRiseIn } from '@/app/lib/motion';
 import { moderationService } from '@/app/services/moderationService';
@@ -50,14 +49,13 @@ export default function ContentReportReviewPanel({
 }: {
   id: number;
   queueItem?: QueueItem;
-  onDecision: (outcome?: 'Dismissed' | 'Archived' | 'Escalated') => void;
+  onDecision: (outcome?: 'Dismissed' | 'Archived') => void;
 }) {
   const { item, message, claimBlocked, busy, act, refresh } = useReviewItem(
     'ContentReport',
     id,
     () => onDecision(),
   );
-  const { user } = useAuth();
   const riseRef = useRiseIn<HTMLDivElement>('.st-group', [id, item ? 1 : 0], { delay: 40, distance: 10 });
   const [reason, setReason] = useState('');
   const [archiveReason, setArchiveReason] = useState<'SafetyConcern' | 'Copyright' | 'Inappropriate'>('SafetyConcern');
@@ -79,17 +77,16 @@ export default function ContentReportReviewPanel({
   }
 
   const d = item.data;
+  const story = d.story;
   const safeAttachment = safeHttpUrl(d.attachmentUrl);
   const usableReason = !!reason.trim();
   const locked = busy || claimBlocked;
-  const moderatorReadOnlyEscalated = user?.role === 'Moderator' && d.itemStatus === 'Escalated';
 
-  const submitAction = async (action: 'dismiss' | 'archive' | 'escalate') => {
+  const submitAction = async (action: 'dismiss' | 'archive') => {
     const selectedLabel = ARCHIVE_OPTIONS.find(opt => opt.value === archiveReason)?.label ?? archiveReason;
     const prompts = {
-      dismiss: 'Bỏ qua báo cáo này? Truyện giữ nguyên trạng thái hiện tại và hồ sơ được chuyển sang mục Đã bác báo cáo.',
-      archive: `Gỡ truyện vi phạm vì lý do “${selectedLabel}”? Truyện sẽ ngừng hiển thị trên thư viện công khai và các hồ sơ báo cáo liên quan sẽ được đóng.`,
-      escalate: 'Chuyển hồ sơ này lên Administrator? Sau khi chuyển cấp, Moderator không còn quyền mở chi tiết hay tự ra quyết định cho hồ sơ này.',
+      dismiss: 'Bác báo cáo này? Truyện giữ nguyên trạng thái hiện tại và hồ sơ chuyển sang Đã bác báo cáo.',
+      archive: `Gỡ truyện vi phạm (${selectedLabel})? Thao tác sẽ đánh dấu lưu trữ để ngừng hiển thị công khai (không xóa vật lý dữ liệu gốc) và đóng hồ sơ liên quan.`,
     };
     if (!(await confirmDialog(prompts[action]))) return;
     const trimmed = reason.trim();
@@ -98,7 +95,7 @@ export default function ContentReportReviewPanel({
       true,
     );
     if (ok) {
-      const outcomeMap = { dismiss: 'Dismissed', archive: 'Archived', escalate: 'Escalated' } as const;
+      const outcomeMap = { dismiss: 'Dismissed', archive: 'Archived' } as const;
       onDecision(outcomeMap[action]);
     }
   };
@@ -118,6 +115,12 @@ export default function ContentReportReviewPanel({
               <div><small>Mã báo cáo</small><b>#{d.reportId}</b></div>
               <div><small>Lý do báo cáo</small><b>{REPORT_REASON[d.reason] ?? d.reason}</b></div>
               <div><small>Nguồn ghi nhận</small><b>{d.isReviewItem ? 'Rà soát nội bộ (ẩn danh)' : 'Báo cáo cộng đồng (ẩn danh)'}</b></div>
+              {d.requestedByName?.trim() ? (
+                <div><small>Người yêu cầu rà soát</small><b>{d.requestedByName}</b></div>
+              ) : null}
+              {story.authorName?.trim() ? (
+                <div><small>Tác giả</small><b>{story.authorName}</b></div>
+              ) : null}
               <div><small>Thời điểm báo cáo</small><b>{formatSubmittedAt(d.createdAt)}</b></div>
               <div><small>Trạng thái hồ sơ</small><b>{moderationStatusLabel('ContentReport', d.itemStatus)}</b></div>
             </div>
@@ -144,67 +147,48 @@ export default function ContentReportReviewPanel({
               )
             )}
 
-            {d.escalationReason && (
-              <ModerationCallout label="Lý do chuyển cấp lên Administrator" tone="danger">
-                <p className="mod-pre">{d.escalationReason}</p>
-                {d.escalatedAt && <span className="st-review-meta">Chuyển lúc: {formatSubmittedAt(d.escalatedAt)}</span>}
-              </ModerationCallout>
-            )}
           </div>
 
           <div id="cr-sec-decision" className="st-group mod-anchor-target mod-decision-dock">
             <b className="st-group-title">Quyết định</b>
-            {moderatorReadOnlyEscalated ? (
-              <div className="notice" role="status" data-inline-notice>
-                <span>Hồ sơ đã chuyển lên Administrator; Moderator không còn quyền ra quyết định.</span>
+            {claimBlocked && (
+              <div className="notice err" role="alert" data-inline-notice>
+                <span>Phiên giữ hoặc trạng thái hồ sơ đã thay đổi (403/409). Nút quyết định đã bị khóa; ghi chú của bạn vẫn được giữ.</span>
               </div>
-            ) : (
-              <>
-                {claimBlocked && (
-                  <div className="notice err" role="alert" data-inline-notice>
-                    <span>Phiên giữ hoặc trạng thái hồ sơ đã thay đổi (403/409). Nút quyết định đã bị khóa; ghi chú của bạn vẫn được giữ.</span>
-                  </div>
-                )}
-                <div className="field">
-                  <span className="lbl">Phân loại lý do gỡ vi phạm (chỉ áp dụng khi chọn Gỡ truyện vi phạm)</span>
-                  <Select<typeof archiveReason>
-                    ariaLabel="Phân loại lý do gỡ vi phạm"
-                    disabled={locked}
-                    value={archiveReason}
-                    options={[...ARCHIVE_OPTIONS]}
-                    onChange={setArchiveReason}
-                  />
-                </div>
-                <label className="field">
-                  <span className="lbl">
-                    Ghi chú / căn cứ quyết định
-                    {!usableReason && !claimBlocked && <Warn why="Bắt buộc nhập căn cứ quyết định trước khi gửi" />}
-                  </span>
-                  <textarea
-                    className="inp"
-                    rows={4}
-                    maxLength={1000}
-                    readOnly={claimBlocked}
-                    placeholder="Ghi rõ kết quả đối chiếu minh chứng, mức độ vi phạm hoặc lý do chuyển lên Administrator (tối đa 1000 ký tự)."
-                    value={reason}
-                    onChange={e => setReason(e.target.value)}
-                  />
-                </label>
-                <div className="row st-wrap">
-                  <button type="button" className="btn btn-ok" disabled={locked || !usableReason} onClick={() => void submitAction('dismiss')}>
-                    <Check className="ic" />Bỏ qua báo cáo
-                  </button>
-                  <button type="button" className="btn btn-no" disabled={locked || !usableReason} onClick={() => void submitAction('archive')}>
-                    <Archive className="ic" />Gỡ truyện vi phạm
-                  </button>
-                  {user?.role === 'Moderator' && (
-                    <button type="button" className="btn btn-s" disabled={locked || !usableReason} onClick={() => void submitAction('escalate')}>
-                      <ShieldAlert className="ic" />Chuyển Administrator
-                    </button>
-                  )}
-                </div>
-              </>
             )}
+            <div className="field">
+              <span className="lbl">Phân loại lý do gỡ vi phạm (chỉ áp dụng khi chọn Gỡ truyện vi phạm)</span>
+              <Select<typeof archiveReason>
+                ariaLabel="Phân loại lý do gỡ vi phạm"
+                disabled={locked}
+                value={archiveReason}
+                options={[...ARCHIVE_OPTIONS]}
+                onChange={setArchiveReason}
+              />
+            </div>
+            <label className="field">
+              <span className="lbl">
+                Ghi chú / căn cứ quyết định
+                {!usableReason && !claimBlocked && <Warn why="Bắt buộc nhập căn cứ quyết định trước khi gửi" />}
+              </span>
+              <textarea
+                className="inp"
+                rows={4}
+                maxLength={1000}
+                readOnly={claimBlocked}
+                placeholder="Ghi rõ kết quả đối chiếu minh chứng hoặc mức độ vi phạm (tối đa 1000 ký tự)."
+                value={reason}
+                onChange={e => setReason(e.target.value)}
+              />
+            </label>
+            <div className="row st-wrap">
+              <button type="button" className="btn btn-ok" disabled={locked || !usableReason} onClick={() => void submitAction('dismiss')}>
+                <Check className="ic" />Bỏ qua báo cáo
+              </button>
+              <button type="button" className="btn btn-no" disabled={locked || !usableReason} onClick={() => void submitAction('archive')}>
+                <Archive className="ic" />Gỡ truyện vi phạm
+              </button>
+            </div>
           </div>
         </>
       }

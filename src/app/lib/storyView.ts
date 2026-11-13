@@ -21,6 +21,10 @@ export type StoryCard = {
   family?: boolean;
   /** Truyện của Creator đã duyệt, lấy từ GET /Story/community. */
   creator?: boolean;
+  /** Số phiên đọc của truyện cộng đồng (viewCount từ GET /Story/community). Không có với truyện gia đình/AI. */
+  viewCount?: number;
+  /** Số lượt yêu thích của truyện cộng đồng (favoriteCount từ GET /Story/community). Không có với truyện gia đình/AI. */
+  favoriteCount?: number;
 };
 
 /** Ảnh bìa mẫu dùng chung cho mọi truyện chưa có ảnh bìa (public/default-cover.svg). */

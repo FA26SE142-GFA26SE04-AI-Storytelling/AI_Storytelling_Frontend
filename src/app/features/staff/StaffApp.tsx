@@ -21,7 +21,6 @@ import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import ContentReportsWorkspace from "./ContentReportsWorkspace";
 import CreatorStoryReviewWorkspace from "./CreatorStoryReviewWorkspace";
 import GrayZoneReviewWorkspace from "./GrayZoneReviewWorkspace";
-import { ModerationQueue } from "./Moderation";
 import RoadmapTemplates from "./RoadmapTemplates";
 import PublishedReviewWorkspace from "./PublishedReviewWorkspace";
 import RemovalRecordsWorkspace from "./RemovalRecordsWorkspace";
@@ -63,7 +62,6 @@ const CREATOR_ACCOUNT_PAGES: PageDef[] = [
 const PAGES: Record<StaffRole, PageDef[]> = {
   Administrator: [
     { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và lộ trình mẫu đang công khai" },
-    { id: "escalated", label: "Kiểm duyệt (ca chuyển lên)", icon: Inbox, view: () => <ModerationQueue admin />, hint: "Ca Moderator chuyển lên Admin" },
     { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Xem lộ trình mẫu", icon: Route, view: RoadmapTemplates },
@@ -106,7 +104,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
  */
 const NAV: Record<StaffRole, NavEntry[]> = {
   Administrator: [
-    { label: "Kiểm duyệt", icon: Inbox, items: ["published", "escalated", "rubrics"] },
+    { label: "Kiểm duyệt", icon: Inbox, items: ["published", "rubrics"] },
     { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards", "catalog"] },
         { label: "Người dùng", icon: Users, items: ["staff"] },
     { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "plans", "quota"] },

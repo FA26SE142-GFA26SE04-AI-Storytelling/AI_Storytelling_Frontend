@@ -106,11 +106,14 @@ describe('Moderation queue work title & submitter display', () => {
     expect(queueWorkTitle({ ...baseQueueItem, storyTitle: null, storyId: null, itemType: 'RoadmapTemplateReview' }, 'Lộ trình mẫu')).toBe('Lộ trình mẫu');
   });
 
-  it('shows submitter label only for PublicStoryReview with Vietnamese fallback and never for other item types', () => {
+  it('formats submitter label for review and removal items while returning null for report and other item types', () => {
     expect(queueSubmitterLabel(baseQueueItem)).toBe('Tác giả gửi duyệt: Nguyễn Văn A');
     expect(queueSubmitterLabel({ ...baseQueueItem, createdByName: '   ' })).toBe('Tác giả gửi duyệt: Chưa có thông tin tác giả');
 
-    for (const itemType of ['ContentReport', 'GrayZoneStory', 'RoadmapTemplateReview', 'CommunitySubmission', 'PublicStoryRemoval'] as const) {
+    expect(queueSubmitterLabel({ itemType: 'PublicStoryRemoval', createdByName: 'Người Xin Gỡ' })).toBe('Người gửi: Người Xin Gỡ');
+    expect(queueSubmitterLabel({ itemType: 'PublicStoryRemoval', createdByName: null })).toBeNull();
+
+    for (const itemType of ['ContentReport', 'GrayZoneStory', 'RoadmapTemplateReview', 'CommunitySubmission'] as const) {
       expect(queueSubmitterLabel({ itemType, createdByName: 'Người Báo Cáo Bí Mật' })).toBeNull();
     }
   });

@@ -165,6 +165,7 @@ export default function PublicStoryReviewPanel({
   }
 
   const d = item.data;
+  const discussion = d.discussionQuestions ?? [];
   const content = d.version.content ?? '';
   const blockers = d.approveBlockers;
   const has = (code: string) => blockers.some(b => b.code === code);
@@ -311,11 +312,11 @@ export default function PublicStoryReviewPanel({
           <details open>
             <summary>Học liệu</summary>
             <LearningMaterials vocabulary={d.vocabulary} quizzes={d.quizzes} />
-            {d.discussionQuestions.length > 0 && (
+            {discussion.length > 0 && (
               <div className="st-learn">
                 <section>
-                  <b className="st-learn-title">Câu hỏi thảo luận ({d.discussionQuestions.length})</b>
-                  {d.discussionQuestions.map((dq, idx) => (
+                  <b className="st-learn-title">Câu hỏi thảo luận ({discussion.length})</b>
+                  {discussion.map((dq, idx) => (
                     <p key={idx}>• {dq.question}{dq.isMoralLesson ? ' (Bài học đạo đức)' : ''}</p>
                   ))}
                 </section>

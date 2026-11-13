@@ -100,15 +100,6 @@ export default function ReportedContentSection({ detail: d }: { detail: B.Conten
         <LearningMaterials vocabulary={d.vocabulary} quizzes={d.quizzes} />
       </details>
 
-      {d.discussionQuestions.length > 0 && (
-        <div className="st-quote">
-          <small>Câu hỏi thảo luận ({d.discussionQuestions.length})</small>
-          {d.discussionQuestions.map((q, idx) => (
-            <p key={idx}>{idx + 1}. {q.question}{q.isMoralLesson ? ' (Gợi ý bài học)' : ''}</p>
-          ))}
-        </div>
-      )}
-
       <ZoomLightbox zoom={zoom} onClose={() => setZoom(null)} />
     </div>
   );
