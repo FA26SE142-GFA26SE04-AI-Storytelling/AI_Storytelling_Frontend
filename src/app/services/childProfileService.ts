@@ -1,4 +1,5 @@
 import type { ApiResponse, AuditLogEntry } from '@/app/types/auth';
+import type { ReadingSlotsDto } from '@/app/types/readingSlots';
 import type { PagedResult } from '@/app/types/story';
 import type {
   ChildProfile,
@@ -115,5 +116,15 @@ export const childProfileService = {
 
   getTokenQuotaForChild(childProfileId: number): Promise<ApiResponse<TokenQuotaStatus>> {
     return apiRequest(`/TokenQuota/child/${childProfileId}`, 'Không lấy được số lượt tạo truyện của bé.');
+  },
+
+  /** F-03 — danh sách bé được đọc truyện theo số chỗ của gói (role User). */
+  getReadingSlots(signal?: AbortSignal): Promise<ApiResponse<ReadingSlotsDto>> {
+    return apiRequest('/ChildProfile/reading-slots', 'Không tải được danh sách bé được đọc.', { signal });
+  },
+
+  /** F-03 — chọn lại bé được đọc (1 đến N hồ sơ). Backend: 409 nếu chưa tới lần đổi tiếp (1 lần/tuần). */
+  selectReadingSlots(childProfileIds: number[]): Promise<ApiResponse<ReadingSlotsDto>> {
+    return apiRequest('/ChildProfile/reading-slots', 'Không lưu được danh sách bé được đọc.', { method: 'PUT', body: { childProfileIds } });
   },
 };

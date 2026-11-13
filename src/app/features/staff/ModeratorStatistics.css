@@ -1,0 +1,43 @@
+/* Tiêu đề nhóm nổi bật hơn chữ thường; icon (i) nằm ngay cạnh chữ. */
+.mst-tab .sec-h {
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 0 2px;
+  margin: 18px 0 10px;
+  font-family: var(--font-display);
+  font-size: var(--fs-md);
+  font-weight: 800;
+  color: var(--text);
+}
+
+.mst-tab > .sec-h:first-child {
+  margin-top: 4px;
+}
+
+.mst-tab .ce-stats.mst-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.mst-tab .ce-stats.mst-two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+@media (max-width: 640px) {
+  .mst-tab .ce-stats.mst-three {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* 3 thẻ trên 2 cột: thẻ thứ ba giãn hết hàng thay vì nằm lẻ. */
+  .mst-tab .ce-stats.mst-three > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+}
+
+.mst-tab .st-scroll {
+  margin-top: 12px;
+}
+
+.mst-warn {
+  color: var(--gold-deep);
+  font-weight: 800;
+}

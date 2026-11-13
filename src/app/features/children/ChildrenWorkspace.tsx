@@ -1,8 +1,8 @@
 "use client";
 
 import "./children.css";
-import { useEffect, useState } from "react";
-import { Plus, RotateCcw } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Lock, Plus, RotateCcw, UserCheck } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
@@ -16,8 +16,10 @@ import ProfileTab from "./ProfileTab";
 import LearningTab from "./LearningTab";
 import SafetyTab from "@/app/features/safety/SafetyWorkspace";
 import AccessTab from "./AccessTab";
+import ReadingSlotsDialog from "./ReadingSlotsDialog";
 import { childProfileService } from "@/app/services/childProfileService";
 import { forgetArchived, listArchived, rememberArchived, type ArchivedChild } from "@/app/lib/archivedChildren";
+import type { ReadingSlotsDto } from "@/app/types/readingSlots";
 
 type Tab = "profile" | "learning" | "safety" | "access";
 const TABS: { id: Tab; label: string }[] = [
@@ -31,6 +33,32 @@ const TABS: { id: Tab; label: string }[] = [
 export default function ChildrenWorkspace(_props: WorkspaceProps) {
   const { user } = useAuth();
   const { children: kids, reloadChildren } = useWorkspaceData();
+  const [slots, setSlots] = useState<ReadingSlotsDto | null>(null);
+  const [slotsOpen, setSlotsOpen] = useState(false);
+  const slotsAbortRef = useRef<AbortController | null>(null);
+
+  const reloadSlots = async () => {
+    slotsAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    slotsAbortRef.current = ctrl;
+    try {
+      const r = await childProfileService.getReadingSlots(ctrl.signal);
+      if (ctrl.signal.aborted) return;
+      if (r.success && r.data) {
+        setSlots(r.data);
+      }
+    } catch {
+      // bỏ qua lỗi
+    }
+  };
+
+  useEffect(() => {
+    void reloadSlots();
+    return () => {
+      slotsAbortRef.current?.abort();
+    };
+  }, []);
+
   // Mở từ nút "+ Thêm bé" ở màn khác thì vào thẳng form tạo hồ sơ.
   const [mode, setMode] = useState<"view" | "create">(() => (wantsChildCreate() || !kids.length ? "create" : "view"));
   useEffect(() => { clearChildIntent(); }, []);
@@ -67,17 +95,35 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
   const isOwner = !!child && child.ownerUserId === meId;
 
   return (
-    <section className="ws dock" style={{ gridTemplateColumns: "250px 1fr" }}>
+    <section className="ws dock" style={{ gridTemplateColumns: "250px 1fr", ...(slots?.isOverLimit ? { gridTemplateRows: "auto minmax(0, 1fr)" } : {}) }}>
+      {slots?.isOverLimit && (
+        <div className="reading-slot-banner" role="status" style={{ gridColumn: "1 / -1" }}>
+          <span>Gói hiện tại chỉ cho {slots.slots} bé đọc truyện.</span>
+          <button className="btn btn-p" onClick={() => setSlotsOpen(true)}>
+            <UserCheck className="ic" />Chọn bé được đọc
+          </button>
+        </div>
+      )}
       <div className="pane">
         <div ref={listRef} className="pb" style={{ gap: 6 }}>
           {sortedKids.map((k) => {
             const st = childStatus(k.status);
+            const slot = slots?.profiles.find((p) => p.childProfileId === k.id);
             return (
               <button key={k.id} className={`kid-item${mode === "view" && child?.id === k.id ? " on" : ""}`} onClick={() => { setSelId(k.id); setMode("view"); }}>
                 <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
                 <span className="grow kid-item-text">
                   <b title={k.nickname}>{k.nickname}</b>
-                  <span className="kid-item-meta"><small>{ageLabel(k.ageBand)}</small><span className={`pill ${st.tone}`}>{st.label}</span></span>
+                  <span className="kid-item-meta">
+                    <small>{ageLabel(k.ageBand)}</small>
+                    {slot && !slot.canRead ? (
+                      <span className="reading-slot-lock" title="Bé đang chỉ xem, chưa được đọc truyện theo gói hiện tại">
+                        <Lock className="ic" />Chỉ xem
+                      </span>
+                    ) : (
+                      <span className={`pill ${st.tone}`}>{st.label}</span>
+                    )}
+                  </span>
                 </span>
               </button>
             );
@@ -119,6 +165,17 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
           </>
         )}
       </div>
+
+      {slotsOpen && slots && (
+        <ReadingSlotsDialog
+          slots={slots}
+          onClose={() => setSlotsOpen(false)}
+          onSaved={async () => {
+            setSlotsOpen(false);
+            await Promise.all([reloadSlots(), reloadChildren()]);
+          }}
+        />
+      )}
     </section>
   );
 }

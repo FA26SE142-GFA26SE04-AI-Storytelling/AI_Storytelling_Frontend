@@ -150,6 +150,14 @@
 .topnav { padding-block: 6px; padding-inline: 10px; }
 .topnav .badge { top: -3px; right: -3px; min-width: 17px; height: 17px; font-size: var(--fs-xs); }
 
+/* Header Staff (Creator / Moderator / Admin): khi tràn thì không cắt mất nút đầu/cuối (safe center),
+   và ở màn vừa (721–1180px) nút chưa chọn chỉ hiện biểu tượng (vẫn có title), nút đang chọn giữ chữ. */
+.top:not(.hdr-center) .topnav { justify-content: safe center; }
+@media (min-width: 721px) and (max-width: 1180px) {
+  .top:not(.hdr-center) .topnav button:not(.on) .nav-txt { display: none; }
+  .top:not(.hdr-center) .topnav button:not(.on) { padding: 0 11px; }
+}
+
 /* Header của phụ huynh (tên lớp hdr-*: tránh trùng tiện ích Tailwind như top-3 = "top: 12px"): một hàng flex; hai nhóm hai bên cùng co giãn từ 0 (flex: 1 1 0) nên rộng bằng nhau
    và thanh điều hướng ở giữa trang. Nhóm không co nhỏ hơn nội dung nên không đè lên nhau khi màn hẹp. */
 .hdr-l, .hdr-r { flex: 1 1 0; display: flex; align-items: center; gap: 10px; min-width: max-content; }

@@ -73,9 +73,6 @@ export const staffService = {
   },
   /** Nhận xử lý (khoá 2 giờ). Không được nhận mục do chính mình tạo hoặc nộp. */
   claim: (itemId: number): Promise<ApiResponse<QueueItemDetail>> => apiRequest(`/ModerationQueue/${itemId}/claim`, 'Chưa nhận được mục này.', { method: 'POST' }),
-  /** Mở mục mình đang nhận. */
-  openItem: (itemId: number): Promise<ApiResponse<QueueItemDetail>> => apiRequest(`/ModerationQueue/${itemId}`, 'Chưa mở được mục này.'),
-
 
 };
 
