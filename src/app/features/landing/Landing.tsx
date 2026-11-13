@@ -1,19 +1,25 @@
 "use client";
 
 import "./landing.css";
-import { Check, Moon, Sun } from "lucide-react";
+import { useState } from "react";
+import { Check, Moon, ScanQrCode, Sun } from "lucide-react";
 import Frog from "@/app/components/brand/Frog";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import { useTheme } from "@/app/context/ThemeContext";
 import { circleReveal, useRiseIn } from "@/app/lib/motion";
 import HeroPond from "@/app/components/brand/HeroPond";
+import KidQrScanner from "@/app/features/kid/KidQrScanner";
 import IdeaBox from "./IdeaBox";
 import HowItWorks from "./HowItWorks";
 import { BENEFITS, FAQ, KID, WAYS } from "./landingContent";
 
-/** Trang giới thiệu Taletale cho người chưa đăng nhập. "Bắt đầu" mở biểu mẫu đăng ký, "Đăng nhập" mở biểu mẫu đăng nhập. */
-export default function Landing({ onStart }: { onStart: (mode: "login" | "register") => void }) {
+/**
+ * Trang giới thiệu Taletale cho người chưa đăng nhập. "Bắt đầu" mở biểu mẫu đăng ký, "Đăng nhập" mở biểu mẫu đăng nhập.
+ * "Bé vào đọc" mở màn quét mã QR Easy Login; đọc được mã thì `onKidCode` đưa bé vào chế độ của bé.
+ */
+export default function Landing({ onStart, onKidCode }: { onStart: (mode: "login" | "register") => void; onKidCode: (code: string) => void }) {
   const { theme, toggleTheme } = useTheme();
+  const [scan, setScan] = useState(false);
   const heroRef = useRiseIn<HTMLDivElement>(".ld-rise", [], { delay: 70, distance: 12 });
   const bodyRef = useRiseIn<HTMLDivElement>(".ld-card", [], { delay: 40, distance: 10 });
 
@@ -35,9 +41,11 @@ export default function Landing({ onStart }: { onStart: (mode: "login" | "regist
         </nav>
         <div className="ld-actions">
           <button className="btn btn-g" onClick={flipTheme} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
+          <button className="btn btn-s ld-kid-scan" onClick={() => setScan(true)} aria-label="Bé quét mã QR để vào đọc"><ScanQrCode className="ic" aria-hidden /><span>Bé vào đọc</span></button>
           <button className="btn btn-s" onClick={() => onStart("login")}>Đăng nhập</button>
         </div>
       </header>
+      {scan && <KidQrScanner onCode={(code) => { setScan(false); onKidCode(code); }} onClose={() => setScan(false)} />}
 
       <main id="top">
         <section ref={heroRef} className="ld-hero">
@@ -87,6 +95,7 @@ export default function Landing({ onStart }: { onStart: (mode: "login" | "regist
               <div>
                 <h2 className="display">Góc đọc riêng của bé</h2>
                 <p className="ld-sub">Không menu, không chữ nhỏ. Bé chỉ cần đọc, nghe và trả lời, chú ếch luôn ở bên cạnh.</p>
+                <button className="btn btn-gold ld-big" onClick={() => setScan(true)}><ScanQrCode className="ic" aria-hidden />Bé quét mã để vào đọc</button>
               </div>
             </div>
             <div className="ld-grid ld-kid-grid">

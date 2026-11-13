@@ -2,19 +2,21 @@
 import { confirmDialog } from "@/app/lib/confirm";
 
 import { useCallback, useEffect, useState } from "react";
-import { QrCode as QrIcon, RefreshCw, ShieldOff } from "lucide-react";
+import { Download, QrCode as QrIcon, RefreshCw, ShieldOff } from "lucide-react";
 import { childAccessService as api } from "@/app/services/childAccessService";
+import { downloadBlob } from "@/app/services/staffService";
 import type { ChildProfile } from "@/app/types/childProfile";
 import type { ChildAccessCredential, EasyLoginSecret } from "@/app/types/supervision";
 import { avatarOf, fmtDateTime } from "@/app/lib/guardian";
 import QrCode from "@/app/components/QrCode";
+import { drawQrPng, qrFileName } from "./qrImage";
 
 /** Link bé mở bằng cách quét QR: trang chủ nhận ?kid=<mã> và mở phiên của bé. */
 const kidLink = (secret: string) => `${window.location.origin}${window.location.pathname}?kid=${encodeURIComponent(secret)}`;
 
 /**
  * Bước 1.10 — Owner hoặc người có quyền "Sửa cài đặt an toàn" quản lý mã QR đăng nhập của bé.
- * Mã dùng lâu dài (BR-1.15) và chỉ hiện một lần lúc tạo; avatar của bé sửa ở tab Hồ sơ.
+ * Mã dùng lâu dài (BR-1.15) và luôn hiện lại cho chủ hồ sơ tới khi tạo mã mới hoặc thu hồi; avatar của bé sửa ở tab Hồ sơ.
  */
 export default function AccessTab({ child }: { child: ChildProfile }) {
   const [cred, setCred] = useState<ChildAccessCredential | null | undefined>(undefined);
@@ -23,6 +25,8 @@ export default function AccessTab({ child }: { child: ChildProfile }) {
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
   const active = child.status === "Active";
   const av = avatarOf(child.avatarId);
+  // Mã vừa tạo, hoặc mã đang dùng backend trả về khi mở lại trang.
+  const secret = fresh?.secret ?? cred?.secret ?? null;
 
   const load = useCallback(async () => {
     const r = await api.getCredential(child.id);
@@ -40,6 +44,18 @@ export default function AccessTab({ child }: { child: ChildProfile }) {
     setBusy(false);
     if (r.success && r.data) { setFresh(r.data); await load(); }
     else setNote({ ok: false, text: r.message || "Không tạo được mã." });
+  };
+
+  /** Lưu mã QR đang dùng thành ảnh PNG về máy phụ huynh, để bé quét trên máy khác hoặc in ra. */
+  const saveQr = async () => {
+    if (!secret) return;
+    try {
+      const png = await drawQrPng(kidLink(secret), `Mã vào đọc của ${child.nickname}`, "Mở camera hoặc nút Bé vào đọc rồi quét mã này");
+      downloadBlob(png, qrFileName(child.nickname));
+      setNote({ ok: true, text: "Đã lưu ảnh mã QR. Ai có ảnh này đều vào được góc đọc của bé, hãy cất cẩn thận." });
+    } catch {
+      setNote({ ok: false, text: "Chưa lưu được ảnh mã QR. Bạn có thể chụp màn hình mã thay thế." });
+    }
   };
 
   const revoke = async () => {
@@ -62,18 +78,22 @@ export default function AccessTab({ child }: { child: ChildProfile }) {
         <div>
         </div>
         {!active && <div className="notice err">Hồ sơ cần đang hoạt động thì bé mới đăng nhập được.</div>}
-        {fresh ? (
+        {secret ? (
           <div className="qr-card">
-            <QrCode value={kidLink(fresh.secret)} label={`Mã QR đăng nhập của ${child.nickname}`} />
+            <QrCode value={kidLink(secret)} label={`Mã QR đăng nhập của ${child.nickname}`} />
             <div className="sec" style={{ gap: 6 }}>
               <b className="display" style={{ fontSize: "var(--fs-lg)" }}>{av.emoji} {child.nickname}</b>
-              <span className="sub">Vì an toàn, mã chỉ hiện một lần. Hãy quét ngay trên máy của bé, hoặc in / chụp lại và cất cẩn thận.</span>
-              <button className="btn btn-s" style={{ width: "fit-content" }} disabled={busy} onClick={() => void makeQr()}><RefreshCw className="ic" />Tạo mã mới</button>
+              {(fresh?.createdAt ?? cred?.easyLoginCreatedAt) && <span className="sub">Tạo lúc {fmtDateTime(fresh?.createdAt ?? cred?.easyLoginCreatedAt)}</span>}
+              <span className="sub">Mã dùng được cho tới khi bạn tạo mã mới hoặc thu hồi. Ai có mã này đều vào được góc đọc của bé, hãy cất cẩn thận.</span>
+              <div className="row" style={{ flexWrap: "wrap", gap: 8 }}>
+                <button className="btn btn-p" disabled={busy} onClick={() => void saveQr()}><Download className="ic" />Lưu ảnh QR</button>
+                <button className="btn btn-s" disabled={busy} onClick={() => void makeQr()}><RefreshCw className="ic" />Tạo mã mới</button>
+              </div>
             </div>
           </div>
         ) : cred?.hasEasyLogin ? (
           <div className="sec" style={{ gap: 8 }}>
-            <p className="sub">Đã có mã QR, tạo lúc {fmtDateTime(cred.easyLoginCreatedAt)}. Mã không xem lại được; nếu bé làm mất mã, hãy tạo mã mới.</p>
+            <p className="sub">Đã có mã QR, tạo lúc {fmtDateTime(cred.easyLoginCreatedAt)}. Mã này tạo trước khi có tính năng xem lại nên chưa hiện được; bé vẫn dùng được mã cũ. Muốn xem QR thì tạo mã mới (mã cũ sẽ hết hiệu lực).</p>
             <button className="btn btn-s" style={{ width: "fit-content" }} disabled={busy} onClick={() => void makeQr()}><RefreshCw className="ic" />Tạo mã mới</button>
           </div>
         ) : (

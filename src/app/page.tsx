@@ -126,7 +126,7 @@ export default function HomePage() {
   if (kidCode) return <KidEntry code={kidCode} onDone={leaveKid} />;
   if (!booted && !user) return <div className="splash">Đang kiểm tra phiên đăng nhập…</div>;
   // Chưa đăng nhập: link trong email (?auth=…, token) mở thẳng biểu mẫu; còn lại về trang giới thiệu /home.
-  if (!user) return entry ? <LoginScreen key={entry} initialMode={entry} onHome={() => router.push("/home")} /> : <div className="splash">Đang mở trang giới thiệu…</div>;
+  if (!user) return entry ? <LoginScreen key={entry} initialMode={entry} onHome={() => router.push("/home")} onKidCode={setKidCode} /> : <div className="splash">Đang mở trang giới thiệu…</div>;
   // Luồng 5 — Administrator, Moderator, Content Creator dùng khu riêng, tách khỏi Parent.
   if (isStaffRole(user.role)) return <StaffApp role={user.role} />;
   return (
