@@ -9,6 +9,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useRiseIn } from "@/app/lib/motion";
 import { accountService } from "@/app/services/accountService";
 import { passwordProblem } from "@/app/lib/guardian";
+import KidQrScanner from "@/app/features/kid/KidQrScanner";
 
 
 type Mode = "login" | "register" | "verify" | "forgot" | "reset" | "creator" | "activate";
@@ -41,8 +42,12 @@ function modeFromUrl(params: URLSearchParams): Mode | null {
   return null;
 }
 
-/** `initialMode`: mở thẳng biểu mẫu đăng nhập hoặc đăng ký (từ trang giới thiệu). `onHome`: có thì hiện nút về trang giới thiệu. */
-export default function LoginScreen({ initialMode = "login", onHome }: { initialMode?: "login" | "register"; onHome?: () => void } = {}) {
+/**
+ * `initialMode`: mở thẳng biểu mẫu đăng nhập hoặc đăng ký (từ trang giới thiệu). `onHome`: có thì hiện nút về trang giới thiệu.
+ * `onKidCode`: có thì hiện lối "Bé quét mã QR" — đọc được mã Easy Login thì đưa bé vào chế độ của bé.
+ */
+export default function LoginScreen({ initialMode = "login", onHome, onKidCode }: { initialMode?: "login" | "register"; onHome?: () => void; onKidCode?: (code: string) => void } = {}) {
+  const [scan, setScan] = useState(false);
   const cardRef = useRiseIn<HTMLFormElement>(":scope > *", []);
   const { login, register, forgotPassword, resetPassword, backendOnline, backendStatusMessage } = useAuth();
   const [cr, setCr] = useState({ expertise: "", years: 1, note: "", portfolio: "", commit: false });
@@ -188,6 +193,7 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
           <>
             <p className="login-alt">Chưa có tài khoản? <button type="button" onClick={() => go("register")}>Tạo tài khoản</button></p>
             <p className="login-alt small">Đã đăng ký nhưng chưa nhận mã? <button type="button" onClick={() => go("verify")}>Xác thực email</button></p>
+            {onKidCode && <p className="login-alt">Bé vào đọc truyện? <button type="button" onClick={() => setScan(true)}>Quét mã QR của bé</button></p>}
             {/* Lối vào của đội ngũ: tách riêng, nhỏ hơn, để phụ huynh không bị rối. */}
             <div className="login-staff">
               <span>Dành cho đội ngũ nội dung</span>
@@ -204,6 +210,7 @@ export default function LoginScreen({ initialMode = "login", onHome }: { initial
           </div>
         )}
       </form>
+      {scan && onKidCode && <KidQrScanner onCode={(code) => { setScan(false); onKidCode(code); }} onClose={() => setScan(false)} />}
     </div>
   );
 }

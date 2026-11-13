@@ -431,6 +431,7 @@ export interface ChildAccessCredentialDto {
   'childProfileId': number;
   'hasEasyLogin': boolean;
   'easyLoginCreatedAt': string | null;
+  'secret': string | null;
 }
 
 export type ChildCreationMode = 1 | 2;

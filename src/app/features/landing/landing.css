@@ -144,6 +144,8 @@
 
 /* Bé hay bấm nhanh trên máy tính bảng: bỏ độ trễ chạm hai lần. */
 .ld button { touch-action: manipulation; }
+.ld-actions .btn { white-space: nowrap; }
+.ld-kid-head .ld-big { margin-top: 14px; }
 
 @media (max-width: 960px) {
   .ld-hero { grid-template-columns: minmax(0, 1fr); padding-top: 32px; gap: 28px; }
@@ -170,6 +172,8 @@
 @media (max-width: 420px) {
   .ld-top { gap: 8px; }
   .ld-brand b { font-size: var(--fs-lg); }
+  /* Đầu trang chật: nút "Bé vào đọc" chỉ còn icon (vẫn có aria-label). */
+  .ld-kid-scan span { display: none; }
   .ld-big { width: 100%; justify-content: center; }
   .ld-cta { width: 100%; }
 }

@@ -11,14 +11,16 @@ export type Permission =
   | 'ManageSafetySettings'
   | 'GenerateStory';
 
-/** Easy Login dùng lâu dài (BR-1.15): backend chỉ lưu bản băm nên không xem lại được mã cũ. */
+/** Easy Login dùng lâu dài (BR-1.15). Chủ hồ sơ xem lại được mã đang dùng qua `secret`. */
 export interface ChildAccessCredential {
   childProfileId: number;
   hasEasyLogin: boolean;
   easyLoginCreatedAt?: string | null;
+  /** Mã QR đang dùng; null với mã tạo trước khi backend lưu bản mã hóa (tạo mã mới để hiện QR). */
+  secret?: string | null;
 }
 
-/** Mã Easy Login chỉ trả về một lần lúc tạo. */
+/** Mã Easy Login trả về lúc tạo / tạo lại. */
 export interface EasyLoginSecret {
   secret: string;
   createdAt: string;
