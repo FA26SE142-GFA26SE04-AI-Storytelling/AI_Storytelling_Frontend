@@ -4,7 +4,7 @@ import './authoring.css';
 import '@/app/features/studio/workflow.css';
 import '@/app/features/review/review-tools.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArrowLeft, ArrowRight, Check, ClipboardPaste, Users, Eye, FilePlus2, FileText, Lock, LockOpen, RefreshCw, Send, ShieldCheck, Undo2, Upload, UserRoundPen, Download } from 'lucide-react';
+import { ArrowLeft, ArrowRight, BookOpen, Check, ClipboardPaste, Users, Eye, FilePlus2, FileText, Lock, LockOpen, RefreshCw, Send, ShieldCheck, Undo2, Upload, UserRoundPen, Download } from 'lucide-react';
 import InfoTip from "@/app/components/InfoTip";
 import Dialog from '@/app/components/Dialog';
 import StepDone from '@/app/features/studio/StepDone';
@@ -44,7 +44,7 @@ function resultOf<T>(ops: B.ParentOperationDto[], kind: string, versionId: numbe
   const value = ops.filter(o => o.kind === kind && o.sourceIsCurrent && o.storyVersionId === versionId && !o.revokedAt).sort((a,b) => b.id - a.id)[0]?.result;
   return value && typeof value === 'object' ? value as T : null;
 }
-export default function ParentAuthoringWorkspace({ childId, initialStoryId = null, onChangeKid, onDone }: { childId: number; initialStoryId?: number | null; onChangeKid?: () => void; onDone?: () => void }) {
+export default function ParentAuthoringWorkspace({ childId = null, initialStoryId = null, onChangeKid, onDone }: { childId?: number | null; initialStoryId?: number | null; onChangeKid?: () => void; onDone?: () => void }) {
   const h = useParentAuthoring(childId);
   // Mở thẳng bản nháp được chọn từ Thư viện. Đợi danh sách tải xong, vì lần tải danh sách đầu tiên huỷ mọi lần mở bản nháp trước đó.
   const opened = useRef(false);
@@ -53,15 +53,26 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
     opened.current = true;
     void h.load(initialStoryId, true);
   }, [h, initialStoryId]);
-  const { children: kids } = useWorkspaceData(); const child = kids.find(k => k.id === childId) ?? null; const kidName = child?.nickname ?? `bé #${childId}`; const role = useMyRole(child);
+
+  // Khi chưa có storyId truyền vào (tạo mới), tự tạo bản nháp gia đình mà không cần popup đặt tên hay chọn bé.
+  const createdInitial = useRef(false);
+  useEffect(() => {
+    if (initialStoryId !== null || opened.current || createdInitial.current || !h.list) return;
+    createdInitial.current = true;
+    void h.create('Truyện của gia đình');
+  }, [initialStoryId, h.list, h]);
+
+  const { children: kids } = useWorkspaceData();
+  const resolvedChildId = h.draft?.childProfileId ?? childId;
+  const child = resolvedChildId != null ? (kids.find(k => k.id === resolvedChildId) ?? null) : null;
+  const kidName = child?.nickname ?? (resolvedChildId != null ? `bé #${resolvedChildId}` : 'các bé');
+  const role = useMyRole(child);
+  const canApprove = child ? (role?.can('ApproveStory') ?? false) : true;
+  const canAssign = child ? (role?.can('AssignActivity') ?? false) : true;
+
   const [references, setReferences] = useState<B.AssistanceReference[]>([]);
   const [selection,setSelection]=useState<AssistanceSelection|null>(null);
   const [form, setForm] = useState(empty);
-  const [title, setTitle] = useState('Truyện của gia đình');
-  // Hộp đặt tên bản nháp: hiện ngay khi vào trang mà chưa mở bản nháp nào có sẵn.
-  const [naming, setNaming] = useState(initialStoryId === null);
-  // Huỷ hộp đặt tên: đang có bản nháp thì chỉ đóng hộp; chưa có thì không còn gì để soạn nên về "Truyện của tôi".
-  const cancelNaming = () => { if (story) setNaming(false); else onDone?.(); };
   const downloadTemplate = () => downloadStoryTemplate();
   const [reading, setReading] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -92,6 +103,12 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
     void parentPackageService.list(storyKey).then(r => { if (alive && r.success && (r.data?.length ?? 0) > 0) { setHasPackages(true); setMulti(true); setPkList(r.data!); } });
     return () => { alive = false; };
   }, [storyKey]);
+  // Bản nháp gia đình (childProfileId == null) thì mặc định đi theo luồng nhiều bé (tạo gói riêng từng bé).
+  useEffect(() => {
+    if (h.draft && h.draft.childProfileId == null) {
+      setMulti(true);
+    }
+  }, [h.draft]);
   // Nhập nội dung (tệp .txt/.docx hoặc văn bản dán): máy chủ xem trước (chưa lưu), rồi popup cho xem nội dung đã tách và
   // "Xác nhận nhập" (tạo phiên bản mới) hoặc "Sửa trước" (điền vào các ô, lưu sau). Token và phiên bản gốc chụp lúc xem trước.
   const [importing, setImporting] = useState<ParentImportPending | null>(null);
@@ -172,7 +189,6 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
   };
   const AI_REASON: Record<string, string> = { PARENT_STORY_FINALIZED: 'nội dung đã chốt để tạo gói cho các bé.', TARGET_CHILD_REQUIRED: 'hãy chọn bé để AI gợi ý theo hồ sơ của bé.', RECIPIENT_SELECTION_REQUIRED: 'hãy chọn bé nhận truyện trước.' };
   const saved = !dirty && !!story?.selectedVersionId && h.version?.versionId === story.selectedVersionId;
-  const canApprove = role?.can('ApproveStory'); const canAssign = role?.can('AssignActivity');
   const step = (n: number) => <span className="pa-num">{n}</span>;
   // Các bước của luồng soạn truyện; bước sau chỉ mở khi bước trước đã xong.
   const writeStep = { id: 'write' as StepId, label: 'Soạn nội dung', note: dirty ? 'Có thay đổi chưa lưu' : saved ? 'Đã lưu' : 'Chưa lưu', done: saved, locked: false };
@@ -233,22 +249,58 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
       {h.note && <p className="notice" role="status">{h.note}</p>}
       {h.uncertain && <p className="notice warn">Chưa rõ máy chủ đã nhận lệnh. Không tạo thao tác mới. <button className="btn btn-s" disabled={h.busy} onClick={() => void h.retry()}>Thử lại</button></p>}
 
-      {/* Bé đang soạn cho, và nút tạo bản nháp khác; bản nháp đã có mở từ trang "Truyện của tôi". */}
+      {/* Bé đang soạn cho (hoặc truyện gia đình), và nút tạo bản nháp mới */}
       <div className="pa-top">
-        <span className="pa-kid"><ShieldCheck className="ic" aria-hidden />Soạn cho {kidName}{onChangeKid && <button className="btn btn-g pa-kid-change" onClick={onChangeKid} title="Đổi bé" aria-label={`Đổi bé, đang soạn cho ${kidName}`}><UserRoundPen className="ic" /></button>}</span>
-        {story && <button className="btn btn-s" disabled={h.busy || h.uncertain || !canAssign || pkBusy} onClick={async () => { if (!dirty || await confirmDialog('Bỏ thay đổi chưa lưu để tạo bản nháp mới?')) setNaming(true); }}><FilePlus2 className="ic" />Bản nháp mới</button>}
+        <span className="pa-kid">
+          {child ? (
+            <>
+              <ShieldCheck className="ic" aria-hidden />
+              Soạn cho {kidName}
+              {onChangeKid && (
+                <button
+                  className="btn btn-g pa-kid-change"
+                  onClick={onChangeKid}
+                  title="Đổi bé"
+                  aria-label={`Đổi bé, đang soạn cho ${kidName}`}
+                >
+                  <UserRoundPen className="ic" />
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <BookOpen className="ic" aria-hidden />
+              Soạn truyện gia đình
+            </>
+          )}
+        </span>
+        {story && (
+          <button
+            className="btn btn-s"
+            disabled={h.busy || h.uncertain || !canAssign || pkBusy}
+            onClick={async () => {
+              if (!dirty || (await confirmDialog('Bỏ thay đổi chưa lưu để tạo bản nháp mới?'))) {
+                void h.create('Truyện của gia đình');
+              }
+            }}
+          >
+            <FilePlus2 className="ic" />
+            Bản nháp mới
+          </button>
+        )}
       </div>
 
-      {naming && <Dialog title={`Tạo bản nháp cho ${kidName}`} onClose={cancelNaming}>
-        <form className="ce-create" onSubmit={async e => { e.preventDefault(); if (await h.create(title.trim() || 'Truyện của gia đình')) setNaming(false); }}>
-          <label className="field"><span className="lbl">Tên bản nháp</span><input className="inp" autoFocus maxLength={200} value={title} onChange={e => setTitle(e.target.value)} /></label>
-          {h.note && <p className="notice" role="status">{h.note}</p>}
-          <div className="ce-create-actions">
-            <button type="button" className="btn btn-g" disabled={!story && !onDone} onClick={cancelNaming}>Huỷ</button>
-            <button type="submit" className="btn btn-p" disabled={h.busy || h.uncertain || !canAssign || !title.trim()}><FilePlus2 className="ic" />Tạo bản nháp</button>
-          </div>
-        </form>
-      </Dialog>}
+      {!story && (
+        <div className="empty" style={{ padding: '60px 0' }}>
+          <b className="display">{h.note && !h.busy ? 'Chưa mở được bản nháp' : 'Đang chuẩn bị bản nháp…'}</b>
+          <span>{h.note && !h.busy ? 'Bạn có thể thử lại để mở trình soạn nội dung.' : 'Sắp mở trình soạn nội dung.'}</span>
+          {h.note && !h.uncertain && <button className="btn btn-s" disabled={h.busy} onClick={() => {
+            if (!h.list) h.refreshList();
+            else if (initialStoryId !== null) void h.load(initialStoryId, true);
+            else void h.retryCreate();
+          }}><RefreshCw className="ic" />Thử lại mở bản nháp</button>}
+        </div>
+      )}
 
       {story && <div className="pa-flow">
         {/* Khung trái: thứ tự các bước; bước chưa mở khoá thì mờ đi và ghi rõ cần làm gì trước. */}

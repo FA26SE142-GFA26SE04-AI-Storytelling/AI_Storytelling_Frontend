@@ -632,7 +632,7 @@ export interface CreateInvitationRequestDto {
 
 export interface CreateParentDraftRequest {
   'operationId': string;
-  'childProfileId': number;
+  'childProfileId'?: number | null;
   'title': string;
   'language': string | null;
   'purpose': string | null;

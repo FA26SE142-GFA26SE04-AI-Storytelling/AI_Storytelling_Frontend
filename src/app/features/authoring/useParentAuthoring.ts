@@ -4,7 +4,7 @@ import type * as B from '@/app/types/backendContracts';
 import type { ApiResponse } from '@/app/types/auth';
 import { parentAuthoringService as api } from '@/app/services/parentAuthoringService';
 import { useAuth } from '@/app/context/AuthContext';
-export function useParentAuthoring(childId: number) {
+export function useParentAuthoring(childId?: number | null) {
   const { user } = useAuth();
   const [list, setList] = useState<B.PagedResult<B.CreatorDraftDto> | null>(null);
   const [page, setPage] = useState(1);
@@ -19,9 +19,10 @@ export function useParentAuthoring(childId: number) {
   const scope = useRef(Symbol());
   const locked = useRef(false);
   const pending = useRef<(() => Promise<ApiResponse<unknown>>) | null>(null);
+  const createdDraftId = useRef<number | null>(null);
   useEffect(() => {
     const controller = new AbortController(); const run = Symbol(); scope.current = run;
-    setDraft(null); setVersion(null); setWorkflow([]); pending.current = null; setUncertain(false); locked.current = false; setBusy(false);
+    setDraft(null); setVersion(null); setWorkflow([]); pending.current = null; createdDraftId.current = null; setUncertain(false); locked.current = false; setBusy(false);
     void api.mine(page, 20, controller.signal).then(r => { if (scope.current === run) { setList(r.data); if (!r.success) setNote(r.message); } });
     return () => { scope.current = Symbol(); controller.abort(); };
   }, [childId, user?.id, page, reload]);
@@ -30,7 +31,7 @@ export function useParentAuthoring(childId: number) {
     const d = await api.get(id); if (scope.current !== run) return;
     if (!d.success || !d.data) { setNote(d.message); return; }
     // Bản nháp giao nhiều bé (gói riêng từng bé) không gắn với một bé nào: mở được từ trang của bất kỳ bé nào.
-    if (d.data.childProfileId != null && d.data.childProfileId !== childId) { setNote('Bản này thuộc hồ sơ bé khác. Hãy chọn đúng bé trước khi chỉnh sửa.'); return; }
+    if (childId != null && d.data.childProfileId != null && d.data.childProfileId !== childId) { setNote('Bản này thuộc hồ sơ bé khác. Hãy chọn đúng bé trước khi chỉnh sửa.'); return; }
     const [history, ops] = await Promise.all([api.versions(id), api.workflow(id)]); if (scope.current !== run) return;
     setDraft(d.data); setVersions(history.data ?? []); setWorkflow(ops.data ?? []);
     if (replaceEditor) setVersion(history.data?.find(v => v.versionId === d.data!.story.selectedVersionId) ?? null);
@@ -47,10 +48,16 @@ export function useParentAuthoring(childId: number) {
   };
   const command = () => ({ operationId: crypto.randomUUID(), revisionToken: draft!.story.revisionToken, baseVersionId: draft!.story.selectedVersionId });
   const create = async (title: string) => {
-    const body: B.CreateParentDraftRequest = { operationId: crypto.randomUUID(), childProfileId: childId, title, language: 'vi', purpose: 'free', experienceMode: 'reading' };
+    const body: B.CreateParentDraftRequest = { operationId: crypto.randomUUID(), childProfileId: childId ?? null, title, language: 'vi', purpose: 'free', experienceMode: 'reading' };
     const r = await execute(() => api.create(body));
-    if (r?.success && r.data) { await load(r.data.story.storyId, true); return true; }
+    if (r?.success && r.data) { createdDraftId.current = r.data.story.storyId; await load(createdDraftId.current, true); return true; }
     return false;
+  };
+  // A successful create followed by a failed GET must reopen that draft, never create another.
+  const retryCreate = async () => {
+    if (busy || uncertain) return;
+    if (createdDraftId.current !== null) await load(createdDraftId.current, true);
+    else await create('Truyện của gia đình');
   };
   const save = async (input: Pick<B.SaveCreatorContentRequest,'title'|'content'|'sourceDeclaration'|'rightsDeclaration'|'assistanceReferences'>) => {
     if (!draft || uncertain) return;
@@ -69,7 +76,7 @@ export function useParentAuthoring(childId: number) {
   const retry = async () => { if (!pending.current) return; const call = pending.current; const r = await execute(call); if (r?.success) {
       const data = r.data as B.ParentDraftDto | B.CreatorContentSavedDto | null;
       const id = data && typeof data === 'object' && 'story' in data ? data.story.storyId : draft?.story.storyId;
-      if (id) await load(id,true);
+      if (id) { if (!draft) createdDraftId.current = id; await load(id,true); }
     } };
-  return { list, page, setPage, draft, version, versions, workflow, busy, note, setNote, uncertain, create, save, write, execute, load, retry, command, refreshList: () => setReload(v => v + 1) };
+  return { list, page, setPage, draft, version, versions, workflow, busy, note, setNote, uncertain, create, retryCreate, save, write, execute, load, retry, command, refreshList: () => setReload(v => v + 1) };
 }
