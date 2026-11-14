@@ -1,4 +1,4 @@
-import { AGE_BANDS } from "@/app/lib/guardian";
+import { AGE_BANDS, isMaxStoryLength } from "@/app/lib/guardian";
 import type { PolicyRule } from "@/app/types/childProfile";
 import type { LearningValue } from "./LearningForm";
 
@@ -40,6 +40,8 @@ export type ChildDraft = {
   learning: LearningValue;
   rules: Record<number, PolicyRule | undefined>;
   gate: boolean;
+  /** Độ dài tối đa phụ huynh tự kéo ở bước An toàn; không có nghĩa là đang theo gợi ý của mức đọc. */
+  maxLength?: number;
   /** Hồ sơ đã tạo ở lần bấm Hoàn tất trước nhưng bước sau lỗi; dùng lại để không tạo trùng. */
   createdId: number | null;
 };
@@ -80,7 +82,9 @@ export function readChildDraft(userId: number, maxStep: number): ChildDraft | nu
       || typeof d.ageBand !== "string" || !AGE_BANDS.some((a) => a.id === d.ageBand)
       || !validLearning(d.learning) || !rules || typeof d.gate !== "boolean"
       || !(createdId === null || (typeof createdId === "number" && Number.isSafeInteger(createdId) && createdId > 0))) return null;
-    return { step: d.step, nickname: d.nickname, ageBand: d.ageBand, learning: d.learning, rules, gate: d.gate, createdId };
+    // Độ dài hỏng thì quay về gợi ý theo mức đọc thay vì bỏ cả bản nháp.
+    const maxLength = isMaxStoryLength(d.maxLength) ? d.maxLength : undefined;
+    return { step: d.step, nickname: d.nickname, ageBand: d.ageBand, learning: d.learning, rules, gate: d.gate, maxLength, createdId };
   } catch {
     return null;
   }
@@ -88,8 +92,8 @@ export function readChildDraft(userId: number, maxStep: number): ChildDraft | nu
 
 export function writeChildDraft(userId: number, draft: ChildDraft) {
   // Chọn từng trường để không vô tình lưu thêm dữ liệu khác (như ô "Đồng ý").
-  const { step, nickname, ageBand, learning, rules, gate, createdId } = draft;
-  const data = { v: DRAFT_VERSION, step, nickname, ageBand, learning, rules, gate, createdId };
+  const { step, nickname, ageBand, learning, rules, gate, maxLength, createdId } = draft;
+  const data = { v: DRAFT_VERSION, step, nickname, ageBand, learning, rules, gate, maxLength, createdId };
   try { sessionStorage.setItem(childDraftKey(userId), JSON.stringify(data)); } catch { /* lưu trữ bị chặn: form vẫn dùng được */ }
 }
 
