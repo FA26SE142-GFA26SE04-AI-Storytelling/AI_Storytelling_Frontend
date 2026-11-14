@@ -1,6 +1,15 @@
 # Chức năng theo vai trò — đã làm / chưa làm
 
-Cập nhật: 13/11/2026 (đồng bộ Backend `31840c8`: bỏ escalate report lên Admin, lượt xem / yêu thích thư viện cộng đồng, cảnh báo thiếu thẻ ước).
+Cập nhật: 14/11/2026 — đối chiếu Backend `4fb6afa`, Frontend `2065533`. Bản tổng hợp BE/FE: [TASK.md](../TASK.md). Các trạng thái cũ bên dưới là lịch sử triển khai, không phải kết quả kiểm thử lại ngày 14/11.
+
+### Đối chiếu code ngày 14/11
+
+- [x] QR EasyLogin: BE trả lại secret đang hoạt động nếu giải mã được bản bảo vệ; FE `AccessTab.tsx` đọc `cred.secret`, hiện lại mã và tải PNG (`qrImage.ts`). Đã có luồng bé quét QR trên web; chưa thử camera thiết bị thật trong lần rà soát này.
+- [x] BE có đánh giá truyện Creator (1–5 sao, nhận xét, báo cáo; Moderator duyệt/ẩn).
+- [ ] FE chưa nối 8 endpoint đánh giá: xem/tạo/sửa/xoá/báo cáo của phụ huynh, Creator xem/báo cáo, Moderator xem/duyệt/ẩn. Đây là phần mới chưa nằm trong các trạng thái hoàn tất F-10 bên dưới.
+- [ ] F-05 vẫn thiếu giữ/hoàn lượt AI: `ITokenQuotaService` chưa có hợp đồng này; `AIStoryInputService` vẫn gọi trừ khi nhận yêu cầu. Hoàn lượt gửi duyệt Creator không phải hoàn lượt AI.
+- Audit mới: **373 endpoint, 347 CONNECTED_SOURCE, 2 webhook/alias, 24 MISSING hoặc SERVICE_ONLY; frontendOnly = 0**. Chạy `node scripts/audit-core-api.mjs`; chi tiết tại `src/out/core-api-audit.json`. 24 mục gồm 8 API đánh giá mới và 16 mục cần phân loại tiếp (hàm bọc, service dư, route cũ hoặc luồng duyệt chưa nối). Số liệu 364 endpoint bên dưới là lịch sử, đã được thay thế bởi kết quả này.
+- Chỉ xác minh bằng đọc code và audit tĩnh; chưa build/test/E2E hoặc xác nhận lại các lỗi runtime trước đây.
 
 Căn cứ:
 
@@ -183,6 +192,31 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 ---
 
 ## 7. Việc kỹ thuật còn lại
+
+**Kết quả kiểm tra lại 14/11/2026:** danh sách cũ bên dưới chưa hoàn toàn chính xác. Các đính chính sau được ưu tiên khi đọc các ghi nhận lịch sử:
+
+| Mục | Kết luận theo code hiện tại | Việc thực sự còn lại |
+| --- | --- | --- |
+| Endpoint chưa nối | Không thể đánh dấu hoàn tất toàn bộ: có 8 API StoryRating/StoryRatingModeration mới chưa có FE | Nối đánh giá cho phụ huynh, Creator và Moderator; sửa audit nhận hàm bọc |
+| Service/duyệt chưa gọi | Còn đúng: `getChildProfileById`, `completeReview`, `completeStoryReview`, `validateReview`, `updateListeningInteraction` chưa có caller từ màn hình; `validation` chỉ được reset null | Chốt luồng rồi nối hoặc bỏ; không suy rằng mọi API không gọi đều làm hỏng luồng chính |
+| API Story cũ | Cần phân biệt service dư và route đang dùng: `storyService.updateStoryInfo` vẫn gọi `PUT /Story/{id}` để sửa metadata | Có thể dọn hàm trùng trong `storyManagementService`, không xoá route cập nhật BE theo nhận định cũ |
+| Trang giới thiệu có truyện thật | API cộng đồng vẫn cần role đăng nhập | Là đề xuất thêm chức năng/API anonymous, không phải lỗi hiện tại |
+| Ảnh bìa cộng đồng | **Mục cũ sai:** `CommunityStoryDto` kế thừa `StoryDto.CoverImageUrl`; `StoryService.Fill` gán bìa; FE `storyView.toCard` dùng bìa | Không chờ DTO nữa; chỉ kiểm tra dữ liệu và URL thực tế nếu ảnh lỗi |
+| Khoá thư viện bé | Còn lệch hợp đồng: `ChildStoryPageDto` thiếu IsLocked/UnlockStoryId mà FE đọc | Chốt nghiệp vụ để thêm BE hoặc bỏ nhánh FE; không tự quy toàn bộ cho BE |
+| Khôi phục và đồng ý điều khoản | BE nhận request, FE restore không gửi acceptCurrentConsent | **Sửa FE**, thêm bước đồng ý khi cần; không phải chờ BE |
+| Admin clone/archive lộ trình | BE chỉ cho Moderator; FE `RoadmapPublishedView` đã bọc nút bằng isModerator, workspace soạn cũng có kiểm tra role | Không coi 403 khi Admin gọi trực tiếp là lỗi; chỉ đổi nếu nghiệp vụ yêu cầu |
+| Mã lỗi 319/325 | **Chưa có căn cứ hiện tại cho con số này.** `issueText.ts` ở features/authoring chỉ dịch một nhóm mã bản thảo, không đại diện mọi xử lý lỗi FE | Rà mã thực sự tới UI cùng các lớp xử lý lỗi khác rồi đo lại |
+| LibraryWorkspace | Đúng: hiện 554 dòng | Việc bảo trì, không phải thiếu chức năng |
+| API options lộ trình | Chưa có; FE khai báo nhóm tuổi và giá trị mặc định | Đề xuất giảm hardcode, không tự coi là yêu cầu bắt buộc |
+| Hướng dẫn sáng tác 500 | Còn truy vấn ids.Contains trong AuthoringGuideItemStore; **không đủ chứng minh API hiện vẫn 500 hoặc do .NET 10** | Gộp hai ghi nhận cũ; tái hiện với database/provider thật và log/SQL |
+| Lỗi AI | Là ghi nhận 09/11, chưa tái hiện lại | Không khẳng định “luôn lỗi”; cần đầu vào/cấu hình/log để phân biệt lỗi và guardrail |
+| MIME âm thanh | Có lệch tập MIME nhưng câu “storage chỉ WAV/MP3” sai: SupabaseMediaStorage nhận cả audio/ogg | ChildStorySummaryService dùng ReadAloudPolicy rộng hơn storage; thử webm/mp4 khi lưu kể lại. Luyện đọc to gửi nhận dạng là luồng khác |
+| Bé tự sáng tác | Các trường được lưu/đọc ở SafetyPolicy; chưa thấy luồng sáng tác bé sử dụng, FE chưa có công tắc | Cần chốt phạm vi trước khi triển khai |
+| Test và CI | **Đã có** dotnet-ci.yml chạy build/test solution trên PR; có test phân quyền, quota, thanh toán, đối soát, subscription idempotency | Còn chứng minh nghiệm thu 20 request lặp/đồng thời, chéo tài khoản E2E, chịu lỗi AI, khớp báo cáo và tỷ lệ test theo tài liệu 6 |
+
+Các mục sửa hợp đồng/loại discussionQuestions đã được ghi nhận trước đây; chưa kiểm thử runtime lại trong lần rà soát này. Sửa tay tương tác khi nghe chưa nối `updateListeningInteraction`, nên cần điều chỉnh cả nhận định “sửa tay” đã hoàn tất ở mục chức năng nếu bao gồm loại học liệu này.
+
+**Danh sách dưới đây giữ làm lịch sử 10–13/11; các phát biểu mâu thuẫn với bảng trên đã lỗi thời.**
 
 - [x] Endpoint BE có mà FE chưa gắn (đối chiếu 12/11). **Đã gắn 12/11**: `GET/PUT /ChildProfile/reading-slots` (F-03), `POST /Payment/admin/plans` và `GET/PUT /Payment/admin/settings` (F-17; audit vẫn báo `GET admin/settings` thiếu vì lệnh gọi xuống dòng, thực tế có gọi ở `PlanSettingsDialog.tsx`). **Không cần gắn**: `GET /Payment/mismatched` (Admin lọc giao dịch theo "Sai số tiền" ở trang Giao dịch, `AdminSystem.tsx`; xử lý bằng "Xác nhận đã trả"); `GET /child/manual-stories/.../assets/...` và `GET /parent/stories/.../assets/...` (đã nối qua `useAuthedMediaUrl.ts` và `parentPackageService.asset`, audit không nhận hàm bọc); `GET /ModerationQueue/statistics` và `GET /CreatorStatistics/content` (đã có `ModeratorStatistics.tsx` và `CreatorContentTab.tsx`, audit báo SERVICE_ONLY sai); `POST /Story`, `PUT /Story/{id}`, `PATCH /Story/{id}/publish` (API cũ, chỉ còn hàm `storyManagementService.ts` không ai gọi: xoá hàm, không gắn lại). Cần sửa `scripts/audit-core-api.mjs` để nhận diện hàm bọc và các hàm gọi qua service.
 - [ ] Hàm đã có nhưng không màn nào gọi (cần quyết định nối hoặc bỏ): `GET /ChildProfile/{id}` (`childProfileService.getChildProfileById`, dư). Duyệt: Parent và Creator đang dùng `review/confirm-package` (BE cho cả ContentCreator), còn `review/approve`, `creator/.../generation/confirm-content` (BE: Creator xác nhận nội dung trước khi tạo media, DS-03b) và `review/*/complete` (`completeReview`, `completeStoryReview`) chưa có ai gọi; cần chốt một luồng Creator rồi bỏ hàm thừa. `GET review/validation`: state `validation` trong `useStoryReview.ts` không bao giờ được nạp, kiểm tra nội dung đang lấy từ đâu cần xác minh. `PUT review/listening/{id}` (`updateListeningInteraction`): không màn nào gọi, nên mục "sửa tay tương tác khi nghe" (mục 1, F-06/F-07) cần kiểm tra lại.
