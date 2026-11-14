@@ -118,7 +118,7 @@ function TransactionsTab() {
   const { note, setNote, busy, run } = useAction(load);
   useEffect(() => { void load().then((err) => { if (err) setNote({ ok: false, text: err }); }); }, [load, setNote]);
   const markPaid = async (t: AdminPaymentTransactionDto) => {
-    if (!(await confirmDialog(`Xác nhận đã nhận đủ ${money(t.amount)} cho giao dịch ${t.transactionCode}? Gói ${t.planName} sẽ được áp cho ${t.payerEmail || `tài khoản #${t.payerUserId}`}.`))) return;
+    if (!(await confirmDialog(`Xác nhận đã nhận đủ ${money(t.amount)} cho giao dịch ${t.transactionCode}? Gói ${t.planName} sẽ được áp cho ${t.payerEmail || `tài khoản #${t.payerUserId}`}.${t.status === "Pending" && new Date(t.expiresAt).getTime() > Date.now() ? " Giao dịch chưa hết hạn, người dùng vẫn có thể đang chuyển khoản." : ""}`))) return;
     void run(() => pay.markPaid(t.id), "Đã xác nhận thanh toán và áp gói.");
   };
   return <>
