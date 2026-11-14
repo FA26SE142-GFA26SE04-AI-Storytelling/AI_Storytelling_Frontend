@@ -116,11 +116,9 @@ Còn lại:
 
 ## 5. Chờ Backend hoặc cần quyết định — để sau
 
-- [ ] **Gói tháng và gói bổ sung** (Luồng 2): chờ Backend có `PlanType`, chu kỳ, tách lượt cơ bản/bổ sung. Khi có: sửa [PaymentSection.tsx](src/app/features/account/PaymentSection.tsx) (khoá gói bổ sung khi chưa có gói tháng), thêm màn lịch sử giao dịch (mục 2e), quota Creator (mục 2f).
 - [x] **Backend trả link media đầy đủ cho trẻ** (06/11/2026, sửa ở Backend): thêm `ChildMediaUrlSigner` ký link (hạn 2 giờ) cho nội dung đọc, tương tác, phản hồi, âm thanh từ vựng và tranh trong tóm tắt của phụ huynh. Container `core-api` đã build lại ngày 09/11.
 - [x] Gỡ `NEXT_PUBLIC_MEDIA_BASE_URL` và `lib/mediaUrl.ts` (10/11): biến không được đặt trong `.env.local` nên hàm chỉ trả lại nguyên link; Backend đã ký sẵn link media cho bé (nội dung đọc, phản hồi tương tác). Chưa thử lại với dữ liệu thật vì Docker đang tắt lúc gỡ.
 - [ ] **Lỗi AI phía Backend** (ghi nhận 09/11, Frontend chỉ đổi câu báo lỗi): "Nhận xét bản thảo" hay trả `AI_OUTPUT_INVALID` với bài dài (AI tính sai vị trí ký tự); kiểm tra nội dung của phụ huynh luôn báo `SEMANTIC_SAFETY_REVIEW_REQUIRED` khi chính sách của bé có ngưỡng điểm an toàn; Vertex thỉnh thoảng trả 429 hoặc hết thời gian. Kiểm tra nội dung của Creator chỉ trả An toàn / Vùng xám / Bị chặn, không có lý do hay vị trí.
-- [ ] **Doanh thu của Creator**: chờ Backend có API; sau đó làm lại trang thống kê.
 - [ ] **Trang giới thiệu hiển thị truyện đã phát hành**: chờ API công khai (hiện thư viện cộng đồng cần token).
 - [ ] **Ảnh bìa truyện cộng đồng**: chờ DTO trả ảnh bìa (hiện dùng ảnh mẫu chung). Lộ trình của trẻ (`/MyRoadmap`) đã có `coverImageUrl` và đang dùng ở khung "Hôm nay em đọc".
 - [ ] **Quản lý prompt, chất lượng AI, tài khoản phụ huynh (Admin)**: chờ tài liệu và API; đã gỡ khỏi menu.
@@ -132,9 +130,19 @@ Còn lại:
 - Cài đặt an toàn giữ cách tự lưu.
 - Bỏ thao tác "Lưu trữ truyện" của phụ huynh.
 - Trang giới thiệu không dùng dữ liệu mẫu.
-- Trang Nâng cấp gói giữ nguyên cho tới khi Backend làm gói tháng.
 
 ## 7. Đã làm
+
+### 14/11/2026
+
+Chưa commit, chưa kiểm tay trên trình duyệt (Backend cục bộ đang tắt): gói, thanh toán, lượt và thống kê cho phụ huynh, Creator và Admin.
+
+- Phụ huynh: trang "Gói của tôi" (gói đang dùng, thẻ chọn gói, popup thanh toán QR hỏi lại máy chủ mỗi 5 giây, lịch sử giao dịch, thẻ chọn hồ sơ được đọc) và thông báo nâng cấp ở 5 điểm chạm giới hạn.
+- Creator: trang "Lượt của tôi" (kèm mua Gói Creator) và "Thống kê" (đọc, nội dung, doanh thu theo kỳ).
+- Admin, nhóm "Kinh doanh" thành sáu trang: Doanh thu, Báo cáo nghiệp vụ (kèm danh sách báo cáo), Giao dịch (kèm "Cần xử lý"), Gói dịch vụ, Cấu hình gói, Cấp lượt.
+- Mã: service `adminBillingService`, `creatorStatisticsService`, mở rộng `paymentService` và `childProfileService`; hàm dùng chung trong `app/lib/billing.ts`.
+- Cập nhật `docs/core-api-coverage.json` bằng `node scripts/audit-core-api.mjs --write` (365 endpoint: 320 đã nối, 2 loại trừ). Chỉ còn `GET /Payment/mismatched` chưa nối trong phạm vi này. Đã bỏ khỏi mục 5 hai dòng "Gói tháng và gói bổ sung" và "Doanh thu của Creator"; bỏ ghi chú trang Nâng cấp gói ở mục 6.
+- Kiểm tra: `npm run test` 444/444, `npm run lint`, `npx tsc --noEmit`, `npm run build` đều qua. Còn phải kiểm tay ba vai trò, hai theme sáng/tối, bề rộng điện thoại.
 
 ### 09/11/2026
 

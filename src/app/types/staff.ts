@@ -232,7 +232,6 @@ export interface QueueItemDetail extends QueueItem {
 
 export interface QueueQuery { itemType?: QueueItemType; status?: QueueItemStatus; priority?: 'High' | 'Medium' | 'Low'; onlyOverdue?: boolean; pageIndex?: number; pageSize?: number }
 export interface BusinessReport { id: number; periodStart: string; periodEnd: string; storiesGenerated: number; storiesApproved: number; storiesRejected: number; readingSessionsCompleted: number; status: string; publishedAt: string | null }
-export interface TokenQuotaConfig { id: number; scope: string; organizationId: number | null; childProfileId: number | null; userId: number | null; quotaLimit: number; quotaUsed: number; periodStart: string; periodEnd: string }
 export interface PaymentTransaction { id: number; planId: number; planName: string; amount: number; transactionCode: string; qrCodeUrl: string | null; status: string; expiresAt: string; paidAt: string | null; sepayTransactionId: string | null }
 /** Body `POST /StaffAccount/invite`. */
 export interface InviteStaffInput { role: StaffAccountRole; email: string; fullName: string; expertise?: string; note?: string }

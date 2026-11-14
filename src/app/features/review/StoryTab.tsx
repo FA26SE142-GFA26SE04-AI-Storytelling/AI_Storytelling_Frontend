@@ -71,10 +71,11 @@ type EditorProps = {
   busy: boolean;
   onSave: (draft: { title: string; content: string; lesson: string; assistanceReferences?: AssistanceReference[] }) => void;
   onCancel: () => void;
+  onUpgrade?: () => void;
 };
 
 /** Chỉnh bản nháp; gợi ý AI chỉ được lưu khi người dùng áp dụng và xác nhận. */
-export function StoryEditor({ story, actor, assistanceRevisionToken, busy, onSave, onCancel }: EditorProps) {
+export function StoryEditor({ story, actor, assistanceRevisionToken, busy, onSave, onCancel, onUpgrade }: EditorProps) {
   const [draft, setDraft] = useState({ title: story.title, content: story.content, lesson: story.lesson });
   const [selection, setSelection] = useState<AssistanceSelection | null>(null);
   const [references, setReferences] = useState<AssistanceReference[]>([]);
@@ -89,7 +90,7 @@ export function StoryEditor({ story, actor, assistanceRevisionToken, busy, onSav
           onSelect={e => { const t=e.currentTarget; setSelection({snapshot:{title:draft.title,content:t.value},start:t.selectionStart,length:t.selectionEnd-t.selectionStart}); }} /></label>
       <label className="field"><span className="lbl">Bài học</span>
         <input className="inp" value={draft.lesson} disabled={busy} onChange={(e) => setDraft({ ...draft, lesson: e.target.value })} /></label>
-      {assistanceRevisionToken && <AssistancePanel actor={actor} story={{storyId:story.storyId,selectedVersionId:story.versionId,revisionToken:assistanceRevisionToken}}
+      {assistanceRevisionToken && <AssistancePanel actor={actor} onUpgrade={onUpgrade} story={{storyId:story.storyId,selectedVersionId:story.versionId,revisionToken:assistanceRevisionToken}}
         snapshot={{title:draft.title,content:draft.content}} selection={selection} disabled={busy}
         onApply={(next,reference) => {setDraft({...draft,...next});setSelection(null);setReferences(previous=>[...previous.filter(r=>r.taskId!==reference.taskId||r.stepId!==reference.stepId),reference]);}} />}
       <div className="row" style={{ justifyContent: "flex-end" }}>

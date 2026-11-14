@@ -13,6 +13,8 @@ import '@/app/features/created/created.css';
 import CoverPickerDialog, { CoverPickerPanel, prefetchCoverPictures } from '@/app/features/created/CoverPickerDialog';
 import { creatorService } from '@/app/services/creatorService';
 import { coverFor } from '@/app/lib/storyView';
+import UpgradeNotice from '@/app/components/UpgradeNotice';
+import { limitMessage, type LimitNotice } from '@/app/lib/billing';
 import CreatorSafetyPanel from './CreatorSafetyPanel';
 import { canSubmitWithSafety } from '@/app/features/story-workflow/creatorSafety';
 import { publicationLabelIds, togglePublicationLabel, type PublicationLabelSelection } from '@/app/features/story-workflow/publicationLabelSelection';
@@ -28,7 +30,7 @@ export const REVIEW: Record<string, string> = {
 };
 const OPEN_ITEM: Record<string, string> = { Pending: 'đang chờ Moderator nhận', Claimed: 'Moderator đang xem xét', Approved: 'đã duyệt', Rejected: 'bị từ chối' };
 
-export default function CreatorPublication({ storyId, versionId, storyStatus, onRevision, onLockChange, hidden = false, showCheck = true, stepNo = 3 }: { storyId: number; versionId: number | null; storyStatus?: string; onRevision: () => void; onLockChange?: (locked: boolean) => void; hidden?: boolean; showCheck?: boolean; stepNo?: number }) {
+export default function CreatorPublication({ storyId, versionId, storyStatus, onRevision, onLockChange, hidden = false, showCheck = true, stepNo = 3, onBuyCredits }: { storyId: number; versionId: number | null; storyStatus?: string; onRevision: () => void; onLockChange?: (locked: boolean) => void; hidden?: boolean; showCheck?: boolean; stepNo?: number; onBuyCredits: () => void }) {
   const { user } = useAuth();
   const [status, setStatus] = useState<B.CreatorPublicationStatus | null>(null);
   const [reason, setReason] = useState('');
@@ -82,18 +84,19 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     return () => { scope.current = Symbol(); controller.abort(); };
   }, [storyId, versionId, storyStatus, refresh, user?.id, onLockChange]);
   const toggleLabel = (id: number) => setLabelSelection(current => togglePublicationLabel(current, labelScope, suggestedLabelIds, categories, id));
+  const [limit,setLimit] = useState<LimitNotice | null>(null);
   const act = async (fn: () => Promise<ApiResponse<unknown>>, revision = false, lockVersion = true) => {
     if (busy) return;
-    setBusy(true); setNote(''); const run = scope.current;
+    setBusy(true); setNote(''); setLimit(null); const run = scope.current;
     const r = await fn(); if (run !== scope.current) return;
-    setBusy(false); setNote(r.message || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
+    setBusy(false); const lim = r.success ? null : limitMessage(r, 'submit'); setLimit(lim); setNote(lim ? '' : r.message || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
     if (r.success) { setRemoving(false); setReason(''); if (revision) onRevision(); else { if (lockVersion) { knownSubmitted.current = status?.versionId ?? null; setSubmittedVersion(status?.versionId ?? null); onLockChange?.(true); } setRefresh(n => n + 1); } }
     else if (r.status === 409) setRefresh(n => n + 1);
   };
   const runCheck = async () => {
     if (busy || checkRequest.current || !status || status.storyId !== storyId || status.versionId !== versionId) return;
     const request = Symbol(); checkRequest.current = request;
-    setBusy(true); setNote(''); const run = scope.current;
+    setBusy(true); setNote(''); setLimit(null); const run = scope.current;
     try {
       const r = await service.check(storyId, status.versionId);
       if (run !== scope.current) return;
@@ -170,6 +173,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
   // Ẩn phần giao diện ở các bước trước media (vẫn chạy ở trên để tính trạng thái khóa chỉnh sửa cho màn cha).
   if (hidden) return null;
   return <section className="pa-card" aria-label="Phát hành"><div className="pa-head"><h3><span className="pa-num">{stepNo}</span>Phát hành truyện</h3></div>
+    {limit && <UpgradeNotice notice={limit} actionLabel="Mua Gói Creator" onUpgrade={onBuyCredits} />}
     {note && <p className="notice" role="status">{note}</p>}
     <p style={{ margin: 0, fontWeight: 800, fontSize: "var(--fs-md)" }}>{headline}</p>
     <p className="sub">Gửi bản hiện tại cho Moderator duyệt công khai. Khi yêu cầu còn chờ nhận, bạn có thể rút và gửi lại cùng phiên bản. Nếu sửa nội dung đã nộp, hãy tạo phiên bản chỉnh sửa mới.</p>

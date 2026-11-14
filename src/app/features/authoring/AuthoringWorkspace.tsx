@@ -60,5 +60,5 @@ export default function AuthoringWorkspace({ go, resumeStoryId }: Pick<Workspace
       </section>
     );
   }
-  return <ParentAuthoringWorkspace key={child.id} childId={child.id} initialStoryId={resumeStoryId ?? null} onChangeKid={kids.length > 1 ? () => void pickKid() : undefined} onDone={() => go("created")} />;
+  return <ParentAuthoringWorkspace key={child.id} childId={child.id} initialStoryId={resumeStoryId ?? null} onChangeKid={kids.length > 1 ? () => void pickKid() : undefined} onDone={() => go("created")} onUpgrade={() => go("account-payment")} />;
 }

@@ -93,4 +93,4 @@ export interface ResetPasswordRequest {
 export interface AuditLogEntry { id: number; actorUserId: number | null; action: string; entityType: string; entityId: number; occurredAt: string }
 
 /** Gói dịch vụ đang bán (`/Payment/plans`). */
-export interface SubscriptionPlan { id: number; name: string; priceVnd: number; quotaAmount: number }
+export interface SubscriptionPlan { id: number; name: string; planType: string; priceVnd: number; aiCredits: number; isPurchasable: boolean; lockedReason: string | null }

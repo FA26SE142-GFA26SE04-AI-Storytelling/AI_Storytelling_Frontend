@@ -6,6 +6,7 @@ import { parentAssistanceService } from '@/app/services/parentAssistanceService'
 import { creatorAssistanceService } from '@/app/services/creatorAssistanceService';
 import { useStoryProgressPolling } from './useStoryProgressPolling';
 import { useAuth } from '@/app/context/AuthContext';
+import { limitMessage, type LimitNotice } from '@/app/lib/billing';
 export function useAssistance(actor: 'parent' | 'creator', storyId: number) {
   const api = actor === 'parent' ? parentAssistanceService : creatorAssistanceService;
   const { user } = useAuth();
@@ -16,13 +17,13 @@ export function useAssistance(actor: 'parent' | 'creator', storyId: number) {
   const [cancelBusy, setCancelBusy] = useState(false);
   const cancelling = useRef(false);
   const cancelPayload = useRef<B.CancelAssistanceRequest | null>(null);
-  const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false); const [uncertain, setUncertain] = useState(false);
+  const [limit, setLimit] = useState<LimitNotice | null>(null); const [message, setMessage] = useState(''); const [busy, setBusy] = useState(false); const [uncertain, setUncertain] = useState(false);
   const pending = useRef<(() => Promise<ApiResponse<unknown>>) | null>(null);
   const scope = useRef(Symbol()); const locked = useRef(false);
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     scope.current=Symbol();locked.current=false;pending.current=null;cancelPayload.current=null;cancelling.current=false;
-    setTaskId(null);setTasks(null);setSteps(null);setBusy(false);setUncertain(false);setCancelBusy(false);setMessage('');
+    setTaskId(null);setTasks(null);setSteps(null);setBusy(false);setUncertain(false);setCancelBusy(false);setMessage('');setLimit(null);
     return()=>{scope.current=Symbol();};
   },[actor,storyId,user?.id]);
   useEffect(() => { let alive=true; const controller = new AbortController();
@@ -41,9 +42,10 @@ export function useAssistance(actor: 'parent' | 'creator', storyId: number) {
   const friendlyAiMessage = (m?: string) => /^AI_OUTPUT_INVALID$/i.test((m ?? '').trim()) ? 'AI trả về kết quả chưa dùng được. Bấm Thử lại để AI làm lại.' : m;
   const execute = async <T,>(call: () => Promise<ApiResponse<T>>) => {
     if (locked.current) return;
-    locked.current = true; setBusy(true); setMessage(''); const run = scope.current;
+    locked.current = true; setBusy(true); setMessage(''); setLimit(null); const run = scope.current;
     const r = await call(); if (scope.current !== run) return;
-    locked.current = false; setBusy(false); setMessage(friendlyAiMessage(r.message) || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
+    const hit = actor === 'parent' ? limitMessage(r, 'assistance') : null;
+    locked.current = false; setBusy(false); setLimit(hit); setMessage(hit ? '' : friendlyAiMessage(r.message) || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
     if (r.status === 0 || (r.status ?? 0)>=500) { pending.current = call; setUncertain(true); } else { pending.current = null; setUncertain(false); }
     if (r.success && r.data && typeof r.data === 'object' && 'taskId' in r.data && typeof r.data.taskId === 'number') { setTaskId(r.data.taskId); polling.refresh(); }
     if (r.status === 409) polling.refresh();
@@ -65,7 +67,7 @@ export function useAssistance(actor: 'parent' | 'creator', storyId: number) {
   };
   const cancelRunning = async () => {
     if (!task?.activeOperation || cancelling.current || locked.current || uncertain) return;
-    cancelling.current = true; locked.current=true; setBusy(true); setCancelBusy(true); const run = scope.current;
+    cancelling.current = true; locked.current=true; setBusy(true); setCancelBusy(true); setLimit(null); const run = scope.current;
     if (!cancelPayload.current) cancelPayload.current = { operationId:crypto.randomUUID(),expectedTaskRevision:task.taskRevision,targetOperationId:task.activeOperation.operationId };
     const r = await api.cancel(storyId,task.taskId,cancelPayload.current);
     if (scope.current !== run) return;
@@ -74,5 +76,5 @@ export function useAssistance(actor: 'parent' | 'creator', storyId: number) {
     if(r.status===0||(r.status??0)>=500){const payload=cancelPayload.current!;pending.current=()=>api.cancel(storyId,task.taskId,payload);setUncertain(true);}
     polling.refresh();
   };
-  return { api,task,cancelBusy,cancelRunning,tasks,steps,taskPage,setTaskPage,stepPage,setStepPage,message:polling.error ?? message,busy,uncertain,timedOut:polling.timedOut,create,requestSuggestions,command,select:(id: number) => { if(!locked.current&&!uncertain){setTaskId(id);setStepPage(1);} },refresh:() => { polling.refresh(); setRevision(v => v + 1); },retry:() => pending.current && execute(pending.current) };
+  return { api,task,cancelBusy,cancelRunning,tasks,steps,taskPage,setTaskPage,stepPage,setStepPage,message:polling.error ?? message,limit,busy,uncertain,timedOut:polling.timedOut,create,requestSuggestions,command,select:(id: number) => { if(!locked.current&&!uncertain){setTaskId(id);setStepPage(1);} },refresh:() => { polling.refresh(); setRevision(v => v + 1); },retry:() => pending.current && execute(pending.current) };
 }

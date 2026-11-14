@@ -49,7 +49,7 @@ type Write = { call: () => Promise<CreatorResult<ContentSaved>>; snapshot: SaveV
  * Theo hướng dẫn backend: chụp nội dung lúc bấm lưu; mất mạng thì thử lại đúng lệnh cũ (cùng operationId);
  * 409 thì giữ nguyên phần đang sửa và để người dùng đồng bộ.
  */
-export default function CreatorEditor({ storyId, onBack }: { storyId: number; onBack: () => void }) {
+export default function CreatorEditor({ storyId, onBack, onBuyCredits }: { storyId: number; onBack: () => void; onBuyCredits: () => void }) {
   const [references, setReferences] = useState<AssistanceReference[]>([]);
   const [selection,setSelection]=useState<AssistanceSelection|null>(null);
   const [publicationLocked, setPublicationLocked] = useState(true);
@@ -254,7 +254,7 @@ export default function CreatorEditor({ storyId, onBack }: { storyId: number; on
           </div>
 
           <div className="pa-stage" hidden={active.id !== 'publish'}>
-            <CreatorPublication storyId={storyId} versionId={draft.selectedVersionId} storyStatus={draft.status} onRevision={() => void open()} onLockChange={setPublicationLocked} showCheck={false} stepNo={4} />
+            <CreatorPublication storyId={storyId} versionId={draft.selectedVersionId} storyStatus={draft.status} onRevision={() => void open()} onLockChange={setPublicationLocked} showCheck={false} stepNo={4} onBuyCredits={onBuyCredits} />
             <EditorNavigation prev="media" next={null} nextOk={false} onNavigate={setStepId}/>
           </div>
         </div>

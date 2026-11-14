@@ -11,6 +11,7 @@ import type {
   TokenQuotaStatus,
   UpdateChildProfileRequest,
 } from '@/app/types/childProfile';
+import type { ReadingSlotsDto } from '@/app/types/backendContracts';
 import { apiRequest } from './apiClient';
 
 /** Luồng 1 Bước 1.2–1.4, 1.8, Mục 7: hồ sơ bé, hồ sơ học tập, cài đặt an toàn và vòng đời hồ sơ. */
@@ -115,5 +116,15 @@ export const childProfileService = {
 
   getTokenQuotaForChild(childProfileId: number): Promise<ApiResponse<TokenQuotaStatus>> {
     return apiRequest(`/TokenQuota/child/${childProfileId}`, 'Không lấy được số lượt tạo truyện của bé.');
+  },
+
+  /** Hồ sơ được đọc / chỉ xem khi số hồ sơ Active vượt quyền lợi gói. */
+  getReadingSlots(signal?: AbortSignal): Promise<ApiResponse<ReadingSlotsDto>> {
+    return apiRequest('/ChildProfile/reading-slots', 'Không tải được danh sách hồ sơ được đọc.', { signal });
+  },
+
+  /** Chọn các hồ sơ được đọc; backend giới hạn đổi theo tuần. */
+  selectReadingSlots(childProfileIds: number[]): Promise<ApiResponse<ReadingSlotsDto>> {
+    return apiRequest('/ChildProfile/reading-slots', 'Không lưu được hồ sơ được đọc.', { method: 'PUT', body: { childProfileIds } });
   },
 };

@@ -4,8 +4,8 @@ import "./staff.css";
 import "@/app/features/children/children.css";
 import { useEffect, useState, type ComponentType } from "react";
 import {
-  Activity, BookOpenText, ChartColumn, Coins, FolderOpen, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
-  Shield, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
+  Activity, BookOpenText, ChartColumn, Coins, FolderOpen, Inbox, LibraryBig, ListChecks, Moon, Package, PencilLine, Receipt, Route,
+  Shield, SlidersHorizontal, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import { useAuth } from "@/app/context/AuthContext";
@@ -24,12 +24,19 @@ import PublishedReviewWorkspace from "./PublishedReviewWorkspace";
 import RubricWorkspace from "./RubricWorkspace";
 import AuthoringGuideManagement from "./AuthoringGuideManagement";
 import { CreatorCreateAi, CreatorCreateManual, type CreatorPageProps } from "./CreatorStories";
+import CreatorBilling from "./CreatorBilling";
+import CreatorStatistics from "./CreatorStatistics";
 import { CreatorLibrary } from "./CreatorLibrary";
 import { CreatorMyStories } from "./CreatorMyStories";
 import { AdminStaff } from "./AdminPeople";
 import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
-import { AdminBusinessReport, AdminPayments, AdminQuota } from "./AdminSystem";
+import { AdminRevenue } from "./AdminRevenue";
+import { AdminBusinessReport } from "./AdminSystem";
+import { AdminTransactions } from "./AdminTransactions";
+import { AdminPlans } from "./AdminPlans";
+import { AdminPlanSettings } from "./AdminPlanSettings";
+import { AdminCredits } from "./AdminCredits";
 
 /** Mọi trang nhân viên nhận go (chuyển trang, kèm id truyện cần mở) và target; trang không cần thì bỏ qua. */
 type PageDef = { id: string; label: string; icon: LucideIcon; view: ComponentType<CreatorPageProps>; hint?: string; menuLabel?: string; short?: string };
@@ -38,15 +45,17 @@ type NavEntry = string | { label: string; icon: LucideIcon; items: string[] };
 
 const ROLE_LABEL: Record<StaffRole, string> = { Administrator: "Admin Portal", Moderator: "Kiểm duyệt", ContentCreator: "Content Workspace" };
 
-/** Các trang tài khoản, mở từ menu avatar; dùng chung cho mọi vai trò nhân viên (không có mục mua lượt). */
+/** Các trang tài khoản, mở từ menu avatar; dùng chung cho mọi vai trò nhân viên (riêng Content Creator có thêm "Lượt của tôi", xem CREATOR_ACCOUNT_PAGES). */
 const ACCOUNT_PAGES: PageDef[] = [
   { id: "account", label: "Thông tin cá nhân", icon: UserRound, view: () => <AccountWorkspace page="profile" /> },
   { id: "account-activity", label: "Lịch sử hoạt động", icon: Activity, view: () => <AccountWorkspace page="activity" /> },
 ];
 
-/** Trang riêng của Content Creator trong menu avatar: doanh thu và thống kê theo tháng. */
+/** Trang riêng của Content Creator trong menu avatar: thông tin cá nhân, lịch sử hoạt động, "Lượt của tôi" (xem lượt tạo truyện AI/gửi duyệt còn lại, mua Gói Creator) và "Thống kê". */
 const CREATOR_ACCOUNT_PAGES: PageDef[] = [
   ...ACCOUNT_PAGES,
+  { id: "creator-billing", label: "Lượt của tôi", icon: Coins, view: CreatorBilling },
+  { id: "creator-stats", label: "Thống kê", icon: ChartColumn, view: CreatorStatistics },
 ];
 
 /** Luồng 5 — ba khu tách biệt theo vai trò; mỗi tài khoản đúng một vai trò (BR-5.7a). */
@@ -60,9 +69,12 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
     { id: "catalog", label: "Danh mục nội dung", icon: ListChecks, view: AdminCatalog },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
+    { id: "revenue", label: "Doanh thu", icon: ChartColumn, view: AdminRevenue },
     { id: "business", label: "Báo cáo nghiệp vụ", icon: ChartColumn, view: AdminBusinessReport },
-    { id: "payments", label: "Đối soát thanh toán", icon: Receipt, view: AdminPayments },
-    { id: "quota", label: "Token Quota", icon: Coins, view: AdminQuota },
+    { id: "payments", label: "Giao dịch", icon: Receipt, view: AdminTransactions },
+    { id: "plans", label: "Gói dịch vụ", icon: Package, view: AdminPlans },
+    { id: "plan-settings", label: "Cấu hình gói", icon: SlidersHorizontal, view: AdminPlanSettings },
+    { id: "credits", label: "Cấp lượt", icon: Coins, view: AdminCredits },
     ...ACCOUNT_PAGES,
   ],
   Moderator: [
@@ -92,7 +104,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     { label: "Kiểm duyệt", icon: Inbox, items: ["published", "escalated", "rubrics"] },
     { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards", "catalog"] },
         { label: "Người dùng", icon: Users, items: ["staff"] },
-    { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "quota"] },
+    { label: "Kinh doanh", icon: ChartColumn, items: ["revenue", "business", "payments", "plans", "plan-settings", "credits"] },
   ],
   Moderator: ["queue", "published", "rubrics", "authoring-guides", "templates", "wish-cards"],
   ContentCreator: ["library", "create-ai", "create-manual", "my-stories"],

@@ -18,6 +18,9 @@ describe('thông báo trong app', () => {
   it('hiện câu tiếng Việt cho thông báo backend thay vì tên mã', () => {
     expect(notificationText(n('OwnershipTransferRequest'))).toBe('Có đề nghị chuyển quyền quản lý chính');
     expect(notificationText(n('StorySummarySent'))).toBe('Bé vừa gửi tóm tắt sau khi đọc truyện');
+    expect(notificationText(n('SubscriptionExpiring', { payload: JSON.stringify({ subscriptionId: 4, planName: 'Gói Sáng tạo', endAt: '2026-12-10T03:00:00Z' }) }))).toBe('Gói Sáng tạo sắp hết hạn, hãy gia hạn để không gián đoạn');
+    expect(notificationText(n('SubscriptionExpiring'))).toBe('Gói của bạn sắp hết hạn, hãy gia hạn để không gián đoạn');
+    expect(notificationText(n('SubscriptionExpiring', { payload: 'không phải JSON' }))).toBe('Gói của bạn sắp hết hạn, hãy gia hạn để không gián đoạn');
     expect(notificationText(n('SomethingNew'))).toBe('Bạn có thông báo mới');
   });
 

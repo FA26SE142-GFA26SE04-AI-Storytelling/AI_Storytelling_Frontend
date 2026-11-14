@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { CircleAlert, Lock, ShieldAlert, Sparkles } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";
+import UpgradeNotice from "@/app/components/UpgradeNotice";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
@@ -32,8 +33,8 @@ type TextKey = "charactersText" | "setting" | "lesson";
  * Form ý tưởng một cột, cuộn từ trên xuống: hai trường bắt buộc → chi tiết không bắt buộc → tuỳ chọn truyện → nút "Viết dàn ý".
  * Mục có nhiều lựa chọn (thể loại, mức từ vựng, gợi ý) dùng ô xổ xuống thay vì một dãy nút.
  */
-export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowResult; locked: boolean }) {
-  const { values, context, updateValues, submit, isBusy, errorMessage } = flow;
+export default function BriefForm({ flow, locked, onUpgrade }: { flow: UseAIStoryInputFlowResult; locked: boolean; onUpgrade: () => void }) {
+  const { values, context, updateValues, submit, isBusy, errorMessage, limitNotice } = flow;
   const [quota, setQuota] = useState<TokenQuotaStatus | null>(null);
 
   useEffect(() => {
@@ -205,6 +206,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
           {!locked && (
             <div className="brief-submit">
               {topicTooLong && <div className="notice err" role="alert" data-inline-notice>Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
+              {limitNotice && <UpgradeNotice notice={limitNotice} onUpgrade={onUpgrade} />}
               {errorMessage && <div className="notice err" role="alert">{errorMessage}</div>}
               {outOfQuota && <div className="notice err" role="alert" data-inline-notice>Bạn đã dùng hết lượt tạo truyện của kỳ này.</div>}
               <button type="submit" className="btn btn-p brief-go" disabled={submitDisabled} aria-describedby={submitReason ? "brief-go-why" : undefined}>

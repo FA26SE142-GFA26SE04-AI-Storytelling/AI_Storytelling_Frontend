@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, ShieldCheck } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";
+import UpgradeNotice from "@/app/components/UpgradeNotice";
+import { limitMessage, type LimitNotice } from "@/app/lib/billing";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ContentCategory, PolicyRule } from "@/app/types/childProfile";
 import { AGE_BANDS, defaultReadingLevel, defaultReadingMode, presetBlocked } from "@/app/lib/guardian";
@@ -12,7 +14,7 @@ import { CategoryRules, ConsentBlock, keptPolicyFields, rulesToRequest } from ".
 const STEPS = ["Thông tin bé", "Hồ sơ học tập", "An toàn và đồng ý", "Xác nhận"];
 
 /** Bước 1.2 → 1.2b → 1.3 → 1.4 → 1.8: tạo hồ sơ bé và kích hoạt. */
-export default function CreateChildWizard({ onDone, onCancel }: { onDone: (childId: number) => void; onCancel: () => void }) {
+export default function CreateChildWizard({ onDone, onCancel, onUpgrade }: { onDone: (childId: number) => void; onCancel: () => void; onUpgrade: () => void }) {
   const [step, setStep] = useState(0);
   const [nickname, setNickname] = useState("");
   const [ageBand, setAgeBand] = useState<string>("Age_6_8");
@@ -23,6 +25,7 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [limit, setLimit] = useState<LimitNotice | null>(null);
   // Giữ id hồ sơ đã tạo để bấm lại không tạo trùng khi một bước sau bị lỗi.
   const [createdId, setCreatedId] = useState<number | null>(null);
 
@@ -48,11 +51,17 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
   const finish = async () => {
     setBusy(true);
     setErr(null);
+    setLimit(null);
     try {
       let id = createdId;
       if (id === null) {
         const created = await childProfileService.createChildProfile({ nickname: nickname.trim(), ageBand });
-        if (!created.success || !created.data) { setErr(created.message || "Không tạo được hồ sơ bé."); return; }
+        if (!created.success || !created.data) {
+          const notice = limitMessage(created, "child-profile");
+          if (notice) { setLimit(notice); return; }
+          setErr(created.message || "Không tạo được hồ sơ bé.");
+          return;
+        }
         id = created.data.id;
         setCreatedId(id);
       }
@@ -130,6 +139,7 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
           </div>
         )}
 
+        {limit && <div style={{ marginTop: 12 }}><UpgradeNotice notice={limit} onUpgrade={onUpgrade} /></div>}
         {err && <div className="notice err" role="alert" style={{ marginTop: 12 }}>{err}</div>}
       </div>
 

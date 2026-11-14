@@ -39,13 +39,15 @@ type Props = {
   /** Nhóm tuổi của bé, quyết định dạng câu đố khi sửa học liệu. */
   ageBand: string;
   onApproved: () => void;
+  /** Mở trang gói khi trợ lý viết hết lượt trong ngày. */
+  onUpgrade?: () => void;
 };
 
 /**
  * Cổng duyệt (Luồng 2 mục 6.6): đọc bản thảo và học liệu, chỉnh sửa theo chủ đích hoặc sửa tay,
  * sinh lại học liệu có xem trước, rồi Duyệt. Trả về 2 cột: vùng đọc và cột quyết định.
  */
-export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'parent' }: Props) {
+export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'parent', onUpgrade }: Props) {
   const r = useStoryReview(storyId, actor);
   const { bundle, busy, aiTask, error, validation, proposal } = r;
   const [tab, setTab] = useState<Tab>("story");
@@ -131,7 +133,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
                 <span className="row" style={{ marginLeft: "auto", gap: 6 }}><span className="pill draft">Bản #{summary.storyVersionId}</span><span className="pill draft">{countWords(content)} tiếng</span></span>
               </div>
               {editing ? (
-                <StoryEditor key={story.versionId} story={story} actor={actor} assistanceRevisionToken={summary.assistanceRevisionToken} busy={busy} onCancel={() => setEditing(false)}
+                <StoryEditor key={story.versionId} onUpgrade={onUpgrade} story={story} actor={actor} assistanceRevisionToken={summary.assistanceRevisionToken} busy={busy} onCancel={() => setEditing(false)}
                   onSave={(draft) => { void r.saveStory(draft, () => setEditing(false)); }} />
               ) : (
                 <>

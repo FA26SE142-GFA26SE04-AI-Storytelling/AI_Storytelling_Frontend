@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStoryCreationService } from '@/app/services/aiStoryCreationService';
 import { parentWishService } from '@/app/services/storyWishService';
+import { limitMessage, type LimitNotice } from '@/app/lib/billing';
 import {
   AIStoryCreativeInputDto,
   AIStoryInputContextDto,
@@ -34,6 +35,8 @@ export interface UseAIStoryInputFlowResult {
   values: AIStoryInputFormValues | null;
   progress: AIStoryInputProgressDto | null;
   errorMessage: string | null;
+  /** Lần gửi bị từ chối vì hết lượt AI của gói; giao diện hiện UpgradeNotice thay cho errorMessage. */
+  limitNotice: LimitNotice | null;
   isPollingTimedOut: boolean;
   isBusy: boolean;
   /** true khi biết chắc ý tưởng đang hiển thị là ý tưởng đã gửi (gửi trong phiên này hoặc được điền lại khi làm lại). */
@@ -61,6 +64,7 @@ export function useAIStoryInputFlow(
   const [values, setValues] = useState<AIStoryInputFormValues | null>(null);
   const [progress, setProgress] = useState<AIStoryInputProgressDto | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [limitNotice, setLimitNotice] = useState<LimitNotice | null>(null);
   const [isPollingTimedOut, setIsPollingTimedOut] = useState(false);
   const [hasCreativeInput, setHasCreativeInput] = useState(false);
 
@@ -248,6 +252,7 @@ export function useAIStoryInputFlow(
     setHasCreativeInput(true);
     setPhase('submitting');
     setErrorMessage(null);
+    setLimitNotice(null);
     setIsPollingTimedOut(false);
 
     try {
@@ -266,6 +271,8 @@ export function useAIStoryInputFlow(
         return;
       }
       setPhase('editing_input');
+      const limit = limitMessage(response, 'ai-credits');
+      if (limit) { setLimitNotice(limit); return; }
       setErrorMessage(response.message || 'Không thể gửi ý tưởng câu chuyện.');
     } finally {
       if (flowVersion === flowVersionRef.current) submitLockRef.current = false;
@@ -337,6 +344,7 @@ export function useAIStoryInputFlow(
     values,
     progress,
     errorMessage,
+    limitNotice,
     isPollingTimedOut,
     isBusy: phase === 'loading_context' || phase === 'submitting',
     valuesKnown: hasCreativeInput || !!initial,

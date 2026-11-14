@@ -1,13 +1,13 @@
 import type { ApiResponse } from '@/app/types/auth';
 import type { ContentCategory } from '@/app/types/childProfile';
 import type { PagedResult } from '@/app/types/story';
-import type { BusinessReport, InviteStaffInput, PaymentTransaction, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, StaffAccountDto, StaffAccountRole, TokenQuotaConfig } from '@/app/types/staff';
+import type { BusinessReport, InviteStaffInput, PaymentTransaction, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, StaffAccountDto, StaffAccountRole } from '@/app/types/staff';
 import { apiRequest } from './apiClient';
 
 /**
  * Luồng 5 — Admin Portal và Moderation.
  *
- * API backend đã có → luôn gọi thật: ContentCategory, TokenQuota/config, BusinessReport, Payment, StaffAccount
+ * API backend đã có → luôn gọi thật: ContentCategory, BusinessReport, Payment, StaffAccount
  * (Moderator và Administrator), ModerationQueue (danh sách, nhận xử lý, mở mục). Truyện của Content Creator: xem `creatorService.ts`.
  *
  */
@@ -19,8 +19,6 @@ const toStaff = (m: StaffAccountDto): StaffAccount => ({
   createdAt: m.activatedAt ?? m.inviteExpiresAt ?? '',
 });
 
-export type QuotaInput = { scope: 'System' | 'Personal'; userId: number | null; quotaLimit: number; periodStart: string; periodEnd: string };
-
 export const staffService = {
   // ---------- Danh mục nội dung ----------
   categories: (): Promise<ApiResponse<ContentCategory[]>> => apiRequest('/ContentCategory', 'Không tải được danh mục.'),
@@ -30,18 +28,12 @@ export const staffService = {
   updateCategory: (id: number, displayName: string, isActive: boolean, defaultBlockedAgeBands?: string[]): Promise<ApiResponse<ContentCategory>> =>
     apiRequest(`/ContentCategory/${id}`, 'Không lưu được danh mục.', { method: 'PUT', body: { displayName, isActive, defaultBlockedAgeBands } }),
 
-  // ---------- Token Quota ----------
-  quotaConfigs: (): Promise<ApiResponse<TokenQuotaConfig[]>> => apiRequest('/TokenQuota/config', 'Không tải được cấu hình quota.'),
-  setQuota: (input: QuotaInput): Promise<ApiResponse<TokenQuotaConfig>> =>
-    apiRequest('/TokenQuota/config', 'Không lưu được hạn mức.', { method: 'POST', body: input }),
-
   // ---------- Báo cáo nghiệp vụ, thanh toán ----------
   latestReport: (): Promise<ApiResponse<BusinessReport>> => apiRequest('/BusinessReport/latest-published', 'Chưa có báo cáo.'),
   generateReport: (periodStart: string, periodEnd: string): Promise<ApiResponse<BusinessReport>> =>
     apiRequest('/BusinessReport/generate', 'Không tổng hợp được báo cáo.', { method: 'POST', body: { periodStart, periodEnd } }),
   publishReport: (report: BusinessReport): Promise<ApiResponse<BusinessReport>> =>
     apiRequest(`/BusinessReport/${report.id}/publish`, 'Không công bố được.', { method: 'POST' }),
-  mismatchedPayments: (): Promise<ApiResponse<PaymentTransaction[]>> => apiRequest('/Payment/mismatched', 'Không tải được giao dịch.'),
   markPaid: (id: number): Promise<ApiResponse<PaymentTransaction>> => apiRequest(`/Payment/transactions/${id}/mark-paid`, 'Không xác nhận được.', { method: 'POST' }),
 
   // ---------- Tài khoản vận hành ----------

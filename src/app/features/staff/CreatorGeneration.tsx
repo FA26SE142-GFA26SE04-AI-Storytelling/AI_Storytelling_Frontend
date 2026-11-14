@@ -24,6 +24,7 @@ import { TabActions } from '@/app/features/story-workflow/tabActions';
 import StudioControls from '@/app/features/studio/StudioControls';
 import StageProgress from '@/app/features/studio/StageProgress';
 import CreatorBrief from './CreatorBrief';
+import UpgradeNotice from '@/app/components/UpgradeNotice';
 import CreatorMedia from './CreatorMedia';
 const continueMedia = mediaKeepPolling;
 /** Lỗi AI hay gặp, giải thích bằng tiếng Việt; mã lạ thì hiện nguyên mã. */
@@ -39,12 +40,12 @@ type Seed = { topic: string; lesson: string; genre: string; charactersText: stri
  * Vỏ ngoài: "bỏ truyện / quay lại sửa ý tưởng" dựng lại toàn bộ luồng bằng key mới, nên mọi trạng thái cũ (dàn ý, tiến trình) sạch hẳn.
  * Content Creator không có API huỷ truyện, nên đây chỉ là làm mới form; bản nháp vẫn nằm trong Thư viện.
  */
-export default function CreatorGeneration({ initialId = null }: { initialId?: number | null; onBack: () => void }) {
+export default function CreatorGeneration({ initialId = null, onBuyCredits }: { initialId?: number | null; onBack: () => void; onBuyCredits: () => void }) {
   const [run, setRun] = useState(0);
   const [seed, setSeed] = useState<Seed>(null);
-  return <CreatorGenerationRun key={run} initialId={run === 0 ? initialId : null} seed={seed} onReset={(next) => { setSeed(next); setRun((n) => n + 1); }} />;
+  return <CreatorGenerationRun key={run} initialId={run === 0 ? initialId : null} seed={seed} onBuyCredits={onBuyCredits} onReset={(next) => { setSeed(next); setRun((n) => n + 1); }} />;
 }
-function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number | null; seed: Seed; onReset: (seed: Seed) => void }) {
+function CreatorGenerationRun({ initialId, seed, onReset, onBuyCredits }: { initialId: number | null; seed: Seed; onReset: (seed: Seed) => void; onBuyCredits: () => void }) {
   const flow = useCreatorGeneration(initialId);
   // Nhớ truyện AI đang soạn để tải lại trang vẫn mở lại đúng truyện (truyện mới bắt đầu thì xóa).
   const { user: sessionUser } = useAuth();
@@ -104,7 +105,7 @@ function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number 
   const reviewing = flow.id !== null && flow.stage === 'review' && stage === 'review';
   // Bước Tranh & giọng đọc có bố cục riêng như phụ huynh: khung giữa + cột phải cuộn riêng (không còn một trang dài cuộn dọc).
   const mediaStage = flow.id !== null && flow.stage === 'media' && stage === 'media';
-  const publication = (hidden: boolean) => flow.id !== null && <CreatorPublication storyId={flow.id} versionId={versionId} storyStatus={storyStatus} onLockChange={setLocked} onRevision={refreshState} hidden={hidden} />;
+  const publication = (hidden: boolean) => flow.id !== null && <CreatorPublication storyId={flow.id} versionId={versionId} storyStatus={storyStatus} onLockChange={setLocked} onRevision={refreshState} hidden={hidden} onBuyCredits={onBuyCredits} />;
   const waiting = flow.id !== null && !flow.failure && ['checking', 'outline_wait', 'generating', 'moderation'].includes(stage);
   // Thử lại bước AI vừa lỗi (như phụ huynh): viết truyện / học liệu qua generation/retry, hoặc tạo dàn ý lần đầu qua outline/retry.
   // Lỗi khi viết lại dàn ý đã có thì không có ở đây: bấm "Viết lại" trong dàn ý.
@@ -119,7 +120,7 @@ function CreatorGenerationRun({ initialId, seed, onReset }: { initialId: number 
     if (r && r.status !== 0 && (r.status ?? 0) < 500) retryKey.current = null;
   };
   const notices = <>
-    {(flow.message || flow.error || contextError) && <p className="notice" role="status">{flow.error || contextError || flow.message}</p>}
+    {flow.limit && !flow.error && !contextError ? <UpgradeNotice notice={flow.limit} actionLabel="Mua Gói Creator" onUpgrade={onBuyCredits} /> : (flow.message || flow.error || contextError) && <p className="notice" role="status">{flow.error || contextError || flow.message}</p>}
     {flow.timedOut && <p className="notice" role="status">Đã dừng theo dõi tự động. Kiểm tra trạng thái trước khi gửi lệnh khác.</p>}
     {flow.input && flow.input.inputStatus !== 'input_accepted' && <><p>{flow.input.fallbackMessage ?? 'Đang kiểm tra ý tưởng…'}</p>{flow.input.canRetry && submitted && <button className="btn btn-s" disabled={flow.busy} onClick={() => void flow.retry(submitted!)}>Kiểm tra lại</button>}</>}
     {flow.failure && <div className="notice err" role="alert" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>

@@ -55,7 +55,7 @@ function resultOf<T>(ops: B.ParentOperationDto[], kind: string, versionId: numbe
   const value = ops.filter(o => o.kind === kind && o.sourceIsCurrent && o.storyVersionId === versionId && !o.revokedAt).sort((a,b) => b.id - a.id)[0]?.result;
   return value && typeof value === 'object' ? value as T : null;
 }
-export default function ParentAuthoringWorkspace({ childId, initialStoryId = null, onChangeKid, onDone }: { childId: number; initialStoryId?: number | null; onChangeKid?: () => void; onDone?: () => void }) {
+export default function ParentAuthoringWorkspace({ childId, initialStoryId = null, onChangeKid, onDone, onUpgrade }: { childId: number; initialStoryId?: number | null; onChangeKid?: () => void; onDone?: () => void; onUpgrade?: () => void }) {
   const h = useParentAuthoring(childId);
   // Mở thẳng bản nháp được chọn từ Thư viện. Đợi danh sách tải xong, vì lần tải danh sách đầu tiên huỷ mọi lần mở bản nháp trước đó.
   const opened = useRef(false);
@@ -237,7 +237,7 @@ export default function ParentAuthoringWorkspace({ childId, initialStoryId = nul
               </Dialog>}
               {h.draft && <ParentSetupPanel key={`${story.storyId}:${story.revisionToken}`} draft={h.draft} disabled={!canWrite||dirty} onSave={value=>void h.write((id,cmd)=>service.setup(id,{...cmd,...value}))}/>}
             </section>
-            {h.draft?.canUseAiAssistance && <details className="pa-fold"><summary>AI gợi ý theo bản nháp</summary><AssistancePanel key={`${story.storyId}:${story.selectedVersionId}`} actor="parent" story={story} selection={selection} snapshot={{title:form.title,content:form.content}} disabled={!canWrite} onApply={(next,ref) => { setForm(f => ({...f,...next})); setSelection(null);setReferences(v => v.some(r=>r.taskId===ref.taskId&&r.stepId===ref.stepId)?v:[...v,ref]); }} /></details>}
+            {h.draft?.canUseAiAssistance && <details className="pa-fold"><summary>AI gợi ý theo bản nháp</summary><AssistancePanel key={`${story.storyId}:${story.selectedVersionId}`} onUpgrade={onUpgrade} actor="parent" story={story} selection={selection} snapshot={{title:form.title,content:form.content}} disabled={!canWrite} onApply={(next,ref) => { setForm(f => ({...f,...next})); setSelection(null);setReferences(v => v.some(r=>r.taskId===ref.taskId&&r.stepId===ref.stepId)?v:[...v,ref]); }} /></details>}
             {h.draft && !h.draft.canUseAiAssistance && <p className="notice" role="status">Hỗ trợ AI chưa khả dụng: {h.draft.aiUnavailableReason}</p>}
             <section className="pa-card"><fieldset className="pa-fieldset" disabled={!canWrite}><AuthoringGuides onInsert={text => setForm(f => ({ ...f,content:f.content ? `${f.content}\n\n${text}` : text }))} /></fieldset></section>
             <section className="pa-card" aria-label="Lịch sử phiên bản">

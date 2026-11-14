@@ -188,3 +188,7 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
 /* Ghi chú trong trình tạo hồ sơ bé: khung có biểu tượng thay cho dòng chữ nhỏ. */
 .wiz-note { display: flex; align-items: center; gap: 8px; margin: 0; font-size: var(--fs-sm); }
 .wiz-note .ic { width: 18px; height: 18px; flex: none; color: var(--primary-strong); }
+
+.reading-slots { padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--r-md, 12px); background: var(--surface); }
+.reading-slots-list { display: flex; flex-wrap: wrap; gap: 8px 16px; }
+.reading-slots-item { display: inline-flex; align-items: center; gap: 6px; font-size: var(--fs-md); }

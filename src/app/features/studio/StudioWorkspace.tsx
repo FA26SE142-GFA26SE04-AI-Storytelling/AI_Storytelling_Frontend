@@ -99,6 +99,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
       {section === "review" && p.storyId !== null ? (
         <ReviewGate
           key={p.storyId}
+          onUpgrade={() => go("account-payment")}
           storyId={p.storyId}
           ageBand={p.snapshot?.story?.ageBand ?? child?.ageBand ?? ""}
           onApproved={() => { p.refresh(); void reload(); }}
@@ -118,6 +119,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           refresh={p.refresh}
           onOutlineApproved={() => { setApproved(true); p.refresh(); }}
           kidName={child?.nickname ?? "Bé"}
+          onUpgrade={() => go("account-payment")}
           onChangeKid={p.storyId === null && kids.length > 1 ? onChangeKid : undefined}
         />
       )}

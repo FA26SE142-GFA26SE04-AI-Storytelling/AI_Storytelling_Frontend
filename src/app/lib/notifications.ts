@@ -38,7 +38,21 @@ const TEXT: Record<string, string> = {
   payment_confirmed: "Thanh toán thành công",
 };
 
-export const notificationText = (n: AppNotification) => TEXT[notificationKey(n.type)] ?? "Bạn có thông báo mới";
+/** Tên gói trong payload của thông báo nhắc gia hạn; payload thiếu hoặc hỏng thì dùng cách gọi chung. */
+function expiringPlanName(payload: string | null): string {
+  try {
+    const name = payload ? (JSON.parse(payload) as { planName?: unknown }).planName : null;
+    return typeof name === "string" && name.trim() ? name : "Gói của bạn";
+  } catch {
+    return "Gói của bạn";
+  }
+}
+
+export const notificationText = (n: AppNotification) => {
+  const key = notificationKey(n.type);
+  if (key === "subscription_expiring") return `${expiringPlanName(n.payload)} sắp hết hạn, hãy gia hạn để không gián đoạn`;
+  return TEXT[key] ?? "Bạn có thông báo mới";
+};
 
 /** Backend dùng trạng thái `Unread` / `Read`. */
 export const isUnread = (n: AppNotification) => !n.readAt && n.status.toLowerCase() !== "read";

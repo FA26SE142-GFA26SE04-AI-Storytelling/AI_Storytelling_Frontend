@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { AlertTriangle, BookOpen, Check, Library, Lock, Plus, X } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";
 import Dialog from "@/app/components/Dialog";
+import UpgradeNotice from "@/app/components/UpgradeNotice";
+import { limitMessage, type LimitNotice } from "@/app/lib/billing";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import { guardianService, type ChildRef } from "@/app/services/guardianService";
@@ -38,7 +40,7 @@ const DAYS_HINT = "Tính từ lúc truyện được mở cho bé. Quá ngày ch
  * Với lộ trình mẫu, kế hoạch sao chép tự tải lại mỗi khi đổi lựa chọn để phụ huynh thấy trước truyện nào được thêm.
  * Mỗi bé được kiểm tra riêng; bé không phù hợp bị bỏ qua và liệt kê lại (BR-4.A1).
  */
-export default function AddToRoadmapDialog({ story, template, childId, single, onClose, onDone }: {
+export default function AddToRoadmapDialog({ story, template, childId, single, onClose, onDone, onUpgrade }: {
   story?: RoadmapStoryInput;
   template?: RoadmapTemplate;
   /** Bé chọn sẵn; không truyền thì người dùng tự chọn bé trong hộp thoại. */
@@ -47,6 +49,8 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
   single?: boolean;
   onClose: () => void;
   onDone?: () => void;
+  /** Mở trang gói khi gói hiện tại chưa gồm sao chép bộ truyện mẫu. */
+  onUpgrade: () => void;
 }) {
   const { children: kids } = useWorkspaceData();
   const refs = useChildRefs();
@@ -57,6 +61,7 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
   const [days, setDays] = useState<number | null>(template?.defaultDaysPerStep ?? null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
+  const [limit, setLimit] = useState<LimitNotice | null>(null);
   const [result, setResult] = useState<RoadmapAddResult | null>(null);
   const fixed = single ? kids.find((k) => k.id === childId) : undefined;
   const title = `${template ? "Thêm lộ trình mẫu" : "Thêm vào lộ trình"}${fixed ? ` cho ${fixed.nickname}` : ""}`;
@@ -88,11 +93,16 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
   const submit = async () => {
     if (!chosen.length) { showToast("Hãy chọn ít nhất một bé.", "warn"); return; }
     setBusy(true);
+    setLimit(null);
     const r = template
       ? await guardianService.applyTemplate(chosen, template, position, days)
       : await guardianService.addToRoadmap(chosen, story!, position, days, note.trim() || null);
     setBusy(false);
-    if (!(r.success && r.data)) { showToast(r.message, "err"); return; }
+    if (!(r.success && r.data)) {
+      const notice = template ? limitMessage(r, "roadmap-copy") : null;
+      if (notice) setLimit(notice); else showToast(r.message, "err");
+      return;
+    }
     onDone?.();
     // Thêm trọn vẹn thì chỉ báo bằng toast rồi đóng; có bé bị bỏ qua hoặc có cảnh báo thì giữ hộp thoại để đọc chi tiết.
     if (r.data.skipped.length === 0 && !r.data.warnings?.length) {
@@ -224,6 +234,7 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
           </div>
         )}
 
+        {limit && <UpgradeNotice notice={limit} onUpgrade={() => { onClose(); onUpgrade(); }} />}
         <div className="atr-foot">
           <button className="btn btn-g" onClick={onClose}><X className="ic" />Hủy</button>
           <button className="btn btn-p" disabled={!canSubmit} onClick={() => void submit()}>

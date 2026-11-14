@@ -29,7 +29,7 @@ export const WORKSPACES: WorkspaceEntry[] = [
   { id: "children", label: "Hồ sơ bé", icon: Users, inMenu: "kids" },
   { id: "report", label: "Báo cáo", icon: ChartColumn, inMenu: "kids" },
   { id: "account", label: "Thông tin cá nhân", icon: UserRound, inMenu: "account" },
-  { id: "account-payment", label: "Nâng cấp gói", icon: CreditCard, inMenu: "account" },
+  { id: "account-payment", label: "Gói của tôi", icon: CreditCard, inMenu: "account" },
   { id: "account-activity", label: "Lịch sử hoạt động", icon: Activity, inMenu: "account" },
 ];
 

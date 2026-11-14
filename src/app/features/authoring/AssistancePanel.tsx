@@ -6,6 +6,7 @@ import { useAssistance } from '@/app/features/story-workflow/useAssistance';
 import { applyAssistancePatch } from '@/app/features/story-workflow/assistancePatch';
 import { assistanceTarget, type AssistanceSelection } from '@/app/features/story-workflow/assistanceSelection';
 import Select from '@/app/components/Select';
+import UpgradeNotice from '@/app/components/UpgradeNotice';
 import { confirmDialog } from '@/app/lib/confirm';
 
 /** Ba cách nhờ AI; giá trị gửi backend giữ nguyên. */
@@ -30,7 +31,7 @@ const STEP_STATUS: Record<string, string> = { Running: 'đang chạy', Succeeded
  * Khung "AI gợi ý" dùng chung cho phụ huynh, Creator và màn duyệt nội dung.
  * Chia ba bước rõ ràng: 1) nói AI cần gì → 2) chọn hướng (hoặc đọc nhận xét) → 3) xem bản viết thử và đưa vào bài.
  */
-export default function AssistancePanel({ actor, story, snapshot, selection, disabled, onApply }: { actor: 'parent' | 'creator'; story: Pick<B.CreatorDraftDto, 'storyId' | 'revisionToken' | 'selectedVersionId'>; snapshot: B.EditorSnapshot; selection?: AssistanceSelection | null; disabled: boolean; onApply: (snapshot: B.EditorSnapshot, reference: B.AssistanceReference) => void }) {
+export default function AssistancePanel({ actor, story, snapshot, selection, disabled, onApply, onUpgrade }: { actor: 'parent' | 'creator'; story: Pick<B.CreatorDraftDto, 'storyId' | 'revisionToken' | 'selectedVersionId'>; snapshot: B.EditorSnapshot; selection?: AssistanceSelection | null; disabled: boolean; onApply: (snapshot: B.EditorSnapshot, reference: B.AssistanceReference) => void; onUpgrade?: () => void }) {
   const h = useAssistance(actor, story.storyId);
   const [goal, setGoal] = useState(''); const [entry, setEntry] = useState<string>('ContinueWriting');
   const [answer, setAnswer] = useState(''); const [direction, setDirection] = useState(''); const [notice, setNotice] = useState('');
@@ -101,6 +102,7 @@ export default function AssistancePanel({ actor, story, snapshot, selection, dis
       {stages.map((label, i) => <li key={label} className={i + 1 < stage ? 'done' : i + 1 === stage ? 'on' : ''}><span className="as-dot">{i + 1 < stage ? <Check className="ic" aria-hidden /> : i + 1}</span>{label}</li>)}
     </ol>
 
+    {h.limit && !notice && <UpgradeNotice notice={h.limit} onUpgrade={onUpgrade ?? (() => undefined)} />}
     {(h.message || notice) && <p className="notice" role="status">{notice || h.message}</p>}
     {h.timedOut && <p className="notice warn" role="status">Đã dừng theo dõi tự động. Bấm Tải lại để kiểm tra trước khi chạy lệnh mới.</p>}
     {h.uncertain && <button className="btn btn-s" disabled={h.busy} onClick={() => void h.retry()}><RefreshCw className="ic" />Thử lại</button>}

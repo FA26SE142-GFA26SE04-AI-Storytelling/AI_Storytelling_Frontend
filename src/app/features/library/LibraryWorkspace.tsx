@@ -535,8 +535,8 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
       </AsidePane>
       {sel && dialog === "preview" && <Preview story={sel} onClose={() => setDialog(null)} />}
       {openedTpl && <TemplateDialog item={openedTpl} onClose={() => setOpenedTpl(null)} onAdd={(d) => { setOpenedTpl(null); setAddingTpl(roadmapTemplate(d)); }} />}
-      {addingTpl && <AddToRoadmapDialog template={addingTpl} childId={pickKid?.id} single={!!pickKid} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setAddingTpl(null))} />}
-      {sel && dialog === "roadmap" &&<AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} childId={pickKid?.id} single={!!pickKid} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setDialog(null))} />}
+      {addingTpl && <AddToRoadmapDialog onUpgrade={() => go("account-payment")} template={addingTpl} childId={pickKid?.id} single={!!pickKid} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setAddingTpl(null))} />}
+      {sel && dialog === "roadmap" &&<AddToRoadmapDialog onUpgrade={() => go("account-payment")} story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} childId={pickKid?.id} single={!!pickKid} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setDialog(null))} />}
       {sel && dialog === "report" && <ReportDialog story={sel} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
       {sel && dialog === "community" && <CommunityDialog story={sel} nickname="" onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); void loadMod(); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}

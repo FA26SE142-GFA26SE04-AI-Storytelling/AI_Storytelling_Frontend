@@ -144,14 +144,14 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged, go
         )}
       </section>
 
-      {canEdit && <TemplateShelf child={child} disabled={!active} onAdded={onChanged} />}
+      {canEdit && <TemplateShelf child={child} disabled={!active} onAdded={onChanged} go={go} />}
 
     </>
   );
 }
 
 /** Lộ trình mẫu do Moderator soạn: mặc định chỉ hiện các bộ hợp nhóm tuổi của bé, tìm được theo tên. */
-function TemplateShelf({ child, disabled, onAdded }: { child: ChildProfile; disabled: boolean; onAdded: () => void }) {
+function TemplateShelf({ child, disabled, onAdded, go }: { child: ChildProfile; disabled: boolean; onAdded: () => void; go: (id: WorkspaceId) => void }) {
   const { templates, error } = useRoadmapTemplates();
   const [q, setQ] = useState("");
   const [all, setAll] = useState(false);
@@ -185,7 +185,7 @@ function TemplateShelf({ child, disabled, onAdded }: { child: ChildProfile; disa
         : <div className="shelf-grid lr-albums">{shown.map((t) => <RoadmapAlbum key={t.id} item={t} onOpen={() => setOpened(t)} />)}</div>}
 
       {opened && <TemplateDialog item={opened} onClose={() => setOpened(null)} onAdd={(d) => { setOpened(null); if (disabled) showToast(`Hồ sơ của ${child.nickname} chưa hoạt động nên chưa thêm truyện được.`, "warn"); else setAdding(roadmapTemplate(d)); }} />}
-      {adding && <AddToRoadmapDialog single childId={child.id} template={adding} onClose={() => setAdding(null)} onDone={onAdded} />}
+      {adding && <AddToRoadmapDialog single childId={child.id} template={adding} onClose={() => setAdding(null)} onDone={onAdded} onUpgrade={() => go("account-payment")} />}
     </section>
   );
 }

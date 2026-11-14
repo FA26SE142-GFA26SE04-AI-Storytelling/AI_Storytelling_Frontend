@@ -1,4 +1,4 @@
-/** DTO snapshot, updated against Core controllers and media models on 2026-10-22. */
+/** DTO snapshot, updated against Core controllers and media models on 2026-10-22; Payment and TokenQuota on 2026-11-10. */
 import type { MediaPackageState } from '@/app/types/aiStory';
 export interface AIProposalDto {
   'proposalId': string;
@@ -1272,10 +1272,12 @@ export interface PaymentTransactionDto {
   'id': number;
   'planId': number;
   'planName': string;
+  'planType': string;
   'amount': number;
   'transactionCode': string;
   'qrCodeUrl': string | null;
   'status': string;
+  'createdAt': string;
   'expiresAt': string;
   'paidAt': string | null;
   'sepayTransactionId': string | null;
@@ -1840,15 +1842,6 @@ export interface SetSafetyPolicyRequestDto {
   'categories': (SetSafetyPolicyCategoryRequestDto)[];
 }
 
-export interface SetTokenQuotaConfigRequestDto {
-  'scope': string;
-  'childProfileId': number | null;
-  'userId': number | null;
-  'quotaLimit': number;
-  'periodStart': string;
-  'periodEnd': string;
-}
-
 export interface StaffActivationRequestDto {
   'email': string;
   'inviteToken': string;
@@ -1974,11 +1967,20 @@ export interface SubmitPublicStoryRequestDto {
   'contentCategoryIds': (number)[];
 }
 
+export type PlanType = 'Reading' | 'Creative' | 'AddOn' | 'CreatorPack' | 'Legacy';
+export type PlanAudience = 'User' | 'Creator';
+
 export interface SubscriptionPlanDto {
   'id': number;
   'name': string;
+  'planType': PlanType;
+  'audience': PlanAudience;
   'priceVnd': number;
-  'quotaAmount': number;
+  'aiCredits': number;
+  'submitCredits': number;
+  'isPurchasable': boolean;
+  'lockedReason': string | null;
+  'benefits': PlanBenefitsDto | null;
 }
 
 export interface SuggestAssistanceRequest {
@@ -2006,15 +2008,24 @@ export interface TextSelectionDto {
   'text': string;
 }
 
-export interface TokenQuotaConfigDto {
-  'id': number;
-  'scope': string;
-  'childProfileId': number | null;
-  'userId': number | null;
-  'quotaLimit': number;
-  'quotaUsed': number;
-  'periodStart': string;
-  'periodEnd': string;
+export interface QuotaPlanDto {
+  'planType': string;
+  'planName': string;
+  'startAt': string;
+  'endAt': string;
+}
+
+export interface MyQuotaDto {
+  'plan': QuotaPlanDto | null;
+  'nextPlan': QuotaPlanDto | null;
+  'trialCredits': number;
+  'cycleCredits': number;
+  'addOnCredits': number;
+  'otherCredits': number;
+  'totalRemaining': number;
+  'benefits': QuotaBenefitsDto | null;
+  'newLibraryStoriesThisWeek': number;
+  'writingAssistsToday': number;
 }
 
 export interface TokenQuotaStatusDto {
@@ -2850,3 +2861,252 @@ export interface SetRoadmapItemsRequestDto {
 /** Creator Manual Phase 5 extension from the current local backend source. */
 export interface ConfirmManualContentRequest { versionId: number; revisionToken: string }
 export interface ConfirmManualContentResult { storyId: number; versionId: number; jobId: number; status: string; jobStatus: string; progressUrl: string; packageUrl: string }
+
+export interface PlanBenefitsDto {
+  maxChildProfiles: number;
+  weeklyNewLibraryStories: number | null;
+  canCopyRoadmapTemplates: boolean;
+  readAloudPerMonth: number | null;
+  writingAssistPerDay: number;
+}
+
+export interface QuotaBenefitsDto extends PlanBenefitsDto {
+  tier: string;
+  planId: number | null;
+}
+
+export interface CreatorCreditBucketDto {
+  monthlyAllowance: number;
+  monthlyRemaining: number;
+  purchasedRemaining: number;
+  otherRemaining: number;
+  totalRemaining: number;
+}
+
+export interface CreatorQuotaDto {
+  aiCredits: CreatorCreditBucketDto;
+  submitCredits: CreatorCreditBucketDto;
+  monthlyAllowanceResetsAt: string;
+}
+
+export interface ReadingSlotProfileDto {
+  childProfileId: number;
+  nickname: string;
+  canRead: boolean;
+  isSelected: boolean;
+}
+
+export interface ReadingSlotsDto {
+  slots: number;
+  isOverLimit: boolean;
+  nextChangeAllowedAt: string | null;
+  profiles: ReadingSlotProfileDto[];
+}
+
+export interface AdminPaymentTransactionDto extends PaymentTransactionDto {
+  payerUserId: number;
+  payerEmail: string;
+  payerName: string;
+}
+
+export interface CreditAdjustmentDto {
+  id: number;
+  userId: number;
+  amount: number;
+  reason: string;
+  adminId: number;
+  adminName: string;
+  createdAt: string;
+  totalRemainingAfter: number | null;
+}
+
+export interface ReconciliationExceptionDto {
+  id: number;
+  status: 'Open' | 'Resolved';
+  reason: string;
+  createdAt: string;
+  resolvedAt: string | null;
+  resolvedByName: string | null;
+  transaction: AdminPaymentTransactionDto;
+}
+
+export interface AdminPlanDto {
+  id: number;
+  name: string;
+  planType: PlanType;
+  audience: PlanAudience;
+  priceVnd: number;
+  aiCredits: number;
+  submitCredits: number;
+  isActive: boolean;
+  benefits: PlanBenefitsDto | null;
+}
+
+export interface SavePlanRequest {
+  name: string;
+  priceVnd: number;
+  aiCredits: number;
+  submitCredits?: number;
+  isActive: boolean;
+  benefits?: PlanBenefitsDto;
+}
+
+export interface CreatePlanRequest extends SavePlanRequest {
+  audience: PlanAudience;
+  planType: PlanType;
+}
+
+export interface PlanSettingsDto {
+  readingFundPercent: number;
+  creativeFundPercent: number;
+  creatorMonthlyAiCredits: number;
+  creatorMonthlySubmitCredits: number;
+  partnerMonthlyAiCredits: number;
+  partnerMonthlySubmitCredits: number;
+  minimumReadSeconds: number;
+  trialAiCredits: number;
+  freeMaxChildProfiles: number;
+  freeWeeklyNewLibraryStories: number | null;
+  freeCanCopyRoadmapTemplates: boolean;
+  freeReadAloudPerMonth: number | null;
+  freeWritingAssistPerDay: number;
+  creatorWritingAssistPerDay: number;
+  partnerWritingAssistPerDay: number;
+  updatedAt: string | null;
+}
+
+/** Nội dung PUT /Payment/admin/settings: 15 trường cấu hình, không có updatedAt. */
+export type UpdatePlanSettingsRequest = Omit<PlanSettingsDto, 'updatedAt'>;
+
+export interface TransactionStatusCountsDto {
+  paid: number;
+  pending: number;
+  expired: number;
+  mismatchAmount: number;
+}
+
+export interface PlanRevenueDto {
+  planId: number;
+  planName: string;
+  planType: string;
+  transactionCount: number;
+  revenueVnd: number;
+}
+
+export interface PlanTypeRevenueDto {
+  planType: string;
+  transactionCount: number;
+  revenueVnd: number;
+}
+
+export interface CreditSourceCountDto {
+  source: string;
+  credits: number;
+}
+
+export interface RevenueStatisticsDto {
+  periodStart: string;
+  periodEnd: string;
+  totalRevenueVnd: number;
+  paidTransactionCount: number;
+  transactionsByStatus: TransactionStatusCountsDto;
+  revenueByPlan: PlanRevenueDto[];
+  revenueByPlanType: PlanTypeRevenueDto[];
+  buyingParents: number;
+  repeatBuyingParents: number;
+  manuallyMarkedPaidCount: number;
+  manuallyMarkedPaidRevenueVnd: number;
+  creditsGranted: number;
+  creditsGrantedBySource: CreditSourceCountDto[];
+  creditsUsed: number;
+  readingFundRate: number;
+  creativeFundRate: number;
+  creatorFundVnd: number;
+}
+
+export interface AccountStatisticsDto {
+  periodStart: string;
+  periodEnd: string;
+  totalParentAccounts: number;
+  newAccounts: number;
+  activeAccounts: number;
+  lockedOrDisabledAccounts: number;
+  childProfiles: number;
+}
+
+export interface AdminBusinessReportDto extends BusinessReportDto {
+  revenue: RevenueStatisticsDto | null;
+  accounts: AccountStatisticsDto | null;
+}
+
+export interface CreatorStoryReadingDto {
+  storyId: number;
+  title: string;
+  views: number;
+  favorites: number;
+  completedReadings: number;
+  validReads: number;
+  completionRate: number;
+}
+
+export interface CreatorReadingStatisticsDto {
+  periodStart: string;
+  periodEnd: string;
+  views: number;
+  favorites: number;
+  completedReadings: number;
+  validReads: number;
+  completionRate: number;
+  stories: CreatorStoryReadingDto[];
+}
+
+export interface CreatorStoryRevenueDto {
+  storyId: number;
+  title: string;
+  validReads: number;
+  estimatedEarningsVnd: number;
+}
+
+export interface CreatorRevenueStatisticsDto {
+  periodStart: string;
+  periodEnd: string;
+  creatorFundVnd: number;
+  readingFundRate: number;
+  creativeFundRate: number;
+  minimumReadSeconds: number;
+  totalValidReadsAllCreators: number;
+  myValidReads: number;
+  estimatedEarningsVnd: number;
+  stories: CreatorStoryRevenueDto[];
+}
+
+export interface PartnerCriterionDto {
+  key: string;
+  current: number;
+  target: number;
+  met: boolean;
+}
+
+export interface PartnerProgressDto {
+  windowStart: string;
+  windowEnd: string;
+  isEligible: boolean;
+  criteria: PartnerCriterionDto[];
+}
+
+export interface CreatorContentStatisticsDto {
+  periodStart: string;
+  periodEnd: string;
+  draft: number;
+  ready: number;
+  pendingReview: number;
+  published: number;
+  submissionsApproved: number;
+  submissionsRejected: number;
+  submissionsChangesRequested: number;
+  submissionsWithdrawn: number;
+  remainingAiCredits: number;
+  remainingSubmitCredits: number;
+  tier: string;
+  partnerProgress: PartnerProgressDto;
+}

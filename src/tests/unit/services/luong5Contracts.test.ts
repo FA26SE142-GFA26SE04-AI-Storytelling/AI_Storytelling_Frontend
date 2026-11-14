@@ -12,7 +12,6 @@ afterEach(() => vi.restoreAllMocks());
 
 describe('Luồng 5 — quản trị và kiểm duyệt', () => {
   it.each([
-    ['hạn mức riêng một tài khoản', () => staffService.setQuota({ scope: 'Personal', userId: 13, quotaLimit: 5, periodStart: '2026-10-01', periodEnd: '2026-10-31' }), '/TokenQuota/config', { scope: 'Personal', userId: 13, quotaLimit: 5, periodStart: '2026-10-01', periodEnd: '2026-10-31' }],
     ['giữ danh sách chặn theo tuổi khi sửa danh mục', () => staffService.updateCategory(2, 'Bạo lực', true, ['Age_6_8', 'Age_9_10']), '/ContentCategory/2', { displayName: 'Bạo lực', isActive: true, defaultBlockedAgeBands: ['Age_6_8', 'Age_9_10'] }],
   ] as const)('%s', async (_name, call, route, payload) => {
     const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody());

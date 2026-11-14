@@ -7,15 +7,19 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import Frog from "@/app/components/brand/Frog";
+import type { ReadingSlotsDto } from "@/app/types/backendContracts";
 import { avatarOf, childStatus } from "@/app/lib/guardian";
 import { ageLabel } from "@/app/lib/storyView";
 import { useRiseIn } from "@/app/lib/motion";
+import UpgradeNotice from "@/app/components/UpgradeNotice";
+import { limitMessage, type LimitNotice } from "@/app/lib/billing";
 import CreateChildWizard from "./CreateChildWizard";
 import { clearChildIntent, wantsChildCreate } from "./childrenIntent";
 import ProfileTab from "./ProfileTab";
 import LearningTab from "./LearningTab";
 import SafetyTab from "@/app/features/safety/SafetyWorkspace";
 import AccessTab from "./AccessTab";
+import ReadingSlotsCard from "./ReadingSlotsCard";
 import { childProfileService } from "@/app/services/childProfileService";
 import { forgetArchived, listArchived, rememberArchived, type ArchivedChild } from "@/app/lib/archivedChildren";
 
@@ -28,7 +32,7 @@ const TABS: { id: Tab; label: string }[] = [
 ];
 
 /** Luồng 1 — khu quản lý hồ sơ bé ("Con của tôi", Bước 1.9). */
-export default function ChildrenWorkspace(_props: WorkspaceProps) {
+export default function ChildrenWorkspace({ go }: WorkspaceProps) {
   const { user } = useAuth();
   const { children: kids, reloadChildren } = useWorkspaceData();
   // Mở từ nút "+ Thêm bé" ở màn khác thì vào thẳng form tạo hồ sơ.
@@ -42,7 +46,10 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
   const [selId, setSelId] = useState<number | null>(null);
   const child = kids.find((k) => k.id === selId) ?? sortedKids[0] ?? null;
   const [archived, setArchived] = useState<ArchivedChild[]>([]);
+  const [viewOnly, setViewOnly] = useState<Set<number>>(new Set());
+  const onSlots = (d: ReadingSlotsDto) => setViewOnly(new Set(d.isOverLimit ? d.profiles.filter((p) => !p.canRead).map((p) => p.childProfileId) : []));
   const [restoreNote, setRestoreNote] = useState<string | null>(null);
+  const [restoreLimit, setRestoreLimit] = useState<LimitNotice | null>(null);
   useEffect(() => { setArchived(listArchived(meId)); }, [meId]);
   const restored = async (id: number) => {
     forgetArchived(meId, id);
@@ -51,7 +58,12 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
   };
   const restore = async (c: ArchivedChild) => {
     const r = await childProfileService.restoreChildProfile(c.id);
-    if (!r.success) { setRestoreNote(r.message); return; }
+    setRestoreLimit(null);
+    if (!r.success) {
+      const limit = limitMessage(r, "child-profile");
+      if (limit) { setRestoreNote(null); setRestoreLimit(limit); } else setRestoreNote(r.message);
+      return;
+    }
     setRestoreNote(`Đã khôi phục hồ sơ ${c.nickname}. Hãy tạo mã đăng nhập nhanh mới cho bé.`);
     await restored(c.id);
   };
@@ -77,6 +89,7 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
                 <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
                 <span className="grow"><b>{k.nickname}</b><small>{ageLabel(k.ageBand)}</small></span>
                 <span className={`pill ${st.tone}`}>{st.label}</span>
+                {viewOnly.has(k.id) && <span className="pill draft">Chỉ xem</span>}
               </button>
             );
           })}
@@ -88,14 +101,16 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
               <button className="btn btn-g" onClick={() => void restore(c)}><RotateCcw className="ic" />Khôi phục</button>
             </div>)}
           </div>}
+          {restoreLimit && <UpgradeNotice notice={restoreLimit} onUpgrade={() => go("account-payment")} />}
           {restoreNote && <div className="notice warn" role="status">{restoreNote}</div>}
         </div>
       </div>
 
       <div className="pane children-main">
+        <ReadingSlotsCard key={kids.length} onChanged={() => void reloadChildren()} onLoaded={onSlots} />
         {mode === "create" && (
           <>
-            <CreateChildWizard onDone={(id) => void open(id)} onCancel={() => setMode("view")} />
+            <CreateChildWizard onUpgrade={() => go("account-payment")} onDone={(id) => void open(id)} onCancel={() => setMode("view")} />
           </>
         )}
         {mode === "view" && !child && (

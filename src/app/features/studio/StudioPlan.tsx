@@ -26,6 +26,8 @@ type Props = {
   onOutlineApproved: () => void;
   /** Tên bé đang được tạo truyện, hiện ở đầu cột phải. */
   kidName: string;
+  /** Mở trang gói khi bị chặn vì hết lượt của gói. */
+  onUpgrade: () => void;
   /** Có thì hiện nút đổi bé ở đầu cột phải (chỉ khi chưa gửi ý tưởng và có nhiều bé). */
   onChangeKid?: () => void;
 };
@@ -40,7 +42,7 @@ function autoView(stage: Stage): View {
   return "status";
 }
 
-export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, retryFailed, refresh, onOutlineApproved, kidName, onChangeKid }: Props) {
+export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, retryFailed, refresh, onOutlineApproved, kidName, onChangeKid, onUpgrade }: Props) {
   // Lựa chọn tab chỉ có hiệu lực trong bước đã chọn; sang bước mới thì quay về view mặc định.
   const [choice, setChoice] = useState<{ stage: Stage; view: View } | null>(null);
   const hasOutline = !!snapshot?.outline?.currentVersion && storyId !== null;
@@ -70,7 +72,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
         <div className="plan-stage">
           <PondBackdrop />
           <div ref={viewRef} className="plan-view">
-            {view === "brief" && <div className="plan-scroll"><BriefForm flow={flow} locked={stage !== "brief"} /></div>}
+            {view === "brief" && <div className="plan-scroll"><BriefForm flow={flow} locked={stage !== "brief"} onUpgrade={onUpgrade} /></div>}
             {/* Luôn dựng khi đã có dàn ý (ẩn khi xem tab khác) để nút duyệt trên thanh tiến trình còn đó. */}
             {hasOutline && storyId !== null && (
               <div className="plan-scroll" hidden={view !== "outline"}>
