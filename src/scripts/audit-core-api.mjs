@@ -75,7 +75,7 @@ for(const file of all.filter(p=>p.includes(`${path.sep}services${path.sep}`))) {
      const imports=[...u.text.matchAll(new RegExp(`\\b${service}(?:\\s+as\\s+(\\w+))?\\b`,'g'))];
      const aliases=new Set([service,...imports.map(m=>m[1]).filter(Boolean)]);
      for(const decl of u.text.matchAll(/const\s+(\w+)\s*=\s*([^;\n]+)/g))if([...aliases].some(a=>new RegExp(`\\b${a}\\b`).test(decl[2])))aliases.add(decl[1]);
-     if([...aliases].some(alias=>new RegExp(`\\b${alias}\\.${name}\\b`).test(u.text)))callers.push(path.relative(root,u.p).replaceAll('\\','/'));
+     if([...aliases].some(alias=>new RegExp(`\\b${alias}\\s*\\.${name}\\b`).test(u.text)))callers.push(path.relative(root,u.p).replaceAll('\\','/'));
      if(/^(parent|creator)AssistanceService$/.test(service)&&u.text.includes('useAssistance(')&&u.text.includes(`h.api.${name}(`))callers.push(path.relative(root,u.p).replaceAll('\\','/'));
     }
     evidence.push({key,service,operation:name,file:path.relative(root,file).replaceAll('\\','/'),line:source.getLineAndCharacterOfPosition(n.getStart(source)).line+1,callers});
