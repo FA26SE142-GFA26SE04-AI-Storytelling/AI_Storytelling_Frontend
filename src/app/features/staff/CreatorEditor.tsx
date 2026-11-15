@@ -175,7 +175,7 @@ export default function CreatorEditor({ storyId, onBack, onBuyCredits }: { story
   return (
     <>
       <div className="st-card ce-head">
-        <div className="row" style={{ flexWrap: "wrap" }}>
+        <div className="row ce-head-row">
           <button className="btn btn-g" onClick={async () => { if (!dirty || await confirmDialog("Bỏ các thay đổi chưa lưu?")) onBack(); }}><ArrowLeft className="ic" />Danh sách</button>
           <h3 className="grow ce-title">{form.title || "Truyện chưa đặt tên"}</h3>
           <span className={`pill ${STATUS_PILL[draft.status ?? ""]?.[0] ?? "draft"}`}>{STATUS_PILL[draft.status ?? ""]?.[1] ?? "Nháp"} · {draft.lastVersionNo ? `V${draft.lastVersionNo}` : "chưa lưu"}</span>
@@ -187,56 +187,66 @@ export default function CreatorEditor({ storyId, onBack, onBuyCredits }: { story
       </div>
 
       <div className="pa-flow">
-        {/* Khung trái: thứ tự các bước; bước chưa mở khoá thì mờ đi. */}
+        {/* Thanh bước ngang trên đỉnh: bước chưa mở khoá thì mờ đi. */}
         <StepRail steps={steps} rail={rail} />
 
-        {/* Cả ba bước luôn được dựng, chỉ ẩn bước không chọn: các bước media và phát hành giữ trạng thái và báo khoá soạn cho trình soạn. */}
+        {/* Cả bốn bước luôn được dựng, chỉ ẩn bước không chọn: các bước media và phát hành giữ trạng thái và báo khoá soạn cho trình soạn. */}
         <div className="pa-stage" ref={stageRef}>
           <StepReview rail={rail} onEdit={setStepId}>
           <div className="pa-stage" hidden={active.id !== 'write'}>
-            <section className="pa-card" aria-label="Soạn nội dung">
-              <div className="pa-head"><h3><span className="pa-num">1</span>Soạn nội dung</h3></div>
-              <fieldset className="pa-fieldset" disabled={editorLocked || busy}>
-                <StoryFields form={form} onChange={set} onSelect={setSelection} />
-                {pii.length > 0 && <div className="notice err" role="alert">Truyện còn thông tin cá nhân ({[...new Set(pii.map((p) => p.kind))].join(", ")}). Hãy bỏ trước khi gửi duyệt.</div>}
-                {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
-                <div className="pa-actions bar">
-                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting("file")}><FileUp className="ic" />Nhập từ tệp</button>
-                  <button className="btn btn-s" disabled={busy} onClick={() => setImporting("paste")}><ClipboardPaste className="ic" />Dán văn bản</button>
-                  <button className="btn btn-s" onClick={() => downloadStoryTemplate(CREATOR_FILE_TEMPLATE)} title="Tải tệp mẫu .txt để viết nội dung rồi nhập vào"><Download className="ic" />Tải tệp mẫu</button>
-                  {conflict && <button className="btn btn-g" disabled={busy} onClick={() => void resync()}><RefreshCw className="ic" />Đồng bộ</button>}
-                  {hasPending && <button className="btn btn-s" disabled={busy} onClick={retry}><RotateCcw className="ic" />Thử lại</button>}
-                </div>
-              </fieldset>
-            </section>
-            <details className="pa-fold"><summary>AI gợi ý theo bản nháp</summary>
-              <AssistancePanel key={`${storyId}:${draft.selectedVersionId}`} actor="creator" story={draft} selection={selection} snapshot={{title:form.title,content:form.content}} disabled={busy || editorLocked || hasPending || conflict} onApply={(next,ref) => { setForm(f => ({...f,...next}));setSelection(null);setReferences(v => v.some(r=>r.taskId===ref.taskId&&r.stepId===ref.stepId)?v:[...v,ref]); }} />
-            </details>
-            <section className="pa-card" aria-label="Lịch sử phiên bản">
-              <details><summary>Lịch sử phiên bản</summary>
-                {versions === null && <p className="sub">Đang tải…</p>}
-                {versions?.length === 0 && <p className="sub">Chưa có phiên bản nào. Bấm "Lưu và tiếp tục" để tạo V1.</p>}
-                <div className="st-list">
-                  {versions?.map((v) => (
-                    <button key={v.versionId} className={`st-item${viewing?.versionId === v.versionId ? " on" : ""}`} onClick={() => setViewing(viewing?.versionId === v.versionId ? null : v)}>
-                      <span className="row"><b className="grow">V{v.versionNo} · {v.title || "Không tên"}</b>
-                        {v.versionId === draft.selectedVersionId && <span className="pill ok">Bản hiện tại</span>}
-                        <span className="pill draft">{ORIGIN[v.origin] ?? v.origin}{v.restoredFromVersionId ? ` từ #${v.restoredFromVersionId}` : ""}</span></span>
-                      <small>{fmt(v.createdAt)}{v.importFileName ? ` · tệp ${v.importFileName}` : ""}</small>
-                    </button>
-                  ))}
-                </div>
-                {viewing && (
-                  <>
-                    <div className="st-content" style={{ maxHeight: 280, overflowY: "auto" }}>{viewing.content || "Phiên bản này chưa có nội dung."}</div>
-                    {viewing.versionId !== draft.selectedVersionId && (
-                      <button className="btn btn-s" style={{ width: "fit-content" }} disabled={busy || conflict || editorLocked} onClick={() => restore(viewing)}><RotateCcw className="ic" />Khôi phục V{viewing.versionNo} thành bản mới</button>
+            <div className="pa-write-split">
+              <div className="pa-write-main">
+                <section className="pa-card pa-manuscript-card" aria-label="Soạn nội dung">
+                  <div className="pa-head"><h3><span className="pa-num">1</span>Soạn nội dung</h3></div>
+                  <fieldset className="pa-fieldset" disabled={editorLocked || busy}>
+                    <div className="pa-import-bar">
+                      <span className="pa-import-label">Nhập nhanh hoặc dùng tệp mẫu:</span>
+                      <div className="pa-actions">
+                        <button type="button" className="btn btn-g pa-import-btn" disabled={busy} onClick={() => setImporting("file")}><FileUp className="ic" />Nhập từ tệp</button>
+                        <button type="button" className="btn btn-g pa-import-btn" disabled={busy} onClick={() => setImporting("paste")}><ClipboardPaste className="ic" />Dán văn bản</button>
+                        <button type="button" className="btn btn-g pa-import-btn" onClick={() => downloadStoryTemplate(CREATOR_FILE_TEMPLATE)} title="Tải tệp mẫu .txt để viết nội dung rồi nhập vào"><Download className="ic" />Tải tệp mẫu</button>
+                        {conflict && <button type="button" className="btn btn-g" disabled={busy} onClick={() => void resync()}><RefreshCw className="ic" />Đồng bộ</button>}
+                        {hasPending && <button type="button" className="btn btn-s" disabled={busy} onClick={retry}><RotateCcw className="ic" />Thử lại</button>}
+                      </div>
+                    </div>
+                    <StoryFields form={form} onChange={set} onSelect={setSelection} />
+                    {pii.length > 0 && <div className="notice err" role="alert">Truyện còn thông tin cá nhân ({[...new Set(pii.map((p) => p.kind))].join(", ")}). Hãy bỏ trước khi gửi duyệt.</div>}
+                    {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
+                  </fieldset>
+                  <EditorNavigation prev={null} next="check" nextOk={isSaved || (dirty && !!form.content.trim() && !busy && !editorLocked && !conflict)} label={dirty ? 'Lưu và tiếp tục' : 'Bước tiếp theo'} onNext={dirty ? saveThenNext : undefined} onNavigate={setStepId}/>
+                </section>
+              </div>
+
+              <aside className="pa-write-rail" aria-label="Công cụ gợi ý và lịch sử">
+                <details className="pa-fold pa-rail-card" open><summary>AI gợi ý theo bản nháp</summary>
+                  <AssistancePanel key={`${storyId}:${draft.selectedVersionId}`} actor="creator" story={draft} selection={selection} snapshot={{title:form.title,content:form.content}} disabled={busy || editorLocked || hasPending || conflict} onApply={(next,ref) => { setForm(f => ({...f,...next}));setSelection(null);setReferences(v => v.some(r=>r.taskId===ref.taskId&&r.stepId===ref.stepId)?v:[...v,ref]); }} />
+                </details>
+                <section className="pa-card pa-rail-card" aria-label="Lịch sử phiên bản">
+                  <details open={(versions?.length ?? 0) > 0}><summary>Lịch sử phiên bản <span className="pill draft">{versions?.length ?? 0}</span></summary>
+                    {versions === null && <p className="sub">Đang tải…</p>}
+                    {versions?.length === 0 && <p className="sub">Chưa có phiên bản nào. Bấm "Lưu và tiếp tục" để tạo V1.</p>}
+                    <div className="st-list">
+                      {versions?.map((v) => (
+                        <button key={v.versionId} className={`st-item${viewing?.versionId === v.versionId ? " on" : ""}`} onClick={() => setViewing(viewing?.versionId === v.versionId ? null : v)}>
+                          <span className="row"><b className="grow">V{v.versionNo} · {v.title || "Không tên"}</b>
+                            {v.versionId === draft.selectedVersionId && <span className="pill ok">Bản hiện tại</span>}
+                            <span className="pill draft">{ORIGIN[v.origin] ?? v.origin}{v.restoredFromVersionId ? ` từ #${v.restoredFromVersionId}` : ""}</span></span>
+                          <small>{fmt(v.createdAt)}{v.importFileName ? ` · tệp ${v.importFileName}` : ""}</small>
+                        </button>
+                      ))}
+                    </div>
+                    {viewing && (
+                      <>
+                        <div className="st-content pa-ver-preview">{viewing.content || "Phiên bản này chưa có nội dung."}</div>
+                        {viewing.versionId !== draft.selectedVersionId && (
+                          <button className="btn btn-s pa-fit-pill" disabled={busy || conflict || editorLocked} onClick={() => restore(viewing)}><RotateCcw className="ic" />Khôi phục V{viewing.versionNo} thành bản mới</button>
+                        )}
+                      </>
                     )}
-                  </>
-                )}
-              </details>
-            </section>
-            <EditorNavigation prev={null} next="check" nextOk={isSaved || (dirty && !!form.content.trim() && !busy && !editorLocked && !conflict)} label={dirty ? 'Lưu và tiếp tục' : 'Bước tiếp theo'} onNext={dirty ? saveThenNext : undefined} onNavigate={setStepId}/>
+                  </details>
+                </section>
+              </aside>
+            </div>
           </div>
 
           <div className="pa-stage" hidden={active.id !== 'check'}>

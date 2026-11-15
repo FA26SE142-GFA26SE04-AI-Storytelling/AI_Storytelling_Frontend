@@ -1,7 +1,7 @@
 ---
 version: alpha
 name: Taletale
-description: Design system for Taletale, an AI-assisted Vietnamese children's storytelling platform with a botanical pond aesthetic and calm editorial moderation surfaces.
+description: Design system for Taletale, an AI-assisted Vietnamese children's storytelling platform with a botanical pond aesthetic, calm editorial moderation surfaces, and a split-workbench manual authoring studio.
 omitted:
   - token: spacing
     reason: app/styles/tokens.css does not define global spacing custom properties; spacing is governed at layout and component levels rather than a :root token scale.
@@ -133,7 +133,7 @@ components:
 
 ## Overview
 
-Taletale uses a serene lotus-pond design language that balances friendly Vietnamese storytelling warmth with high-clarity inspection tools. Shared surfaces layer soft frosted panes over calm water backdrops, reserving crisp paper surfaces (`paper`) for reading Creator-authored manuscripts, safety evidence, and long-form moderation reviews without visual clutter.
+Taletale uses a serene lotus-pond design language that balances friendly Vietnamese storytelling warmth with high-clarity editorial workspaces. Shared surfaces layer soft frosted panes over calm water backdrops, reserving crisp paper surfaces (`paper`) for composing family and Creator story manuscripts, inspecting safety evidence, and completing long-form moderation reviews without visual clutter.
 
 ## Colors
 
@@ -184,13 +184,14 @@ Use only the three loaded Vietnamese-capable Google font families (`ui`, `displa
 
 - **UI controls & metadata (`ui`)**: Use `Nunito` for queue lists, metadata key-value pairs, checklist labels, form fields, and action buttons.
 - **Section headers (`display`)**: Use `.display` / `.sec-h` (`Baloo 2`, weight `800`) sparingly for workspace headers and panel headings (`fs-lg` to `fs-2xl`).
-- **Story manuscripts & excerpts (`story`)**: Use `Andika` for Creator-submitted story text, scene paragraphs, descriptions, moral lessons, and quoted safety excerpts inside Moderation panels so single-story glyphs (`a`, `g`) and look-alikes (`I`, `l`, `1`) remain effortless to audit.
+- **Story manuscripts & excerpts (`story`)**: Use `Andika` for manual story authoring textareas, confirmed reading previews, Creator-submitted story text, scene paragraphs, descriptions, moral lessons, and quoted safety excerpts inside Authoring and Moderation panels so single-story glyphs (`a`, `g`) and look-alikes (`I`, `l`, `1`) remain effortless to write and audit.
 
 ## Layout
 
 - **Shared shell**: Workspaces run inside `.shell.no-status.top-nav` with a frosted `.top` header and full-bleed `.stage` grid holding `.pane` containers with scrollable `.pb` regions.
 - **Two-tier status tabs & collapsible queue desk (`.mod-nav`, `.mod-grid`)**: Above `.mod-grid`, split workflow status navigation inside `.mod-nav` into two clear horizontal tiers instead of merging active and completed statuses on one line: a top tier switches between **`Xử lý hồ sơ`** (active operational work) and **`Kết quả xử lý`** (completed/archived outcomes), and a dedicated second tier underneath renders only the selected group's secondary status sub-tabs. Pair a collapsible `.mod-list-col` queue drawer (toggled cleanly via `.list-collapsed` when focused reading is desired) with an expansive `.mod-detail-col` inspection desk on desktop while falling back to list-or-detail toggling via `.has-detail` on narrow screens.
 - **Split editorial review workbench (`.mod-desk-split`)**: Place the title header and `InspectionSnapshotBar` readiness strip spanning the top, then split claimed review panels side-by-side into a **Left Reading Canvas (`.mod-desk-main`, ~60%)** dedicated to Creator/family text, outlines, scenes, and learning materials with view-filter pills, paired beside a **Right Sticky Audit & Decision Rail (`.mod-desk-rail`, ~40%)** holding AI evidence, inline checklist criteria, labels, and the final decision dock so reviewers can read story prose and complete audit decisions simultaneously without long vertical scrolling.
+- **Horizontal step bar & split manual authoring studio (`.pa-top`, `.pa-steps`, `.pa-write-split`)**: In manual story authoring (`ParentAuthoringWorkspace` and `CreatorEditor`), render the scope header (`.pa-top`: `Soạn truyện gia đình`, target recipient badge, and borderless `Bản nháp mới` / `Đồng bộ` tools) and the workflow progression bar (`.pa-steps`: `Soạn nội dung` -> `Chọn bé` -> `Tạo học liệu` -> `Chốt và giao`) as a flat, borderless connected surface track across the top of `.pa-flow` where only the active step (`.pa-stepbtn.on`) is elevated on a `panel` pill fill. Below the step strip, split Step 1 (`Soạn nội dung`) on desktop into a two-column **Split Authoring Workbench (`.pa-write-split`)** with a **Left Manuscript Sheet (`.pa-write-main`)** on `paper` and a **Right Unified Companion Surface (`.pa-write-rail`)** on `surface`, while expanding Steps 2–4 (`FamilyPackages`, confirmation, media, and delivery) across the full stage width.
 
 ## Elevation & Depth
 
@@ -208,6 +209,8 @@ Preserve organic botanical geometry across Taletale controls: outer workspace `.
 - **Inspection progress strip**: Render computed counts from loaded review DTOs (scenes viewed, audio played, unresolved AI flags, checklist completion, and clickable approve blockers mapped to DOM section anchors) across the top of the split desk so Moderators immediately gauge review completeness.
 - **Left reading canvas & view filters**: Render metadata chips, three-part Creator outlines, `paper`-grounded `story` manuscripts, side-by-side scene cards (`SafeImage` via `ReviewPicture` + audio), learning materials, and version diffs inside `.mod-desk-main`, topped by non-destructive reading filter pills (`Tất cả`, `Văn bản & Dàn ý`, `Cảnh & Media`, `Học liệu & So sánh`).
 - **Right sticky audit rail & decision dock**: Keep AI safety scans/flags, inline criterion-evidence checklist cards, label pickers, and final action controls (`Duyệt`, `Yêu cầu sửa`, `Từ chối`) docked visibly in `.mod-desk-rail` beside the reading canvas.
+- **Manual authoring manuscript canvas (`.pa-write-main`, `StoryFields`, `SentenceEndHint`)**: Render `.pa-manuscript-card` as a calm, borderless `paper` sheet with a soft elevation shadow rather than nested bordered boxes. Surface draft status pills (`Dành cho: nhiều bé`, version badge, `Chưa lưu`, `Chỉ xem`), `Mở lại để sửa` / `Đồng bộ` controls, and a flat borderless quick-import utility row (`Nhập từ tệp`, `Dán văn bản`, `Tải tệp mẫu` separated by a single bottom hairline) at the head of the manuscript sheet. Style the title field (`.pa-title-inp`) with a bottom hairline divider only, and render the story body textarea (`.pa-story-textarea`) as a borderless `surface`-tinted `paper` canvas using `story` (`Andika`) typography with live word/paragraph counts, inline `SentenceEndHint` punctuation quick-fixes, soft surface-filled source/rights inputs (`Nguồn nội dung`, `Cam kết quyền sử dụng`), and the primary step progression bar (`Lưu và tiếp tục` / `Bước tiếp theo`) at the foot.
+- **Manual authoring companion rail & multi-child packages (`.pa-write-rail`, `ParentSetupPanel`, `AuthoringGuides`, `AssistancePanel`, `FamilyPackages`)**: Consolidate `Mục đích và cách đọc` (`ParentSetupPanel`), `Mẫu hướng dẫn từ catalog` (`AuthoringGuides` using borderless `.pa-guide-chip` pills), `AI gợi ý theo bản nháp` (`AssistancePanel`), and `Lịch sử phiên bản` inside a single borderless `surface` container (`.pa-write-rail`) divided only by subtle horizontal hairlines (`line`) so parents and Creators can consult guides, apply AI suggestions, or restore versions without stacked card-border clutter. On Steps 2–4 (`Chọn bé`, `Tạo học liệu`, `Chốt và giao`), render `FamilyPackages` (`.fp`, `.fp-card`) across the full stage width with child recipient selectors, learning component pills, and per-child package cards.
 - **Dialogs, pickers & alerts**: Use custom `Select`, modal `Dialog` for structured inputs, `confirmDialog` for destructive or irreversible moderation decisions, and `.notice` (auto-promoted to toast unless marked `data-inline-notice`).
 
 ## Do's and Don'ts
