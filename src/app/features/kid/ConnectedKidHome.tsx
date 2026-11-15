@@ -53,7 +53,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
     return () => { scope.current = Symbol(); controller.abort(); };
   }, [childId, revision]);
   // Tên truyện theo mã: lấy trong hành trình của bé (đang mở, sắp tới, đã đọc) vì API khóa chỉ trả mã truyện.
-  const titleOf = (id: number | null) => id == null ? undefined : [roadmap?.open, ...(roadmap?.upcoming ?? []), ...(roadmap?.done ?? [])].find(s => s?.storyId === id)?.title ?? undefined;
+  const titleOf = (id: number | null) => id == null ? undefined : [...(roadmap?.openStories ?? []), ...(roadmap?.upcoming ?? []), ...(roadmap?.done ?? [])].find(s => s?.storyId === id)?.title ?? undefined;
   const openManual = async (confirmation: B.ParentFamilyConfirmationDto) => {
     if (busy) return;
     setBusy(true); setPack(null); const run = scope.current;
