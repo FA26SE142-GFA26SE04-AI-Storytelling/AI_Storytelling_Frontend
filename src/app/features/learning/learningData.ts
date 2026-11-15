@@ -6,6 +6,7 @@ import { parentWishService } from "@/app/services/storyWishService";
 import type { PagedParentSummaries, PagedReadingFeedback } from "@/app/types/childReading";
 import type { ParentWishDto } from "@/app/types/storyWish";
 import type { RoadmapItem } from "@/app/types/progress";
+import { groupStages } from "@/app/services/roadmapAdapters";
 
 export const FEELING_FACE: Record<string, string> = { VeryLike: "😍", Like: "🙂", Neutral: "😐", Dislike: "🙁" };
 
@@ -16,10 +17,11 @@ export const shortDate = (iso: string | null | undefined) =>
 export function splitRoadmap(items: RoadmapItem[] | undefined) {
   const list = items ?? [];
   const done = list.filter((i) => i.status === "completed").sort((a, b) => Date.parse(a.completedAt ?? "") - Date.parse(b.completedAt ?? ""));
-  const open = list.find((i) => i.status === "open") ?? null;
-  const queued = list.filter((i) => i.status === "queued").sort((a, b) => a.position - b.position);
+  const opens = list.filter((i) => i.status === "open").sort((a, b) => a.id - b.id);
+  const open = opens[0] ?? null;
+  const queued = list.filter((i) => i.status === "queued").sort((a, b) => a.position - b.position || a.id - b.id);
   const off = list.filter((i) => i.status === "skipped" || i.status === "removed");
-  return { done, open, queued, off, total: done.length + (open ? 1 : 0) + queued.length };
+  return { done, open, opens, queued, off, stages: groupStages(list), total: done.length + opens.length + queued.length };
 }
 
 type Paged<T> = { data: T | null; error: string; reload: () => void };

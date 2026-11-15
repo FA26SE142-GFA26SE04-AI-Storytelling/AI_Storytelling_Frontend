@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { ArrowDown, ArrowUp, ChevronDown, Lock, Plus, Search, Trash2, X } from "lucide-react";
 import { guardianService } from "@/app/services/guardianService";
-import { roadmapTemplate } from "@/app/services/roadmapAdapters";
+import { moveInLayout, roadmapTemplate, type RoadmapStage } from "@/app/services/roadmapAdapters";
 import { confirmDialog } from "@/app/lib/confirm";
 import { showToast } from "@/app/lib/toast";
 import type * as B from "@/app/types/backendContracts";
@@ -44,10 +44,14 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged, go
   const [busy, setBusy] = useState(false);
   const [showOff, setShowOff] = useState(false);
   const [picked, setPicked] = useState<number | null>(null);
+  const [emptyStage, setEmptyStage] = useState(false);
 
-  const { done, open, queued, off, total } = splitRoadmap(items);
-  const cover = useStoryCovers([...done, ...(open ? [open] : []), ...queued].map((i) => i.storyId));
+  const { done, opens, queued, off, stages, total } = splitRoadmap(items);
+  const all = [...done, ...opens, ...queued];
+  const cover = useStoryCovers(all.map((i) => i.storyId));
   const active = child.status === "Active";
+  const current = stages.find((s) => s.status === "current") ?? null;
+  const waitingStages = stages.filter((s) => s.status === "next");
 
   const act = async (fn: () => Promise<{ success: boolean; message: string }>, okText: string) => {
     setBusy(true);
@@ -56,29 +60,50 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged, go
     showToast(r.success ? okText : r.message, r.success ? "ok" : "err");
     onChanged();
   };
-  const move = (id: number, delta: number) => {
-    const ids = queued.map((q) => q.id);
-    const i = ids.indexOf(id), j = i + delta;
-    if (j < 0 || j >= ids.length) return;
-    [ids[i], ids[j]] = [ids[j], ids[i]];
-    void act(() => guardianService.reorderRoadmap(child.id, ids), "Đã đổi thứ tự.");
+  const layout = () => waitingStages.map((s) => s.items.filter((i) => i.status === "queued").map((i) => i.id));
+  const reorder = (next: number[][]) => act(() => guardianService.reorderRoadmap(child.id, next.filter((g) => g.length > 0)), "Đã đổi thứ tự.");
+  const moveStage = (number: number, delta: number) => {
+    const i = waitingStages.findIndex((s) => s.number === number), j = i + delta;
+    if (i < 0 || j < 0 || j >= waitingStages.length) return;
+    void reorder(moveInLayout(layout(), i, j));
+  };
+  /** Kéo thả một chặng chờ trên bản đồ sang vị trí của chặng chờ khác (toIndex = chỉ số trong `steps`). */
+  const dropStage = (fromKey: number, toIndex: number) => {
+    const to = waitingStages.findIndex((s) => s.number === steps[toIndex]?.stage);
+    const from = waitingStages.findIndex((s) => s.number === fromKey);
+    if (from < 0 || to < 0 || from === to) return;
+    void reorder(moveInLayout(layout(), from, to));
+  };
+  /** target: số chặng (chặng đang đọc hoặc chặng chờ) hoặc "new" = tách ra chặng mới ngay sau chặng cũ của truyện. */
+  const moveItem = (item: RoadmapItem, target: number | "new") => {
+    if (current && target === current.number) { void act(() => guardianService.moveToStage(child.id, item.storyId, current.number), "Đã chuyển truyện vào chặng đang đọc."); return; }
+    const from = waitingStages.findIndex((s) => s.items.some((i) => i.id === item.id));
+    const next = layout().map((g) => g.filter((id) => id !== item.id));
+    if (target === "new") next.splice(from + 1, 0, [item.id]);
+    else next[waitingStages.findIndex((s) => s.number === target)].push(item.id);
+    void reorder(next);
   };
   const remove = async (item: RoadmapItem) => {
-    const text = item.status === "open" ? `Gỡ “${item.title}” khỏi lộ trình? Truyện kế tiếp sẽ được mở cho ${child.nickname}.` : `Gỡ “${item.title}” khỏi lộ trình?`;
+    const lastOpen = item.status === "open" && opens.length === 1;
+    const text = lastOpen ? `Gỡ “${item.title}” khỏi lộ trình? Chặng kế tiếp sẽ được mở cho ${child.nickname}.` : `Gỡ “${item.title}” khỏi lộ trình?`;
     if (await confirmDialog(text)) void act(() => guardianService.removeFromRoadmap(child.id, item.id), "Đã gỡ truyện.");
   };
   const clear = async () => {
     if (await confirmDialog(`Gỡ mọi truyện chưa đọc khỏi lộ trình của ${child.nickname}? Truyện đã đọc vẫn được giữ.`)) void act(() => guardianService.clearRoadmap(child.id), "Đã làm trống lộ trình.");
   };
 
-  const steps: LilyStep[] = [
-    ...done.map(d => ({ key: d.id, storyId: d.storyId, title: d.title, cover: cover(d.storyId), status: "done" as const, parentPick: d.source === "parent" })),
-    ...(open ? [{ key: open.id, storyId: open.storyId, title: open.title, cover: cover(open.storyId), status: "current" as const, parentPick: open.source === "parent" }] : []),
-    ...queued.map(q => ({ key: q.id, storyId: q.storyId, title: q.title, cover: cover(q.storyId), status: "next" as const, parentPick: q.source === "parent" })),
-  ];
-
-  const pickedItem = [...done, ...(open ? [open] : []), ...queued].find((i) => i.id === picked) ?? null;
-  const qi = queued.findIndex((q) => q.id === pickedItem?.id);
+  const canAddStage = canEdit && active;
+  const steps: LilyStep[] = stages.map((s) => ({
+    key: s.number, stage: s.number, storyId: s.items[0].storyId,
+    title: s.items.length > 1 ? `${s.items[0].title} +${s.items.length - 1}` : s.items[0].title,
+    cover: cover(s.items[0].storyId), status: s.status, count: s.items.length,
+    parentPick: s.items.some((i) => i.source === "parent"),
+  }));
+  // Chặng trống chỉ có ở máy này (chưa lưu lên server) cho tới khi có truyện; luôn nằm cuối bản đồ.
+  if (canAddStage && emptyStage) steps.push({ key: -1, stage: (stages[stages.length - 1]?.number ?? 0) + 1, storyId: 0, title: "Chặng trống", cover: "", status: "next", empty: true });
+  const pickedIndex = stages.findIndex((s) => s.number === picked);
+  const pickedStage = pickedIndex >= 0 ? stages[pickedIndex] : null;
+  const label = (s: RoadmapStage) => `Chặng ${s.number}${s.status === "current" ? " · đang đọc" : ""}`;
 
   return (
     <>
@@ -87,7 +112,7 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged, go
           <h3 className="display">Các truyện theo thứ tự</h3>
           {canEdit && (
             <div className="lr-actions">
-              {(queued.length > 0 || open) && <button className="btn btn-no icon-only" aria-label="Làm trống lộ trình" title="Làm trống lộ trình" disabled={busy} onClick={() => void clear()}><Trash2 className="ic" /></button>}
+              {(queued.length > 0 || opens.length > 0) && <button className="btn btn-no icon-only" aria-label="Làm trống lộ trình" title="Làm trống lộ trình" disabled={busy} onClick={() => void clear()}><Trash2 className="ic" /></button>}
               <button className="btn btn-p" disabled={busy || !active} onClick={() => pickStoryInLibrary(go, child.id)}><Plus className="ic" />Thêm truyện</button>
             </div>
           )}
@@ -96,7 +121,11 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged, go
         {!active && <p className="notice warn lr-notice" role="status" data-inline-notice><Lock className="ic" aria-hidden /> Hồ sơ của {child.nickname} {CHILD_STATUS[child.status] ?? "không hoạt động"} nên chưa thêm truyện được.</p>}
         {error && <p className="notice err lr-notice" role="alert">{error}</p>}
 
-        {items === undefined ? <p className="sub">Đang tải lộ trình…</p> : <LilyPondRoadmap steps={steps} mode="parent" storageKey={`parent:${child.id}`} done={done.length} total={total} emptyText="Lộ trình đang trống. Thêm một truyện hoặc chọn một lộ trình mẫu bên dưới." onStepClick={(s) => setPicked(s.key)} />}
+        {items === undefined ? <p className="sub">Đang tải lộ trình…</p> : <LilyPondRoadmap steps={steps} mode="parent" storageKey={`parent:${child.id}`} done={done.length} total={total} emptyText="Lộ trình đang trống. Thêm một truyện hoặc chọn một lộ trình mẫu bên dưới."
+          onStepClick={(s) => { if (s.empty) pickStoryInLibrary(go, child.id, "new"); else setPicked(s.key); }}
+          onAddStage={canAddStage && !emptyStage ? () => setEmptyStage(true) : undefined}
+          draggable={(s) => canEdit && !busy && s.status === "next" && !s.empty}
+          onReorder={canEdit ? dropStage : undefined} />}
 
         {off.length > 0 && (
           <div className="rm-off">
@@ -113,57 +142,48 @@ export default function RoadmapTab({ child, items, error, canEdit, onChanged, go
 
       {canEdit && <TemplateShelf child={child} disabled={!active} onAdded={onChanged} />}
 
-      {pickedItem && (
-        <Dialog title={pickedItem.title} onClose={() => setPicked(null)}>
-          <div className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            <span className="rm-step-cover" style={{ background: cover(pickedItem.storyId) }} aria-hidden />
-            {pickedItem.status === "completed" && <span className="pill ok">Đã đọc</span>}
-            {pickedItem.status === "open" && <span className="pill wait">Đang đọc</span>}
-            {pickedItem.status === "queued" && <span className="pill draft">Chưa tới</span>}
-            <span className="pill draft">{SOURCE[pickedItem.source]}</span>
-          </div>
-          {pickedItem.note && <p className="sub">💌 {pickedItem.note}</p>}
-          {canEdit && (pickedItem.status === "queued" || pickedItem.status === "open") ? (
-            <div style={{ display: "flex", gap: 10, justifyContent: "center", marginTop: 14 }}>
-              {canEdit && pickedItem.status === "queued" && (
-                <button
-                  className="btn btn-g icon-only"
-                  aria-label="Lên"
-                  title="Đưa lên trước"
-                  disabled={busy || qi <= 0}
-                  onClick={() => { setPicked(null); move(pickedItem.id, -1); }}
-                >
-                  <ArrowUp className="ic" />
-                </button>
+      {pickedStage && (
+        <Dialog title={label(pickedStage)} onClose={() => setPicked(null)}>
+          {canEdit && ((active && pickedStage.status !== "done") || pickedStage.status === "next") && (
+            <div className="row" style={{ gap: 8, justifyContent: "flex-end" }}>
+              {active && (
+                <button className="btn btn-p" disabled={busy} onClick={() => { setPicked(null); pickStoryInLibrary(go, child.id, pickedStage.number); }}><Plus className="ic" />Thêm truyện vào chặng này</button>
               )}
-              {canEdit && pickedItem.status === "queued" && (
-                <button
-                  className="btn btn-g icon-only"
-                  aria-label="Xuống"
-                  title="Đưa xuống sau"
-                  disabled={busy || qi === queued.length - 1}
-                  onClick={() => { setPicked(null); move(pickedItem.id, 1); }}
-                >
-                  <ArrowDown className="ic" />
-                </button>
-              )}
-              {canEdit && (pickedItem.status === "queued" || pickedItem.status === "open") && (
-                <button
-                  className="btn btn-no icon-only"
-                  aria-label="Gỡ khỏi lộ trình"
-                  title="Gỡ khỏi lộ trình"
-                  disabled={busy}
-                  onClick={() => { setPicked(null); void remove(pickedItem); }}
-                >
-                  <Trash2 className="ic" />
-                </button>
+              {pickedStage.status === "next" && (
+                <>
+                  <button className="btn btn-g icon-only" aria-label="Đưa chặng lên trước" title="Đưa chặng lên trước" disabled={busy || waitingStages[0]?.number === pickedStage.number} onClick={() => { setPicked(null); moveStage(pickedStage.number, -1); }}><ArrowUp className="ic" /></button>
+                  <button className="btn btn-g icon-only" aria-label="Đưa chặng xuống sau" title="Đưa chặng xuống sau" disabled={busy || waitingStages[waitingStages.length - 1]?.number === pickedStage.number} onClick={() => { setPicked(null); moveStage(pickedStage.number, 1); }}><ArrowDown className="ic" /></button>
+                </>
               )}
             </div>
-          ) : pickedItem.status === "completed" ? (
-            <p className="sub">Truyện đã đọc xong, không đổi được.</p>
-          ) : !canEdit ? (
-            <p className="sub">Chỉ chủ hồ sơ mới sắp xếp được lộ trình.</p>
-          ) : null}
+          )}
+          <ul className="rm-steps">
+            {pickedStage.items.map((item) => (
+              <li key={item.id} className="rm-step">
+                <span className="rm-step-cover" style={{ background: cover(item.storyId) }} aria-hidden />
+                <span className="grow">
+                  <b>{item.title}</b>
+                  {item.note && <span className="sub"> · 💌 {item.note}</span>}
+                </span>
+                {item.status === "completed" && <span className="pill ok">Đã đọc</span>}
+                {item.status === "open" && <span className="pill wait">Đang đọc</span>}
+                {item.status === "queued" && <span className="pill draft">Chưa tới</span>}
+                <span className="pill draft">{SOURCE[item.source]}</span>
+                {canEdit && item.status === "queued" && (
+                  <select className="inp" aria-label={`Chuyển “${item.title}” sang chặng khác`} disabled={busy} value=""
+                    onChange={(e) => { const v = e.target.value; setPicked(null); moveItem(item, v === "new" ? "new" : Number(v)); }}>
+                    <option value="" disabled>Chuyển sang…</option>
+                    {[...(current ? [current] : []), ...waitingStages].filter((s) => s.number !== pickedStage.number).map((s) => <option key={s.number} value={s.number}>{label(s)}</option>)}
+                    {pickedStage.items.length > 1 && <option value="new">Tách ra chặng mới</option>}
+                  </select>
+                )}
+                {canEdit && (item.status === "queued" || item.status === "open") && (
+                  <button className="btn btn-no icon-only" aria-label="Gỡ khỏi lộ trình" title="Gỡ khỏi lộ trình" disabled={busy} onClick={() => { setPicked(null); void remove(item); }}><Trash2 className="ic" /></button>
+                )}
+              </li>
+            ))}
+          </ul>
+          {!canEdit && <p className="sub">Chỉ chủ hồ sơ mới sắp xếp được lộ trình.</p>}
         </Dialog>
       )}
 

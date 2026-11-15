@@ -66,8 +66,8 @@ function api({ path, method, body, url, state }) {
     case path === '/Story/7': return story;
     case path === '/parent/stories': return paged([]);
     // Học tập của bé
-    case path === '/ChildRoadmap/10' && method === 'GET': return { childProfileId: 10, open: { id: 55, storyId: 7, title: 'Ếch con trong lộ trình', position: 0, status: 'Open', source: 'Manual', skipReason: null, note: 'Đọc cùng mẹ', expectedDays: 7, expectedCompletionAt: null, openedAt: now, completedAt: null, addedByUserId: 1, isStoryAvailable: true }, waiting: [], history: [], completedCount: 2, totalCount: 3 };
-    case path.startsWith('/ChildRoadmap/') && method === 'GET': return { childProfileId: 11, open: null, waiting: [], history: [], completedCount: 0, totalCount: 0 };
+    case path === '/ChildRoadmap/10' && method === 'GET': return { childProfileId: 10, openItems: [{ id: 55, storyId: 7, title: 'Ếch con trong lộ trình', position: 0, status: 'Open', source: 'Manual', skipReason: null, note: 'Đọc cùng mẹ', expectedDays: 7, expectedCompletionAt: null, openedAt: now, completedAt: null, addedByUserId: 1, isStoryAvailable: true }], currentStage: 0, waiting: [], history: [], completedCount: 2, totalCount: 3 };
+    case path.startsWith('/ChildRoadmap/') && method === 'GET': return { childProfileId: 11, openItems: [], currentStage: null, waiting: [], history: [], completedCount: 0, totalCount: 0 };
     case path === '/ChildRoadmap/stories': state.added = body; return { results: [{ childProfileId: 10, outcome: 'Added', itemId: 90, warnings: [], skipCode: null, message: null }] };
     case path === '/RoadmapLibrary': return paged([{ id: 2, name: 'Bộ khám phá', description: 'Bộ truyện mẫu', ageBand: '6-8', mainCategory: { id: 1, code: 'nature', displayName: 'Thiên nhiên' }, readingLevelMin: 1, readingLevelMax: 3, defaultDaysPerStory: 3, storyCount: 1, needsUpdate: false, publishedAt: now }]);
     case path === '/RoadmapLibrary/2': return { id: 2, name: 'Bộ khám phá', description: 'Bộ truyện mẫu', ageBand: '6-8', mainCategory: { id: 1, code: 'nature', displayName: 'Thiên nhiên' }, readingLevelMin: 1, readingLevelMax: 3, defaultDaysPerStory: 3, storyCount: 1, needsUpdate: false, publishedAt: now, stories: [{ storyId: 7, position: 1, days: 3, title: story.title, ageBand: '6-8', readingLevel: 2, isAvailable: true }] };
@@ -89,7 +89,7 @@ function api({ path, method, body, url, state }) {
     // Phía bé
     case path === '/ChildAccessCredential/easylogin/login': return { childProfileId: 10, avatarId: 'frog', accessToken: 'child-fixture', expiresInSeconds: 3600 };
     case path === '/ChildAccessCredential/me': return { childProfileId: 10, nickname: 'Bé Sen', ageBand: 'Age_6_8', avatarId: 'frog', language: 'vi' };
-    case path === '/MyRoadmap': return { open: { storyId: 7, title: 'Ếch con hôm nay', coverImageUrl: null, note: 'Mẹ chọn cho con', expectedBy: null, isLocked: false }, upcoming: [{ order: 2, storyId: 9, title: 'Truyện tiếp theo', coverImageUrl: null, isLocked: true }], done: [{ storyId: 6, title: 'Truyện đã đọc', coverImageUrl: null, completedAt: now }], completedCount: 1, totalCount: 3, isFinished: false };
+    case path === '/MyRoadmap': return { openStories: [{ stage: 2, storyId: 7, title: 'Ếch con hôm nay', coverImageUrl: null, note: 'Mẹ chọn cho con', expectedBy: null, isLocked: false }], upcoming: [{ order: 2, storyId: 9, title: 'Truyện tiếp theo', coverImageUrl: null, isLocked: true }], done: [{ stage: 1, storyId: 6, title: 'Truyện đã đọc', coverImageUrl: null, completedAt: now }], completedCount: 1, totalCount: 3, isFinished: false };
     case path === '/child/manual-stories': return [];
     case path === '/child/reading/stories': return { isLocked: false, unlockStoryId: null, message: null, items: [{ storyId: 7, title: story.title, coverImageUrl: null, description: null, source: 'roadmap' }], totalCount: 1, pageIndex: 1, pageSize: 20 };
     case path === '/child/notebook': return [];

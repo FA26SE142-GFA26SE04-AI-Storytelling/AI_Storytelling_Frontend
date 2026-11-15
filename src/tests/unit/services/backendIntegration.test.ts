@@ -5,6 +5,8 @@ import { guardianService } from '@/app/services/guardianService';
 import { roadmapService } from '@/app/services/roadmapService';
 import { creatorPublicationService } from '@/app/services/creatorPublicationService';
 import { moderationService } from '@/app/services/moderationService';
+import { groupStages, mergeRoadmapResults, moveInLayout } from '@/app/services/roadmapAdapters';
+import { parseLibraryPick } from '@/app/features/learning/learningIntent';
 import { rubricService } from '@/app/services/rubricService';
 const response = (data: unknown, status = 200) => new Response(JSON.stringify({ success: status < 400, message: '', data }), { status });
 let fetcher: ReturnType<typeof vi.fn>;
@@ -53,6 +55,18 @@ describe('Backend flow contracts', () => {
     expect(r.data?.added).toEqual([{childProfileId:10,itemId:55,moved:false}]); expect(r.data?.skipped[0].childProfileId).toBe(11); expect(r.data?.warnings).toEqual([{childProfileId:10,nickname:'10',text:'level'}]);
     expect((await guardianService.clearRoadmap(10)).success).toBe(false);
   });
+  it('sends stage choices and grouped order, and groups items into stages', async () => {
+    fetcher.mockResolvedValue(response({ results: [{ childProfileId: 10, outcome: 'Moved', itemId: 5, warnings: [], skipCode: null, message: null }] }));
+    const kid = [{ id: 10, nickname: '10', ageBand: '6-8', status: 'Active', maxStoryLength: 1000 }];
+    const r = await guardianService.addToRoadmap(kid, { storyId: 7, title: 'Truyện', ageBand: '6-8', length: 100 }, 'next', null, null, 2);
+    expect(JSON.parse(fetcher.mock.calls[0][1].body)).toEqual({ storyId: 7, childProfileIds: [10], position: 'Stage', stageNumber: 2, expectedDays: null, note: null });
+    expect(r.data?.added).toEqual([{ childProfileId: 10, itemId: 5, moved: true }]);
+    await guardianService.reorderRoadmap(10, [[3, 4], [5]]);
+    expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual({ stages: [[3, 4], [5]] });
+    const item = (id: number, position: number, status: 'completed' | 'open' | 'queued') => ({ id, childProfileId: 10, storyId: id, title: `T${id}`, position, status, source: 'parent' as const, sourceTemplateId: null, note: null, dueDays: null, dueAt: null, openedAt: null, completedAt: null, skipReason: undefined, isStoryAvailable: true });
+    const stages = groupStages([item(1, 1, 'completed'), item(2, 2, 'completed'), item(3, 2, 'open'), item(4, 3, 'queued'), item(5, 3, 'queued')]);
+    expect(stages.map(s => [s.number, s.status, s.items.map(i => i.id)])).toEqual([[1, 'done', [1]], [2, 'current', [2, 3]], [3, 'next', [4, 5]]]);
+  });
   it('uses DELETE for clear, preview before copy and correct child context', async () => {
     fetcher.mockResolvedValue(response(null));
     await roadmapService.clear(10); expect(fetcher.mock.calls[0][0]).toMatch(/\/ChildRoadmap\/10\/items$/); expect(fetcher.mock.calls[0][1].method).toBe('DELETE');
@@ -73,5 +87,35 @@ describe('Backend flow contracts', () => {
     await moderationService.grayDecision(9,{decision:'Clear',reason:'Đã xem',rowVersion:3}); expect(JSON.parse(fetcher.mock.calls[0][1].body).rowVersion).toBe(3);
     await rubricService.activate(2,5); expect(JSON.parse(fetcher.mock.calls[1][1].body)).toEqual({ revision:5 });
     await rubricService.remove(2,5); expect(fetcher.mock.calls[2][0]).toMatch(/\/moderation\/rubrics\/2\?revision=5$/); expect(fetcher.mock.calls[2][1].method).toBe('DELETE');
+  });
+});
+describe('Roadmap stage helpers', () => {
+  it('moves one waiting stage to a new position and renumbers the others around it', () => {
+    const layout = [[1], [2, 3], [4]];
+    expect(moveInLayout(layout, 0, 2)).toEqual([[2, 3], [4], [1]]);
+    expect(moveInLayout(layout, 2, 0)).toEqual([[4], [1], [2, 3]]);
+    expect(layout).toEqual([[1], [2, 3], [4]]);
+    expect(moveInLayout(layout, 1, 1)).toBe(layout); expect(moveInLayout(layout, 0, 3)).toBe(layout); expect(moveInLayout(layout, -1, 0)).toBe(layout);
+  });
+  it('reads the stored library pick, including the old plain-number value', () => {
+    expect(parseLibraryPick(null)).toBeNull();
+    expect(parseLibraryPick('12')).toEqual({ childId: 12, stage: null });
+    expect(parseLibraryPick('{"childId":12,"stage":3}')).toEqual({ childId: 12, stage: 3 });
+    expect(parseLibraryPick('{"childId":12,"stage":"new"}')).toEqual({ childId: 12, stage: 'new' });
+    expect(parseLibraryPick('{"childId":12,"stage":null}')).toEqual({ childId: 12, stage: null });
+    expect(parseLibraryPick('{"childId":"x"}')).toBeNull(); expect(parseLibraryPick('0')).toBeNull(); expect(parseLibraryPick('{"childId":0}')).toBeNull(); expect(parseLibraryPick('{"childId":12,"stage":0}')).toBeNull(); expect(parseLibraryPick('{"childId":12,"stage":-2}')).toBeNull(); expect(parseLibraryPick('{broken')).toBeNull();
+  });
+});
+describe('mergeRoadmapResults', () => {
+  it('concatenates added, skipped and warnings of per-child adds', () => {
+    const merged = mergeRoadmapResults([
+      { added: [{ childProfileId: 1, itemId: 5, moved: false }], skipped: [], warnings: [{ childProfileId: 1, nickname: 'An', text: 'a' }] },
+      { added: [], skipped: [{ childProfileId: 2, nickname: 'Bình', reason: 'Chặng 3 không còn nhận thêm truyện.' }], warnings: [] },
+      { added: [{ childProfileId: 3, itemId: 9, moved: true }], skipped: [] },
+    ]);
+    expect(merged.added.map(a => a.childProfileId)).toEqual([1, 3]);
+    expect(merged.skipped).toEqual([{ childProfileId: 2, nickname: 'Bình', reason: 'Chặng 3 không còn nhận thêm truyện.' }]);
+    expect(merged.warnings).toEqual([{ childProfileId: 1, nickname: 'An', text: 'a' }]);
+    expect(mergeRoadmapResults([])).toEqual({ added: [], skipped: [], warnings: [] });
   });
 });

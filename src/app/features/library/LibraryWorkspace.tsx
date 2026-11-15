@@ -10,7 +10,7 @@ import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { avatarOf } from "@/app/lib/guardian";
-import { backToLearning, takeLibraryPick } from "@/app/features/learning/learningIntent";
+import { backToLearning, takeLibraryPick, type LibraryPick } from "@/app/features/learning/learningIntent";
 import type { StoryDto } from "@/app/types/story";
 import { storyService } from "@/app/services/storyService";
 import { ageLabel, splitScenes, statusKey, toCard, type StoryCard } from "@/app/lib/storyView";
@@ -260,9 +260,11 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
   const { user } = useAuth();
   const { children: kids } = useWorkspaceData();
   // Mở từ nút "Thêm truyện" ở trang Học tập của bé: chọn sẵn bé đó, thêm xong thì quay về lộ trình của bé.
-  const [pickFor, setPickFor] = useState<number | null>(null);
-  useEffect(() => { setPickFor(takeLibraryPick()); }, []);
-  const pickKid = kids.find((k) => k.id === pickFor) ?? null;
+  const [libPick, setLibPick] = useState<LibraryPick | null>(null);
+  useEffect(() => { setLibPick(takeLibraryPick()); }, []);
+  const pickKid = kids.find((k) => k.id === libPick?.childId) ?? null;
+  // Chặng đích (khi đi từ một chặng trên bản đồ lộ trình): số chặng, hoặc "new" = chặng mới ở cuối.
+  const pickStage = pickKid ? libPick?.stage ?? undefined : undefined;
   const addedRef = useRef(false);
   const closeRoadmapDialog = (close: () => void) => {
     close();
@@ -397,9 +399,9 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
           {pickKid && (
             <div className="lib-pickbar" role="status">
               <span className="av" aria-hidden>{avatarOf(pickKid.avatarId).emoji}</span>
-              <b className="grow">Đang chọn truyện cho {pickKid.nickname}</b>
+              <b className="grow">Đang chọn truyện cho {pickKid.nickname}{pickStage !== undefined && ` · ${pickStage === "new" ? "Chặng mới" : `Chặng ${pickStage}`}`}</b>
               <button className="btn btn-s" onClick={() => backToLearning(go, pickKid.id)}><ArrowLeft className="ic" />Quay lại</button>
-              <button className="btn btn-g icon-only" aria-label="Thôi chọn" title="Thôi chọn" onClick={() => setPickFor(null)}><X className="ic" /></button>
+              <button className="btn btn-g icon-only" aria-label="Thôi chọn" title="Thôi chọn" onClick={() => setLibPick(null)}><X className="ic" /></button>
             </div>
           )}
           <div className="lbar">
@@ -545,7 +547,7 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
       {sel && dialog === "preview" && <Preview story={sel} onClose={() => setDialog(null)} />}
       {openedTpl && <TemplateDialog item={openedTpl} onClose={() => setOpenedTpl(null)} onAdd={(d) => { setOpenedTpl(null); setAddingTpl(roadmapTemplate(d)); }} />}
       {addingTpl && <AddToRoadmapDialog template={addingTpl} childId={pickKid?.id} single={!!pickKid} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setAddingTpl(null))} />}
-      {sel && dialog === "roadmap" &&<AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} childId={pickKid?.id} single={!!pickKid} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setDialog(null))} />}
+      {sel && dialog === "roadmap" &&<AddToRoadmapDialog story={{ storyId: sel.id, title: sel.title, ageBand: sel.ageBand, length: sel.words }} childId={pickKid?.id} single={!!pickKid} targetStage={pickStage} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setDialog(null))} />}
       {sel && dialog === "report" && <ReportDialog story={sel} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </section>

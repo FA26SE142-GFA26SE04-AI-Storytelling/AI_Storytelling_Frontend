@@ -17,7 +17,7 @@ export default function OverviewTab({ child, items, wishCount, onTab }: {
   wishCount: number | null;
   onTab: (t: LearningTabId) => void;
 }) {
-  const { done, open, queued, total } = splitRoadmap(items);
+  const { done, open, opens, queued, total } = splitRoadmap(items);
   const feedback = useReadingFeedback(child.id, 1, 3);
   const summaries = useStorySummaries(child.id, 1, 1);
   const next = queued.slice(0, 3);
@@ -59,6 +59,7 @@ export default function OverviewTab({ child, items, wishCount, onTab }: {
             <span className="lr-now-cover" style={{ background: cover(open.storyId) }} aria-hidden />
             <div className="lr-now-body">
               <b className="display lr-now-title">{open.title}</b>
+              {opens.length > 1 && <span className="sub">+{opens.length - 1} truyện cùng chặng</span>}
               <div className="lr-pills">
                 <span className="pill wait"><BookOpen className="ic" aria-hidden />Đang đọc</span>
                 {open.dueAt && <span className={`pill ${Date.parse(open.dueAt) < Date.now() ? "flag" : "draft"}`}>Hạn {fmtDate(open.dueAt)}</span>}
