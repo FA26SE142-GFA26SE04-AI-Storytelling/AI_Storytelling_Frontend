@@ -4,6 +4,7 @@ import { useState } from "react";
 import Frog from "@/app/components/brand/Frog";
 import type { Stage, StatusSnapshot } from "./useStoryPipeline";
 import { STUDIO_STEPS, studioProgress } from "./studioProgress";
+import { providerFailureMessage } from '@/app/features/story-workflow/storyGenerationFlow';
 import { useRiseIn } from "@/app/lib/motion";
 
 type Props = {
@@ -24,7 +25,7 @@ export default function StageProgress({ stage, snapshot, message, errorCode, tim
   const [retrying, setRetrying] = useState(false);
   const [retryError, setRetryError] = useState<string | null>(null);
   const retry = async () => {
-    if (!onRetryFailed) return;
+    if (!onRetryFailed || providerFailureMessage(errorCode)) return;
     setRetrying(true);
     setRetryError(null);
     const r = await onRetryFailed();
@@ -33,6 +34,7 @@ export default function StageProgress({ stage, snapshot, message, errorCode, tim
   };
   const progress = studioProgress(stage, snapshot, null, errorCode ?? null, outputMode);
   const steps = progress.steps ?? STUDIO_STEPS;
+  const providerError = providerFailureMessage(errorCode);
   // Khung thẻ và chú ếch đứng yên; chỉ phần chữ đổi theo bước mới hiện dần, nên không nháy cả thẻ.
   const textRef = useRiseIn<HTMLDivElement>(".pipe-text > *", [progress.current, progress.mode], { delay: 40, distance: 8 });
   if (stage === "brief") {
@@ -75,18 +77,20 @@ export default function StageProgress({ stage, snapshot, message, errorCode, tim
           <small className="hint">Bước {progress.current + 1}/{steps.length} · {steps[progress.current]}</small>
           <h3 className="display">{waitingUser ? "Dàn ý đã sẵn sàng" : progress.caption}</h3>
           <p className="sub">{waitingUser ? "Mở tab Dàn ý để xem và duyệt, rồi AI sẽ viết truyện." : errorCode
-            ? 'Máy chủ xác nhận lần xử lý này đã thất bại. Bạn có thể thử lại khi sẵn sàng.'
+            ? providerError ?? 'Máy chủ xác nhận lần xử lý này đã thất bại. Bạn có thể thử lại khi sẵn sàng.'
             : 'Đang chờ kết quả từ máy chủ. Các thao tác chuyển bước sẽ mở khi xử lý hoàn tất; bạn có thể rời màn hình rồi quay lại kiểm tra.'}</p>
         </div>
         {errorCode && (
           <div className="notice err row" role="alert" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
             <span>Bước này bị lỗi (mã {errorCode}).</span>
-            {onRetryFailed && <button className="btn btn-s" disabled={retrying} onClick={() => void retry()}>{retrying ? "Đang thử lại…" : "Thử lại"}</button>}
+            {providerError ? onRetry && <button className="btn btn-s" onClick={onRetry}>Kiểm tra lại trạng thái</button>
+              : onRetryFailed && <button className="btn btn-s" disabled={retrying} onClick={() => void retry()}>{retrying ? "Đang thử lại…" : "Thử lại"}</button>}
           </div>
         )}
         {retryError && <div className="notice err" role="alert">{retryError}</div>}
         {!errorCode && message && <div className="notice" role="status">{message}</div>}
-        {timedOut && <div className="notice warn" role="status">Đã tạm dừng theo dõi tự động; chưa có kết luận tác vụ thất bại. <button className="link-btn" onClick={onRetry}>Kiểm tra lại</button></div>}
+        {providerError && <p className="sub">Kiểm tra trạng thái chỉ tải lại thông tin truyện, không gửi yêu cầu sinh AI mới. Sau khi khắc phục, quản trị viên cần cho chạy lại tác vụ.</p>}
+        {timedOut && !errorCode && <div className="notice warn" role="status">Đã tạm dừng theo dõi tự động; chưa có kết luận tác vụ thất bại. <button className="link-btn" onClick={onRetry}>Kiểm tra lại</button></div>}
       </div>
     </div>
   );

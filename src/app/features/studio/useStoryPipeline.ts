@@ -10,6 +10,7 @@ import type { AIStoryInputFormValues } from "@/app/features/story-workflow/aiSto
 import { studioActions } from "./studioProgress";
 import { useStoryProgressPolling } from "@/app/features/story-workflow/useStoryProgressPolling";
 import { mediaKeepPolling } from "@/app/features/story-workflow/mediaPackage";
+import { providerFailureMessage } from '@/app/features/story-workflow/storyGenerationFlow';
 
 import { loadSnapshot, snapshotStage, keepSnapshotPolling, pipelineFailure, type Stage, type StatusSnapshot } from '@/app/features/story-workflow/generationSnapshot';
 import { loadResumeSnapshot } from '@/app/features/story-workflow/resumeStory';
@@ -70,7 +71,7 @@ export function useStoryPipeline(userId: number, childId: number | null, approve
    */
   const generationFailed = failure?.kind === 'generation';
   const outlineFailed = failure?.kind === 'outline' && !snapshot?.outline?.currentVersion;
-  const retryFailed = storyId !== null && (generationFailed || outlineFailed) ? async () => {
+  const retryFailed = storyId !== null && !providerFailureMessage(errorCode) && (generationFailed || outlineFailed) ? async () => {
     if(retryBusy.current)return {success:false,data:null,message:'Đang gửi yêu cầu thử lại.'};
     retryBusy.current=true;
     const kind=generationFailed?'generation':'outline';
