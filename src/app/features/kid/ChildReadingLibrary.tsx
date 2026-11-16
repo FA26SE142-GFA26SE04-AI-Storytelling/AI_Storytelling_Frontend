@@ -17,24 +17,35 @@ import Frog from '@/app/components/brand/Frog';
 import { BookOpen, Trash2 } from 'lucide-react';
 import PaneSwap from './PaneSwap';
 
+export type LibraryPane = DockTab;
+
+const PANE_ORDER: readonly LibraryPane[] = [
+  'lobby', 'library', 'journey', 'notebook', 'wishes', 'rewards',
+];
+
 export default function ChildReadingLibrary({
   childId,
+  pane: controlledPane,
   story,
   unlockTitle,
-  hero,
+  lobby,
+  journey,
+  libraryExtra,
   onStoryOpened,
   onLockChange,
   onPaneChange,
   onReadingChange,
 }: {
   childId: number;
-  /** Khung "Hôm nay em đọc" hiện đầu tab Truyện. */
-  hero?: ReactNode;
+  pane?: LibraryPane;
   story?: { storyId: number } | null;
   unlockTitle?: string;
+  lobby?: ReactNode;
+  journey?: ReactNode;
+  libraryExtra?: ReactNode;
   onStoryOpened?: () => void;
   onLockChange?: (lock: { locked: boolean; unlockStoryId: number | null }) => void;
-  onPaneChange?: (pane: string) => void;
+  onPaneChange?: (pane: LibraryPane) => void;
   onReadingChange?: (active: boolean) => void;
 }) {
   const session = childAccessService.readSession();
@@ -44,14 +55,29 @@ export default function ChildReadingLibrary({
   const reader = useChildReader(token, refresh);
   const reading = !!reader.content;
 
-  // Hướng trượt theo thứ tự tab: sang tab bên phải thì nội dung trượt vào từ phải, về tab bên trái thì từ trái.
-  const PANE_ORDER: DockTab[] = ['stories', 'notebook', 'wishes', 'rewards'];
-  const [nav, setNav] = useState<{ pane: DockTab; dir: 1 | -1 }>({ pane: 'stories', dir: 1 });
+  // Hướng trượt theo thứ tự khu: sang phải thì trượt vào từ phải, về trái thì từ trái.
+  const [nav, setNav] = useState<{ pane: LibraryPane; dir: 1 | -1 }>({
+    pane: controlledPane ?? 'lobby',
+    dir: 1,
+  });
   const { pane, dir } = nav;
-  const setPane = (next: DockTab) =>
-    setNav((cur) => ({ pane: next, dir: PANE_ORDER.indexOf(next) >= PANE_ORDER.indexOf(cur.pane) ? 1 : -1 }));
+  const setPane = (next: LibraryPane) =>
+    setNav((cur) => ({
+      pane: next,
+      dir: PANE_ORDER.indexOf(next) >= PANE_ORDER.indexOf(cur.pane) ? 1 : -1,
+    }));
 
-  // Các kệ bên dưới chỉ thuộc tab Truyện của em; báo tab đang chọn cho trang cha.
+  // Đồng bộ khi pane được điều khiển từ ngoài.
+  useEffect(() => {
+    if (!controlledPane) return;
+    setNav((cur) =>
+      cur.pane === controlledPane
+        ? cur
+        : { pane: controlledPane, dir: PANE_ORDER.indexOf(controlledPane) >= PANE_ORDER.indexOf(cur.pane) ? 1 : -1 }
+    );
+  }, [controlledPane]);
+
+  // Báo khu đang chọn cho trang cha.
   useEffect(() => {
     onPaneChange?.(pane);
   }, [pane, onPaneChange]);
@@ -127,9 +153,9 @@ export default function ChildReadingLibrary({
       {reader.note && <p role="status" className="kid-toast">{reader.note}</p>}
       {note && <p role="status" className="kid-toast">{note}</p>}
       <PaneSwap key={pane} dir={dir}>
-        {pane === 'stories' && (
+        {pane === 'lobby' && lobby}
+        {pane === 'library' && (
           <>
-            {hero}
             <KidShelves
               token={token}
               busy={reader.busy}
@@ -138,8 +164,10 @@ export default function ChildReadingLibrary({
               onOpen={(storyId) => void reader.open({ storyId })}
               onLockChange={onLockChange}
             />
+            {libraryExtra}
           </>
         )}
+        {pane === 'journey' && journey}
         {pane === 'notebook' && (
           <>
             {!loading && !entries.length && <p className="kid-empty">Chưa có từ nào trong sổ tay.</p>}
@@ -154,10 +182,7 @@ export default function ChildReadingLibrary({
                       label={`Đọc lại đoạn có từ ${e.term}`}
                       disabled={reader.busy}
                       onClick={() =>
-                        void reader.open(
-                          { storyId: e.storyId },
-                          e.sceneIndex == null ? undefined : e.sceneIndex + 1
-                        )
+                        void reader.open({ storyId: e.storyId }, e.sceneIndex == null ? undefined : e.sceneIndex + 1)
                       }
                     />
                     <IconButton

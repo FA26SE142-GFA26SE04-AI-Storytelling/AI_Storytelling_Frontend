@@ -283,9 +283,9 @@ try {
   await smoke('KidHome', 'Parent', async ({ page, state }) => {
     await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
     await page.getByText('Chào Bé Sen!', { exact: true }).waitFor();
-    await page.getByText('Hôm nay em đọc', { exact: true }).waitFor();
+    await page.getByText('Đọc ngay', { exact: true }).waitFor();
     await page.getByRole('heading', { name: 'Ếch con hôm nay', exact: true }).waitFor();
-    for (const tab of ['Truyện', 'Sổ tay', 'Điều ước', 'Cây']) await page.getByRole('button', { name: tab, exact: true }).waitFor();
+    for (const tab of ['Sảnh', 'Kho truyện', 'Hành trình', 'Sổ tay', 'Điều ước']) await page.getByRole('button', { name: tab, exact: true }).waitFor();
     await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
     await page.waitForTimeout(1000);
     assert.equal(state.reading?.storyId, 7, 'Bấm "Đọc ngay" phải mở truyện hôm nay');

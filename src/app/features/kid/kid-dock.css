@@ -1,242 +1,82 @@
-/* Thanh điều hướng dưới đáy của bé (đầm sen) */
+/* Thanh điều hướng dưới đáy (KidDock) theo phong cách game đầm sen */
 .kid-dock {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: 105;
-  background: color-mix(in srgb, var(--surface) 92%, transparent);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 3px solid var(--line);
-  border-radius: 28px 28px 0 0;
-  padding-top: 6px;
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  align-items: center;
-}
-
-/* Lá sen trượt bên dưới mục đang chọn */
-.kid-dock-leaf {
-  position: absolute;
-  left: 0;
-  top: 8px;
-  width: 25%;
-  height: 58px;
-  border-radius: 50%;
-  background: color-mix(in srgb, var(--primary) 30%, transparent);
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+  background: transparent;
   pointer-events: none;
-  z-index: 0;
-  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
 }
 
-/* Nút bấm mỗi mục trong dock: vùng bấm tối thiểu 72px */
+.kid-dock-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  pointer-events: auto;
+}
+
 .kid-dock-item {
   position: relative;
-  z-index: 1;
-  display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 72px;
-  min-width: 72px;
-  padding: 4px 2px;
-  margin: 0;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
+  min-width: 96px;
+  min-height: 84px;
+  padding: 8px 12px;
 }
 
-/* Ô chứa icon: 64x64 bo 20px, co về 56x56 trên màn hình hẹp */
-.kid-dock-icon {
-  position: relative;
-  width: 64px;
-  height: 64px;
-  border-radius: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--item-color);
-  background: transparent;
-  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1), background-color 0.2s, color 0.2s;
-}
-
-/* Mầm lá bật lên khi bấm chọn mục */
+/* Mầm lá bật lên khi bấm chọn */
 @keyframes kid-dock-pop {
-  0% { transform: scale(0.3); opacity: 1; }
-  60% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 0; }
+  0% {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
 }
 
 .kid-dock-sprout {
   position: absolute;
-  top: 4px;
-  right: 6px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  top: -6px;
+  right: -4px;
   pointer-events: none;
   animation: kid-dock-pop 600ms ease-out forwards;
 }
 
-.kid-dock-svg {
-  width: 28px;
-  height: 28px;
-}
-
-/* Nhãn chữ đậm bên dưới icon */
-.kid-dock-label {
-  margin-top: 4px;
-  font-size: var(--fs-sm);
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 100%;
-  padding: 0 4px;
-}
-
-/* Trạng thái đang chọn: icon vàng nổi lên */
-.kid-dock-item[aria-pressed="true"] .kid-dock-icon {
-  background: var(--gold);
-  color: var(--on-gold);
-  transform: translateY(-6px);
-}
-
-.kid-dock-item[aria-pressed="true"] .kid-dock-label {
-  font-weight: 800;
-}
-
-/* Màn hình nhỏ dưới 380px: thu nhỏ ô icon còn 56x56 */
-@media (max-width: 380px) {
-  .kid-dock-leaf {
-    top: 6px;
-    height: 50px;
-  }
-
-  .kid-dock-icon {
-    width: 56px;
-    height: 56px;
-    border-radius: 16px;
-  }
-
-  .kid-dock-svg {
-    width: 24px;
-    height: 24px;
-  }
-}
-
-/* Tắt chuyển động khi người dùng bật giảm chuyển động */
-@media (prefers-reduced-motion: reduce) {
-  .kid-dock-leaf {
-    transition: none !important;
-  }
-
-  .kid-dock-icon {
-    transition: none !important;
-  }
-
-  .kid-dock-sprout {
-    animation: none !important;
-    display: none !important;
-  }
-}
-
-/* Nền chuyển màu mềm theo từng tab và chừa chỗ cho dock ở đáy màn hình */
-.kid-reading.kid-with-dock,
-.kid .ksection.kid-reading.kid-with-dock {
-  background: var(--tab-tint);
-  transition: background .4s;
-}
-
-/* Chừa chỗ cho dock ở cuối toàn bộ trang chủ (kể cả kệ Truyện gia đình nằm ngoài khối Truyện) */
-.kid:has(.kid-dock) .khome { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
-
-/* Lá sen chỉ là một elip nhỏ dưới ô icon đang chọn, không trải hết 1/4 thanh */
-.kid-dock-leaf { background: none; }
-.kid-dock-leaf::before { content: ""; position: absolute; left: 50%; top: 40px; width: 96px; height: 28px; margin-left: -48px; border-radius: 50%; background: color-mix(in srgb, var(--primary) 32%, transparent); }
-@media (max-width: 380px) { .kid-dock-leaf::before { top: 34px; width: 80px; margin-left: -40px; } }
-/* Cuộn tới một phần tử (bàn phím, scrollIntoView) thì dừng phía trên dock */
-.kid:has(.kid-dock) .kscroll { scroll-padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
-
-/* Bố cục màn rộng trên 1024px: dock nổi dính ở đầu trang */
-@media (min-width: 1024px) {
-  .kid-dock {
-    position: sticky;
-    top: 0;
-    bottom: auto;
-    left: auto;
-    right: auto;
+@media (max-width: 480px) {
+  .kid-dock-row {
     width: 100%;
-    max-width: 760px;
-    margin: 14px auto 0;
-    border-radius: 28px;
-    border: 3px solid var(--line);
-    padding: 8px;
-    box-shadow: 0 10px 24px -14px var(--shadow);
-    background: color-mix(in srgb, var(--surface) 92%, transparent);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    z-index: 20;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
   }
 
   .kid-dock-item {
-    flex-direction: row;
-    min-height: 64px;
-    gap: 12px;
-    justify-content: center;
-  }
-
-  .kid-dock-icon {
-    width: 52px;
-    height: 52px;
-    border-radius: 16px;
-  }
-
-  .kid-dock-label {
-    margin-top: 0;
-    font-size: var(--fs-md);
-    font-weight: 800;
-  }
-
-  .kid-dock-item[aria-pressed="true"] {
-    background: color-mix(in srgb, var(--gold) 18%, transparent);
-  }
-
-  .kid-dock-item[aria-pressed="true"] .kid-dock-icon {
-    background: var(--gold);
-  }
-
-  .kid-dock-leaf {
-    top: auto;
-    bottom: -6px;
-    height: 6px;
-  }
-
-  .kid-dock-leaf::before {
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    margin-left: 0;
-    width: 40%;
-    height: 6px;
-    border-radius: 50%;
-  }
-
-  .kid:has(.kid-dock) .khome {
-    padding-bottom: 40px;
-  }
-
-  .kid:has(.kid-dock) .kscroll {
-    scroll-padding-top: 110px;
-    scroll-padding-bottom: 0;
+    min-width: 0;
+    flex: 1;
+    min-height: 72px;
+    padding: 6px 4px;
   }
 }
-@media (min-width: 1024px) { .kid-dock-item { border-radius: 20px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .kid-dock-sprout {
+    animation: none;
+    display: none;
+  }
+}
+
+/* Chừa chỗ cho dock ở đáy nội dung */
+.kid:has(.kid-dock) .khome {
+  padding-bottom: 120px;
+}
+
+.kid:has(.kid-dock) .kscroll {
+  scroll-padding-bottom: 120px;
+}
