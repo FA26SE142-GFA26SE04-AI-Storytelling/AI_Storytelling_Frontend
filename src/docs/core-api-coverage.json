@@ -4904,6 +4904,58 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
+    "method": "GET",
+    "route": "/api/v1/ParentReadingFeedback/{childProfileId}/sessions/{sessionId}/quiz",
+    "authorization": "Roles = \"User\"",
+    "controller": "ParentReadingFeedbackController.cs",
+    "action": "Quiz",
+    "controllerLine": 28,
+    "evidence": [
+      {
+        "key": "GET /api/v1/ParentReadingFeedback/{}/sessions/{}/quiz",
+        "service": "parentReadingFeedbackService",
+        "operation": "quiz",
+        "file": "app/services/childReadingService.ts",
+        "line": 43,
+        "callers": [
+          "app/features/learning/QuizDetailDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/ParentReadingFeedback/{childProfileId}/overview",
+    "authorization": "Roles = \"User\"",
+    "controller": "ParentReadingFeedbackController.cs",
+    "action": "Overview",
+    "controllerLine": 37,
+    "evidence": [
+      {
+        "key": "GET /api/v1/ParentReadingFeedback/{}/overview",
+        "service": "parentReadingFeedbackService",
+        "operation": "overview",
+        "file": "app/services/childReadingService.ts",
+        "line": 44,
+        "callers": [
+          "app/features/learning/learningData.ts"
+        ]
+      },
+      {
+        "key": "GET /api/v1/ParentReadingFeedback/{}/overview",
+        "service": "parentReadingFeedbackService",
+        "operation": "overview",
+        "file": "app/services/childReadingService.ts",
+        "line": 44,
+        "callers": [
+          "app/features/learning/learningData.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
     "method": "POST",
     "route": "/api/v1/parent/stories/{storyId}/content/finalize",
     "authorization": "Roles = \"User\"",

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { parentReadingFeedbackService, parentStorySummaryService } from "@/app/services/childReadingService";
 import { parentWishService } from "@/app/services/storyWishService";
-import type { PagedParentSummaries, PagedReadingFeedback } from "@/app/types/childReading";
+import type { PagedParentSummaries, PagedReadingFeedback, ParentReadingOverview, ReadingFeedbackFilter } from "@/app/types/childReading";
 import type { ParentWishDto } from "@/app/types/storyWish";
 import type { RoadmapItem } from "@/app/types/progress";
 import { groupStages } from "@/app/services/roadmapAdapters";
@@ -26,20 +26,60 @@ export function splitRoadmap(items: RoadmapItem[] | undefined) {
 
 type Paged<T> = { data: T | null; error: string; reload: () => void };
 
+/** Chuyển khoảng lọc thời gian sang mốc UTC ISO. */
+export function rangeToUtc(range: ReadingFeedbackFilter["range"], now: Date = new Date()): { from: string | null; to: string | null } {
+  if (range === "all") return { from: null, to: null };
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
+  if (range === "7d") {
+    start.setDate(start.getDate() - 6);
+  } else if (range === "30d") {
+    start.setDate(start.getDate() - 29);
+  }
+  return { from: start.toISOString(), to: null };
+}
+
 /** Truyện bé đã đọc xong: cảm xúc, điểm câu đố, câu trả lời ở điểm dừng (GET /ParentReadingFeedback). */
-export function useReadingFeedback(childId: number, page: number, pageSize: number): Paged<PagedReadingFeedback> {
+export function useReadingFeedback(
+  childId: number,
+  page: number,
+  pageSize: number,
+  filter: ReadingFeedbackFilter = { status: "Completed", range: "all" },
+): Paged<PagedReadingFeedback> & { loading: boolean } {
   const [data, setData] = useState<PagedReadingFeedback | null>(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tick, setTick] = useState(0);
   useEffect(() => {
     const controller = new AbortController();
-    void parentReadingFeedbackService.list(childId, page, pageSize, controller.signal).then((r) => {
+    setLoading(true);
+    const { from, to } = rangeToUtc(filter.range);
+    void parentReadingFeedbackService.list(childId, page, pageSize, { status: filter.status, from, to }, controller.signal).then((r) => {
+      if (controller.signal.aborted) return;
+      setLoading(false);
+      setData(r.success ? r.data : null);
+      setError(r.success ? "" : r.message);
+    });
+    return () => controller.abort();
+  }, [childId, page, pageSize, filter.status, filter.range, tick]);
+  return { data, error, loading, reload: useCallback(() => setTick((t) => t + 1), []) };
+}
+
+/** Tổng quan việc đọc của bé theo khoảng thời gian (GET /ParentReadingFeedback/{id}/overview). */
+export function useReadingOverview(childId: number, range: ReadingFeedbackFilter["range"]): Paged<ParentReadingOverview> {
+  const [data, setData] = useState<ParentReadingOverview | null>(null);
+  const [error, setError] = useState("");
+  const [tick, setTick] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    const { from, to } = rangeToUtc(range);
+    void parentReadingFeedbackService.overview(childId, from, to, controller.signal).then((r) => {
       if (controller.signal.aborted) return;
       setData(r.success ? r.data : null);
       setError(r.success ? "" : r.message);
     });
     return () => controller.abort();
-  }, [childId, page, pageSize, tick]);
+  }, [childId, range, tick]);
   return { data, error, reload: useCallback(() => setTick((t) => t + 1), []) };
 }
 

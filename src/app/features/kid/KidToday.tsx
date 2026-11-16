@@ -1,5 +1,5 @@
 'use client';
-import { Lock, Play, Search, Star } from 'lucide-react';
+import { Play, Search, Star } from 'lucide-react';
 import type * as B from '@/app/types/backendContracts';
 import Frog from '@/app/components/brand/Frog';
 import { coverFor } from '@/app/lib/storyView';
@@ -56,7 +56,7 @@ export default function KidToday({ roadmap, nickname, busy, onRead }: {
   const doneInCurrent = roadmap.done.filter((d) => d.stage === currentStage).length;
   const lilySteps: LilyStep[] = [
     ...doneGroups.map(([stage, list]) => ({ key: stage, stage, storyId: list[0].storyId, title: list[0].title ?? "", cover: coverFor(list[0].coverImageUrl), status: "done" as const, count: list.length })),
-    { key: 100000 + currentStage, stage: currentStage, storyId: open.storyId, title: open.title ?? "", cover: coverFor(open.coverImageUrl), status: "current" as const, locked: !!open.isLocked, count: opens.length + doneInCurrent },
+    { key: 100000 + currentStage, stage: currentStage, storyId: open.storyId, title: open.title ?? "", cover: coverFor(open.coverImageUrl), status: "current" as const, locked: false, count: opens.length + doneInCurrent },
     ...byStage(roadmap.upcoming, (s) => s.order).map(([order, list]) => ({ key: 200000 + order, stage: currentStage + order, storyId: list[0].storyId, title: list[0].title ?? "", cover: coverFor(list[0].coverImageUrl), status: "next" as const, locked: true, count: list.length })),
   ];
   const onStep = (s: LilyStep) => {
@@ -67,28 +67,25 @@ export default function KidToday({ roadmap, nickname, busy, onRead }: {
     showToast("Đọc xong truyện trước để mở nhé!", "info");
   };
 
-  const locked = !!open.isLocked;
   return (
     <>
       <section className="kid-today" aria-label="Truyện hôm nay của em">
-        <button className="kid-today-cover" style={{ background: coverFor(open.coverImageUrl) }} disabled={busy || locked} onClick={() => onRead(open.storyId)} aria-label={`Đọc truyện ${open.title ?? ''}`}>
+        <button className="kid-today-cover" style={{ background: coverFor(open.coverImageUrl) }} disabled={busy} onClick={() => onRead(open.storyId)} aria-label={`Đọc truyện ${open.title ?? ''}`}>
           {!open.coverImageUrl && <span className="bk-name display">{open.title}</span>}
-          {!locked && <span className="kid-today-play" aria-hidden><Play /></span>}
+          <span className="kid-today-play" aria-hidden><Play /></span>
         </button>
         <div className="kid-today-body">
           <b className="display kid-today-hello">{hello}</b>
           <span className="kid-today-tag"><Star aria-hidden />Hôm nay em đọc</span>
           <h2 className="display kid-today-title">{open.title ?? 'Truyện bố mẹ chọn'}</h2>
           {open.note && <p className="kid-today-note">💌 {open.note}</p>}
-          {locked
-            ? <p className="kid-today-say"><Lock aria-hidden />Truyện này chưa mở, em chờ bố mẹ nhé.</p>
-            : <button className="kid-today-go" disabled={busy} onClick={() => onRead(open.storyId)}><Play aria-hidden />Đọc ngay</button>}
+          <button className="kid-today-go" disabled={busy} onClick={() => onRead(open.storyId)}><Play aria-hidden />Đọc ngay</button>
           {opens.length > 1 && (
             <div className="kid-today-more" aria-label="Truyện khác hôm nay">
               <span className="kid-today-more-h">Hôm nay em còn đọc được</span>
               <div className="kid-today-more-row">
                 {opens.slice(1).map((s) => (
-                  <button key={s.storyId} className="kid-today-more-item" disabled={busy || !!s.isLocked} onClick={() => onRead(s.storyId)} aria-label={`Đọc truyện ${s.title ?? ''}`}>
+                  <button key={s.storyId} className="kid-today-more-item" disabled={busy} onClick={() => onRead(s.storyId)} aria-label={`Đọc truyện ${s.title ?? ''}`}>
                     <span className="kid-today-more-cover" style={{ background: coverFor(s.coverImageUrl) }} aria-hidden />
                     <b>{s.title ?? 'Truyện bố mẹ chọn'}</b>
                     {s.note && <small>💌 {s.note}</small>}
