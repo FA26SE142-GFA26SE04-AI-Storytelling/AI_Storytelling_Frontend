@@ -112,6 +112,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] Thêm truyện vào lộ trình (Đọc tiếp theo / Cuối lộ trình), đổi thứ tự, gỡ một bước, làm trống; chặn khi hồ sơ không Active.
 - [x] Thư viện lộ trình mẫu: xem, xem trước, sao chép cho bé.
 - [x] Trang "Học tập của bé": Tổng quan, Lộ trình, Kết quả đọc (phản hồi đọc, câu bé trả lời, bản ghi âm kể lại, chỗ bé còn thắc mắc, xoá bản kể lại), Điều ước.
+- [x] Kết quả đọc mở rộng (16/11, BE PR #151): lọc Đã/Chưa đọc xong và 7 ngày/30 ngày/Tất cả; ô tổng quan (`GET /ParentReadingFeedback/{id}/overview`); mỗi lần đọc có thời gian, số trang, lần đọc lại, EXP, chế độ đọc, đọc to, từ mới, bản kể lại; popup chi tiết câu đố (`GET .../sessions/{sessionId}/quiz`) ([ResultsTab.tsx](src/app/features/learning/ResultsTab.tsx)).
 - [x] Thông báo (đọc, đánh dấu đã đọc, xoá).
 
 ---

@@ -2471,7 +2471,6 @@ export interface MyRoadmapOpenStoryDto {
   'coverImageUrl': string | null;
   'note': string | null;
   'expectedBy': string | null;
-  'isLocked': boolean;
 }
 
 export interface MyRoadmapUpcomingDto {

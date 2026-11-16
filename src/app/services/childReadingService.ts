@@ -39,7 +39,9 @@ export const childRewardsService = {
 };
 /** Phụ huynh xem truyện con đã đọc xong, cảm nhận và điểm quiz tốt nhất. */
 export const parentReadingFeedbackService = {
-  list: (childProfileId:number, pageIndex=1, pageSize=20, signal?:AbortSignal) => apiRequest<D.PagedReadingFeedback>(`/ParentReadingFeedback/${childProfileId}?pageIndex=${pageIndex}&pageSize=${pageSize}`,'Không tải được truyện bé đã đọc.',{signal}),
+  list: (childProfileId:number, pageIndex=1, pageSize=20, query:{status?:'Completed'|'Unfinished'; from?:string|null; to?:string|null}={}, signal?:AbortSignal) => { const p=new URLSearchParams({pageIndex:String(pageIndex),pageSize:String(pageSize)}); if(query.status!=null)p.set('status',query.status); if(query.from!=null)p.set('from',query.from); if(query.to!=null)p.set('to',query.to); return apiRequest<D.PagedReadingFeedback>(`/ParentReadingFeedback/${childProfileId}?${p}`,'Không tải được truyện bé đã đọc.',{signal}); },
+  quiz: (childId:number, sessionId:number, signal?:AbortSignal) => apiRequest<D.ParentQuizDetail>(`/ParentReadingFeedback/${childId}/sessions/${sessionId}/quiz`,'Không tải được chi tiết câu đố.',{signal}),
+  overview: (childId:number, from:string|null, to:string|null, signal?:AbortSignal) => { const p=new URLSearchParams(); if(from!=null)p.set('from',from); if(to!=null)p.set('to',to); const qs=p.toString(); return apiRequest<D.ParentReadingOverview>(`/ParentReadingFeedback/${childId}/overview${qs?`?${qs}`:''}`,'Không tải được tổng quan việc đọc.',{signal}); },
 };
 export const childNotebookService = {
   list: (token:string, signal?:AbortSignal) => apiRequest<D.NotebookEntry[]>('/child/notebook','Không tải được sổ tay.',{token,session:'child',signal}),

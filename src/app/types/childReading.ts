@@ -72,7 +72,33 @@ export interface PagedParentSummaries { items:ParentSummaryItem[]; pageIndex:num
 // ---------- Phụ huynh xem con đã đọc gì (/ParentReadingFeedback) ----------
 export interface PagedReadingFeedback { items:ParentReadingFeedbackItem[]; pageIndex:number; pageSize:number; totalCount:number; totalPages:number; hasNextPage:boolean; hasPreviousPage:boolean }
 export interface ParentConversationAnswer { question:string; kind:'Emotion'|'Opinion'|string; answerText:string; sceneIndex:number|null; answeredAt:string }
-export interface ParentReadingFeedbackItem { sessionId:number; storyId:number; title:string; completedAt:string|null; feeling:ReadingFeeling|string|null; feelingLabel:string|null; quizTotalQuestions:number; quizBestPercent:number|null; conversationAnswers?:ParentConversationAnswer[] }
+export interface ParentReadingFeedbackItem {
+  sessionId:number; storyId:number; title:string; completedAt:string|null; feeling:ReadingFeeling|string|null; feelingLabel:string|null; quizTotalQuestions:number; quizBestPercent:number|null; conversationAnswers?:ParentConversationAnswer[];
+  status: ParentFeedbackStatus;
+  startedAt: string;
+  timeSpentSeconds: number;
+  pagesCompleted: number;
+  totalPages: number;   // 0 = không rõ
+  readCount: number;
+  readOrdinal: number | null;
+  laterCompleted: boolean;
+  quizRunCount: number;
+  quizLatestPercent: number | null;
+  readAloud: ParentReadAloudSummary | null;
+  expEarned: number;
+  wordsCollected?: ParentCollectedWord[];   // optional để an toàn
+  readingMode: 'ListenFirst' | 'ReadFirst' | null;
+  retell: ParentRetellBrief | null;
+}
+export type ParentFeedbackStatus = 'Completed'|'Started'|'Reading'|'Activity'|'Abandoned'|'ForceExited';
+export interface ParentReadAloudSummary { attempts:number; segmentsPracticed:number; goodWords:number; retryWords:number; totalWords:number; goodPercent:number }
+export interface ParentCollectedWord { vocabularyId:number; term:string }
+export interface ParentRetellBrief { summaryId:number; createdAt:string; hasRecording:boolean; flagCount:number }
+export interface ParentQuizRun { runNo:number; answered:number; correct:number; percent:number }
+export interface ParentQuizQuestion { quizItemId:number; type:'MultipleChoice'|'TrueFalse'|'ShortAnswer'|string; question:string; choices:string[]; correctAnswer:string|null; explanation:string|null; latestAnswer:string|null; latestIsCorrect:boolean|null; timesAnswered:number; timesCorrect:number }
+export interface ParentQuizDetail { sessionId:number; storyId:number; title:string; totalQuestions:number; runs:ParentQuizRun[]; questions:ParentQuizQuestion[] }
+export interface ParentReadingOverview { from:string|null; to:string|null; completedSessions:number; distinctStoriesCompleted:number; unfinishedStories:number; totalTimeSpentSeconds:number; quizStoriesTaken:number; averageQuizBestPercent:number|null; feelingCounts:Record<'VeryLike'|'Like'|'Neutral'|'Dislike'|'None', number>; expEarned:number; wordsCollected:number; readAloudGoodPercent:number|null; retellCount:number }
+export type ReadingFeedbackFilter = { status: 'Completed' | 'Unfinished'; range: '7d' | '30d' | 'all' };
 export interface ReadingSignal { shouldExit:boolean; returnTo:string|null; message:string|null; sessionStatus:string }
 export interface VocabularyDefinition { vocabularyId:number; term:string; definition:string; isCollected:boolean }
 export interface NotebookEntry { entryId:number; vocabularyId:number; term:string; definition:string; storyId:number; storyTitle:string; sceneIndex:number|null; collectedAt:string }

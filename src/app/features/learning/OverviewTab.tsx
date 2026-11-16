@@ -7,7 +7,7 @@ import type { ChildProfile } from "@/app/types/childProfile";
 import type { RoadmapItem } from "@/app/types/progress";
 import { useStoryCovers } from "@/app/features/roadmap/roadmapData";
 import { shortDate, splitRoadmap, useReadingFeedback, useStorySummaries } from "./learningData";
-import { feelingPill, quizPill } from "./ResultsTab";
+import { feelingPill, quizPill } from "./ResultCard";
 import type { LearningTabId } from "./LearningWorkspace";
 
 /** Tab "Tổng quan": bé đang đọc gì, đã đọc bao nhiêu, kết quả gần đây và việc bố mẹ cần xem. */
