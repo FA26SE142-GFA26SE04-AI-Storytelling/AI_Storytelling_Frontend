@@ -180,6 +180,36 @@
     transition: none;
     transform: none;
   }
+  .kid-shelf-head:hover .kid-shelf-sprout,
+  .kid-shelf-head:active .kid-shelf-sprout {
+    animation: none;
+  }
+}
+
+/* Mầm lá nhỏ lắc lư khi di chuột/chạm */
+.kid-shelf-sprout {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  transform-origin: 50% 100%;
+}
+.kid-shelf-head:hover .kid-shelf-sprout,
+.kid-shelf-head:active .kid-shelf-sprout {
+  animation: kid-sprout-wiggle 500ms ease-in-out;
+}
+@keyframes kid-sprout-wiggle {
+  0%, 100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-14deg);
+  }
+  50% {
+    transform: rotate(10deg);
+  }
+  75% {
+    transform: rotate(-6deg);
+  }
 }
 
 /* Khi mở: khung ôm vừa ô nhập + 2 nút, ô nhập co theo màn hẹp để không tràn mép phải */

@@ -52,6 +52,7 @@
 
 /* Ô chứa icon: 64x64 bo 20px, co về 56x56 trên màn hình hẹp */
 .kid-dock-icon {
+  position: relative;
   width: 64px;
   height: 64px;
   border-radius: 20px;
@@ -61,6 +62,24 @@
   color: var(--item-color);
   background: transparent;
   transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1), background-color 0.2s, color 0.2s;
+}
+
+/* Mầm lá bật lên khi bấm chọn mục */
+@keyframes kid-dock-pop {
+  0% { transform: scale(0.3); opacity: 1; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); opacity: 0; }
+}
+
+.kid-dock-sprout {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  animation: kid-dock-pop 600ms ease-out forwards;
 }
 
 .kid-dock-svg {
@@ -121,6 +140,11 @@
   .kid-dock-icon {
     transition: none !important;
   }
+
+  .kid-dock-sprout {
+    animation: none !important;
+    display: none !important;
+  }
 }
 
 /* Nền chuyển màu mềm theo từng tab và chừa chỗ cho dock ở đáy màn hình */
@@ -128,9 +152,7 @@
 .kid .ksection.kid-reading.kid-with-dock {
   background: var(--tab-tint);
   transition: background .4s;
-
 }
-
 
 /* Chừa chỗ cho dock ở cuối toàn bộ trang chủ (kể cả kệ Truyện gia đình nằm ngoài khối Truyện) */
 .kid:has(.kid-dock) .khome { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
@@ -141,3 +163,80 @@
 @media (max-width: 380px) { .kid-dock-leaf::before { top: 34px; width: 80px; margin-left: -40px; } }
 /* Cuộn tới một phần tử (bàn phím, scrollIntoView) thì dừng phía trên dock */
 .kid:has(.kid-dock) .kscroll { scroll-padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+
+/* Bố cục màn rộng trên 1024px: dock nổi dính ở đầu trang */
+@media (min-width: 1024px) {
+  .kid-dock {
+    position: sticky;
+    top: 0;
+    bottom: auto;
+    left: auto;
+    right: auto;
+    width: 100%;
+    max-width: 760px;
+    margin: 14px auto 0;
+    border-radius: 28px;
+    border: 3px solid var(--line);
+    padding: 8px;
+    box-shadow: 0 10px 24px -14px var(--shadow);
+    background: color-mix(in srgb, var(--surface) 92%, transparent);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .kid-dock-item {
+    flex-direction: row;
+    min-height: 64px;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .kid-dock-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+  }
+
+  .kid-dock-label {
+    margin-top: 0;
+    font-size: var(--fs-md);
+    font-weight: 800;
+  }
+
+  .kid-dock-item[aria-pressed="true"] {
+    background: color-mix(in srgb, var(--gold) 18%, transparent);
+  }
+
+  .kid-dock-item[aria-pressed="true"] .kid-dock-icon {
+    background: var(--gold);
+  }
+
+  .kid-dock-leaf {
+    top: auto;
+    bottom: -6px;
+    height: 6px;
+  }
+
+  .kid-dock-leaf::before {
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    margin-left: 0;
+    width: 40%;
+    height: 6px;
+    border-radius: 50%;
+  }
+
+  .kid:has(.kid-dock) .khome {
+    padding-bottom: 40px;
+  }
+
+  .kid:has(.kid-dock) .kscroll {
+    scroll-padding-top: 110px;
+    scroll-padding-bottom: 0;
+  }
+}
+@media (min-width: 1024px) { .kid-dock-item { border-radius: 20px; } }

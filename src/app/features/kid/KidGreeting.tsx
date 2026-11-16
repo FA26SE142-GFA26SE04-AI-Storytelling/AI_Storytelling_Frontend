@@ -146,6 +146,24 @@ export default function KidGreeting({ nickname, roadmap }: KidGreetingProps) {
       {hasBubble && (
         <>
           <div ref={popRef} className="kid-greet-bubble">
+            <span className="kid-greet-bubble-leaf" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+                <path
+                  d="M4 20C4 20 6 12 14 6C18 3 20 4 20 4C20 4 21 6 18 10C12 18 4 20 4 20Z"
+                  fill="var(--primary)"
+                  stroke="color-mix(in srgb, var(--text) 20%, transparent)"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M4 20C9 17 13 13 17 7"
+                  stroke="color-mix(in srgb, var(--text) 20%, transparent)"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+              </svg>
+            </span>
             <p>{currentText}</p>
           </div>
 

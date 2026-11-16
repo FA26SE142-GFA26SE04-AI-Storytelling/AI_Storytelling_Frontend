@@ -116,6 +116,7 @@ export default function ChildReadingLibrary({
       className="ksection kid-reading kid-with-dock"
       style={{ '--tab-tint': DOCK_TINT[pane] } as CSSProperties}
     >
+      <KidDock value={pane} onChange={setPane} />
       {reader.busy && !reader.content && (
         <div className="kid-loading" role="status" aria-live="polite">
           <Frog mood="think" size={96} />
@@ -177,7 +178,6 @@ export default function ChildReadingLibrary({
           <KidWish key={revision} token={token} busy={reader.busy} onRead={(target) => void reader.open(target)} />
         )}
       </PaneSwap>
-      <KidDock value={pane} onChange={setPane} />
     </section>
   );
 }

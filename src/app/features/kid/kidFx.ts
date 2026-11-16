@@ -1,7 +1,12 @@
 // Hiệu ứng cánh hoa sen bung toả dùng chung cho không gian của bé
 import { prefersReducedMotion } from "@/app/lib/motion";
 
-export function petalBurst(x: number, y: number, count = 14): void {
+export function petalBurst(
+  x: number,
+  y: number,
+  count = 14,
+  colors: string[] = ["var(--lotus)", "var(--gold)"]
+): void {
   if (typeof window === "undefined" || prefersReducedMotion()) {
     return;
   }
@@ -9,7 +14,7 @@ export function petalBurst(x: number, y: number, count = 14): void {
   for (let i = 0; i < count; i++) {
     const span = document.createElement("span");
     const size = Math.floor(Math.random() * 7) + 8; // 8–14px
-    const bg = i % 2 === 0 ? "var(--lotus)" : "var(--gold)";
+    const bg = colors[i % colors.length];
 
     span.style.position = "fixed";
     span.style.left = `${x}px`;

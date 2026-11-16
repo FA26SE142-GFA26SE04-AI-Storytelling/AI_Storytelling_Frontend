@@ -13,6 +13,7 @@ import PaneSwap from './PaneSwap';
 import KidToday from './KidToday';
 import KidGreeting from './KidGreeting';
 import KidShelf from './KidShelf';
+import KidLeaves from './KidLeaves';
 import { coverFor } from '@/app/lib/storyView';
 import { BookOpen, Home, Lock } from 'lucide-react';
 import { usePop } from '@/app/lib/motion';
@@ -63,7 +64,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
     if (r.success && r.data && r.data.isReady && r.data.childProfileId === childId && r.data.storyVersionId === confirmation.storyVersionId) setPack(r.data);
     else setErrors(v => [...v,r.message || 'Truyện chưa sẵn sàng hoặc quyền đọc đã thay đổi.']);
   };
-  return <div className={`kid${reading?' kid-focus':''}`} role="dialog" aria-label="Chế độ của bé">{!reading&&<PondBackdrop rich playful />}{!reading&&<button type="button" className="kid-lock-btn" onClick={onExit} aria-label="Dành cho bố mẹ" title="Dành cho bố mẹ"><Lock className="ic" aria-hidden /></button>}
+  return <div className={`kid${reading?' kid-focus':''}`} role="dialog" aria-label="Chế độ của bé">{!reading&&<PondBackdrop rich playful />}{!reading&&<KidLeaves />}{!reading&&<button type="button" className="kid-lock-btn" onClick={onExit} aria-label="Dành cho bố mẹ" title="Dành cho bố mẹ"><Lock className="ic" aria-hidden /></button>}
     <div className="kscroll"><div className="khome">
       {ended ? <section ref={endedRef} className="ksection kid-ended" role="status"><Frog mood="idle" size={150} /><h2 className="display">Phiên đọc đã kết thúc</h2><p>Em nhờ bố mẹ mở lại nhé.</p><button className="btn btn-p" onClick={onExit}><Home className="ic" aria-hidden />Về với bố mẹ</button></section> : <>
         <ChildReadingLibrary key={childId} childId={childId} story={startStory} onStoryOpened={() => setStartStory(null)} unlockTitle={titleOf(lock.unlockStoryId)} onLockChange={setLock} onPaneChange={setPane} onReadingChange={setReading} hero={<><KidGreeting nickname={nickname} roadmap={roadmap} /><KidToday roadmap={roadmap} nickname={nickname} busy={busy} onRead={(storyId) => setStartStory({ storyId })} /></>}/>

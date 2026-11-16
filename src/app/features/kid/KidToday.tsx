@@ -1,6 +1,7 @@
 'use client';
 
 import './kid-today.css';
+import KidLeafSprig from './KidLeafSprig';
 import { Play, Search, Star } from 'lucide-react';
 import type * as B from '@/app/types/backendContracts';
 import Frog from '@/app/components/brand/Frog';
@@ -73,6 +74,7 @@ export default function KidToday({ roadmap, nickname, busy, onRead }: {
   return (
     <>
       <section className="kid-today" aria-label="Truyện hôm nay của em">
+        <KidLeafSprig mirror="x" className="kid-sprig-top" />
         <button
           className={`kid-today-cover${motionOk ? ' has-shine' : ''}`}
           style={{ background: coverFor(open.coverImageUrl) }}
@@ -109,6 +111,7 @@ export default function KidToday({ roadmap, nickname, busy, onRead }: {
             </div>
           )}
         </div>
+        <KidLeafSprig mirror="y" className="kid-sprig-bottom" />
       </section>
       <div className="kid-today-pond" style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box", minWidth: 0, overflow: "hidden" }}>
         <LilyPondRoadmap steps={lilySteps} mode="child" storageKey={`kid:${nickname || "default"}`} done={roadmap.completedCount} total={roadmap.totalCount} onStepClick={onStep} emptyText="" />
