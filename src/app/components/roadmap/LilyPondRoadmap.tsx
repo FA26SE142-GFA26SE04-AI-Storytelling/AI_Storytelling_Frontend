@@ -16,7 +16,9 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Frog from "@/app/components/brand/Frog";
+import Lotus from "@/app/components/brand/Lotus";
 import { Check, Lock, Plus, UserCheck } from "lucide-react";
+import { petalBurst } from "@/app/features/kid/kidFx";
 import "./LilyPondRoadmap.css";
 
 /* ========== Types ========== */
@@ -548,6 +550,66 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
     if (commit && !d.cancelled && inside && target && canDrag(target) && steps[d.index]?.key === d.key && d.over !== d.index) onReorder?.(d.key, d.over);
   };
 
+  /* --- Giữ lá đã đọc để nở sen (chỉ bé) --- */
+  const [bloomIdx, setBloomIdx] = useState<number | null>(null);
+  const bloomTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isHoldingBloomRef = useRef(false);
+
+  /* --- Chạm hoa sen đích để nở & bung cánh hoa (chỉ bé) --- */
+  const [goalBloomed, setGoalBloomed] = useState(false);
+  const goalBloomTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (bloomTimerRef.current) clearTimeout(bloomTimerRef.current);
+      if (goalBloomTimerRef.current) clearTimeout(goalBloomTimerRef.current);
+    };
+  }, []);
+
+  const handleGoalClick = (e: React.MouseEvent<HTMLSpanElement>) => {
+    if (mode !== "child") return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    petalBurst(x, y);
+
+    if (reducedMotion) return;
+
+    if (goalBloomTimerRef.current) clearTimeout(goalBloomTimerRef.current);
+    setGoalBloomed(true);
+    goalBloomTimerRef.current = setTimeout(() => {
+      setGoalBloomed(false);
+      goalBloomTimerRef.current = null;
+    }, 600);
+  };
+
+  const handlePadPointerDownChild = (index: number) => {
+    if (reducedMotion) return;
+    if (bloomTimerRef.current) clearTimeout(bloomTimerRef.current);
+    isHoldingBloomRef.current = true;
+    bloomTimerRef.current = setTimeout(() => {
+      isHoldingBloomRef.current = false;
+      suppressClick.current = true; // giữ lâu là để nở hoa: cú click khi thả tay không được mở lại truyện
+      setBloomIdx(index);
+      bloomTimerRef.current = setTimeout(() => {
+        setBloomIdx(null);
+        bloomTimerRef.current = null;
+      }, 1000);
+    }, 600);
+  };
+
+  const handlePadPointerUpOrLeaveChild = () => {
+    if (isHoldingBloomRef.current) {
+      isHoldingBloomRef.current = false;
+      if (bloomTimerRef.current) {
+        clearTimeout(bloomTimerRef.current);
+        bloomTimerRef.current = null;
+      }
+    } else if (suppressClick.current) {
+      setTimeout(() => { suppressClick.current = false; }, 0);
+    }
+  };
+
   /* ========== Empty state ========== */
   if (steps.length === 0 && !onAddStage) {
     return (
@@ -566,12 +628,14 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
   return (
     <div>
       {/* Thanh tiến độ */}
-      <div className="rm-progress">
-        <div className="rm-progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-label="Tiến độ đọc">
-          <i style={{ width: `${percent}%` }} />
+      {mode !== "child" && (
+        <div className="rm-progress">
+          <div className="rm-progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-label="Tiến độ đọc">
+            <i style={{ width: `${percent}%` }} />
+          </div>
+          <b>Đã đọc {done}/{total}</b>
         </div>
-        <b>Đã đọc {done}/{total}</b>
-      </div>
+      )}
 
       {steps.length === 0 && emptyText && <p className="rm-empty">{emptyText}</p>}
 
@@ -664,20 +728,43 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
                       (step.empty ? " empty" : "") +
                       (movable ? " draggable" : "") +
                       (lifted ? " dragging" : "") +
-                      (target ? " drop" : "")
+                      (target ? " drop" : "") +
+                      (mode === "child" && step.status === "current" && !reducedMotion ? " is-pulsing" : "")
                     }
                     aria-label={label}
                     onClick={() => { if (suppressClick.current) return; onStepClick(step, i); }}
-                    onPointerDown={movable ? (e) => onPadPointerDown(e, step, i) : undefined}
+                    onPointerDown={
+                      mode === "child" && step.status === "done"
+                        ? () => handlePadPointerDownChild(i)
+                        : (movable ? (e) => onPadPointerDown(e, step, i) : undefined)
+                    }
                     onPointerMove={movable ? onPadPointerMove : undefined}
-                    onPointerUp={movable ? (e) => endDrag(e, true) : undefined}
-                    onPointerCancel={movable ? (e) => endDrag(e, false) : undefined}
+                    onPointerUp={
+                      mode === "child" && step.status === "done"
+                        ? handlePadPointerUpOrLeaveChild
+                        : (movable ? (e) => endDrag(e, true) : undefined)
+                    }
+                    onPointerLeave={
+                      mode === "child" && step.status === "done"
+                        ? handlePadPointerUpOrLeaveChild
+                        : undefined
+                    }
+                    onPointerCancel={
+                      mode === "child" && step.status === "done"
+                        ? handlePadPointerUpOrLeaveChild
+                        : (movable ? (e) => endDrag(e, false) : undefined)
+                    }
                     onLostPointerCapture={movable ? (e) => endDrag(e, false) : undefined}
                     ref={step.empty ? emptyPadRef : undefined}
                     title={movable ? DRAG_HINT : undefined}
                   >
                     {/* Số thứ tự */}
                     <span className="lily-n">{n}</span>
+
+                    {/* Sen nở khi giữ (chế độ bé) */}
+                    {bloomIdx === i && !reducedMotion && (
+                      <span className="lily-child-bloom"><Lotus size={28} /></span>
+                    )}
 
                     {/* Ảnh bìa (chặng trống: dấu cộng) */}
                     {step.empty
@@ -689,7 +776,12 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
 
                     {/* Dấu Check / Lock */}
                     {step.status === "done" && (
-                      <span className="lily-icon"><Check size={16} /></span>
+                      <span
+                        className={"lily-icon" + (mode === "child" && !reducedMotion ? " lily-check-pop" : "")}
+                        style={mode === "child" && !reducedMotion ? { animationDelay: (i * 120) + "ms" } : undefined}
+                      >
+                        <Check size={16} />
+                      </span>
                     )}
                     {step.locked && (
                       <span className="lily-icon"><Lock size={16} /></span>
@@ -725,16 +817,25 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
 
           {/* Đích — bông sen vàng */}
           <span
-            aria-hidden="true"
+            aria-hidden={mode === "child" ? undefined : "true"}
             style={{
               position: "absolute",
               left: goal.x + offsetX,
               top: goal.y,
               transform: "translate(-50%, -50%)",
-              pointerEvents: "none",
+              pointerEvents: mode === "child" ? "auto" : "none",
             }}
           >
-            <span className="lily-goal" style={{ display: "block" }}>
+            <span
+              role={mode === "child" ? "button" : undefined}
+              className={`lily-goal${mode === "child" && goalBloomed ? " is-bloomed" : ""}`}
+              style={{
+                display: "block",
+                pointerEvents: mode === "child" ? "auto" : undefined,
+                cursor: mode === "child" ? "pointer" : undefined,
+              }}
+              onClick={mode === "child" ? handleGoalClick : undefined}
+            >
               <GoalLotus />
             </span>
           </span>
@@ -778,6 +879,7 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
           )}
         </div>
       </div>
+      {mode === "child" && <span className="lily-child-badge" aria-label={`Đã đọc ${done} trên ${total}`}>{done}/{total}</span>}
     </div>
   );
 }

@@ -1,0 +1,143 @@
+/* Thanh điều hướng dưới đáy của bé (đầm sen) */
+.kid-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 105;
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 3px solid var(--line);
+  border-radius: 28px 28px 0 0;
+  padding-top: 6px;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  align-items: center;
+}
+
+/* Lá sen trượt bên dưới mục đang chọn */
+.kid-dock-leaf {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 25%;
+  height: 58px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--primary) 30%, transparent);
+  pointer-events: none;
+  z-index: 0;
+  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1);
+}
+
+/* Nút bấm mỗi mục trong dock: vùng bấm tối thiểu 72px */
+.kid-dock-item {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 72px;
+  min-width: 72px;
+  padding: 4px 2px;
+  margin: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Ô chứa icon: 64x64 bo 20px, co về 56x56 trên màn hình hẹp */
+.kid-dock-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--item-color);
+  background: transparent;
+  transition: transform 0.35s cubic-bezier(0.3, 1.4, 0.5, 1), background-color 0.2s, color 0.2s;
+}
+
+.kid-dock-svg {
+  width: 28px;
+  height: 28px;
+}
+
+/* Nhãn chữ đậm bên dưới icon */
+.kid-dock-label {
+  margin-top: 4px;
+  font-size: var(--fs-sm);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+  padding: 0 4px;
+}
+
+/* Trạng thái đang chọn: icon vàng nổi lên */
+.kid-dock-item[aria-pressed="true"] .kid-dock-icon {
+  background: var(--gold);
+  color: var(--on-gold);
+  transform: translateY(-6px);
+}
+
+.kid-dock-item[aria-pressed="true"] .kid-dock-label {
+  font-weight: 800;
+}
+
+/* Màn hình nhỏ dưới 380px: thu nhỏ ô icon còn 56x56 */
+@media (max-width: 380px) {
+  .kid-dock-leaf {
+    top: 6px;
+    height: 50px;
+  }
+
+  .kid-dock-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+  }
+
+  .kid-dock-svg {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* Tắt chuyển động khi người dùng bật giảm chuyển động */
+@media (prefers-reduced-motion: reduce) {
+  .kid-dock-leaf {
+    transition: none !important;
+  }
+
+  .kid-dock-icon {
+    transition: none !important;
+  }
+}
+
+/* Nền chuyển màu mềm theo từng tab và chừa chỗ cho dock ở đáy màn hình */
+.kid-reading.kid-with-dock,
+.kid .ksection.kid-reading.kid-with-dock {
+  background: var(--tab-tint);
+  transition: background .4s;
+
+}
+
+
+/* Chừa chỗ cho dock ở cuối toàn bộ trang chủ (kể cả kệ Truyện gia đình nằm ngoài khối Truyện) */
+.kid:has(.kid-dock) .khome { padding-bottom: calc(120px + env(safe-area-inset-bottom)); }
+
+/* Lá sen chỉ là một elip nhỏ dưới ô icon đang chọn, không trải hết 1/4 thanh */
+.kid-dock-leaf { background: none; }
+.kid-dock-leaf::before { content: ""; position: absolute; left: 50%; top: 40px; width: 96px; height: 28px; margin-left: -48px; border-radius: 50%; background: color-mix(in srgb, var(--primary) 32%, transparent); }
+@media (max-width: 380px) { .kid-dock-leaf::before { top: 34px; width: 80px; margin-left: -40px; } }
+/* Cuộn tới một phần tử (bàn phím, scrollIntoView) thì dừng phía trên dock */
+.kid:has(.kid-dock) .kscroll { scroll-padding-bottom: calc(120px + env(safe-area-inset-bottom)); }

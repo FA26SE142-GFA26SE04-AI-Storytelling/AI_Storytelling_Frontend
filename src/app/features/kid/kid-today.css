@@ -1,0 +1,79 @@
+/* CSS khối Hôm nay em đọc của bé (chủ đề đầm sen) */
+.kid-today {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 22%, var(--surface)), color-mix(in srgb, var(--mint) 18%, var(--surface)));
+  border: 3px solid var(--line);
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .kid-today {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+}
+
+/* Bìa truyện & vệt sáng */
+.kid-today-cover {
+  overflow: hidden;
+  max-width: 100%;
+}
+
+.kid-today-cover::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 60%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--paper) 70%, transparent), transparent);
+  transform: translateX(-160%) skewX(-20deg);
+  pointer-events: none;
+}
+
+.kid-today-cover.has-shine::after {
+  animation: shine-sweep 6s infinite ease-in-out;
+}
+
+@keyframes shine-sweep {
+  0% { transform: translateX(-160%) skewX(-20deg); }
+  20% { transform: translateX(260%) skewX(-20deg); }
+  100% { transform: translateX(260%) skewX(-20deg); }
+}
+
+/* Nút Đọc ngay & hiệu ứng nhấp nhô */
+.kid-today-go {
+  min-height: 64px;
+}
+
+.kid-today-go.is-bobbing {
+  animation: kid-bob 2.4s infinite ease-in-out;
+}
+
+@keyframes kid-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Hiệu ứng gợn nước khi click */
+.click-ripple {
+  position: fixed;
+  width: 40px;
+  height: 40px;
+  margin-left: -20px;
+  margin-top: -20px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--gold) 45%, transparent);
+  pointer-events: none;
+  z-index: 9999;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kid-today-cover.has-shine::after,
+  .kid-today-go.is-bobbing {
+    animation: none;
+  }
+}
