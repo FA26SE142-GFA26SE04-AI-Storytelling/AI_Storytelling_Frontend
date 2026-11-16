@@ -431,6 +431,7 @@ export interface ChildAccessCredentialDto {
   'childProfileId': number;
   'hasEasyLogin': boolean;
   'easyLoginCreatedAt': string | null;
+  'secret': string | null;
 }
 
 export type ChildCreationMode = 1 | 2;
@@ -2282,6 +2283,7 @@ export interface AddRoadmapStoryRequestDto {
   'storyId': number;
   'childProfileIds': (number)[];
   'position': RoadmapInsertPositionName;
+  'stageNumber'?: number | null;
   'expectedDays': number | null;
   'note': string | null;
 }
@@ -2327,7 +2329,8 @@ export interface ChildAddResultDto {
 
 export interface ChildRoadmapDto {
   'childProfileId': number;
-  'open': ChildRoadmapItemDto | null;
+  'openItems': (ChildRoadmapItemDto)[];
+  'currentStage': number | null;
   'waiting': (ChildRoadmapItemDto)[];
   'history': (ChildRoadmapItemDto)[];
   'completedCount': number;
@@ -2445,6 +2448,7 @@ export interface GrayZoneReviewDto {
 }
 
 export interface MyRoadmapDoneDto {
+  'stage': number;
   'storyId': number;
   'title': string | null;
   'coverImageUrl': string | null;
@@ -2452,7 +2456,7 @@ export interface MyRoadmapDoneDto {
 }
 
 export interface MyRoadmapDto {
-  'open': MyRoadmapOpenStoryDto | null;
+  'openStories': (MyRoadmapOpenStoryDto)[];
   'upcoming': (MyRoadmapUpcomingDto)[];
   'done': (MyRoadmapDoneDto)[];
   'completedCount': number;
@@ -2461,6 +2465,7 @@ export interface MyRoadmapDto {
 }
 
 export interface MyRoadmapOpenStoryDto {
+  'stage': number;
   'storyId': number;
   'title': string | null;
   'coverImageUrl': string | null;
@@ -2549,7 +2554,7 @@ export interface RemovalDecisionRequest {
 }
 
 export interface ReorderRoadmapRequestDto {
-  'itemIds': (number)[];
+  'stages': (number[])[];
 }
 
 export interface RequestRoadmapChangesDto {
@@ -2635,8 +2640,8 @@ export interface RoadmapDetailDto {
   'retiredStoryIds': (number)[];
 }
 
-export type RoadmapInsertPosition = 1 | 2;
-export type RoadmapInsertPositionName = 'NextUp' | 'End';
+export type RoadmapInsertPosition = 1 | 2 | 3;
+export type RoadmapInsertPositionName = 'NextUp' | 'End' | 'Stage';
 export interface RoadmapItemInputDto {
   'storyId': number;
   'days': number | null;

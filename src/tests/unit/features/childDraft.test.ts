@@ -52,6 +52,13 @@ describe('child create wizard draft', () => {
     sessionStorage.setItem(childDraftKey(1), JSON.stringify({ v: 0, ...draft }));
     expect(readChildDraft(1, 3)).toBeNull();
   });
+  it('keeps a story length the parent adjusted and falls back to the suggestion when it is invalid', () => {
+    writeChildDraft(1, { ...draft, maxLength: 1200 });
+    expect(readChildDraft(1, 3)?.maxLength).toBe(1200);
+    writeChildDraft(1, { ...draft, maxLength: 99999 });
+    expect(readChildDraft(1, 3)).toEqual(draft);
+    expect(readChildDraft(1, 3)?.maxLength).toBeUndefined();
+  });
   it('drops unknown category rules instead of failing the whole draft', () => {
     sessionStorage.setItem(childDraftKey(1), JSON.stringify({ v: 1, ...draft, rules: { 4: 'Blocked', x: 'Blocked', 5: 'Maybe' } }));
     expect(readChildDraft(1, 3)?.rules).toEqual({ 4: 'Blocked' });

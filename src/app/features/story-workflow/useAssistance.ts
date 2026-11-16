@@ -38,7 +38,12 @@ export function useAssistance(actor: 'parent' | 'creator', storyId: number) {
     return () => { alive = false; controller.abort(); };
   }, [api,storyId,taskId,stepPage,task?.taskRevision]);
   /** Mã lỗi thô của AI không có ý nghĩa với người dùng, đổi sang câu tiếng Việt dễ hiểu. */
-  const friendlyAiMessage = (m?: string) => /^AI_OUTPUT_INVALID$/i.test((m ?? '').trim()) ? 'AI trả về kết quả chưa dùng được. Bấm Thử lại để AI làm lại.' : m;
+  const friendlyAiMessage = (m?: string) => {
+    const code = (m ?? '').trim();
+    if (/^AI_OUTPUT_INVALID$/i.test(code)) return 'AI trả về kết quả chưa dùng được. Bấm Thử lại để AI làm lại.';
+    if (/^ASSISTANCE_DAILY_LIMIT$/i.test(code)) return 'Bạn đã dùng hết số lần trợ lý viết của hôm nay. Hãy thử lại vào ngày mai hoặc nâng cấp gói.';
+    return m;
+  };
   const execute = async <T,>(call: () => Promise<ApiResponse<T>>) => {
     if (locked.current) return;
     locked.current = true; setBusy(true); setMessage(''); const run = scope.current;

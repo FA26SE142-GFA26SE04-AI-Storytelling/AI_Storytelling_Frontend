@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Plus, TriangleAlert, X } from "lucide-react";
 import type { ContentCategory, LearningProfile, ReadingMode, SetLearningProfileRequest } from "@/app/types/childProfile";
 import { childProfileService } from "@/app/services/childProfileService";
-import { READING_LEVELS, READING_MODES, defaultReadingLevel, defaultReadingMode } from "@/app/lib/guardian";
+import { AGE_BANDS, READING_LEVELS, READING_MODES, countWords, defaultReadingLevel, defaultReadingMode, levelAboveAge, storyLengthFor } from "@/app/lib/guardian";
 
 export type LearningValue = { readingLevel: number; readingMode: ReadingMode; comprehensionGoal: string; favorites: string[]; focus: string[] };
 
@@ -40,6 +40,34 @@ export const learningRequest = (v: LearningValue): SetLearningProfileRequest => 
     ...v.focus.map((topic) => ({ topic, relation: "PriorityFocusArea" as const })),
   ],
 });
+
+/** Mô tả mức đọc đang chọn: độ dài câu, câu ví dụ và độ dài cả truyện theo nhóm tuổi. */
+function LevelInfo({ level, ageBand }: { level: number; ageBand?: string }) {
+  const info = READING_LEVELS.find((l) => l.level === level);
+  if (!info) return null;
+  const story = storyLengthFor(ageBand, level);
+  const above = levelAboveAge(ageBand, level);
+  const age = AGE_BANDS.find((a) => a.id === ageBand)?.label;
+  const fmt = (n: number) => n.toLocaleString("vi-VN");
+  const basis = above ? " theo mức đọc 4–5" : age ? ` với bé ${age}` : "";
+  return (
+    <div className="level-info" aria-live="polite">
+      <b className="display">{info.label} · {info.grade}</b>
+      <dl>
+        <div><dt>Câu dài tối đa</dt><dd>trung bình {info.maxWords} từ/câu</dd></div>
+        <div><dt>Câu thường dài</dt><dd>khoảng {info.typicalWords} từ</dd></div>
+        <div><dt>Cả truyện</dt><dd>khoảng {fmt(story.target)} từ ({fmt(story.min)}–{fmt(story.max)}){basis}</dd></div>
+      </dl>
+      <p className="level-sample">Ví dụ: “{info.sample}” <small>({countWords(info.sample)} từ)</small></p>
+      {above && (
+        <p className="notice warn" data-inline-notice>
+          <TriangleAlert className="ic" aria-hidden />
+          <span>Mức 4–5 dành cho bé 9–10 tuổi: câu dài hơn, truyện khoảng {fmt(story.target)} từ, có thêm từ vựng và câu hỏi. Hãy chọn nếu bé đã tự đọc tốt.</span>
+        </p>
+      )}
+    </div>
+  );
+}
 
 /** Bước 1.3 — mức đọc, chế độ đọc, mục tiêu đọc hiểu, chủ đề yêu thích, lĩnh vực ưu tiên. */
 export default function LearningForm({ value, onChange, disabled, ageBand }: { value: LearningValue; onChange: (v: LearningValue) => void; disabled?: boolean; ageBand?: string }) {
@@ -84,9 +112,11 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
             <button key={l.level} type="button" role="radio" aria-checked={value.readingLevel === l.level} disabled={disabled}
               className={`level${value.readingLevel === l.level ? " on" : ""}`} onClick={() => set({ readingLevel: l.level })}>
               <b className="display">{l.level}</b>
+              <small>Lớp {l.level}</small>
             </button>
           ))}
         </div>
+        <LevelInfo level={value.readingLevel} ageBand={ageBand} />
       </div>
 
       <div className="field">

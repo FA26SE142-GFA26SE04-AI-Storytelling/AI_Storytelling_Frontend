@@ -17,5 +17,11 @@ export default function IntroPage() {
   }, [isLoading, user, router]);
 
   if (user) return <div className="splash">Đang mở không gian làm việc…</div>;
-  return <Landing onStart={mode => router.push(mode === "register" ? "/?auth=signup" : "/?auth=login")} />;
+  return (
+    <Landing
+      onStart={mode => router.push(mode === "register" ? "/?auth=signup" : "/?auth=login")}
+      // Cùng lối vào với link trong mã QR (/?kid=<mã>): trang "/" mở phiên của bé.
+      onKidCode={code => router.push(`/?kid=${encodeURIComponent(code)}`)}
+    />
+  );
 }

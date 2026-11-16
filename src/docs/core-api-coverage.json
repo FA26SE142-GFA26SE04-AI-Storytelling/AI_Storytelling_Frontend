@@ -914,7 +914,7 @@
     "authorization": "Roles = \"User\"",
     "controller": "ChildAccessCredentialController.cs",
     "action": "GetCredential",
-    "controllerLine": 22,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "GET /api/v1/ChildAccessCredential/{}",
@@ -935,7 +935,7 @@
     "authorization": "Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildAccessCredentialController.cs",
     "action": "RevokeCredential",
-    "controllerLine": 35,
+    "controllerLine": 36,
     "evidence": [
       {
         "key": "DELETE /api/v1/ChildAccessCredential/{}",
@@ -956,7 +956,7 @@
     "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildAccessCredentialController.cs",
     "action": "CreateOrRegenerateEasyLogin",
-    "controllerLine": 48,
+    "controllerLine": 49,
     "evidence": [
       {
         "key": "POST /api/v1/ChildAccessCredential/{}/easylogin",
@@ -977,7 +977,7 @@
     "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildAccessCredentialController.cs",
     "action": "StartSupervisedSession",
-    "controllerLine": 62,
+    "controllerLine": 63,
     "evidence": [
       {
         "key": "POST /api/v1/ChildAccessCredential/{}/handover",
@@ -998,7 +998,7 @@
     "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildAccessCredentialController.cs",
     "action": "GetStoryHandoverOptions",
-    "controllerLine": 78,
+    "controllerLine": 79,
     "evidence": [
       {
         "key": "GET /api/v1/ChildAccessCredential/story-handover",
@@ -1019,7 +1019,7 @@
     "authorization": "Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
     "controller": "ChildAccessCredentialController.cs",
     "action": "StartStoryHandover",
-    "controllerLine": 92,
+    "controllerLine": 93,
     "evidence": [
       {
         "key": "POST /api/v1/ChildAccessCredential/{}/handover-story",
@@ -1040,7 +1040,7 @@
     "authorization": "AllowAnonymous",
     "controller": "ChildAccessCredentialController.cs",
     "action": "LoginWithEasyLogin",
-    "controllerLine": 109,
+    "controllerLine": 110,
     "evidence": [
       {
         "key": "POST /api/v1/ChildAccessCredential/easylogin/login",
@@ -1061,7 +1061,7 @@
     "authorization": "AllowAnonymous",
     "controller": "ChildAccessCredentialController.cs",
     "action": "GetMySession",
-    "controllerLine": 124,
+    "controllerLine": 125,
     "evidence": [
       {
         "key": "GET /api/v1/ChildAccessCredential/me",
@@ -2239,7 +2239,6 @@
         "line": 26,
         "callers": [
           "app/features/staff/AdminCatalog.tsx",
-          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
           "app/features/staff/CreatorPublication.tsx",
           "app/features/staff/RoadmapAuthoringWorkspace.tsx",
           "app/features/staff/WishCardManagement.tsx"
@@ -2315,17 +2314,17 @@
   {
     "method": "GET",
     "route": "/api/v1/ContentReportReview/{itemId}",
-    "authorization": "Roles = \"Moderator,Administrator\"",
+    "authorization": "Roles = \"Moderator\"",
     "controller": "ContentReportReviewController.cs",
     "action": "GetDetail",
-    "controllerLine": 22,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "GET /api/v1/ContentReportReview/{}",
         "service": "moderationService",
         "operation": "package",
         "file": "app/services/moderationService.ts",
-        "line": 16,
+        "line": 15,
         "callers": [
           "app/features/staff/useReviewItem.ts"
         ]
@@ -2336,17 +2335,17 @@
   {
     "method": "POST",
     "route": "/api/v1/ContentReportReview/{itemId}/dismiss",
-    "authorization": "Roles = \"Moderator,Administrator\"",
+    "authorization": "Roles = \"Moderator\"",
     "controller": "ContentReportReviewController.cs",
     "action": "Dismiss",
-    "controllerLine": 32,
+    "controllerLine": 33,
     "evidence": [
       {
         "key": "POST /api/v1/ContentReportReview/{}/dismiss",
         "service": "moderationService",
         "operation": "reportDecision",
         "file": "app/services/moderationService.ts",
-        "line": 31,
+        "line": 28,
         "callers": [
           "app/features/staff/ContentReportReviewPanel.tsx"
         ]
@@ -2357,33 +2356,23 @@
   {
     "method": "POST",
     "route": "/api/v1/ContentReportReview/{itemId}/archive",
-    "authorization": "Roles = \"Moderator,Administrator\"",
+    "authorization": "Roles = \"Moderator\"",
     "controller": "ContentReportReviewController.cs",
     "action": "Archive",
-    "controllerLine": 44,
+    "controllerLine": 45,
     "evidence": [
       {
         "key": "POST /api/v1/ContentReportReview/{}/archive",
         "service": "moderationService",
         "operation": "reportDecision",
         "file": "app/services/moderationService.ts",
-        "line": 31,
+        "line": 28,
         "callers": [
           "app/features/staff/ContentReportReviewPanel.tsx"
         ]
       }
     ],
     "disposition": "CONNECTED_SOURCE"
-  },
-  {
-    "method": "POST",
-    "route": "/api/v1/ContentReportReview/{itemId}/escalate",
-    "authorization": "Roles = \"Moderator,Administrator\"",
-    "controller": "ContentReportReviewController.cs",
-    "action": "Escalate",
-    "controllerLine": 56,
-    "evidence": [],
-    "disposition": "MISSING"
   },
   {
     "method": "GET",
@@ -3102,7 +3091,7 @@
         "service": "moderationService",
         "operation": "removalDecision",
         "file": "app/services/moderationService.ts",
-        "line": 32,
+        "line": 29,
         "callers": [
           "app/features/staff/PublicStoryRemovalPanel.tsx"
         ]
@@ -3145,10 +3134,12 @@
         "operation": "content",
         "file": "app/services/creatorStatisticsService.ts",
         "line": 19,
-        "callers": []
+        "callers": [
+          "app/features/staff/CreatorContentTab.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -3352,7 +3343,7 @@
         "service": "moderationService",
         "operation": "package",
         "file": "app/services/moderationService.ts",
-        "line": 16,
+        "line": 15,
         "callers": [
           "app/features/staff/useReviewItem.ts"
         ]
@@ -3373,7 +3364,7 @@
         "service": "moderationService",
         "operation": "grayDecision",
         "file": "app/services/moderationService.ts",
-        "line": 30,
+        "line": 27,
         "callers": [
           "app/features/staff/GrayZoneReviewPanel.tsx"
         ]
@@ -3637,10 +3628,12 @@
         "operation": "get",
         "file": "app/services/moderationStatisticsService.ts",
         "line": 7,
-        "callers": []
+        "callers": [
+          "app/features/staff/ModeratorStatistics.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -3655,7 +3648,7 @@
         "service": "moderationService",
         "operation": "grantReviewView",
         "file": "app/services/moderationService.ts",
-        "line": 14,
+        "line": 13,
         "callers": [
           "app/features/staff/PublishedReviewWorkspace.tsx"
         ]
@@ -3720,7 +3713,7 @@
         "service": "moderationService",
         "operation": "package",
         "file": "app/services/moderationService.ts",
-        "line": 16,
+        "line": 15,
         "callers": [
           "app/features/staff/useReviewItem.ts"
         ]
@@ -3736,6 +3729,13 @@
     "action": "List",
     "controllerLine": 10,
     "evidence": [
+      {
+        "key": "GET /api/v1/moderation/rubrics",
+        "service": null,
+        "file": "app/services/rubricService.ts",
+        "line": 7,
+        "callers": []
+      },
       {
         "key": "GET /api/v1/moderation/rubrics",
         "service": "rubricService",
@@ -4523,7 +4523,6 @@
         "file": "app/services/parentAuthoringService.ts",
         "line": 8,
         "callers": [
-          "app/features/authoring/AuthoringWorkspace.tsx",
           "app/features/authoring/ParentAuthoringWorkspace.tsx",
           "app/features/authoring/useParentAuthoring.ts",
           "app/features/created/CreatedStories.tsx",
@@ -5569,10 +5568,12 @@
         "operation": "settings",
         "file": "app/services/paymentService.ts",
         "line": 30,
-        "callers": []
+        "callers": [
+          "app/features/staff/PlanSettingsDialog.tsx"
+        ]
       }
     ],
-    "disposition": "SERVICE_ONLY"
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "PUT",
@@ -5650,7 +5651,7 @@
         "service": "moderationService",
         "operation": "package",
         "file": "app/services/moderationService.ts",
-        "line": 16,
+        "line": 15,
         "callers": [
           "app/features/staff/useReviewItem.ts"
         ]
@@ -5671,7 +5672,7 @@
         "service": "moderationService",
         "operation": "view",
         "file": "app/services/moderationService.ts",
-        "line": 19,
+        "line": 18,
         "callers": [
           "app/features/staff/PublicStoryReviewPanel.tsx"
         ]
@@ -5692,7 +5693,7 @@
         "service": "moderationService",
         "operation": "resolveFlag",
         "file": "app/services/moderationService.ts",
-        "line": 20,
+        "line": 19,
         "callers": [
           "app/features/staff/PublicStoryReviewPanel.tsx"
         ]
@@ -5713,7 +5714,7 @@
         "service": "moderationService",
         "operation": "publicChecklist",
         "file": "app/services/moderationService.ts",
-        "line": 21,
+        "line": 20,
         "callers": [
           "app/features/staff/PublicStoryReviewPanel.tsx"
         ]
@@ -5734,9 +5735,8 @@
         "service": "moderationService",
         "operation": "approve",
         "file": "app/services/moderationService.ts",
-        "line": 25,
+        "line": 23,
         "callers": [
-          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
           "app/features/staff/PublicStoryReviewPanel.tsx",
           "app/features/staff/RoadmapReviewPanel.tsx"
         ]
@@ -5757,7 +5757,7 @@
         "service": "moderationService",
         "operation": "publicChanges",
         "file": "app/services/moderationService.ts",
-        "line": 23,
+        "line": 21,
         "callers": [
           "app/features/staff/PublicStoryReviewPanel.tsx"
         ]
@@ -5778,9 +5778,8 @@
         "service": "moderationService",
         "operation": "reject",
         "file": "app/services/moderationService.ts",
-        "line": 26,
+        "line": 24,
         "callers": [
-          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
           "app/features/staff/PublicStoryReviewPanel.tsx",
           "app/features/staff/RoadmapReviewPanel.tsx"
         ]
@@ -5801,7 +5800,7 @@
         "service": "moderationService",
         "operation": "compare",
         "file": "app/services/moderationService.ts",
-        "line": 24,
+        "line": 22,
         "callers": [
           "app/features/staff/PublicStoryReviewPanel.tsx"
         ]
@@ -5864,7 +5863,7 @@
         "service": "moderationService",
         "operation": "published",
         "file": "app/services/moderationService.ts",
-        "line": 33,
+        "line": 30,
         "callers": [
           "app/features/staff/PublishedReviewWorkspace.tsx",
           "app/features/staff/RoadmapPublishedView.tsx"
@@ -5886,7 +5885,7 @@
         "service": "moderationService",
         "operation": "publishedStory",
         "file": "app/services/moderationService.ts",
-        "line": 34,
+        "line": 31,
         "callers": [
           "app/features/staff/PublishedReviewWorkspace.tsx"
         ]
@@ -5907,7 +5906,7 @@
         "service": "moderationService",
         "operation": "publishedRoadmap",
         "file": "app/services/moderationService.ts",
-        "line": 35,
+        "line": 32,
         "callers": [
           "app/features/staff/PublishedReviewWorkspace.tsx",
           "app/features/staff/RoadmapPublishedView.tsx"
@@ -5929,7 +5928,7 @@
         "service": "moderationService",
         "operation": "createReviewItem",
         "file": "app/services/moderationService.ts",
-        "line": 36,
+        "line": 33,
         "callers": [
           "app/features/staff/PublishedReviewWorkspace.tsx"
         ]
@@ -6590,7 +6589,7 @@
         "service": "moderationService",
         "operation": "package",
         "file": "app/services/moderationService.ts",
-        "line": 16,
+        "line": 15,
         "callers": [
           "app/features/staff/useReviewItem.ts"
         ]
@@ -6611,7 +6610,7 @@
         "service": "moderationService",
         "operation": "roadmapChecklist",
         "file": "app/services/moderationService.ts",
-        "line": 28,
+        "line": 25,
         "callers": [
           "app/features/staff/RoadmapReviewPanel.tsx"
         ]
@@ -6632,9 +6631,8 @@
         "service": "moderationService",
         "operation": "approve",
         "file": "app/services/moderationService.ts",
-        "line": 25,
+        "line": 23,
         "callers": [
-          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
           "app/features/staff/PublicStoryReviewPanel.tsx",
           "app/features/staff/RoadmapReviewPanel.tsx"
         ]
@@ -6655,7 +6653,7 @@
         "service": "moderationService",
         "operation": "roadmapChanges",
         "file": "app/services/moderationService.ts",
-        "line": 29,
+        "line": 26,
         "callers": [
           "app/features/staff/RoadmapReviewPanel.tsx"
         ]
@@ -6676,9 +6674,8 @@
         "service": "moderationService",
         "operation": "reject",
         "file": "app/services/moderationService.ts",
-        "line": 26,
+        "line": 24,
         "callers": [
-          "app/features/staff/CommunitySubmissionReviewPanel.tsx",
           "app/features/staff/PublicStoryReviewPanel.tsx",
           "app/features/staff/RoadmapReviewPanel.tsx"
         ]
@@ -6694,6 +6691,13 @@
     "action": "List",
     "controllerLine": 17,
     "evidence": [
+      {
+        "key": "GET /api/v1/RoadmapTemplate",
+        "service": null,
+        "file": "app/services/roadmapTemplateService.ts",
+        "line": 3,
+        "callers": []
+      },
       {
         "key": "GET /api/v1/RoadmapTemplate",
         "service": "roadmapTemplateService",
@@ -7472,6 +7476,86 @@
   },
   {
     "method": "GET",
+    "route": "/api/v1/StoryRating/story/{storyId}",
+    "authorization": "Roles; Authenticated; Roles = \"User\"",
+    "controller": "StoryRatingController.cs",
+    "action": "GetForStory",
+    "controllerLine": 24,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/StoryRating/story/{storyId}/me",
+    "authorization": "Roles; Authenticated; Roles = \"User\"; Roles = \"User\"",
+    "controller": "StoryRatingController.cs",
+    "action": "UpsertMine",
+    "controllerLine": 34,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/StoryRating/story/{storyId}/me",
+    "authorization": "Roles; Authenticated; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"",
+    "controller": "StoryRatingController.cs",
+    "action": "DeleteMine",
+    "controllerLine": 44,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/StoryRating/{ratingId}/reports",
+    "authorization": "Roles; Authenticated; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User,ContentCreator\"",
+    "controller": "StoryRatingController.cs",
+    "action": "Report",
+    "controllerLine": 53,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/creator/stories/{storyId}/ratings",
+    "authorization": "Roles; Authenticated; Roles = \"User\"; Roles = \"User\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"",
+    "controller": "StoryRatingController.cs",
+    "action": "GetForMyStory",
+    "controllerLine": 63,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/StoryRatingModeration/{itemId}",
+    "authorization": "Roles = \"Moderator\"",
+    "controller": "StoryRatingModerationController.cs",
+    "action": "GetDetail",
+    "controllerLine": 22,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/StoryRatingModeration/{itemId}/approve",
+    "authorization": "Roles = \"Moderator\"",
+    "controller": "StoryRatingModerationController.cs",
+    "action": "Approve",
+    "controllerLine": 31,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/StoryRatingModeration/{itemId}/hide",
+    "authorization": "Roles = \"Moderator\"",
+    "controller": "StoryRatingModerationController.cs",
+    "action": "Hide",
+    "controllerLine": 40,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
+    "method": "GET",
     "route": "/api/v1/TokenQuota/me",
     "authorization": "Roles = \"User\"",
     "controller": "TokenQuotaController.cs",
@@ -7506,7 +7590,8 @@
         "file": "app/services/paymentService.ts",
         "line": 15,
         "callers": [
-          "app/features/account/PaymentSection.tsx"
+          "app/features/account/PaymentSection.tsx",
+          "app/features/staff/CreatorQuotaChip.tsx"
         ]
       }
     ],

@@ -21,15 +21,23 @@ export const guardianService = {
     const r = await roadmapService.get(childId);
     return { ...r, data: r.data ? roadmapItems(r.data) : null, counts: r.data ? { completed: r.data.completedCount, total: r.data.totalCount } : undefined };
   },
-  async addToRoadmap(children: ChildRef[], story: RoadmapStoryInput, position: RoadmapPosition, dueDays: number | null, note: string | null): Promise<ApiResponse<RoadmapAddResult>> {
-    const r = await roadmapService.add({ storyId: story.storyId, childProfileIds: children.map(c => c.id), position: positionWire(position), expectedDays: dueDays, note });
+  async addToRoadmap(children: ChildRef[], story: RoadmapStoryInput, position: RoadmapPosition, dueDays: number | null, note: string | null, stageNumber: number | null = null): Promise<ApiResponse<RoadmapAddResult>> {
+    const where = stageNumber != null ? { position: 'Stage' as const, stageNumber } : { position: positionWire(position) };
+    const r = await roadmapService.add({ storyId: story.storyId, childProfileIds: children.map(c => c.id), ...where, expectedDays: dueDays, note });
     return { ...r, data: r.data ? roadmapAddResult(r.data, children) : null };
   },
   async removeFromRoadmap(childId: number, itemId: number): Promise<ApiResponse<null>> {
     const r = await roadmapService.remove(childId, itemId); return { ...r, data: null };
   },
-  async reorderRoadmap(childId: number, itemIds: number[]): Promise<ApiResponse<null>> {
-    const r = await roadmapService.reorder(childId, itemIds); return { ...r, data: null };
+  async reorderRoadmap(childId: number, stages: number[][]): Promise<ApiResponse<null>> {
+    const r = await roadmapService.reorder(childId, stages); return { ...r, data: null };
+  },
+  /** Chuyển một truyện đang chờ vào chặng đang đọc / chặng khác bằng API thêm truyện (position Stage). */
+  async moveToStage(childId: number, storyId: number, stageNumber: number): Promise<ApiResponse<null>> {
+    const r = await roadmapService.add({ storyId, childProfileIds: [childId], position: 'Stage', stageNumber, expectedDays: null, note: null });
+    const one = r.data?.results[0];
+    if (r.success && one?.outcome === 'Skipped') return { ...r, success: false, message: one.message ?? 'Không chuyển được truyện.', data: null };
+    return { ...r, data: null };
   },
   async clearRoadmap(childId: number): Promise<ApiResponse<null>> {
     const r = await roadmapService.clear(childId); return { ...r, data: null };
