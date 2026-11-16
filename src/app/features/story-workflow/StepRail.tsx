@@ -28,7 +28,6 @@ type Rail<T extends string> = ReturnType<typeof stepRail<T>>;
 /** Cột "Các bước": bước chưa tới thì khoá, bước đã qua bấm vào để xem lại. */
 export function StepRail<T extends string>({ steps, rail, frozen = false }: { steps: RailStep<T>[]; rail: Rail<T>; /** Đang chạy tác vụ: chỉ giữ bước đang làm. */ frozen?: boolean }) {
   return <nav className="pa-steps" aria-label="Các bước soạn truyện">
-    <b className="pa-steps-title">Các bước</b>
     <ol>
       {steps.map((s, i) => {
         const on = rail.active.id === s.id;

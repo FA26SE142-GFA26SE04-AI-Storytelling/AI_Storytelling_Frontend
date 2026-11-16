@@ -1,4 +1,4 @@
-import { generationDisplayPhase } from "@/app/features/story-workflow/storyGenerationFlow";
+import { generationDisplayPhase, providerFailureMessage } from "@/app/features/story-workflow/storyGenerationFlow";
 import type { MediaProgressDto } from "@/app/types/aiStory";
 import type { Stage, StatusSnapshot } from "./useStoryPipeline";
 import { mediaPackageDisplay } from '@/app/features/story-workflow/studioMediaState';
@@ -39,7 +39,7 @@ export function studioProgress(
   const at = (current: number, mode: StepMode, caption: string): StudioProgress =>
     ({ current: readingOnly && current > 4 ? current - 1 : current, steps,
       mode: errorCode && mode === "run" ? "error" : mode,
-      caption: errorCode && mode === "run" ? "Có lỗi, hãy thử lại" : caption });
+      caption: errorCode && mode === "run" ? providerFailureMessage(errorCode) ? "Nhà cung cấp AI từ chối yêu cầu" : "Có lỗi, hãy thử lại" : caption });
 
   switch (stage) {
     case "brief": return at(0, "you", "Nhập ý tưởng để bắt đầu");
