@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { animate, stagger } from "animejs";
 import { useTheme } from "@/app/context/ThemeContext";
 import { prefersReducedMotion } from "@/app/lib/motion";
+import { petalBurst } from "@/app/features/kid/kidFx";
 import Lotus from "./Lotus";
 
 const PADS = [
@@ -55,13 +56,69 @@ function Dragonfly() {
   );
 }
 
-type Props = { fireflies?: boolean; /** Thêm lau sậy ở hai bên và chuồn chuồn bay ngang, dùng cho nền cả ứng dụng. */ rich?: boolean };
+type Props = {
+  fireflies?: boolean;
+  /** Thêm lau sậy ở hai bên và chuồn chuồn bay ngang, dùng cho nền cả ứng dụng. */
+  rich?: boolean;
+  /** Cho phép tương tác bấm vào chuồn chuồn để bay vụt đi và bung cánh hoa. */
+  playful?: boolean;
+};
 
 /** Nền đầm sen: lá sen, hoa sen, gợn nước chậm, đom đóm ở theme tối. Chỉ để trang trí. */
-export default function PondBackdrop({ fireflies = true, rich = false }: Props) {
+export default function PondBackdrop({ fireflies = true, rich = false, playful = false }: Props) {
   const ref = useRef<HTMLDivElement>(null);
+  const flyBtnRef = useRef<HTMLButtonElement>(null);
+  const isFlyingRef = useRef(false);
+  const flyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flyAnimRef = useRef<ReturnType<typeof animate> | null>(null);
   const { theme } = useTheme();
   const night = theme === "dark" && fireflies;
+
+  // Dọn dẹp timer và animation của chuồn chuồn khi unmount
+  useEffect(() => {
+    return () => {
+      if (flyTimerRef.current) clearTimeout(flyTimerRef.current);
+      if (flyAnimRef.current) flyAnimRef.current.revert();
+      isFlyingRef.current = false;
+    };
+  }, [rich, playful]);
+
+  const handleDragonflyClick = (event: React.MouseEvent) => {
+    if (isFlyingRef.current) return;
+    isFlyingRef.current = true;
+
+    // Bung cánh hoa tại điểm bấm
+    petalBurst(event.clientX, event.clientY, 6);
+
+    const btn = flyBtnRef.current;
+    if (!btn) return;
+
+    // Nếu giảm chuyển động: ẩn tức thì rồi hiện lại sau 8s
+    if (prefersReducedMotion()) {
+      btn.style.opacity = "0";
+      flyTimerRef.current = setTimeout(() => {
+        btn.style.opacity = "1";
+        isFlyingRef.current = false;
+      }, 8000);
+      return;
+    }
+
+    // Chuồn chuồn vụt bay ngang ra ngoài màn hình
+    const offscreenX = -(window.innerWidth + 200);
+    flyAnimRef.current = animate(btn, { translateX: offscreenX, duration: 450, ease: "inQuad" });
+
+    // Sau khoảng 8s quay trở lại vị trí ban đầu
+    flyTimerRef.current = setTimeout(() => {
+      if (!flyBtnRef.current) return;
+      flyAnimRef.current = animate(flyBtnRef.current, {
+        translateX: 0,
+        opacity: 1,
+        duration: 600,
+        ease: "outQuad",
+        onComplete: () => { isFlyingRef.current = false; },
+      });
+    }, 8000);
+  };
 
   useEffect(() => {
     const root = ref.current;
@@ -111,7 +168,25 @@ export default function PondBackdrop({ fireflies = true, rich = false }: Props) 
       ))}
       {rich && <Reed side="l" height={190} />}
       {rich && <Reed side="r" height={150} />}
-      {rich && <span className="dragonfly-wrap"><Dragonfly /></span>}
+      {rich && (
+        <span className="dragonfly-wrap">
+          {playful ? (
+            <button
+              ref={flyBtnRef}
+              type="button"
+              aria-label="Chuồn chuồn"
+              tabIndex={-1}
+              className="dragonfly-btn"
+              style={{ pointerEvents: "auto", cursor: "pointer", display: "block", padding: 0 }}
+              onClick={handleDragonflyClick}
+            >
+              <Dragonfly />
+            </button>
+          ) : (
+            <Dragonfly />
+          )}
+        </span>
+      )}
       {night && Array.from({ length: 12 }, (_, i) => (
         <span key={i} className="firefly" style={{ left: `${8 + ((i * 37) % 84)}%`, top: `${10 + ((i * 53) % 78)}%` }} />
       ))}

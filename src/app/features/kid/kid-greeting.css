@@ -1,0 +1,185 @@
+/* Khung chào đón của bé: ếch linh vật, bong bóng thoại và nút phát giọng đọc */
+.kid-greet {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Nút chạm vào bạn ếch */
+.kid-greet-frog {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  outline: none;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.kid-greet-frog:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+  border-radius: 24px;
+}
+
+/* Wrapper xoay khi chạm 5 lần */
+.kid-greet-frog-inner {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Bong bóng câu chào */
+.kid-greet-bubble {
+  position: relative;
+  background: var(--surface);
+  border: 3px solid var(--line-2);
+  border-radius: 24px;
+  padding: 14px 20px;
+  flex: 1;
+  min-width: 0;
+  box-shadow: 0 4px 16px color-mix(in srgb, var(--line-2) 20%, transparent);
+}
+
+/* Đuôi tam giác trỏ về phía bạn ếch */
+.kid-greet-bubble::before,
+.kid-greet-bubble::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-style: solid;
+  pointer-events: none;
+}
+
+.kid-greet-bubble::before {
+  left: -14px;
+  border-width: 10px 14px 10px 0;
+  border-color: transparent var(--line-2) transparent transparent;
+}
+
+.kid-greet-bubble::after {
+  left: -9px;
+  border-width: 8px 10px 8px 0;
+  border-color: transparent var(--surface) transparent transparent;
+}
+
+.kid-greet-bubble p {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+/* Nút loa nghe lời chào */
+.kid-greet-speak {
+  width: 52px;
+  height: 52px;
+  min-width: 52px;
+  border-radius: 50%;
+  background: var(--gold);
+  color: var(--on-gold);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--gold) 40%, transparent);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.kid-greet-speak:hover {
+  filter: brightness(1.05);
+  transform: scale(1.06);
+}
+
+.kid-greet-speak:active {
+  transform: scale(0.95);
+}
+
+.kid-greet-speak:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
+}
+
+/* Ếch nhún nhẹ khi vào trang */
+@keyframes kid-greet-intro-kf {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-10px) scale(1.02); }
+  60% { transform: translateY(3px) scale(0.98); }
+  80% { transform: translateY(-3px); }
+}
+
+.kid-greet-intro {
+  animation: kid-greet-intro-kf 0.8s ease-out;
+}
+
+/* Ếch nhảy vồng lên khi chạm */
+@keyframes kid-greet-hop-kf {
+  0% { transform: translateY(0) scale(1); }
+  40% { transform: translateY(-28px) scale(1.06, 0.94); }
+  70% { transform: translateY(0) scale(0.95, 1.05); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.kid-greet-hop {
+  animation: kid-greet-hop-kf 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Ếch lộn 1 vòng khi chạm 5 lần */
+@keyframes kid-greet-spin-kf {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.kid-greet-spin {
+  display: inline-flex;
+  transform-origin: center center;
+  animation: kid-greet-spin-kf 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Màn hình dưới 480px */
+@media (max-width: 479px) {
+  .kid-greet { gap: 10px; }
+  .kid-greet-frog svg {
+    width: 72px !important;
+    height: calc(72px * 360 / 400) !important;
+  }
+  .kid-greet-bubble {
+    padding: 10px 14px;
+    border-radius: 18px;
+  }
+}
+
+/* Giảm chuyển động */
+@media (prefers-reduced-motion: reduce) {
+  .kid-greet-intro,
+  .kid-greet-hop,
+  .kid-greet-spin {
+    animation: none !important;
+  }
+  .kid-greet-speak {
+    transition: none !important;
+  }
+}
+
+/* Nút khóa của bố mẹ cố định ở góc trên phải: chừa chỗ để không đè nút loa khi màn hẹp hơn khung nội dung */
+@media (max-width: 1240px) { .kid-greet { padding-right: 64px; } }
+/* Màn hẹp: nội dung bắt đầu dưới nút khóa thay vì chừa lề phải, để bong bóng đủ rộng */
+@media (max-width: 720px) {
+  .kid-greet { padding-right: 0; gap: 10px; }
+  .kid:has(.kid-lock-btn) .khome { padding-top: 72px; }
+  .kid-greet-frog svg { width: 72px; height: auto; }
+}

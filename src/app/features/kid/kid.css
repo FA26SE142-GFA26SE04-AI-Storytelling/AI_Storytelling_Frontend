@@ -52,3 +52,29 @@
 .kqr-off { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px; text-align: center; color: var(--muted); font-size: var(--fs-md); }
 .kqr-off .ic { width: 40px; height: 40px; }
 .kqr label.btn { cursor: pointer; }
+
+/* Nút khóa bảo vệ dành cho phụ huynh */
+.kid > .kid-lock-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--line-2);
+  background: color-mix(in srgb, var(--surface) 70%, transparent);
+  backdrop-filter: blur(6px);
+  color: var(--primary-strong);
+  cursor: pointer;
+  position: fixed;
+  top: calc(14px + env(safe-area-inset-top));
+  right: calc(14px + env(safe-area-inset-right));
+  z-index: 5;
+  transition: transform 0.15s ease;
+}
+.kid-lock-btn svg {
+  width: 24px;
+  height: 24px;
+}
+.kid-lock-btn:hover {
+  transform: scale(1.06);
+}
