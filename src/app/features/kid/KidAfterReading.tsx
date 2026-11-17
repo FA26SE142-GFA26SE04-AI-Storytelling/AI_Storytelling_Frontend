@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Puzzle, X } from 'lucide-react';
-import { showToast } from '@/app/lib/toast';
-import { childReadingService, childRewardsService } from '@/app/services/childReadingService';
-import type { ChildBadge, ReadingCompleted, ReadingFeeling, ReadingScene } from '@/app/types/childReading';
+import { childRewardsService } from '@/app/services/childReadingService';
+import type { ChildBadge, ReadingCompleted, ReadingScene } from '@/app/types/childReading';
 import KidQuiz from './KidQuiz';
 import KidReflection from './KidReflection';
 import KidSummary from './KidSummary';
@@ -20,18 +19,8 @@ function QuizPopup({ onClose, children }: { onClose: () => void; children: React
   </div>;
 }
 
-const FEELINGS: { id: ReadingFeeling; label: string; face: string }[] = [
-  { id: 'VeryLike', label: 'Rất thích', face: '😍' },
-  { id: 'Like', label: 'Thích', face: '🙂' },
-  { id: 'Neutral', label: 'Bình thường', face: '😐' },
-  { id: 'Dislike', label: 'Chưa thích', face: '🙁' },
-];
-
-/** Sau khi bé đọc xong: phần thưởng vừa nhận, chọn cảm nhận và làm câu đố. */
+/** Sau khi bé đọc xong: phần thưởng vừa nhận, thẻ cảm nhận (mức thích, cảm xúc, cảnh, lời), kể lại và câu đố. */
 export default function KidAfterReading({ token, completed, scenes = [], onLibrary }: { token: string; completed: ReadingCompleted; scenes?: ReadingScene[]; onLibrary?: () => void }) {
-  const [feeling, setFeeling] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [note, setNote] = useState('');
   const [quiz, setQuiz] = useState(false);
   const [exp, setExp] = useState(completed.expGained);
   const [badgeCodes, setBadgeCodes] = useState<string[]>(completed.newBadges);
@@ -45,17 +34,6 @@ export default function KidAfterReading({ token, completed, scenes = [], onLibra
     return () => controller.abort();
   }, [token, badgeCodes.length]);
 
-  useEffect(() => {
-    if (note) showToast(note, 'err');
-  }, [note]);
-
-  const choose = async (value: ReadingFeeling) => {
-    if (busy) return;
-    setBusy(true); setNote('');
-    const r = await childReadingService.feeling(token, completed.sessionId, value);
-    setBusy(false);
-    if (r.success && r.data) setFeeling(r.data.feeling); else setNote(r.message);
-  };
   const newBadges = badgeCodes.map(code => badges.find(b => b.code === code)?.name ?? code);
 
   return <div className="kid-after">
@@ -64,12 +42,6 @@ export default function KidAfterReading({ token, completed, scenes = [], onLibra
       {newBadges.length > 0 && <>Huy hiệu mới: <b>{newBadges.join(', ')}</b>!</>}
     </p>}
     {completed.roadmapStepCompleted && <p>Em đã đi thêm một bước trong hành trình đọc!</p>}
-    <section aria-label="Em thấy truyện thế nào?">
-      <h3 className="display">Em thấy truyện này thế nào?</h3>
-      <div className="kid-feelings">{FEELINGS.map(f => <button key={f.id} type="button" className="kid-btn3d is-sky kid-btn-icon" aria-label={f.label} title={f.label} aria-pressed={feeling === f.id} disabled={busy} onClick={() => void choose(f.id)}>
-        <span aria-hidden="true">{f.face}</span>
-      </button>)}</div>
-    </section>
     <KidReflection token={token} sessionId={completed.sessionId} scenes={scenes} />
     <KidSummary token={token} sessionId={completed.sessionId} scenes={scenes} />
     <button type="button" className="kid-btn3d is-gold kid-quiz-open" onClick={() => setQuiz(true)}><Puzzle aria-hidden="true" />Làm câu đố về truyện</button>

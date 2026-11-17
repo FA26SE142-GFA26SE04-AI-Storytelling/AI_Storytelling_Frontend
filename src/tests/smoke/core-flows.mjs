@@ -160,6 +160,7 @@ function api({ path, method, body, url, state }) {
     case path === '/child/reading/sessions/31/complete': return { sessionId: 31, storyId: 7, isRetake: false, roadmapStepCompleted: false, expGained: 10, newBadges: [] };
     case path === '/child/reading/sessions/31/summary/questions': state.asked = (state.asked ?? 0) + 1; return { summaryId: 3, questionId: state.asked, message: 'Đã gửi cho bố mẹ' };
     // Cảm nhận sau khi đọc: lưu lại những gì bé gửi để kiểm tra.
+    case path === '/child/reading/sessions/31/feeling': state.feeling = body; return { sessionId: 31, feeling: body.feeling, label: 'Thích' };
     case path === '/child/reading/sessions/31/reflection': return { sessionId: 31, emotions: [], favoriteSceneId: null, noteText: null, hasNoteRecording: false, canRecord: true, message: null };
     case path === '/child/reading/sessions/31/reflection/emotions': state.emotions = body; return { sessionId: 31, emotions: body.emotions.map((code) => ({ code, label: code })), favoriteSceneId: null, noteText: null, hasNoteRecording: false, canRecord: true, message: null };
     case path === '/child/reading/sessions/31/reflection/favorite-scene': state.favorite = body; return { sessionId: 31, emotions: [], favoriteSceneId: body.sceneId, noteText: null, hasNoteRecording: false, canRecord: true, message: null };
@@ -605,7 +606,12 @@ try {
     await page.getByRole('button', { name: 'Xác nhận', exact: true }).click();
     // Cảm nhận từng bước: 2 cảm xúc → cảnh 2 → viết lời.
     const card = page.getByRole('region', { name: 'Cảm nhận của em' });
-    await card.getByRole('heading', { name: 'Em cảm thấy thế nào?' }).waitFor();
+    // Bước 1 là mức thích: chọn xong tự sang bước cảm xúc.
+    await card.getByRole('heading', { name: 'Em thấy truyện này thế nào?' }).waitFor();
+    assert.equal(await page.getByRole('heading', { name: 'Em thấy truyện này thế nào?' }).count(), 1, 'Chỉ còn một chỗ hỏi cảm nhận');
+    await card.getByRole('button', { name: 'Thích', exact: true }).click();
+    await card.getByRole('heading', { name: 'Truyện làm em cảm thấy gì?' }).waitFor();
+    assert.deepEqual(state.feeling, { feeling: 'Like' });
     await card.getByRole('button', { name: 'Vui', exact: true }).click();
     await card.getByRole('button', { name: 'Cảm động', exact: true }).click();
     assert(await card.getByRole('button', { name: 'Buồn', exact: true }).isDisabled(), 'Đủ 2 cảm xúc thì khoá nút khác');
