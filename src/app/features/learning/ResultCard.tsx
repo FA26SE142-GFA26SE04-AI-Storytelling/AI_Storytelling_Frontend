@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import { BookOpen, ChevronDown, Clock, FileText, Headphones, Heart, MessageCircleHeart, Repeat, Sparkles } from "lucide-react";
+import { BookOpen, ChevronDown, Clock, FileText, Headphones, Heart, MessageCircleHeart, Mic, Repeat, Sparkles } from "lucide-react";
 import type { ParentReadingFeedbackItem } from "@/app/types/childReading";
 import { EMOTION_FACE, FEELING_FACE, shortDate } from "./learningData";
 import ReadAloudDialog from "./ReadAloudDialog";
@@ -85,7 +85,10 @@ export default function ResultCard({
       <div className="lr-result-h">
         <b className="grow">{title}</b>
         {feelingPill(item)}
-        {hasNote && <span className="pill gold-pill"><MessageCircleHeart className="ic" aria-hidden />Bé gửi lời</span>}
+        {/* Bấm để mở popup Cảm nhận (nơi nghe ghi âm); có ghi âm thì thêm icon micro cho dễ thấy. */}
+        {hasNote && <button type="button" className="pill gold-pill lr-note-pill" onClick={() => setPopup("feel")} aria-label={item.reflection?.hasNoteRecording ? "Nghe lời bé gửi" : "Xem lời bé gửi"}>
+          <MessageCircleHeart className="ic" aria-hidden />Bé gửi lời{item.reflection?.hasNoteRecording && <Mic className="ic" aria-hidden />}
+        </button>}
         {quizPill(item)}
         <span className="pill draft">{shortDate(completedAt ?? startedAt)}</span>
       </div>

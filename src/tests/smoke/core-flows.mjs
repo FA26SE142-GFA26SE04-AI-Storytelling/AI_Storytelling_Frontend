@@ -354,7 +354,8 @@ try {
     assert.equal(state.removedRec, 5);
     await rec.getByRole('button', { name: 'Đóng' }).click();
     // Cảm nhận: xoá lời bé gửi, cảm xúc và cảnh vẫn còn.
-    await page.getByRole('button', { name: 'Cảm nhận', exact: true }).first().click();
+    // Pill "Bé gửi lời" có ghi âm bấm được và mở thẳng popup Cảm nhận.
+    await page.getByRole('button', { name: 'Nghe lời bé gửi' }).first().click();
     const refl = page.getByRole('dialog', { name: /Cảm nhận/ });
     await refl.getByText('Con thích lúc thỏ chia cà rốt', { exact: false }).waitFor();
     await shots(page, 'LearningReflection-dialog', '[role="dialog"]');

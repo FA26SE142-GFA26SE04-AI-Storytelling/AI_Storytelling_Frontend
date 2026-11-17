@@ -155,3 +155,7 @@
 .lr-rec-h > button:last-child { position: absolute; top: 8px; right: 8px; }
 /* Các lần đọc trước của cùng một truyện: thụt vào dưới thẻ mới nhất, viền trái vàng. */
 .lr-older { list-style: none; display: flex; flex-direction: column; gap: 8px; margin: -4px 0 0 18px; padding-left: 12px; border-left: 3px solid color-mix(in srgb, var(--gold) 60%, transparent); }
+/* Pill "Bé gửi lời" bấm được (mở popup Cảm nhận để nghe / đọc lời bé). */
+.lr-note-pill { cursor: pointer; border: 0; font: inherit; transition: transform .15s, box-shadow .15s; }
+.lr-note-pill:hover { transform: translateY(-1px); box-shadow: 0 3px 10px -4px color-mix(in srgb, var(--gold-deep) 80%, transparent); }
+@media (prefers-reduced-motion: reduce) { .lr-note-pill { transition: none; } }
