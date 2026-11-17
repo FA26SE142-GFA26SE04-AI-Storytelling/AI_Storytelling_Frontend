@@ -1,0 +1,174 @@
+/* CSS Sảnh chính của bé (KidLobby) */
+@import "./kid-game.css";
+
+.kid-lobby {
+  position: relative; width: 100%; height: 100%; min-height: 0;
+  box-sizing: border-box; overflow: hidden; background: var(--bg);
+}
+
+/* Nền sảnh trang trí */
+.kid-lobby-backdrop {
+  position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+}
+.kid-lobby-sky {
+  position: absolute; inset: 0;
+  background: linear-gradient(0deg, transparent 0%, color-mix(in srgb, var(--sky) 55%, var(--bg)) 100%);
+}
+.kid-lobby-sun {
+  position: absolute; top: 28px; left: calc(50% + 120px); width: 80px; height: 80px;
+  border-radius: 50%; background: color-mix(in srgb, var(--gold) 60%, transparent);
+  box-shadow: 0 0 36px color-mix(in srgb, var(--gold) 60%, transparent);
+}
+.kid-lobby-moon {
+  position: absolute; top: 28px; left: calc(50% + 120px); width: 64px; height: 64px;
+  color: color-mix(in srgb, var(--gold) 85%, var(--text)); display: none;
+  filter: drop-shadow(0 0 20px color-mix(in srgb, var(--gold) 45%, transparent));
+}
+.kid-lobby-cloud {
+  position: absolute; border-radius: 999px; background: color-mix(in srgb, var(--on-primary) 70%, transparent);
+}
+.kid-lobby-cloud-1 { top: 40px; left: -150px; width: 130px; height: 38px; animation: kid-cloud-drift 30s linear infinite; }
+.kid-lobby-cloud-2 { top: 88px; left: -200px; width: 170px; height: 44px; animation: kid-cloud-drift 30s linear infinite 15s; }
+
+@keyframes kid-cloud-drift {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(calc(100vw + 240px)); }
+}
+
+.kid-lobby-hill {
+  position: absolute; bottom: -60px; left: -10%; width: 120%; height: 180px;
+  border-radius: 50% 50% 0 0; background: color-mix(in srgb, var(--primary) 70%, var(--bg));
+}
+
+/* Theme tối */
+[data-theme="dark"] .kid-lobby-sky { background: linear-gradient(0deg, transparent 0%, color-mix(in srgb, var(--text) 18%, var(--bg)) 100%); }
+[data-theme="dark"] .kid-lobby-sun { display: none; }
+[data-theme="dark"] .kid-lobby-moon { display: block; }
+[data-theme="dark"] .kid-lobby-cloud { opacity: 0.35; }
+[data-theme="dark"] .kid-lobby-hill { background: color-mix(in srgb, var(--primary) 35%, var(--bg)); }
+
+/* Lưới sảnh màn rộng (>=1024px) */
+.kid-lobby-grid {
+  position: relative; z-index: 1; display: grid; grid-template-columns: 300px 1fr 120px;
+  align-items: stretch; height: 100%; min-height: 0; gap: 20px; padding: 20px; box-sizing: border-box;
+}
+.kid-lobby-left { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; }
+.kid-lobby-center {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; min-height: 0;
+}
+
+/* Sân khấu bạn ếch */
+.kid-lobby-stage {
+  position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;
+}
+.kid-lobby-stage .kid-greet {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 12px; z-index: 1;
+}
+.kid-lobby-stage .kid-greet-bubble { order: -1; max-width: 460px; text-align: center; }
+.kid-lobby-stage .kid-greet-bubble::before {
+  top: auto; bottom: -14px; left: 50%; transform: translateX(-50%);
+  border-width: 14px 10px 0 10px; border-color: var(--line-2) transparent transparent transparent;
+}
+.kid-lobby-stage .kid-greet-bubble::after {
+  top: auto; bottom: -9px; left: 50%; transform: translateX(-50%);
+  border-width: 10px 8px 0 8px; border-color: var(--surface) transparent transparent transparent;
+}
+.kid-lobby-stage .kid-greet-speak { position: absolute; top: 10px; right: 12px; z-index: 2; }
+
+/* Ghi đè CSS: ếch to 200px, đổ bóng nhẹ */
+.kid-lobby-stage .kid-greet-frog svg {
+  width: 200px !important; height: 200px !important;
+  filter: drop-shadow(0 8px 16px color-mix(in srgb, var(--text) 16%, transparent));
+}
+
+@keyframes kid-frog-breathe {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.03); }
+}
+
+.kid-lobby-stage .kid-greet-frog {
+  animation: kid-frog-breathe 3s ease-in-out infinite alternate;
+  transform-origin: center bottom;
+}
+
+.kid-lobby-pad {
+  position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%);
+  width: 220px; height: 40px; border-radius: 50%;
+  background: color-mix(in srgb, var(--primary) 60%, transparent); pointer-events: none; z-index: 0;
+}
+
+/* Cột phải: Ô 3D dọc cho Cây */
+.kid-lobby-right {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 20px;
+}
+.kid-lobby .kid-tower-tile.kid-btn3d.is-green {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: 84px; min-height: 84px; border-radius: 24px; padding: 8px; gap: 6px;
+}
+.kid-lobby .kid-tower-tile .kid-btn3d-icon { width: 32px; height: 32px; }
+.kid-lobby .kid-tower-tile .kid-btn3d-label { font-size: var(--fs-sm); font-family: var(--font-display); }
+
+/* Dưới 1024px: cuộn dọc */
+@media (max-width: 1023px) {
+  .kid-lobby { height: auto; min-height: 100%; overflow-y: auto; }
+  .kid-lobby-grid { display: flex; flex-direction: column; height: auto; min-height: 100%; gap: 20px; padding: 16px; }
+  .kid-lobby-center { order: 1; width: 100%; }
+  .kid-lobby-left { order: 2; width: 100%; overflow-y: visible; }
+  .kid-lobby-right { order: 3; width: 100%; padding-top: 0; }
+  .kid-lobby-stage .kid-greet-frog svg { width: 140px !important; height: 140px !important; }
+  .kid-lobby-pad { width: 160px; height: 32px; }
+  .kid-lobby .kid-tower-tile.kid-btn3d.is-green {
+    flex-direction: row; width: 100%; min-height: 64px; border-radius: 20px; padding: 0 22px; gap: 10px;
+  }
+  .kid-lobby .kid-tower-tile .kid-btn3d-icon { width: 28px; height: 28px; }
+  .kid-lobby .kid-tower-tile .kid-btn3d-label { font-size: var(--fs-md); }
+}
+
+/* Màn hình nhỏ 375px */
+@media (max-width: 480px) {
+  .kid-lobby-stage .kid-greet-frog svg { width: 110px !important; height: 110px !important; }
+  .kid-lobby-pad { width: 120px; height: 26px; }
+  .kid-lobby-center .kid-today .kid-btn3d,
+  .kid-lobby-center .kid-btn3d.is-big { width: 100%; }
+}
+
+/* Giảm chuyển động */
+@media (prefers-reduced-motion: reduce) {
+  .kid-lobby-cloud-1, .kid-lobby-cloud-2, .kid-lobby-stage .kid-greet-frog { animation: none !important; }
+}
+
+/* ===== Chỉnh theo ảnh chụp: sảnh tràn kín màn như game ===== */
+/* Trời phủ cả khu của bé (kể cả HUD), sảnh không còn nằm trong khung bo viền của trang cũ */
+.kid:has(.kid-lobby) { background: linear-gradient(180deg, color-mix(in srgb, var(--sky) 45%, var(--bg)) 0%, color-mix(in srgb, var(--sky) 18%, var(--bg)) 55%, var(--bg) 100%); }
+[data-theme="dark"] .kid:has(.kid-lobby) { background: linear-gradient(180deg, color-mix(in srgb, var(--sky) 14%, #0b1a24) 0%, var(--bg) 70%); }
+.kid .khome:has(.kid-lobby) { max-width: none; padding-inline: 0; padding-top: 0; }
+.kid .ksection.kid-reading:has(.kid-lobby) { background: transparent; border: 0; box-shadow: none; border-radius: 0; padding: 0 0 calc(120px + env(safe-area-inset-bottom)); }
+.kid-lobby { background: transparent; overflow: visible; }
+.kid-lobby-sky { display: none; }
+@media (min-width: 1024px) {
+  .kid-lobby { height: calc(100dvh - 220px); min-height: 520px; }
+  .kid-lobby-grid { grid-template-columns: 320px 1fr 140px; padding: 8px 28px 0; }
+}
+.kid-lobby-hill { bottom: -110px; height: 220px; background: color-mix(in srgb, var(--primary) 55%, var(--bg)); }
+
+/* Ruy băng nhiệm vụ nhô lên trên panel: cột trái không cắt phần tràn */
+.kid-lobby-left { overflow: visible; padding-top: 22px; }
+
+/* Lời chào: bong bóng + loa cùng một hàng, ếch ở dưới */
+.kid-lobby-stage .kid-greet { display: grid; grid-template-columns: auto auto; grid-template-areas: "bubble speak" "frog frog"; justify-content: center; align-items: center; column-gap: 10px; row-gap: 6px; padding-right: 0; }
+.kid-lobby-stage .kid-greet-bubble { grid-area: bubble; max-width: min(460px, calc(100vw - 120px)); }
+.kid-lobby-stage .kid-greet-speak { grid-area: speak; position: static; }
+.kid-lobby-stage .kid-greet-frog { grid-area: frog; justify-self: center; }
+
+/* Truyện hôm nay: bìa nghiêng + nút ĐỌC NGAY khổng lồ, không còn hộp bao */
+.kid-lobby .kid-today { background: none; border: 0; box-shadow: none; padding: 0; flex-direction: row; align-items: center; justify-content: center; gap: 28px; }
+.kid-lobby .kid-today-cover { width: 124px; flex: none; transform: rotate(-4deg); border: 5px solid var(--surface); border-radius: 18px; box-shadow: 0 8px 0 color-mix(in srgb, var(--text) 18%, transparent); }
+.kid-lobby .kid-today .kid-btn3d.is-big { font-size: var(--fs-2xl); min-height: 84px; padding: 0 44px; letter-spacing: .02em; }
+.kid-lobby .kid-today .kid-btn3d.is-big svg { width: 32px; height: 32px; fill: currentColor; }
+@media (max-width: 480px) {
+  .kid-lobby .kid-today { flex-direction: column; gap: 16px; }
+  .kid-lobby .kid-today-cover { width: 108px; }
+  .kid-lobby .kid-today .kid-btn3d.is-big { width: 100%; font-size: var(--fs-xl); min-height: 72px; }
+}
+.kid-lobby-hill { bottom: -260px; height: 360px; }

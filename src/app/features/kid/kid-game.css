@@ -1,0 +1,135 @@
+/* Nút 3D kiểu game cho bé */
+.kid-btn3d {
+  --btn-main: var(--primary);
+  --btn-light: color-mix(in srgb, var(--btn-main, var(--primary)) 55%, var(--on-primary));
+  --btn-edge: var(--primary-strong);
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 64px;
+  padding: 0 22px;
+  border-radius: 20px;
+  border: 3px solid var(--btn-edge);
+  background: linear-gradient(180deg, var(--btn-light) 0%, var(--btn-main) 100%);
+  box-shadow: 0 6px 0 var(--btn-edge), inset 0 2px 0 color-mix(in srgb, var(--on-primary) 45%, transparent);
+  color: var(--on-primary);
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-shadow: 0 2px 0 color-mix(in srgb, var(--btn-edge) 70%, transparent);
+  cursor: pointer;
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+
+.kid-btn3d:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.kid-btn3d:active:not(:disabled) {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 var(--btn-edge);
+}
+
+.kid-btn3d:disabled,
+.kid-btn3d.is-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Các biến thể màu */
+.kid-btn3d.is-green {
+  --btn-main: var(--primary);
+  --btn-light: color-mix(in srgb, var(--primary) 55%, var(--on-primary));
+  --btn-edge: var(--primary-strong);
+}
+
+.kid-btn3d.is-gold {
+  --btn-main: var(--gold);
+  --btn-light: color-mix(in srgb, var(--gold) 60%, var(--on-primary));
+  --btn-edge: var(--gold-deep);
+  color: var(--on-gold);
+  text-shadow: none;
+}
+
+.kid-btn3d.is-sky {
+  --btn-main: var(--sky);
+  --btn-edge: color-mix(in srgb, var(--sky) 60%, var(--text));
+}
+
+.kid-btn3d.is-mint {
+  --btn-main: var(--mint);
+  --btn-edge: color-mix(in srgb, var(--mint) 60%, var(--text));
+}
+
+.kid-btn3d.is-pink {
+  --btn-main: var(--lotus);
+  --btn-light: color-mix(in srgb, var(--lotus) 60%, var(--on-primary));
+  --btn-edge: var(--lotus-deep);
+}
+
+.kid-btn3d.is-violet {
+  --btn-main: color-mix(in srgb, var(--rose) 45%, var(--sky));
+  --btn-edge: color-mix(in srgb, var(--rose) 60%, var(--text));
+}
+
+/* Trạng thái được chọn hoặc nổi bật */
+.kid-btn3d.is-active {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 0 var(--btn-edge), 0 0 0 3px var(--on-primary);
+}
+
+/* Kích thước */
+.kid-btn3d.is-big {
+  min-height: 76px;
+  font-size: var(--fs-xl);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.kid-btn3d.is-wide {
+  width: 100%;
+}
+
+/* Icon và nhãn */
+.kid-btn3d-icon {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  flex: none;
+}
+
+.kid-btn3d-icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.kid-btn3d-label {
+  font-size: var(--fs-md);
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Màn hình nhỏ */
+@media (max-width: 480px) {
+  .kid-btn3d-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .kid-btn3d-label {
+    font-size: var(--fs-xs);
+  }
+}
+
+/* Tôn trọng giảm chuyển động */
+@media (prefers-reduced-motion: reduce) {
+  .kid-btn3d,
+  .kid-btn3d:hover,
+  .kid-btn3d:active {
+    transition: none;
+    transform: none;
+  }
+}

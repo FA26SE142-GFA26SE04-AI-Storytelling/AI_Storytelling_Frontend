@@ -1,7 +1,7 @@
 'use client';
 
 import './kid-today.css';
-import { Play, Search, Star } from 'lucide-react';
+import { Play, Search } from 'lucide-react';
 import type * as B from '@/app/types/backendContracts';
 import Frog from '@/app/components/brand/Frog';
 import { coverFor } from '@/app/lib/storyView';
@@ -28,11 +28,20 @@ function byStage<T>(list: T[], key: (item: T) => number): [number, T[]][] {
  * kèm lời nhắn của bố mẹ, các chấm tiến độ của hành trình và những truyện tiếp theo.
  * Chưa có hành trình hoặc đã đọc hết thì chỉ cho bé xuống chọn truyện ở thư viện.
  */
-export default function KidToday({ roadmap, nickname, busy, onRead }: {
+export default function KidToday({
+  roadmap,
+  nickname,
+  busy,
+  onRead,
+  part = 'journey',
+  onOpenLibrary,
+}: {
   roadmap: B.MyRoadmapDto | null;
   nickname: string;
   busy: boolean;
   onRead: (storyId: number) => void;
+  part?: 'cover' | 'journey';
+  onOpenLibrary?: () => void;
 }) {
   const motionOk = !prefersReducedMotion();
   const hello = nickname ? `Chào ${nickname}!` : 'Chào em!';
@@ -40,6 +49,37 @@ export default function KidToday({ roadmap, nickname, busy, onRead }: {
 
   const opens = roadmap.openStories;
   const open = opens[0];
+
+  if (part === 'cover') {
+    if (open) {
+      return (
+        <section className="kid-today">
+          <button
+            className={`kid-today-cover${motionOk ? ' has-shine' : ''}`}
+            style={{ background: coverFor(open.coverImageUrl) }}
+            disabled={busy}
+            onClick={() => onRead(open.storyId)}
+            aria-label={`Đọc truyện ${open.title ?? ''}`}
+          >
+            {!open.coverImageUrl && <span className="bk-name display">{open.title}</span>}
+            <span className="kid-today-play" aria-hidden><Play /></span>
+          </button>
+          <button
+            className="kid-btn3d is-gold is-big"
+            disabled={busy}
+            onClick={() => onRead(open.storyId)}
+          >
+            <Play aria-hidden />Đọc ngay
+          </button>
+        </section>
+      );
+    }
+    return (
+      <button className="kid-btn3d is-gold is-big" onClick={() => onOpenLibrary?.()}>
+        Chọn truyện
+      </button>
+    );
+  }
 
   if (!open) {
     const finished = roadmap.isFinished && roadmap.totalCount > 0;
@@ -72,47 +112,23 @@ export default function KidToday({ roadmap, nickname, busy, onRead }: {
 
   return (
     <>
-      <section className="kid-today" aria-label="Truyện hôm nay của em">
-        <button
-          className={`kid-today-cover${motionOk ? ' has-shine' : ''}`}
-          style={{ background: coverFor(open.coverImageUrl) }}
-          disabled={busy}
-          onClick={() => onRead(open.storyId)}
-          aria-label={`Đọc truyện ${open.title ?? ''}`}
-        >
-          {!open.coverImageUrl && <span className="bk-name display">{open.title}</span>}
-          <span className="kid-today-play" aria-hidden><Play /></span>
-        </button>
-        <div className="kid-today-body">
-          <span className="kid-today-tag"><Star aria-hidden />Hôm nay em đọc</span>
-          <h2 className="display kid-today-title">{open.title ?? 'Truyện bố mẹ chọn'}</h2>
-          {open.note && <p className="kid-today-note">💌 {open.note}</p>}
-          <button
-            className={`kid-today-go${motionOk ? ' is-bobbing' : ''}`}
-            disabled={busy}
-            onClick={() => onRead(open.storyId)}
-          >
-            <Play aria-hidden />Đọc ngay
-          </button>
-          {opens.length > 1 && (
-            <div className="kid-today-more" aria-label="Truyện khác hôm nay">
-              <span className="kid-today-more-h">Hôm nay em còn đọc được</span>
-              <div className="kid-today-more-row">
-                {opens.slice(1).map((s) => (
-                  <button key={s.storyId} className="kid-today-more-item" disabled={busy} onClick={() => onRead(s.storyId)} aria-label={`Đọc truyện ${s.title ?? ''}`}>
-                    <span className="kid-today-more-cover" style={{ background: coverFor(s.coverImageUrl) }} aria-hidden />
-                    <b>{s.title ?? 'Truyện bố mẹ chọn'}</b>
-                    {s.note && <small>💌 {s.note}</small>}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      </section>
       <div className="kid-today-pond" style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box", minWidth: 0, overflow: "hidden" }}>
         <LilyPondRoadmap steps={lilySteps} mode="child" storageKey={`kid:${nickname || "default"}`} done={roadmap.completedCount} total={roadmap.totalCount} onStepClick={onStep} emptyText="" />
       </div>
+      {opens.length > 1 && (
+        <div className="kid-today-more" aria-label="Truyện khác hôm nay">
+          <span className="kid-today-more-h">Hôm nay em còn đọc được</span>
+          <div className="kid-today-more-row">
+            {opens.slice(1).map((s) => (
+              <button key={s.storyId} className="kid-today-more-item" disabled={busy} onClick={() => onRead(s.storyId)} aria-label={`Đọc truyện ${s.title ?? ''}`}>
+                <span className="kid-today-more-cover" style={{ background: coverFor(s.coverImageUrl) }} aria-hidden />
+                <b>{s.title ?? 'Truyện bố mẹ chọn'}</b>
+                {s.note && <small>💌 {s.note}</small>}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -48,6 +48,25 @@
   box-shadow: 0 4px 16px color-mix(in srgb, var(--line-2) 20%, transparent);
 }
 
+/* Lá nhỏ trang trí góc trên phải bong bóng */
+.kid-greet-bubble-leaf {
+  position: absolute;
+  top: -12px;
+  right: -10px;
+  pointer-events: none;
+  transform-origin: 50% 100%;
+  animation: kid-greet-leaf-sway 5s ease-in-out infinite alternate;
+}
+
+@keyframes kid-greet-leaf-sway {
+  from {
+    transform: rotate(-6deg);
+  }
+  to {
+    transform: rotate(6deg);
+  }
+}
+
 /* Đuôi tam giác trỏ về phía bạn ếch */
 .kid-greet-bubble::before,
 .kid-greet-bubble::after {
@@ -165,6 +184,7 @@
 
 /* Giảm chuyển động */
 @media (prefers-reduced-motion: reduce) {
+  .kid-greet-bubble-leaf,
   .kid-greet-intro,
   .kid-greet-hop,
   .kid-greet-spin {
