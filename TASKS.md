@@ -62,6 +62,7 @@ Ký hiệu:
 
 - [x] Đăng ký, xác thực email, đăng nhập, quên / đổi mật khẩu, đổi email, quản lý phiên đăng nhập, xoá tài khoản (xem trước dữ liệu sẽ mất). Auth 20/20 endpoint đã nối.
 - [x] Lịch sử hoạt động của tài khoản, hiện tiếng Việt cho mọi mã hành động ([auditLabels.ts](src/app/lib/auditLabels.ts)).
+- [x] Phiên đăng nhập chia trang (17/11): 5 phiên mỗi trang, số phiên ở tiêu đề, đăng xuất từng phiên / tất cả; dùng chung cho mọi vai trò.
 
 ### Hồ sơ bé (F-01)
 
