@@ -132,3 +132,24 @@
 .lr-q-item > .pill { width: fit-content; }
 @media (max-width: 520px) { .lr-result-h b.grow { flex-basis: 100%; white-space: normal; } }
 .lr-detail .pill { align-self: flex-start; }
+/* Nút mở popup nghe bé đọc / cảm nhận; số bản ghi là chấm vàng. */
+.lr-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.lr-count { min-width: 22px; padding: 0 6px; border-radius: 999px; background: var(--gold); color: var(--on-gold); font-size: var(--fs-xs); line-height: 22px; text-align: center; }
+.lr-emotions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 8px 12px; border: 2px solid color-mix(in srgb, var(--gold) 45%, var(--line-2)); border-radius: 14px; background: color-mix(in srgb, var(--gold) 8%, transparent); }
+.lr-emotions .lr-sum-h .ic { color: var(--gold-deep); }
+.lr-recs { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.lr-recs li { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border: 2px solid var(--line-2); border-radius: 14px; background: var(--surface); animation: rm-step-in .25s ease-out both; }
+.lr-recs li.is-practice { border-color: color-mix(in srgb, var(--gold) 50%, var(--line-2)); background: color-mix(in srgb, var(--gold) 10%, var(--surface)); }
+.lr-rec-h { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.lr-rec-text { margin: 0; font-size: var(--fs-sm); line-height: 1.55; overflow-wrap: anywhere; }
+.lr-recs audio, .lr-refl audio { width: 100%; height: 36px; }
+.lr-refl { display: flex; flex-direction: column; gap: 10px; }
+.lr-refl > .lr-sum-part:first-child { border-top: 0; padding-top: 0; }
+.lr-fav { display: flex; align-items: flex-start; gap: 12px; }
+.lr-fav img { width: 120px; aspect-ratio: 4 / 3; border-radius: 12px; object-fit: cover; flex: none; border: 2px solid var(--line-2); }
+@media (max-width: 520px) { .lr-fav { flex-direction: column; } .lr-fav img { width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .lr-recs li { animation: none; } }
+/* Nút xoá bản ghi ghim góc phải trên: hàng pill xuống dòng ở màn hẹp thì nút không rớt xuống dòng riêng. */
+.lr-recs li { position: relative; }
+.lr-rec-h { padding-right: 44px; }
+.lr-rec-h > button:last-child { position: absolute; top: 8px; right: 8px; }
