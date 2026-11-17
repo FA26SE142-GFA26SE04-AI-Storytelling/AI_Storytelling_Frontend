@@ -24,3 +24,16 @@ it('lists a child reading feedback page with the adult session',async()=>{
  const [url,options]=fetcher.mock.calls[0];
  expect(url.endsWith('/ParentReadingFeedback/3?pageIndex=2&pageSize=10')).toBe(true);expect(options.method).toBe('GET');
 });
+
+it.each([
+ ['GET','/ParentReadingFeedback/3/sessions/12/read-aloud',()=>feedback.readAloud(3,12)],
+ ['DELETE','/ParentReadingFeedback/3/sessions/12/read-aloud/5',()=>feedback.removeReadAloud(3,12,5)],
+ ['GET','/ParentReadingFeedback/3/sessions/12/reflection',()=>feedback.reflection(3,12)],
+ ['DELETE','/ParentReadingFeedback/3/sessions/12/reflection/note',()=>feedback.removeReflectionNote(3,12)],
+] as const)('parent %s %s uses the adult session',async(method,path,call)=>{
+ vi.spyOn(authService,'getStoredAccessToken').mockReturnValue('adult');
+ await call();
+ const [url,options]=fetcher.mock.calls[0];
+ expect(url.endsWith(path)).toBe(true);expect(options.method).toBe(method);expect(options.body).toBeUndefined();
+ expect(new Headers(options.headers).get('Authorization')).toBe('Bearer adult');
+});

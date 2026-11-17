@@ -1,14 +1,47 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { parentReadingFeedbackService, parentStorySummaryService } from "@/app/services/childReadingService";
 import { parentWishService } from "@/app/services/storyWishService";
-import type { PagedParentSummaries, PagedReadingFeedback, ParentReadingOverview, ReadingFeedbackFilter } from "@/app/types/childReading";
+import type { PagedParentSummaries, PagedReadingFeedback, ParentReadingOverview, ReadingFeedbackFilter, StoryEmotionCode } from "@/app/types/childReading";
+import type { ApiResponse } from "@/app/types/auth";
+import { showToast } from "@/app/lib/toast";
 import type { ParentWishDto } from "@/app/types/storyWish";
 import type { RoadmapItem } from "@/app/types/progress";
 import { groupStages } from "@/app/services/roadmapAdapters";
 
 export const FEELING_FACE: Record<string, string> = { VeryLike: "😍", Like: "🙂", Neutral: "😐", Dislike: "🙁" };
+
+/** 7 cảm xúc sau khi đọc, theo thứ tự Backend. Nhãn chỉ dùng cho emotionCounts (tổng quan chỉ trả mã); danh sách phiên dùng label từ API. */
+export const EMOTION_KEYS: readonly StoryEmotionCode[] = ["Happy", "Funny", "Surprised", "Excited", "Touched", "Sad", "Scared"];
+export const EMOTION_FACE: Record<string, string> = { Happy: "😄", Funny: "😂", Surprised: "😮", Excited: "😆", Touched: "🥹", Sad: "😢", Scared: "😨" };
+export const EMOTION_LABEL: Record<StoryEmotionCode, string> = { Happy: "Vui", Funny: "Buồn cười", Surprised: "Ngạc nhiên", Excited: "Hồi hộp", Touched: "Cảm động", Sad: "Buồn", Scared: "Hơi sợ" };
+
+/**
+ * Tải dữ liệu cho popup (gọi khi mở). Dữ liệu có link ký hết hạn sau 15 phút: khi ảnh/âm thanh lỗi gọi refresh()
+ * để lấy link mới, chỉ một lần mỗi lần mở để không lặp vô hạn. Lỗi lần tải đầu: toast rồi đóng popup.
+ */
+export function usePopupData<T>(load: (signal: AbortSignal) => Promise<ApiResponse<T>>, onClose: () => void) {
+  const [data, setData] = useState<T | null>(null);
+  const [tick, setTick] = useState(0);
+  const refreshed = useRef(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    void load(controller.signal).then((r) => {
+      if (controller.signal.aborted) return;
+      if (r.success && r.data) return setData(r.data);
+      showToast(r.success ? "Không tải được dữ liệu, bạn thử lại nhé." : r.message, "err");
+      if (tick === 0) onClose();
+    });
+    return () => controller.abort();
+  }, [load, onClose, tick]);
+  const refresh = useCallback(() => {
+    if (refreshed.current) return;
+    refreshed.current = true;
+    setTick((t) => t + 1);
+  }, []);
+  return { data, setData, refresh };
+}
 
 export const shortDate = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleString("vi-VN", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" }) : "—";

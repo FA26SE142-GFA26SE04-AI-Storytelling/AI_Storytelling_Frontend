@@ -1165,7 +1165,7 @@
         "service": "childNotebookService",
         "operation": "collect",
         "file": "app/services/childReadingService.ts",
-        "line": 48,
+        "line": 66,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1186,7 +1186,7 @@
         "service": "childNotebookService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 47,
+        "line": 65,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx",
           "app/features/kid/KidLobbySide.tsx"
@@ -1208,7 +1208,7 @@
         "service": "childNotebookService",
         "operation": "remove",
         "file": "app/services/childReadingService.ts",
-        "line": 49,
+        "line": 67,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx"
         ]
@@ -1506,7 +1506,7 @@
         "service": "childQuizService",
         "operation": "get",
         "file": "app/services/childReadingService.ts",
-        "line": 31,
+        "line": 42,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1527,7 +1527,7 @@
         "service": "childQuizService",
         "operation": "answer",
         "file": "app/services/childReadingService.ts",
-        "line": 32,
+        "line": 43,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1548,7 +1548,7 @@
         "service": "childQuizService",
         "operation": "result",
         "file": "app/services/childReadingService.ts",
-        "line": 33,
+        "line": 44,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1569,7 +1569,7 @@
         "service": "childReadingService",
         "operation": "stories",
         "file": "app/services/childReadingService.ts",
-        "line": 5,
+        "line": 6,
         "callers": [
           "app/features/kid/KidLobbyStories.tsx",
           "app/features/kid/KidShelves.tsx"
@@ -1591,7 +1591,7 @@
         "service": "childReadingService",
         "operation": "start",
         "file": "app/services/childReadingService.ts",
-        "line": 6,
+        "line": 7,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1612,7 +1612,7 @@
         "service": "childReadingService",
         "operation": "content",
         "file": "app/services/childReadingService.ts",
-        "line": 8,
+        "line": 9,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1633,7 +1633,7 @@
         "service": "childReadingService",
         "operation": "progress",
         "file": "app/services/childReadingService.ts",
-        "line": 9,
+        "line": 10,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1654,7 +1654,7 @@
         "service": "childReadingService",
         "operation": "complete",
         "file": "app/services/childReadingService.ts",
-        "line": 10,
+        "line": 11,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1675,7 +1675,7 @@
         "service": "childReadingService",
         "operation": "bookmark",
         "file": "app/services/childReadingService.ts",
-        "line": 11,
+        "line": 12,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1696,7 +1696,7 @@
         "service": "childReadingService",
         "operation": "favorite",
         "file": "app/services/childReadingService.ts",
-        "line": 12,
+        "line": 13,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1717,7 +1717,7 @@
         "service": "childReadingService",
         "operation": "listenOnly",
         "file": "app/services/childReadingService.ts",
-        "line": 17,
+        "line": 18,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1738,7 +1738,7 @@
         "service": "childReadingService",
         "operation": "attempt",
         "file": "app/services/childReadingService.ts",
-        "line": 19,
+        "line": 20,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1759,7 +1759,7 @@
         "service": "childReadingService",
         "operation": "feeling",
         "file": "app/services/childReadingService.ts",
-        "line": 27,
+        "line": 28,
         "callers": [
           "app/features/kid/KidAfterReading.tsx"
         ]
@@ -1780,7 +1780,7 @@
         "service": "childReadingService",
         "operation": "signal",
         "file": "app/services/childReadingService.ts",
-        "line": 13,
+        "line": 14,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1801,7 +1801,7 @@
         "service": "childReadingService",
         "operation": "event",
         "file": "app/services/childReadingService.ts",
-        "line": 14,
+        "line": 15,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1822,7 +1822,7 @@
         "service": "childReadingService",
         "operation": "definition",
         "file": "app/services/childReadingService.ts",
-        "line": 15,
+        "line": 16,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1843,7 +1843,7 @@
         "service": "childReadingService",
         "operation": "readAloud",
         "file": "app/services/childReadingService.ts",
-        "line": 23,
+        "line": 24,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1858,8 +1858,19 @@
     "controller": "ChildReadingController.cs",
     "action": "ReadAloudPractice",
     "controllerLine": 183,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/reading/sessions/{}/read-aloud-practice/{}",
+        "service": "childReadingService",
+        "operation": "readAloudPractice",
+        "file": "app/services/childReadingService.ts",
+        "line": 30,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -1874,7 +1885,7 @@
         "service": "childRewardsService",
         "operation": "get",
         "file": "app/services/childReadingService.ts",
-        "line": 36,
+        "line": 47,
         "callers": [
           "app/features/kid/KidAfterReading.tsx",
           "app/features/kid/KidHud.tsx",
@@ -1897,7 +1908,7 @@
         "service": "childRewardsService",
         "operation": "water",
         "file": "app/services/childReadingService.ts",
-        "line": 38,
+        "line": 49,
         "callers": [
           "app/features/kid/KidRewards.tsx"
         ]
@@ -2024,8 +2035,19 @@
     "controller": "ChildStoryReflectionController.cs",
     "action": "Get",
     "controllerLine": 41,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/child/reading/sessions/{}/reflection",
+        "service": "childReflectionService",
+        "operation": "get",
+        "file": "app/services/childReadingService.ts",
+        "line": 34,
+        "callers": [
+          "app/features/kid/KidReflection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "PUT",
@@ -2034,8 +2056,19 @@
     "controller": "ChildStoryReflectionController.cs",
     "action": "SetEmotions",
     "controllerLine": 49,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "PUT /api/v1/child/reading/sessions/{}/reflection/emotions",
+        "service": "childReflectionService",
+        "operation": "emotions",
+        "file": "app/services/childReadingService.ts",
+        "line": 35,
+        "callers": [
+          "app/features/kid/KidReflection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "PUT",
@@ -2044,8 +2077,19 @@
     "controller": "ChildStoryReflectionController.cs",
     "action": "SetFavoriteScene",
     "controllerLine": 58,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "PUT /api/v1/child/reading/sessions/{}/reflection/favorite-scene",
+        "service": "childReflectionService",
+        "operation": "favoriteScene",
+        "file": "app/services/childReadingService.ts",
+        "line": 36,
+        "callers": [
+          "app/features/kid/KidReflection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -2054,8 +2098,19 @@
     "controller": "ChildStoryReflectionController.cs",
     "action": "SendNote",
     "controllerLine": 67,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/child/reading/sessions/{}/reflection/note",
+        "service": "childReflectionService",
+        "operation": "note",
+        "file": "app/services/childReadingService.ts",
+        "line": 38,
+        "callers": [
+          "app/features/kid/KidReflection.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -2070,7 +2125,7 @@
         "service": "childReadingService",
         "operation": "summaryRecording",
         "file": "app/services/childReadingService.ts",
-        "line": 21,
+        "line": 22,
         "callers": [
           "app/features/kid/KidSummary.tsx"
         ]
@@ -2091,7 +2146,7 @@
         "service": "childReadingService",
         "operation": "summaryQuestion",
         "file": "app/services/childReadingService.ts",
-        "line": 25,
+        "line": 26,
         "callers": [
           "app/features/kid/KidSummary.tsx"
         ]
@@ -5180,7 +5235,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 42,
+        "line": 53,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -5201,7 +5256,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "quiz",
         "file": "app/services/childReadingService.ts",
-        "line": 43,
+        "line": 54,
         "callers": [
           "app/features/learning/QuizDetailDialog.tsx"
         ]
@@ -5222,7 +5277,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "overview",
         "file": "app/services/childReadingService.ts",
-        "line": 44,
+        "line": 55,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -5232,7 +5287,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "overview",
         "file": "app/services/childReadingService.ts",
-        "line": 44,
+        "line": 55,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -5247,8 +5302,19 @@
     "controller": "ParentReadingFeedbackController.cs",
     "action": "ReadAloudRecordings",
     "controllerLine": 49,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/ParentReadingFeedback/{}/sessions/{}/read-aloud",
+        "service": "parentReadingFeedbackService",
+        "operation": "readAloud",
+        "file": "app/services/childReadingService.ts",
+        "line": 57,
+        "callers": [
+          "app/features/learning/ReadAloudDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "DELETE",
@@ -5257,8 +5323,19 @@
     "controller": "ParentReadingFeedbackController.cs",
     "action": "DeleteReadAloudRecording",
     "controllerLine": 58,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/ParentReadingFeedback/{}/sessions/{}/read-aloud/{}",
+        "service": "parentReadingFeedbackService",
+        "operation": "removeReadAloud",
+        "file": "app/services/childReadingService.ts",
+        "line": 58,
+        "callers": [
+          "app/features/learning/ReadAloudDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -5267,8 +5344,19 @@
     "controller": "ParentReadingFeedbackController.cs",
     "action": "Reflection",
     "controllerLine": 66,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/ParentReadingFeedback/{}/sessions/{}/reflection",
+        "service": "parentReadingFeedbackService",
+        "operation": "reflection",
+        "file": "app/services/childReadingService.ts",
+        "line": 60,
+        "callers": [
+          "app/features/learning/ReflectionDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "DELETE",
@@ -5277,8 +5365,19 @@
     "controller": "ParentReadingFeedbackController.cs",
     "action": "DeleteReflectionNote",
     "controllerLine": 75,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/ParentReadingFeedback/{}/sessions/{}/reflection/note",
+        "service": "parentReadingFeedbackService",
+        "operation": "removeReflectionNote",
+        "file": "app/services/childReadingService.ts",
+        "line": 62,
+        "callers": [
+          "app/features/learning/ReflectionDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -5525,7 +5624,7 @@
         "service": "parentStorySummaryService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 54,
+        "line": 72,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -5546,7 +5645,7 @@
         "service": "parentStorySummaryService",
         "operation": "remove",
         "file": "app/services/childReadingService.ts",
-        "line": 57,
+        "line": 75,
         "callers": [
           "app/features/learning/ResultsTab.tsx"
         ]
@@ -5567,7 +5666,7 @@
         "service": "parentStorySummaryService",
         "operation": "answered",
         "file": "app/services/childReadingService.ts",
-        "line": 56,
+        "line": 74,
         "callers": [
           "app/features/learning/ResultsTab.tsx"
         ]

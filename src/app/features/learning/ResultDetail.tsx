@@ -16,13 +16,15 @@ export default function ResultDetail({
   const words = item.wordsCollected ?? [];
   const answers = item.conversationAnswers ?? [];
   const ra = item.readAloud;
+  const pr = item.readAloudPractice;
   const rt = item.retell;
 
   return (
     <div className="lr-detail">
-      {ra && (
+      {(ra || pr) && (
         <div className="lr-sum-part">
           <b className="lr-sum-h"><Mic className="ic" aria-hidden />Đọc to</b>
+          {ra && (<>
           <p>{ra.segmentsPracticed} đoạn · {ra.attempts} lần thử</p>
           <div className="rm-progress">
             <div
@@ -38,6 +40,14 @@ export default function ResultDetail({
           </div>
           <span>{ra.goodPercent}% chữ đọc tốt</span>
           <span className="pill wait">{ra.retryWords} chữ cần đọc lại</span>
+          </>)}
+          {pr && (
+            <div className="chips">
+              <span className="pill draft">Luyện đọc · {pr.attempts} lần</span>
+              <span className="pill wait">Gần nhất {Math.round(pr.latestGoodPercent)}%</span>
+              <span className="pill gold-pill">Tốt nhất {Math.round(pr.bestGoodPercent)}%</span>
+            </div>
+          )}
         </div>
       )}
 

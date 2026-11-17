@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CheckCheck, ChevronDown, CircleHelp, Mic, Trash2, Undo2 } from "lucide-react";
+import { CheckCheck, ChevronDown, CircleHelp, History, Mic, Trash2, Undo2 } from "lucide-react";
 import IconButton from "@/app/components/IconButton";
 import Pager from "@/app/components/Pager";
 import SafeImage from "@/app/components/SafeImage";
@@ -10,13 +10,35 @@ import { confirmDialog } from "@/app/lib/confirm";
 import { showToast } from "@/app/lib/toast";
 import { parentStorySummaryService } from "@/app/services/childReadingService";
 import type { ChildProfile } from "@/app/types/childProfile";
-import type { ParentSummaryFlag, ParentSummaryItem, ReadingFeedbackFilter } from "@/app/types/childReading";
+import type { ParentReadingFeedbackItem, ParentSummaryFlag, ParentSummaryItem, ReadingFeedbackFilter } from "@/app/types/childReading";
 import { shortDate, useReadingFeedback, useStorySummaries } from "./learningData";
 import ReadingFilters from "./ReadingFilters";
 import ReadingOverview from "./ReadingOverview";
 import ResultCard from "./ResultCard";
 
 const PAGE = 10;
+
+/** Gộp các lần đọc cùng một truyện (trong trang đang xem), giữ thứ tự lần đọc mới nhất của mỗi truyện. */
+const byStory = (items: ParentReadingFeedbackItem[]) => {
+  const groups = new Map<number, ParentReadingFeedbackItem[]>();
+  for (const i of items) groups.set(i.storyId, [...(groups.get(i.storyId) ?? []), i]);
+  return [...groups.values()];
+};
+
+/** Một truyện: thẻ lần đọc mới nhất, các lần trước mở bằng nút "Xem N lần đọc trước". */
+function StoryGroup({ items, childId }: { items: ParentReadingFeedbackItem[]; childId: number }) {
+  const [open, setOpen] = useState(false);
+  const [latest, ...older] = items;
+  return <>
+    <ResultCard item={latest} childId={childId} />
+    {older.length > 0 && <li className="lr-older">
+      <button type="button" className="btn btn-g lr-flag-more" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <History className="ic" aria-hidden />{open ? "Ẩn các lần đọc trước" : `Xem ${older.length} lần đọc trước`}<ChevronDown className="ic" aria-hidden />
+      </button>
+      {open && <ul className="lr-list">{older.map((i) => <ResultCard key={i.sessionId} item={i} childId={childId} />)}</ul>}
+    </li>}
+  </>;
+}
 
 /** Một câu bé hỏi về một tranh: tranh, câu gõ/ghi âm, chữ của tranh rút gọn 2 dòng; câu chưa trả lời có viền vàng. */
 function QuestionRow({ f, answeredAt, nickname, busy, onToggle }: { f: ParentSummaryFlag; answeredAt: string | null; nickname: string; busy: boolean; onToggle: () => void }) {
@@ -124,7 +146,7 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
           <h3 className="display">
             {filter.status === "Completed" ? "Truyện đã đọc xong" : "Truyện chưa đọc xong"}
           </h3>
-          {fb && <span className="pill ok">{fb.totalCount}</span>}
+          {fb && <span className="pill ok">{fb.totalCount} lần đọc</span>}
         </div>
         {!fb ? (
           <p className="sub">{feedback.error ? "" : "Đang tải…"}</p>
@@ -136,9 +158,7 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
         ) : (
           <div className={feedback.loading ? "lr-fade" : undefined}>
             <ul className="lr-list">
-              {fb.items.map((i) => (
-                <ResultCard key={i.sessionId} item={i} childId={child.id} />
-              ))}
+              {byStory(fb.items).map((g) => <StoryGroup key={g[0].storyId} items={g} childId={child.id} />)}
             </ul>
           </div>
         )}

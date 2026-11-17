@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect } from "react";
-import { BookOpenCheck, Clock, Sparkles, Star } from "lucide-react";
+import { BookOpenCheck, Clock, Smile, Sparkles, Star } from "lucide-react";
 import { useRiseIn } from "@/app/lib/motion";
 import { showToast } from "@/app/lib/toast";
 import type { ReadingFeedbackFilter } from "@/app/types/childReading";
-import { FEELING_FACE, useReadingOverview } from "./learningData";
+import { EMOTION_FACE, EMOTION_KEYS, EMOTION_LABEL, FEELING_FACE, useReadingOverview } from "./learningData";
 
 const FEELING_KEYS = ["VeryLike", "Like", "Neutral", "Dislike"] as const;
 
@@ -35,6 +35,7 @@ export default function ReadingOverview({
   }, [o.error]);
 
   const d = o.data;
+  const emotions = d ? EMOTION_KEYS.map((k) => ({ k, n: d.emotionCounts?.[k] ?? 0 })).filter((e) => e.n > 0) : [];
 
   return (
     <div ref={ref} className="lr-overview">
@@ -96,6 +97,19 @@ export default function ReadingOverview({
           </>
         )}
       </div>
+
+      {d && (
+        <div className="lr-emotions">
+          <b className="lr-sum-h"><Smile className="ic" aria-hidden />Cảm xúc của bé</b>
+          {emotions.length === 0 ? (
+            <span className="sub">Bé chưa chọn cảm xúc nào</span>
+          ) : (
+            emotions.map(({ k, n }) => (
+              <span key={k} className="pill wait">{EMOTION_FACE[k]} {EMOTION_LABEL[k]} <b>{n}</b></span>
+            ))
+          )}
+        </div>
+      )}
     </div>
   );
 }

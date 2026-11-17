@@ -90,7 +90,8 @@ async function shots(page, name, scope = 'body') {
 function api({ path, method, body, url, state }) {
   switch (true) {
     case path === '/Auth/me': return state.user;
-    case path === '/Auth/sessions': return [];
+    case path === '/Auth/sessions': return state.manySessions ? Array.from({ length: 12 }, (_, i) => ({ id: i + 1, issuedAt: now, expiresAt: '2026-11-16T00:00:00Z' })).filter((s) => s.id !== state.revoked) : [];
+    case path.startsWith('/Auth/sessions/') && method === 'DELETE': state.revoked = Number(path.split('/').pop()); return null;
     case path === '/Notification/unread-count': return 0;
     case path === '/Notification': return [];
     case path === '/ChildProfile/mine': return [sen, lan];
@@ -111,7 +112,21 @@ function api({ path, method, body, url, state }) {
     case path === '/RoadmapLibrary/2/preview' || path === '/RoadmapLibrary/2/copy':
       if (path.endsWith('copy')) state.copied = body;
       return { roadmapId: 2, roadmapName: 'Bộ khám phá', children: [{ childProfileId: 10, outcome: path.endsWith('preview') ? 'Copy' : 'Copied', skipCode: null, message: null, steps: [{ storyId: 7, title: story.title, position: 1, days: 3, action: 'Copy', skipCode: null, message: null }], warnings: ['reading_level_outside_range'] }] };
-    case path === '/ParentReadingFeedback/10': return paged([{ sessionId: 1, storyId: 7, title: 'Truyện đã đọc xong', completedAt: now, feeling: 'VeryLike', feelingLabel: 'Rất thích', quizTotalQuestions: 5, quizBestPercent: 90, conversationAnswers: [{ question: 'Em thấy thế nào?', kind: 'Emotion', answerText: 'Vui lắm', sceneIndex: 0, answeredAt: now }] }]);
+    // Ba lần đọc truyện 7 và một lần truyện 8: danh sách phải gộp thành 2 thẻ.
+    case path === '/ParentReadingFeedback/10' && state.grouped: return paged([3, 2, 1].map((n) => ({ sessionId: 100 + n, storyId: 7, title: 'Sóc Bông và Thỏ Trắng', completedAt: now, startedAt: now, feeling: 'Like', feelingLabel: 'Thích', quizTotalQuestions: 5, quizBestPercent: 54, timeSpentSeconds: 60 * n, pagesCompleted: 3, totalPages: 4, readCount: 3, readOrdinal: n, status: 'Completed', expEarned: 0 }))
+      .concat([{ sessionId: 200, storyId: 8, title: 'Rùa và thỏ', completedAt: now, startedAt: now, feeling: null, feelingLabel: null, quizTotalQuestions: 0, quizBestPercent: null, timeSpentSeconds: 180, pagesCompleted: 2, totalPages: 3, readCount: 1, readOrdinal: 1, status: 'Completed', expEarned: 10 }]));
+    case path === '/ParentReadingFeedback/10': return paged([{ sessionId: 1, storyId: 7, title: 'Truyện đã đọc xong', completedAt: now, feeling: 'VeryLike', feelingLabel: 'Rất thích', quizTotalQuestions: 5, quizBestPercent: 90, conversationAnswers: [{ question: 'Em thấy thế nào?', kind: 'Emotion', answerText: 'Vui lắm', sceneIndex: 0, answeredAt: now }],
+      ...(state.withReflection ? { emotions: [{ code: 'Happy', label: 'Vui' }, { code: 'Touched', label: 'Cảm động' }], reflection: state.noteRemoved ? { favoriteSceneId: 1, favoriteSceneIndex: 0, hasNoteText: false, hasNoteRecording: false } : { favoriteSceneId: 1, favoriteSceneIndex: 0, hasNoteText: true, hasNoteRecording: true },
+        readAloudRecordingCount: 2, readAloudPractice: { attempts: 2, totalWords: 5, latestGoodWords: 4, latestGoodPercent: 80, bestGoodPercent: 100 } } : {}) }]);
+    // Nghe bé đọc và cảm nhận sau khi đọc (phiên 1).
+    case path === '/ParentReadingFeedback/10/overview' && state.withReflection: return { from: null, to: null, completedSessions: 1, distinctStoriesCompleted: 1, unfinishedStories: 0, totalTimeSpentSeconds: 300, quizStoriesTaken: 1, averageQuizBestPercent: 90, feelingCounts: { VeryLike: 1, Like: 0, Neutral: 0, Dislike: 0, None: 0 }, emotionCounts: { Happy: 1, Funny: 0, Surprised: 0, Excited: 0, Touched: 1, Sad: 0, Scared: 0 }, expEarned: 10, wordsCollected: 0, readAloudGoodPercent: 80, retellCount: 1 };
+    case path === '/ParentReadingFeedback/10/sessions/1/read-aloud': return { sessionId: 1, recordings: [
+      { recordingId: 5, kind: 'Segment', segmentId: 41, interactionId: null, sceneIndex: 0, segmentOrder: 1, text: part1, goodCount: 5, retryCount: 1, skippedCount: 0, totalCount: 6, goodPercent: 83, audioUrl: silentWav(1), recordedAt: now },
+      { recordingId: 6, kind: 'Practice', segmentId: null, interactionId: 9, sceneIndex: null, segmentOrder: null, text: part2, goodCount: 4, retryCount: 0, skippedCount: 0, totalCount: 4, goodPercent: 100, audioUrl: silentWav(1), recordedAt: now }].filter((r) => r.recordingId !== state.removedRec) };
+    case path === '/ParentReadingFeedback/10/sessions/1/read-aloud/5': state.removedRec = 5; return null;
+    case path === '/ParentReadingFeedback/10/sessions/1/reflection' && method === 'GET': return { sessionId: 1, emotions: [{ code: 'Happy', label: 'Vui' }, { code: 'Touched', label: 'Cảm động' }], favoriteScene: { sceneId: 1, sceneIndex: 0, sceneText, illustrationUrl: pictureUrl('#7cc') },
+      noteText: state.noteRemoved ? null : 'Con thích lúc thỏ chia cà rốt', noteAudioUrl: state.noteRemoved ? null : silentWav(1), noteSentAt: state.noteRemoved ? null : now };
+    case path === '/ParentReadingFeedback/10/sessions/1/reflection/note': state.noteRemoved = true; return null;
     case path === '/ParentStorySummary/10': return paged(state.summaryDeleted ? [] : [{ summaryId: 3, sessionId: 1, storyId: 7, title: 'Truyện bé kể lại', createdAt: now, recordingUrl: null, recordingSentAt: null, flagsSentAt: now, unansweredCount: state.withQuestions ? 2 : 0, flags: state.withQuestions ? questions : [] }]);
     case /^\/ParentStorySummary\/10\/3\/questions\/\d+\/answered$/.test(path): state.answered = body; return { questionId: Number(path.split('/')[5]), answeredAt: body.answered ? now : null };
     case path === '/ParentStorySummary/10/3' && method === 'DELETE': state.summaryDeleted = true; return null;
@@ -134,6 +149,7 @@ function api({ path, method, body, url, state }) {
     case path === '/child/reading/sessions' && method === 'POST': state.reading = body; return { sessionId: 31, storyId: body.storyId, resumed: false, lastPage: 1, lastReadingMode: 'ListenFirst', isBookmarked: false, isFavorited: false };
     // Cảnh đầu có 3 tranh (mỗi tranh một đoạn chữ); ảnh là SVG nhúng để không cần tải từ ngoài.
     case path === '/child/reading/sessions/31/content': return { sessionId: 31, storyId: 7, title: story.title, lesson: null, listenOnly: false, vocabulary: [],
+      readAloudPractice: state.withPractice ? { interactionId: 9, text: part2, audioUrl: silentWav(1), praiseFeedback: null, praiseAudioUrl: null } : null,
       scenes: [{ sceneId: 1, sceneIndex: 0, text: 'Thỏ ra vườn. Thỏ thấy cà rốt. Thỏ chia cho bạn.', illustrationUrl: pictureUrl('#7cc'), interaction: null, attemptedInSession: false,
         illustrations: [{ beatOrder: 1, startOffset: 0, endOffset: 12, url: pictureUrl('#7cc') }, { beatOrder: 2, startOffset: 13, endOffset: 29, url: pictureUrl('#fc7') }, { beatOrder: 3, startOffset: 30, endOffset: 48, url: pictureUrl('#c7f') }],
         segments: [{ segmentOrder: 1, startOffset: 0, endOffset: 29, text: part1, audioUrl: silentWav(2), wordTimingsJson: timingsOf(part1) },
@@ -143,6 +159,12 @@ function api({ path, method, body, url, state }) {
     case path === '/child/reading/sessions/31/progress': return { sessionId: 31, page: body.page, readingMode: body.readingMode, timeSpentSeconds: 0 };
     case path === '/child/reading/sessions/31/complete': return { sessionId: 31, storyId: 7, isRetake: false, roadmapStepCompleted: false, expGained: 10, newBadges: [] };
     case path === '/child/reading/sessions/31/summary/questions': state.asked = (state.asked ?? 0) + 1; return { summaryId: 3, questionId: state.asked, message: 'Đã gửi cho bố mẹ' };
+    // Cảm nhận sau khi đọc: lưu lại những gì bé gửi để kiểm tra.
+    case path === '/child/reading/sessions/31/feeling': state.feeling = body; return { sessionId: 31, feeling: body.feeling, label: 'Thích' };
+    case path === '/child/reading/sessions/31/reflection': return { sessionId: 31, emotions: [], favoriteSceneId: null, noteText: null, hasNoteRecording: false, canRecord: true, message: null };
+    case path === '/child/reading/sessions/31/reflection/emotions': state.emotions = body; return { sessionId: 31, emotions: body.emotions.map((code) => ({ code, label: code })), favoriteSceneId: null, noteText: null, hasNoteRecording: false, canRecord: true, message: null };
+    case path === '/child/reading/sessions/31/reflection/favorite-scene': state.favorite = body; return { sessionId: 31, emotions: [], favoriteSceneId: body.sceneId, noteText: null, hasNoteRecording: false, canRecord: true, message: null };
+    case path === '/child/reading/sessions/31/reflection/note': state.noteSent = true; return { sessionId: 31, emotions: [], favoriteSceneId: 2, noteText: 'x', hasNoteRecording: false, canRecord: true, message: 'Đã gửi cho bố mẹ' };
     case path === '/child/reading/sessions/31/signal': return { shouldExit: false, returnTo: null, message: null, sessionStatus: 'Active' };
     case path === '/child/reading/sessions/31/events': return null;
     // Moderator: lộ trình mẫu
@@ -312,6 +334,72 @@ try {
     await page.getByRole('button', { name: 'Bỏ đánh dấu đã trả lời' }).click();
     await page.getByText('2 chưa trả lời', { exact: true }).first().waitFor();
     assert.deepEqual(state.answered, { answered: false });
+  });
+
+  await smoke('LearningReflection', 'Parent', async ({ page, state }) => {
+    state.withReflection = true;
+    await page.goto(parent('#roadmap'), { waitUntil: 'domcontentloaded' });
+    await page.getByRole('tab', { name: 'Kết quả đọc', exact: true }).click();
+    await page.locator('.lr-emotions').getByText('Cảm động').waitFor();
+    await page.getByText('Bé gửi lời', { exact: true }).first().waitFor();
+    await shots(page, 'LearningReflection-list', '.lr-emotions');
+    // Nghe bé đọc: 2 bản ghi (trang 1 và luyện đọc), xoá bản của trang 1.
+    await page.getByRole('button', { name: 'Nghe bé đọc (2 bản ghi)' }).click();
+    const rec = page.getByRole('dialog', { name: /Nghe bé đọc/ });
+    await rec.locator('li.is-practice').waitFor();
+    await shots(page, 'LearningReflection-recordings', '.lr-recs');
+    await rec.getByRole('button', { name: 'Xoá bản ghi Trang 1' }).click();
+    await page.getByRole('button', { name: 'Xác nhận', exact: true }).click();
+    await rec.getByRole('button', { name: 'Xoá bản ghi Trang 1' }).waitFor({ state: 'detached' });
+    assert.equal(state.removedRec, 5);
+    await rec.getByRole('button', { name: 'Đóng' }).click();
+    // Cảm nhận: xoá lời bé gửi, cảm xúc và cảnh vẫn còn.
+    // Pill "Bé gửi lời" có ghi âm bấm được và mở thẳng popup Cảm nhận.
+    await page.getByRole('button', { name: 'Nghe lời bé gửi' }).first().click();
+    const refl = page.getByRole('dialog', { name: /Cảm nhận/ });
+    await refl.getByText('Con thích lúc thỏ chia cà rốt', { exact: false }).waitFor();
+    await shots(page, 'LearningReflection-dialog', '[role="dialog"]');
+    await refl.getByRole('button', { name: 'Xoá lời bé gửi' }).click();
+    await page.getByRole('button', { name: 'Xác nhận', exact: true }).click();
+    await refl.getByText('Con thích lúc thỏ chia cà rốt', { exact: false }).waitFor({ state: 'detached' });
+    assert(state.noteRemoved, 'Phải gọi API xoá lời bé');
+    await refl.getByText('Cảm động').first().waitFor();
+  });
+
+  await smoke('LearningGrouped', 'Parent', async ({ page, state }) => {
+    state.grouped = true;
+    await page.goto(parent('#roadmap'), { waitUntil: 'domcontentloaded' });
+    await page.getByRole('tab', { name: 'Kết quả đọc', exact: true }).click();
+    await page.getByText('4 lần đọc', { exact: true }).waitFor();
+    assert.equal(await page.getByText('Sóc Bông và Thỏ Trắng', { exact: true }).count(), 1, 'Ba lần đọc cùng truyện gộp thành một thẻ');
+    await page.getByRole('button', { name: 'Xem 2 lần đọc trước' }).click();
+    assert.equal(await page.getByText('Sóc Bông và Thỏ Trắng', { exact: true }).count(), 3, 'Mở ra thì thấy đủ 3 lần đọc');
+    await shots(page, 'LearningGrouped', '.lr-list');
+  });
+
+  await smoke('KidLobbyThemeFrog', 'Parent', async ({ page }) => {
+    await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Chạm vào bạn ếch' }).click();
+    await page.getByRole('button', { name: 'Chuyển sang giao diện tối' }).click();
+    await page.waitForFunction(() => document.documentElement.getAttribute('data-theme') === 'dark' || document.documentElement.classList.contains('dark'));
+    await page.getByRole('button', { name: 'Chuyển sang giao diện sáng' }).waitFor();
+    await shots(page, 'KidLobbyDark', '.kid-hud');
+  });
+
+  await smoke('AccountSessionsPaged', 'Parent', async ({ page, state }) => {
+    state.manySessions = true;
+    await page.goto(parent('#account'), { waitUntil: 'domcontentloaded' });
+    const card = page.locator('.acc-card', { has: page.getByRole('heading', { name: 'Phiên đăng nhập' }) });
+    await card.getByText('12', { exact: true }).waitFor();
+    assert.equal(await card.locator('.session-row').count(), 5, 'Mỗi trang 5 phiên');
+    await card.scrollIntoViewIfNeeded();
+    await shots(page, 'AccountSessions', '.acc-card');
+    for (let i = 0; i < 2; i++) await card.locator('.pager').getByRole('button', { name: 'Trang sau' }).click();
+    await card.getByText('3/3', { exact: true }).waitFor();
+    assert.equal(await card.locator('.session-row').count(), 2, 'Trang cuối còn 2 phiên');
+    await card.locator('.session-row').first().getByRole('button', { name: 'Đăng xuất' }).click();
+    await card.getByText('11', { exact: true }).waitFor();
+    assert.equal(await card.locator('.session-row').count(), 1);
   });
 
   await smoke('LearningWishes', 'Parent', async ({ page, state }) => {
@@ -497,6 +585,54 @@ try {
     if (await confirm.isVisible().catch(() => false)) await confirm.click();
     await page.getByRole('row', { name: /Nguyễn Creator/ }).getByRole('button', { name: 'Kích hoạt lại' }).waitFor();
     assert.deepEqual(state.deactivated, { id: 21, reason: 'Đăng nội dung sai quy định' });
+  });
+
+  await smoke('KidPracticeReflection', 'Parent', async ({ page, state, requests }) => {
+    state.multiScene = true; state.withPractice = true;
+    await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
+    // Trang luyện đọc to là trang cuối: "Em đã đọc xong" chỉ hiện ở đó, không hiện ở trang cuối truyện.
+    const practice = page.getByRole('heading', { name: 'Luyện đọc to' });
+    const finish = page.getByRole('button', { name: 'Em đã đọc xong', exact: true });
+    for (let i = 0; i < 10 && !(await practice.isVisible()); i++) {
+      assert(!(await finish.isVisible()), 'Chưa tới trang luyện thì chưa hiện "Em đã đọc xong"');
+      await page.getByRole('button', { name: 'Trang sau', exact: true }).click(); await page.waitForTimeout(600);
+    }
+    await page.getByText('Trang 6/6').waitFor();
+    await page.getByRole('button', { name: 'Nghe mẫu' }).waitFor();
+    await page.getByRole('button', { name: 'Đọc to' }).waitFor();
+    await shots(page, 'KidPractice', '.kid-practice');
+    assert(!requests.some((r) => r.path.endsWith('/progress') && r.body?.page > 3), 'Không lưu vị trí đọc với trang luyện');
+    await finish.click();
+    await page.getByRole('button', { name: 'Xác nhận', exact: true }).click();
+    // Cảm nhận từng bước: 2 cảm xúc → cảnh 2 → viết lời.
+    const card = page.getByRole('region', { name: 'Cảm nhận của em' });
+    // Bước 1 là mức thích: chọn xong tự sang bước cảm xúc.
+    await card.getByRole('heading', { name: 'Em thấy truyện này thế nào?' }).waitFor();
+    assert.equal(await page.getByRole('heading', { name: 'Em thấy truyện này thế nào?' }).count(), 1, 'Chỉ còn một chỗ hỏi cảm nhận');
+    await card.getByRole('button', { name: 'Thích', exact: true }).click();
+    await card.getByRole('heading', { name: 'Truyện làm em cảm thấy gì?' }).waitFor();
+    assert.deepEqual(state.feeling, { feeling: 'Like' });
+    await card.getByRole('button', { name: 'Vui', exact: true }).click();
+    await card.getByRole('button', { name: 'Cảm động', exact: true }).click();
+    assert(await card.getByRole('button', { name: 'Buồn', exact: true }).isDisabled(), 'Đủ 2 cảm xúc thì khoá nút khác');
+    await card.scrollIntoViewIfNeeded();
+    await shots(page, 'KidReflection-emotions', '.kid-reflection');
+    await card.getByRole('button', { name: 'Tiếp' }).click();
+    await card.getByRole('heading', { name: 'Cảnh em thích nhất' }).waitFor();
+    assert.deepEqual(state.emotions, { emotions: ['Happy', 'Touched'] });
+    await card.getByRole('group', { name: 'Chọn cảnh em thích nhất' }).getByRole('button', { name: 'Cảnh 2' }).click();
+    await card.getByRole('button', { name: 'Tiếp' }).click();
+    await card.getByRole('heading', { name: 'Điều gì em thích ở cảnh này?' }).waitFor();
+    assert.deepEqual(state.favorite, { sceneId: 2 });
+    await card.getByRole('textbox', { name: 'Điều em thích ở cảnh này' }).fill('Con thích thỏ về nhà');
+    await shots(page, 'KidReflection-note', '.kid-reflection');
+    await card.getByRole('button', { name: 'Gửi bố mẹ' }).click();
+    await page.locator('.kid-reflection.is-done').waitFor();
+    assert(state.noteSent, 'Phải gửi lời của bé');
+    const note = requests.find((r) => r.path.endsWith('/reflection/note'))?.raw ?? '';
+    assert(/name="Text"\r?\n\r?\nCon thích thỏ về nhà/.test(note), 'Lời bé gửi dạng multipart Text');
+    await shots(page, 'KidReflection-done', '.kid-reflection');
   });
 
   await smoke('ModeratorRoadmap', 'Moderator', async ({ page, state }) => {
