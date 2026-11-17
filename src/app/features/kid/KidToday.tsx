@@ -1,13 +1,12 @@
 'use client';
 
 import './kid-today.css';
-import { Play, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import type * as B from '@/app/types/backendContracts';
 import Frog from '@/app/components/brand/Frog';
 import { coverFor } from '@/app/lib/storyView';
 import LilyPondRoadmap, { type LilyStep } from '@/app/components/roadmap/LilyPondRoadmap';
 import { showToast } from '@/app/lib/toast';
-import { prefersReducedMotion } from '@/app/lib/motion';
 
 /** Đưa bé xuống ô tìm truyện (khi chưa có truyện bố mẹ chọn hoặc đã đọc hết). */
 function goToSearch() {
@@ -33,53 +32,17 @@ export default function KidToday({
   nickname,
   busy,
   onRead,
-  part = 'journey',
-  onOpenLibrary,
 }: {
   roadmap: B.MyRoadmapDto | null;
   nickname: string;
   busy: boolean;
   onRead: (storyId: number) => void;
-  part?: 'cover' | 'journey';
-  onOpenLibrary?: () => void;
 }) {
-  const motionOk = !prefersReducedMotion();
   const hello = nickname ? `Chào ${nickname}!` : 'Chào em!';
   if (!roadmap) return <section className="kid-today kid-today-loading" aria-busy="true"><Frog mood="think" size={88} /><b className="display">{hello}</b></section>;
 
   const opens = roadmap.openStories;
   const open = opens[0];
-
-  if (part === 'cover') {
-    if (open) {
-      return (
-        <section className="kid-today">
-          <button
-            className={`kid-today-cover${motionOk ? ' has-shine' : ''}`}
-            style={{ background: coverFor(open.coverImageUrl) }}
-            disabled={busy}
-            onClick={() => onRead(open.storyId)}
-            aria-label={`Đọc truyện ${open.title ?? ''}`}
-          >
-            {!open.coverImageUrl && <span className="bk-name display">{open.title}</span>}
-            <span className="kid-today-play" aria-hidden><Play /></span>
-          </button>
-          <button
-            className="kid-btn3d is-gold is-big"
-            disabled={busy}
-            onClick={() => onRead(open.storyId)}
-          >
-            <Play aria-hidden />Đọc ngay
-          </button>
-        </section>
-      );
-    }
-    return (
-      <button className="kid-btn3d is-gold is-big" onClick={() => onOpenLibrary?.()}>
-        Chọn truyện
-      </button>
-    );
-  }
 
   if (!open) {
     const finished = roadmap.isFinished && roadmap.totalCount > 0;

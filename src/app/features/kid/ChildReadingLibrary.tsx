@@ -10,7 +10,7 @@ import ChildReader from './ChildReader';
 import KidWish from './KidWish';
 import KidRewards from './KidRewards';
 import KidShelves from './KidShelves';
-import KidDock, { DOCK_TINT, type DockTab } from './KidDock';
+import { DOCK_TINT, type DockTab } from './KidDock';
 import IconButton from '@/app/components/IconButton';
 import './child-reading.css';
 import Frog from '@/app/components/brand/Frog';
@@ -61,13 +61,8 @@ export default function ChildReadingLibrary({
     dir: 1,
   });
   const { pane, dir } = nav;
-  const setPane = (next: LibraryPane) =>
-    setNav((cur) => ({
-      pane: next,
-      dir: PANE_ORDER.indexOf(next) >= PANE_ORDER.indexOf(cur.pane) ? 1 : -1,
-    }));
 
-  // Đồng bộ khi pane được điều khiển từ ngoài.
+  // Đồng bộ khi pane được điều khiển từ ngoài (dock nằm trên HUD của trang cha).
   useEffect(() => {
     if (!controlledPane) return;
     setNav((cur) =>
@@ -142,7 +137,6 @@ export default function ChildReadingLibrary({
       className="ksection kid-reading kid-with-dock"
       style={{ '--tab-tint': DOCK_TINT[pane] } as CSSProperties}
     >
-      <KidDock value={pane} onChange={setPane} />
       {reader.busy && !reader.content && (
         <div className="kid-loading" role="status" aria-live="polite">
           <Frog mood="think" size={96} />

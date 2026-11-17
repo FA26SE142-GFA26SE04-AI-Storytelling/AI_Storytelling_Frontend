@@ -643,11 +643,6 @@
 /* "Hôm nay em đọc": bìa to bên trái, lời chào, tên truyện, nút Đọc ngay, chấm tiến độ và truyện tiếp theo. */
 .kid-today { display: flex; gap: 28px; align-items: center; padding: 24px; border-radius: 28px; border: 2px solid color-mix(in srgb, var(--primary) 45%, var(--line-2)); background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 16%, var(--surface)), color-mix(in srgb, var(--gold) 14%, var(--surface))); animation: kid-today-in .5s cubic-bezier(.2, .9, .3, 1.1) both; }
 .kid-today-loading, .kid-today-empty { justify-content: flex-start; }
-.kid-today-cover { position: relative; flex: none; width: 210px; aspect-ratio: 3 / 4; border-radius: 22px; border: 3px solid var(--surface); box-shadow: 0 18px 34px -18px color-mix(in srgb, var(--shadow) 80%, transparent); overflow: hidden; display: flex; align-items: flex-end; padding: 14px; transition: transform .2s; }
-.kid-today-cover:hover:not(:disabled) { transform: translateY(-4px) rotate(-1.5deg); }
-.kid-today-cover .bk-name { position: relative; z-index: 1; font-size: var(--fs-lg); color: #fff; text-shadow: 0 2px 6px rgba(0, 0, 0, .45); }
-.kid-today-play { position: absolute; inset: 0; margin: auto; width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, #fff 88%, transparent); color: var(--primary-strong); box-shadow: 0 10px 24px -10px rgba(0, 0, 0, .5); animation: kid-pulse 2.2s ease-in-out infinite; }
-.kid-today-play svg { width: 34px; height: 34px; margin-left: 4px; fill: currentColor; }
 .kid-today-body { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
 .kid-today-hello { font-size: var(--fs-xl); color: var(--primary-strong); }
 .kid-today-tag { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; background: var(--gold); color: var(--on-gold, var(--text)); font-weight: 800; font-size: var(--fs-sm); }
@@ -686,12 +681,11 @@
 @keyframes kid-pulse { 50% { transform: scale(1.08); } }
 @media (max-width: 720px) {
   .kid-today { flex-direction: column; align-items: center; text-align: center; padding: 18px; gap: 16px; }
-  .kid-today-cover { width: 160px; }
   .kid-today-body { align-items: center; }
   .kid-today-title { font-size: var(--fs-xl); }
   .kid-tab { padding: 8px 12px; font-size: var(--fs-sm); }
 }
-@media (prefers-reduced-motion: reduce) { .kid-today, .kid-today-play, .kid-step.now { animation: none; } .kid-today-cover, .kid-today-go { transition: none; } }
+@media (prefers-reduced-motion: reduce) { .kid-today, .kid-step.now { animation: none; } .kid-today-go { transition: none; } }
 
 /* Tiêu đề các kệ ở trang của bé: gạch chân vàng cho dễ nhìn thấy từng mục. */
 .kid .shelf-h h3 { position: relative; padding-bottom: 6px; }

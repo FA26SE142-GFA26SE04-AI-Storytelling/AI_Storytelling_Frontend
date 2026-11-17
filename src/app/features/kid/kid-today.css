@@ -7,7 +7,7 @@
   align-items: center;
   max-width: 100%;
   box-sizing: border-box;
-  overflow: visible; /* cành lá nhô ra ngoài góc; vệt sáng đã tự cắt trong .kid-today-cover */
+  overflow: visible; /* cành lá nhô ra ngoài góc */
 }
 
 @media (min-width: 768px) {
@@ -15,34 +15,6 @@
     flex-direction: row;
     align-items: flex-start;
   }
-}
-
-/* Bìa truyện & vệt sáng */
-.kid-today-cover {
-  overflow: hidden;
-  max-width: 100%;
-}
-
-.kid-today-cover::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 60%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--paper) 70%, transparent), transparent);
-  transform: translateX(-160%) skewX(-20deg);
-  pointer-events: none;
-}
-
-.kid-today-cover.has-shine::after {
-  animation: shine-sweep 6s infinite ease-in-out;
-}
-
-@keyframes shine-sweep {
-  0% { transform: translateX(-160%) skewX(-20deg); }
-  20% { transform: translateX(260%) skewX(-20deg); }
-  100% { transform: translateX(260%) skewX(-20deg); }
 }
 
 /* Nút Đọc ngay & hiệu ứng nhấp nhô */
@@ -73,7 +45,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .kid-today-cover.has-shine::after,
   .kid-today-go.is-bobbing {
     animation: none;
   }

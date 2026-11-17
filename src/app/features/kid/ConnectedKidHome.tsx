@@ -9,7 +9,7 @@ import PondBackdrop from '@/app/components/brand/PondBackdrop';
 import Frog from '@/app/components/brand/Frog';
 import FamilyMediaPreview from '@/app/features/authoring/FamilyMediaPreview';
 import ChildReadingLibrary, { type LibraryPane } from './ChildReadingLibrary';
-import KidHud from './KidHud';
+import KidHud, { useKidRewards } from './KidHud';
 import KidLobby from './KidLobby';
 import KidToday from './KidToday';
 import KidShelf from './KidShelf';
@@ -41,6 +41,14 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
   // Thư viện của bé đang tạm khóa: chỉ đọc được truyện đang mở (backend chặn mọi truyện khác bằng 403).
   const [lock, setLock] = useState<{ locked: boolean; unlockStoryId: number | null }>({ locked: false, unlockStoryId: null });
   const scope = useRef(Symbol());
+  // HUD và sảnh dùng chung một lần gọi phần thưởng; tải lại khi bé đọc xong một truyện (có thể vừa nhận exp, huy hiệu).
+  const [readsDone, setReadsDone] = useState(0);
+  const wasReading = useRef(false);
+  useEffect(() => { if (wasReading.current && !reading) setReadsDone(n => n + 1); wasReading.current = reading; }, [reading]);
+  const rewards = useKidRewards(childId, revision + readsDone);
+  // Mở truyện gia đình từ sảnh: nội dung hiện bên dưới sảnh nên cuộn tới cho bé thấy.
+  const packRef = useRef<HTMLElement>(null);
+  useEffect(() => { if (pack) packRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, [pack]);
 
   useEffect(() => {
     const controller = new AbortController(); const run = Symbol(); scope.current = run;
@@ -75,11 +83,11 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
       {!reading && <KidLeaves />}
       {!reading && (
         <KidHud
-          childId={childId}
-          nickname={nickname}
-          revision={revision}
+          rewards={rewards}
+          pane={pane}
+          onPane={setPane}
+          showDock={!ended && pane !== 'lobby'}
           onExit={onExit}
-          onLobby={() => setPane('lobby')}
           onRewards={() => setPane('rewards')}
         />
       )}
@@ -109,14 +117,20 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
                     roadmap={roadmap}
                     nickname={nickname}
                     busy={busy}
+                    rewards={rewards}
+                    familyStories={library}
                     onRead={(storyId) => setStartStory({ storyId })}
                     onOpenLibrary={() => setPane('library')}
                     onRewards={() => setPane('rewards')}
+                    onJourney={() => setPane('journey')}
+                    childId={childId}
+                    onNotebook={() => setPane('notebook')}
+                    onWishes={() => setPane('wishes')}
+                    onOpenFamily={(c) => void openManual(c)}
                   />
                 }
                 journey={
                   <KidToday
-                    part="journey"
                     roadmap={roadmap}
                     nickname={nickname}
                     busy={busy}
@@ -144,7 +158,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
                 <>
                   {errors.map((e, i) => <p className="notice err" role="alert" key={i}>{e}</p>)}
                   {pack ? (
-                    <article className="ksection">
+                    <article ref={packRef} className="ksection">
                       <button className="btn btn-s" onClick={() => { setPack(null); setPane('library'); }}>Về thư viện</button>
                       <h2 className="display">{pack.title}</h2>
                       {pack.segments.slice().sort((a, b) => a.order - b.order).map((s, i) => (
