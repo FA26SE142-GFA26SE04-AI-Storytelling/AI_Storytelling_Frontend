@@ -121,10 +121,11 @@ export function useChildReader(token:string, onLibrary:()=>void) {
     }
     warm.current=items;
   },[content,page]);
+  /** Lưu tự động khi lật cảnh / đổi chế độ: thành công thì im lặng (không toast mỗi lần lật trang), lỗi vẫn báo qua execute. */
   const save = async (nextPage=page, nextMode=mode) => {
     if (!session || done) return false;
     const seconds=activeSeconds.current;
-    return execute(()=>api.progress(token,session.sessionId,{page:nextPage,readingMode:nextMode,addedSeconds:seconds}),r=>{ activeSeconds.current=Math.max(0,activeSeconds.current-seconds);setPage(r.page); setMode(r.readingMode==='ListenFirst'?'ListenFirst':'ReadFirst'); setNote('Đã lưu vị trí đọc.'); });
+    return execute(()=>api.progress(token,session.sessionId,{page:nextPage,readingMode:nextMode,addedSeconds:seconds}),r=>{ activeSeconds.current=Math.max(0,activeSeconds.current-seconds);setPage(r.page); setMode(r.readingMode==='ListenFirst'?'ListenFirst':'ReadFirst'); });
   };
   const complete = async () => {
     if (!session || done || !await confirmDialog('Em đã đọc xong truyện này?') || !await save()) return;
