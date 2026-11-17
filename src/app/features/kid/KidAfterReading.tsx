@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { Puzzle, X } from 'lucide-react';
 import { showToast } from '@/app/lib/toast';
 import { childReadingService, childRewardsService } from '@/app/services/childReadingService';
-import type { ChildBadge, ReadingCompleted, ReadingFeeling } from '@/app/types/childReading';
+import type { ChildBadge, ReadingCompleted, ReadingFeeling, ReadingScene } from '@/app/types/childReading';
 import KidQuiz from './KidQuiz';
 import KidSummary from './KidSummary';
 import { useDialog } from './useDialog';
@@ -27,7 +27,7 @@ const FEELINGS: { id: ReadingFeeling; label: string; face: string }[] = [
 ];
 
 /** Sau khi bé đọc xong: phần thưởng vừa nhận, chọn cảm nhận và làm câu đố. */
-export default function KidAfterReading({ token, completed, scenes = [], onLibrary }: { token: string; completed: ReadingCompleted; scenes?: { sceneId: number; sceneIndex: number }[]; onLibrary?: () => void }) {
+export default function KidAfterReading({ token, completed, scenes = [], onLibrary }: { token: string; completed: ReadingCompleted; scenes?: ReadingScene[]; onLibrary?: () => void }) {
   const [feeling, setFeeling] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');

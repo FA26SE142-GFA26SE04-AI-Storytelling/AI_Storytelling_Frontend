@@ -60,13 +60,17 @@ export interface KnowledgeTree { stage:string; stageName:string; currentTreeExp:
 export interface ChildRewards { expTotal:number; streakDays:number; badges:ChildBadge[]; knowledgeTree:KnowledgeTree }
 export interface WaterTreeResult { expPoured:number; newTreePlanted:boolean; previousStage:string; tree:KnowledgeTree }
 
-// ---------- Tóm tắt cuối truyện (ghi âm gửi bố mẹ, đánh dấu chỗ còn thắc mắc) ----------
-/** Giới hạn của backend: ghi âm tối đa 3 MB, đánh dấu tối đa 5 cảnh. */
+// ---------- Tóm tắt cuối truyện (ghi âm gửi bố mẹ, hỏi bố mẹ về từng tranh) ----------
+/** Giới hạn của backend: ghi âm tối đa 3 MB, tối đa 5 câu hỏi mỗi phiên, câu gõ tối đa 200 ký tự. */
 export const SUMMARY_MAX_BYTES = 3_000_000;
-export const SUMMARY_MAX_FLAGS = 5;
+export const SUMMARY_MAX_QUESTIONS = 5;
+export const SUMMARY_QUESTION_MAX_CHARS = 200;
 export interface StorySummarySent { summaryId:number; message:string }
-export interface ParentSummaryFlag { sceneId:number; sceneIndex:number; sceneText:string; illustrationUrl:string|null }
-export interface ParentSummaryItem { summaryId:number; sessionId:number; storyId:number; title:string; createdAt:string; recordingUrl:string|null; recordingSentAt:string|null; flagsSentAt:string|null; flags:ParentSummaryFlag[] }
+export interface StorySummaryQuestionSent { summaryId:number; questionId:number; message:string }
+export interface StorySummaryAnswered { questionId:number; answeredAt:string|null }
+/** Một câu con hỏi về một tranh; questionAudioUrl là link nghe có hạn 15 phút. */
+export interface ParentSummaryFlag { questionId:number; beatOrder:number|null; pictureText:string|null; questionText:string|null; questionAudioUrl:string|null; askedAt:string; answeredAt:string|null; sceneId:number; sceneIndex:number; sceneText:string; illustrationUrl:string|null }
+export interface ParentSummaryItem { summaryId:number; sessionId:number; storyId:number; title:string; createdAt:string; recordingUrl:string|null; recordingSentAt:string|null; flagsSentAt:string|null; unansweredCount:number; flags:ParentSummaryFlag[] }
 export interface PagedParentSummaries { items:ParentSummaryItem[]; pageIndex:number; pageSize:number; totalCount:number; totalPages:number; hasNextPage:boolean; hasPreviousPage:boolean }
 
 // ---------- Phụ huynh xem con đã đọc gì (/ParentReadingFeedback) ----------
@@ -93,7 +97,7 @@ export interface ParentReadingFeedbackItem {
 export type ParentFeedbackStatus = 'Completed'|'Started'|'Reading'|'Activity'|'Abandoned'|'ForceExited';
 export interface ParentReadAloudSummary { attempts:number; segmentsPracticed:number; goodWords:number; retryWords:number; totalWords:number; goodPercent:number }
 export interface ParentCollectedWord { vocabularyId:number; term:string }
-export interface ParentRetellBrief { summaryId:number; createdAt:string; hasRecording:boolean; flagCount:number }
+export interface ParentRetellBrief { summaryId:number; createdAt:string; hasRecording:boolean; flagCount:number; unansweredCount:number }
 export interface ParentQuizRun { runNo:number; answered:number; correct:number; percent:number }
 export interface ParentQuizQuestion { quizItemId:number; type:'MultipleChoice'|'TrueFalse'|'ShortAnswer'|string; question:string; choices:string[]; correctAnswer:string|null; explanation:string|null; latestAnswer:string|null; latestIsCorrect:boolean|null; timesAnswered:number; timesCorrect:number }
 export interface ParentQuizDetail { sessionId:number; storyId:number; title:string; totalQuestions:number; runs:ParentQuizRun[]; questions:ParentQuizQuestion[] }
