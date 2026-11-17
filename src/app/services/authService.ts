@@ -1,4 +1,4 @@
-import { LoginRequest, RegisterRequest, VerifyEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse, UserProfile } from '@/app/types/auth';
+import { LoginRequest, RegisterRequest, RegisterCreatorRequest, VerifyEmailRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse, UserProfile } from '@/app/types/auth';
 import { API_BASE_URL } from './apiConfig';
 
 /**
@@ -233,9 +233,10 @@ export const authService = {
   /**
    * Đăng ký tài khoản người dùng mới (/Auth/register)
    */
-  async register(registerData: RegisterRequest): Promise<ApiResponse<object | null>> {
+  // URL viết đủ dạng chữ ngay trong fetch để scripts/audit-core-api.mjs nhận ra cả hai route.
+  async register(registerData: RegisterRequest, creator = false): Promise<ApiResponse<object | null>> {
     try {
-      const response = await fetch(`${API_BASE_URL}/Auth/register`, {
+      const response = await fetch(creator ? `${API_BASE_URL}/Auth/register-creator` : `${API_BASE_URL}/Auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -254,6 +255,14 @@ export const authService = {
         errors: [(error as Error).message || 'Network connection failed'],
       };
     }
+  },
+
+  /**
+   * Content Creator tự đăng ký kèm đơn (/Auth/register-creator). Sau đó xác thực email như phụ huynh,
+   * tài khoản chờ Administrator duyệt (status AwaitingApproval).
+   */
+  registerCreator(data: RegisterCreatorRequest): Promise<ApiResponse<object | null>> {
+    return this.register(data, true);
   },
 
   /**

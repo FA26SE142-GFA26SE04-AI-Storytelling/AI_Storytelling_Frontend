@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, CircleHelp, Mic, Trash2 } from "lucide-react";
+import { CheckCheck, ChevronDown, CircleHelp, Mic, Trash2, Undo2 } from "lucide-react";
 import IconButton from "@/app/components/IconButton";
 import Pager from "@/app/components/Pager";
 import SafeImage from "@/app/components/SafeImage";
@@ -10,7 +10,7 @@ import { confirmDialog } from "@/app/lib/confirm";
 import { showToast } from "@/app/lib/toast";
 import { parentStorySummaryService } from "@/app/services/childReadingService";
 import type { ChildProfile } from "@/app/types/childProfile";
-import type { ParentSummaryItem, ReadingFeedbackFilter } from "@/app/types/childReading";
+import type { ParentSummaryFlag, ParentSummaryItem, ReadingFeedbackFilter } from "@/app/types/childReading";
 import { shortDate, useReadingFeedback, useStorySummaries } from "./learningData";
 import ReadingFilters from "./ReadingFilters";
 import ReadingOverview from "./ReadingOverview";
@@ -18,25 +18,41 @@ import ResultCard from "./ResultCard";
 
 const PAGE = 10;
 
-/** Một cảnh bé còn thắc mắc: chữ của cảnh rút gọn 2 dòng, bấm để xem hết. */
-function FlagRow({ index, text, image }: { index: number; text: string; image: string | null }) {
+/** Một câu bé hỏi về một tranh: tranh, câu gõ/ghi âm, chữ của tranh rút gọn 2 dòng; câu chưa trả lời có viền vàng. */
+function QuestionRow({ f, answeredAt, nickname, busy, onToggle }: { f: ParentSummaryFlag; answeredAt: string | null; nickname: string; busy: boolean; onToggle: () => void }) {
   const [open, setOpen] = useState(false);
   return (
-    <li>
-      <SafeImage src={image} alt={`Tranh cảnh ${index + 1}`} />
+    <li className={answeredAt ? undefined : "is-open"}>
+      <SafeImage src={f.illustrationUrl} alt={`Tranh cảnh ${f.sceneIndex + 1}`} />
       <div className="lr-flag-body">
-        <span className="pill wait">Cảnh {index + 1}</span>
-        <p className={`lr-flag-text${open ? " open" : ""}`}>{text}</p>
+        <span className={`pill ${answeredAt ? "ok" : "wait"}`}>Cảnh {f.sceneIndex + 1}</span>
+        {f.questionText && <b className="lr-flag-q">“{f.questionText}”</b>}
+        {f.questionAudioUrl && <audio controls preload="none" src={f.questionAudioUrl} aria-label={`Nghe ${nickname} hỏi về cảnh ${f.sceneIndex + 1}`} />}
+        <p className={`lr-flag-text${open ? " open" : ""}`}>{f.pictureText || f.sceneText}</p>
         <button type="button" className="btn btn-g lr-flag-more" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-          {open ? "Thu gọn" : "Xem cả cảnh"}<ChevronDown className="ic" aria-hidden />
+          {open ? "Thu gọn" : "Xem cả đoạn"}<ChevronDown className="ic" aria-hidden />
         </button>
       </div>
+      <IconButton icon={answeredAt ? Undo2 : CheckCheck} className={`btn ${answeredAt ? "btn-s" : "btn-ok"}`} disabled={busy} onClick={onToggle}
+        label={answeredAt ? "Bỏ đánh dấu đã trả lời" : "Đánh dấu đã trả lời"} />
     </li>
   );
 }
 
-/** Phần bé kể lại cuối truyện: nghe lại bản ghi âm, xem các cảnh bé còn thắc mắc, xoá khi cần. */
-function SummaryCard({ s, nickname, busy, onRemove }: { s: ParentSummaryItem; nickname: string; busy: boolean; onRemove: () => void }) {
+/** Phần bé kể lại cuối truyện: nghe lại bản ghi âm, xem và đánh dấu đã trả lời các câu bé hỏi, xoá khi cần. */
+function SummaryCard({ s, childId, nickname, busy, onRemove }: { s: ParentSummaryItem; childId: number; nickname: string; busy: boolean; onRemove: () => void }) {
+  // Cập nhật tại chỗ sau khi đánh dấu, không tải lại cả danh sách.
+  const [over, setOver] = useState<Record<number, string | null>>({});
+  const [saving, setSaving] = useState(false);
+  const at = (f: ParentSummaryFlag) => (f.questionId in over ? over[f.questionId] : f.answeredAt);
+  const unanswered = s.flags.filter((f) => !at(f)).length;
+  const toggle = async (f: ParentSummaryFlag) => {
+    setSaving(true);
+    const r = await parentStorySummaryService.answered(childId, s.summaryId, f.questionId, !at(f));
+    setSaving(false);
+    if (r.success && r.data) setOver((v) => ({ ...v, [f.questionId]: r.data!.answeredAt }));
+    showToast(r.message || (r.success ? "Đã cập nhật câu hỏi." : "Không cập nhật được câu hỏi."), r.success ? "ok" : "err");
+  };
   return (
     <li className="lr-result">
       <div className="lr-result-h">
@@ -52,9 +68,9 @@ function SummaryCard({ s, nickname, busy, onRemove }: { s: ParentSummaryItem; ni
       </div>
       {s.flags.length > 0 && (
         <div className="lr-sum-part">
-          <b className="lr-sum-h"><CircleHelp className="ic" aria-hidden />Chỗ {nickname} còn thắc mắc</b>
+          <b className="lr-sum-h"><CircleHelp className="ic" aria-hidden />{nickname} hỏi bố mẹ{unanswered > 0 && <span className="pill wait">{unanswered} chưa trả lời</span>}</b>
           <ul className="lr-flags">
-            {s.flags.map((f) => <FlagRow key={f.sceneId} index={f.sceneIndex} text={f.sceneText} image={f.illustrationUrl} />)}
+            {s.flags.map((f) => <QuestionRow key={f.questionId} f={f} answeredAt={at(f)} nickname={nickname} busy={saving} onToggle={() => void toggle(f)} />)}
           </ul>
         </div>
       )}
@@ -135,7 +151,7 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
           : sm.items.length === 0 ? (
             <div className="lr-empty"><Frog size={72} mood="think" /><b>Chưa có phần kể lại nào</b></div>
           ) : (
-            <ul className="lr-list">{sm.items.map((s) => <SummaryCard key={s.summaryId} s={s} nickname={child.nickname} busy={busy} onRemove={() => void remove(s)} />)}</ul>
+            <ul className="lr-list">{sm.items.map((s) => <SummaryCard key={s.summaryId} s={s} childId={child.id} nickname={child.nickname} busy={busy} onRemove={() => void remove(s)} />)}</ul>
           )}
         {sm && <Pager page={sm.pageIndex} totalPages={sm.totalPages} hasPrev={sm.hasPreviousPage} hasNext={sm.hasNextPage} onPage={setSPage} />}
       </section>

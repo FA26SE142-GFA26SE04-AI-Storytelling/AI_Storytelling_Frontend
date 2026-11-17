@@ -96,7 +96,10 @@ export default function ResultDetail({
             <span className="pill draft">Chưa ghi âm</span>
           )}
           {rt.flagCount > 0 && (
-            <span className="pill wait">{rt.flagCount} chỗ còn thắc mắc</span>
+            <span className="pill draft">{rt.flagCount} câu hỏi</span>
+          )}
+          {rt.unansweredCount > 0 && (
+            <span className="pill wait">{rt.unansweredCount} chưa trả lời</span>
           )}
         </div>
       )}

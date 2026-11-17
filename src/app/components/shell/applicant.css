@@ -1,0 +1,14 @@
+/* Màn chờ duyệt của Content Creator (CreatorApplicantScreen): dùng lại thẻ của LoginScreen. */
+.cap-card { width: min(460px, 100%); }
+.cap-tools { position: absolute; top: 14px; right: 14px; display: flex; gap: 4px; }
+.cap-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: var(--fs-sm); color: var(--muted); }
+.cap-box { display: flex; flex-direction: column; gap: 6px; padding: 10px 12px; border-radius: 16px; border: 1px solid color-mix(in srgb, var(--gold-deep) 35%, var(--line-2)); background: color-mix(in srgb, var(--gold) 10%, var(--surface)); font-size: var(--fs-sm); }
+.cap-box p { margin: 0; }
+.cap-intro { white-space: pre-wrap; overflow-wrap: anywhere; display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.cap-reason { border-color: color-mix(in srgb, var(--danger) 40%, transparent); background: color-mix(in srgb, var(--danger) 8%, var(--surface)); }
+.cap-reason p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.cap-link { align-self: flex-start; display: inline-flex; align-items: center; gap: 5px; color: var(--link); font-weight: 700; }
+.cap-form { display: flex; flex-direction: column; gap: 12px; width: min(440px, 100%); }
+.cap-spin { animation: cap-spin 0.9s linear infinite; }
+@keyframes cap-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .cap-spin { animation: none; } }

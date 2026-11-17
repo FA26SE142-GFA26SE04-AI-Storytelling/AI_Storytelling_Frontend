@@ -153,9 +153,11 @@
 /* Header Staff (Creator / Moderator / Admin): khi tràn thì không cắt mất nút đầu/cuối (safe center),
    và ở màn vừa (721–1180px) nút chưa chọn chỉ hiện biểu tượng (vẫn có title), nút đang chọn giữ chữ. */
 .top:not(.hdr-center) .topnav { justify-content: safe center; }
+/* Áp cho cả header phụ huynh (hdr-center): trước đây chỉ Staff, nên ở 768px header phụ huynh tràn ngang ~260px. */
 @media (min-width: 721px) and (max-width: 1180px) {
-  .top:not(.hdr-center) .topnav button:not(.on) .nav-txt { display: none; }
-  .top:not(.hdr-center) .topnav button:not(.on) { padding: 0 11px; }
+  .top .topnav button:not(.on) .nav-txt { display: none; }
+  .top .topnav button:not(.on) { padding: 0 11px; }
+  .top.hdr-center .topnav { flex: 0 1 auto; min-width: 0; justify-content: safe center; }
 }
 
 /* Header của phụ huynh (tên lớp hdr-*: tránh trùng tiện ích Tailwind như top-3 = "top: 12px"): một hàng flex; hai nhóm hai bên cùng co giãn từ 0 (flex: 1 1 0) nên rộng bằng nhau

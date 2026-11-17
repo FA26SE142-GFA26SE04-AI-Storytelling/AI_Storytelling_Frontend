@@ -1,34 +1,47 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Check, HelpCircle, Mic, RotateCcw, Send, Square } from 'lucide-react';
+import SafeImage from '@/app/components/SafeImage';
 import { showToast } from '@/app/lib/toast';
 import { childReadingService } from '@/app/services/childReadingService';
-import { SUMMARY_MAX_BYTES, SUMMARY_MAX_FLAGS } from '@/app/types/childReading';
-import { useRecorder } from './useRecorder';
+import { SUMMARY_MAX_BYTES, SUMMARY_MAX_QUESTIONS, SUMMARY_QUESTION_MAX_CHARS, type ReadingScene } from '@/app/types/childReading';
+import { useRecorder, type RecorderState } from './useRecorder';
 
-type SceneRef = { sceneId: number; sceneIndex: number };
+type SceneRef = Pick<ReadingScene, 'sceneId' | 'sceneIndex' | 'illustrationUrl' | 'illustrations'>;
+/** beatOrder = null: cảnh không có tranh riêng, Backend hỏi về cả cảnh. */
+type Pic = { key: string; sceneId: number; sceneIndex: number; beatOrder: number | null; url: string | null };
 
 const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+const micToast = (s: RecorderState) => {
+  if (s === 'denied') showToast('Em cần cho phép dùng micro nhé.', 'warn');
+  else if (s === 'unsupported') showToast('Máy này chưa ghi âm được.', 'warn');
+};
+/** Mọi tranh của truyện theo thứ tự cảnh rồi beatOrder; cảnh không có tranh riêng thành một ô. */
+const toPictures = (scenes: SceneRef[]): Pic[] => scenes.slice().sort((a, b) => a.sceneIndex - b.sceneIndex).flatMap<Pic>(s => s.illustrations?.length
+  ? s.illustrations.slice().sort((a, b) => a.beatOrder - b.beatOrder).map(i => ({ key: `${s.sceneId}-${i.beatOrder}`, sceneId: s.sceneId, sceneIndex: s.sceneIndex, beatOrder: i.beatOrder, url: i.url }))
+  : [{ key: `${s.sceneId}-`, sceneId: s.sceneId, sceneIndex: s.sceneIndex, beatOrder: null, url: s.illustrationUrl }]);
 
 /** Báo đã gửi xong: dấu tích và chữ cùng một dòng, bật lên nhẹ khi xuất hiện. */
 const Sent = ({ text }: { text: string }) => (
   <p className="kid-sent" role="status"><span className="kid-sent-ic" aria-hidden="true"><Check /></span>{text}</p>
 );
 
-/** Cuối truyện: bé kể lại bằng giọng nói và chọn những chỗ còn thắc mắc để gửi cho bố mẹ. */
+/** Cuối truyện: bé kể lại bằng giọng nói và chọn tranh còn thắc mắc để hỏi bố mẹ. */
 export default function KidSummary({ token, sessionId, scenes }: { token: string; sessionId: number; scenes: SceneRef[] }) {
   const rec = useRecorder(SUMMARY_MAX_BYTES);
+  const ask = useRecorder(SUMMARY_MAX_BYTES);
   const [sentVoice, setSentVoice] = useState('');
-  const [sentFlags, setSentFlags] = useState('');
-  const [picked, setPicked] = useState<number[]>([]);
+  const [asked, setAsked] = useState<string[]>([]);
+  const [lastSent, setLastSent] = useState('');
+  const [pick, setPick] = useState<Pic | null>(null);
+  const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
-  // note chỉ nhận lỗi gửi (thành công hiện bằng dấu tích tại chỗ).
+  const pics = toPictures(scenes);
+  // note chỉ nhận lỗi gửi (thành công hiện bằng dấu tích/toast).
   useEffect(() => { if (note) showToast(note, 'err'); }, [note]);
-  useEffect(() => {
-    if (rec.state === 'denied') showToast('Em cần cho phép dùng micro nhé.', 'warn');
-    else if (rec.state === 'unsupported') showToast('Máy này chưa ghi âm được.', 'warn');
-  }, [rec.state]);
+  useEffect(() => micToast(rec.state), [rec.state]);
+  useEffect(() => micToast(ask.state), [ask.state]);
 
   const sendVoice = async () => {
     if (!rec.blob || busy) return;
@@ -37,14 +50,17 @@ export default function KidSummary({ token, sessionId, scenes }: { token: string
     setBusy(false);
     if (r.success && r.data) setSentVoice(r.data.message); else setNote(r.message);
   };
-  const sendFlags = async () => {
-    if (!picked.length || busy) return;
+  const choose = (p: Pic) => { ask.reset(); setText(''); setPick(v => v?.key === p.key ? null : p); };
+  const sendQuestion = async () => {
+    if (!pick || busy) return;
     setBusy(true); setNote('');
-    const r = await childReadingService.summaryFlags(token, sessionId, picked);
+    const r = await childReadingService.summaryQuestion(token, sessionId, { sceneId: pick.sceneId, beatOrder: pick.beatOrder, text, audio: ask.blob });
     setBusy(false);
-    if (r.success && r.data) setSentFlags(r.data.message); else setNote(r.message);
+    // 409: tranh này em đã hỏi từ trước, khoá ô lại như đã gửi.
+    if ((r.success && r.data) || r.status === 409) { setAsked(v => [...v, pick.key]); setPick(null); setText(''); ask.reset(); }
+    if (r.success && r.data) { setLastSent(r.data.message); showToast(r.data.message, 'ok'); } else setNote(r.message);
   };
-  const toggle = (id: number) => setPicked(v => v.includes(id) ? v.filter(x => x !== id) : v.length < SUMMARY_MAX_FLAGS ? [...v, id] : v);
+  const recording = ask.state === 'recording' || ask.state === 'converting';
 
   return <section className="kid-summary" aria-label="Kể lại cho bố mẹ">
     <h3 className="display">Em kể lại cho bố mẹ nghe nhé</h3>
@@ -59,14 +75,34 @@ export default function KidSummary({ token, sessionId, scenes }: { token: string
       </>}
     </div>}
 
-    {scenes.length > 0 && <>
-      <h3 className="display"><HelpCircle aria-hidden="true" /> Chỗ nào em còn thắc mắc?</h3>
-      {sentFlags ? <Sent text={sentFlags} /> : <>
-        <div className="kid-flag-list" role="group" aria-label={`Chọn tối đa ${SUMMARY_MAX_FLAGS} cảnh`}>
-          {scenes.map(s => <button key={s.sceneId} type="button" className="kid-btn3d is-sky" aria-pressed={picked.includes(s.sceneId)}
-            disabled={!picked.includes(s.sceneId) && picked.length >= SUMMARY_MAX_FLAGS} onClick={() => toggle(s.sceneId)}>Cảnh {s.sceneIndex + 1}</button>)}
+    {pics.length > 0 && <>
+      <h3 className="display"><HelpCircle aria-hidden="true" /> Chỗ nào em còn thắc mắc? <span className="kid-ask-count">({asked.length}/{SUMMARY_MAX_QUESTIONS})</span></h3>
+      {asked.length >= SUMMARY_MAX_QUESTIONS ? <Sent text={lastSent || 'Đã gửi cho bố mẹ'} /> : <>
+        <div className="kid-ask-grid" role="group" aria-label="Chọn tranh em muốn hỏi bố mẹ">
+          {pics.map(p => {
+            const done = asked.includes(p.key);
+            return <button key={p.key} type="button" className={`kid-ask-tile${done ? ' is-done' : ''}`} aria-pressed={pick?.key === p.key}
+              disabled={done || busy || recording} aria-label={`Cảnh ${p.sceneIndex + 1}${done ? ', em đã hỏi' : ''}`} onClick={() => choose(p)}>
+              <SafeImage src={p.url} alt="" loading="lazy" />
+              <span className="kid-ask-tag">Cảnh {p.sceneIndex + 1}</span>
+              {done && <span className="kid-ask-done" aria-hidden="true"><Check /></span>}
+            </button>;
+          })}
         </div>
-        <button type="button" className="kid-btn3d is-gold" disabled={busy || !picked.length} onClick={() => void sendFlags()}><Send aria-hidden="true" />Gửi bố mẹ</button>
+        {pick && <div className="kid-ask-panel" key={pick.key}>
+          <SafeImage className="kid-ask-pic" src={pick.url} alt={`Tranh cảnh ${pick.sceneIndex + 1}`} />
+          <div className="kid-actions">
+            {ask.state === 'recording'
+              ? <button type="button" className="kid-btn3d is-gold" onClick={ask.stop}><Square aria-hidden="true" />Dừng ({clock(ask.seconds)})</button>
+              : <button type="button" className="kid-btn3d is-sky" disabled={ask.state === 'converting' || busy} onClick={() => void ask.start()}><Mic aria-hidden="true" />{ask.state === 'converting' ? 'Đang chuẩn bị…' : ask.state === 'ready' ? 'Ghi lại' : 'Bấm để hỏi'}</button>}
+            {ask.state === 'ready' && ask.url && <>
+              <audio controls src={ask.url} aria-label="Nghe lại câu em vừa hỏi" />
+              <button type="button" className="kid-btn3d is-sky kid-btn-icon" aria-label="Bỏ bản ghi" title="Bỏ bản ghi" onClick={ask.reset}><RotateCcw aria-hidden="true" /></button>
+            </>}
+          </div>
+          <input className="inp" aria-label="Câu hỏi của em" placeholder="Em gõ câu hỏi…" maxLength={SUMMARY_QUESTION_MAX_CHARS} value={text} onChange={e => setText(e.target.value)} />
+          <button type="button" className="kid-btn3d is-gold" disabled={busy || recording} onClick={() => void sendQuestion()}><Send aria-hidden="true" />Gửi bố mẹ</button>
+        </div>}
       </>}
     </>}
   </section>;

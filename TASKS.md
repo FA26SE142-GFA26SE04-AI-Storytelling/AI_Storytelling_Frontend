@@ -7,7 +7,7 @@ Cập nhật: 14/11/2026 — đối chiếu Backend `4fb6afa`, Frontend `2065533
 - [x] QR EasyLogin: BE trả lại secret đang hoạt động nếu giải mã được bản bảo vệ; FE `AccessTab.tsx` đọc `cred.secret`, hiện lại mã và tải PNG (`qrImage.ts`). Đã có luồng bé quét QR trên web; chưa thử camera thiết bị thật trong lần rà soát này.
 - [x] BE có đánh giá truyện Creator (1–5 sao, nhận xét, báo cáo; Moderator duyệt/ẩn).
 - [ ] FE chưa nối 8 endpoint đánh giá: xem/tạo/sửa/xoá/báo cáo của phụ huynh, Creator xem/báo cáo, Moderator xem/duyệt/ẩn. Đây là phần mới chưa nằm trong các trạng thái hoàn tất F-10 bên dưới.
-- [ ] F-05 vẫn thiếu giữ/hoàn lượt AI: `ITokenQuotaService` chưa có hợp đồng này; `AIStoryInputService` vẫn gọi trừ khi nhận yêu cầu. Hoàn lượt gửi duyệt Creator không phải hoàn lượt AI.
+- [x] F-05 giữ/hoàn lượt AI: BE `ca9204d` (17/11) giữ lượt khi gửi yêu cầu, trừ khi AI sinh xong, trả khi lỗi/bị chặn/từ chối dàn ý; thử lại job lỗi giữ lại 1 lượt (409 khi hết). FE không cần đổi API.
 - Audit mới: **373 endpoint, 347 CONNECTED_SOURCE, 2 webhook/alias, 24 MISSING hoặc SERVICE_ONLY; frontendOnly = 0**. Chạy `node scripts/audit-core-api.mjs`; chi tiết tại `src/out/core-api-audit.json`. 24 mục gồm 8 API đánh giá mới và 16 mục cần phân loại tiếp (hàm bọc, service dư, route cũ hoặc luồng duyệt chưa nối). Số liệu 364 endpoint bên dưới là lịch sử, đã được thay thế bởi kết quả này.
 - Chỉ xác minh bằng đọc code và audit tĩnh; chưa build/test/E2E hoặc xác nhận lại các lỗi runtime trước đây.
 
@@ -100,6 +100,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] Điều ước của bé: xem điều ước và gợi ý truyện có sẵn, dùng truyện có sẵn, tạo truyện mới bằng AI (xem tiến độ, mở trong Studio), từ chối.
 - [x] **Nhập truyện có sẵn** (Luồng 3b, [ImportStoryPanel.tsx](src/app/features/studio/ImportStoryPanel.tsx)): trong Viết bằng AI chọn "Nhập truyện có sẵn" → dán văn bản hoặc tải .txt/.docx → AI đánh giá (Phù hợp / Nên chỉnh lại / Chưa phù hợp, điểm an toàn, số chữ, độ dễ đọc, các vấn đề) → Tiếp tục, Nhờ AI chỉnh, Tự sửa hoặc Giữ nguyên (ghi lý do) → Studio mở truyện, tạo học liệu và đi tiếp các bước duyệt, tranh, giọng đọc. Chưa dùng: xem lại đánh giá đã lưu (`GET .../existing/evaluation`), lưu trữ (đã chốt bỏ).
 - [x] **Giao cho nhiều bé (gói riêng từng bé)** ([FamilyPackages.tsx](src/app/features/authoring/FamilyPackages.tsx), bước 2 của Tự viết, nút "Giao cho nhiều bé"): chọn bé và thành phần gói (từ vựng, câu đố, tương tác khi nghe, tranh, giọng đọc) → chốt nội dung → Backend kiểm tra theo hồ sơ từng bé → Tạo học liệu → Xem trước (nội dung, tranh / giọng đọc tải kèm token, từ vựng, câu đố có đáp án) → Chốt gói → Giao nhiều bé một lần; thu hồi riêng từng bé; Thử lại phần lỗi; Đổi thành phần (bản gói mới); Mở lại để sửa nội dung. Đã thử thật với 2 bé (truyện #920). Truyện đã có gói thì không trộn với cách giao một bé.
+- [x] **Cảnh báo AI khi chốt gói** (17/11, BE `efef12e`): gói có cảnh báo (vùng xám hoặc AI chấm tạm lỗi, `check.requiresParentAcknowledgement`) hiện cảnh báo vàng kèm câu trích; nút Chốt gói hỏi xác nhận rồi gửi `acknowledgeAssessmentWarnings: true` (thiếu thì BE trả 409 `PACKAGE_ASSESSMENT_ACKNOWLEDGEMENT_REQUIRED`). Chưa thử với gói có cảnh báo thật.
 - [ ] Lượt tạo truyện theo tài liệu 6 — xem mục Hệ thống bên dưới.
 
 ### Cộng đồng (F-10)
@@ -113,6 +114,8 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [x] Thư viện lộ trình mẫu: xem, xem trước, sao chép cho bé.
 - [x] Trang "Học tập của bé": Tổng quan, Lộ trình, Kết quả đọc (phản hồi đọc, câu bé trả lời, bản ghi âm kể lại, chỗ bé còn thắc mắc, xoá bản kể lại), Điều ước.
 - [x] Kết quả đọc mở rộng (16/11, BE PR #151): lọc Đã/Chưa đọc xong và 7 ngày/30 ngày/Tất cả; ô tổng quan (`GET /ParentReadingFeedback/{id}/overview`); mỗi lần đọc có thời gian, số trang, lần đọc lại, EXP, chế độ đọc, đọc to, từ mới, bản kể lại; popup chi tiết câu đố (`GET .../sessions/{sessionId}/quiz`) ([ResultsTab.tsx](src/app/features/learning/ResultsTab.tsx)).
+- [x] Câu bé hỏi bố mẹ theo tranh (17/11, BE `a9650f0`): mỗi câu có tranh, cảnh, chữ, ghi âm; nút đánh dấu / bỏ đánh dấu đã trả lời (`PUT /ParentStorySummary/{childId}/{summaryId}/questions/{questionId}/answered`); pill "N chưa trả lời" ở danh sách và chi tiết.
+- [ ] Phụ huynh nghe lại bản ghi đọc to (`GET/DELETE /ParentReadingFeedback/{childId}/sessions/{sessionId}/read-aloud`) và xem cảm nhận của bé (`GET .../reflection`, `DELETE .../reflection/note`, trường `emotions`, `reflection`, `emotionCounts`, `readAloudPractice`) — BE đã có (17/11), FE chưa làm.
 - [x] Thông báo (đọc, đánh dấu đã đọc, xoá).
 
 ---
@@ -129,7 +132,8 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 - [ ] Karaoke: tô đậm từng chữ theo giọng đọc — chưa làm, không thuộc 22 chức năng bắt buộc. BE dùng Gemini TTS, `EnableWordTimings=false` nên không có mốc thời gian từng chữ; FE có `parseWordTimings` và `useNarrator.ts` xử lý mốc nhưng chưa gắn vào màn đọc.
 - [x] Hoàn thành truyện, chọn cảm xúc, làm quiz (trắc nghiệm, đúng/sai, trả lời ngắn ≤ 200 ký tự) (F-14).
 - [x] EXP, 7 huy hiệu, cây tri thức 5 giai đoạn (tưới cây), sổ tay từ vựng, nghĩa của từ; đọc xong mở bước lộ trình tiếp theo (F-14).
-- [x] Cuối truyện ghi âm kể lại (đổi sang WAV trước khi gửi) và đánh dấu tối đa 5 cảnh còn thắc mắc.
+- [x] Cuối truyện ghi âm kể lại (đổi sang WAV trước khi gửi) và hỏi bố mẹ về tranh còn thắc mắc (17/11, thay API `summary/flags` đã bị BE xoá): lưới tranh của truyện, chọn tranh → ghi âm và/hoặc gõ câu hỏi (≤ 200 ký tự) → `POST /child/reading/sessions/{id}/summary/questions` (multipart), tối đa 5 câu ([KidSummary.tsx](src/app/features/kid/KidSummary.tsx)). Mobile chưa đổi (vẫn gọi `summary/flags`).
+- [ ] Luyện đọc to sau truyện (`readAloudPractice`, `POST .../read-aloud-practice/{interactionId}`) và cảm nhận sau khi đọc (cảm xúc, cảnh thích nhất, lời bé: `GET/PUT/POST .../reflection`) — BE đã có (17/11), FE chưa làm.
 - [x] Gửi điều ước bằng thẻ (F-08).
 - [x] Kệ "Khám phá truyện cộng đồng" ở trang chủ bé **đã gỡ** (13/11): BE xoá `/CommunityLibrary`, API mới `/Story/community` không cho phiên bé. Bé đọc truyện Creator qua lộ trình phụ huynh thêm.
 - [ ] **Một phần — Tranh / âm thanh của truyện gia đình tự soạn** (`GET /child/manual-stories/{confirmationId}/assets/{assetId}`): FE tải file kèm token phiên của bé rồi hiện bằng blob URL (`src/app/lib/useAuthedMediaUrl.ts`, dùng ở tranh cảnh, giọng đọc và xem trước truyện gia đình). BE fix signer bỏ qua URL /api/ (commit 7ecf5fe, `ChildMediaUrlSigner.cs`) đã có trong `main` (cac1271); còn kiểm tra thực tế rồi chuyển thành `[x]`.
@@ -138,6 +142,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 
 ## 3. Content Creator
 
+- [x] **Tự đăng ký có duyệt** (17/11, BE PR #158): form "Đăng ký làm Content Creator" (`/?auth=creator`, link từ form phụ huynh) gửi `POST /Auth/register-creator` (giới thiệu 20–1000 ký tự, portfolio) → xác thực email → màn chờ duyệt ([CreatorApplicantScreen.tsx](src/app/components/shell/CreatorApplicantScreen.tsx)): đang chờ / bị từ chối kèm lý do, nộp lại đơn (popup, `POST /creator-applications/me/resubmit`), kiểm tra lại, đã duyệt thì làm mới phiên vào khu Creator. Người chờ duyệt không vào khu Creator (tránh 403). Chưa thử luồng email thật.
 - [x] Tạo truyện bằng AI (F-06) và tự viết (F-07): soạn, nhập, lưu phiên bản, trợ lý AI, tự kiểm tra nội dung (An toàn / Vùng xám / Bị chặn), xác nhận nội dung, tranh và giọng đọc, xác nhận gói (F-09).
 - [x] Gửi duyệt công khai: chọn ảnh bìa và nhãn nội dung, rút yêu cầu, gửi lại khi chỉ bị trả về vì nhãn, tạo bản chỉnh sửa, yêu cầu gỡ truyện đã công khai (F-10).
 - [x] Thư viện truyện mẫu, Truyện của tôi (thẻ truyện đã công khai có lượt xem / yêu thích từ `GET /creator/stories/published`, 13/11).
@@ -168,6 +173,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 ## 5. Administrator
 
 - [x] Tài khoản vận hành (mời, kích hoạt, khoá Moderator / Creator).
+- [x] **Content Creator** (17/11, BE PR #158, #159; Người dùng › Content Creator, [AdminCreators.tsx](src/app/features/staff/AdminCreators.tsx)): tab Đơn đăng ký (lọc Chờ duyệt / Đã duyệt / Từ chối, số đơn chờ, popup xem đơn, Duyệt có xác nhận, Từ chối kèm lý do; đơn của người chưa xác thực email bị khoá) và tab Tài khoản (tìm kiếm, lọc trạng thái, Vô hiệu hoá kèm lý do, Kích hoạt lại). Thông báo 35/36 có nhãn.
 - [x] Danh mục nội dung.
 - [x] Rà soát thư viện; tiêu chí, hướng dẫn, thẻ ước, lộ trình mẫu (xem). Admin không xử lý report nội dung (BE 403, 13/11): đã gỡ menu "ca chuyển lên" và nút nhận mục ContentReport.
 - [x] **Thanh toán → Giao dịch** (F-04): mọi giao dịch, lọc trạng thái, tìm theo mã / email / tên, phân trang; "Xác nhận đã trả" cho mọi giao dịch chưa Paid (kể cả Hết hạn, Sai số tiền), gói được áp như webhook.

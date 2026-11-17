@@ -21,8 +21,8 @@ export const childReadingService = {
   summaryRecording: (token:string, id:number, audio:Blob) => { const form=new FormData(); form.append('audio',audio,audio.type==='audio/wav'?'summary.wav':'summary'); return apiRequest<D.StorySummarySent>(`/child/reading/sessions/${id}/summary/recording`,'Chưa gửi được bản ghi âm.',{method:'POST',form,token,session:'child'}); },
   /** Bé đọc to một đoạn truyện để nhận dạng và chấm điểm từng chữ (F-13). */
   readAloud: (token:string, sessionId:number, segmentId:number, audio:Blob) => { const form=new FormData(); form.append('Audio',audio,audio.type==='audio/wav'?'read-aloud.wav':'read-aloud'); return apiRequest<D.ReadAloudResult>(`/child/reading/sessions/${sessionId}/segments/${segmentId}/read-aloud`,'Chưa chấm được giọng đọc của em.',{method:'POST',form,token,session:'child'}); },
-  /** Đánh dấu tối đa 5 cảnh bé còn thắc mắc, gửi cho bố mẹ. */
-  summaryFlags: (token:string, id:number, sceneIds:number[]) => apiRequest<D.StorySummarySent>(`/child/reading/sessions/${id}/summary/flags`,'Chưa gửi được những chỗ em thắc mắc.',{method:'POST',body:{sceneIds},token,session:'child'}),
+  /** Hỏi bố mẹ về một tranh (beatOrder) của cảnh; cảnh không có tranh riêng thì beatOrder = null. Chữ/ghi âm không bắt buộc, tối đa 5 câu mỗi phiên. */
+  summaryQuestion: (token:string, id:number, q:{sceneId:number; beatOrder:number|null; text?:string; audio?:Blob|null}) => { const form=new FormData(); form.append('SceneId',String(q.sceneId)); if(q.beatOrder!=null)form.append('BeatOrder',String(q.beatOrder)); if(q.text?.trim())form.append('Text',q.text.trim()); if(q.audio)form.append('Audio',q.audio,q.audio.type==='audio/wav'?'question.wav':'question'); return apiRequest<D.StorySummaryQuestionSent>(`/child/reading/sessions/${id}/summary/questions`,'Chưa gửi được câu hỏi của em.',{method:'POST',form,token,session:'child'}); },
   /** Chỉ sau khi phiên đọc đã hoàn thành. */
   feeling: (token:string, id:number, feeling:D.ReadingFeeling) => apiRequest<D.ReadingFeelingResult>(`/child/reading/sessions/${id}/feeling`,'Chưa lưu được cảm nhận của em.',{method:'PUT',body:{feeling},token,session:'child'}),
 };
@@ -52,5 +52,7 @@ export const childNotebookService = {
 /** Phụ huynh nghe lại bản ghi âm tóm tắt và xem những chỗ con còn thắc mắc. */
 export const parentStorySummaryService = {
   list: (childProfileId:number, pageIndex=1, pageSize=20, signal?:AbortSignal) => apiRequest<D.PagedParentSummaries>(`/ParentStorySummary/${childProfileId}?pageIndex=${pageIndex}&pageSize=${pageSize}`,'Không tải được phần con kể lại.',{signal}),
+  /** Đánh dấu / bỏ đánh dấu đã trả lời một câu con hỏi. */
+  answered: (childProfileId:number, summaryId:number, questionId:number, answered:boolean) => apiRequest<D.StorySummaryAnswered>(`/ParentStorySummary/${childProfileId}/${summaryId}/questions/${questionId}/answered`,'Không cập nhật được câu hỏi.',{method:'PUT',body:{answered}}),
   remove: (childProfileId:number, summaryId:number) => apiRequest<null>(`/ParentStorySummary/${childProfileId}/${summaryId}`,'Không xoá được bản tóm tắt.',{method:'DELETE'}),
 };

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import AppShell from "@/app/components/shell/AppShell";
 import LoginScreen from "@/app/components/shell/LoginScreen";
+import CreatorApplicantScreen from "@/app/components/shell/CreatorApplicantScreen";
 import { WorkspaceDataProvider, useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { type WorkspaceId, type WorkspaceProps } from "@/app/components/shell/nav";
 import { DEFAULT_WORKSPACE, readWorkspaceLocation, takesStoryId, workspaceLocation } from '@/app/lib/workspaceLocation';
@@ -127,6 +128,8 @@ export default function HomePage() {
   if (!booted && !user) return <div className="splash">Đang kiểm tra phiên đăng nhập…</div>;
   // Chưa đăng nhập: link trong email (?auth=…, token) mở thẳng biểu mẫu; còn lại về trang giới thiệu /home.
   if (!user) return entry ? <LoginScreen key={entry} initialMode={entry} onHome={() => router.push("/home")} onKidCode={setKidCode} /> : <div className="splash">Đang mở trang giới thiệu…</div>;
+  // Creator tự đăng ký đang chờ duyệt: token role tạm chỉ gọi được API đơn đăng ký, không vào StaffApp (tránh loạt 403).
+  if (user.role === "ContentCreator" && user.status === "AwaitingApproval") return <CreatorApplicantScreen />;
   // Luồng 5 — Administrator, Moderator, Content Creator dùng khu riêng, tách khỏi Parent.
   if (isStaffRole(user.role)) return <StaffApp role={user.role} />;
   return (
