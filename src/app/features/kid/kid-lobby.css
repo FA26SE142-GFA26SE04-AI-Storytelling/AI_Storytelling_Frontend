@@ -293,9 +293,9 @@
 
 /* ===== Bố cục ===== */
 .kid .khome:has(.kid-lobby) { padding-bottom: 0; }
-/* Sảnh không có dock: chip phần thưởng bên trái, nút khóa bên phải */
+/* Sảnh không có dock: chip phần thưởng bên trái, nút đổi giao diện + nút khóa sát nhau bên phải */
 .kid-hud:not(:has(.kid-dock)) .kid-hud-right { flex: 1; }
-.kid-hud:not(:has(.kid-dock)) .kid-hud-lock { margin-left: auto; }
+.kid-hud:not(:has(.kid-dock)) .kid-hud-theme { margin-left: auto; }
 
 /* >= 1024px: 3 cột vừa một màn, cột hai bên tự cuộn, sân khấu ở giữa */
 @media (min-width: 1024px) {

@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Award, Droplets, Flame, Lock } from 'lucide-react';
+import { Award, Droplets, Flame, Lock, Moon, Sun } from 'lucide-react';
+import { useTheme } from '@/app/context/ThemeContext';
+import { circleReveal } from '@/app/lib/motion';
 import { childAccessService } from '@/app/services/childAccessService';
 import { childRewardsService } from '@/app/services/childReadingService';
 import type { ChildRewards } from '@/app/types/childReading';
@@ -47,6 +49,8 @@ export default function KidHud({ rewards: data, pane, onPane, showDock, onExit, 
   const earnedCount = data ? data.badges.filter((b) => b.earned).length : 0;
   const totalBadges = data ? data.badges.length : 0;
   const streakDays = data?.streakDays ?? 0;
+  const { theme, toggleTheme } = useTheme();
+  const themeLabel = theme === 'dark' ? 'Chuyển sang giao diện sáng' : 'Chuyển sang giao diện tối';
 
   return (
     <header className="kid-hud">
@@ -91,6 +95,17 @@ export default function KidHud({ rewards: data, pane, onPane, showDock, onExit, 
             <span>{streakDays}</span>
           </button>
         ) : null}
+
+        {/* Đổi sáng / tối giống header phụ huynh (cùng hiệu ứng lan tròn), dùng lại kiểu nút khoá cho đồng bộ. */}
+        <button
+          type="button"
+          className="kid-hud-lock kid-hud-theme"
+          onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }}
+          aria-label={themeLabel}
+          title={themeLabel}
+        >
+          {theme === 'dark' ? <Sun size={24} aria-hidden="true" /> : <Moon size={24} aria-hidden="true" />}
+        </button>
 
         <button
           type="button"

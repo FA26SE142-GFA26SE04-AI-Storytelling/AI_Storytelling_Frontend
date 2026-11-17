@@ -6,6 +6,7 @@ import type * as B from "@/app/types/backendContracts";
 import type { ChildRewards } from "@/app/types/childReading";
 import Frog, { type FrogPokeAction } from "@/app/components/brand/Frog";
 import KnowledgeTreeArt from "@/app/components/brand/KnowledgeTreeArt";
+import { croak } from "@/app/lib/croak";
 import { coverFor } from "@/app/lib/storyView";
 
 /** Mỗi lần bé bấm ếch làm một động tác khác, lặp vòng: chuyển động cả thân (CSS) + cử động của ếch (Frog). */
@@ -127,7 +128,7 @@ export default function KidLobbyStage({
     const t = window.setTimeout(() => setResting(true), REST_MS);
     return () => window.clearTimeout(t);
   }, [pokes]);
-  const pokeFrog = () => { setResting(false); setPokes((n) => n + 1); };
+  const pokeFrog = () => { croak(); setResting(false); setPokes((n) => n + 1); };
 
   // Sân khấu dựng theo kích thước thiết kế cố định rồi co giãn cho vừa khung (như màn hình game), không để trống hay phải cuộn.
   const boxRef = useRef<HTMLElement>(null);
