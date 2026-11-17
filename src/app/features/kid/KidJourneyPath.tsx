@@ -64,7 +64,8 @@ export default function KidJourneyPath({
                 : 'chưa mở';
 
           return (
-            <Fragment key={stop.storyId}>
+            // Một truyện có thể xuất hiện nhiều lần trên hành trình (đọc lại): key kèm vị trí.
+            <Fragment key={`${stop.storyId}-${i}`}>
               {i > 0 && (
                 <li
                   className="kj-link"

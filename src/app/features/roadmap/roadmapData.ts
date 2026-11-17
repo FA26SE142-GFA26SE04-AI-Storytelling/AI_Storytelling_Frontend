@@ -91,12 +91,12 @@ function loadCommunityCovers() {
 function loadCover(storyId: number) {
   let p = covers.get(storyId);
   if (!p) {
-    p = storyService.getStoryById(storyId)
-      .then(async (r) => {
-        if (r.success && r.data) return coverFor(r.data.coverImageUrl);
-        // Không tìm thấy qua GET /Story/{id}: có thể là truyện cộng đồng.
-        const community = await loadCommunityCovers();
-        return community.has(storyId) ? coverFor(community.get(storyId)) : DEFAULT_COVER;
+    // Tra danh sách cộng đồng (tải một lần) trước: truyện cộng đồng gọi GET /Story/{id} luôn 404.
+    p = loadCommunityCovers()
+      .then(async (community) => {
+        if (community.has(storyId)) return coverFor(community.get(storyId));
+        const r = await storyService.getStoryById(storyId);
+        return r.success && r.data ? coverFor(r.data.coverImageUrl) : DEFAULT_COVER;
       })
       .catch(() => DEFAULT_COVER);
     covers.set(storyId, p);
