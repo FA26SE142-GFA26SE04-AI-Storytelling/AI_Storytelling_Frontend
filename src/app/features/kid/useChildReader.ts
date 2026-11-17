@@ -160,5 +160,9 @@ export function useChildReader(token:string, onLibrary:()=>void) {
     if (!session) return { success:false, status:401, message:'Phiên của bé đã hết hạn.', data:null };
     return api.readAloud(token, session.sessionId, segmentId, audio);
   };
-  return {token,session,content,page,mode,definition,busy,blocked,done,completed,note,listenOnly,open,close,leave,save,complete,flag,pending,attempt,lookup,collect,event,readAloud};
+  const readAloudPractice = async (interactionId:number, audio:Blob) => {
+    if (!session) return { success:false, status:401, message:'Phiên của bé đã hết hạn.', data:null };
+    return api.readAloudPractice(token, session.sessionId, interactionId, audio);
+  };
+  return {token,session,content,page,mode,definition,busy,blocked,done,completed,note,listenOnly,open,close,leave,save,complete,flag,pending,attempt,lookup,collect,event,readAloud,readAloudPractice};
 }

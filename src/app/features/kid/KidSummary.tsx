@@ -6,13 +6,14 @@ import { showToast } from '@/app/lib/toast';
 import { childReadingService } from '@/app/services/childReadingService';
 import { SUMMARY_MAX_BYTES, SUMMARY_MAX_QUESTIONS, SUMMARY_QUESTION_MAX_CHARS, type ReadingScene } from '@/app/types/childReading';
 import { useRecorder, type RecorderState } from './useRecorder';
+import KidSceneGrid from './KidSceneGrid';
 
 type SceneRef = Pick<ReadingScene, 'sceneId' | 'sceneIndex' | 'illustrationUrl' | 'illustrations'>;
 /** beatOrder = null: cảnh không có tranh riêng, Backend hỏi về cả cảnh. */
 type Pic = { key: string; sceneId: number; sceneIndex: number; beatOrder: number | null; url: string | null };
 
-const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-const micToast = (s: RecorderState) => {
+export const clock = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+export const micToast = (s: RecorderState) => {
   if (s === 'denied') showToast('Em cần cho phép dùng micro nhé.', 'warn');
   else if (s === 'unsupported') showToast('Máy này chưa ghi âm được.', 'warn');
 };
@@ -22,7 +23,7 @@ const toPictures = (scenes: SceneRef[]): Pic[] => scenes.slice().sort((a, b) => 
   : [{ key: `${s.sceneId}-`, sceneId: s.sceneId, sceneIndex: s.sceneIndex, beatOrder: null, url: s.illustrationUrl }]);
 
 /** Báo đã gửi xong: dấu tích và chữ cùng một dòng, bật lên nhẹ khi xuất hiện. */
-const Sent = ({ text }: { text: string }) => (
+export const Sent = ({ text }: { text: string }) => (
   <p className="kid-sent" role="status"><span className="kid-sent-ic" aria-hidden="true"><Check /></span>{text}</p>
 );
 
@@ -78,17 +79,7 @@ export default function KidSummary({ token, sessionId, scenes }: { token: string
     {pics.length > 0 && <>
       <h3 className="display"><HelpCircle aria-hidden="true" /> Chỗ nào em còn thắc mắc? <span className="kid-ask-count">({asked.length}/{SUMMARY_MAX_QUESTIONS})</span></h3>
       {asked.length >= SUMMARY_MAX_QUESTIONS ? <Sent text={lastSent || 'Đã gửi cho bố mẹ'} /> : <>
-        <div className="kid-ask-grid" role="group" aria-label="Chọn tranh em muốn hỏi bố mẹ">
-          {pics.map(p => {
-            const done = asked.includes(p.key);
-            return <button key={p.key} type="button" className={`kid-ask-tile${done ? ' is-done' : ''}`} aria-pressed={pick?.key === p.key}
-              disabled={done || busy || recording} aria-label={`Cảnh ${p.sceneIndex + 1}${done ? ', em đã hỏi' : ''}`} onClick={() => choose(p)}>
-              <SafeImage src={p.url} alt="" loading="lazy" />
-              <span className="kid-ask-tag">Cảnh {p.sceneIndex + 1}</span>
-              {done && <span className="kid-ask-done" aria-hidden="true"><Check /></span>}
-            </button>;
-          })}
-        </div>
+        <KidSceneGrid tiles={pics} picked={pick?.key ?? null} done={asked} doneLabel="em đã hỏi" disabled={busy || recording} label="Chọn tranh em muốn hỏi bố mẹ" onPick={choose} />
         {pick && <div className="kid-ask-panel" key={pick.key}>
           <SafeImage className="kid-ask-pic" src={pick.url} alt={`Tranh cảnh ${pick.sceneIndex + 1}`} />
           <div className="kid-actions">

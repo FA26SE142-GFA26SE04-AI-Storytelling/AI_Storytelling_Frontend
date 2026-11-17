@@ -5,6 +5,7 @@ import { showToast } from '@/app/lib/toast';
 import { childReadingService, childRewardsService } from '@/app/services/childReadingService';
 import type { ChildBadge, ReadingCompleted, ReadingFeeling, ReadingScene } from '@/app/types/childReading';
 import KidQuiz from './KidQuiz';
+import KidReflection from './KidReflection';
 import KidSummary from './KidSummary';
 import { useDialog } from './useDialog';
 
@@ -69,6 +70,7 @@ export default function KidAfterReading({ token, completed, scenes = [], onLibra
         <span aria-hidden="true">{f.face}</span>
       </button>)}</div>
     </section>
+    <KidReflection token={token} sessionId={completed.sessionId} scenes={scenes} />
     <KidSummary token={token} sessionId={completed.sessionId} scenes={scenes} />
     <button type="button" className="kid-btn3d is-gold kid-quiz-open" onClick={() => setQuiz(true)}><Puzzle aria-hidden="true" />Làm câu đố về truyện</button>
     {quiz && <QuizPopup onClose={() => setQuiz(false)}>

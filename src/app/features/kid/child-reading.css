@@ -484,6 +484,35 @@
 .kid-sent-ic svg { width: 18px; height: 18px; stroke-width: 3; }
 @keyframes kid-sent-pop { from { opacity: 0; transform: scale(.85); } }
 @media (prefers-reduced-motion: reduce) { .kid-sent { animation: none; } }
+/* Cảm nhận của em: thẻ viền vàng đi từng bước, chấm tiến độ (bước hiện tại vàng), 7 nút cảm xúc tự xuống dòng. */
+.kid-reflection { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 16px; background: color-mix(in srgb, var(--panel) 82%, transparent); border: 3px solid var(--gold-deep); border-radius: 24px; box-shadow: 0 6px 0 color-mix(in srgb, var(--text) 12%, transparent); }
+.kid-reflection.is-done { flex-direction: row; flex-wrap: wrap; justify-content: center; border-color: var(--line-2); }
+.kid-reflection-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 16px; }
+.kid-reflection h3 { margin: 0; font-size: var(--fs-lg); }
+.kid-reflection-dots { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.kid-reflection-dots li { width: 12px; height: 12px; border-radius: 50%; background: var(--line-2); transition: background .2s, transform .2s; }
+.kid-reflection-dots li.past { background: color-mix(in srgb, var(--gold) 50%, var(--line-2)); }
+.kid-reflection-dots li.on { background: var(--gold); box-shadow: 0 0 0 2px var(--gold-deep); transform: scale(1.25); }
+.kid-reflection-step { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.kid-reflection-step h4 { margin: 0; font-size: var(--fs-md); }
+.kid-emotions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; }
+.kid-btn3d.kid-emotion { flex-direction: column; gap: 2px; min-width: 88px; min-height: 80px; padding: 6px 8px; font-size: var(--fs-sm); line-height: 1.15; }
+.kid-emotion-face { font-size: var(--fs-2xl); line-height: 1; }
+.kid-btn3d.kid-emotion:disabled:not([aria-pressed="true"]) { opacity: .4; }
+.kid-reflection-text { width: 100%; max-width: 480px; padding: 8px 14px; border: 2px solid var(--line-2); font-size: var(--fs-md); resize: vertical; }
+.kid-reflection audio { max-width: 100%; }
+.kid-reflection-faces { margin: 0; display: flex; gap: 6px; font-size: var(--fs-2xl); }
+@media (prefers-reduced-motion: reduce) { .kid-reflection-dots li { transition: none; } }
+/* Trang luyện đọc to: thẻ tiêu đề vàng thay chỗ tranh, câu trích chữ to trong ngoặc kép ở cột chữ. */
+.kid-practice-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; width: 100%; padding: 24px 18px; border: 3px solid var(--gold-deep); border-radius: 28px; background: color-mix(in srgb, var(--gold) 16%, var(--surface)); text-align: center; }
+.kid-practice-card h2 { margin: 0; font-size: var(--fs-2xl); }
+.kid-practice-praise { margin: 0; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 14%, var(--surface)); font-size: var(--fs-md); font-weight: 800; animation: kid-sent-pop .35s cubic-bezier(.2, 1.4, .4, 1) both; }
+.kid-practice-praise svg { width: 20px; height: 20px; flex: none; color: var(--gold-deep); }
+.kid-practice-quote { margin: auto 0; padding: 0; }
+.kid-reader-side .kid-story-caption .kid-practice-quote p { margin: 0; }
+.kid-practice-quote p::before { content: '“'; color: var(--gold-deep); }
+.kid-practice-quote p::after { content: '”'; color: var(--gold-deep); }
+@media (prefers-reduced-motion: reduce) { .kid-practice-praise { animation: none; } }
 .kid-tree { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .kid-tree p { margin: 2px 0 0; }
 @media (prefers-reduced-motion: reduce) { .kid-feedback { animation: none; } .kid-answer { transition: none; } }
