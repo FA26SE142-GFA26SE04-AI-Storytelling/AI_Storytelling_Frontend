@@ -90,7 +90,8 @@ async function shots(page, name, scope = 'body') {
 function api({ path, method, body, url, state }) {
   switch (true) {
     case path === '/Auth/me': return state.user;
-    case path === '/Auth/sessions': return [];
+    case path === '/Auth/sessions': return state.manySessions ? Array.from({ length: 12 }, (_, i) => ({ id: i + 1, issuedAt: now, expiresAt: '2026-11-16T00:00:00Z' })).filter((s) => s.id !== state.revoked) : [];
+    case path.startsWith('/Auth/sessions/') && method === 'DELETE': state.revoked = Number(path.split('/').pop()); return null;
     case path === '/Notification/unread-count': return 0;
     case path === '/Notification': return [];
     case path === '/ChildProfile/mine': return [sen, lan];
@@ -381,6 +382,22 @@ try {
     await page.waitForFunction(() => document.documentElement.getAttribute('data-theme') === 'dark' || document.documentElement.classList.contains('dark'));
     await page.getByRole('button', { name: 'Chuyển sang giao diện sáng' }).waitFor();
     await shots(page, 'KidLobbyDark', '.kid-hud');
+  });
+
+  await smoke('AccountSessionsPaged', 'Parent', async ({ page, state }) => {
+    state.manySessions = true;
+    await page.goto(parent('#account'), { waitUntil: 'domcontentloaded' });
+    const card = page.locator('.acc-card', { has: page.getByRole('heading', { name: 'Phiên đăng nhập' }) });
+    await card.getByText('12', { exact: true }).waitFor();
+    assert.equal(await card.locator('.session-row').count(), 5, 'Mỗi trang 5 phiên');
+    await card.scrollIntoViewIfNeeded();
+    await shots(page, 'AccountSessions', '.acc-card');
+    for (let i = 0; i < 2; i++) await card.locator('.pager').getByRole('button', { name: 'Trang sau' }).click();
+    await card.getByText('3/3', { exact: true }).waitFor();
+    assert.equal(await card.locator('.session-row').count(), 2, 'Trang cuối còn 2 phiên');
+    await card.locator('.session-row').first().getByRole('button', { name: 'Đăng xuất' }).click();
+    await card.getByText('11', { exact: true }).waitFor();
+    assert.equal(await card.locator('.session-row').count(), 1);
   });
 
   await smoke('LearningWishes', 'Parent', async ({ page, state }) => {

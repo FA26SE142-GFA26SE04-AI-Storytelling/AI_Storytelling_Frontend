@@ -6,6 +6,7 @@ import "../children/children.css";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { KeyRound, LogOut, MonitorSmartphone, X } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";
+import Pager from "@/app/components/Pager";
 import { useAuth } from "@/app/context/AuthContext";
 import { accountService } from "@/app/services/accountService";
 import type { LoginSession } from "@/app/types/supervision";
@@ -18,6 +19,8 @@ import PaymentSection from './PaymentSection';
 import ConnectionStatus from './ConnectionStatus';
 
 type Note = { ok: boolean; text: string } | null;
+/** Số phiên đăng nhập mỗi trang (BE trả cả danh sách, chia trang tại chỗ). */
+const SESSIONS_PER_PAGE = 5;
 /** Mỗi trang tài khoản lo một việc. Không truyền `page` thì hiện tất cả (khu nhân viên). */
 export type AccountPage = "profile" | "payment" | "activity";
 
@@ -31,6 +34,11 @@ export default function AccountWorkspace({ page, audience = 'parent' }: { page?:
   const [pwOpen, setPwOpen] = useState(false);
   const [sessions, setSessions] = useState<LoginSession[] | null>(null);
   const [sNote, setSNote] = useState<Note>(null);
+  const [sPage, setSPage] = useState(1);
+  const sPages = Math.max(1, Math.ceil((sessions?.length ?? 0) / SESSIONS_PER_PAGE));
+  // Đăng xuất phiên cuối của trang cuối thì lùi về trang còn phiên.
+  const curPage = Math.min(sPage, sPages);
+  const pageSessions = sessions?.slice((curPage - 1) * SESSIONS_PER_PAGE, curPage * SESSIONS_PER_PAGE);
 
   const loadSessions = useCallback(async () => {
     const r = await accountService.listSessions();
@@ -105,16 +113,17 @@ export default function AccountWorkspace({ page, audience = 'parent' }: { page?:
             )}
 
             <section className="acc-card" style={{ gap: 6 }}>
-              <h3 className="display" style={{ margin: 0 }}>Phiên đăng nhập</h3>
+              <div className="row"><h3 className="display grow" style={{ margin: 0 }}>Phiên đăng nhập</h3>{!!sessions?.length && <span className="pill ok">{sessions.length}</span>}</div>
               {sessions === null && <p className="sub">Đang tải…</p>}
               {sessions?.length === 0 && <p className="empty-line">Không có phiên nào khác.</p>}
-              {sessions?.map((s) => (
+              {pageSessions?.map((s) => (
                 <div key={s.id} className="session-row">
                   <MonitorSmartphone className="ic" />
                   <span className="grow">Đăng nhập lúc {fmtDateTime(s.issuedAt)}</span><span className="pill draft">Hết hạn {fmtDateTime(s.expiresAt)}</span>
                   <button className="btn btn-g" onClick={() => void revoke(s.id)}>Đăng xuất</button>
                 </div>
               ))}
+              <Pager page={curPage} totalPages={sPages} hasPrev={curPage > 1} hasNext={curPage < sPages} onPage={setSPage} />
               {sNote && <div className={`notice ${sNote.ok ? "ok" : "err"}`} role="status">{sNote.text}</div>}
               <button className="btn btn-no" style={{ width: "fit-content", marginTop: 8 }} onClick={() => void logoutAll()}><LogOut className="ic" />Đăng xuất tất cả</button>
             </section>
