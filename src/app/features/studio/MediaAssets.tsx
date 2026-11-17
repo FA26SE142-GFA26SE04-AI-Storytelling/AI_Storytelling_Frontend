@@ -31,7 +31,9 @@ type Target = { kind: Kind; id: number; name: string };
 export default function MediaAssets({ storyId, versionId, onChanged, disabled = false, autoOpen = false, showConfirmation = true, selectable = false }: {
   storyId: number; versionId?: number | null; onChanged: () => void; disabled?: boolean; autoOpen?: boolean; showConfirmation?: boolean; selectable?: boolean;
 }) {
-  const { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm, keepCurrent, choose } = useMediaPackage({storyId,versionId,onChanged,disabled});
+  const { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm, keepCurrent, choose, limits } = useMediaPackage({storyId,versionId,onChanged,disabled});
+  const noImageLeft = limits.images?.remaining === 0;
+  const noAudioLeft = limits.audio?.remaining === 0;
   // Mở sẵn thì tự tải gói khi chưa có (kể cả sau mỗi lần chọn / tạo lại); có lỗi thì dừng, chờ người dùng bấm tải lại.
   useEffect(() => { if (autoOpen && !pack && !busy && !note) void load(); }, [autoOpen, pack, busy, note, load]);
   // Tệp đang chờ khai báo nguồn / quyền trước khi tải lên; khai báo giữ lại cho các lần tải sau.
@@ -68,6 +70,7 @@ export default function MediaAssets({ storyId, versionId, onChanged, disabled = 
         : !busy && <button className="btn btn-s" onClick={() => void load()}><Download className="ic" />Tải gói media</button>}
     </div>
     {note && <p className="notice" role="status">{note}</p>}
+    {(limits.images || limits.audio) && <p className="sub">Còn tạo lại miễn phí: {limits.images ? `${limits.images.remaining}/${limits.images.limit} tranh` : "—"}, {limits.audio ? `${limits.audio.remaining}/${limits.audio.limit} lần giọng đọc` : "—"}.</p>}
     {uncertain && <p className="notice warn" role="status">Chưa rõ kết quả thao tác. Tải lại gói và đồng bộ trạng thái trước khi gửi lệnh mới.</p>}
     {selectable && pack?.isAwaitingSelection && <p className="notice warn ma-select-hint">Còn tranh hoặc đoạn giọng đọc chưa chọn nguồn. Với mỗi phần, bấm <b>Tải lên</b> để dùng tệp của bạn hoặc <b>AI tạo</b>.</p>}
     {pack?.scenes.map(s => <article className="ma-scene" key={s.sceneId}>
@@ -79,14 +82,14 @@ export default function MediaAssets({ storyId, versionId, onChanged, disabled = 
           {i.url && i.status === 'Ready' ? <SafeImage src={i.url} alt={i.visualFocus} title={i.visualFocus} /> : <div className="ma-empty">{waiting(i.status) ? i.visualFocus || 'Chưa chọn tranh' : 'Tranh chưa sẵn sàng'}</div>}
           <figcaption><span>Tranh {n + 1}</span><AssetPill status={i.status} />{i.source === 'UserUpload' && <span className="pill">Tự tải lên</span>}
             {waiting(i.status) ? choice({ kind: 'image', id: i.beatId, name: `Tranh ${n + 1} · cảnh ${s.sceneIndex + 1}` })
-              : <button className="btn btn-g icon-only" aria-label={`Tạo lại tranh ${n + 1}`} title="Tạo lại tranh" disabled={busy || disabled || uncertain} onClick={() => void regenerate('illustration', i.beatId)}><RefreshCw className="ic" /></button>}</figcaption>
+              : <button className="btn btn-g icon-only" aria-label={`Tạo lại tranh ${n + 1}`} title={limits.images ? `Tạo lại tranh (còn ${limits.images.remaining}/${limits.images.limit} tranh miễn phí)` : "Tạo lại tranh"} disabled={busy || disabled || uncertain || noImageLeft} onClick={() => void regenerate('illustration', i.beatId)}><RefreshCw className="ic" /></button>}</figcaption>
         </figure>)}
       </div>
       {s.audio?.map(a => <div className="ma-audio" key={a.segmentId}>
         <span>Giọng đọc đoạn {a.segmentOrder + 1}</span><AssetPill status={a.status} />{a.source === 'UserUpload' && <span className="pill">Tự tải lên</span>}
         {a.url && a.status === 'Ready' && <audio controls preload="none" src={a.url} aria-label={`Nghe đoạn ${a.segmentOrder + 1}`} />}
         {waiting(a.status) ? choice({ kind: 'audio', id: a.segmentId, name: `Giọng đọc đoạn ${a.segmentOrder + 1} · cảnh ${s.sceneIndex + 1}` })
-          : <button className="btn btn-g icon-only" aria-label={`Tạo lại giọng đoạn ${a.segmentOrder + 1}`} title="Tạo lại giọng đọc" disabled={busy || disabled || uncertain} onClick={() => void regenerate('audio', a.segmentId)}><RefreshCw className="ic" /></button>}
+          : <button className="btn btn-g icon-only" aria-label={`Tạo lại giọng đoạn ${a.segmentOrder + 1}`} title={limits.audio ? `Tạo lại giọng đọc (còn ${limits.audio.remaining}/${limits.audio.limit} lần miễn phí)` : "Tạo lại giọng đọc"} disabled={busy || disabled || uncertain || noAudioLeft} onClick={() => void regenerate('audio', a.segmentId)}><RefreshCw className="ic" /></button>}
       </div>)}
     </article>)}
     {pack?.replacements?.filter(r=>['Failed','ManualReview'].includes(r.status)).map(r=><div className="notice" role="status" key={r.candidateAssetId}><p>Bản tạo lại {r.type === 'Illustration' ? 'tranh' : 'âm thanh'} chưa đạt yêu cầu.</p><button className="btn btn-s" disabled={busy||disabled||uncertain} onClick={()=>void keepCurrent(r.candidateAssetId)}>Giữ bản cũ</button></div>)}

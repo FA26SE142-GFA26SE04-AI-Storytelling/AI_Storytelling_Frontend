@@ -37,7 +37,35 @@ const TEXT: Record<string, string> = {
   moderation_sla_warning: "Có mục kiểm duyệt sắp quá hạn xử lý",
   payment_confirmed: "Thanh toán thành công, gói đã được áp",
   subscription_expiring: "Gói của bạn sắp hết hạn, hãy gia hạn để không gián đoạn",
+  creator_application_approved: "Đơn đăng ký Content Creator đã được duyệt",
+  creator_application_rejected: "Đơn đăng ký Content Creator chưa được duyệt",
+  creator_tier_changed: "Cấp Creator của bạn vừa thay đổi",
+  creator_payout_paid: "Bạn vừa được chi trả thu nhập",
+  creator_payout_cancelled: "Một lần chi trả đã bị huỷ, số dư được cộng lại",
+  story_credit_released: "Lượt AI giữ cho một truyện bỏ dở đã được trả lại",
 };
+
+const vnd = (value: unknown) => (typeof value === "number" ? `${value.toLocaleString("vi-VN")} đ` : "");
+const quoted = (value: unknown) => (typeof value === "string" && value.trim() ? ` “${value.trim()}”` : "");
+
+/** Câu chi tiết cho các thông báo có payload (Luồng 2, Luồng 5); trả null thì dùng câu chung. */
+function detailedText(key: string, p: Record<string, unknown>): string | null {
+  switch (key) {
+    case "creator_tier_changed":
+      if (p.tier === "Partner") return "Chúc mừng! Bạn đã lên Creator đối tác";
+      if (p.reason === "revoked_by_admin") return "Administrator đã thu hồi cấp Creator đối tác của bạn";
+      if (p.reason === "story_removed_for_violation") return "Bạn mất cấp Creator đối tác vì có truyện bị gỡ do vi phạm";
+      return "Bạn đã về cấp Creator thường vì chưa đạt tiêu chí đối tác 2 tháng liên tiếp";
+    case "creator_payout_paid":
+      return p.amountVnd != null ? `Bạn vừa được chi trả ${vnd(p.amountVnd)}` : null;
+    case "creator_payout_cancelled":
+      return p.amountVnd != null ? `Lần chi ${vnd(p.amountVnd)} đã bị huỷ, số dư được cộng lại` : null;
+    case "story_credit_released":
+      return `Đã trả lại ${typeof p.credits === "number" ? p.credits : 1} lượt AI của truyện${quoted(p.title)} vì bị bỏ dở; làm tiếp truyện sẽ giữ lại lượt`;
+    default:
+      return null;
+  }
+}
 
 export const notificationText = (n: AppNotification) => {
   if (notificationKey(n.type) === 'content_moderation_result' && n.payload) {
@@ -50,7 +78,17 @@ export const notificationText = (n: AppNotification) => {
       }
     } catch { /* Keep generic text for older or invalid payloads. */ }
   }
-  return TEXT[notificationKey(n.type)] ?? "Bạn có thông báo mới";
+  const key = notificationKey(n.type);
+  if (n.payload) {
+    try {
+      const p: unknown = JSON.parse(n.payload);
+      if (p && typeof p === "object") {
+        const text = detailedText(key, p as Record<string, unknown>);
+        if (text) return text;
+      }
+    } catch { /* Payload cũ hoặc sai định dạng: dùng câu chung. */ }
+  }
+  return TEXT[key] ?? "Bạn có thông báo mới";
 };
 
 /** Backend dùng trạng thái `Unread` / `Read`. */
@@ -61,7 +99,7 @@ export function notificationTarget(n: AppNotification): WorkspaceId | null {
   const key = notificationKey(n.type);
   if (key.startsWith("roadmap_") || key === "story_summary_sent") return "roadmap";
   if (key.startsWith("story_wish_")) return "library";
-  if (key === "payment_confirmed" || key === "subscription_expiring") return "account-payment";
+  if (key === "payment_confirmed" || key === "subscription_expiring" || key === "story_credit_released") return "account-payment";
   switch (n.group) {
     case "supervisors":
     case "children": return "children";

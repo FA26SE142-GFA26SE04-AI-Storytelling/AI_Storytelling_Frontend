@@ -7,9 +7,14 @@ import { fmtDay } from "@/app/features/staff/ui";
 import { showToast } from "@/app/lib/toast";
 import { staffService } from "@/app/services/staffService";
 import type { AdminBusinessReportDto } from "@/app/types/backendContracts";
+import type { AdminCreatorStatistics } from "@/app/types/creatorAdmin";
+import { CreatorStatsTable } from "./AdminCreatorsStatsTab";
+
+/** Thống kê Creator đã chụp lúc tạo báo cáo (5e); hợp đồng sinh từ backend cũ chưa có trường này. */
+type ReportWithCreators = AdminBusinessReportDto & { creators?: AdminCreatorStatistics | null };
 
 export default function AdminReportDetailDialog({ reportId, onClose }: { reportId: number; onClose: () => void }) {
-  const [report, setReport] = useState<AdminBusinessReportDto | null>(null);
+  const [report, setReport] = useState<ReportWithCreators | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -63,6 +68,21 @@ export default function AdminReportDetailDialog({ reportId, onClose }: { reportI
                 <div className="st-kpi"><small>Bị khoá</small><b>{count(report.accounts.lockedOrDisabledAccounts)}</b></div>
               </div>
               <p className="sub" style={{ margin: "6px 0 0" }}>Số tại thời điểm công bố.</p>
+            </>
+          )}
+
+          <h4 className="sec-h" style={{ marginTop: 16 }}>Creator</h4>
+          {!report.creators ? (
+            <div className="notice" data-inline-notice>Báo cáo cũ chưa có số liệu Creator.</div>
+          ) : (
+            <>
+              <div className="st-grid">
+                <div className="st-kpi"><small>Creator đang hoạt động</small><b>{count(report.creators.activeCreators)}</b></div>
+                <div className="st-kpi"><small>Creator đối tác</small><b>{count(report.creators.partnerCreators)}</b></div>
+                <div className="st-kpi"><small>Truyện tạo trong kỳ</small><b>{count(report.creators.storiesCreated)}</b></div>
+                <div className="st-kpi"><small>Thu nhập dự kiến</small><b>{money(report.creators.estimatedEarningsVnd)}</b></div>
+              </div>
+              <CreatorStatsTable stats={report.creators} />
             </>
           )}
         </>

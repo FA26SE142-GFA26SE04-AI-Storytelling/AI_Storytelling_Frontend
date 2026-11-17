@@ -3,7 +3,7 @@ import { confirmDialog } from "@/app/lib/confirm";
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationService';
 import { creatorPublicationService } from '@/app/services/creatorPublicationService';
-import type { StoryMediaPackage } from '@/app/types/aiStory';
+import type { RegenerationCounter, StoryMediaPackage } from '@/app/types/aiStory';
 import { mediaMutationSnapshot } from '@/app/features/story-workflow/mediaPackage';
 
 /** `source`: gói media mà màn hình đã có sẵn (vd. bản xem trước của Studio); truyền vào thì tạo lại / giữ bản cũ dùng luôn gói đó, không cần bấm tải riêng. */
@@ -11,6 +11,12 @@ export function useMediaPackage({ storyId, versionId, onChanged, disabled = fals
   storyId: number; versionId?: number | null; onChanged: () => void; disabled?: boolean; source?: StoryMediaPackage | null;
 }) {
   const [loadedPack, setPack] = useState<StoryMediaPackage | null>(null);
+  /** Số lần tạo lại tranh / giọng đọc còn lại (Luồng 2, 3); null khi backend chưa trả. */
+  const [limits, setLimits] = useState<{ images: RegenerationCounter | null; audio: RegenerationCounter | null }>({ images: null, audio: null });
+  const loadLimits = useCallback(async () => {
+    const r = await api.getMediaProgress(storyId);
+    if (r.success && r.data) setLimits({ images: r.data.imageRegeneration ?? null, audio: r.data.audioRegeneration ?? null });
+  }, [storyId]);
   const pack = source ?? loadedPack;
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
@@ -31,8 +37,9 @@ export function useMediaPackage({ storyId, versionId, onChanged, disabled = fals
     lock.current = false; setBusy(false);
     if (r.success && r.data && r.data.storyId === storyId && mediaMutationSnapshot(r.data, versionId)) {
       setPack(r.data); setUncertain(false); setNote('');
+      void loadLimits();
     } else setNote(r.message || 'Gói media không còn khớp phiên bản. Hãy đồng bộ trạng thái.');
-  }, [storyId, versionId]);
+  }, [storyId, versionId, loadLimits]);
   const regenerate = async (kind: 'illustration' | 'audio', assetId: number) => {
     if (lock.current || disabled || uncertain || !pack) return;
     const body = mediaMutationSnapshot(pack, versionId);
@@ -88,5 +95,5 @@ export function useMediaPackage({ storyId, versionId, onChanged, disabled = fals
     if (r.success) { setPack(null); onChanged(); }
     return r.success;
   };
-  return { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm, keepCurrent, choose };
+  return { pack, busy, note, reviewed, setReviewed, uncertain, load, regenerate, confirm, keepCurrent, choose, limits };
 }

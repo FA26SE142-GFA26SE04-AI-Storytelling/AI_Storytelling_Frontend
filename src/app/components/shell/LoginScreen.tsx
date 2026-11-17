@@ -31,6 +31,16 @@ const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: 
  * ?auth=reset&token=...&email=...  → đặt mật khẩu mới
  * ?auth=forgot | signup | signin   → mở đúng biểu mẫu
  */
+/** Ghép các ô đăng ký Creator thành phần giới thiệu gửi backend (20–1000 ký tự). */
+function creatorIntroduction(cr: { expertise: string; years: number; note: string }): string {
+  const parts = [
+    cr.expertise.trim() && `Chuyên môn: ${cr.expertise.trim()}.`,
+    `Kinh nghiệm: ${Math.max(0, Math.floor(cr.years || 0))} năm.`,
+    cr.note.trim(),
+  ].filter(Boolean);
+  return parts.join(" ");
+}
+
 function modeFromUrl(params: URLSearchParams): Mode | null {
   const auth = params.get("auth");
   if (auth === "verify") return "verify";
@@ -82,7 +92,20 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         const r = await login({ identifier: f.identifier.trim(), password: f.password });
         if (!r.success) setMsg({ ok: false, text: r.message });
       } else if (mode === "creator") {
-        setMsg({ok:false,text:'Chưa mở đăng ký tài khoản Creator. Vui lòng liên hệ quản trị viên.'});
+        const introduction = creatorIntroduction(cr);
+        const problem = passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp."
+          : introduction.length < 20 ? "Hãy giới thiệu kinh nghiệm của bạn (ít nhất 20 ký tự)."
+          : introduction.length > 1000 ? "Phần giới thiệu tối đa 1000 ký tự; hãy rút gọn mô tả kinh nghiệm."
+          : !cr.commit ? "Hãy xác nhận cam kết trước khi nộp đơn." : null);
+        if (problem) { setMsg({ ok: false, text: problem }); return; }
+        const r = await accountService.registerCreator({
+          username: f.username.trim(), email: f.email.trim(), fullName: f.fullName.trim(), password: f.password, confirmPassword: f.confirm,
+          introduction, portfolioUrl: cr.portfolio.trim() || null,
+        });
+        if (r.success) {
+          go("verify");
+          setMsg({ ok: true, text: `Đã nộp đơn. Nhập mã xác thực đã gửi tới ${f.email.trim()}; sau đó đăng nhập để theo dõi đơn trong lúc chờ Administrator duyệt.` });
+        } else setMsg({ ok: false, text: r.message });
       } else if (mode === "register") {
         const problem = passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp." : null);
         if (problem) { setMsg({ ok: false, text: problem }); return; }
@@ -131,7 +154,6 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
       <PondBackdrop />
       {onHome && <button type="button" className="btn btn-g login-home" onClick={onHome}>← Trang giới thiệu</button>}
       <form ref={cardRef} className="login-card" onSubmit={submit}>
-        {mode === "creator" && <p className="notice">Đăng ký Content Creator chưa được hỗ trợ bởi backend.</p>}
         <span className="login-frog"><Frog size={110} mood="happy" /></span>
         <h1 className="display">{TITLES[mode]}</h1>
         <p className="sub">Nền tảng kể chuyện AI an toàn cho trẻ em, có phụ huynh đồng hành.</p>
@@ -139,7 +161,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         {(mode === "register" || mode === "creator") && (
           <label className="field"><span className="lbl">Họ và tên</span><input className="inp" required value={f.fullName} onChange={set("fullName")} autoComplete="name" /></label>
         )}
-        {mode === "register" && (
+        {(mode === "register" || mode === "creator") && (
           <label className="field"><span className="lbl">Tên đăng nhập</span><input className="inp" required value={f.username} onChange={set("username")} autoComplete="username" /></label>
         )}
         {mode === "login"
@@ -149,7 +171,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
           <>
             <label className="field"><span className="lbl">Chuyên môn</span><input className="inp" required value={cr.expertise} onChange={(e) => setCr({ ...cr, expertise: e.target.value })} placeholder="VD: Biên tập viên sách thiếu nhi, giáo viên tiểu học" /></label>
             <label className="field"><span className="lbl">Số năm kinh nghiệm</span><input className="inp" type="number" min={0} max={60} value={cr.years} onChange={(e) => setCr({ ...cr, years: +e.target.value })} /></label>
-            <label className="field"><span className="lbl">Mô tả kinh nghiệm ({cr.note.length}/1000)</span><textarea className="inp" rows={3} maxLength={1000} required value={cr.note} onChange={(e) => setCr({ ...cr, note: e.target.value })} /></label>
+            <label className="field"><span className="lbl">Mô tả kinh nghiệm ({creatorIntroduction(cr).length}/1000 ký tự cả phần giới thiệu)</span><textarea className="inp" rows={3} maxLength={900} required value={cr.note} onChange={(e) => setCr({ ...cr, note: e.target.value })} /></label>
             <label className="field"><span className="lbl">Link portfolio (không bắt buộc)</span><input className="inp" type="url" value={cr.portfolio} onChange={(e) => setCr({ ...cr, portfolio: e.target.value })} /></label>
           </>
         )}
@@ -187,7 +209,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         {msg && <div className={`notice ${msg.ok ? "ok" : "err"}`} role="alert">{msg.text}</div>}
         {backendOnline === false && <div className="notice err" role="status">{backendStatusMessage}</div>}
 
-        <button className="btn btn-p btn-c" style={{ padding: 10 }} disabled={busy || mode === "creator"}>{busy ? "Đang xử lý…" : SUBMIT_LABELS[mode]}</button>
+        <button className="btn btn-p btn-c" style={{ padding: 10 }} disabled={busy}>{busy ? "Đang xử lý…" : SUBMIT_LABELS[mode]}</button>
 
         {mode === "login" ? (
           <>

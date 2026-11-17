@@ -88,7 +88,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
             {/* Luôn dựng khi đã có dàn ý (ẩn khi xem tab khác) để nút duyệt trên thanh tiến trình còn đó. */}
             {hasOutline && storyId !== null && (
               <div className="plan-scroll" hidden={view !== "outline"}>
-                <OutlinePanel storyId={storyId} version={snapshot?.outline?.currentVersion ?? null} editable={stage === "outline"} visible={view === "outline"} onReveal={() => pick("outline")} onApproved={onOutlineApproved} onChanged={refresh} />
+                <OutlinePanel storyId={storyId} version={snapshot?.outline?.currentVersion ?? null} regeneration={snapshot?.outline?.regeneration} editable={stage === "outline"} visible={view === "outline"} onReveal={() => pick("outline")} onApproved={onOutlineApproved} onChanged={refresh} />
               </div>
             )}
             {view === "status" && (

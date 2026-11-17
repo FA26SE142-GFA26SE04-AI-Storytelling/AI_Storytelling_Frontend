@@ -20,6 +20,7 @@ import ChildrenWorkspace from "@/app/features/children/ChildrenWorkspace";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import LearningWorkspace from "@/app/features/learning/LearningWorkspace";
 import StaffApp from "@/app/features/staff/StaffApp";
+import CreatorApplicationPending from "@/app/features/staff/CreatorApplicationPending";
 import { isStaffRole } from "@/app/types/auth";
 import ChildPickerHost from "@/app/components/ChildPickerHost";
 import { transitionWorkspace, useClickRipple } from "@/app/lib/motion";
@@ -128,6 +129,8 @@ export default function HomePage() {
   // Chưa đăng nhập: link trong email (?auth=…, token) mở thẳng biểu mẫu; còn lại về trang giới thiệu /home.
   if (!user) return entry ? <LoginScreen key={entry} initialMode={entry} onHome={() => router.push("/home")} onKidCode={setKidCode} /> : <div className="splash">Đang mở trang giới thiệu…</div>;
   // Luồng 5 — Administrator, Moderator, Content Creator dùng khu riêng, tách khỏi Parent.
+  // Creator tự đăng ký đang chờ duyệt: chỉ xem trạng thái đơn (Luồng 5, M5).
+  if (user.role === "ContentCreator" && user.status === "AwaitingApproval") return <CreatorApplicationPending />;
   if (isStaffRole(user.role)) return <StaffApp role={user.role} />;
   return (
     <WorkspaceDataProvider key={user.id}>
