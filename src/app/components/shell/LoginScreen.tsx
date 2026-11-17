@@ -8,6 +8,7 @@ import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRiseIn } from "@/app/lib/motion";
 import { accountService } from "@/app/services/accountService";
+import { authService } from "@/app/services/authService";
 import { passwordProblem } from "@/app/lib/guardian";
 import KidQrScanner from "@/app/features/kid/KidQrScanner";
 
@@ -29,12 +30,13 @@ const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: 
  * Link trong email được next.config.ts chuyển về "/" kèm tham số:
  * ?auth=verify&token=...&email=... → xác thực email
  * ?auth=reset&token=...&email=...  → đặt mật khẩu mới
- * ?auth=forgot | signup | signin   → mở đúng biểu mẫu
+ * ?auth=forgot | signup | signin | creator → mở đúng biểu mẫu
  */
 function modeFromUrl(params: URLSearchParams): Mode | null {
   const auth = params.get("auth");
   if (auth === "verify") return "verify";
   if (auth === "activate") return "activate";
+  if (auth === "creator") return "creator";
   if (params.get("token") || params.get("resetToken") || auth === "reset") return "reset";
   if (auth === "forgot") return "forgot";
   if (auth === "signup") return "register";
@@ -50,7 +52,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
   const [scan, setScan] = useState(false);
   const cardRef = useRiseIn<HTMLFormElement>(":scope > *", []);
   const { login, register, forgotPassword, resetPassword, backendOnline, backendStatusMessage } = useAuth();
-  const [cr, setCr] = useState({ expertise: "", years: 1, note: "", portfolio: "", commit: false });
+  const [cr, setCr] = useState({ intro: "", portfolio: "", commit: false });
   const [mode, setMode] = useState<Mode>(initialMode);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -82,7 +84,11 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         const r = await login({ identifier: f.identifier.trim(), password: f.password });
         if (!r.success) setMsg({ ok: false, text: r.message });
       } else if (mode === "creator") {
-        setMsg({ok:false,text:'Chưa mở đăng ký tài khoản Creator. Vui lòng liên hệ quản trị viên.'});
+        const problem = cr.intro.trim().length < 20 ? "Giới thiệu bản thân cần ít nhất 20 ký tự." : passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp." : !cr.commit ? "Hãy xác nhận cam kết trước khi nộp đơn." : null);
+        if (problem) { setMsg({ ok: false, text: problem }); return; }
+        const r = await authService.registerCreator({ username: f.username.trim(), email: f.email.trim(), fullName: f.fullName.trim(), password: f.password, confirmPassword: f.confirm, introduction: cr.intro.trim(), portfolioUrl: cr.portfolio.trim() || null });
+        if (r.success) { go("verify"); setMsg({ ok: true, text: `Đã nộp đơn. Nhập mã xác thực đã gửi tới ${f.email.trim()}, sau đó quản trị viên sẽ xét duyệt đơn của bạn.` }); }
+        else setMsg({ ok: false, text: r.errors?.[0] ?? r.message });
       } else if (mode === "register") {
         const problem = passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp." : null);
         if (problem) { setMsg({ ok: false, text: problem }); return; }
@@ -131,7 +137,6 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
       <PondBackdrop />
       {onHome && <button type="button" className="btn btn-g login-home" onClick={onHome}>← Trang giới thiệu</button>}
       <form ref={cardRef} className="login-card" onSubmit={submit}>
-        {mode === "creator" && <p className="notice">Đăng ký Content Creator chưa được hỗ trợ bởi backend.</p>}
         <span className="login-frog"><Frog size={110} mood="happy" /></span>
         <h1 className="display">{TITLES[mode]}</h1>
         <p className="sub">Nền tảng kể chuyện AI an toàn cho trẻ em, có phụ huynh đồng hành.</p>
@@ -139,7 +144,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         {(mode === "register" || mode === "creator") && (
           <label className="field"><span className="lbl">Họ và tên</span><input className="inp" required value={f.fullName} onChange={set("fullName")} autoComplete="name" /></label>
         )}
-        {mode === "register" && (
+        {(mode === "register" || mode === "creator") && (
           <label className="field"><span className="lbl">Tên đăng nhập</span><input className="inp" required value={f.username} onChange={set("username")} autoComplete="username" /></label>
         )}
         {mode === "login"
@@ -147,10 +152,8 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
           : <label className="field"><span className="lbl">Email</span><input className="inp" type="email" required value={f.email} onChange={set("email")} autoComplete="email" /></label>}
         {mode === "creator" && (
           <>
-            <label className="field"><span className="lbl">Chuyên môn</span><input className="inp" required value={cr.expertise} onChange={(e) => setCr({ ...cr, expertise: e.target.value })} placeholder="VD: Biên tập viên sách thiếu nhi, giáo viên tiểu học" /></label>
-            <label className="field"><span className="lbl">Số năm kinh nghiệm</span><input className="inp" type="number" min={0} max={60} value={cr.years} onChange={(e) => setCr({ ...cr, years: +e.target.value })} /></label>
-            <label className="field"><span className="lbl">Mô tả kinh nghiệm ({cr.note.length}/1000)</span><textarea className="inp" rows={3} maxLength={1000} required value={cr.note} onChange={(e) => setCr({ ...cr, note: e.target.value })} /></label>
-            <label className="field"><span className="lbl">Link portfolio (không bắt buộc)</span><input className="inp" type="url" value={cr.portfolio} onChange={(e) => setCr({ ...cr, portfolio: e.target.value })} /></label>
+            <label className="field"><span className="lbl">Giới thiệu bản thân ({cr.intro.length}/1000)</span><textarea className="inp" rows={4} minLength={20} maxLength={1000} required value={cr.intro} onChange={(e) => setCr({ ...cr, intro: e.target.value })} placeholder="Kinh nghiệm viết, biên tập hoặc dạy học cho trẻ em (ít nhất 20 ký tự)" /></label>
+            <label className="field"><span className="lbl">Link portfolio (không bắt buộc)</span><input className="inp" type="url" maxLength={500} value={cr.portfolio} onChange={(e) => setCr({ ...cr, portfolio: e.target.value })} placeholder="https://" /></label>
           </>
         )}
         {needsPassword && (
@@ -187,7 +190,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         {msg && <div className={`notice ${msg.ok ? "ok" : "err"}`} role="alert">{msg.text}</div>}
         {backendOnline === false && <div className="notice err" role="status">{backendStatusMessage}</div>}
 
-        <button className="btn btn-p btn-c" style={{ padding: 10 }} disabled={busy || mode === "creator"}>{busy ? "Đang xử lý…" : SUBMIT_LABELS[mode]}</button>
+        <button className="btn btn-p btn-c" style={{ padding: 10 }} disabled={busy}>{busy ? "Đang xử lý…" : SUBMIT_LABELS[mode]}</button>
 
         {mode === "login" ? (
           <>
@@ -206,6 +209,8 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         ) : (
           <div className="login-links">
             {mode === "verify" && <button type="button" disabled={busy} onClick={() => void resend()}>Gửi lại mã</button>}
+            {mode === "register" && <button type="button" onClick={() => go("creator")}>Đăng ký làm Content Creator</button>}
+            {mode === "creator" && <button type="button" onClick={() => go("register")}>Đăng ký tài khoản phụ huynh</button>}
             <button type="button" onClick={() => go("login")}>Quay lại đăng nhập</button>
           </div>
         )}

@@ -46,6 +46,12 @@ export interface RegisterRequest {
   role?: number;
 }
 
+/** Đăng ký Content Creator: thêm giới thiệu bản thân (20–1000 ký tự) và link portfolio (không bắt buộc, ≤ 500 ký tự). */
+export interface RegisterCreatorRequest extends Omit<RegisterRequest, 'role'> {
+  introduction: string;
+  portfolioUrl?: string | null;
+}
+
 export interface VerifyEmailRequest {
   email: string;
   otp: string;
