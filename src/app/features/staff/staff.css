@@ -491,3 +491,6 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 /* Cột "Người mua" ở trang Thanh toán của Admin: tên trên, email dưới. */
 .pay-payer { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .pay-payer small { font-size: var(--fs-xs); opacity: .75; overflow-wrap: anywhere; }
+
+/* Cột phụ (vd Username): ẩn ở màn vừa để cột thao tác không bị khuất sau khung cuộn; điện thoại (stack-table) vẫn hiện. */
+@media (min-width: 721px) and (max-width: 1180px) { .st-table .st-col-wide { display: none; } }

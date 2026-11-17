@@ -46,8 +46,21 @@ export const STAFF_STATUS: Record<string, [string, string]> = {
   invited: ["wait", "Đã mời"], active: ["ok", "Đang hoạt động"], deactivated: ["draft", "Đã vô hiệu hoá"],
   pending_approval: ["wait", "Chờ duyệt"], rejected: ["flag", "Bị từ chối"], pending: ["wait", "Chờ duyệt"], approved: ["ok", "Đã duyệt"],
   locked: ["wait", "Khoá đăng nhập"], suspended: ["flag", "Tạm khoá"], unverified: ["draft", "Chưa xác thực"],
+  // AccountStatus và CreatorApplicationStatus của backend (tài khoản và đơn đăng ký Content Creator).
+  Registered: ["draft", "Chưa xác thực email"], AwaitingApproval: ["wait", "Chờ duyệt"], Active: ["ok", "Đang hoạt động"], Suspended: ["flag", "Đã vô hiệu hoá"],
+  Pending: ["wait", "Chờ duyệt"], Approved: ["ok", "Đã duyệt"], Rejected: ["flag", "Bị từ chối"],
 };
 export function Pill({ status }: { status: string }) {
   const [tone, label] = STAFF_STATUS[status] ?? ["draft", status];
   return <span className={`pill ${tone}`}>{label}</span>;
+}
+
+/** Ô lý do bắt buộc trong popup (từ chối, vô hiệu hoá), kèm bộ đếm ký tự. */
+export function ReasonField({ label, value, onChange, max = 500 }: { label: string; value: string; onChange: (v: string) => void; max?: number }) {
+  return (
+    <label className="field">
+      <span className="lbl">{label} ({value.length}/{max})</span>
+      <textarea className="inp" rows={4} maxLength={max} autoFocus value={value} onChange={(e) => onChange(e.target.value)} />
+    </label>
+  );
 }

@@ -5,7 +5,7 @@ import "@/app/features/children/children.css";
 import { useEffect, useState, type ComponentType } from "react";
 import {
   Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
-  Shield, ShieldAlert, Sparkles, Sun, UserRound, Users, WandSparkles, type LucideIcon,
+  Shield, ShieldAlert, Sparkles, Sun, UserRound, UserRoundCheck, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import { useAuth } from "@/app/context/AuthContext";
@@ -33,6 +33,7 @@ import { CreatorMyStories } from "./CreatorMyStories";
 import { CreatorStatistics } from "./CreatorStatistics";
 import ModeratorStatistics from "./ModeratorStatistics";
 import { AdminStaff } from "./AdminPeople";
+import { AdminCreators } from "./AdminCreators";
 import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
 import { AdminPayments, AdminPlans, AdminQuota } from "./AdminSystem";
@@ -68,6 +69,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
     { id: "catalog", label: "Danh mục nội dung", icon: ListChecks, view: AdminCatalog },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
+    { id: "creators", label: "Content Creator", icon: UserRoundCheck, view: AdminCreators },
     { id: "business", label: "Báo cáo nghiệp vụ", icon: ChartColumn, view: AdminBusinessReport },
     { id: "payments", label: "Thanh toán", icon: Receipt, view: AdminPayments },
     { id: "plans", label: "Gói dịch vụ", icon: Package, view: AdminPlans },
@@ -106,7 +108,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
   Administrator: [
     { label: "Kiểm duyệt", icon: Inbox, items: ["published", "rubrics"] },
     { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards", "catalog"] },
-        { label: "Người dùng", icon: Users, items: ["staff"] },
+    { label: "Người dùng", icon: Users, items: ["staff", "creators"] },
     { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "plans", "quota"] },
   ],
   Moderator: [
