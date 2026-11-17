@@ -5,7 +5,7 @@ import { Award, Check, X } from "lucide-react";
 import Dialog from "@/app/components/Dialog";
 import { confirmDialog } from "@/app/lib/confirm";
 import { creatorAdminService } from "@/app/services/creatorAdminService";
-import type { CreatorAccount, CreatorTierOverview, PartnerCriterion } from "@/app/types/creatorAdmin";
+import type { CreatorTierOverview, PartnerCriterion } from "@/app/types/creatorAdmin";
 import { Notice, fmtDay, type Note } from "./ui";
 
 const CRITERIA: Record<string, string> = {
@@ -22,7 +22,7 @@ const month = (iso: string) => new Date(iso).toLocaleDateString("vi-VN", { month
  * Cấp Creator đối tác (5g): cấp hiện tại, tiến độ 4 tiêu chí trong 90 ngày, lịch sử xét 12 tháng và thu hồi cấp (lý do bắt buộc).
  * Việc xét lên / xuống cấp chạy tự động mỗi tháng.
  */
-export function CreatorPartnerTierDialog({ creator, onClose }: { creator: CreatorAccount; onClose: () => void }) {
+export function CreatorPartnerTierDialog({ creator, onClose }: { creator: { id: number; fullName: string }; onClose: () => void }) {
   const [tier, setTier] = useState<CreatorTierOverview | null>(null);
   const [note, setNote] = useState<Note>(null);
   const [reason, setReason] = useState("");

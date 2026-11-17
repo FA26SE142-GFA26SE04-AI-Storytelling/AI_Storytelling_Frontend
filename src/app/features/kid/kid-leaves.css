@@ -1,0 +1,86 @@
+/* Hiệu ứng lá rơi trang trí trong không gian của bé */
+.kid-leaves {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.kid-leaf-fall {
+  position: absolute;
+  top: 0;
+  pointer-events: none;
+  animation-name: kid-leaf-fall;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+.kid-leaf-catch {
+  pointer-events: auto;
+  border: none;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+}
+
+.kid-leaf-catch.is-caught {
+  pointer-events: none;
+  animation: kid-leaf-caught 900ms ease-out forwards;
+}
+
+.kid-leaf-sway {
+  display: block;
+  width: 100%;
+  height: 100%;
+  animation-name: kid-leaf-sway;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  animation-direction: alternate;
+  will-change: transform;
+}
+
+.kid-leaf-static {
+  pointer-events: none;
+}
+
+@keyframes kid-leaf-fall {
+  from {
+    transform: translateY(-12vh);
+  }
+  to {
+    transform: translateY(112vh);
+  }
+}
+
+@keyframes kid-leaf-sway {
+  from {
+    transform: translateX(-30px) rotate(-25deg);
+  }
+  to {
+    transform: translateX(30px) rotate(25deg);
+  }
+}
+
+@keyframes kid-leaf-caught {
+  to {
+    transform: translate(60px, -120px) rotate(720deg);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  .kid-leaf-extra {
+    display: none;
+  }
+}
+
+/* Lá rơi bay trên nội dung (không chặn bấm, trừ 3 lá bắt được ở sát mép), dưới nút khóa và dock đáy */
+.kid > .kid-leaves.kid-leaves { position: absolute; inset: 0; z-index: 3; }
+

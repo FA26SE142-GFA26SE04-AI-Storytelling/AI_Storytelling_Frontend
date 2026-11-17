@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ChevronDown, CircleHelp, MessageCircleHeart, Mic, Trash2 } from "lucide-react";
+import { CheckCheck, ChevronDown, CircleHelp, History, Mic, Trash2, Undo2 } from "lucide-react";
 import IconButton from "@/app/components/IconButton";
 import Pager from "@/app/components/Pager";
 import SafeImage from "@/app/components/SafeImage";
@@ -10,76 +10,71 @@ import { confirmDialog } from "@/app/lib/confirm";
 import { showToast } from "@/app/lib/toast";
 import { parentStorySummaryService } from "@/app/services/childReadingService";
 import type { ChildProfile } from "@/app/types/childProfile";
-import type { ParentReadingFeedbackItem, ParentSummaryItem } from "@/app/types/childReading";
-import { FEELING_FACE, shortDate, useReadingFeedback, useStorySummaries } from "./learningData";
+import type { ParentReadingFeedbackItem, ParentSummaryFlag, ParentSummaryItem, ReadingFeedbackFilter } from "@/app/types/childReading";
+import { shortDate, useReadingFeedback, useStorySummaries } from "./learningData";
+import ReadingFilters from "./ReadingFilters";
+import ReadingOverview from "./ReadingOverview";
+import ResultCard from "./ResultCard";
 
 const PAGE = 10;
 
-/** Nhãn điểm câu đố: "Không có câu đố", "Chưa làm" hoặc phần trăm tốt nhất. */
-export function quizPill(i: ParentReadingFeedbackItem) {
-  if (i.quizTotalQuestions === 0) return null;
-  if (i.quizBestPercent == null) return <span className="pill draft">Chưa làm câu đố</span>;
-  const p = Math.round(i.quizBestPercent);
-  return p >= 80 ? <span className="pill gold-pill">⭐ Câu đố {p}%</span> : <span className={`pill ${p >= 50 ? "wait" : "flag"}`}>Câu đố {p}%</span>;
-}
+/** Gộp các lần đọc cùng một truyện (trong trang đang xem), giữ thứ tự lần đọc mới nhất của mỗi truyện. */
+const byStory = (items: ParentReadingFeedbackItem[]) => {
+  const groups = new Map<number, ParentReadingFeedbackItem[]>();
+  for (const i of items) groups.set(i.storyId, [...(groups.get(i.storyId) ?? []), i]);
+  return [...groups.values()];
+};
 
-export function feelingPill(i: ParentReadingFeedbackItem) {
-  return i.feeling ? <span className="pill draft">{FEELING_FACE[i.feeling] ?? ""} {i.feelingLabel ?? i.feeling}</span> : null;
-}
-
-/** Một truyện bé đã đọc xong; mở ra để xem câu bé trả lời ở các điểm dừng. */
-function ResultCard({ item }: { item: ParentReadingFeedbackItem }) {
+/** Một truyện: thẻ lần đọc mới nhất, các lần trước mở bằng nút "Xem N lần đọc trước". */
+function StoryGroup({ items, childId }: { items: ParentReadingFeedbackItem[]; childId: number }) {
   const [open, setOpen] = useState(false);
-  const answers = item.conversationAnswers ?? [];
-  return (
-    <li className="lr-result">
-      <div className="lr-result-h">
-        <b className="grow">{item.title}</b>
-        {feelingPill(item)}
-        {quizPill(item)}
-        <span className="pill draft">{shortDate(item.completedAt)}</span>
-      </div>
-      {answers.length > 0 && (
-        <>
-          <button className="btn btn-g lr-more" aria-expanded={open} onClick={() => setOpen(!open)}>
-            <MessageCircleHeart className="ic" />Bé trả lời ({answers.length})
-            <ChevronDown className="ic" style={{ transform: open ? "rotate(180deg)" : undefined }} />
-          </button>
-          {open && (
-            <ul className="lr-answers">
-              {answers.map((a, i) => (
-                <li key={i}>
-                  <span className="lr-q">{a.sceneIndex != null && <span className="pill draft">Cảnh {a.sceneIndex + 1}</span>}{a.question}</span>
-                  <b className="lr-a">“{a.answerText}”</b>
-                </li>
-              ))}
-            </ul>
-          )}
-        </>
-      )}
-    </li>
-  );
+  const [latest, ...older] = items;
+  return <>
+    <ResultCard item={latest} childId={childId} />
+    {older.length > 0 && <li className="lr-older">
+      <button type="button" className="btn btn-g lr-flag-more" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+        <History className="ic" aria-hidden />{open ? "Ẩn các lần đọc trước" : `Xem ${older.length} lần đọc trước`}<ChevronDown className="ic" aria-hidden />
+      </button>
+      {open && <ul className="lr-list">{older.map((i) => <ResultCard key={i.sessionId} item={i} childId={childId} />)}</ul>}
+    </li>}
+  </>;
 }
 
-/** Một cảnh bé còn thắc mắc: chữ của cảnh rút gọn 2 dòng, bấm để xem hết. */
-function FlagRow({ index, text, image }: { index: number; text: string; image: string | null }) {
+/** Một câu bé hỏi về một tranh: tranh, câu gõ/ghi âm, chữ của tranh rút gọn 2 dòng; câu chưa trả lời có viền vàng. */
+function QuestionRow({ f, answeredAt, nickname, busy, onToggle }: { f: ParentSummaryFlag; answeredAt: string | null; nickname: string; busy: boolean; onToggle: () => void }) {
   const [open, setOpen] = useState(false);
   return (
-    <li>
-      <SafeImage src={image} alt={`Tranh cảnh ${index + 1}`} />
+    <li className={answeredAt ? undefined : "is-open"}>
+      <SafeImage src={f.illustrationUrl} alt={`Tranh cảnh ${f.sceneIndex + 1}`} />
       <div className="lr-flag-body">
-        <span className="pill wait">Cảnh {index + 1}</span>
-        <p className={`lr-flag-text${open ? " open" : ""}`}>{text}</p>
+        <span className={`pill ${answeredAt ? "ok" : "wait"}`}>Cảnh {f.sceneIndex + 1}</span>
+        {f.questionText && <b className="lr-flag-q">“{f.questionText}”</b>}
+        {f.questionAudioUrl && <audio controls preload="none" src={f.questionAudioUrl} aria-label={`Nghe ${nickname} hỏi về cảnh ${f.sceneIndex + 1}`} />}
+        <p className={`lr-flag-text${open ? " open" : ""}`}>{f.pictureText || f.sceneText}</p>
         <button type="button" className="btn btn-g lr-flag-more" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-          {open ? "Thu gọn" : "Xem cả cảnh"}<ChevronDown className="ic" aria-hidden />
+          {open ? "Thu gọn" : "Xem cả đoạn"}<ChevronDown className="ic" aria-hidden />
         </button>
       </div>
+      <IconButton icon={answeredAt ? Undo2 : CheckCheck} className={`btn ${answeredAt ? "btn-s" : "btn-ok"}`} disabled={busy} onClick={onToggle}
+        label={answeredAt ? "Bỏ đánh dấu đã trả lời" : "Đánh dấu đã trả lời"} />
     </li>
   );
 }
 
-/** Phần bé kể lại cuối truyện: nghe lại bản ghi âm, xem các cảnh bé còn thắc mắc, xoá khi cần. */
-function SummaryCard({ s, nickname, busy, onRemove }: { s: ParentSummaryItem; nickname: string; busy: boolean; onRemove: () => void }) {
+/** Phần bé kể lại cuối truyện: nghe lại bản ghi âm, xem và đánh dấu đã trả lời các câu bé hỏi, xoá khi cần. */
+function SummaryCard({ s, childId, nickname, busy, onRemove }: { s: ParentSummaryItem; childId: number; nickname: string; busy: boolean; onRemove: () => void }) {
+  // Cập nhật tại chỗ sau khi đánh dấu, không tải lại cả danh sách.
+  const [over, setOver] = useState<Record<number, string | null>>({});
+  const [saving, setSaving] = useState(false);
+  const at = (f: ParentSummaryFlag) => (f.questionId in over ? over[f.questionId] : f.answeredAt);
+  const unanswered = s.flags.filter((f) => !at(f)).length;
+  const toggle = async (f: ParentSummaryFlag) => {
+    setSaving(true);
+    const r = await parentStorySummaryService.answered(childId, s.summaryId, f.questionId, !at(f));
+    setSaving(false);
+    if (r.success && r.data) setOver((v) => ({ ...v, [f.questionId]: r.data!.answeredAt }));
+    showToast(r.message || (r.success ? "Đã cập nhật câu hỏi." : "Không cập nhật được câu hỏi."), r.success ? "ok" : "err");
+  };
   return (
     <li className="lr-result">
       <div className="lr-result-h">
@@ -95,9 +90,9 @@ function SummaryCard({ s, nickname, busy, onRemove }: { s: ParentSummaryItem; ni
       </div>
       {s.flags.length > 0 && (
         <div className="lr-sum-part">
-          <b className="lr-sum-h"><CircleHelp className="ic" aria-hidden />Chỗ {nickname} còn thắc mắc</b>
+          <b className="lr-sum-h"><CircleHelp className="ic" aria-hidden />{nickname} hỏi bố mẹ{unanswered > 0 && <span className="pill wait">{unanswered} chưa trả lời</span>}</b>
           <ul className="lr-flags">
-            {s.flags.map((f) => <FlagRow key={f.sceneId} index={f.sceneIndex} text={f.sceneText} image={f.illustrationUrl} />)}
+            {s.flags.map((f) => <QuestionRow key={f.questionId} f={f} answeredAt={at(f)} nickname={nickname} busy={saving} onToggle={() => void toggle(f)} />)}
           </ul>
         </div>
       )}
@@ -107,10 +102,17 @@ function SummaryCard({ s, nickname, busy, onRemove }: { s: ParentSummaryItem; ni
 
 /** Tab "Kết quả đọc": truyện bé đã đọc xong và phần bé kể lại. */
 export default function ResultsTab({ child }: { child: ChildProfile }) {
+  const [filter, setFilter] = useState<ReadingFeedbackFilter>({ status: "Completed", range: "all" });
   const [page, setPage] = useState(1);
   const [sPage, setSPage] = useState(1);
   const [busy, setBusy] = useState(false);
-  const feedback = useReadingFeedback(child.id, page, PAGE);
+
+  const changeFilter = (v: ReadingFeedbackFilter) => {
+    setFilter(v);
+    setPage(1);
+  };
+
+  const feedback = useReadingFeedback(child.id, page, PAGE, filter);
   const summaries = useStorySummaries(child.id, sPage, PAGE);
 
   useEffect(() => { if (feedback.error) showToast(feedback.error, "err"); }, [feedback.error]);
@@ -128,16 +130,38 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
   const fb = feedback.data;
   const sm = summaries.data;
 
+  const emptyText =
+    (filter.status === "Completed"
+      ? `${child.nickname} chưa đọc xong truyện nào`
+      : "Không có truyện nào đang đọc dở") +
+    (filter.range !== "all" ? " trong khoảng này" : "");
+
   return (
     <>
+      <ReadingFilters value={filter} onChange={changeFilter} />
+      <ReadingOverview childId={child.id} range={filter.range} />
+
       <section className="lr-card">
-        <div className="lr-card-h"><h3 className="display">Truyện đã đọc xong</h3>{fb && <span className="pill ok">{fb.totalCount}</span>}</div>
-        {!fb ? <p className="sub">{feedback.error ? "" : "Đang tải…"}</p>
-          : fb.items.length === 0 ? (
-            <div className="lr-empty"><Frog size={72} mood="think" /><b>{child.nickname} chưa đọc xong truyện nào</b></div>
-          ) : (
-            <ul className="lr-list">{fb.items.map((i) => <ResultCard key={i.sessionId} item={i} />)}</ul>
-          )}
+        <div className="lr-card-h">
+          <h3 className="display">
+            {filter.status === "Completed" ? "Truyện đã đọc xong" : "Truyện chưa đọc xong"}
+          </h3>
+          {fb && <span className="pill ok">{fb.totalCount} lần đọc</span>}
+        </div>
+        {!fb ? (
+          <p className="sub">{feedback.error ? "" : "Đang tải…"}</p>
+        ) : fb.items.length === 0 ? (
+          <div className="lr-empty">
+            <Frog size={72} mood="think" />
+            <b>{emptyText}</b>
+          </div>
+        ) : (
+          <div className={feedback.loading ? "lr-fade" : undefined}>
+            <ul className="lr-list">
+              {byStory(fb.items).map((g) => <StoryGroup key={g[0].storyId} items={g} childId={child.id} />)}
+            </ul>
+          </div>
+        )}
         {fb && <Pager page={fb.pageIndex} totalPages={fb.totalPages} hasPrev={fb.hasPreviousPage} hasNext={fb.hasNextPage} onPage={setPage} />}
       </section>
 
@@ -147,7 +171,7 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
           : sm.items.length === 0 ? (
             <div className="lr-empty"><Frog size={72} mood="think" /><b>Chưa có phần kể lại nào</b></div>
           ) : (
-            <ul className="lr-list">{sm.items.map((s) => <SummaryCard key={s.summaryId} s={s} nickname={child.nickname} busy={busy} onRemove={() => void remove(s)} />)}</ul>
+            <ul className="lr-list">{sm.items.map((s) => <SummaryCard key={s.summaryId} s={s} childId={child.id} nickname={child.nickname} busy={busy} onRemove={() => void remove(s)} />)}</ul>
           )}
         {sm && <Pager page={sm.pageIndex} totalPages={sm.totalPages} hasPrev={sm.hasPreviousPage} hasNext={sm.hasNextPage} onPage={setSPage} />}
       </section>

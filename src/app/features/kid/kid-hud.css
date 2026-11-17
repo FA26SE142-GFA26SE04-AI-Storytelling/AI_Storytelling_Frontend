@@ -1,0 +1,143 @@
+/* Thanh điều hướng / trạng thái trên cùng dành cho bé (Kid HUD): dock bên trái, phần thưởng bên phải */
+.kid-hud {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  row-gap: 8px;
+  padding: 14px 18px;
+  background: transparent;
+  white-space: nowrap;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.kid-hud-chip:hover,
+.kid-hud-lock:hover {
+  opacity: 0.95;
+}
+
+.kid-hud-chip:active,
+.kid-hud-lock:active {
+  transform: scale(0.97);
+}
+
+/* Vùng chip & khóa bên phải (dock dưới 768px nằm cố định ở đáy nên đẩy sang phải bằng margin) */
+.kid-hud-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.kid-hud-chip {
+  background: color-mix(in srgb, var(--text) 45%, transparent);
+  border: 2px solid color-mix(in srgb, var(--on-primary) 40%, transparent);
+  border-radius: 999px;
+  padding: 4px 12px 4px 4px;
+  color: var(--on-primary);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: var(--fs-lg);
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.kid-hud-chip-ic {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kid-hud-chip-droplets {
+  background: color-mix(in srgb, var(--sky) 60%, transparent);
+}
+
+.kid-hud-chip-award {
+  background: color-mix(in srgb, var(--gold) 70%, transparent);
+}
+
+.kid-hud-chip-flame {
+  background: color-mix(in srgb, var(--gold-deep) 70%, transparent);
+}
+
+.kid-hud-lock {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--text) 45%, transparent);
+  border: 2px solid color-mix(in srgb, var(--on-primary) 40%, transparent);
+  color: var(--on-primary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+/* Dock 5 khu chiếm chỗ bên trái: chip gọn lại ở màn vừa để cả hàng không bị tràn */
+@media (max-width: 1023px) {
+  .kid-hud {
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .kid-hud-right {
+    gap: 6px;
+  }
+
+  .kid-hud-chip {
+    padding: 2px 8px 2px 2px;
+    font-size: var(--fs-md);
+    gap: 6px;
+  }
+
+  .kid-hud-chip-ic {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+  }
+
+  .kid-hud-chip-ic svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .kid-hud-lock {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    border-radius: 12px;
+  }
+
+  .kid-hud-lock svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kid-hud-chip,
+  .kid-hud-lock {
+    transition: none;
+    transform: none;
+  }
+}
+
+/* Dưới 768px dock là position: fixed ở đáy nhưng nằm trong HUD. Luật chung `.kid > :not(.pond) { z-index: 1 }` biến HUD thành
+   một lớp xếp chồng riêng, nên vùng nội dung (.kscroll, cũng z-index 1, đứng sau trong DOM) che mất dock. Bỏ lớp riêng đó để dock (z-index 20) nổi trên nội dung. */
+@media (max-width: 767px) {
+  .kid > header.kid-hud {
+    z-index: auto;
+  }
+}

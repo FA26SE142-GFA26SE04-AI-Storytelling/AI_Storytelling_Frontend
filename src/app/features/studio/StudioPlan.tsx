@@ -12,6 +12,7 @@ import StageProgress from "./StageProgress";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import type { Stage, StatusSnapshot } from "./useStoryPipeline";
 import { useSwap } from "@/app/lib/motion";
+import { providerFailureMessage } from '@/app/features/story-workflow/storyGenerationFlow';
 
 type Props = {
   flow: UseAIStoryInputFlowResult;
@@ -59,7 +60,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
   // Nội dung ô lớn trượt theo hướng của bước: tiến tới thì trượt từ phải, quay lại thì từ trái.
   const viewRef = useSwap<HTMLDivElement>(view, VIEW_ORDER[view] >= VIEW_ORDER[auto] ? 1 : -1);
   const blocked = stage === "blocked";
-  const statusLabel = blocked ? "Ý tưởng bị chặn" : stage === "stopped" ? "Đã dừng" : "AI đang làm";
+  const statusLabel = blocked ? "Ý tưởng bị chặn" : errorCode ? "Đã dừng do lỗi" : stage === "stopped" ? "Đã dừng" : "AI đang làm";
 
   const tabActions = useTabActions();
   return (
@@ -122,7 +123,12 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
               {flow.context.interests.length > 0 && <div className="sec"><div className="sec-h">Sở thích của bé</div><div className="chips">{flow.context.interests.map((i) => <span key={i} className="chip">{i}</span>)}</div></div>}
               {flow.context.blockedCategoryCodes.length > 0 && <div className="sec"><div className="sec-h">Chủ đề bị chặn</div><div className="chips">{flow.context.blockedCategoryCodes.map((i) => <span key={i} className="chip block">{i}</span>)}</div></div>}
             </>
-          ) : <p className="sub">{storyId ? 'Đang mở lại truyện đã lưu…' : 'Đang tải…'}</p>}
+          ) : errorCode ? <div role="status">
+            {storyId !== null && <p className="sub">Truyện #{storyId}</p>}
+            <p className="notice err" data-inline-notice>{providerFailureMessage(errorCode) ?? 'Tác vụ tạo truyện đã thất bại. Xem thông báo ở khung chính để biết bước tiếp theo.'}</p>
+          </div> : statusError || flow.errorMessage ? <p className="notice err" role="status" data-inline-notice>Chưa tải được thông tin truyện. {statusError || flow.errorMessage}</p>
+            : storyId !== null && snapshot ? <p className="sub">Truyện #{storyId}. Chưa có thông tin hồ sơ để hiển thị.</p>
+            : <p className="sub">{storyId ? 'Đang mở lại truyện đã lưu…' : 'Đang tải…'}</p>}
       </AsidePane>
     </>
   );

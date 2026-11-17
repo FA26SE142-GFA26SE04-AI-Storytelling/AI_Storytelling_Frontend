@@ -1,44 +1,7 @@
 /**
- * Kiểu dữ liệu theo DTO backend cho Content Creator (Luồng 5): đơn đăng ký (M5), quản lý tài khoản, cấp đối tác (5g),
- * chi trả (5h), thống kê cho Admin (5e) và audit log toàn hệ thống.
+ * Kiểu dữ liệu theo DTO backend (Luồng 5): cấp đối tác (5g), chi trả (5h), thống kê Creator cho Admin (5e),
+ * audit log toàn hệ thống. Đơn đăng ký và tài khoản Creator: `adminCreatorService`.
  */
-
-export type CreatorApplicationStatus = 'Pending' | 'Approved' | 'Rejected';
-
-export interface CreatorApplication {
-  id: number;
-  applicantUserId: number;
-  applicantUsername: string;
-  applicantFullName: string;
-  applicantEmail: string;
-  /** Registered: Creator chưa xác thực email nên chưa duyệt được. */
-  applicantStatus: string;
-  introduction: string;
-  portfolioUrl: string | null;
-  status: CreatorApplicationStatus;
-  createdAt: string;
-  reviewedAt: string | null;
-  reviewedByName: string | null;
-  rejectionReason: string | null;
-}
-
-export interface CreatorAccount {
-  id: number;
-  username: string;
-  fullName: string;
-  email: string;
-  /** Active, Suspended, AwaitingApproval, Registered... */
-  status: string;
-  publishedStoryCount: number;
-  createdAt: string;
-  lastLoginAt: string | null;
-}
-
-export interface DeactivateCreatorResult {
-  creator: CreatorAccount;
-  withdrawnSubmissions: number;
-  closedSubmissions: number;
-}
 
 export interface PartnerCriterion {
   key: 'published_stories' | 'completion_rate' | 'valid_reads' | 'no_violation_removals' | string;

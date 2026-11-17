@@ -31,7 +31,7 @@ const NAV = [
   { id: "s-consent", label: "Đồng ý của phụ huynh", icon: FileCheck },
 ];
 /** Điều khoản (e): Backend bắt Owner đồng ý khi bật giọng nói lần đầu. */
-const VOICE_CONSENT = "Khi bật giọng nói: lúc bé luyện đọc to, giọng của bé chỉ được nhận dạng tạm thời rồi bỏ, không lưu lại; bản ghi âm bé kể lại cuối truyện được lưu để bạn nghe lại, bạn xoá được bất cứ lúc nào.";
+const VOICE_CONSENT = "Khi bật giọng nói, giọng của bé lúc đọc to, kể lại truyện và gửi lời cho bố mẹ được lưu lại để bạn nghe lại; bạn xoá được bất cứ lúc nào.";
 
 /** Thanh kéo ngưỡng 0–100; null = để hệ thống dùng mức mặc định. */
 function ScoreSlider({ label, value, fallback, disabled, onChange }: { label: string; value: number | null; fallback: number; disabled: boolean; onChange: (v: number | null) => void }) {
@@ -299,7 +299,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
               <Toggle on={wishes} disabled={!canEdit} onChange={setWishes} label="Bé ước một câu chuyện" hint="Bé chọn thẻ hình để gửi điều ước, bạn xem và quyết định" />
               <Toggle on={interactive} disabled={!canEdit} onChange={setInteractive} label="Tương tác khi nghe truyện" hint="Trong lúc nghe, bé đoán tranh, điền chữ, sắp xếp sự kiện… để hiểu truyện hơn" />
               <Toggle on={voice} disabled={!canEdit} onChange={(v) => { if (v && isOwner && !policy?.voiceConsentAt && !voiceAccepted) { setVoiceTick(false); setAskVoice(true); } else setVoice(v); }}
-                label="Cho bé trả lời bằng giọng nói" hint="Bé ghi âm kể lại truyện cho bạn nghe và luyện đọc to" />
+                label="Cho bé trả lời bằng giọng nói" hint="Giọng bé đọc to, kể lại, gửi lời được lưu để bạn nghe lại" />
             </section>
 
             <section id="s-hold">

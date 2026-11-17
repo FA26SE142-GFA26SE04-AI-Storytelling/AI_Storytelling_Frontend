@@ -2,14 +2,14 @@
 
 import "@/app/features/review/review-tools.css";
 import "./roadmap.css";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, BookOpen, Check, Library, Lock, Plus, X } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";
 import Dialog from "@/app/components/Dialog";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import { guardianService, type ChildRef } from "@/app/services/guardianService";
-import { roadmapWarningText } from "@/app/services/roadmapAdapters";
+import { groupStages, mergeRoadmapResults, roadmapWarningText } from "@/app/services/roadmapAdapters";
 import type { RoadmapAddResult, RoadmapPosition, RoadmapStoryInput, RoadmapTemplate } from "@/app/types/progress";
 import type { RoadmapCopyPlanDto } from '@/app/types/backendContracts';
 import { ageLabel } from "@/app/lib/storyView";
@@ -30,6 +30,11 @@ export function useChildRefs(): ChildRef[] {
   return refs;
 }
 
+/** Chặng mới luôn nằm ở cuối lộ trình ("Đọc tiếp theo" đã bỏ). */
+const POSITION: RoadmapPosition = "end";
+/** Backend từ chối khi chặng đã chọn không còn nhận thêm truyện (bé đã đọc xong, ...). */
+const STALE_STAGE = /không còn nhận thêm truyện/i;
+type StageOption = { number: number; label: string };
 const DAY_OPTIONS = [null, 3, 5, 7] as const;
 const DAYS_HINT = "Tính từ lúc truyện được mở cho bé. Quá ngày chỉ nhắc bạn, bé không thấy chữ “quá hạn”.";
 
@@ -37,14 +42,17 @@ const DAYS_HINT = "Tính từ lúc truyện được mở cho bé. Quá ngày ch
  * Luồng 4 Bước 4.1 / 4.1c — thêm một truyện hoặc một lộ trình mẫu vào lộ trình của một hoặc nhiều con.
  * Với lộ trình mẫu, kế hoạch sao chép tự tải lại mỗi khi đổi lựa chọn để phụ huynh thấy trước truyện nào được thêm.
  * Mỗi bé được kiểm tra riêng; bé không phù hợp bị bỏ qua và liệt kê lại (BR-4.A1).
+ * Truyện luôn vào một chặng: với mỗi bé được chọn, một chặng có sẵn của bé đó hoặc chặng mới ở cuối (lộ trình mẫu: luôn chặng mới ở cuối).
  */
-export default function AddToRoadmapDialog({ story, template, childId, single, onClose, onDone }: {
+export default function AddToRoadmapDialog({ story, template, childId, single, targetStage, onClose, onDone }: {
   story?: RoadmapStoryInput;
   template?: RoadmapTemplate;
   /** Bé chọn sẵn; không truyền thì người dùng tự chọn bé trong hộp thoại. */
   childId?: number;
   /** Chỉ thêm cho bé `childId`: ẩn mục chọn bé. */
   single?: boolean;
+  /** Đi từ một chặng trên bản đồ lộ trình: số chặng, hoặc "new" = chặng mới ở cuối. Có giá trị thì không hỏi "Thêm vào đâu". */
+  targetStage?: number | "new";
   onClose: () => void;
   onDone?: () => void;
 }) {
@@ -53,7 +61,13 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
   const [preview, setPreview] = useState<RoadmapCopyPlanDto | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [picked, setPicked] = useState<number[]>(childId ? [childId] : []);
-  const [position, setPosition] = useState<RoadmapPosition>("next");
+  // Chặng đã chọn từ bản đồ không còn nhận truyện nữa (bé đã đọc xong, ...): bỏ chặng cố định, hiện lại ô "Thêm vào đâu" với các chặng hiện có.
+  const [staleStage, setStaleStage] = useState(false);
+  const fixedStage = !template && targetStage !== undefined && !staleStage;
+  // Chặng chọn riêng cho từng bé (null = chặng mới ở cuối) và danh sách chặng chưa đọc xong của từng bé (tải một lần cho mỗi bé).
+  const [stageByChild, setStageByChild] = useState<Record<number, number | null>>({});
+  const [optionsByChild, setOptionsByChild] = useState<Record<number, StageOption[]>>({});
+  const stageRequests = useRef<Record<number, number>>({});
   const [days, setDays] = useState<number | null>(template?.defaultDaysPerStep ?? null);
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
@@ -63,6 +77,27 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
   const nameOf = (id: number) => refs.find((r) => r.id === id)?.nickname ?? kids.find((k) => k.id === id)?.nickname ?? `#${id}`;
   const chosen = refs.filter((r) => picked.includes(r.id));
   const chosenKey = chosen.map((c) => c.id).join(",");
+  // Tải lộ trình của bé để liệt kê chặng đang đọc và các chặng chờ; câu trả lời của lượt tải cũ hơn bị bỏ qua.
+  const loadStages = useCallback((id: number) => {
+    const seq = (stageRequests.current[id] ?? 0) + 1;
+    stageRequests.current[id] = seq;
+    void guardianService.roadmap(id).then((r) => {
+      if (stageRequests.current[id] !== seq) return;
+      if (!r.success || !r.data) { delete stageRequests.current[id]; return; } // lần chọn bé sau sẽ tải lại
+      const list = groupStages(r.data).filter((s) => s.status !== "done")
+        .map((s) => ({ number: s.number, label: `Chặng ${s.number}${s.status === "current" ? " · đang đọc" : ""}` }));
+      setOptionsByChild((o) => ({ ...o, [id]: list }));
+    });
+  }, []);
+  useEffect(() => {
+    if (template || fixedStage || !chosenKey) return; // lộ trình mẫu / chặng đã chọn từ bản đồ: không cần liệt kê chặng
+    for (const id of chosenKey.split(",").map(Number)) if (stageRequests.current[id] === undefined) loadStages(id);
+  }, [template, fixedStage, chosenKey, loadStages]);
+  /** Chặng đang chọn của bé; chặng không còn trong danh sách vừa tải thì coi như chọn chặng mới. */
+  const stageOf = (id: number) => {
+    const s = stageByChild[id] ?? null;
+    return s !== null && (optionsByChild[id] ?? []).some((o) => o.number === s) ? s : null;
+  };
 
   // Lộ trình mẫu: tải kế hoạch sao chép ngay khi đủ thông tin, không bắt bấm "Xem trước".
   useEffect(() => {
@@ -71,7 +106,7 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
     setPreviewing(true);
     const list = refs.filter((r) => chosenKey.split(",").map(Number).includes(r.id));
     const timer = setTimeout(() => {
-      void guardianService.previewTemplate(list, template, position, days).then((p) => {
+      void guardianService.previewTemplate(list, template, POSITION, days).then((p) => {
         if (!alive) return;
         setPreviewing(false);
         if (p.success && p.data) setPreview(p.data); else { setPreview(null); showToast(p.message, "err"); }
@@ -80,7 +115,7 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
     return () => { alive = false; clearTimeout(timer); };
     // refs đổi tham chiếu mỗi lần tải lại; chosenKey đã đủ để biết bé nào được chọn.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [template, chosenKey, position, days]);
+  }, [template, chosenKey, days]);
 
   const willAdd = preview ? preview.children.reduce((n, c) => n + c.steps.filter((s) => s.action === "Copy").length, 0) : 0;
   const canSubmit = !busy && chosen.length > 0 && (!template || (!!preview && !previewing && willAdd > 0));
@@ -88,18 +123,46 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
   const submit = async () => {
     if (!chosen.length) { showToast("Hãy chọn ít nhất một bé.", "warn"); return; }
     setBusy(true);
-    const r = template
-      ? await guardianService.applyTemplate(chosen, template, position, days)
-      : await guardianService.addToRoadmap(chosen, story!, position, days, note.trim() || null);
+    const noteValue = note.trim() || null;
+    let data: RoadmapAddResult | null = null;
+    let message = "";
+    if (template) {
+      const r = await guardianService.applyTemplate(chosen, template, POSITION, days);
+      data = r.success ? r.data : null; message = r.message;
+    } else if (fixedStage || chosen.every((c) => stageOf(c.id) === null)) {
+      // Một lần gọi cho mọi bé: vào chặng đã chọn từ bản đồ, hoặc chặng mới ở cuối.
+      const r = await guardianService.addToRoadmap(chosen, story!, POSITION, days, noteValue, fixedStage && typeof targetStage === "number" ? targetStage : null);
+      data = r.success ? r.data : null; message = r.message;
+    } else {
+      // Mỗi bé một chặng riêng: gọi lần lượt từng bé rồi gộp kết quả; bé nào lỗi thì liệt kê như bị bỏ qua.
+      const parts: RoadmapAddResult[] = [];
+      let added = 0;
+      for (const c of chosen) {
+        const stage = stageOf(c.id);
+        const r = await guardianService.addToRoadmap([c], story!, POSITION, days, noteValue, stage);
+        if (r.success && r.data) { parts.push(r.data); added++; continue; }
+        message ||= r.message;
+        parts.push({ added: [], skipped: [{ childProfileId: c.id, nickname: c.nickname, reason: r.message }], warnings: [] });
+        if (stage !== null && STALE_STAGE.test(r.message)) { // chặng của bé này đã đóng: về chặng mới và tải lại danh sách chặng
+          setStageByChild((m) => ({ ...m, [c.id]: null }));
+          loadStages(c.id);
+        }
+      }
+      data = added > 0 ? mergeRoadmapResults(parts) : null;
+    }
     setBusy(false);
-    if (!(r.success && r.data)) { showToast(r.message, "err"); return; }
+    if (!data) {
+      showToast(message, "err");
+      if (fixedStage && typeof targetStage === "number" && STALE_STAGE.test(message)) setStaleStage(true);
+      return;
+    }
     onDone?.();
     // Thêm trọn vẹn thì chỉ báo bằng toast rồi đóng; có bé bị bỏ qua hoặc có cảnh báo thì giữ hộp thoại để đọc chi tiết.
-    if (r.data.skipped.length === 0 && !r.data.warnings?.length) {
-      const names = [...new Set(r.data.added.map((a) => nameOf(a.childProfileId)))].join(", ");
-      showToast(`Đã thêm cho ${names}${r.data.added.some((a) => a.moved) ? " (truyện đã có được chuyển lên đọc tiếp theo)" : ""}.`);
+    if (data.skipped.length === 0 && !data.warnings?.length) {
+      const names = [...new Set(data.added.map((a) => nameOf(a.childProfileId)))].join(", ");
+      showToast(`Đã thêm cho ${names}${data.added.some((a) => a.moved) ? " (truyện đã có được chuyển sang chặng đã chọn)" : ""}.`);
       onClose();
-    } else setResult(r.data);
+    } else setResult(data);
   };
 
   if (result) {
@@ -118,7 +181,7 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
                 <div className="atr-res-h">
                   <span className={`atr-res-ic ${added.length ? "ok" : "no"}`} aria-hidden>{added.length ? <Check className="ic" /> : <X className="ic" />}</span>
                   <b className="grow">{added.length ? `Đã thêm${many ? ` cho ${nameOf(id)}` : ""}` : `Chưa thêm${many ? ` cho ${nameOf(id)}` : ""}`}</b>
-                  {added.some((a) => a.moved) && <span className="pill wait">Chuyển lên đọc tiếp theo</span>}
+                  {added.some((a) => a.moved) && <span className="pill wait">Đã chuyển chỗ</span>}
                 </div>
                 {skipped.length > 0 && (
                   <ul className="atr-plan">
@@ -140,7 +203,7 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
   }
 
   return (
-    <Dialog title={title} onClose={onClose}>
+    <Dialog title={title} onClose={onClose} className="atr-dialog">
       <div className="atr">
         {/* Thứ đang thêm: tên lộ trình mẫu (kèm số truyện) hoặc tên truyện */}
         <div className="atr-what">
@@ -169,13 +232,32 @@ export default function AddToRoadmapDialog({ story, template, childId, single, o
           </div>
         )}
 
-        <div className="field">
-          <span className="lbl">Thêm vào đâu</span>
-          <div className="seg atr-seg" role="radiogroup" aria-label="Thêm vào đâu">
-            <button type="button" role="radio" aria-checked={position === "next"} className={position === "next" ? "on" : ""} onClick={() => setPosition("next")}>Đọc tiếp theo</button>
-            <button type="button" role="radio" aria-checked={position === "end"} className={position === "end" ? "on" : ""} onClick={() => setPosition("end")}>Cuối lộ trình</button>
+        {fixedStage ? (
+          <p className="sub" role="status" style={{ margin: 0, fontWeight: 800 }}>{targetStage === "new" ? "Thêm vào chặng mới ở cuối" : `Thêm vào Chặng ${targetStage}`}</p>
+        ) : (
+          <div className="field">
+            <span className="lbl">Thêm vào đâu</span>
+            {template ? (
+              // Lộ trình mẫu: luôn thành các chặng mới ở cuối.
+              <p className="atr-stage-summary">Các chặng mới sẽ được thêm ở cuối lộ trình.</p>
+            ) : chosen.length === 0 ? (
+              <p className="sub" style={{ margin: 0 }}>Chọn bé để chọn chặng</p>
+            ) : chosen.map((c) => {
+              const sel = stageOf(c.id);
+              return (
+                <div key={c.id} className="atr-stage-child">
+                  <b className="atr-stage-name">{c.nickname}</b>
+                  <div className="atr-stage-options" role="radiogroup" aria-label={`Chặng của ${c.nickname}`}>
+                    {(optionsByChild[c.id] ?? []).map((o) => (
+                      <button key={o.number} type="button" role="radio" aria-checked={sel === o.number} className={`atr-stage-option${sel === o.number ? " on" : ""}`} onClick={() => setStageByChild((m) => ({ ...m, [c.id]: o.number }))}>{o.label}</button>
+                    ))}
+                    <button type="button" role="radio" aria-checked={sel === null} className={`atr-stage-option atr-stage-new${sel === null ? " on" : ""}`} onClick={() => setStageByChild((m) => ({ ...m, [c.id]: null }))}><Plus className="ic" aria-hidden />Chặng mới ở cuối</button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        </div>
+        )}
 
         <div className="field">
           <span className="lbl atr-lbl">

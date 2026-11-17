@@ -8,6 +8,7 @@ import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRiseIn } from "@/app/lib/motion";
 import { accountService } from "@/app/services/accountService";
+import { authService } from "@/app/services/authService";
 import { passwordProblem } from "@/app/lib/guardian";
 import KidQrScanner from "@/app/features/kid/KidQrScanner";
 
@@ -29,22 +30,13 @@ const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: 
  * Link trong email được next.config.ts chuyển về "/" kèm tham số:
  * ?auth=verify&token=...&email=... → xác thực email
  * ?auth=reset&token=...&email=...  → đặt mật khẩu mới
- * ?auth=forgot | signup | signin   → mở đúng biểu mẫu
+ * ?auth=forgot | signup | signin | creator → mở đúng biểu mẫu
  */
-/** Ghép các ô đăng ký Creator thành phần giới thiệu gửi backend (20–1000 ký tự). */
-function creatorIntroduction(cr: { expertise: string; years: number; note: string }): string {
-  const parts = [
-    cr.expertise.trim() && `Chuyên môn: ${cr.expertise.trim()}.`,
-    `Kinh nghiệm: ${Math.max(0, Math.floor(cr.years || 0))} năm.`,
-    cr.note.trim(),
-  ].filter(Boolean);
-  return parts.join(" ");
-}
-
 function modeFromUrl(params: URLSearchParams): Mode | null {
   const auth = params.get("auth");
   if (auth === "verify") return "verify";
   if (auth === "activate") return "activate";
+  if (auth === "creator") return "creator";
   if (params.get("token") || params.get("resetToken") || auth === "reset") return "reset";
   if (auth === "forgot") return "forgot";
   if (auth === "signup") return "register";
@@ -60,7 +52,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
   const [scan, setScan] = useState(false);
   const cardRef = useRiseIn<HTMLFormElement>(":scope > *", []);
   const { login, register, forgotPassword, resetPassword, backendOnline, backendStatusMessage } = useAuth();
-  const [cr, setCr] = useState({ expertise: "", years: 1, note: "", portfolio: "", commit: false });
+  const [cr, setCr] = useState({ intro: "", portfolio: "", commit: false });
   const [mode, setMode] = useState<Mode>(initialMode);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
@@ -92,20 +84,11 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         const r = await login({ identifier: f.identifier.trim(), password: f.password });
         if (!r.success) setMsg({ ok: false, text: r.message });
       } else if (mode === "creator") {
-        const introduction = creatorIntroduction(cr);
-        const problem = passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp."
-          : introduction.length < 20 ? "Hãy giới thiệu kinh nghiệm của bạn (ít nhất 20 ký tự)."
-          : introduction.length > 1000 ? "Phần giới thiệu tối đa 1000 ký tự; hãy rút gọn mô tả kinh nghiệm."
-          : !cr.commit ? "Hãy xác nhận cam kết trước khi nộp đơn." : null);
+        const problem = cr.intro.trim().length < 20 ? "Giới thiệu bản thân cần ít nhất 20 ký tự." : passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp." : !cr.commit ? "Hãy xác nhận cam kết trước khi nộp đơn." : null);
         if (problem) { setMsg({ ok: false, text: problem }); return; }
-        const r = await accountService.registerCreator({
-          username: f.username.trim(), email: f.email.trim(), fullName: f.fullName.trim(), password: f.password, confirmPassword: f.confirm,
-          introduction, portfolioUrl: cr.portfolio.trim() || null,
-        });
-        if (r.success) {
-          go("verify");
-          setMsg({ ok: true, text: `Đã nộp đơn. Nhập mã xác thực đã gửi tới ${f.email.trim()}; sau đó đăng nhập để theo dõi đơn trong lúc chờ Administrator duyệt.` });
-        } else setMsg({ ok: false, text: r.message });
+        const r = await authService.registerCreator({ username: f.username.trim(), email: f.email.trim(), fullName: f.fullName.trim(), password: f.password, confirmPassword: f.confirm, introduction: cr.intro.trim(), portfolioUrl: cr.portfolio.trim() || null });
+        if (r.success) { go("verify"); setMsg({ ok: true, text: `Đã nộp đơn. Nhập mã xác thực đã gửi tới ${f.email.trim()}, sau đó quản trị viên sẽ xét duyệt đơn của bạn.` }); }
+        else setMsg({ ok: false, text: r.errors?.[0] ?? r.message });
       } else if (mode === "register") {
         const problem = passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp." : null);
         if (problem) { setMsg({ ok: false, text: problem }); return; }
@@ -169,10 +152,8 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
           : <label className="field"><span className="lbl">Email</span><input className="inp" type="email" required value={f.email} onChange={set("email")} autoComplete="email" /></label>}
         {mode === "creator" && (
           <>
-            <label className="field"><span className="lbl">Chuyên môn</span><input className="inp" required value={cr.expertise} onChange={(e) => setCr({ ...cr, expertise: e.target.value })} placeholder="VD: Biên tập viên sách thiếu nhi, giáo viên tiểu học" /></label>
-            <label className="field"><span className="lbl">Số năm kinh nghiệm</span><input className="inp" type="number" min={0} max={60} value={cr.years} onChange={(e) => setCr({ ...cr, years: +e.target.value })} /></label>
-            <label className="field"><span className="lbl">Mô tả kinh nghiệm ({creatorIntroduction(cr).length}/1000 ký tự cả phần giới thiệu)</span><textarea className="inp" rows={3} maxLength={900} required value={cr.note} onChange={(e) => setCr({ ...cr, note: e.target.value })} /></label>
-            <label className="field"><span className="lbl">Link portfolio (không bắt buộc)</span><input className="inp" type="url" value={cr.portfolio} onChange={(e) => setCr({ ...cr, portfolio: e.target.value })} /></label>
+            <label className="field"><span className="lbl">Giới thiệu bản thân ({cr.intro.length}/1000)</span><textarea className="inp" rows={4} minLength={20} maxLength={1000} required value={cr.intro} onChange={(e) => setCr({ ...cr, intro: e.target.value })} placeholder="Kinh nghiệm viết, biên tập hoặc dạy học cho trẻ em (ít nhất 20 ký tự)" /></label>
+            <label className="field"><span className="lbl">Link portfolio (không bắt buộc)</span><input className="inp" type="url" maxLength={500} value={cr.portfolio} onChange={(e) => setCr({ ...cr, portfolio: e.target.value })} placeholder="https://" /></label>
           </>
         )}
         {needsPassword && (
@@ -228,6 +209,8 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         ) : (
           <div className="login-links">
             {mode === "verify" && <button type="button" disabled={busy} onClick={() => void resend()}>Gửi lại mã</button>}
+            {mode === "register" && <button type="button" onClick={() => go("creator")}>Đăng ký làm Content Creator</button>}
+            {mode === "creator" && <button type="button" onClick={() => go("register")}>Đăng ký tài khoản phụ huynh</button>}
             <button type="button" onClick={() => go("login")}>Quay lại đăng nhập</button>
           </div>
         )}

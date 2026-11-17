@@ -22,7 +22,6 @@ it.each([
  ['PUT','/child/reading/sessions/4/listen-only',()=>reading.listenOnly('child',4,true),{value:true}],
  ['POST','/child/reading/sessions/4/interactions/6/attempts',()=>reading.attempt('child',4,6,{optionId:12}),{optionId:12}],
  ['POST','/child/reading/sessions/4/interactions/7/attempts',()=>reading.attempt('child',4,7,{orderedOptionIds:[3,1,2]}),{orderedOptionIds:[3,1,2]}],
- ['POST','/child/reading/sessions/4/summary/flags',()=>reading.summaryFlags('child',4,[11,12]),{sceneIds:[11,12]}],
  ['POST','/child/rewards/knowledge-tree/water',()=>rewards.water('child'),undefined],
 ] as const)('%s %s uses the child session exclusively',async(method,path,call,body)=>{
  const adult=vi.spyOn(authService,'refreshToken');await call();
@@ -56,6 +55,21 @@ it('sends the summary recording as multipart form data with the child session',a
  expect(url.endsWith('/child/reading/sessions/4/summary/recording')).toBe(true);expect(options.method).toBe('POST');
  expect(options.body).toBeInstanceOf(FormData);expect((options.body as FormData).get('audio')).toBeInstanceOf(Blob);
  expect(new Headers(options.headers).get('Authorization')).toBe('Bearer child');
+});
+it('sends a summary question as multipart with scene, picture, text and audio; omits BeatOrder for a scene without pictures',async()=>{
+ await reading.summaryQuestion('child',4,{sceneId:11,beatOrder:2,text:' Sao thế? ',audio:new Blob(['x'],{type:'audio/wav'})});
+ await reading.summaryQuestion('child',4,{sceneId:12,beatOrder:null});
+ const [url,options]=fetcher.mock.calls[0];const f=options.body as FormData;
+ expect(url.endsWith('/child/reading/sessions/4/summary/questions')).toBe(true);expect(options.method).toBe('POST');
+ expect(f.get('SceneId')).toBe('11');expect(f.get('BeatOrder')).toBe('2');expect(f.get('Text')).toBe('Sao thế?');expect(f.get('Audio')).toBeInstanceOf(Blob);
+ expect(new Headers(options.headers).get('Authorization')).toBe('Bearer child');
+ const g=fetcher.mock.calls[1][1].body as FormData;expect(g.get('SceneId')).toBe('12');expect(g.has('BeatOrder')).toBe(false);expect(g.has('Text')).toBe(false);expect(g.has('Audio')).toBe(false);
+});
+it('lets a parent mark a summary question answered',async()=>{
+ vi.spyOn(authService,'getStoredAccessToken').mockReturnValue('adult');
+ await summaries.answered(3,9,21,true);
+ const [url,options]=fetcher.mock.calls[0];
+ expect(url.endsWith('/ParentStorySummary/3/9/questions/21/answered')).toBe(true);expect(options.method).toBe('PUT');expect(JSON.parse(options.body)).toEqual({answered:true});
 });
 it('lets a parent list and delete story summaries with the adult session',async()=>{
  vi.spyOn(authService,'getStoredAccessToken').mockReturnValue('adult');

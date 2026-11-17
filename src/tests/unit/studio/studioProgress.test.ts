@@ -45,6 +45,7 @@ describe('studio progress bar', () => {
   it('turns a running step into an error when the backend reports one', () => {
     expect(studioProgress('outline_wait', null, null, 'timeout')).toMatchObject({ current: 2, mode: 'error' });
     expect(studioProgress('outline', null, null, 'timeout').mode).toBe('you');
+    expect(studioProgress('outline_wait', null, null, 'AI_PROVIDER_ACCESS_DENIED')).toMatchObject({ mode: 'error', caption: 'Nhà cung cấp AI từ chối yêu cầu' });
   });
 
   it('marks earlier steps done and later ones todo', () => {

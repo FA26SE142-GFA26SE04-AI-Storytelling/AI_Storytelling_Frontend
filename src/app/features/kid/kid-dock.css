@@ -1,0 +1,116 @@
+/* Thanh điều hướng 5 khu (KidDock) theo phong cách game đầm sen: trong HUD từ 768px, cố định ở đáy khi màn nhỏ */
+.kid-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  padding: 10px 12px calc(12px + env(safe-area-inset-bottom));
+  background: transparent;
+  pointer-events: none;
+}
+
+.kid-dock-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  pointer-events: auto;
+}
+
+.kid-dock-item {
+  position: relative;
+  flex-direction: column;
+  min-width: 96px;
+  min-height: 84px;
+  padding: 8px 12px;
+}
+
+/* Mầm lá bật lên khi bấm chọn */
+@keyframes kid-dock-pop {
+  0% {
+    transform: scale(0.3);
+    opacity: 1;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+.kid-dock-sprout {
+  position: absolute;
+  top: -6px;
+  right: -4px;
+  pointer-events: none;
+  animation: kid-dock-pop 600ms ease-out forwards;
+}
+
+@media (max-width: 480px) {
+  .kid-dock-row {
+    width: 100%;
+    gap: 6px;
+  }
+
+  .kid-dock-item {
+    min-width: 0;
+    flex: 1;
+    min-height: 72px;
+    padding: 6px 4px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kid-dock-sprout {
+    animation: none;
+    display: none;
+  }
+}
+
+
+/* Từ 768px: dock nằm trong dòng HUD (bên trái), nút gọn */
+@media (min-width: 768px) {
+  .kid-dock {
+    position: static;
+    padding: 0;
+    pointer-events: auto;
+  }
+
+  .kid-dock-row {
+    gap: 8px;
+    align-items: center;
+  }
+
+  .kid-dock-item {
+    min-height: 56px;
+    min-width: 72px;
+    padding: 4px 8px;
+    gap: 2px;
+    border-radius: 16px;
+  }
+
+  .kid-dock-item .kid-btn3d-icon {
+    width: 22px;
+    height: 22px;
+  }
+
+  .kid-dock-item .kid-btn3d-label {
+    font-size: var(--fs-sm);
+  }
+}
+
+/* Dưới 768px dock cố định ở đáy: chừa chỗ cho dock ở đáy nội dung */
+@media (max-width: 767px) {
+  .kid:has(.kid-dock) .khome {
+    padding-bottom: 120px;
+  }
+
+  .kid:has(.kid-dock) .kscroll {
+    scroll-padding-bottom: 120px;
+  }
+}

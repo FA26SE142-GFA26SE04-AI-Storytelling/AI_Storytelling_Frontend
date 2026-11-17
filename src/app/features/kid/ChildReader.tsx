@@ -12,6 +12,7 @@ import type {ReadingScene,ReadAloudResult,ReadingSegment} from '@/app/types/chil
 import {Caption} from './ChildReaderCaption';
 import {pictureParts,scenePictures,segmentStarts,type ScenePicture} from './scenePictures';
 import {useRecorder} from './useRecorder';
+import KidReadAloudPractice from './KidReadAloudPractice';
 import {showToast} from '@/app/lib/toast';
 
 /** Khi bé đọc xong: lời chúc, cảm nhận và câu đố hiện trong cửa sổ giữa màn hình, không bắt bé lăn xuống. */
@@ -23,7 +24,7 @@ function FinishPopup({reader:r}:{reader:ReturnType<typeof useChildReader>}) {
     <h2 className="display">Câu chuyện đã khép lại!</h2>
     {lesson&&<p className="kid-finish-lesson">{lesson}</p>}
     {r.completed&&<KidAfterReading token={r.token} completed={r.completed} scenes={r.content?.scenes??[]} onLibrary={r.close}/>}
-    <button type="button" className="kid-listen-primary" onClick={r.close}>Về thư viện của em</button>
+    <button type="button" className="kid-btn3d is-gold" onClick={r.close}>Về thư viện của em</button>
   </div></div>;
 }
 
@@ -38,7 +39,7 @@ function ScenePictures({pictures,active,alt,children}:{pictures:ScenePicture[];a
     {pictures.map((p,i)=><span key={i} className={`kid-pic-layer${i===active?' on':''}`} aria-hidden={i!==active}>
       <AuthedImage src={p.url} alt={pictures.length>1?`${alt}, tranh ${i+1}`:alt} onLoad={()=>{if(i===0)setReady(true);}} onError={()=>{if(i===0)setReady(true);}}/>
     </span>)}
-    {!ready&&<span className="kid-skeleton" role="status" aria-label="Đang tải tranh"/>}
+    {!ready&&<span className="kid-skeleton kid-picture-wait" role="status"><Frog mood="think" size={72}/><span>Đang mở tranh cho em…</span></span>}
     {children}
   </div>;
 }
@@ -89,7 +90,13 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
   for(let k=0;k<index;k++)priorPics+=scenePicsList[k]?.length??0;
   const pictures=scene?(scenePicsList[index]??scenePictures(scene)):[];
   const active=scene&&pic.scene===scene.sceneIndex?Math.min(pic.i,pictures.length-1):0;
-  const currentPage=priorPics+active+1;
+  /** Trang luyện đọc to sau cảnh cuối: không phải cảnh nên không lưu làm vị trí đọc; nhớ theo phiên để mở truyện khác thì về trang truyện. */
+  const practice=c?.readAloudPractice??null;
+  const [practiceSession,setPracticeSession]=useState<number|null>(null);
+  const onPractice=!!practice&&practiceSession===c?.sessionId;
+  const atEnd=!!scene&&index===scenes.length-1&&active>=pictures.length-1;
+  const pageCount=totalPages+(practice?1:0);
+  const currentPage=onPractice?pageCount:priorPics+active+1;
   /** Đoạn chữ của tranh đang hiện; cảnh chỉ 1 tranh thì cả cảnh. */
   const part=scene?(pictures.length>1?pictureParts(pictures,scene.text)[active]:{start:0,end:scene.text.length}):null;
   const starts=scene?segmentStarts(scene):[];
@@ -108,6 +115,9 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
       pendingSend.current=false;
     }
   },[rec.state]);
+
+  // Thông báo của trang đọc hiện bằng toast; chỉ "hoàn thành truyện" (đi kèm done) là tin vui, còn lại là lỗi.
+  useEffect(()=>{if(r.note)showToast(r.note,r.done?'ok':'err');},[r.note,r.done]);
 
   useEffect(()=>{
     if(aloudState==='recording'&&(rec.state==='converting'||rec.state==='ready')){
@@ -212,7 +222,7 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
       const nextScene=scenes[index+1];
       const play=narrating.current;
       guarded(resume=>goScene(nextScene,0,play&&resume));
-    }
+    }else if(practice&&c)guarded(()=>setPracticeSession(c.sessionId));
   };
 
   const prevPage=()=>{
@@ -256,10 +266,12 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
 
   if(!c)return null;
   return <article className="kid-theater" aria-label="Sân khấu kể chuyện">
-    <header className="kid-theater-top"><button className="kid-soft-button" disabled={r.busy} onClick={()=>void r.leave()}><ArrowLeft aria-hidden="true"/>Về danh sách đọc</button><button type="button" role="switch" aria-checked={r.mode==='ListenFirst'} aria-label={r.mode==='ListenFirst'?'Đang ở chế độ nghe đọc. Bấm để tự đọc':'Đang ở chế độ tự đọc. Bấm để nghe đọc'} className={`kid-mode-switch${r.mode==='ListenFirst'?' listen':''}`} disabled={disabled} onClick={()=>void r.save(r.page,r.mode==='ListenFirst'?'ReadFirst':'ListenFirst')}><span className="kid-mode-opt"><BookOpen aria-hidden="true"/>Tự đọc</span><span className="kid-mode-opt"><Volume2 aria-hidden="true"/>Nghe đọc</span><span className="kid-mode-thumb" aria-hidden="true"/></button><button type="button" className="kid-soft-button" aria-pressed={r.listenOnly} title="Chỉ nghe truyện, không dừng lại để chơi" disabled={disabled} onClick={()=>void r.flag('listenOnly')}><Headphones aria-hidden="true"/>Chỉ nghe</button></header>
-    {r.note&&<p className="kid-reading-note" role="status">{r.note}</p>}
+    <header className="kid-theater-top"><button className="kid-btn3d is-sky" disabled={r.busy} onClick={()=>void r.leave()}><ArrowLeft aria-hidden="true"/>Về danh sách đọc</button><button type="button" role="switch" aria-checked={r.mode==='ListenFirst'} aria-label={r.mode==='ListenFirst'?'Đang ở chế độ nghe đọc. Bấm để tự đọc':'Đang ở chế độ tự đọc. Bấm để nghe đọc'} className={`kid-mode-switch${r.mode==='ListenFirst'?' listen':''}`} disabled={disabled} onClick={()=>void r.save(r.page,r.mode==='ListenFirst'?'ReadFirst':'ListenFirst')}><span className="kid-mode-opt"><BookOpen aria-hidden="true"/>Tự đọc</span><span className="kid-mode-opt"><Volume2 aria-hidden="true"/>Nghe đọc</span><span className="kid-mode-thumb" aria-hidden="true"/></button><button type="button" className="kid-btn3d is-sky" aria-pressed={r.listenOnly} title="Chỉ nghe truyện, không dừng lại để chơi" disabled={disabled} onClick={()=>void r.flag('listenOnly')}><Headphones aria-hidden="true"/>Chỉ nghe</button></header>
     {!scene&&<section className="kid-reader-empty" role="status"><Frog mood="think" size={96}/><h2 className="display">Truyện này chưa có nội dung để đọc</h2><p>Em chọn truyện khác nhé!</p></section>}
-    {scene&&<div className="kid-reader" key={scene.sceneIndex}>
+    {scene&&onPractice&&practice&&<KidReadAloudPractice key={c.sessionId} practice={practice} disabled={disabled} onRecord={r.readAloudPractice}>
+      <nav className="kid-story-navigation" aria-label="Tiến độ truyện"><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang trước" title="Trang trước" disabled={disabled} onClick={()=>setPracticeSession(null)}><ChevronLeft aria-hidden="true"/></button><span className="kid-scene-count">Trang {currentPage}/{pageCount}</span><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang sau" title="Trang sau" disabled><ChevronRight aria-hidden="true"/></button>{!r.done&&<button className="kid-btn3d is-gold" disabled={disabled} onClick={()=>void r.complete()}><Check aria-hidden="true"/>Em đã đọc xong</button>}</nav>
+    </KidReadAloudPractice>}
+    {scene&&!onPractice&&<div className="kid-reader" key={scene.sceneIndex}>
       <div className="kid-reader-visual">
           <ScenePictures pictures={pictures} active={active} alt={`Tranh cảnh ${index+1}`}>
           {!r.done&&<KidNarrator key={`${c.sessionId}:${scene.sceneIndex}`} scene={scene} disabled={disabled} paused={words||!!ask||aloudState==='recording'||aloudState==='busy'} onListen={()=>r.mode==='ListenFirst'?Promise.resolve(true):r.save(r.page,'ListenFirst')} onEvent={r.event} range={part?{start:part.start,end:part.end}:{start:0,end:scene.text.length}} onSceneEnd={sceneEnded} onSegmentChange={setNarratorPart} autoStart={autoScene===scene.sceneIndex} onPartEnd={partEnded} onPlayingChange={p=>{narrating.current=p;if(p)setAutoScene(null);}} onWord={setReadingWord}/>}
@@ -269,8 +281,8 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
         <div className="kid-story-caption" ref={captionRef}>
           <Caption text={scene.text} part={part} result={aloudResult} segment={currentSegment} segmentStart={starts[currentSegmentIndex>=0?currentSegmentIndex:0]??0} reading={readingWord}/>
         </div>
-        <nav className="kid-story-navigation" aria-label="Tiến độ truyện"><button type="button" className="kid-side-nav" aria-label="Trang trước" title="Trang trước" disabled={disabled||(index<=0&&active<=0)} onClick={prevPage}><ChevronLeft aria-hidden="true"/></button><span className="kid-scene-count">Trang {currentPage}/{totalPages}</span><button type="button" className="kid-side-nav" aria-label="Trang sau" title="Trang sau" disabled={disabled||(index>=scenes.length-1&&active>=pictures.length-1)} onClick={nextPage}><ChevronRight aria-hidden="true"/></button><span className="kid-bar-actions">{c.vocabulary.length>0&&<button className="kid-soft-button" aria-expanded={words} onClick={()=>setWords(v=>!v)}><Sparkles aria-hidden="true"/>Từ mới</button>}<button className="kid-soft-button" disabled={disabled} aria-pressed={!!r.session?.isFavorited} onClick={()=>void r.flag('favorite')}><Heart aria-hidden="true"/>Yêu thích</button></span><button type="button" className={`kid-soft-button kid-read-aloud-btn${aloudState==='recording'?' kid-read-aloud-btn--recording':aloudState==='busy'?' kid-read-aloud-btn--busy':''}`} disabled={!currentSegment||currentSegment.segmentId==null||aloudState==='busy'||disabled} onClick={handleMic} aria-label={aloudState==='recording'?'Dừng đọc':aloudState==='busy'?'Đang chấm điểm':'Đọc to'} title={!currentSegment||currentSegment.segmentId==null?'Chưa luyện đọc được đoạn này':aloudState==='recording'?'Dừng đọc':aloudState==='busy'?'Đang chấm điểm':'Đọc to'}><Mic aria-hidden="true"/>{aloudState==='recording'?'Dừng':aloudState==='busy'?'Đang chấm':'Đọc to'}</button>{aloudResult&&<button type="button" className="kid-soft-button icon-only kid-read-aloud-retry" aria-label="Đọc lại" title="Đọc lại" disabled={aloudState==='busy'||disabled} onClick={handleRetry}><RotateCcw aria-hidden="true"/></button>}{index===scenes.length-1&&active>=pictures.length-1&&scene&&!r.done&&totalPages>1&&<button type="button" className="kid-soft-button" disabled={disabled} onClick={restart} title="Đọc lại từ trang đầu"><RotateCcw aria-hidden="true"/>Đọc lại từ đầu</button>}{index===scenes.length-1&&active>=pictures.length-1&&scene&&!r.done&&<button className="kid-listen-primary" disabled={disabled} onClick={()=>guarded(()=>void r.complete())}><Check aria-hidden="true"/>Em đã đọc xong</button>}</nav>
-        {words&&<section className="kid-word-panel" aria-label="Từ mới"><div className="kid-word-list">{c.vocabulary.map(v=><button className="kid-soft-button" key={v.id} aria-pressed={r.definition?.vocabularyId===v.id} disabled={r.busy||r.blocked} onClick={()=>void r.lookup(v.id)}>{v.term}</button>)}</div>{r.definition&&<div><p>{r.definition.definition}</p><button className="kid-listen-primary" disabled={r.busy||r.blocked||r.definition.isCollected} onClick={()=>void r.collect()}>{r.definition.isCollected?<Check aria-hidden="true"/>:<Bookmark aria-hidden="true"/>}{r.definition.isCollected?'Đã lưu':'Lưu vào sổ tay'}</button></div>}<button className="kid-soft-button" onClick={()=>setWords(false)}>Đóng</button></section>}
+        <nav className="kid-story-navigation" aria-label="Tiến độ truyện"><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang trước" title="Trang trước" disabled={disabled||(index<=0&&active<=0)} onClick={prevPage}><ChevronLeft aria-hidden="true"/></button><span className="kid-scene-count">Trang {currentPage}/{pageCount}</span><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang sau" title="Trang sau" disabled={disabled||(atEnd&&!practice)} onClick={nextPage}><ChevronRight aria-hidden="true"/></button><span className="kid-bar-actions">{c.vocabulary.length>0&&<button className="kid-btn3d is-sky" aria-expanded={words} onClick={()=>setWords(v=>!v)}><Sparkles aria-hidden="true"/>Từ mới</button>}<button className="kid-btn3d is-sky" disabled={disabled} aria-pressed={!!r.session?.isFavorited} onClick={()=>void r.flag('favorite')}><Heart aria-hidden="true"/>Yêu thích</button></span><button type="button" className={`kid-btn3d is-sky kid-read-aloud-btn${aloudState==='recording'?' kid-read-aloud-btn--recording':aloudState==='busy'?' kid-read-aloud-btn--busy':''}`} disabled={!currentSegment||currentSegment.segmentId==null||aloudState==='busy'||disabled} onClick={handleMic} aria-label={aloudState==='recording'?'Dừng đọc':aloudState==='busy'?'Đang chấm điểm':'Đọc to'} title={!currentSegment||currentSegment.segmentId==null?'Chưa luyện đọc được đoạn này':aloudState==='recording'?'Dừng đọc':aloudState==='busy'?'Đang chấm điểm':'Đọc to'}><Mic aria-hidden="true"/>{aloudState==='recording'?'Dừng':aloudState==='busy'?'Đang chấm':'Đọc to'}</button>{aloudResult&&<button type="button" className="kid-btn3d is-sky kid-btn-icon kid-read-aloud-retry" aria-label="Đọc lại" title="Đọc lại" disabled={aloudState==='busy'||disabled} onClick={handleRetry}><RotateCcw aria-hidden="true"/></button>}{atEnd&&!r.done&&totalPages>1&&<button type="button" className="kid-btn3d is-sky" disabled={disabled} onClick={restart} title="Đọc lại từ trang đầu"><RotateCcw aria-hidden="true"/>Đọc lại từ đầu</button>}{atEnd&&!practice&&!r.done&&<button className="kid-btn3d is-gold" disabled={disabled} onClick={()=>guarded(()=>void r.complete())}><Check aria-hidden="true"/>Em đã đọc xong</button>}</nav>
+        {words&&<section className="kid-word-panel" aria-label="Từ mới"><div className="kid-word-list">{c.vocabulary.map(v=><button className="kid-btn3d is-sky" key={v.id} aria-pressed={r.definition?.vocabularyId===v.id} disabled={r.busy||r.blocked} onClick={()=>void r.lookup(v.id)}>{v.term}</button>)}</div>{r.definition&&<div><p>{r.definition.definition}</p><button className="kid-btn3d is-gold" disabled={r.busy||r.blocked||r.definition.isCollected} onClick={()=>void r.collect()}>{r.definition.isCollected?<Check aria-hidden="true"/>:<Bookmark aria-hidden="true"/>}{r.definition.isCollected?'Đã lưu':'Lưu vào sổ tay'}</button></div>}<button className="kid-btn3d is-sky" onClick={()=>setWords(false)}>Đóng</button></section>}
       </div>
     </div>}
     {ask&&!r.done&&<KidInteraction key={ask.scene.interaction!.id} interaction={ask.scene.interaction!} busy={r.busy}

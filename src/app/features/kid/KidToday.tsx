@@ -1,81 +1,174 @@
 'use client';
-import { Lock, Play, Search, Star } from 'lucide-react';
+
+import { useState } from 'react';
+import './kid-lobby.css';
+import './kid-today.css';
+import { Library, Lock, Mail, Map as MapIcon, Play, RotateCcw } from 'lucide-react';
 import type * as B from '@/app/types/backendContracts';
 import Frog from '@/app/components/brand/Frog';
-import { coverFor } from '@/app/lib/storyView';
-import LilyPondRoadmap, { type LilyStep } from '@/app/components/roadmap/LilyPondRoadmap';
+import SafeImage from '@/app/components/SafeImage';
 import { showToast } from '@/app/lib/toast';
+import { usePop } from '@/app/lib/motion';
+import KidJourneyPath, { type JourneyStop } from './KidJourneyPath';
 
-/** Đưa bé xuống ô tìm truyện (khi chưa có truyện bố mẹ chọn hoặc đã đọc hết). */
-function goToSearch() {
-  const input = document.querySelector<HTMLInputElement>('.kid-search input');
-  input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  input?.focus({ preventScroll: true });
+/** Chuyển đổi dữ liệu lộ trình thành danh sách các chặng theo đúng thứ tự. */
+function buildStops(roadmap: B.MyRoadmapDto | null): JourneyStop[] {
+  if (!roadmap) return [];
+
+  const doneStops: JourneyStop[] = [...roadmap.done]
+    .sort((a, b) => a.stage - b.stage)
+    .map((d) => ({
+      storyId: d.storyId,
+      title: d.title,
+      coverImageUrl: d.coverImageUrl,
+      status: 'done',
+    }));
+
+  const openStops: JourneyStop[] = roadmap.openStories.map((o) => ({
+    storyId: o.storyId,
+    title: o.title,
+    coverImageUrl: o.coverImageUrl,
+    status: 'open',
+  }));
+
+  const upcomingStops: JourneyStop[] = [...roadmap.upcoming]
+    .sort((a, b) => a.order - b.order)
+    .map((u) => ({
+      storyId: u.storyId,
+      title: u.title,
+      coverImageUrl: u.coverImageUrl,
+      status: 'locked',
+    }));
+
+  return [...doneStops, ...openStops, ...upcomingStops];
 }
 
-/**
- * Khung đầu trang của bé: "Hôm nay em đọc". Bé vào là thấy ngay một truyện to và một nút "Đọc ngay",
- * kèm lời nhắn của bố mẹ, các chấm tiến độ của hành trình và những truyện tiếp theo.
- * Chưa có hành trình hoặc đã đọc hết thì chỉ cho bé xuống chọn truyện ở thư viện.
- */
-export default function KidToday({ roadmap, nickname, busy, onRead }: {
+export default function KidToday({
+  roadmap,
+  nickname,
+  busy,
+  onRead,
+  onOpenLibrary,
+}: {
   roadmap: B.MyRoadmapDto | null;
   nickname: string;
   busy: boolean;
   onRead: (storyId: number) => void;
+  onOpenLibrary: () => void;
 }) {
-  const hello = nickname ? `Chào ${nickname}!` : 'Chào em!';
-  if (!roadmap) return <section className="kid-today kid-today-loading" aria-busy="true"><Frog mood="think" size={88} /><b className="display">{hello}</b></section>;
+  const stops = roadmap ? buildStops(roadmap) : [];
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const defaultStop =
+    stops.find((s) => s.status === 'open') ??
+    stops.find((s) => s.status === 'locked') ??
+    stops[stops.length - 1];
+  const selected = stops.find((s) => s.storyId === selectedId) ?? defaultStop;
+  const cardRef = usePop<HTMLElement>(selected?.storyId);
 
-  const open = roadmap.open;
+  const hello = nickname ? `Chào ${nickname}!` : 'Chào em!';
+  if (!roadmap) {
+    return (
+      <div className="kl-panel kid-today-center kid-today-loading" aria-busy="true">
+        <Frog mood="think" size={96} />
+        <p className="display kid-today-say">{hello}</p>
+      </div>
+    );
+  }
+
+  const opens = roadmap.openStories;
+  const open = opens[0];
 
   if (!open) {
     const finished = roadmap.isFinished && roadmap.totalCount > 0;
     return (
-      <section className="kid-today kid-today-empty">
-        <Frog mood="happy" size={120} />
-        <div className="kid-today-body">
-          <b className="display kid-today-hello">{hello}</b>
-          <p className="kid-today-say">{finished ? 'Em đã đọc hết truyện bố mẹ chọn rồi. Giỏi quá!' : 'Hôm nay em muốn đọc truyện gì?'}</p>
-          <button className="kid-today-go" onClick={goToSearch}><Search aria-hidden />Chọn truyện</button>
-        </div>
-      </section>
+      <div className="kl-panel kid-today-center kid-today-empty">
+        <Frog mood="think" size={96} />
+        <p className="display kid-today-say">
+          {finished
+            ? 'Em đã đọc hết truyện bố mẹ chọn rồi. Giỏi quá!'
+            : 'Hôm nay em muốn đọc truyện gì?'}
+        </p>
+        <button type="button" className="kid-btn3d is-gold is-big" onClick={onOpenLibrary}>
+          <Library aria-hidden="true" />Chọn truyện
+        </button>
+      </div>
     );
   }
 
-  const lilySteps: LilyStep[] = [
-    ...roadmap.done.map((d, i) => ({ key: i, storyId: d.storyId, title: d.title ?? "", cover: coverFor(d.coverImageUrl), status: "done" as const })),
-    { key: 100000 + open.storyId, storyId: open.storyId, title: open.title ?? "", cover: coverFor(open.coverImageUrl), status: "current" as const, locked: open.isLocked },
-    ...roadmap.upcoming.map((s) => ({ key: 200000 + s.order, storyId: s.storyId, title: s.title ?? "", cover: coverFor(s.coverImageUrl), status: "next" as const, locked: s.isLocked })),
-  ];
-  const onStep = (s: LilyStep) => {
-    if (busy) return;
-    if (s.status === "done" || (s.status === "current" && !s.locked)) { onRead(s.storyId); return; }
-    if (s.status === "current") { showToast("Truyện này chưa mở, em chờ bố mẹ nhé.", "info"); return; }
-    showToast("Đọc xong truyện trước để mở nhé!", "info");
+  if (!selected) {
+    return null;
+  }
+
+  const onStop = (stop: JourneyStop) => {
+    setSelectedId(stop.storyId);
+    if (stop.status === 'locked') {
+      showToast('Đọc xong truyện trước để mở nhé!', 'info');
+    }
   };
 
-  const locked = open.isLocked;
+  const note = roadmap.openStories.find((o) => o.storyId === selected.storyId)?.note;
+
   return (
-    <>
-      <section className="kid-today" aria-label="Truyện hôm nay của em">
-        <button className="kid-today-cover" style={{ background: coverFor(open.coverImageUrl) }} disabled={busy || locked} onClick={() => onRead(open.storyId)} aria-label={`Đọc truyện ${open.title ?? ''}`}>
-          {!open.coverImageUrl && <span className="bk-name display">{open.title}</span>}
-          {!locked && <span className="kid-today-play" aria-hidden><Play /></span>}
-        </button>
-        <div className="kid-today-body">
-          <b className="display kid-today-hello">{hello}</b>
-          <span className="kid-today-tag"><Star aria-hidden />Hôm nay em đọc</span>
-          <h2 className="display kid-today-title">{open.title ?? 'Truyện bố mẹ chọn'}</h2>
-          {open.note && <p className="kid-today-note">💌 {open.note}</p>}
-          {locked
-            ? <p className="kid-today-say"><Lock aria-hidden />Truyện này chưa mở, em chờ bố mẹ nhé.</p>
-            : <button className="kid-today-go" disabled={busy} onClick={() => onRead(open.storyId)}><Play aria-hidden />Đọc ngay</button>}
-        </div>
-      </section>
-      <div className="kid-today-pond" style={{ width: "100%", maxWidth: "100%", boxSizing: "border-box", minWidth: 0, overflow: "hidden" }}>
-        <LilyPondRoadmap steps={lilySteps} mode="child" storageKey={`kid:${nickname || "default"}`} done={roadmap.completedCount} total={roadmap.totalCount} onStepClick={onStep} emptyText="" />
+    <section className="kl-panel kid-today-journey">
+      <h2 className="kl-head display">
+        <MapIcon aria-hidden="true" />Hành trình của em
+        <span
+          className="kid-today-count"
+          aria-label={`Đã đọc ${roadmap.completedCount} trên ${roadmap.totalCount} truyện`}
+        >
+          {roadmap.completedCount}/{roadmap.totalCount}
+        </span>
+      </h2>
+      <div className="kid-today-body">
+        <article ref={cardRef} className={`kj-card is-${selected.status}`}>
+          <span className={`kj-ribbon is-${selected.status}`}>
+            {selected.status === 'open'
+              ? 'Hôm nay'
+              : selected.status === 'done'
+                ? 'Đã đọc'
+                : 'Chưa mở'}
+          </span>
+          <SafeImage src={selected.coverImageUrl} alt="" className="kj-cover" />
+          <h3 className="kj-title display">{selected.title ?? 'Truyện bố mẹ chọn'}</h3>
+          {note && (
+            <p className="kj-note">
+              <Mail aria-hidden="true" />
+              <span>{note}</span>
+            </p>
+          )}
+          {selected.status === 'open' && (
+            <button
+              type="button"
+              className="kid-btn3d is-gold is-big kj-action"
+              disabled={busy}
+              onClick={() => onRead(selected.storyId)}
+            >
+              <Play aria-hidden="true" />Đọc ngay
+            </button>
+          )}
+          {selected.status === 'done' && (
+            <button
+              type="button"
+              className="kid-btn3d is-green kj-action"
+              disabled={busy}
+              onClick={() => onRead(selected.storyId)}
+            >
+              <RotateCcw aria-hidden="true" />Đọc lại
+            </button>
+          )}
+          {selected.status === 'locked' && (
+            <button type="button" className="kid-btn3d is-sky kj-action" disabled>
+              <Lock aria-hidden="true" />Chưa mở
+            </button>
+          )}
+        </article>
+        <KidJourneyPath
+          stops={stops}
+          selectedId={selected.storyId}
+          onSelect={onStop}
+          finished={roadmap.isFinished}
+        />
       </div>
-    </>
+    </section>
   );
 }

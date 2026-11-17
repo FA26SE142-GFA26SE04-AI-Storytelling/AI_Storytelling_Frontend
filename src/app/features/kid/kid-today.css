@@ -1,0 +1,160 @@
+/* Hành trình của bé (KidToday + KidJourneyPath): thẻ "Hôm nay" bên trái, đường lá sen với các chặng bên phải */
+
+/* ===== Khung + thanh đầu ===== */
+.kid-today-journey { padding-top: 0; border-color: var(--sky); }
+.kid-today-journey > .kl-head { background: var(--sky); color: var(--on-primary); }
+
+/* Tiến độ đã đọc / tổng, bên phải thanh đầu */
+.kid-today-count {
+  margin-left: auto; padding: 2px 12px; border-radius: 999px;
+  background: var(--paper); color: var(--text);
+  border: 2px solid color-mix(in srgb, var(--sky) 60%, var(--text));
+  font-size: var(--fs-md); font-weight: 800;
+}
+
+.kid-today-body { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 20px; align-items: center; }
+
+/* Đang tải / chưa có hành trình / đã đọc hết */
+.kid-today-center { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px 16px; text-align: center; }
+.kid-today-say { margin: 0; font-size: var(--fs-xl); }
+
+/* ===== Thẻ truyện đang chọn ===== */
+.kj-card {
+  position: relative; display: flex; flex-direction: column; gap: 12px; min-width: 0; box-sizing: border-box; padding: 16px;
+  background: var(--paper); border: 3px solid var(--gold-deep); border-radius: 20px;
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--text) 12%, transparent);
+}
+.kj-card.is-done { border-color: var(--primary-strong); }
+.kj-card.is-locked { border-color: var(--line-2); }
+
+/* Nhãn trạng thái nằm đè góc trên ảnh bìa */
+.kj-ribbon {
+  position: absolute; top: 26px; left: 26px; z-index: 1; padding: 4px 14px; border-radius: 999px;
+  font-family: var(--font-display); font-size: var(--fs-md); font-weight: 800; line-height: 1.2;
+}
+.kj-ribbon.is-open { background: var(--gold); color: var(--on-gold); box-shadow: 0 3px 0 var(--gold-deep); }
+.kj-ribbon.is-done { background: var(--primary); color: var(--on-primary); box-shadow: 0 3px 0 var(--primary-strong); }
+.kj-ribbon.is-locked { background: var(--surface-2); color: var(--muted); box-shadow: 0 3px 0 var(--line-2); }
+
+.kj-cover {
+  display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; box-sizing: border-box;
+  border-radius: 14px; border: 3px solid var(--line);
+}
+/* Ảnh bìa ký từ kho media tải chậm vài giây: hiện hình lá sen mặc định phía sau thay vì ô trắng */
+.kj-cover, .kj-stop-cover { background: var(--surface) url("/default-image.svg") center / cover no-repeat; }
+.kj-card.is-locked .kj-cover { filter: grayscale(.6); }
+
+.kj-title { margin: 0; font-size: var(--fs-xl); line-height: 1.25; color: var(--text); overflow-wrap: anywhere; }
+
+.kj-note { display: flex; align-items: flex-start; gap: 6px; margin: 0; font-size: var(--fs-md); line-height: 1.4; color: var(--muted); }
+.kj-note svg { flex: none; width: 18px; height: 18px; margin-top: 2px; color: var(--gold-deep); }
+
+.kj-action { width: 100%; box-sizing: border-box; }
+.kj-action svg { width: 24px; height: 24px; flex: none; }
+
+/* ===== Đường lá sen ===== */
+.kj-path-wrap {
+  min-width: 0; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x proximity; box-sizing: border-box;
+  /* Chừa khoảng trên cho ếch đứng trên chặng hôm nay */
+  padding: 60px 20px 16px;
+  background: color-mix(in srgb, var(--mint) 18%, var(--paper));
+  border: 3px solid color-mix(in srgb, var(--mint) 40%, var(--line)); border-radius: 18px;
+  scrollbar-width: thin; scrollbar-color: color-mix(in srgb, var(--sky) 70%, var(--text)) transparent;
+}
+.kj-path-wrap::-webkit-scrollbar { height: 8px; }
+.kj-path-wrap::-webkit-scrollbar-thumb { background: color-mix(in srgb, var(--sky) 70%, var(--text)); border-radius: 999px; }
+
+.kj-path { display: flex; align-items: flex-start; width: max-content; margin: 0 auto; padding: 0; list-style: none; }
+.kj-path > li { flex: none; }
+
+/* Vạch nối giữa các chặng: đã đi là dải vàng, chưa đi là nét đứt; đặt ngang tâm vòng tròn (dải cao 88px) */
+.kj-link { width: 44px; height: 6px; margin-top: 41px; border-radius: 999px;
+  background: repeating-linear-gradient(90deg, var(--line-2) 0 8px, transparent 8px 14px); }
+.kj-link[data-walked="true"] { height: 10px; margin-top: 39px; background: var(--gold); box-shadow: 0 3px 0 var(--gold-deep); }
+
+/* Một chặng: vòng bìa tròn kiểu nút 3D + tên truyện bên dưới */
+.kj-stop {
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; width: 112px;
+  padding: 0; border: 0; background: none; color: var(--text); font: inherit; cursor: pointer; scroll-snap-align: center;
+  -webkit-tap-highlight-color: transparent;
+}
+.kj-stop-cover {
+  display: block; box-sizing: border-box; width: 72px; height: 72px; margin-top: 8px; border-radius: 50%; object-fit: cover;
+  border: 4px solid var(--line-2);
+  box-shadow: 0 5px 0 var(--line-2); transition: transform .15s, box-shadow .15s;
+}
+.kj-stop:hover .kj-stop-cover { transform: translateY(-3px); }
+.kj-stop:active .kj-stop-cover { transform: translateY(3px); box-shadow: 0 2px 0 var(--line-2); }
+.kj-stop:focus-visible { outline: none; }
+.kj-stop:focus-visible .kj-stop-cover { outline: 4px solid var(--gold-deep); outline-offset: 3px; }
+
+.kj-stop.is-done .kj-stop-cover { border-color: var(--primary); box-shadow: 0 5px 0 var(--primary-strong); }
+.kj-stop.is-open .kj-stop-cover {
+  width: 88px; height: 88px; margin-top: 0; border-color: var(--gold);
+  box-shadow: 0 5px 0 var(--gold-deep), 0 0 0 6px color-mix(in srgb, var(--gold) 35%, transparent);
+  animation: kj-glow 2s ease-in-out infinite;
+}
+.kj-stop.is-locked .kj-stop-cover { filter: grayscale(.6); opacity: .75; }
+.kj-stop.is-selected .kj-stop-cover { outline: 4px solid var(--sky); outline-offset: 3px; }
+
+@keyframes kj-glow {
+  0%, 100% { box-shadow: 0 5px 0 var(--gold-deep), 0 0 0 6px color-mix(in srgb, var(--gold) 35%, transparent); }
+  50% { box-shadow: 0 5px 0 var(--gold-deep), 0 0 0 12px color-mix(in srgb, var(--gold) 15%, transparent); }
+}
+
+/* Số thứ tự chặng ở góc trên trái vòng tròn */
+.kj-stop-no {
+  position: absolute; top: 0; left: 8px; z-index: 2; min-width: 26px; height: 26px; padding: 0 6px; box-sizing: border-box;
+  display: grid; place-items: center; border-radius: 999px; background: var(--panel); border: 2px solid var(--line-2);
+  font-family: var(--font-display); font-size: var(--fs-sm); font-weight: 800; color: var(--text);
+}
+
+/* Dấu tích (đã đọc) / ổ khóa (chưa mở) ở góc dưới phải vòng tròn */
+.kj-stop-badge, .kj-stop-lock {
+  position: absolute; top: 58px; right: 14px; z-index: 2; width: 28px; height: 28px; box-sizing: border-box;
+  display: grid; place-items: center; border-radius: 50%; border: 2px solid var(--panel);
+}
+.kj-stop-badge { background: var(--primary); color: var(--on-primary); }
+.kj-stop-lock { background: var(--surface-2); color: var(--muted); }
+.kj-stop-badge svg, .kj-stop-lock svg { width: 16px; height: 16px; stroke-width: 3; }
+
+/* Bạn ếch đứng trên chặng hôm nay */
+.kj-frog { position: absolute; top: -50px; left: 50%; z-index: 3; pointer-events: none; transform: translateX(-50%); animation: kj-hop 1.8s ease-in-out infinite; }
+@keyframes kj-hop {
+  0%, 60%, 100% { transform: translateX(-50%) translateY(0) scale(1, 1); }
+  70% { transform: translateX(-50%) translateY(0) scale(1.08, .92); }
+  82% { transform: translateX(-50%) translateY(-10px) scale(.96, 1.04); }
+}
+
+.kj-stop-name {
+  max-width: 108px; box-sizing: border-box; padding: 4px 8px; border-radius: 10px;
+  background: var(--paper); border: 2px solid var(--line);
+  font-size: var(--fs-sm); font-weight: 800; line-height: 1.25; text-align: center; color: var(--text);
+}
+.kj-stop-name > span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.kj-stop.is-open .kj-stop-name { border-color: var(--gold-deep); }
+.kj-stop.is-selected .kj-stop-name { border-color: var(--sky); }
+
+/* Đích: hoa sen, nở to và tỏa sáng khi đã đọc hết */
+.kj-end { display: flex; align-items: center; height: 88px; padding-left: 6px; }
+.kj-lotus { display: block; transition: transform .3s; }
+.kj-lotus.is-bloom { filter: drop-shadow(0 0 10px color-mix(in srgb, var(--gold) 70%, transparent)); animation: kj-bloom 2.4s ease-in-out infinite; }
+@keyframes kj-bloom { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+
+/* ===== Màn hẹp: thẻ ở trên, đường lá ở dưới ===== */
+@media (max-width: 768px) {
+  .kid-today-body { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .kj-cover { max-height: 200px; }
+}
+@media (max-width: 480px) {
+  .kid-today-journey { padding-inline: 12px; }
+  .kid-today-journey > .kl-head { margin-inline: -12px; }
+  .kj-card { padding: 12px; }
+  .kj-ribbon { top: 20px; left: 20px; }
+  .kj-path-wrap { padding-inline: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kj-stop.is-open .kj-stop-cover, .kj-frog, .kj-lotus.is-bloom { animation: none; }
+  .kj-stop-cover { transition: none; }
+}

@@ -4,8 +4,8 @@ import "./staff.css";
 import "@/app/features/children/children.css";
 import { useEffect, useState, type ComponentType } from "react";
 import {
-  Activity, Archive, ScrollText, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
-  Shield, ShieldAlert, Sparkles, Sun, UserCog, UserRound, Users, WandSparkles, type LucideIcon,
+  Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
+  Shield, ShieldAlert, Sparkles, Sun, ScrollText, UserRound, UserRoundCheck, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import { useAuth } from "@/app/context/AuthContext";
@@ -70,7 +70,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
     { id: "catalog", label: "Danh mục nội dung", icon: ListChecks, view: AdminCatalog },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
-    { id: "creators", label: "Content Creator", icon: UserCog, view: AdminCreators, hint: "Duyệt đơn đăng ký, quản lý Creator, cấp đối tác và chi trả" },
+    { id: "creators", label: "Content Creator", icon: UserRoundCheck, view: AdminCreators },
     { id: "audit", label: "Audit log", icon: ScrollText, view: AdminAuditLog, hint: "Nhật ký thao tác nhạy cảm của toàn hệ thống" },
     { id: "business", label: "Báo cáo nghiệp vụ", icon: ChartColumn, view: AdminBusinessReport },
     { id: "payments", label: "Thanh toán", icon: Receipt, view: AdminPayments },

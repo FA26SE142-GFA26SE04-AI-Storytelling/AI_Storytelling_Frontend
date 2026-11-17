@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import type * as B from '@/app/types/backendContracts';
 import AuthoringWorkspace from '@/app/features/authoring/AuthoringWorkspace';
+import StoryFields from '@/app/features/authoring/StoryFields';
 
 // Mock ParentAuthoringWorkspace so we can verify the props passed to it
 vi.mock('@/app/features/authoring/ParentAuthoringWorkspace', () => {
@@ -49,5 +50,27 @@ describe('AuthoringWorkspace without child chooser or naming prompt', () => {
     };
     expect(request.childProfileId).toBeNull();
     expect(request.title).toBe('Truyện của gia đình');
+  });
+
+  it('renders StoryFields manuscript canvas with paper textarea and live word/paragraph metrics', () => {
+    const html = renderToStaticMarkup(
+      <StoryFields
+        form={{
+          title: 'Ếch con đi học',
+          content: 'Sáng sớm ếch con thức dậy.\n\nẾch con cắp sách tới trường.',
+          sourceDeclaration: 'Tự sáng tác',
+          rightsDeclaration: 'Tôi là tác giả',
+        }}
+        onChange={vi.fn()}
+        onSelect={vi.fn()}
+        rightsLabel="Cam kết quyền sử dụng"
+      />
+    );
+
+    expect(html).toContain('pa-manuscript-box');
+    expect(html).toContain('pa-story-textarea');
+    expect(html).toContain('pa-editor-foot');
+    expect(html).toContain('<b>12</b> từ · <b>2</b> đoạn');
+    expect(html).toContain('Cam kết quyền sử dụng');
   });
 });

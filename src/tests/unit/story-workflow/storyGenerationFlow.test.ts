@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ContentGenerationProgressDto, OutlineProgressDto } from '@/app/types/aiStory';
-import { contentDestination, generationDisplayPhase, normalizeStoryStatus, outlineReady } from '@/app/features/story-workflow/storyGenerationFlow';
+import { contentDestination, generationDisplayPhase, normalizeStoryStatus, outlineReady, providerFailureMessage } from '@/app/features/story-workflow/storyGenerationFlow';
 
 const content: ContentGenerationProgressDto = {
   storyId: 7, storyStatus: 'outline_review', currentStep: 'generating_vocabulary', content: 'stable',
@@ -13,6 +13,11 @@ const outline: OutlineProgressDto = {
     isCurrent: true, editorUserId: null, outlineApprovedAt: null, outlineApprovedByUserId: null, createdAt: '' },
 };
 describe('backend-driven story transitions', () => {
+  it('explains permanent provider failures without presenting them as story safety failures', () => {
+    expect(providerFailureMessage('AI_PROVIDER_ACCESS_DENIED')).toContain('Google');
+    expect(providerFailureMessage('AI_PROVIDER_CONFIGURATION_REJECTED')).toContain('cấu hình');
+    expect(providerFailureMessage('OUTLINE_GENERATION_FAILED')).toBeNull();
+  });
   it('normalizes PascalCase without changing already normalized values', () => {
     expect(normalizeStoryStatus('MediaProcessing')).toBe('media_processing');
     expect(normalizeStoryStatus('content_review')).toBe('content_review');

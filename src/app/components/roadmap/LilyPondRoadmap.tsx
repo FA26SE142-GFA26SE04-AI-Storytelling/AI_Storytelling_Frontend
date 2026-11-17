@@ -16,7 +16,9 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Frog from "@/app/components/brand/Frog";
-import { Check, Lock, UserCheck } from "lucide-react";
+import Lotus from "@/app/components/brand/Lotus";
+import { Check, Lock, Plus, UserCheck } from "lucide-react";
+import { petalBurst } from "@/app/features/kid/kidFx";
 import "./LilyPondRoadmap.css";
 
 /* ========== Types ========== */
@@ -25,13 +27,26 @@ export type LilyStepStatus = "done" | "current" | "next";
 
 export interface LilyStep {
   key: number;
+  /** Số chặng thật; thiếu thì dùng số thứ tự trong hàng. */
+  stage?: number;
   storyId: number;
   title: string;
   cover: string;
   status: LilyStepStatus;
   locked?: boolean;
   parentPick?: boolean;
+  /** Số truyện trong chặng (chỉ hiện nhãn khi > 1). */
+  count?: number;
+  /** Chặng trống (chưa có truyện), vẽ viền đứt; chỉ dùng ở chế độ bố mẹ. */
+  empty?: boolean;
 }
+
+/** Kéo quá ngần này px mới tính là kéo; ít hơn vẫn là một cú bấm. */
+const DRAG_THRESHOLD = 6;
+/** Con trỏ cách mép khung cuộn ngần này px thì khung tự cuộn theo khi đang kéo. */
+const EDGE_SCROLL_ZONE = 48;
+const EDGE_SCROLL_STEP = 18;
+const DRAG_HINT = "Kéo để đổi thứ tự (hoặc mở chặng để dùng nút lên/xuống)";
 
 /* ========== Hằng bố cục ========== */
 
@@ -267,7 +282,7 @@ function useReducedMotion(): boolean {
 
 /* ========== Component chính ========== */
 
-export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick, emptyText, storageKey = "default" }: {
+export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick, emptyText, storageKey = "default", onReorder, draggable, onAddStage }: {
   steps: LilyStep[];
   mode: "parent" | "child";
   done: number;
@@ -276,6 +291,12 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
   emptyText?: string;
   /** Khoá localStorage phân biệt nhiều roadmap */
   storageKey?: string;
+  /** Chỉ chế độ bố mẹ: thả lá `fromKey` vào vị trí của lá thứ `toIndex` (chỉ số trong `steps`). */
+  onReorder?: (fromKey: number, toIndex: number) => void;
+  /** Lá nào kéo được (và cũng là lá được thả vào). Không truyền thì không lá nào kéo được. */
+  draggable?: (step: LilyStep) => boolean;
+  /** Có thì cuối hồ có thêm lá "+ Thêm chặng"; bấm vào thì gọi hàm này. */
+  onAddStage?: () => void;
 }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const frogRef = useRef<HTMLSpanElement>(null);
@@ -297,9 +318,10 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
   }, []);
 
   /* --- Bố cục 1 hàng ngang --- */
+  const slots = steps.length + (onAddStage ? 1 : 0); // lá "+ Thêm chặng" chiếm thêm một chỗ ở cuối
   const { leafs, goal, W } = useMemo(
-    () => computeLayout(steps.length),
-    [steps.length],
+    () => computeLayout(slots),
+    [slots],
   );
 
   /* Chiều rộng stage & offset căn giữa */
@@ -444,8 +466,152 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [storageKey, currIdx, layoutReady]);
 
+  /* --- Kéo thả lá (chỉ bố mẹ): Pointer Events, lá nhấc lên theo con trỏ, đường đi giữ nguyên --- */
+  const [drag, setDrag] = useState<{ key: number; dx: number; dy: number; over: number } | null>(null);
+  const dragRef = useRef<{ key: number; index: number; pointerId: number; startClientX: number; startClientY: number; startContentX: number; active: boolean; cancelled: boolean; over: number } | null>(null);
+  const suppressClick = useRef(false);
+  /* Bấm "+ Thêm chặng" xong thì lá "+ Thêm chặng" biến mất: chuyển tiêu điểm bàn phím sang lá chặng trống vừa hiện. */
+  const emptyPadRef = useRef<HTMLButtonElement>(null);
+  const focusEmpty = useRef(false);
+  useEffect(() => {
+    if (focusEmpty.current && emptyPadRef.current) { emptyPadRef.current.focus(); focusEmpty.current = false; }
+  });
+  /* Esc huỷ lượt kéo đang diễn ra: lá về chỗ cũ, thả chuột cũng không đổi thứ tự. */
+  const dragging = drag !== null;
+  useEffect(() => {
+    if (!dragging) return;
+    const onKey = (ev: KeyboardEvent) => {
+      if (ev.key !== "Escape" || !dragRef.current) return;
+      dragRef.current.cancelled = true;
+      setDrag(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [dragging]);
+  const canDrag = (step: LilyStep) => mode === "parent" && !!onReorder && !!draggable?.(step);
+
+  /** Toạ độ x của con trỏ trong hệ toạ độ của hồ (đã tính phần đã cuộn). */
+  const contentX = (clientX: number) => {
+    const el = scrollRef.current;
+    return el ? clientX - el.getBoundingClientRect().left + el.scrollLeft : clientX;
+  };
+
+  const onPadPointerDown = (e: React.PointerEvent<HTMLButtonElement>, step: LilyStep, index: number) => {
+    if (!canDrag(step) || e.button !== 0 || !e.isPrimary) return;
+    dragRef.current = {
+      key: step.key, index, pointerId: e.pointerId, startClientX: e.clientX, startClientY: e.clientY,
+      startContentX: contentX(e.clientX), active: false, cancelled: false, over: index,
+    };
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* trình duyệt không hỗ trợ: vẫn kéo được khi con trỏ ở trên lá */ }
+  };
+
+  const onPadPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
+    const d = dragRef.current;
+    if (!d || d.pointerId !== e.pointerId || d.cancelled) return;
+    const lf = leafs[d.index];
+    if (!lf || steps[d.index]?.key !== d.key) { d.cancelled = true; setDrag(null); return; } // danh sách chặng đã đổi giữa lúc kéo
+    if (!d.active) {
+      if (Math.hypot(e.clientX - d.startClientX, e.clientY - d.startClientY) < DRAG_THRESHOLD) return;
+      d.active = true;
+    }
+    const el = scrollRef.current;
+    if (el) {
+      const r = el.getBoundingClientRect();
+      if (e.clientX > r.right - EDGE_SCROLL_ZONE) el.scrollLeft += EDGE_SCROLL_STEP;
+      else if (e.clientX < r.left + EDGE_SCROLL_ZONE) el.scrollLeft -= EDGE_SCROLL_STEP;
+    }
+    const x = contentX(e.clientX);
+    // Lá được thả vào = lá kéo được gần tâm lá đang kéo nhất (lá đã đọc, đang đọc, chặng trống không phải đích thả).
+    const centre = lf.x + offsetX + (x - d.startContentX);
+    let over = d.index;
+    let best = Infinity;
+    steps.forEach((s, j) => {
+      if (!canDrag(s)) return;
+      const dist = Math.abs(leafs[j].x + offsetX - centre);
+      if (dist < best) { best = dist; over = j; }
+    });
+    d.over = over;
+    setDrag({ key: d.key, dx: x - d.startContentX, dy: e.clientY - d.startClientY, over });
+  };
+
+  const endDrag = (e: React.PointerEvent<HTMLButtonElement>, commit: boolean) => {
+    const d = dragRef.current;
+    if (!d || d.pointerId !== e.pointerId) return;
+    dragRef.current = null;
+    setDrag(null);
+    try { e.currentTarget.releasePointerCapture(e.pointerId); } catch { /* đã nhả */ }
+    if (!d.active && !d.cancelled) return; // chưa vượt ngưỡng: coi như bấm, để onClick mở hộp thoại chặng
+    suppressClick.current = true; // cú bấm sinh ra sau khi thả không được mở hộp thoại
+    setTimeout(() => { suppressClick.current = false; }, 0);
+    // Thả ngoài khung hồ, bấm Esc, mất quyền bắt con trỏ hoặc đích không còn hợp lệ thì không đổi thứ tự.
+    const r = scrollRef.current?.getBoundingClientRect();
+    const inside = !!r && e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    const target = steps[d.over];
+    if (commit && !d.cancelled && inside && target && canDrag(target) && steps[d.index]?.key === d.key && d.over !== d.index) onReorder?.(d.key, d.over);
+  };
+
+  /* --- Giữ lá đã đọc để nở sen (chỉ bé) --- */
+  const [bloomIdx, setBloomIdx] = useState<number | null>(null);
+  const bloomTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isHoldingBloomRef = useRef(false);
+
+  /* --- Chạm hoa sen đích để nở & bung cánh hoa (chỉ bé) --- */
+  const [goalBloomed, setGoalBloomed] = useState(false);
+  const goalBloomTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (bloomTimerRef.current) clearTimeout(bloomTimerRef.current);
+      if (goalBloomTimerRef.current) clearTimeout(goalBloomTimerRef.current);
+    };
+  }, []);
+
+  const handleGoalClick = (e: React.MouseEvent<HTMLSpanElement>) => {
+    if (mode !== "child") return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = rect.left + rect.width / 2;
+    const y = rect.top + rect.height / 2;
+    petalBurst(x, y);
+
+    if (reducedMotion) return;
+
+    if (goalBloomTimerRef.current) clearTimeout(goalBloomTimerRef.current);
+    setGoalBloomed(true);
+    goalBloomTimerRef.current = setTimeout(() => {
+      setGoalBloomed(false);
+      goalBloomTimerRef.current = null;
+    }, 600);
+  };
+
+  const handlePadPointerDownChild = (index: number) => {
+    if (reducedMotion) return;
+    if (bloomTimerRef.current) clearTimeout(bloomTimerRef.current);
+    isHoldingBloomRef.current = true;
+    bloomTimerRef.current = setTimeout(() => {
+      isHoldingBloomRef.current = false;
+      suppressClick.current = true; // giữ lâu là để nở hoa: cú click khi thả tay không được mở lại truyện
+      setBloomIdx(index);
+      bloomTimerRef.current = setTimeout(() => {
+        setBloomIdx(null);
+        bloomTimerRef.current = null;
+      }, 1000);
+    }, 600);
+  };
+
+  const handlePadPointerUpOrLeaveChild = () => {
+    if (isHoldingBloomRef.current) {
+      isHoldingBloomRef.current = false;
+      if (bloomTimerRef.current) {
+        clearTimeout(bloomTimerRef.current);
+        bloomTimerRef.current = null;
+      }
+    } else if (suppressClick.current) {
+      setTimeout(() => { suppressClick.current = false; }, 0);
+    }
+  };
+
   /* ========== Empty state ========== */
-  if (steps.length === 0) {
+  if (steps.length === 0 && !onAddStage) {
     return (
       <div>
         <div className="rm-progress">
@@ -462,12 +628,16 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
   return (
     <div>
       {/* Thanh tiến độ */}
-      <div className="rm-progress">
-        <div className="rm-progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-label="Tiến độ đọc">
-          <i style={{ width: `${percent}%` }} />
+      {mode !== "child" && (
+        <div className="rm-progress">
+          <div className="rm-progress-bar" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={done} aria-label="Tiến độ đọc">
+            <i style={{ width: `${percent}%` }} />
+          </div>
+          <b>Đã đọc {done}/{total}</b>
         </div>
-        <b>Đã đọc {done}/{total}</b>
-      </div>
+      )}
+
+      {steps.length === 0 && emptyText && <p className="rm-empty">{emptyText}</p>}
 
       {/* Khung cuộn ngang */}
       <div
@@ -529,11 +699,15 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
             {steps.map((step, i) => {
               const lx = leafs[i].x + offsetX;
               const ly = leafs[i].y;
-              const n = i + 1;
+              const n = step.stage ?? i + 1;
               const showParentPick = mode === "parent" && Boolean(step.parentPick);
-              const label =
-                `Truyện ${n}: ${step.title} — ${statusLabel(step)}` +
-                (showParentPick ? ", Bố mẹ chọn" : "");
+              const label = step.empty
+                ? `Chặng ${n}: chặng trống, bấm để chọn truyện`
+                : `Chặng ${n}: ${step.title}${(step.count ?? 0) > 1 ? ` (${step.count} truyện)` : ""} — ${statusLabel(step)}` +
+                  (showParentPick ? ", Bố mẹ chọn" : "");
+              const movable = canDrag(step);
+              const lifted = drag?.key === step.key;
+              const target = !!drag && !lifted && drag.over === i;
 
               return (
                 <li
@@ -542,27 +716,72 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
                     position: "absolute",
                     left: lx,
                     top: ly,
-                    transform: "translate(-50%, -50%)",
+                    transform: lifted && drag ? `translate(-50%, -50%) translate(${drag.dx}px, ${drag.dy}px)` : "translate(-50%, -50%)",
+                    zIndex: lifted ? 6 : undefined,
                   }}
                 >
                   <button
                     type="button"
                     className={
                       `lily-pad ${step.status}` +
-                      (step.locked ? " locked" : "")
+                      (step.locked ? " locked" : "") +
+                      (step.empty ? " empty" : "") +
+                      (movable ? " draggable" : "") +
+                      (lifted ? " dragging" : "") +
+                      (target ? " drop" : "") +
+                      (mode === "child" && step.status === "current" && !reducedMotion ? " is-pulsing" : "")
                     }
                     aria-label={label}
-                    onClick={() => onStepClick(step, i)}
+                    onClick={() => { if (suppressClick.current) return; onStepClick(step, i); }}
+                    onPointerDown={
+                      mode === "child" && step.status === "done"
+                        ? () => handlePadPointerDownChild(i)
+                        : (movable ? (e) => onPadPointerDown(e, step, i) : undefined)
+                    }
+                    onPointerMove={movable ? onPadPointerMove : undefined}
+                    onPointerUp={
+                      mode === "child" && step.status === "done"
+                        ? handlePadPointerUpOrLeaveChild
+                        : (movable ? (e) => endDrag(e, true) : undefined)
+                    }
+                    onPointerLeave={
+                      mode === "child" && step.status === "done"
+                        ? handlePadPointerUpOrLeaveChild
+                        : undefined
+                    }
+                    onPointerCancel={
+                      mode === "child" && step.status === "done"
+                        ? handlePadPointerUpOrLeaveChild
+                        : (movable ? (e) => endDrag(e, false) : undefined)
+                    }
+                    onLostPointerCapture={movable ? (e) => endDrag(e, false) : undefined}
+                    ref={step.empty ? emptyPadRef : undefined}
+                    title={movable ? DRAG_HINT : undefined}
                   >
                     {/* Số thứ tự */}
                     <span className="lily-n">{n}</span>
 
-                    {/* Ảnh bìa */}
-                    <span className="lily-cover" style={{ background: step.cover }} aria-hidden="true" />
+                    {/* Sen nở khi giữ (chế độ bé) */}
+                    {bloomIdx === i && !reducedMotion && (
+                      <span className="lily-child-bloom"><Lotus size={28} /></span>
+                    )}
+
+                    {/* Ảnh bìa (chặng trống: dấu cộng) */}
+                    {step.empty
+                      ? <span className="lily-plus" aria-hidden="true"><Plus size={26} /></span>
+                      : <span className="lily-cover" style={{ background: step.cover }} aria-hidden="true" />}
+                    {(step.count ?? 0) > 1 && (
+                      <span className="lily-count" aria-hidden="true">×{step.count}</span>
+                    )}
 
                     {/* Dấu Check / Lock */}
                     {step.status === "done" && (
-                      <span className="lily-icon"><Check size={16} /></span>
+                      <span
+                        className={"lily-icon" + (mode === "child" && !reducedMotion ? " lily-check-pop" : "")}
+                        style={mode === "child" && !reducedMotion ? { animationDelay: (i * 120) + "ms" } : undefined}
+                      >
+                        <Check size={16} />
+                      </span>
                     )}
                     {step.locked && (
                       <span className="lily-icon"><Lock size={16} /></span>
@@ -581,20 +800,42 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
                 </li>
               );
             })}
+
+            {/* Lá cuối: thêm một chặng trống (chỉ bố mẹ) */}
+            {onAddStage && (
+              <li
+                key="add-stage"
+                style={{ position: "absolute", left: leafs[steps.length].x + offsetX, top: leafs[steps.length].y, transform: "translate(-50%, -50%)" }}
+              >
+                <button type="button" className="lily-pad add" aria-label="Thêm chặng" onClick={() => { focusEmpty.current = true; onAddStage(); }}>
+                  <span className="lily-plus" aria-hidden="true"><Plus size={26} /></span>
+                </button>
+                <span className="lily-name">+ Thêm chặng</span>
+              </li>
+            )}
           </ol>
 
           {/* Đích — bông sen vàng */}
           <span
-            aria-hidden="true"
+            aria-hidden={mode === "child" ? undefined : "true"}
             style={{
               position: "absolute",
               left: goal.x + offsetX,
               top: goal.y,
               transform: "translate(-50%, -50%)",
-              pointerEvents: "none",
+              pointerEvents: mode === "child" ? "auto" : "none",
             }}
           >
-            <span className="lily-goal" style={{ display: "block" }}>
+            <span
+              role={mode === "child" ? "button" : undefined}
+              className={`lily-goal${mode === "child" && goalBloomed ? " is-bloomed" : ""}`}
+              style={{
+                display: "block",
+                pointerEvents: mode === "child" ? "auto" : undefined,
+                cursor: mode === "child" ? "pointer" : undefined,
+              }}
+              onClick={mode === "child" ? handleGoalClick : undefined}
+            >
               <GoalLotus />
             </span>
           </span>
@@ -638,6 +879,7 @@ export default function LilyPondRoadmap({ steps, mode, done, total, onStepClick,
           )}
         </div>
       </div>
+      {mode === "child" && <span className="lily-child-badge" aria-label={`Đã đọc ${done} trên ${total}`}>{done}/{total}</span>}
     </div>
   );
 }

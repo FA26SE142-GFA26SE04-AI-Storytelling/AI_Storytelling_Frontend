@@ -6,14 +6,6 @@ import { authService } from './authService';
 
 /** Luồng 1 Bước 1.1, 1.1b: xác thực email, thông tin cá nhân, đổi email, đổi mật khẩu, phiên đăng nhập, xoá tài khoản. */
 export const accountService = {
-  /**
-   * Content Creator tự đăng ký (Luồng 5, M5): tạo tài khoản và đơn đăng ký. Creator xác thực email như phụ huynh, rồi chờ
-   * Administrator duyệt; trong lúc chờ đăng nhập được nhưng chỉ xem được trạng thái đơn.
-   */
-  registerCreator(data: { username: string; email: string; fullName: string; password: string; confirmPassword: string;
-    introduction: string; portfolioUrl: string | null }): Promise<ApiResponse<null>> {
-    return apiRequest('/Auth/register-creator', 'Không gửi được đơn đăng ký Creator.', { method: 'POST', body: data, anonymous: true });
-  },
   verifyEmail(email: string, otp: string): Promise<ApiResponse<null>> {
     return apiRequest('/Auth/verify-email', 'Mã xác thực không đúng hoặc đã hết hạn.', { method: 'POST', body: { email, otp }, anonymous: true });
   },
