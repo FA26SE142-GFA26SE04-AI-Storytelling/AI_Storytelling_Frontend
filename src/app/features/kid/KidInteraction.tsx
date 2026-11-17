@@ -65,8 +65,8 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
         return <div className="kid-roleplay">
           <b>{q.characterName}</b>
           <p className="kid-roleplay-line">“{q.modelSentence}”</p>
-          <button type="button" className="kid-soft-button" disabled={!q.modelAudioUrl} onClick={() => play(q.modelAudioUrl)}><Volume2 aria-hidden="true" />Nghe mẫu</button>
-          {!result && <button type="button" className="kid-listen-primary" disabled={busy} onClick={() => void send({})}><Check aria-hidden="true" />Em nói xong rồi</button>}
+          <button type="button" className="kid-btn3d is-sky" disabled={!q.modelAudioUrl} onClick={() => play(q.modelAudioUrl)}><Volume2 aria-hidden="true" />Nghe mẫu</button>
+          {!result && <button type="button" className="kid-btn3d is-gold" disabled={busy} onClick={() => void send({})}><Check aria-hidden="true" />Em nói xong rồi</button>}
         </div>;
       case 'FillBlank':
         return <div className="kid-fill">
@@ -74,7 +74,7 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
           {q.hint && <p className="kid-hint">Gợi ý: {q.hint}</p>}
           {!result && <>
             <input className="inp" aria-label="Chữ em điền" maxLength={ANSWER_MAX} value={answer} onChange={e => setAnswer(e.target.value)} />
-            <button type="button" className="kid-listen-primary" disabled={busy || !answer.trim()} onClick={() => void send({ answer: answer.trim() })}><Check aria-hidden="true" />Xong</button>
+            <button type="button" className="kid-btn3d is-gold" disabled={busy || !answer.trim()} onClick={() => void send({ answer: answer.trim() })}><Check aria-hidden="true" />Xong</button>
           </>}
         </div>;
       case 'EventOrdering':
@@ -89,8 +89,8 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
             })}
           </div>
           {!result && <div className="kid-actions">
-            <button type="button" className="kid-soft-button" disabled={!order.length || busy} onClick={() => setOrder([])}><RotateCcw aria-hidden="true" />Xếp lại</button>
-            <button type="button" className="kid-listen-primary" disabled={busy || order.length !== options.length} onClick={() => void send({ orderedOptionIds: order })}><Check aria-hidden="true" />Xong</button>
+            <button type="button" className="kid-btn3d is-sky" disabled={!order.length || busy} onClick={() => setOrder([])}><RotateCcw aria-hidden="true" />Xếp lại</button>
+            <button type="button" className="kid-btn3d is-gold" disabled={busy || order.length !== options.length} onClick={() => void send({ orderedOptionIds: order })}><Check aria-hidden="true" />Xong</button>
           </div>}
         </div>;
       default:
@@ -108,13 +108,13 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
         {result.suggestedAnswer && <p className="kid-hint">Chữ cần điền là: <b>{result.suggestedAnswer}</b></p>}
         {result.revealed && result.correctOrderOptionIds && <ol className="kid-order-answer">{result.correctOrderOptionIds.map(id => <li key={id}>{optionText(id)}</li>)}</ol>}
         {canRetry && <div className="kid-actions">
-          {result.replaySceneIndexes.map(i => <button key={i} type="button" className="kid-soft-button" onClick={() => onReplay(i)}><Volume2 aria-hidden="true" />Nghe lại cảnh {i + 1}</button>)}
-          <button type="button" className="kid-soft-button" onClick={() => { setResult(null); setOrder([]); }}><RotateCcw aria-hidden="true" />Xếp lại</button>
+          {result.replaySceneIndexes.map(i => <button key={i} type="button" className="kid-btn3d is-sky" onClick={() => onReplay(i)}><Volume2 aria-hidden="true" />Nghe lại cảnh {i + 1}</button>)}
+          <button type="button" className="kid-btn3d is-sky" onClick={() => { setResult(null); setOrder([]); }}><RotateCcw aria-hidden="true" />Xếp lại</button>
         </div>}
       </div>}
       <div className="kid-actions">
-        {finished && <button type="button" className="kid-listen-primary" onClick={() => onContinue(true)}><Check aria-hidden="true" />Đọc tiếp</button>}
-        {!finished && <button type="button" className="kid-soft-button" disabled={busy} onClick={() => onContinue(true)}><SkipForward aria-hidden="true" />Để sau</button>}
+        {finished && <button type="button" className="kid-btn3d is-gold" onClick={() => onContinue(true)}><Check aria-hidden="true" />Đọc tiếp</button>}
+        {!finished && <button type="button" className="kid-btn3d is-sky" disabled={busy} onClick={() => onContinue(true)}><SkipForward aria-hidden="true" />Để sau</button>}
       </div>
     </div>
   </div>;

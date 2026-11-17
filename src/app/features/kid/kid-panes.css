@@ -1,0 +1,210 @@
+/* Các khu của bé (Sổ tay, Điều ước, Huy hiệu) theo ngôn ngữ sảnh: dùng .kl-panel/.kl-head/.kid-btn3d trong kid-lobby.css.
+   Đè kiểu cũ trong child-reading.css bằng selector cụ thể hơn. */
+:root { --kid-gold-soft: color-mix(in srgb, var(--gold) 22%, var(--paper)); }
+
+/* 1. Nền khung: trong suốt, các panel tự có nền mờ */
+.kid .ksection.kid-reading.kid-with-dock {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 0;
+}
+
+/* Nút vuông chỉ có icon */
+.kid-btn3d.kid-btn-sq,
+.kid-btn3d.kid-btn-sq-lg {
+  flex: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.kid-btn3d.kid-btn-sq { width: 48px; height: 48px; min-height: 48px; border-radius: 14px; }
+.kid-btn3d.kid-btn-sq-lg { width: 56px; height: 56px; min-height: 56px; border-radius: 16px; }
+.kid-btn-sq svg { width: 22px; height: 22px; }
+.kid-btn-sq-lg svg { width: 26px; height: 26px; }
+
+/* Rỗng / đang tải: ếch canh giữa */
+.kid-pane-empty,
+.kid-pane-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.kid-pane-empty .kl-words-empty { margin: 0; }
+
+/* 2. Sổ tay */
+.kid-notebook-grid {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+}
+.kid-notebook-grid .kl-word { justify-content: space-between; }
+.kid-notebook-grid .kl-word span { -webkit-line-clamp: 3; }
+.kid-word-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* 3. Điều ước */
+.kid-wish .kl-panel.kid-wish-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-color: var(--lotus-deep);
+}
+.kid-wish .kl-panel.kid-wish-mine { padding-top: 0; gap: 0; }
+.kid-wish .kid-wish-mine > .kl-head { background: var(--lotus); color: var(--on-gold); }
+.kid-wish .kl-panel.kid-wish-invite { flex-direction: row; align-items: center; gap: 20px; }
+.kid-wish .kid-wish-invite > div { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-width: 0; }
+.kid-wish h3.kid-wish-question { margin: 0; font-size: var(--fs-xl); font-weight: 800; }
+.kid-wish-steps { display: flex; flex-wrap: wrap; gap: 12px; padding-top: 6px; }
+.kid-wish-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.kid-wish-actions .kid-btn3d { font-size: var(--fs-md); max-width: 100%; }
+.kid-wish-actions .kid-btn3d.is-big { font-size: var(--fs-xl); }
+.kid-wish-actions .kid-btn3d svg { width: 22px; height: 22px; flex: none; }
+.kid-btn3d.kid-wish-suggest { min-height: 56px; height: auto; padding-block: 8px; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+
+/* Thẻ điều ước đã gửi */
+.kid-wish-list { padding-top: 4px; }
+.kid-wish .kid-wish-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 3px solid var(--line);
+  border-radius: 16px;
+  background: var(--paper);
+  min-width: 0;
+}
+.kid-wish .kid-wish-item h3 { margin: 0; font-size: var(--fs-lg); font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
+.kid-wish .kid-wish-item .kid-wish-status { font-size: var(--fs-md); }
+
+/* Thẻ chọn nhân vật, nơi chốn… (đã chọn đánh dấu bằng aria-pressed) */
+.kid .kid-wish .kid-wish-card {
+  border: 3px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 4px 0 var(--line);
+  background: var(--paper);
+  font-size: var(--fs-lg);
+  cursor: pointer;
+  transition: transform .15s, border-color .15s;
+}
+.kid .kid-wish .kid-wish-card:hover:not(:disabled) { transform: translateY(-2px); background: var(--paper); }
+.kid .kid-wish .kid-wish-card:disabled { opacity: .6; cursor: not-allowed; }
+.kid .kid-wish .kid-wish-card[aria-pressed="true"] {
+  outline: 0;
+  border-color: var(--gold-deep);
+  background: var(--kid-gold-soft);
+  box-shadow: 0 4px 0 var(--gold-deep);
+  animation: kl-pop .45s cubic-bezier(.2, .9, .3, 1.3) both;
+}
+
+/* 4. Phần thưởng: cây, kinh nghiệm, huy hiệu */
+.kid-rewards-panes .kid-tree.kl-panel {
+  display: flex;
+  justify-content: center;
+  padding: 16px;
+  border-color: var(--primary);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--panel) 82%, transparent);
+  box-shadow: 0 6px 0 color-mix(in srgb, var(--text) 12%, transparent);
+}
+.kid-rewards-panes .kl-panel.kid-exp-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 0;
+  border-color: var(--primary);
+}
+.kid-exp-panel > .kl-head { margin-bottom: 0; padding-right: 110px; background: var(--primary); color: var(--on-primary); }
+.kid-exp-panel .kid-streak {
+  position: absolute; top: 8px; right: 12px;
+  display: flex; align-items: center; gap: 6px; padding: 4px 12px 4px 8px; border-radius: 999px;
+  border: 2px solid var(--gold-deep); background: var(--kid-gold-soft); color: var(--on-gold);
+}
+.kid-exp-panel .kid-streak b { font-size: var(--fs-xl); line-height: 1; }
+.kid-exp-panel .kid-tree-info { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; width: 100%; }
+.kid-exp-panel .kid-exp-line b { font-size: var(--fs-2xl); line-height: 1.1; }
+
+.kid-rewards-panes .kl-panel.kid-badge-panel { padding-top: 0; border-color: var(--gold-deep); }
+.kid-badge-panel > .kl-head { background: var(--gold); color: var(--on-gold); }
+.kid-badge-panel .kid-badge-count {
+  margin-left: auto; padding: 2px 12px; border-radius: 999px;
+  background: var(--paper); color: var(--on-gold); border: 2px solid var(--gold-deep);
+  font-size: var(--fs-md); font-weight: 800;
+}
+[data-theme="dark"] .kid-badge-panel .kid-badge-count { color: var(--text); }
+
+.kid-badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+}
+.kid-badge-card {
+  border: 3px solid var(--line);
+  border-radius: 20px;
+  box-shadow: 0 4px 0 var(--line);
+  background: var(--paper);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  min-width: 0;
+}
+.kid-badge-card b { font-size: var(--fs-md); font-weight: 800; line-height: 1.25; overflow-wrap: anywhere; }
+.kid-badge-card p { margin: 0; font-size: var(--fs-sm); line-height: 1.35; color: var(--muted); overflow-wrap: anywhere; }
+.kid-badge-card.is-earned {
+  border-color: var(--gold-deep);
+  box-shadow: 0 4px 0 var(--gold-deep);
+  background: var(--kid-gold-soft);
+  animation: kl-pop .45s cubic-bezier(.2, .9, .3, 1.3) both;
+}
+.kid-badge-card.is-locked { opacity: .55; filter: grayscale(1); }
+.kid-badge-card .kid-badge-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-2);
+  color: var(--muted);
+  box-shadow: none;
+}
+.kid-badge-card.is-earned .kid-badge-icon { background: var(--gold); color: var(--on-gold); border: 3px solid var(--gold-deep); box-sizing: border-box; }
+.kid-badge-card .kid-badge-icon svg { width: 24px; height: 24px; }
+
+/* 5. Màn hẹp */
+@media (max-width: 480px) {
+  .kid-pane .kl-panel { padding-inline: 12px; padding-bottom: 12px; }
+  .kid-pane .kl-panel:not(:has(> .kl-head)),
+  .kid-rewards-panes .kid-tree.kl-panel { padding: 12px; }
+  .kid-pane .kl-panel > .kl-head { margin-inline: -12px; }
+  .kid-wish .kl-panel.kid-wish-invite { flex-direction: column; text-align: center; }
+  .kid-wish .kid-wish-invite > div { align-items: center; }
+  .kid-notebook-grid,
+  .kid-badge-grid { grid-template-columns: 1fr; }
+  .kid-wish-actions .kid-btn3d { flex: 1 1 auto; padding-inline: 14px; }
+  .kid-wish-actions .kid-btn3d.is-big { font-size: var(--fs-lg); letter-spacing: 0; }
+  .kid-wish-steps { gap: 8px; }
+}
+
+/* 6. Giảm chuyển động */
+@media (prefers-reduced-motion: reduce) {
+  .kid .kid-wish .kid-wish-card,
+  .kid .kid-wish .kid-wish-card[aria-pressed="true"],
+  .kid-badge-card.is-earned,
+  .kid-notebook-grid .kl-word { animation: none; transition: none; }
+  .kid .kid-wish .kid-wish-card:hover:not(:disabled) { transform: none; }
+}

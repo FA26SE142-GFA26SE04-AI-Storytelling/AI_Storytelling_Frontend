@@ -6,6 +6,7 @@ import IconButton from '@/app/components/IconButton';
 import { childQuizService } from '@/app/services/childReadingService';
 import type { ChildQuiz, ChildQuizResult, QuizAnswerResult } from '@/app/types/childReading';
 import Frog from '@/app/components/brand/Frog';
+import { showToast } from '@/app/lib/toast';
 
 const pct = (v: number | null | undefined) => (v == null ? '—' : `${Math.round(v)}%`);
 
@@ -36,6 +37,7 @@ export default function KidQuiz({ token, sessionId, onDone, onLibrary }: { token
     });
     return () => controller.abort();
   }, [token, sessionId]);
+  useEffect(() => { if (note) showToast(note, 'err'); }, [note]);
 
   const finish = async () => {
     setBusy(true);
@@ -59,7 +61,8 @@ export default function KidQuiz({ token, sessionId, onDone, onLibrary }: { token
   };
   const restart = () => { if (quiz) reshuffle(quiz); setResult(null); setIndex(0); setAnswer(null); setText(''); setPicked(''); gained.current = { exp: 0, badges: [] }; };
 
-  if (!quiz) return <section className="kid-quiz">{note ? <p className="notice" role="status">{note}</p> : <p role="status">Đang mở câu đố…</p>}</section>;
+  // Lỗi chi tiết đã báo bằng toast; ở đây chỉ còn ếch và một câu ngắn.
+  if (!quiz) return <section className="kid-quiz kid-story-finish" role="status"><Frog mood="think" size={96} /><p>{note ? 'Chưa mở được câu đố.' : 'Đang mở câu đố…'}</p></section>;
   if (!quiz.questions.length) return <section className="kid-quiz"><p>Truyện này chưa có câu đố.</p></section>;
   if (result) return <section className="kid-quiz kid-story-finish">
     <Frog mood="happy" size={80} />
@@ -67,16 +70,15 @@ export default function KidQuiz({ token, sessionId, onDone, onLibrary }: { token
     {result.answered < result.totalQuestions && <p>Em đã bỏ qua {result.totalQuestions - result.answered} câu.</p>}
     <p>Lần này: {pct(result.currentPercent)} · Tốt nhất: {pct(result.bestPercent)}</p>
     <div className="kid-quiz-footer">
-      {onLibrary && <button type="button" className="kid-soft-button" onClick={onLibrary}><BookOpen aria-hidden="true" />Về thư viện</button>}
-      <button type="button" className="kid-listen-primary" disabled={busy} onClick={restart}><RotateCcw aria-hidden="true" />Làm lại câu đố</button>
+      {onLibrary && <button type="button" className="kid-btn3d is-sky" onClick={onLibrary}><BookOpen aria-hidden="true" />Về thư viện</button>}
+      <button type="button" className="kid-btn3d is-gold" disabled={busy} onClick={restart}><RotateCcw aria-hidden="true" />Làm lại câu đố</button>
     </div>
   </section>;
 
   const q = quiz.questions[index];
   return <section className="kid-quiz">
-    <p className="kid-overline">CÂU {index + 1}/{quiz.questions.length}{quiz.bestPercent != null ? ` · TỐT NHẤT ${pct(quiz.bestPercent)}` : ''}</p>
+    <p className="kid-quiz-progress display">Câu {index + 1}/{quiz.questions.length}{quiz.bestPercent != null ? ` · Tốt nhất ${pct(quiz.bestPercent)}` : ''}</p>
     <h3 className="display">{q.question}</h3>
-    {note && <p className="notice" role="status">{note}</p>}
     {choices.length > 0 && <div className="kid-quiz-choices">{choices.map((c, i) => {
       // Backend không lộ đáp án: chỉ tô màu lựa chọn bé đã chọn, xanh nếu đúng, đỏ nếu sai.
       const mine = !!answer && c === picked;
@@ -84,17 +86,17 @@ export default function KidQuiz({ token, sessionId, onDone, onLibrary }: { token
     })}</div>}
     {!answer && !q.choices.length && (<form className="row" onSubmit={e => { e.preventDefault(); void send(text); }}>
         <input className="inp" aria-label="Câu trả lời của em" maxLength={200} value={text} onChange={e => setText(e.target.value)} />
-        <IconButton icon={Check} label="Trả lời" type="submit" iconClassName="" className="kid-soft-button" disabled={busy || !text.trim()} />
+        <IconButton icon={Check} label="Trả lời" type="submit" iconClassName="" className="kid-btn3d is-sky kid-btn-icon" disabled={busy || !text.trim()} />
       </form>)}
     {answer && <div className={`kid-quiz-feedback ${answer.isCorrect ? 'ok' : 'try'}`} role="status">
       <Frog mood={answer.isCorrect ? 'happy' : 'think'} size={56} />
       <p>{answer.feedback || (answer.isCorrect ? 'Đúng rồi!' : 'Mình thử nghĩ lại nhé.')}{answer.expGained > 0 ? ` +${answer.expGained} EXP` : ''}</p>
     </div>}
     <div className="kid-quiz-footer">
-      {answer && onLibrary && <button type="button" className="kid-soft-button" onClick={onLibrary}><BookOpen aria-hidden="true" />Về thư viện</button>}
+      {answer && onLibrary && <button type="button" className="kid-btn3d is-sky" onClick={onLibrary}><BookOpen aria-hidden="true" />Về thư viện</button>}
       {index < quiz.questions.length - 1
-        ? <button type="button" className={answer ? 'kid-listen-primary' : 'kid-soft-button'} disabled={busy} onClick={next}>{answer ? <>Câu tiếp<ChevronRight aria-hidden="true" /></> : <><SkipForward aria-hidden="true" />Bỏ qua câu này</>}</button>
-        : <button type="button" className={answer ? 'kid-listen-primary' : 'kid-soft-button'} disabled={busy} onClick={next}><Flag aria-hidden="true" />{answer ? 'Xem kết quả' : 'Bỏ qua và xem kết quả'}</button>}
+        ? <button type="button" className={`kid-btn3d ${answer ? 'is-gold' : 'is-sky'}`} disabled={busy} onClick={next}>{answer ? <>Câu tiếp<ChevronRight aria-hidden="true" /></> : <><SkipForward aria-hidden="true" />Bỏ qua câu này</>}</button>
+        : <button type="button" className={`kid-btn3d ${answer ? 'is-gold' : 'is-sky'}`} disabled={busy} onClick={next}><Flag aria-hidden="true" />{answer ? 'Xem kết quả' : 'Bỏ qua và xem kết quả'}</button>}
     </div>
   </section>;
 }

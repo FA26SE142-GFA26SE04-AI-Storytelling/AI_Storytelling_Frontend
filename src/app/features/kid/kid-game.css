@@ -16,6 +16,8 @@
   box-shadow: 0 6px 0 var(--btn-edge), inset 0 2px 0 color-mix(in srgb, var(--on-primary) 45%, transparent);
   color: var(--on-primary);
   font-family: var(--font-display);
+  /* Chữ ghi thẳng trong nút (Tưới cây, Đọc lại…); nút dock/sảnh có .kid-btn3d-label riêng cỡ nhỏ hơn */
+  font-size: var(--fs-lg);
   font-weight: 800;
   text-shadow: 0 2px 0 color-mix(in srgb, var(--btn-edge) 70%, transparent);
   cursor: pointer;

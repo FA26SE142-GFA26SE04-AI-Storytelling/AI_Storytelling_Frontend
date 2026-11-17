@@ -1,54 +1,36 @@
-/* Kệ sách truyện cho bé (chủ đề đầm sen) */
+/* Kệ sách truyện cho bé: khung .kl-panel của sảnh, thanh đầu .kl-head đổ màu theo kệ */
 .kid-shelf {
-  margin-bottom: 22px;
+  padding-top: 0;
+  margin-bottom: 24px;
 }
+.kid-shelf:last-child {
+  margin-bottom: 0;
+}
+.kid-shelf.tone-rose { border-color: var(--lotus-deep); }
+.kid-shelf.tone-rose > .kl-head { background: var(--lotus); color: var(--on-gold); }
+.kid-shelf.tone-sky { border-color: var(--sky); }
+.kid-shelf.tone-sky > .kl-head { background: var(--sky); color: var(--on-primary); }
+.kid-shelf.tone-gold { border-color: var(--gold-deep); }
+.kid-shelf.tone-gold > .kl-head { background: var(--gold); color: var(--on-gold); }
 
-/* Hàng tiêu đề kệ */
+/* Thanh đầu kệ: icon, tên kệ, mầm lá, ô tìm bên phải */
 .kid-shelf-head {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+  min-height: 56px;
+  box-sizing: border-box;
 }
-.kid-shelf-head .kid-shelf-action,
+.kid-shelf-title {
+  margin: 0;
+  min-width: 0;
+  font-size: inherit;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
 .kid-shelf-action {
   margin-left: auto;
-}
-
-/* Biểu tượng phân loại kệ */
-.kid-shelf-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--text);
-}
-.kid-shelf-icon svg,
-.kid-shelf-icon .lucide,
-.kid-shelf-icon > * {
-  width: 22px;
-  height: 22px;
-  color: var(--text);
-}
-.kid-shelf-icon.tone-rose {
-  background: color-mix(in srgb, var(--rose) 30%, var(--surface));
-}
-.kid-shelf-icon.tone-sky {
-  background: color-mix(in srgb, var(--sky) 25%, var(--surface));
-}
-.kid-shelf-icon.tone-gold {
-  background: color-mix(in srgb, var(--gold) 35%, var(--surface));
-}
-
-/* Tiêu đề kệ */
-.kid-shelf-title {
-  font-family: var(--font-display);
-  font-size: var(--fs-xl);
-  font-weight: 800;
-  color: var(--text);
-  margin: 0;
+  min-width: 0;
+  max-width: 100%;
 }
 
 /* Hàng cuộn ngang sách truyện */
@@ -58,7 +40,7 @@
   overflow-x: auto;
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
-  padding: 10px 4px 16px;
+  padding: 10px 4px 12px;
   -webkit-mask-image: linear-gradient(to right, #000 88%, transparent);
   mask-image: linear-gradient(to right, #000 88%, transparent);
 }
@@ -70,6 +52,14 @@
   scroll-snap-align: start;
   min-width: 150px;
   width: 150px;
+}
+.kid-shelf-row > p {
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  font-size: var(--fs-md);
+  font-weight: 700;
+  color: var(--muted);
 }
 
 /* Ghi đè bìa sách trong kệ */
@@ -94,65 +84,52 @@
   transform: rotate(-2deg) translateY(-6px);
 }
 
-/* Nút/ô xem thêm trên kệ */
-.kid-shelf-more {
-  width: 150px;
-  min-width: 150px;
-  aspect-ratio: 3 / 4;
-  border: 3px dashed var(--line-2);
-  background: var(--surface);
-  border-radius: 22px;
+/* Ô xem thêm: nút tròn 3D cùng màu kệ, đứng giữa chiều cao bìa */
+.kid-shelf-row > .kid-shelf-more {
+  width: 80px;
+  min-width: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--primary-strong);
-  box-sizing: border-box;
-  cursor: pointer;
-  text-decoration: none;
+  aspect-ratio: auto;
 }
-.kid-shelf-more.solid {
-  border-style: solid;
+.kid-shelf-more .kid-btn3d {
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  border-radius: 50%;
 }
-.kid-shelf-more:disabled,
-.kid-shelf-more.disabled,
-.kid-shelf-more[disabled] {
-  opacity: 0.5;
-  cursor: not-allowed;
-  pointer-events: none;
+.kid-shelf-more .kid-btn3d svg {
+  width: 32px;
+  height: 32px;
 }
 
-/* Ô tìm kiếm trượt mở rộng */
+/* Ô tìm kiếm */
 .kid-shelf-search {
   display: inline-flex;
   align-items: center;
-  width: 0;
-  overflow: hidden;
-  transition: width 0.35s;
 }
-.kid-shelf-search.open,
-.kid-shelf-search.active,
-.kid-shelf-search:focus-within,
-.kid-shelf-search:focus {
-  width: 240px;
-}
-.kid-shelf-search .inp,
-.kid-shelf-search.inp {
-  border-radius: 999px;
-  height: 56px;
-  box-sizing: border-box;
-  font-size: var(--fs-md);
+.kid-shelf-search.open {
+  width: auto;
+  max-width: 100%;
+  gap: 8px;
 }
 .kid-shelf-search .inp {
-  width: 240px;
+  width: min(240px, 42vw);
+  min-width: 0;
+  height: 48px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  font-size: var(--fs-md);
 }
 
 /* Nút kính lúp tìm kiếm tròn */
 .kid-shelf-search-btn {
-  width: 56px;
-  height: 56px;
-  min-width: 56px;
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
   border-radius: 50%;
-  border: none;
+  border: 3px solid var(--gold-deep);
   background: var(--gold);
   color: var(--on-gold);
   display: inline-flex;
@@ -161,29 +138,15 @@
   cursor: pointer;
   flex-shrink: 0;
   padding: 0;
+  box-shadow: 0 3px 0 var(--gold-deep);
 }
-.kid-shelf-search-btn svg,
-.kid-shelf-search-btn .lucide,
-.kid-shelf-search-btn > * {
-  width: 24px;
-  height: 24px;
+.kid-shelf-search-btn svg {
+  width: 22px;
+  height: 22px;
 }
-
-/* Giảm chuyển động khi có yêu cầu hệ thống */
-@media (prefers-reduced-motion: reduce) {
-  .kid-shelf-row .bk,
-  .kid-shelf-row .bk:hover,
-  .kid-shelf-row .bk:active,
-  .kid-shelf-search,
-  .kid-shelf-search-btn,
-  .kid-shelf-more {
-    transition: none;
-    transform: none;
-  }
-  .kid-shelf-head:hover .kid-shelf-sprout,
-  .kid-shelf-head:active .kid-shelf-sprout {
-    animation: none;
-  }
+.kid-shelf-search-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Mầm lá nhỏ lắc lư khi di chuột/chạm */
@@ -198,22 +161,54 @@
   animation: kid-sprout-wiggle 500ms ease-in-out;
 }
 @keyframes kid-sprout-wiggle {
-  0%, 100% {
-    transform: rotate(0);
+  0%, 100% { transform: rotate(0); }
+  25% { transform: rotate(-14deg); }
+  50% { transform: rotate(10deg); }
+  75% { transform: rotate(-6deg); }
+}
+
+/* Kho truyện trống */
+.kid-shelves-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+.kid-shelves-empty p {
+  margin: 0;
+  font-size: var(--fs-xl);
+  font-weight: 800;
+}
+
+@media (max-width: 480px) {
+  .kid-shelf-row > * {
+    min-width: 132px;
+    width: 132px;
   }
-  25% {
-    transform: rotate(-14deg);
+  .kid-shelf-row > .kid-shelf-more {
+    width: 72px;
+    min-width: 72px;
   }
-  50% {
-    transform: rotate(10deg);
-  }
-  75% {
-    transform: rotate(-6deg);
+  .kid-shelf-search .inp {
+    width: min(200px, 46vw);
   }
 }
 
-/* Khi mở: khung ôm vừa ô nhập + 2 nút, ô nhập co theo màn hẹp để không tràn mép phải */
-.kid-shelf-search.open { width: auto; max-width: 100%; gap: 8px; overflow: visible; }
-.kid-shelf-search.open .inp { width: min(240px, 42vw); min-width: 0; }
-.kid-shelf-head { flex-wrap: wrap; }
-.kid-shelf-action { min-width: 0; max-width: 100%; }
+/* Giảm chuyển động khi có yêu cầu hệ thống */
+@media (prefers-reduced-motion: reduce) {
+  .kid-shelf-row .bk,
+  .kid-shelf-row .bk:hover,
+  .kid-shelf-row .bk:active {
+    transition: none;
+    transform: none;
+  }
+  .kid-shelf-head:hover .kid-shelf-sprout,
+  .kid-shelf-head:active .kid-shelf-sprout {
+    animation: none;
+  }
+}
+
+.kid-shelves-loading { display: grid; gap: 24px; }
+.kid-shelves-loading .kid-skeleton { position: relative; height: 320px; border-radius: 24px; border: 3px solid var(--line-2); }
+

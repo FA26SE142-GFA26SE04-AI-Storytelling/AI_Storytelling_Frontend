@@ -135,6 +135,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
                     nickname={nickname}
                     busy={busy}
                     onRead={(storyId) => setStartStory({ storyId })}
+                    onOpenLibrary={() => setPane('library')}
                   />
                 }
                 libraryExtra={

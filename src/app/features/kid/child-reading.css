@@ -23,16 +23,16 @@
 .kid-focus { background: var(--bg); }
 .kid-focus .khome { max-width: 1160px; padding-top: 18px; }
 .kid-theater { color: var(--text); padding: 18px 28px 36px; border-radius: 28px; background: var(--panel); }
-.kid-theater-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.kid-theater-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-bottom: 3px solid var(--line); padding-bottom: 10px; }
 .kid-theater-brand { display: flex; align-items: center; gap: 6px; font-family: var(--font-display); font-size: var(--fs-xl); }
 .kid-theater-title { text-align: center; max-width: 760px; margin: 26px auto 20px; }
 .kid-theater-title h1 { font-size: clamp(24px,3vw,34px); line-height: 1.25; margin: 10px 0; }
 .kid-theater-title p,.kid-scene-count,.kid-audio-time { color: var(--muted); font-size: var(--fs-md); }
-.kid-story-stage { max-width: 900px; margin: 0 auto; }
+.kid-story-stage { max-width: 900px; margin: 0 auto; border: 3px solid var(--line-2); border-radius: 24px; box-shadow: 0 6px 0 color-mix(in srgb, var(--text) 12%, transparent); background: var(--surface); overflow: hidden; }
 .kid-story-picture { border-radius: 24px 24px 0 0; background: var(--surface); overflow: hidden; }
 .kid-story-picture img { width: 100%; max-height: 48vh; min-height: 180px; object-fit: contain; display: block; }
 .kid-no-picture { display: grid; justify-items: center; align-content: center; min-height: 220px; padding: 24px; gap: 16px; }
-.kid-story-caption { background: var(--surface); padding: 22px 28px; border-radius: 0 0 24px 24px; }
+.kid-story-caption { background: var(--paper); padding: 22px 28px; border-radius: 0 0 24px 24px; }
 .kid-story-caption p { white-space: pre-wrap; font-family: var(--font-display); font-size: clamp(21px,2.2vw,26px); font-weight: 600; line-height: 1.65; margin: 10px 0 0; }
 .kid-soft-button,.kid-listen-primary,.kid-small-action,.kid-segments button { display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 48px; padding: 12px 18px; border-radius: 18px; background: var(--surface); color: var(--text); font-weight: 700; font-size: var(--fs-md); transition: background .15s,transform .15s; }
 .kid-soft-button:hover:not(:disabled),.kid-small-action:hover:not(:disabled) { background: var(--surface-2); }
@@ -52,9 +52,8 @@
 .kid-story-extras { justify-content: center; }
 .kid-reading-options { padding: 18px; background: var(--surface); border-radius: 20px; margin-block: 18px; }
 .kid-reading-options label { display: grid; gap: 6px; }
-.kid-reading-note { padding: 12px 18px; border-radius: 14px; background: var(--surface); }
-.kid-word-panel { max-width: 760px; margin: 22px auto; background: var(--surface); border-radius: 24px; padding: 24px; display: grid; gap: 18px; }
-.kid-word-panel h2,.kid-word-panel h3 { margin: 0; }
+.kid-word-panel { max-width: 760px; margin: 22px auto; background: var(--surface); border: 3px solid var(--mint); border-radius: 24px; box-shadow: 0 6px 0 color-mix(in srgb, var(--text) 12%, transparent); padding: 24px; display: grid; gap: 18px; }
+.kid-word-panel h2, .kid-word-panel h3, .kid-reading-note h2, .kid-reading-note h3 { margin: -24px -24px 8px; padding: 10px 16px; border-radius: 21px 21px 0 0; background: var(--mint); color: var(--on-primary); }
 .kid-word-panel p { font-size: var(--fs-xl); line-height: 1.6; }
 .kid-story-finish { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; margin: 28px 0 0; }
 .kid-story-finish p { max-width: 620px; font-size: var(--fs-xl); }
@@ -64,15 +63,14 @@
   .kid-focus .khome { padding: 8px 10px 28px; }
   .kid-theater-brand { display: none; }
   .kid-theater-top { gap: 8px; }
-  .kid-theater-top .kid-soft-button { font-size: var(--fs-sm); padding: 10px 12px; }
+  .kid-theater-top .kid-btn3d { font-size: var(--fs-sm); padding: 0 12px; min-height: 48px; }
   .kid-library-invitation { flex-direction: column; align-items: flex-start; padding: 22px; }
   .kid-story-caption { padding: 18px; }
   .kid-story-picture img { max-height: 38vh; }
   .kid-story-navigation { gap: 8px; flex-wrap: wrap; }
-  .kid-story-navigation .kid-soft-button { padding: 10px; font-size: var(--fs-md); }
+  .kid-story-navigation .kid-btn3d { padding: 0 10px; font-size: var(--fs-md); }
   .kid-listen-row { gap: 12px; }
   .kid-audio-time { flex-basis: 100%; text-align: center; }
-  .kid-theater .kid-listen-primary { min-height: 56px; padding: 12px 22px; }
 }
 @media(prefers-reduced-motion:reduce) { .kid-theater *,.kid-reading * { animation: none!important; transition: none!important; } }
 
@@ -89,13 +87,13 @@
 
 /* Sau khi đọc: cảm nhận, câu đố, phần thưởng */
 .kid-after { display: flex; flex-direction: column; align-items: center; gap: 18px; width: 100%; max-width: 680px; }
-.kid-reward-line { font-size: var(--fs-xl); }
+.kid-reward-line { margin: 0; padding: 8px 20px; border-radius: 999px; background: var(--gold); color: var(--on-gold); font-size: var(--fs-lg); box-shadow: 0 4px 0 var(--gold-deep); text-align: center; animation: kid-sent-pop .35s cubic-bezier(.2, .9, .3, 1.3) both; }
 .kid-feelings,.kid-quiz-choices { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
 .kid-quiz { display: flex; flex-direction: column; gap: 14px; width: 100%; padding: 20px; border-radius: 24px; background: var(--surface); text-align: left; }
 .kid-quiz h3 { margin: 0; font-size: var(--fs-xl); }
 .kid-quiz-choices { justify-content: flex-start; }
-.kid-quiz-feedback { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 18px; background: var(--surface-2); font-size: var(--fs-lg); }
-.kid-quiz-feedback.ok { outline: 2px solid var(--primary); outline-offset: -2px; }
+.kid-quiz-feedback { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border: 3px solid var(--line); border-radius: 18px; background: var(--paper); font-size: var(--fs-lg); }
+.kid-quiz-progress { align-self: flex-start; margin: 0; padding: 4px 16px; border-radius: 999px; background: var(--gold); color: var(--on-gold); font-size: var(--fs-md); box-shadow: 0 3px 0 var(--gold-deep); }
 .kid-quiz-feedback p { margin: 0; }
 .kid-rewards { display: flex; flex-direction: column; gap: 16px; }
 .kid-reward-stats { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(160px,100%),1fr)); gap: 12px; }
@@ -108,11 +106,15 @@
 .kid-badge p { margin: 4px 0; color: var(--muted); }
 
 /* Nút icon trong chế độ bé: tối thiểu 52px để bé dễ chạm. */
+.kid-btn-icon { width: 56px; height: 56px; min-width: 56px; min-height: 56px; padding: 0; display: inline-flex; align-items: center; justify-content: center; flex: none; }
 .kid-soft-button.icon-only,.kid-listen-primary.icon-only { padding: 0; width: 56px; height: 56px; min-height: 56px; }
 .kid-listen-primary.icon-only { width: 68px; height: 68px; border-radius: 22px; }
 .kid-soft-button.icon-only svg,.kid-listen-primary.icon-only svg { width: 26px; height: 26px; }
 .kid-listen-primary.icon-only svg { width: 32px; height: 32px; }
-.kid-feelings .icon-only { font-size: var(--fs-2xl); }
+.kid-feelings .kid-btn-icon { font-size: var(--fs-2xl); }
+/* Nút 3D đang bật (Chỉ nghe, Yêu thích, từ đang xem, cảm nhận, cảnh đã chọn): đổi sang vàng. */
+.kid-theater .kid-btn3d[aria-pressed="true"] { --btn-main: var(--gold); --btn-light: color-mix(in srgb, var(--gold) 60%, var(--on-primary)); --btn-edge: var(--gold-deep); color: var(--on-gold); text-shadow: none; }
+.kid-bar-actions .kid-btn3d[aria-pressed="true"] svg { fill: currentColor; }
 
 /* Các kệ sách trên trang đầu của bé: mỗi kệ một thẻ riêng cùng kiểu với khung "Đọc và nghe truyện", chữ to và rõ. */
 .kid .khome > .shelf { background: var(--panel); color: var(--text); border-radius: 28px; padding: 22px 26px 26px; gap: 16px; box-shadow: 0 14px 30px -22px color-mix(in srgb, var(--shadow) 60%, transparent); }
@@ -157,38 +159,37 @@
 .kid-story-stage { flex: 1; width: 100%; max-width: 1180px; margin: 0 auto; display: flex; flex-direction: column; justify-content: center; gap: 20px; }
 .kid-story-picture { border-radius: 28px; }
 .kid-story-picture img { max-height: 46vh; }
-.kid-story-caption { background: transparent; padding: 8px clamp(0px, 2vw, 24px); border-radius: 0; text-align: center; }
+.kid-story-caption { background: var(--paper); padding: 8px clamp(0px, 2vw, 24px); border-radius: 0; text-align: center; }
 .kid-story-caption p { font-size: clamp(28px, 3.4vw, 46px); line-height: 1.7; margin: 0; }
 .kid-narrator { align-self: center; }
 .kid-audio-time { font-size: var(--fs-md); }
 .kid-story-navigation { flex: none; margin: 8px 0 0; padding-top: 12px; }
-.kid-story-navigation .kid-soft-button { min-width: 150px; font-size: var(--fs-lg); }
 .kid-story-extras { flex: none; margin-top: 0; opacity: .85; }
 @media (max-width: 640px) {
   .kid-story-caption p { font-size: clamp(24px, 6.4vw, 32px); }
-  .kid-story-navigation .kid-soft-button { min-width: 0; }
 }
 
 /* Câu đố là cửa sổ nổi giữa màn hình thay vì nằm dưới truyện. */
 .kid-quiz-backdrop { position: fixed; inset: 0; z-index: 300; display: grid; place-items: center; padding: 16px; background: color-mix(in srgb, #000 45%, transparent); animation: wsin .18s; }
-.kid-quiz-modal { position: relative; width: min(760px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; background: var(--panel); color: var(--text); border-radius: 30px; padding: 34px clamp(20px, 4vw, 44px) 30px; box-shadow: 0 30px 80px -30px #000; }
+/* Khung popup kiểu Sảnh: viền vàng dày, bóng cứng, nảy lên khi mở (dùng chung cho câu đố, đọc xong, tương tác). */
+.kid-quiz-modal { position: relative; width: min(760px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; background: var(--panel); color: var(--text); border: 3px solid var(--gold-deep); border-radius: 24px; padding: 34px clamp(20px, 4vw, 44px) 30px; box-shadow: 0 6px 0 color-mix(in srgb, var(--text) 12%, transparent); animation: kid-sent-pop .35s cubic-bezier(.2, .9, .3, 1.3) both; }
 .kid-quiz-modal:focus { outline: none; }
 .kid-quiz-close { position: absolute; top: 14px; right: 14px; }
 .kid-quiz-modal .kid-quiz { margin: 0; background: transparent; padding: 0; box-shadow: none; }
 .kid-quiz-modal .kid-quiz h3 { font-size: clamp(24px, 3vw, 32px); line-height: 1.35; }
 .kid-quiz-modal .kid-quiz-choices { display: grid; gap: 12px; }
-.kid-quiz-modal .kid-quiz-choices .kid-soft-button { justify-content: flex-start; text-align: left; font-size: var(--fs-lg); min-height: 56px; }
 
 /* Cách bố trí câu trả lời trong cửa sổ câu đố: mỗi lựa chọn một hàng đầy đủ bề ngang, có chữ cái A, B, C. */
 .kid-quiz-modal .kid-quiz { gap: 18px; }
 .kid-quiz-modal .kid-quiz-choices { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; justify-content: flex-start; gap: 12px; margin-top: 4px; }
-.kid-choice { display: flex; align-items: center; gap: 16px; width: 100%; min-height: 64px; padding: 12px 20px 12px 14px; border-radius: 20px; border: 2px solid var(--line-2); background: var(--surface); color: var(--text); text-align: left; font-size: clamp(18px, 2.2vw, 22px); font-weight: 700; transition: border-color .15s, background .15s, transform .15s; }
-.kid-choice:hover:not(:disabled) { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--surface)); transform: translateY(-1px); }
-.kid-choice-letter { flex: none; width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 800; background: var(--panel); border: 2px solid var(--line-2); }
-.kid-choice:hover:not(:disabled) .kid-choice-letter { background: var(--primary-strong); border-color: var(--primary-strong); color: var(--on-primary); }
-.kid-choice-text { min-width: 0; }
+/* Lựa chọn (câu đố và tương tác khi nghe): thẻ giấy viền dày, bóng cứng, nhấc lên khi rê và lún xuống khi bấm. */
+.kid-choice { display: flex; align-items: center; gap: 16px; width: 100%; min-height: 64px; padding: 12px 20px 12px 14px; color: var(--text); text-align: left; font-size: var(--fs-lg); font-weight: 700; }
+.kid-choice, .kid-answer { border: 3px solid var(--line); border-radius: 18px; background: var(--paper); box-shadow: 0 4px 0 var(--line-2); transition: transform .12s, box-shadow .12s, border-color .15s, background .15s; }
+.kid-choice:hover:not(:disabled), .kid-answer:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--gold-deep); background: var(--paper); box-shadow: 0 6px 0 var(--line-2); }
+.kid-choice:active:not(:disabled), .kid-answer:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 var(--line-2); }
+.kid-choice-letter { flex: none; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; background: var(--gold); color: var(--on-gold); }
+.kid-choice-text { min-width: 0; overflow-wrap: anywhere; }
 .kid-quiz-footer { display: flex; justify-content: flex-end; padding-top: 10px; border-top: 1px solid var(--line); }
-.kid-quiz-footer .kid-soft-button, .kid-quiz-footer .kid-listen-primary { min-width: 170px; }
 .kid-quiz-modal .kid-quiz-feedback { font-size: var(--fs-lg); }
 
 /* Cửa sổ khi bé đọc xong truyện. */
@@ -197,7 +198,7 @@
 .kid-finish-lesson { margin: 0; max-width: 520px; font-size: clamp(19px, 2.2vw, 24px); line-height: 1.55; color: var(--muted); }
 .kid-finish-modal .kid-after { max-width: none; }
 .kid-finish-modal .kid-after h3 { margin: 0; font-size: var(--fs-xl); }
-.kid-finish-modal .kid-listen-primary { width: 100%; max-width: 360px; }
+.kid-finish-modal > .kid-btn3d { width: 100%; max-width: 360px; }
 .kid-quiz-open { min-width: 260px; font-size: var(--fs-lg); }
 
 /* Nút Yêu thích: chỉ một chữ, trái tim đặc khi đã chọn. */
@@ -205,13 +206,11 @@
 
 /* Bảng từ mới: bỏ tiêu đề thừa, chữ quan trọng (từ và nghĩa) đậm và to. */
 .kid-word-panel { gap: 16px; }
-.kid-word-list .kid-soft-button { font-size: var(--fs-xl); font-weight: 800; }
+.kid-word-list .kid-btn3d { font-size: var(--fs-xl); }
 .kid-word-panel h3 { font-size: clamp(26px, 3vw, 34px); font-weight: 800; color: var(--primary-strong); }
 .kid-word-panel p { margin: 6px 0 14px; font-size: clamp(20px, 2.2vw, 24px); font-weight: 700; line-height: 1.5; }
-.kid-word-panel > .kid-soft-button { justify-self: start; font-weight: 700; }
+.kid-word-panel > .kid-btn3d { justify-self: start; }
 
-/* Từ đang chọn sáng lên ngay trên hàng từ; nghĩa hiện bên dưới, không lặp lại tên từ. */
-.kid-word-list .kid-soft-button[aria-pressed="true"] { background: var(--primary-strong); color: var(--on-primary); }
 .kid-word-panel p { color: var(--text); }
 
 /* Truyện chưa có tranh: giữ một khung trống để chỗ đặt tranh luôn cố định. */
@@ -257,7 +256,6 @@
 .kid-story-picture, .kid-story-picture.empty { width: 100%; height: 100%; aspect-ratio: auto; max-width: none; }
 .kid-story-caption p { font-size: clamp(22px, 2.8vw, 40px); }
 .kid-story-navigation { margin: 0; padding-top: 8px; gap: 14px; }
-.kid-story-navigation .kid-soft-button, .kid-story-navigation .kid-listen-primary { min-height: 48px; min-width: 0; padding: 8px 18px; font-size: var(--fs-md); }
 .kid-story-extras { gap: 8px; margin: 0; }
 .kid-story-extras .kid-soft-button { min-height: 42px; padding: 6px 14px; font-size: var(--fs-md); }
 
@@ -272,10 +270,9 @@
 /* Cảnh trước và cảnh sau nằm hai bên khung tranh; khung giữa chỉ có tranh và lời kể. */
 .kid-story-row { flex: 1; min-height: 60dvh; display: flex; align-items: stretch; gap: clamp(8px, 1.6vw, 20px); width: 100%; }
 .kid-story-row > .kid-story-stage { flex: 1; min-width: 0; min-height: 0; }
-.kid-side-nav { flex: none; align-self: center; width: clamp(48px, 5vw, 72px); height: clamp(48px, 5vw, 72px); border-radius: 50%; display: grid; place-items: center; background: var(--surface); color: var(--text); border: 2px solid var(--line-2); box-shadow: 0 6px 16px -8px rgba(0,0,0,.4); transition: transform .15s, background .15s; }
+.kid-side-nav { flex: none; align-self: center; width: clamp(48px, 5vw, 72px); height: clamp(48px, 5vw, 72px); border-radius: 50%; display: grid; place-items: center; }
 .kid-theater .kid-side-nav svg { width: 30px; height: 30px; stroke-width: 2.4; }
-.kid-side-nav:hover:not(:disabled) { background: var(--primary-strong); color: var(--on-primary); border-color: var(--primary-strong); transform: scale(1.06); }
-.kid-side-nav:disabled { opacity: .3; cursor: default; box-shadow: none; }
+.kid-side-nav:disabled { opacity: .35; cursor: default; }
 .kid-story-navigation { justify-content: center; }
 @media (max-width: 640px) { .kid-side-nav { width: 40px; height: 40px; } .kid-theater .kid-side-nav svg { width: 22px; height: 22px; } .kid-story-row { gap: 6px; } }
 
@@ -301,26 +298,26 @@
 .kid-story-navigation { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 8px 12px; margin-top: auto; padding: 4px 0 0; }
 .kid-bar-actions { display: inline-flex; align-items: center; gap: 8px; }
 .kid-story-navigation .kid-scene-count { font-size: var(--fs-sm); }
-.kid-story-navigation .kid-soft-button, .kid-story-navigation .kid-listen-primary { min-height: 38px; height: 38px; padding: 4px 14px; border-radius: 14px; font-size: var(--fs-md); gap: 6px; }
-.kid-story-navigation .kid-listen-primary { font-size: var(--fs-md); padding-inline: 18px; }
+/* Nút 3D ở thanh dưới: chỉ thu gọn kích thước, màu/viền/bóng giữ nguyên của .kid-btn3d. */
+.kid-story-navigation .kid-btn3d { min-width: 0; min-height: 48px; padding: 0 16px; border-radius: 16px; font-size: var(--fs-md); gap: 6px; }
+.kid-story-navigation .kid-btn3d.kid-side-nav { min-height: 0; padding: 0; border-radius: 50%; }
 .kid-theater .kid-story-navigation button svg { width: 18px; height: 18px; }
 
 /* Thanh dưới của câu đố: Về thư viện nằm bên trái, nút tiếp theo bên phải. */
 .kid-quiz-footer { justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.kid-quiz-footer .kid-soft-button, .kid-quiz-footer .kid-listen-primary { min-width: 0; }
+.kid-quiz-footer .kid-btn3d { min-width: 0; font-size: var(--fs-lg); }
 
-/* Sau khi trả lời: lựa chọn của bé xanh nếu đúng, đỏ nếu sai; các lựa chọn khác mờ đi và không bấm được nữa. */
+/* Sau khi trả lời: lựa chọn của bé xanh và nảy lên nếu đúng, hồng và lắc nhẹ nếu sai; các lựa chọn khác mờ đi. */
 .kid-choice:disabled { cursor: default; }
 .kid-quiz-choices .kid-choice:disabled:not(.right):not(.wrong) { opacity: .5; }
-.kid-choice.right { border-color: #1e8a57; background: color-mix(in srgb, #2ea36b 20%, var(--surface)); }
-.kid-choice.right .kid-choice-letter { background: #1e8a57; border-color: #1e8a57; color: #fff; }
-.kid-choice.wrong { border-color: #d64545; background: color-mix(in srgb, #e5594f 16%, var(--surface)); }
-.kid-choice.wrong .kid-choice-letter { background: #d64545; border-color: #d64545; color: #fff; }
+.kid-choice.right, .kid-quiz-feedback.ok { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 14%, var(--paper)); animation: kid-sent-pop .35s cubic-bezier(.2, .9, .3, 1.3) both; }
+.kid-choice.wrong, .kid-quiz-feedback.try { border-color: var(--rose); background: color-mix(in srgb, var(--rose) 14%, var(--paper)); animation: kid-shake .4s ease both; }
+.kid-choice.right .kid-choice-letter { background: var(--primary); color: var(--on-primary); }
+.kid-choice.wrong .kid-choice-letter { background: var(--rose); color: var(--on-primary); }
+@keyframes kid-shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
 
-/* Lựa chọn đã tô màu (xanh hoặc đỏ) không bị làm mờ như các nút bị khóa khác. */
+/* Lựa chọn đã tô màu (xanh hoặc hồng) không bị làm mờ như các nút bị khóa khác. */
 .kid-theater .kid-choice.right:disabled, .kid-theater .kid-choice.wrong:disabled { opacity: 1; }
-.kid-choice.wrong { border-color: #d64545; background: color-mix(in srgb, #e5594f 22%, var(--surface)); color: #8f1d1d; }
-.kid-choice.right { color: #0f5f3a; }
 
 /* Chỉ còn một nút ở thanh dưới thì đẩy sang phải. */
 .kid-quiz-footer > :last-child { margin-left: auto; }
@@ -328,8 +325,7 @@
 /* Màn kết quả câu đố: hai nút cùng một hàng, bằng nhau, giữa thẻ. */
 .kid-quiz .kid-story-finish .kid-quiz-footer, .kid-story-finish.kid-quiz .kid-quiz-footer { width: 100%; max-width: 520px; flex-direction: row; flex-wrap: nowrap; justify-content: center; gap: 12px; margin-top: 6px; padding-top: 16px; border-top: 1px solid var(--line); }
 .kid-story-finish.kid-quiz .kid-quiz-footer > * { flex: 1 1 0; width: auto; max-width: none; min-width: 0; margin: 0; }
-.kid-finish-modal .kid-story-finish.kid-quiz .kid-quiz-footer .kid-listen-primary { width: auto; max-width: none; }
-.kid-story-finish.kid-quiz .kid-quiz-footer .kid-soft-button, .kid-story-finish.kid-quiz .kid-quiz-footer .kid-listen-primary { height: 56px; min-height: 56px; font-size: var(--fs-lg); }
+.kid-story-finish.kid-quiz .kid-quiz-footer .kid-btn3d { min-height: 56px; padding: 0 14px; font-size: var(--fs-lg); }
 @media (max-width: 420px) { .kid-story-finish.kid-quiz .kid-quiz-footer { flex-direction: column-reverse; } }
 
 /* Cách đọc: hai lựa chọn rõ ràng thay cho ô chọn và hai nút phụ. */
@@ -338,19 +334,16 @@
 .kid-mode-choice .kid-soft-button { min-height: 52px; font-size: var(--fs-lg); font-weight: 800; }
 .kid-mode-choice .kid-soft-button[aria-pressed="true"] { background: var(--primary-strong); color: var(--on-primary); }
 
-/* Thông báo của trang đọc (ví dụ "Đã lưu vị trí đọc."): hiện nổi giữa phía trên rồi tự biến mất, không chiếm chỗ trong trang. */
-.kid-theater .kid-reading-note { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 250; margin: 0; max-width: min(92vw, 560px); padding: 10px 20px; border-radius: 999px; background: var(--text); color: var(--bg); font-size: var(--fs-md); font-weight: 700; text-align: center; box-shadow: 0 12px 30px -10px rgba(0,0,0,.5); pointer-events: none; animation: kid-note 3.2s ease forwards; }
-@keyframes kid-note { 0% { opacity: 0; transform: translate(-50%, -12px); } 8%, 78% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, -8px); visibility: hidden; } }
-
 /* Công tắc cách đọc ở góc trên bên phải: Tự đọc | Nghe đọc, nút trượt sang bên đang chọn. */
-.kid-mode-switch { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 4px; border-radius: 999px; background: var(--surface-2, var(--surface)); border: 2px solid var(--line-2); min-width: 250px; }
+.kid-mode-switch { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 4px; border-radius: 999px; background: var(--surface-2, var(--surface)); border: 3px solid var(--line); min-width: 250px; }
 .kid-mode-switch:disabled { opacity: .6; }
-.kid-mode-opt { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 10px 14px; font-size: var(--fs-md); font-weight: 800; color: var(--muted); transition: color .2s; white-space: nowrap; }
+.kid-mode-opt { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 14px; font-size: var(--fs-md); font-weight: 800; color: var(--muted); border: 2px solid transparent; border-radius: 999px; transition: color .2s, border-color .2s, background .2s; white-space: nowrap; }
 .kid-mode-opt svg { width: 20px; height: 20px; }
 .kid-mode-thumb { position: absolute; z-index: 0; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 999px; background: var(--primary-strong); box-shadow: 0 6px 14px -6px rgba(0,0,0,.45); transition: transform .22s cubic-bezier(.3,.9,.3,1); }
 .kid-mode-switch .kid-mode-opt:first-child { color: #fff; }
-.kid-mode-switch.listen .kid-mode-opt:first-child { color: var(--muted); }
-.kid-mode-switch.listen .kid-mode-opt:nth-child(2) { color: #fff; }
+.kid-mode-switch:not(.listen) .kid-mode-opt:first-child,
+.kid-mode-switch.listen .kid-mode-opt:nth-child(2) { border-color: var(--gold-deep); background: color-mix(in srgb, var(--gold) 28%, var(--surface)); color: var(--on-gold, var(--text)); }
+.kid-mode-switch.listen .kid-mode-opt:first-child { color: var(--muted); border-color: transparent; background: transparent; }
 .kid-mode-switch.listen .kid-mode-thumb { transform: translateX(100%); }
 @media (max-width: 640px) { .kid-mode-switch { min-width: 0; } .kid-mode-opt { padding: 8px 10px; font-size: var(--fs-md); } .kid-mode-opt svg { width: 16px; height: 16px; } }
 
@@ -447,13 +440,12 @@
 /* Đáp án của tương tác khi nghe: lưới 2 cột, chữ cái ở bên trái, chữ canh giữa theo chiều dọc */
 .kid-answer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr)); gap: 12px; width: 100%; }
 .kid-answer-grid.pics { grid-template-columns: repeat(auto-fit, minmax(min(170px, 100%), 1fr)); }
-.kid-answer { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 10px; min-height: 72px; padding: 12px 16px; border: 2px solid var(--line-2); border-radius: 20px; background: var(--surface); color: var(--text); text-align: left; transition: transform .15s, border-color .15s, background .15s; }
-.kid-answer:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--surface)); }
+.kid-answer { display: flex; flex-direction: column; align-items: stretch; justify-content: center; gap: 10px; min-height: 72px; padding: 12px 16px; color: var(--text); text-align: left; }
 .kid-answer[aria-pressed="true"] { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 18%, var(--surface)); }
 .kid-answer:disabled { cursor: default; }
 .kid-answer:disabled:not([aria-pressed="true"]) { opacity: .55; }
 .kid-answer-body { display: flex; align-items: center; gap: 14px; min-width: 0; }
-.kid-answer-mark { flex: none; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%; border: 2px solid var(--line-2); background: var(--panel); font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; }
+.kid-answer-mark { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; border: 2px solid var(--gold); background: var(--gold); color: var(--on-gold); font-family: var(--font-display); font-size: var(--fs-lg); font-weight: 800; }
 .kid-answer-mark.on, .kid-answer[aria-pressed="true"] .kid-answer-mark { background: var(--primary-strong); border-color: var(--primary-strong); color: var(--on-primary); }
 .kid-answer-text { min-width: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
 .kid-answer.pic img { width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; object-fit: cover; }
@@ -464,7 +456,7 @@
 .kid-feedback p { margin: 0; }
 .kid-order-answer { margin: 0; padding-left: 22px; text-align: left; }
 .kid-actions { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 10px; }
-.kid-summary { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 14px; border: 2px solid var(--line); border-radius: 20px; }
+.kid-summary { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 16px; background: color-mix(in srgb, var(--panel) 82%, transparent); border: 3px solid var(--line-2); border-radius: 24px; box-shadow: 0 6px 0 color-mix(in srgb, var(--text) 12%, transparent); }
 .kid-summary h3 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: var(--fs-lg); }
 .kid-flag-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
 /* Đã gửi cho bố mẹ: viên xanh, tích tròn nằm cạnh chữ. */
@@ -497,14 +489,14 @@
 .kid-reader .kid-story-picture img { width: 100%; height: 100%; max-height: none; min-height: 0; object-fit: cover; display: block; }
 .kid-reader-side { min-width: 0; min-height: 0; display: flex; flex-direction: column; gap: 16px; }
 /* margin-block: auto canh giữa khi đủ chỗ, còn chữ dài thì bắt đầu từ trên cùng và cuộn được (canh giữa bằng align-items sẽ cắt mất phần đầu). */
-.kid-reader-side .kid-story-caption { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; padding: 8px 8px 8px 4px; background: transparent; text-align: left; }
+.kid-reader-side .kid-story-caption { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; justify-content: flex-start; align-items: stretch; padding: 8px 8px 8px 4px; background: var(--paper); text-align: left; }
 .kid-reader-side .kid-story-caption p { margin: auto 0; font-size: clamp(20px, 2.1vw, 34px); line-height: 1.55; text-align: left; }
 .kid-reader-side .kid-story-navigation { flex: none; margin: 0; padding: 12px 0 14px; border-top: 1px solid var(--line); display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-start; gap: 10px 12px; }
 .kid-reader-side .kid-side-nav { width: 48px; height: 48px; align-self: auto; }
 .kid-reader-side .kid-side-nav svg { width: 24px; height: 24px; }
 .kid-reader-side .kid-scene-count { min-width: 64px; text-align: center; font-weight: 700; }
 .kid-reader-side .kid-bar-actions { display: inline-flex; flex-wrap: wrap; gap: 8px; }
-.kid-reader-side .kid-listen-primary { margin-left: auto; }
+.kid-reader-side .kid-story-navigation .kid-btn3d.is-gold { margin-left: auto; }
 .kid-reader-side .kid-word-panel { flex: none; max-height: 30dvh; overflow-y: auto; }
 @media (max-width: 900px) {
   .kid-theater .kid-reader { grid-template-columns: minmax(0, 1fr); overflow-y: auto; align-items: start; }
@@ -708,16 +700,15 @@
 /* Chữ giọng kể đang đọc: nền vàng như bút dạ quang, chạy theo lời kể. */
 .kid-reading-word { background: color-mix(in srgb, var(--gold) 70%, transparent); color: var(--on-gold); border-radius: 6px; padding: 0 2px; margin: 0 -2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; transition: background-color .15s ease; }
 
-.kid-read-aloud-btn { min-width:0; min-height:44px; padding:0; background:var(--surface-2); color:var(--text); border:2px solid var(--gold); display:inline-flex; align-items:center; justify-content:center; cursor:pointer; transition:background .15s,transform .15s; }
+/* Nút Đọc to là .kid-btn3d: chỉ đổi biến màu sang vàng khi đang ghi, không ghi đè nền/viền/bóng. */
 .kid-read-aloud-btn svg { width:24px; height:24px; flex-shrink:0; }
-.kid-read-aloud-btn:hover:not(:disabled) { background:color-mix(in srgb,var(--gold) 25%,transparent); }
 .kid-read-aloud-btn:disabled { cursor:not-allowed; opacity:.6; }
-.kid-read-aloud-btn--recording { background:var(--gold); color:var(--on-gold); animation:kid-mic-pulse 1s ease-in-out infinite; }
+.kid-read-aloud-btn--recording { --btn-main: var(--gold); --btn-light: color-mix(in srgb, var(--gold) 60%, var(--on-primary)); --btn-edge: var(--gold-deep); color:var(--on-gold); text-shadow: none; animation:kid-mic-pulse 1s ease-in-out infinite; }
 .kid-read-aloud-btn--busy { cursor:progress; }
 .kid-read-aloud-btn--busy svg { animation:kid-spin 1s linear infinite; }
-.kid-story-navigation .kid-read-aloud-retry { min-width: 0; width: 44px; height: 44px; min-height: 44px; padding: 0; }
+.kid-story-navigation .kid-read-aloud-retry { min-width: 0; width: 48px; height: 48px; min-height: 48px; padding: 0; }
 .kid-story-navigation .kid-read-aloud-btn svg, .kid-story-navigation .kid-read-aloud-retry svg { width: 20px; height: 20px; }
-@keyframes kid-mic-pulse { 0%,100% { box-shadow:0 0 0 0 color-mix(in srgb,var(--gold) 55%,transparent); } 50% { box-shadow:0 0 0 10px color-mix(in srgb,var(--gold) 0%,transparent); } }
+@keyframes kid-mic-pulse { 0%,100% { box-shadow:0 6px 0 var(--gold-deep), 0 0 0 0 color-mix(in srgb,var(--gold) 55%,transparent); } 50% { box-shadow:0 6px 0 var(--gold-deep), 0 0 0 10px color-mix(in srgb,var(--gold) 0%,transparent); } }
 .kid-word--good { color:var(--primary); font-weight:700; }
 .kid-word--retry { background:color-mix(in srgb,var(--gold) 40%,transparent); border-radius:6px; padding:0 3px; }
 .kid-word--skipped { color:var(--muted); opacity:.6; }
@@ -725,3 +716,34 @@
 @keyframes kid-word-in { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }
 @media (prefers-reduced-motion: reduce) { .kid-read-aloud-btn, .kid-read-aloud-btn svg, .kid-word--good, .kid-word--retry, .kid-word--skipped { animation:none !important; } }
 
+/* Màn đọc ở màn hình hẹp: padding gọn hơn, nút không tràn */
+@media (max-width: 480px) {
+  .kid-theater { padding: 10px 8px 12px; gap: 8px; }
+  .kid-theater-top { gap: 6px; }
+  .kid-story-stage { gap: 8px; border-radius: 18px; }
+  .kid-story-caption { padding: 8px 10px; }
+  .kid-story-caption p { font-size: clamp(18px, 5.2vw, 24px); }
+  .kid-story-navigation { gap: 6px; flex-wrap: wrap; justify-content: center; width: 100%; }
+  .kid-story-navigation .kid-btn3d { max-width: 100%; flex-wrap: wrap; }
+  .kid-bar-actions { flex-wrap: wrap; justify-content: center; max-width: 100%; }
+  .kid-mode-switch { min-width: 0; width: 100%; max-width: 100%; }
+  .kid-side-nav { width: 38px; height: 38px; }
+  .kid-theater .kid-side-nav svg { width: 20px; height: 20px; }
+  .kid-story-row { gap: 4px; }
+}
+
+/* Popup câu đố / tương tác ở màn hình hẹp: lưới 1 cột, padding gọn, chữ nút xuống dòng thay vì tràn. */
+@media (max-width: 480px) {
+  .kid-quiz-modal { padding: 24px 14px 18px; border-radius: 20px; }
+  .kid-answer-grid, .kid-answer-grid.pics { grid-template-columns: 1fr; }
+  .kid-choice { gap: 10px; min-height: 56px; padding: 10px 12px; }
+  .kid-answer { min-height: 56px; padding: 10px 12px; }
+  .kid-quiz-modal .kid-btn3d:not(.kid-btn-icon) { max-width: 100%; padding: 0 14px; white-space: normal; text-align: center; line-height: 1.15; }
+  .kid-quiz-open { min-width: 0; width: 100%; }
+  .kid-reward-line { padding: 8px 14px; font-size: var(--fs-md); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kid-quiz-modal, .kid-choice, .kid-answer, .kid-quiz-feedback, .kid-reward-line { animation: none; transition: none; }
+}
+
+.kid-skeleton.kid-picture-wait { display: grid; place-items: center; align-content: center; gap: 12px; color: var(--text); font-size: var(--fs-lg); font-weight: 800; font-family: var(--font-display); background: linear-gradient(100deg, var(--surface-2) 30%, var(--surface) 50%, var(--surface-2) 70%); background-size: 200% 100%; }

@@ -13,8 +13,12 @@ import KidShelves from './KidShelves';
 import { DOCK_TINT, type DockTab } from './KidDock';
 import IconButton from '@/app/components/IconButton';
 import './child-reading.css';
+import './kid-lobby.css';
+import './kid-panes.css';
 import Frog from '@/app/components/brand/Frog';
-import { BookOpen, Trash2 } from 'lucide-react';
+import { BookA, BookOpen, Trash2 } from 'lucide-react';
+import { showToast } from '@/app/lib/toast';
+import { useRiseIn } from '@/app/lib/motion';
 import PaneSwap from './PaneSwap';
 
 export type LibraryPane = DockTab;
@@ -92,7 +96,6 @@ export default function ChildReadingLibrary({
 
   const [entries, setEntries] = useState<NotebookEntry[]>([]);
   const [loading, setLoading] = useState(false);
-  const [note, setNote] = useState('');
   const [removing, setRemoving] = useState(false);
   const removeLock = useRef(false);
   const scope = useRef(0);
@@ -103,12 +106,11 @@ export default function ChildReadingLibrary({
     const run = ++scope.current;
     setEntries([]);
     setLoading(true);
-    setNote('');
     void childNotebookService.list(token, controller.signal).then((n) => {
       if (controller.signal.aborted || run !== scope.current) return;
       setLoading(false);
       if (n.success) setEntries(n.data ?? []);
-      else setNote(n.message);
+      else showToast(n.message, 'err');
     });
     return () => {
       scope.current = run + 1;
@@ -126,8 +128,16 @@ export default function ChildReadingLibrary({
     setRemoving(false);
     if (run !== scope.current) return;
     if (r.success) refresh();
-    else setNote(r.message);
+    else showToast(r.message, 'err');
   };
+
+  // Note mở truyện báo bằng toast ("info" vì có cả câu trung tính như "Truyện này đang nghỉ…"). Đang đọc thì ChildReader tự hiện note; chỉ theo dõi note để không báo lại khi đóng truyện.
+  useEffect(() => {
+    if (reader.note && !reader.content) showToast(reader.note, 'info');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reader.note]);
+
+  const notebookRef = useRiseIn<HTMLDivElement>('.kl-panel', [pane, loading], { delay: 70 });
 
   if (!token) return <p className="notice">Phiên của bé đã hết hạn. Em nhờ bố mẹ mở lại nhé.</p>;
   if (reader.content) return <ChildReader reader={reader} />;
@@ -144,8 +154,6 @@ export default function ChildReadingLibrary({
           <span className="kid-spinner" aria-hidden="true" />
         </div>
       )}
-      {reader.note && <p role="status" className="kid-toast">{reader.note}</p>}
-      {note && <p role="status" className="kid-toast">{note}</p>}
       <PaneSwap key={pane} dir={dir}>
         {pane === 'lobby' && lobby}
         {pane === 'library' && (
@@ -163,34 +171,47 @@ export default function ChildReadingLibrary({
         )}
         {pane === 'journey' && journey}
         {pane === 'notebook' && (
-          <>
-            {!loading && !entries.length && <p className="kid-empty">Chưa có từ nào trong sổ tay.</p>}
-            <div className="kid-notebook">
-              {entries.map((e) => (
-                <article className="kcard kid-word-card" key={e.entryId}>
-                  <h3>{e.term}</h3>
-                  <p>{e.definition}</p>
-                  <div className="row">
-                    <IconButton
-                      icon={BookOpen}
-                      label={`Đọc lại đoạn có từ ${e.term}`}
-                      disabled={reader.busy}
-                      onClick={() =>
-                        void reader.open({ storyId: e.storyId }, e.sceneIndex == null ? undefined : e.sceneIndex + 1)
-                      }
-                    />
-                    <IconButton
-                      icon={Trash2}
-                      label={`Xóa từ ${e.term} khỏi sổ tay`}
-                      className="btn btn-no"
-                      disabled={removing}
-                      onClick={() => void remove(e.entryId)}
-                    />
-                  </div>
-                </article>
-              ))}
-            </div>
-          </>
+          <div ref={notebookRef}>
+            <section className="kl-panel kl-words kid-notebook-panel" aria-labelledby="kid-notebook-h" aria-busy={loading}>
+              <h2 id="kid-notebook-h" className="kl-head kl-words-head display"><BookA aria-hidden="true" />Từ vựng của em</h2>
+              {!loading && !entries.length && (
+                <div className="kid-pane-empty">
+                  <Frog mood="think" size={96} />
+                  <p className="kl-words-empty">Em chưa lưu từ nào. Gặp từ mới trong truyện thì bấm lưu nhé!</p>
+                </div>
+              )}
+              {entries.length > 0 && (
+                <ul className="kid-notebook-grid">
+                  {entries.map((e, i) => (
+                    <li className="kl-word" key={e.entryId} style={{ animationDelay: `${Math.min(i, 12) * 0.05}s` }}>
+                      <b className="display">{e.term}</b>
+                      <span>{e.definition}</span>
+                      <div className="kid-word-actions">
+                        <IconButton
+                          icon={BookOpen}
+                          label={`Đọc lại đoạn có từ ${e.term}`}
+                          className="kid-btn3d is-mint kid-btn-sq"
+                          iconClassName=""
+                          disabled={reader.busy}
+                          onClick={() =>
+                            void reader.open({ storyId: e.storyId }, e.sceneIndex == null ? undefined : e.sceneIndex + 1)
+                          }
+                        />
+                        <IconButton
+                          icon={Trash2}
+                          label={`Xóa từ ${e.term} khỏi sổ tay`}
+                          className="kid-btn3d is-pink kid-btn-sq"
+                          iconClassName=""
+                          disabled={removing}
+                          onClick={() => void remove(e.entryId)}
+                        />
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
         )}
         {pane === 'rewards' && <KidRewards key={revision} token={token} />}
         {pane === 'wishes' && (
