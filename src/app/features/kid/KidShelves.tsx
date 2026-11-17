@@ -5,10 +5,12 @@ import { BookOpen, Heart, Library, Search } from "lucide-react";
 import Frog from "@/app/components/brand/Frog";
 import { useRiseIn } from "@/app/lib/motion";
 import { coverFor } from "@/app/lib/storyView";
+import { showToast } from "@/app/lib/toast";
 import { childReadingService } from "@/app/services/childReadingService";
 import type { ChildStory } from "@/app/types/childReading";
 import KidSearchAction from "./KidSearchAction";
 import KidShelf from "./KidShelf";
+import "./kid-lobby.css";
 
 interface KidShelvesProps {
   token: string; busy: boolean; unlockTitle?: string; refreshKey: number;
@@ -30,7 +32,6 @@ export default function KidShelves({
   const [mine, setMine] = useState<ShelfState>(initialShelf);
   const [library, setLibrary] = useState<ShelfState>(initialShelf);
   const [lock, setLock] = useState<{ locked: boolean; unlockStoryId: number | null } | null>(null);
-  const [toast, setToast] = useState<string>("");
 
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<ChildStory[] | null>(null);
@@ -53,7 +54,6 @@ export default function KidShelves({
     if (!token) return;
     const controller = new AbortController();
     const run = ++scope.current;
-    setToast("");
     setMine((s) => ({ ...s, loading: true }));
     setLibrary((s) => ({ ...s, loading: true }));
 
@@ -64,10 +64,10 @@ export default function KidShelves({
       if (controller.signal.aborted || run !== scope.current) return;
 
       if (mineRes.success && mineRes.data) setMine({ items: mineRes.data.items, totalCount: mineRes.data.totalCount, pageSize: mineRes.data.pageSize, pageIndex: 1, loading: false, loadingMore: false });
-      else { setMine((s) => ({ ...s, loading: false })); if (mineRes.message) setToast(mineRes.message); }
+      else { setMine((s) => ({ ...s, loading: false })); if (mineRes.message) showToast(mineRes.message, "err"); }
 
       if (libRes.success && libRes.data) setLibrary({ items: libRes.data.items, totalCount: libRes.data.totalCount, pageSize: libRes.data.pageSize, pageIndex: 1, loading: false, loadingMore: false });
-      else { setLibrary((s) => ({ ...s, loading: false })); if (libRes.message) setToast((prev) => [prev, libRes.message].filter(Boolean).join(" ")); }
+      else { setLibrary((s) => ({ ...s, loading: false })); if (libRes.message) showToast(libRes.message, "err"); }
 
       const isLocked = Boolean((mineRes.success && mineRes.data?.isLocked) || (libRes.success && libRes.data?.isLocked));
       const unlockStoryId = (mineRes.success && mineRes.data?.isLocked ? mineRes.data.unlockStoryId : null) ?? (libRes.success && libRes.data?.isLocked ? libRes.data.unlockStoryId : null) ?? null;
@@ -95,7 +95,7 @@ export default function KidShelves({
       setter((s) => ({ ...s, items: [...s.items, ...data.items], totalCount: data.totalCount, pageSize: data.pageSize, pageIndex: nextPage, loadingMore: false }));
     } else {
       setter((s) => ({ ...s, loadingMore: false }));
-      if (r.message) setToast(r.message);
+      if (r.message) showToast(r.message, "err");
     }
   };
 
@@ -104,13 +104,12 @@ export default function KidShelves({
     const ctrl = new AbortController();
     searchAbortRef.current = ctrl;
     setSearching(true);
-    setToast("");
     setSearchResults((prev) => prev ?? []);
 
     const r = await childReadingService.stories(token, { search: keyword, source: "", pageIndex: 1 }, ctrl.signal);
     if (ctrl.signal.aborted) return;
     if (r.success && r.data) setSearchResults(r.data.items);
-    else { setSearchResults([]); if (r.message) setToast(r.message); }
+    else { setSearchResults([]); if (r.message) showToast(r.message, "err"); }
     setSearching(false);
   };
 
@@ -128,6 +127,7 @@ export default function KidShelves({
 
   const loading = mine.loading || library.loading;
   const empty = !loading && mine.items.length === 0 && library.items.length === 0;
+  const waiting = loading && mine.items.length === 0 && library.items.length === 0;
   const showSearch = !lock?.locked && (mine.items.length > 0 || library.items.length > 0);
 
   const searchAction = showSearch ? (
@@ -150,8 +150,7 @@ export default function KidShelves({
 
   return (
     <div ref={shelvesRef}>
-      {toast && <p className="kid-toast" role="status">{toast}</p>}
-
+      {waiting && <div className="kid-shelves-loading" role="status" aria-label="Đang tải truyện"><span className="kid-skeleton" /><span className="kid-skeleton" /></div>}
       {lock?.locked ? (
         <KidShelf title="Truyện em có thể đọc" icon={BookOpen} tone="gold">
           <button className="bk" disabled={busy} aria-label={"Đọc lại truyện " + (unlockTitle ?? "đang mở")} onClick={() => { if (lock.unlockStoryId) onOpen(lock.unlockStoryId); }}>
@@ -188,8 +187,8 @@ export default function KidShelves({
           )}
 
           {empty && (
-            <div className="empty" role="status">
-              <Frog mood="think" size={120} />
+            <div className="kl-panel kid-shelves-empty" role="status">
+              <Frog mood="think" size={96} />
               <p className="display">Bố mẹ chưa chọn truyện cho em</p>
             </div>
           )}

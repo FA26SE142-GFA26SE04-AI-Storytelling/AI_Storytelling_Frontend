@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { ChevronRight } from "lucide-react";
+import "./kid-lobby.css";
+import "./kid-shelves.css";
 
 interface KidShelfProps {
   title: string;
@@ -13,7 +15,10 @@ interface KidShelfProps {
   hasMore?: boolean;
 }
 
-// Kệ sách truyện cho bé theo chủ đề đầm sen
+/** Màu nút "xem thêm" theo màu kệ. */
+const MORE_TONE = { rose: "is-pink", sky: "is-sky", gold: "is-gold" } as const;
+
+// Kệ sách truyện cho bé: khung .kl-panel của sảnh, thanh đầu đổ màu theo kệ
 export default function KidShelf({
   title,
   icon: Icon,
@@ -25,11 +30,9 @@ export default function KidShelf({
   hasMore,
 }: KidShelfProps) {
   return (
-    <section className="kid-shelf">
-      <div className="kid-shelf-head">
-        <span className={`kid-shelf-icon tone-${tone}`}>
-          <Icon aria-hidden="true" />
-        </span>
+    <section className={`kl-panel kid-shelf tone-${tone}`}>
+      <div className="kl-head kid-shelf-head">
+        <Icon aria-hidden="true" />
         <h2 className="display kid-shelf-title">{title}</h2>
         <span className="kid-shelf-sprout" aria-hidden="true">
           <svg viewBox="0 0 18 18" width="18" height="18" aria-hidden="true">
@@ -49,15 +52,17 @@ export default function KidShelf({
       <div className="kid-shelf-row">
         {children}
         {onMore && hasMore !== false && (
-          <button
-            type="button"
-            className="kid-shelf-more"
-            aria-label="Xem thêm truyện"
-            disabled={loadingMore}
-            onClick={onMore}
-          >
-            <ChevronRight size={40} aria-hidden="true" />
-          </button>
+          <div className="kid-shelf-more">
+            <button
+              type="button"
+              className={`kid-btn3d ${MORE_TONE[tone]}`}
+              aria-label="Xem thêm truyện"
+              disabled={loadingMore}
+              onClick={onMore}
+            >
+              <ChevronRight aria-hidden="true" />
+            </button>
+          </div>
         )}
       </div>
     </section>
