@@ -1,6 +1,7 @@
 'use client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Check, HelpCircle, Mic, RotateCcw, Send, Square } from 'lucide-react';
+import { showToast } from '@/app/lib/toast';
 import { childReadingService } from '@/app/services/childReadingService';
 import { SUMMARY_MAX_BYTES, SUMMARY_MAX_FLAGS } from '@/app/types/childReading';
 import { useRecorder } from './useRecorder';
@@ -22,6 +23,12 @@ export default function KidSummary({ token, sessionId, scenes }: { token: string
   const [picked, setPicked] = useState<number[]>([]);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState('');
+  // note chỉ nhận lỗi gửi (thành công hiện bằng dấu tích tại chỗ).
+  useEffect(() => { if (note) showToast(note, 'err'); }, [note]);
+  useEffect(() => {
+    if (rec.state === 'denied') showToast('Em cần cho phép dùng micro nhé.', 'warn');
+    else if (rec.state === 'unsupported') showToast('Máy này chưa ghi âm được.', 'warn');
+  }, [rec.state]);
 
   const sendVoice = async () => {
     if (!rec.blob || busy) return;
@@ -43,27 +50,24 @@ export default function KidSummary({ token, sessionId, scenes }: { token: string
     <h3 className="display">Em kể lại cho bố mẹ nghe nhé</h3>
     {sentVoice ? <Sent text={sentVoice} /> : <div className="kid-actions">
       {rec.state === 'recording'
-        ? <button type="button" className="kid-listen-primary" onClick={rec.stop}><Square aria-hidden="true" />Dừng ({clock(rec.seconds)})</button>
-        : <button type="button" className="kid-soft-button" disabled={rec.state === 'converting'} onClick={() => void rec.start()}><Mic aria-hidden="true" />{rec.state === 'converting' ? 'Đang chuẩn bị…' : rec.state === 'ready' ? 'Ghi lại' : 'Bấm để kể'}</button>}
+        ? <button type="button" className="kid-btn3d is-gold" onClick={rec.stop}><Square aria-hidden="true" />Dừng ({clock(rec.seconds)})</button>
+        : <button type="button" className="kid-btn3d is-sky" disabled={rec.state === 'converting'} onClick={() => void rec.start()}><Mic aria-hidden="true" />{rec.state === 'converting' ? 'Đang chuẩn bị…' : rec.state === 'ready' ? 'Ghi lại' : 'Bấm để kể'}</button>}
       {rec.state === 'ready' && rec.url && <>
         <audio controls src={rec.url} aria-label="Nghe lại bản em vừa kể" />
-        <button type="button" className="kid-soft-button icon-only" aria-label="Bỏ bản ghi" title="Bỏ bản ghi" onClick={rec.reset}><RotateCcw aria-hidden="true" /></button>
-        <button type="button" className="kid-listen-primary" disabled={busy} onClick={() => void sendVoice()}><Send aria-hidden="true" />Gửi bố mẹ</button>
+        <button type="button" className="kid-btn3d is-sky kid-btn-icon" aria-label="Bỏ bản ghi" title="Bỏ bản ghi" onClick={rec.reset}><RotateCcw aria-hidden="true" /></button>
+        <button type="button" className="kid-btn3d is-gold" disabled={busy} onClick={() => void sendVoice()}><Send aria-hidden="true" />Gửi bố mẹ</button>
       </>}
     </div>}
-    {rec.state === 'denied' && <p className="notice" role="status">Em cần cho phép dùng micro nhé.</p>}
-    {rec.state === 'unsupported' && <p className="notice" role="status">Máy này chưa ghi âm được.</p>}
 
     {scenes.length > 0 && <>
       <h3 className="display"><HelpCircle aria-hidden="true" /> Chỗ nào em còn thắc mắc?</h3>
       {sentFlags ? <Sent text={sentFlags} /> : <>
         <div className="kid-flag-list" role="group" aria-label={`Chọn tối đa ${SUMMARY_MAX_FLAGS} cảnh`}>
-          {scenes.map(s => <button key={s.sceneId} type="button" className="kid-soft-button" aria-pressed={picked.includes(s.sceneId)}
+          {scenes.map(s => <button key={s.sceneId} type="button" className="kid-btn3d is-sky" aria-pressed={picked.includes(s.sceneId)}
             disabled={!picked.includes(s.sceneId) && picked.length >= SUMMARY_MAX_FLAGS} onClick={() => toggle(s.sceneId)}>Cảnh {s.sceneIndex + 1}</button>)}
         </div>
-        <button type="button" className="kid-listen-primary" disabled={busy || !picked.length} onClick={() => void sendFlags()}><Send aria-hidden="true" />Gửi bố mẹ</button>
+        <button type="button" className="kid-btn3d is-gold" disabled={busy || !picked.length} onClick={() => void sendFlags()}><Send aria-hidden="true" />Gửi bố mẹ</button>
       </>}
     </>}
-    {note && <p className="notice" role="status">{note}</p>}
   </section>;
 }
