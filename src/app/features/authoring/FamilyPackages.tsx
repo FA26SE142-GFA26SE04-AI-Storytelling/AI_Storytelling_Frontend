@@ -22,6 +22,14 @@ function SafetyDetail({ check, kid }: { check: PackageCheck; kid: string }) {
   </div>;
 }
 
+/** Cảnh báo AI không chặn gói: AI chấm tạm lỗi hoặc thấy chỗ cần lưu ý; phụ huynh tự đọc lại rồi xác nhận khi chốt. */
+function warningText(w: NonNullable<PackageCheck['warnings']>[number], check: PackageCheck) {
+  const unavailable = w.source === 'ContentSafety' ? check.safetyStatus === 'Unavailable' : check.grayZoneStatus === 'Unavailable';
+  if (unavailable) return w.source === 'ContentSafety' ? 'Chưa chấm được mức an toàn theo cài đặt của bé (AI đang tạm lỗi).' : 'Chưa kiểm duyệt tự động được (AI đang tạm lỗi).';
+  return 'Kiểm duyệt tự động thấy vài chỗ cần lưu ý.';
+}
+const needsAck = (p: ParentPackage) => !!p.check?.requiresParentAcknowledgement && (p.check.warnings?.length ?? 0) > 0;
+
 const PARTS: { key: keyof PackageComponents; label: string }[] = [
   { key: 'vocabulary', label: 'Từ vựng' }, { key: 'quiz', label: 'Câu đố' }, { key: 'listening', label: 'Tương tác khi nghe' },
   { key: 'images', label: 'Tranh' }, { key: 'narration', label: 'Giọng đọc' },
@@ -257,12 +265,16 @@ export default function FamilyPackages({ story, kids, workflow, canWrite, onRelo
             {/* Chấm an toàn không đạt: nói rõ chủ đề nào đang bị chặn cho bé và câu nào trong truyện dính chủ đề đó. */}
             {e === 'CONTENT_SAFETY_NOT_PASSED' && <SafetyDetail check={p.check!} kid={kidName(p.childProfileId)} />}
           </li>)}</ul>}
+          {needsAck(p) && p.status === 'Review' && <ul className="pa-issues">{p.check!.warnings!.map((w, i) => { const quotes = [...new Set(w.evidence ?? [])].slice(0, 3); return <li className="warn" key={`${w.source}-${w.code}-${i}`}>
+            {warningText(w, p.check!)} Hãy tự đọc kỹ truyện trước khi chốt.
+            {quotes.length > 0 && <div className="fp-safety"><span>Chỗ trong truyện: {quotes.map((q) => `“${q}”`).join(' · ')}</span></div>}
+          </li>; })}</ul>}
           {p.status === 'Failed' && p.lastErrorCode && <p className="notice warn" data-inline-notice>Lần tạo vừa rồi bị lỗi ({p.lastErrorCode}). Bấm Thử lại; phần đã xong được giữ nguyên.</p>}
           {(p.vocabularyCount > 0 || p.quizCount > 0 || p.listeningCount > 0) && <p className="fp-counts">{[p.vocabularyCount && `${p.vocabularyCount} từ vựng`, p.quizCount && `${p.quizCount} câu đố`, p.listeningCount && `${p.listeningCount} tương tác`].filter(Boolean).join(' · ')}</p>}
           <div className="pa-actions">
             {needsGenerate(p) && <button className="btn btn-p" disabled={busy || !canWrite} onClick={() => void onPackage(p, (f) => svc.generate(storyId, f), 'Đang tạo học liệu cho gói.')}><Wand2 className="ic" />Tạo học liệu</button>}
             {(canConfirm(p) || p.status === 'Confirmed') && <button className="btn btn-s" onClick={() => setPreview(p)}><Eye className="ic" />Xem trước</button>}
-            {canConfirm(p) && <button className="btn btn-ok" disabled={busy || !canWrite} onClick={async () => { if (await confirmDialog(`Chốt gói của ${kidName(p.childProfileId)}? Gói đã chốt không sửa được, chỉ tạo bản mới.`)) void onPackage(p, (f) => svc.confirm(storyId, f), 'Đã chốt gói.'); }}><Check className="ic" />Chốt gói</button>}
+            {canConfirm(p) && <button className="btn btn-ok" disabled={busy || !canWrite} onClick={async () => { const ack = needsAck(p); if (await confirmDialog(`${ack ? 'Gói có cảnh báo từ kiểm tra tự động. Bạn đã đọc kỹ truyện và vẫn muốn chốt? ' : ''}Chốt gói của ${kidName(p.childProfileId)}? Gói đã chốt không sửa được, chỉ tạo bản mới.`)) void onPackage(p, (f) => svc.confirm(storyId, f, ack), 'Đã chốt gói.'); }}><Check className="ic" />Chốt gói</button>}
             {p.status === 'Failed' && <button className="btn btn-s" disabled={busy || !canWrite} onClick={() => void onPackage(p, (f) => svc.retry(storyId, f), 'Đang thử lại phần bị lỗi.')}><RotateCcw className="ic" />Thử lại</button>}
             {!RUNNING.includes(p.status) && !STALE.includes(p.status) && !busyPart(p) && !grant && <button className="btn btn-g" disabled={lock || !canWrite} onClick={() => setRevise({ pkg: p, parts: { ...p.components } })}><Sparkles className="ic" />Đổi thành phần</button>}
             {grant && <button className="btn btn-no" disabled={busy || !canWrite} onClick={() => void revoke(p.childProfileId)}><Undo2 className="ic" />Thu hồi quyền đọc</button>}
