@@ -9,6 +9,7 @@ import type { PlanSettings, UpdatePlanSettingsRequest } from "@/app/types/planSe
 import { fmt } from "@/app/features/staff/ui";
 import PlanQuotaSections from "./plan-settings/PlanQuotaSections";
 import PlanFreeSections from "./plan-settings/PlanFreeSections";
+import PlanRegenerationSection, { MAX_REGENERATION_LIMIT } from "./plan-settings/PlanRegenerationSection";
 import "./plan-settings/plan-dialogs.css";
 
 export interface PlanSettingsDialogProps {
@@ -32,6 +33,10 @@ export interface DraftState {
   freeWritingAssistPerDay: number | string;
   minimumReadSeconds: number | string;
   trialAiCredits: number | string;
+  outlineRegenerationLimit: number | string;
+  contentRegenerationLimit: number | string;
+  imageRegenerationLimit: number | string;
+  audioRegenerationLimit: number | string;
 }
 
 const SETTINGS_KEYS: (keyof UpdatePlanSettingsRequest)[] = [
@@ -50,6 +55,10 @@ const SETTINGS_KEYS: (keyof UpdatePlanSettingsRequest)[] = [
   "freeWritingAssistPerDay",
   "minimumReadSeconds",
   "trialAiCredits",
+  "outlineRegenerationLimit",
+  "contentRegenerationLimit",
+  "imageRegenerationLimit",
+  "audioRegenerationLimit",
 ];
 
 function toDraft(settings: PlanSettings): DraftState {
@@ -69,6 +78,10 @@ function toDraft(settings: PlanSettings): DraftState {
     freeWritingAssistPerDay: settings.freeWritingAssistPerDay,
     minimumReadSeconds: settings.minimumReadSeconds,
     trialAiCredits: settings.trialAiCredits,
+    outlineRegenerationLimit: settings.outlineRegenerationLimit,
+    contentRegenerationLimit: settings.contentRegenerationLimit,
+    imageRegenerationLimit: settings.imageRegenerationLimit,
+    audioRegenerationLimit: settings.audioRegenerationLimit,
   };
 }
 
@@ -166,6 +179,8 @@ export default function PlanSettingsDialog({ open, onClose }: PlanSettingsDialog
     const isFreeWritingValid = isValidInteger(draft.freeWritingAssistPerDay, 0);
     const isMinReadValid = isValidInteger(draft.minimumReadSeconds, 1, 3600);
     const isTrialAiValid = isValidInteger(draft.trialAiCredits, 0);
+    const isRegenerationValid = ([draft.outlineRegenerationLimit, draft.contentRegenerationLimit, draft.imageRegenerationLimit, draft.audioRegenerationLimit] as const)
+      .every((value) => isValidInteger(value, 0, MAX_REGENERATION_LIMIT));
 
     isValid =
       isReadingFundValid &&
@@ -182,7 +197,8 @@ export default function PlanSettingsDialog({ open, onClose }: PlanSettingsDialog
       isFreeReadAloudValid &&
       isFreeWritingValid &&
       isMinReadValid &&
-      isTrialAiValid;
+      isTrialAiValid &&
+      isRegenerationValid;
   }
 
   // Kiểm tra có thay đổi so với original
@@ -238,6 +254,10 @@ export default function PlanSettingsDialog({ open, onClose }: PlanSettingsDialog
         freeWritingAssistPerDay: Math.floor(Number(draft.freeWritingAssistPerDay)),
         minimumReadSeconds: Math.floor(Number(draft.minimumReadSeconds)),
         trialAiCredits: Math.floor(Number(draft.trialAiCredits)),
+        outlineRegenerationLimit: Math.floor(Number(draft.outlineRegenerationLimit)),
+        contentRegenerationLimit: Math.floor(Number(draft.contentRegenerationLimit)),
+        imageRegenerationLimit: Math.floor(Number(draft.imageRegenerationLimit)),
+        audioRegenerationLimit: Math.floor(Number(draft.audioRegenerationLimit)),
       };
 
       const r = await adminPaymentService.updateSettings(body);
@@ -276,6 +296,7 @@ export default function PlanSettingsDialog({ open, onClose }: PlanSettingsDialog
         <form className="cp-dialog-body" onSubmit={handleSubmit}>
           <PlanQuotaSections draft={draft} onChange={updateField} />
           <PlanFreeSections draft={draft} onChange={updateField} />
+          <PlanRegenerationSection draft={draft} onChange={updateField} />
 
           {/* Dòng cuối popup và nút hành động */}
           <div className="ps-footer">

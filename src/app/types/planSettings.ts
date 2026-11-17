@@ -70,6 +70,14 @@ export interface PlanSettings {
   creatorWritingAssistPerDay: number;
   /** Số lượt trợ lý viết mỗi ngày cho Đối tác */
   partnerWritingAssistPerDay: number;
+  /** Số lần sinh lại dàn ý miễn phí trong một truyện (mặc định 3). */
+  outlineRegenerationLimit: number;
+  /** Số lần sinh lại nội dung (mặc định 2) — chỉ lưu, chưa có chức năng sinh lại toàn bộ nội dung. */
+  contentRegenerationLimit: number;
+  /** Số ảnh được sinh lại trong một truyện (mặc định 3). */
+  imageRegenerationLimit: number;
+  /** Số lần sinh lại audio trong một truyện (mặc định 2). */
+  audioRegenerationLimit: number;
   /** Thời điểm cập nhật cấu hình lần cuối */
   updatedAt: string | null;
 }

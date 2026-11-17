@@ -85,6 +85,67 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
+    "method": "GET",
+    "route": "/api/v1/admin/audit-logs",
+    "authorization": "Roles = \"Administrator\"",
+    "controller": "AdminAuditLogController.cs",
+    "action": "Search",
+    "controllerLine": 27,
+    "evidence": [
+      {
+        "key": "GET /api/v1/admin/audit-logs",
+        "service": "creatorAdminService",
+        "operation": "auditLogs",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 35,
+        "callers": [
+          "app/features/staff/AdminAuditLog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/admin/audit-logs/filters",
+    "authorization": "Roles = \"Administrator\"",
+    "controller": "AdminAuditLogController.cs",
+    "action": "GetFilters",
+    "controllerLine": 36,
+    "evidence": [
+      {
+        "key": "GET /api/v1/admin/audit-logs/filters",
+        "service": "creatorAdminService",
+        "operation": "auditFilters",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 37,
+        "callers": [
+          "app/features/staff/AdminAuditLog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/admin/audit-logs/{auditLogId}",
+    "authorization": "Roles = \"Administrator\"",
+    "controller": "AdminAuditLogController.cs",
+    "action": "Get",
+    "controllerLine": 44,
+    "evidence": [
+      {
+        "key": "GET /api/v1/admin/audit-logs/{}",
+        "service": "creatorAdminService",
+        "operation": "auditLog",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 36,
+        "callers": []
+      }
+    ],
+    "disposition": "SERVICE_ONLY"
+  },
+  {
     "method": "POST",
     "route": "/api/v1/Auth/register",
     "authorization": "AllowAnonymous",
@@ -790,7 +851,7 @@
     "authorization": "Roles = \"Administrator\"",
     "controller": "BusinessReportController.cs",
     "action": "Generate",
-    "controllerLine": 30,
+    "controllerLine": 34,
     "evidence": [
       {
         "key": "POST /api/v1/BusinessReport/generate",
@@ -811,7 +872,7 @@
     "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"",
     "controller": "BusinessReportController.cs",
     "action": "Publish",
-    "controllerLine": 43,
+    "controllerLine": 47,
     "evidence": [
       {
         "key": "POST /api/v1/BusinessReport/{}/publish",
@@ -832,7 +893,7 @@
     "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated",
     "controller": "BusinessReportController.cs",
     "action": "GetLatestPublished",
-    "controllerLine": 55,
+    "controllerLine": 59,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/latest-published",
@@ -853,7 +914,7 @@
     "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated; Roles = \"Administrator\"",
     "controller": "BusinessReportController.cs",
     "action": "GetRevenue",
-    "controllerLine": 67,
+    "controllerLine": 71,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/admin/revenue",
@@ -874,7 +935,7 @@
     "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"",
     "controller": "BusinessReportController.cs",
     "action": "GetAccounts",
-    "controllerLine": 79,
+    "controllerLine": 83,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/admin/accounts",
@@ -891,11 +952,32 @@
   },
   {
     "method": "GET",
-    "route": "/api/v1/BusinessReport/admin",
+    "route": "/api/v1/BusinessReport/admin/creators",
     "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
     "controller": "BusinessReportController.cs",
+    "action": "GetCreators",
+    "controllerLine": 96,
+    "evidence": [
+      {
+        "key": "GET /api/v1/BusinessReport/admin/creators",
+        "service": "creatorAdminService",
+        "operation": "creatorStats",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 30,
+        "callers": [
+          "app/features/staff/AdminCreatorsStatsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/BusinessReport/admin",
+    "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "controller": "BusinessReportController.cs",
     "action": "List",
-    "controllerLine": 91,
+    "controllerLine": 108,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/admin",
@@ -913,10 +995,10 @@
   {
     "method": "GET",
     "route": "/api/v1/BusinessReport/admin/{reportId}",
-    "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "authorization": "Roles = \"Administrator\"; Roles = \"Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
     "controller": "BusinessReportController.cs",
     "action": "GetById",
-    "controllerLine": 103,
+    "controllerLine": 120,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/admin/{}",
@@ -1761,7 +1843,7 @@
         "file": "app/services/childReadingService.ts",
         "line": 28,
         "callers": [
-          "app/features/kid/KidAfterReading.tsx"
+          "app/features/kid/KidReflection.tsx"
         ]
       }
     ],
@@ -3353,6 +3435,132 @@
   },
   {
     "method": "GET",
+    "route": "/api/v1/creator-payouts/me",
+    "authorization": "Roles = \"ContentCreator\"",
+    "controller": "CreatorPayoutController.cs",
+    "action": "GetMine",
+    "controllerLine": 24,
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator-payouts/me",
+        "service": "creatorSelfService",
+        "operation": "payouts",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 42,
+        "callers": [
+          "app/features/staff/CreatorPayoutsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/creator-payouts/me/account",
+    "authorization": "Roles = \"ContentCreator\"; Roles = \"ContentCreator\"",
+    "controller": "CreatorPayoutController.cs",
+    "action": "UpdateMyAccount",
+    "controllerLine": 33,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/creator-payouts/me/account",
+        "service": "creatorSelfService",
+        "operation": "updatePayoutAccount",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 44,
+        "callers": [
+          "app/features/staff/CreatorPayoutsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/admin/creator-payouts/due",
+    "authorization": "Roles = \"ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"Administrator\"",
+    "controller": "CreatorPayoutController.cs",
+    "action": "GetDue",
+    "controllerLine": 43,
+    "evidence": [
+      {
+        "key": "GET /api/v1/admin/creator-payouts/due",
+        "service": "creatorAdminService",
+        "operation": "payoutsDue",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 20,
+        "callers": [
+          "app/features/staff/AdminCreatorPayouts.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/admin/creator-payouts/creators/{creatorUserId}",
+    "authorization": "Roles = \"ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "controller": "CreatorPayoutController.cs",
+    "action": "GetCreator",
+    "controllerLine": 52,
+    "evidence": [
+      {
+        "key": "GET /api/v1/admin/creator-payouts/creators/{}",
+        "service": "creatorAdminService",
+        "operation": "payoutOverview",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 22,
+        "callers": [
+          "app/features/staff/CreatorPayoutHistoryDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/admin/creator-payouts/creators/{creatorUserId}/mark-paid",
+    "authorization": "Roles = \"ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "controller": "CreatorPayoutController.cs",
+    "action": "MarkPaid",
+    "controllerLine": 62,
+    "evidence": [
+      {
+        "key": "POST /api/v1/admin/creator-payouts/creators/{}/mark-paid",
+        "service": "creatorAdminService",
+        "operation": "markPaid",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 24,
+        "callers": [
+          "app/features/staff/AdminCreatorPayouts.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/admin/creator-payouts/{payoutId}/cancel",
+    "authorization": "Roles = \"ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"; Roles = \"Administrator\"",
+    "controller": "CreatorPayoutController.cs",
+    "action": "Cancel",
+    "controllerLine": 72,
+    "evidence": [
+      {
+        "key": "POST /api/v1/admin/creator-payouts/{}/cancel",
+        "service": "creatorAdminService",
+        "operation": "cancelPayout",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 26,
+        "callers": [
+          "app/features/staff/CreatorPayoutHistoryDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
     "route": "/api/v1/creator/stories/{storyId}/publication",
     "authorization": "Authenticated; Roles = \"ContentCreator\"",
     "controller": "CreatorPublicationController.cs",
@@ -3497,6 +3705,48 @@
         "line": 13,
         "callers": [
           "app/features/staff/CreatorIncomeTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/admin/creators/{creatorUserId}/partner-tier",
+    "authorization": "Roles = \"Administrator\"",
+    "controller": "CreatorTierController.cs",
+    "action": "Get",
+    "controllerLine": 26,
+    "evidence": [
+      {
+        "key": "GET /api/v1/admin/creators/{}/partner-tier",
+        "service": "creatorAdminService",
+        "operation": "partnerTier",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 15,
+        "callers": [
+          "app/features/staff/CreatorPartnerTierDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/admin/creators/{creatorUserId}/partner-tier/revoke",
+    "authorization": "Roles = \"Administrator\"",
+    "controller": "CreatorTierController.cs",
+    "action": "Revoke",
+    "controllerLine": 34,
+    "evidence": [
+      {
+        "key": "POST /api/v1/admin/creators/{}/partner-tier/revoke",
+        "service": "creatorAdminService",
+        "operation": "revokePartner",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 17,
+        "callers": [
+          "app/features/staff/CreatorPartnerTierDialog.tsx"
         ]
       }
     ],
@@ -3815,6 +4065,7 @@
         "callers": [
           "app/features/staff/CreatorGeneration.tsx",
           "app/features/story-workflow/resumeStory.ts",
+          "app/features/story-workflow/useMediaPackage.ts",
           "app/features/studio/MediaProgress.tsx",
           "app/features/studio/useStoryPipeline.ts"
         ]
@@ -7935,7 +8186,7 @@
     "authorization": "Roles = \"User,ContentCreator\"",
     "controller": "StoryCoverController.cs",
     "action": "SetCover",
-    "controllerLine": 24,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "PUT /api/v1/stories/{}/cover",

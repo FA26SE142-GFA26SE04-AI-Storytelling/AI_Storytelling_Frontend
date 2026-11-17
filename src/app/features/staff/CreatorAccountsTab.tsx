@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { RotateCcw, UserX } from "lucide-react";
+import { RotateCcw, UserX, Award } from "lucide-react";
 import Dialog from "@/app/components/Dialog";
 import Pager from "@/app/components/Pager";
 import Select from "@/app/components/Select";
 import { confirmDialog } from "@/app/lib/confirm";
 import { useRiseIn } from "@/app/lib/motion";
 import { showToast } from "@/app/lib/toast";
+import { CreatorPartnerTierDialog } from "./CreatorPartnerTierDialog";
 import { adminCreatorService as svc, type CreatorAccount, type CreatorAccountStatus } from "@/app/services/adminCreatorService";
 import type { PagedResult } from "@/app/types/story";
 import { Pill, ReasonField, fmt } from "./ui";
@@ -26,6 +27,7 @@ export function CreatorAccountsTab() {
   const [reload, setReload] = useState(0);
   const [list, setList] = useState<PagedResult<CreatorAccount> | null>(null);
   const [deact, setDeact] = useState<CreatorAccount | null>(null);
+  const [tierOf, setTierOf] = useState<CreatorAccount | null>(null);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
   const bodyRef = useRiseIn<HTMLTableSectionElement>("tr", [list]);
@@ -81,6 +83,7 @@ export function CreatorAccountsTab() {
               <td data-label="Đã xuất bản">{c.publishedStoryCount}</td>
               <td data-label="Đăng nhập gần nhất">{fmt(c.lastLoginAt)}</td>
               <td data-label="" style={{ whiteSpace: "nowrap" }}>
+                <button className="btn btn-g" onClick={() => setTierOf(c)}><Award className="ic" />Cấp đối tác</button>
                 {c.status === "Active" && <button className="btn btn-g" disabled={busy} onClick={() => { setReason(""); setDeact(c); }}><UserX className="ic" />Vô hiệu hoá</button>}
                 {c.status === "Suspended" && <button className="btn btn-g" disabled={busy} onClick={() => void reactivate(c)}><RotateCcw className="ic" />Kích hoạt lại</button>}
               </td>
@@ -89,6 +92,7 @@ export function CreatorAccountsTab() {
           {list && list.items.length === 0 && <tr><td colSpan={7} className="sub">Không có Content Creator phù hợp.</td></tr>}
         </tbody>
       </table>
+      {tierOf && <CreatorPartnerTierDialog creator={tierOf} onClose={() => setTierOf(null)} />}
       {list && <Pager page={list.pageIndex} totalPages={list.totalPages} hasPrev={list.hasPreviousPage} hasNext={list.hasNextPage} onPage={setPage} />}
     </div>
     {deact && <Dialog title={`Vô hiệu hoá ${deact.fullName}`} onClose={() => setDeact(null)} className="st-dlg">

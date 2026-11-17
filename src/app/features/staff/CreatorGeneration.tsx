@@ -174,7 +174,7 @@ function CreatorGenerationRun({ initialId, seed, onReset, onBuyCredits }: { init
         {waiting && <div style={{ height: '100%', minHeight: 380 }}><StageProgress stage={stage} snapshot={flow.snapshot} outputMode={outputMode} message={flow.error || flow.message} onRetry={refreshState} /></div>}
         <div style={{ maxWidth: 900, margin: '0 auto', display: 'grid', gap: 16 }}>
           {notices}
-          {flow.id !== null && flow.stage === 'outline' && outline && <div className="st-card"><OutlinePanel key={outline.versionNo} storyId={flow.id} version={outline} editable={!locked} visible onReveal={() => {}} onApproved={refreshState} onChanged={refreshState} /></div>}
+          {flow.id !== null && flow.stage === 'outline' && outline && <div className="st-card"><OutlinePanel key={outline.versionNo} storyId={flow.id} version={outline} regeneration={flow.snapshot?.outline?.regeneration} editable={!locked} visible onReveal={() => {}} onApproved={refreshState} onChanged={refreshState} /></div>}
           {/* Chưa tới bước media: chỉ chạy ngầm để tính trạng thái khóa chỉnh sửa, không vẽ gì. */}
           {publication(true)}
         </div>

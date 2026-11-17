@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Check, Flag, Flower2, Footprints, RefreshCw, type LucideIcon } from "lucide-react";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import { useRegisterApprove } from "@/app/features/story-workflow/approveSlot";
-import type { OutlineVersionDto } from "@/app/types/aiStory";
+import type { OutlineVersionDto, RegenerationCounter } from "@/app/types/aiStory";
 import OutlineHistory from './OutlineHistory';
 
 type BeatKey = "opening" | "development" | "ending";
@@ -17,6 +17,8 @@ const BEATS: [BeatKey, string, string, LucideIcon][] = [
 type Props = {
   storyId: number;
   version: OutlineVersionDto | null;
+  /** Số lần viết lại dàn ý còn lại của truyện; hết thì khoá nút. */
+  regeneration?: RegenerationCounter | null;
   editable: boolean;
   /** Tab dàn ý đang được xem. Panel vẫn được dựng khi ẩn để nút duyệt trên thanh tiến trình không biến mất. */
   visible: boolean;
@@ -27,7 +29,7 @@ type Props = {
 
 const key = () => crypto.randomUUID();
 
-export default function OutlinePanel({ storyId, version, editable, visible, onReveal, onApproved, onChanged }: Props) {
+export default function OutlinePanel({ storyId, version, regeneration, editable, visible, onReveal, onApproved, onChanged }: Props) {
   const [draft, setDraft] = useState({ title: "", opening: "", development: "", ending: "" });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -96,7 +98,9 @@ export default function OutlinePanel({ storyId, version, editable, visible, onRe
         <>
           <div className="row">
             <button className="btn btn-s grow btn-c" disabled={busy || !dirty} onClick={() => void save()}>Lưu chỉnh sửa</button>
-            <button className="btn btn-s grow btn-c" disabled={busy} onClick={() => void regenerate()}><RefreshCw className="ic" />Viết lại</button>
+            <button className="btn btn-s grow btn-c" disabled={busy || regeneration?.remaining === 0}
+              title={regeneration ? `Còn ${regeneration.remaining}/${regeneration.limit} lần viết lại miễn phí` : undefined}
+              onClick={() => void regenerate()}><RefreshCw className="ic" />{regeneration ? `Viết lại (còn ${regeneration.remaining})` : "Viết lại"}</button>
           </div>
           {approveInBar
             ? <p className="hint">Hài lòng với dàn ý thì bấm dấu ✓ trên thanh tiến trình, AI sẽ viết truyện.</p>

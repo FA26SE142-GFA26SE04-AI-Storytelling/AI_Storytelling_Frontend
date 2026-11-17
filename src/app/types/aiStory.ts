@@ -104,7 +104,11 @@ export interface OutlineProgressDto {
   activeOperation: string | null;
   activeJobStatus: string | null;
   lastErrorCode: string | null;
+  /** Số lần sinh lại dàn ý đã dùng / giới hạn của truyện (Admin cấu hình); backend cũ không trả. */
+  regeneration?: RegenerationCounter | null;
 }
+/** Số lần sinh lại miễn phí trong một truyện: đã dùng, giới hạn, còn lại. */
+export interface RegenerationCounter { used: number; limit: number; remaining: number }
 export interface EditOutlineRequestDto { title: string; opening: string; development: string; ending: string }
 export interface RegenerateOutlineRequestDto { operationKey: string }
 export interface RetryOutlineRequestDto { operationKey: string }
@@ -229,6 +233,9 @@ export interface MediaBranchProgress {
   failedCount: number;
 }
 export interface MediaProgressDto extends MediaPackageState {
+  /** Số ảnh / số lần audio đã sinh lại và giới hạn của truyện; backend cũ không trả. */
+  imageRegeneration?: RegenerationCounter | null;
+  audioRegeneration?: RegenerationCounter | null;
   images?: MediaBranchProgress;
   audio?: MediaBranchProgress;
   mediaMode?: string;
