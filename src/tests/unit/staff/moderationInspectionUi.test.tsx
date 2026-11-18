@@ -218,7 +218,7 @@ describe('Moderator inspection UI primitives', () => {
         title="Duyệt truyện Creator"
         description="Mô tả"
         sections={PUBLIC_STORY_SECTIONS}
-        status="Claimed"
+        status="Open"
         onStatusChange={() => {}}
         priority=""
         onPriorityChange={() => {}}
@@ -246,8 +246,7 @@ describe('Moderator inspection UI primitives', () => {
     expect(shellWithSelection).toContain('aria-selected="true"');
     expect(shellWithSelection).toContain('Xử lý hồ sơ');
     expect(shellWithSelection).toContain('Kết quả xử lý');
-    expect(shellWithSelection).toContain('Chờ tiếp nhận');
-    expect(shellWithSelection).toContain('Đang xử lý');
+    expect(shellWithSelection).toContain('Cần xử lý');
     expect(shellWithSelection).toContain('Chờ sửa');
     expect(shellWithSelection).not.toContain('Đã duyệt');
     expect(shellWithSelection).not.toContain('Từ chối');
@@ -286,7 +285,7 @@ describe('Moderator inspection UI primitives', () => {
     expect(shellInResultsTier).toContain('Từ chối');
     expect(shellInResultsTier).toContain('Đã rút');
     expect(shellInResultsTier).toContain('Đã đóng');
-    expect(shellInResultsTier).not.toContain('Chờ tiếp nhận');
+    expect(shellInResultsTier).not.toContain('Cần xử lý');
     expect(shellInResultsTier).not.toContain('Chờ sửa');
 
     const singleGroupShell = renderToStaticMarkup(
@@ -317,6 +316,6 @@ describe('Moderator inspection UI primitives', () => {
       />,
     );
     expect(singleGroupShell).not.toContain('role="tablist"');
-    expect(singleGroupShell).toContain('Chờ tiếp nhận');
+    expect(singleGroupShell).toContain('Cần xử lý');
   });
 });

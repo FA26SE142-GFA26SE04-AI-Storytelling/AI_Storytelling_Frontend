@@ -8,7 +8,7 @@ import { useModerationSectionQueue } from './useModerationSectionQueue';
 
 /** Tài liệu 06 — Trang Báo cáo nội dung (cố định ContentReport). */
 export default function ContentReportsWorkspace() {
-  const q = useModerationSectionQueue({ itemType: 'ContentReport', initialStatus: 'Pending', pageSize: 10 });
+  const q = useModerationSectionQueue({ itemType: 'ContentReport', initialStatus: 'Open', pageSize: 10 });
   const [outcomeBanner, setOutcomeBanner] = useState<'Dismissed' | 'Archived' | null>(null);
   const current = q.selectedItem;
   const canOpenPackage = !!current
@@ -38,7 +38,7 @@ export default function ContentReportsWorkspace() {
       me={q.user?.id}
       myName={q.user?.fullName || q.user?.username}
       busy={q.claiming}
-      claimLabel="Nhận xử lý"
+      claimLabel="Nhận và xử lý"
       summaryNotice={summaryNotice}
       onClaim={current.status === 'Pending' ? () => {
         setOutcomeBanner(null);
@@ -86,6 +86,7 @@ export default function ContentReportsWorkspace() {
       onReload={q.reload}
       banner={banner}
       detail={detail}
+      claimFocusKey={q.claimFocusKey}
     />
   );
 }

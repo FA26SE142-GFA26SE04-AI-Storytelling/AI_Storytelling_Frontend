@@ -8,7 +8,7 @@ import { useModerationSectionQueue } from './useModerationSectionQueue';
 
 /** Tài liệu 05 — Trang Kiểm tra vùng xám (cố định GrayZoneStory, giữ đủ tất cả Claimed kèm nhãn người giữ). */
 export default function GrayZoneReviewWorkspace() {
-  const q = useModerationSectionQueue({ itemType: 'GrayZoneStory', initialStatus: 'Pending', pageSize: 10 });
+  const q = useModerationSectionQueue({ itemType: 'GrayZoneStory', initialStatus: 'Open', pageSize: 10 });
   const [outcomeBanner, setOutcomeBanner] = useState<'Cleared' | 'Blocked' | null>(null);
   const current = q.selectedItem;
   const mine = !!current && current.status === 'Claimed' && q.user?.id != null && current.claimedByUserId === q.user.id;
@@ -35,7 +35,7 @@ export default function GrayZoneReviewWorkspace() {
       me={q.user?.id}
       myName={q.user?.fullName || q.user?.username}
       busy={q.claiming}
-      claimLabel="Nhận kiểm tra"
+      claimLabel="Nhận và xử lý"
       summaryNotice={summaryNotice}
       onClaim={current.status === 'Pending' ? () => {
         setOutcomeBanner(null);
@@ -83,6 +83,7 @@ export default function GrayZoneReviewWorkspace() {
       onReload={q.reload}
       banner={banner}
       detail={detail}
+      claimFocusKey={q.claimFocusKey}
     />
   );
 }

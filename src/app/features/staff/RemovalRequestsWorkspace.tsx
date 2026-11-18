@@ -5,11 +5,12 @@ import { Archive } from 'lucide-react';
 import { PUBLIC_STORY_REMOVAL_SECTIONS } from './moderationConfig';
 import { ModerationWorkspaceShell, QueueSummaryCard } from './ModerationQueuePrimitives';
 import PublicStoryRemovalPanel from './PublicStoryRemovalPanel';
+import RemovalStoryPreview from './RemovalStoryPreview';
 import { useModerationSectionQueue } from './useModerationSectionQueue';
 
 /** Tài liệu 07 — Trang Yêu cầu gỡ truyện (cố định PublicStoryRemoval, một status mỗi phân khu). */
 export default function RemovalRequestsWorkspace({ go }: { go?: (pageId: string) => void }) {
-  const q = useModerationSectionQueue({ itemType: 'PublicStoryRemoval', initialStatus: 'Pending', pageSize: 10 });
+  const q = useModerationSectionQueue({ itemType: 'PublicStoryRemoval', initialStatus: 'Open', pageSize: 10 });
   const [outcomeBanner, setOutcomeBanner] = useState<'Approved' | 'Rejected' | null>(null);
   const current = q.selectedItem;
   const mine = !!current && current.status === 'Claimed' && q.user?.id != null && current.claimedByUserId === q.user.id;
@@ -32,18 +33,23 @@ export default function RemovalRequestsWorkspace({ go }: { go?: (pageId: string)
       }}
     />
   ) : (
-    <QueueSummaryCard
-      item={current}
-      me={q.user?.id}
-      myName={q.user?.fullName || q.user?.username}
-      busy={q.claiming}
-      claimLabel="Nhận xử lý"
-      summaryNotice={summaryNotice}
-      onClaim={current.status === 'Pending' ? () => {
-        setOutcomeBanner(null);
-        void q.claimItem(current.id);
-      } : undefined}
-    />
+    <>
+      <QueueSummaryCard
+        item={current}
+        me={q.user?.id}
+        myName={q.user?.fullName || q.user?.username}
+        busy={q.claiming}
+        claimLabel="Nhận và xử lý"
+        summaryNotice={summaryNotice}
+        onClaim={current.status === 'Pending' ? () => {
+          setOutcomeBanner(null);
+          void q.claimItem(current.id);
+        } : undefined}
+      />
+      <div className="st-card">
+        <RemovalStoryPreview storyId={current.storyId} />
+      </div>
+    </>
   );
 
   const banner = outcomeBanner === 'Approved' ? (
@@ -75,6 +81,7 @@ export default function RemovalRequestsWorkspace({ go }: { go?: (pageId: string)
       }}
       priority={q.priority}
       onPriorityChange={q.setPriority}
+      showPriorityFilter={false}
       onlyOverdue={q.onlyOverdue}
       onOnlyOverdueChange={q.setOnlyOverdue}
       items={q.items}
@@ -92,6 +99,7 @@ export default function RemovalRequestsWorkspace({ go }: { go?: (pageId: string)
       onReload={q.reload}
       banner={banner}
       detail={detail}
+      claimFocusKey={q.claimFocusKey}
     />
   );
 }
