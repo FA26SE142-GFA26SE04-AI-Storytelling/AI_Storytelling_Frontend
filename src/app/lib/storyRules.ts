@@ -13,6 +13,12 @@ export const OUTPUT_MODE: Record<StoryOutputMode, { label: string; hint: string 
 };
 export const isReadingOnly = (mode?: string | null) => mode === "reading_media_only";
 
+/** Backend báo hết lượt sinh lại dạng "REGENERATION_LIMIT_REACHED: <câu tiếng Việt>": bỏ mã, giữ câu cho toast. */
+export const regenerationMessage = (message: string) => {
+  const text = message.replace(/^REGENERATION_LIMIT_REACHED:\s*/, "");
+  return text === message ? message : text.charAt(0).toUpperCase() + text.slice(1);
+};
+
 /** Luồng 2 mục 5.3b — độ dài truyện (tiếng) theo mức đọc. */
 export const LEVEL_LENGTH: Record<number, [number, number]> = { 1: [200, 400], 2: [400, 700], 3: [700, 1100], 4: [1100, 1600], 5: [1600, 2400] };
 

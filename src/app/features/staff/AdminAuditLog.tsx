@@ -8,6 +8,8 @@ import Pager from "@/app/components/Pager";
 import { creatorAdminService } from "@/app/services/creatorAdminService";
 import type { AdminAuditLog as AuditRow, AdminAuditLogQuery, AuditLogFilters } from "@/app/types/creatorAdmin";
 import { Page, fmt } from "./ui";
+import { auditActionLabel, auditEntityLabel } from "@/app/lib/auditLabels";
+import { auditStateRows } from "./readableJson";
 
 type Draft = { action: string; entityType: string; entityId: string; actorUserId: string; systemOnly: boolean; from: string; to: string };
 const EMPTY: Draft = { action: "", entityType: "", entityId: "", actorUserId: "", systemOnly: false, from: "", to: "" };
@@ -27,9 +29,28 @@ const toQuery = (d: Draft, pageIndex: number): AdminAuditLogQuery => ({
   to: d.to ? dayToUtc(d.to, true) : undefined,
 });
 
-function pretty(json: string | null) {
-  if (!json) return "—";
-  try { return JSON.stringify(JSON.parse(json), null, 2); } catch { return json; }
+/** Action chưa có chữ tiếng Việt thì ô lọc vẫn hiện mã để Admin phân biệt được các mục. */
+const actionOption = (action: string) => { const label = auditActionLabel(action, ""); return label === "Thay đổi khác" ? action : label; };
+
+function AuditStates({ before, after }: { before: string | null; after: string | null }) {
+  const rows = auditStateRows(before, after);
+  if (!rows.length) return <p className="sub">Dòng này không lưu trạng thái trước/sau.</p>;
+  return (
+    <div className="audit-states">
+      <table className="st-table stack-table">
+        <thead><tr><th>Trường</th><th>Trước</th><th>Sau</th></tr></thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.field} className={r.changed ? "audit-changed" : undefined}>
+              <td data-label="Trường"><b>{r.field}</b></td>
+              <td data-label="Trước">{r.before}</td>
+              <td data-label="Sau">{r.after}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 /** Luồng 5 — Administrator xem audit log toàn hệ thống: lọc theo người làm, action, đối tượng, thời gian. Chỉ đọc. */
@@ -68,13 +89,13 @@ export function AdminAuditLog() {
           <label className="field"><span className="lbl">Action</span>
             <select className="inp" value={draft.action} onChange={(e) => set("action", e.target.value)}>
               <option value="">Tất cả</option>
-              {filters.actions.map((a) => <option key={a} value={a}>{a}</option>)}
+              {filters.actions.map((a) => <option key={a} value={a}>{actionOption(a)}</option>)}
             </select>
           </label>
           <label className="field"><span className="lbl">Loại đối tượng</span>
             <select className="inp" value={draft.entityType} onChange={(e) => set("entityType", e.target.value)}>
               <option value="">Tất cả</option>
-              {filters.entityTypes.map((t) => <option key={t} value={t}>{t}</option>)}
+              {filters.entityTypes.map((t) => <option key={t} value={t}>{auditEntityLabel(t) === "Mục khác" ? t : auditEntityLabel(t)}</option>)}
             </select>
           </label>
           <label className="field"><span className="lbl">Mã đối tượng</span>
@@ -109,8 +130,8 @@ export function AdminAuditLog() {
               <tr key={r.id}>
                 <td data-label="Thời điểm">{fmt(r.occurredAt)}</td>
                 <td data-label="Người làm">{actor(r)}{r.actorRole && <><br /><small className="sub">{r.actorRole}</small></>}</td>
-                <td data-label="Action"><code>{r.action}</code></td>
-                <td data-label="Đối tượng">{r.entityType} #{r.entityId}</td>
+                <td data-label="Action">{actionOption(r.action)}</td>
+                <td data-label="Đối tượng">{auditEntityLabel(r.entityType)} #{r.entityId}</td>
                 <td data-label=""><button className="btn btn-g" onClick={() => setDetail(r)}><Eye className="ic" />Chi tiết</button></td>
               </tr>
             ))}
@@ -120,12 +141,9 @@ export function AdminAuditLog() {
         <Pager page={page} totalPages={paging.totalPages} hasPrev={paging.hasPrev} hasNext={paging.hasNext} onPage={setPage} />
       </div>
 
-      {detail && <Dialog title={`${detail.action} · ${detail.entityType} #${detail.entityId}`} onClose={() => setDetail(null)} wide>
+      {detail && <Dialog title={`${actionOption(detail.action)} · ${auditEntityLabel(detail.entityType)} #${detail.entityId}`} onClose={() => setDetail(null)} wide>
         <p className="sub">{fmt(detail.occurredAt)} · {actor(detail)}</p>
-        <div className="audit-states">
-          <div><h4 className="sec-h">Trước</h4><pre className="audit-json">{pretty(detail.beforeState)}</pre></div>
-          <div><h4 className="sec-h">Sau</h4><pre className="audit-json">{pretty(detail.afterState)}</pre></div>
-        </div>
+        <AuditStates before={detail.beforeState} after={detail.afterState} />
       </Dialog>}
     </Page>
   );

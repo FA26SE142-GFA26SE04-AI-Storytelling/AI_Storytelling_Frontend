@@ -5,6 +5,7 @@ import { Check, Flag, Flower2, Footprints, RefreshCw, type LucideIcon } from "lu
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";
 import { useRegisterApprove } from "@/app/features/story-workflow/approveSlot";
 import type { OutlineVersionDto, RegenerationCounter } from "@/app/types/aiStory";
+import { regenerationMessage } from "@/app/lib/storyRules";
 import OutlineHistory from './OutlineHistory';
 
 type BeatKey = "opening" | "development" | "ending";
@@ -48,7 +49,7 @@ export default function OutlinePanel({ storyId, version, regeneration, editable,
     setErr(null);
     const r = await fn();
     setBusy(false);
-    if (!r.success) setErr(r.message);
+    if (!r.success) setErr(regenerationMessage(r.message));
     else after();
   };
 
