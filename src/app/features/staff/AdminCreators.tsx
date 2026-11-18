@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import StatTabs from "@/app/components/stats/StatTabs";
 import { adminCreatorService as svc } from "@/app/services/adminCreatorService";
 import { CreatorAccountsTab } from "./CreatorAccountsTab";
 import { CreatorApplicationsTab } from "./CreatorApplicationsTab";
@@ -21,13 +22,16 @@ export function AdminCreators() {
 
   return (
     <Page title="Content Creator">
-      <div className="seg" role="tablist" aria-label="Content Creator" style={{ maxWidth: 360 }}>
-        <button type="button" role="tab" aria-selected={tab === "apps"} className={tab === "apps" ? "on" : ""} onClick={() => setTab("apps")}>
-          Đơn đăng ký{!!pending && <> <span className="pill gold-pill" aria-label={`${pending} đơn chờ duyệt`}>{pending}</span></>}
-        </button>
-        <button type="button" role="tab" aria-selected={tab === "accounts"} className={tab === "accounts" ? "on" : ""} onClick={() => setTab("accounts")}>Tài khoản</button>
-        <button type="button" role="tab" aria-selected={tab === "payouts"} className={tab === "payouts" ? "on" : ""} onClick={() => setTab("payouts")}>Chi trả</button>
-      </div>
+      <StatTabs
+        label="Content Creator"
+        items={[
+          { id: "apps", label: <>Đơn đăng ký{!!pending && <> <span className="pill gold-pill" aria-label={`${pending} đơn chờ duyệt`}>{pending}</span></>}</> },
+          { id: "accounts", label: "Tài khoản" },
+          { id: "payouts", label: "Chi trả" },
+        ]}
+        value={tab}
+        onChange={(id) => setTab(id as typeof tab)}
+      />
       {tab === "apps" ? <CreatorApplicationsTab onChanged={() => setRecount((n) => n + 1)} />
         : tab === "accounts" ? <CreatorAccountsTab /> : <AdminCreatorPayouts />}
     </Page>

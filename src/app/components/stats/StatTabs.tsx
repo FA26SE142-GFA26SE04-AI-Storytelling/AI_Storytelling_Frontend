@@ -9,7 +9,7 @@ export default function StatTabs({
   onChange,
 }: {
   label: string;
-  items: { id: string; label: string }[];
+  items: { id: string; label: React.ReactNode }[];
   value: string;
   onChange: (id: string) => void;
 }) {

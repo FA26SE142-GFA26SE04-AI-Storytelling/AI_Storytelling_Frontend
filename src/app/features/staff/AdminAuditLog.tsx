@@ -83,10 +83,10 @@ export function AdminAuditLog() {
   const actor = (r: AuditRow) => (r.actorUserId == null ? "Hệ thống" : r.actorFullName || r.actorUsername || `#${r.actorUserId}`);
 
   return (
-    <Page title="Audit log">
+    <Page title="Nhật ký hệ thống">
       <form className="st-card" onSubmit={(e) => { e.preventDefault(); if (badRange) return; setPage(1); setApplied(draft); }}>
         <div className="audit-filters">
-          <label className="field"><span className="lbl">Action</span>
+          <label className="field"><span className="lbl">Thao tác</span>
             <select className="inp" value={draft.action} onChange={(e) => set("action", e.target.value)}>
               <option value="">Tất cả</option>
               {filters.actions.map((a) => <option key={a} value={a}>{actionOption(a)}</option>)}
@@ -124,13 +124,13 @@ export function AdminAuditLog() {
         {error && <div className="notice err" role="status">{error}</div>}
         <div className="row"><h3 className="grow">Nhật ký thao tác</h3><span className="sub">{total.toLocaleString("vi-VN")} dòng</span></div>
         <table className="st-table stack-table">
-          <thead><tr><th>Thời điểm</th><th>Người làm</th><th>Action</th><th>Đối tượng</th><th /></tr></thead>
+          <thead><tr><th>Thời điểm</th><th>Người làm</th><th>Thao tác</th><th>Đối tượng</th><th /></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>
                 <td data-label="Thời điểm">{fmt(r.occurredAt)}</td>
                 <td data-label="Người làm">{actor(r)}{r.actorRole && <><br /><small className="sub">{r.actorRole}</small></>}</td>
-                <td data-label="Action">{actionOption(r.action)}</td>
+                <td data-label="Thao tác">{actionOption(r.action)}</td>
                 <td data-label="Đối tượng">{auditEntityLabel(r.entityType)} #{r.entityId}</td>
                 <td data-label=""><button className="btn btn-g" onClick={() => setDetail(r)}><Eye className="ic" />Chi tiết</button></td>
               </tr>

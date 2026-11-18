@@ -37,6 +37,8 @@
 .st-filters { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .st-filters .sel { width: 210px; flex: none; }
 .st-body.fit { overflow: hidden; }
+/* Trang tự cuộn: card không co lại (card có overflow như .st-scroll sẽ bị ép thấp rồi cuộn bên trong). */
+.st-body:not(.fit) > .st-card { flex-shrink: 0; }
 .st-split.fill { flex: 1; align-items: stretch; }
 .st-split.fill .st-list { min-height: 0; overflow-y: auto; }
 .st-split.fill > .st-card { min-height: 0; overflow-y: auto; }

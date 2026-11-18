@@ -71,7 +71,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "catalog", label: "Danh mục nội dung", icon: ListChecks, view: AdminCatalog },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
     { id: "creators", label: "Content Creator", icon: UserRoundCheck, view: AdminCreators },
-    { id: "audit", label: "Audit log", icon: ScrollText, view: AdminAuditLog, hint: "Nhật ký thao tác nhạy cảm của toàn hệ thống" },
+    { id: "audit", label: "Nhật ký hệ thống", icon: ScrollText, view: AdminAuditLog, hint: "Ai đã làm gì, lúc nào trên toàn hệ thống" },
     { id: "business", label: "Báo cáo nghiệp vụ", icon: ChartColumn, view: AdminBusinessReport },
     { id: "payments", label: "Thanh toán", icon: Receipt, view: AdminPayments },
     { id: "plans", label: "Gói dịch vụ", icon: Package, view: AdminPlans },

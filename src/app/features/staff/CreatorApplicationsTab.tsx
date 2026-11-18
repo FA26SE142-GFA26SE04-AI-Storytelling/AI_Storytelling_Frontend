@@ -22,6 +22,18 @@ export function CreatorApplicationsTab({ onChanged }: { onChanged: () => void })
   const [list, setList] = useState<PagedResult<AdminCreatorApplication> | null>(null);
   const [open, setOpen] = useState<AdminCreatorApplication | null>(null);
   const bodyRef = useRiseIn<HTMLTableSectionElement>("tr", [list]);
+  const [counts, setCounts] = useState<Partial<Record<CreatorApplicationStatus, number>>>({});
+
+  // Số đơn của từng trạng thái cho chip lọc; đếm lại sau mỗi lần duyệt / từ chối.
+  useEffect(() => {
+    let alive = true;
+    for (const [s] of FILTERS) {
+      void svc.applications({ status: s, pageSize: 1 }).then((r) => {
+        if (alive && r.success && r.data) setCounts((c) => ({ ...c, [s]: r.data!.totalCount }));
+      });
+    }
+    return () => { alive = false; };
+  }, [reload]);
 
   useEffect(() => {
     let alive = true;
@@ -34,12 +46,15 @@ export function CreatorApplicationsTab({ onChanged }: { onChanged: () => void })
   }, [status, page, reload]);
 
   return <>
-    <div className="st-filters">
-      <div className="seg" role="radiogroup" aria-label="Lọc đơn theo trạng thái" style={{ maxWidth: 360, flex: 1 }}>
-        {FILTERS.map(([v, l]) => <button key={v} type="button" role="radio" aria-checked={status === v} className={status === v ? "on" : ""} onClick={() => { setStatus(v); setPage(1); }}>{l}</button>)}
-      </div>
-    </div>
     <div className="st-card st-scroll">
+      <div className="chips" role="radiogroup" aria-label="Lọc đơn theo trạng thái">
+        {FILTERS.map(([v, l]) => (
+          <button key={v} type="button" role="radio" aria-checked={status === v} className={status === v ? "chip on" : "chip"}
+            onClick={() => { setStatus(v); setPage(1); }}>
+            {l}{counts[v] != null && <b>{counts[v]}</b>}
+          </button>
+        ))}
+      </div>
       <table className="st-table stack-table">
         <thead><tr><th>Họ tên</th><th>Email</th><th>Nộp lúc</th><th>Tài khoản</th><th /></tr></thead>
         <tbody ref={bodyRef}>
