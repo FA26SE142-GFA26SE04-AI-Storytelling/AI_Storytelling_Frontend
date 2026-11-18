@@ -16,7 +16,7 @@ import KidShelf from './KidShelf';
 import KidLeaves from './KidLeaves';
 import { coverFor } from '@/app/lib/storyView';
 import { BookOpen, Home, Lock } from 'lucide-react';
-import { usePop } from '@/app/lib/motion';
+import { usePointerPlay, usePop } from '@/app/lib/motion';
 
 /** Bìa sách trên kệ của bé: tên truyện in trên bìa. */
 function Cover({ coverUrl, title, meta, disabled, onOpen, label }: { id: number; coverUrl?: string | null; title: string; meta?: string; disabled?: boolean; onOpen?: () => void; label?: string }) {
@@ -25,6 +25,7 @@ function Cover({ coverUrl, title, meta, disabled, onOpen, label }: { id: number;
 }
 
 export default function ConnectedKidHome({ childId, onExit, openStoryId }: { childId: number; onExit: () => void; openStoryId?: number | null }) {
+  const playRef = usePointerPlay<HTMLDivElement>();
   const ended = useKidSession();
   const endedRef = usePop<HTMLElement>(ended, 0.9);
   const [roadmap, setRoadmap] = useState<B.MyRoadmapDto | null>(null);
@@ -78,7 +79,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
   };
 
   return (
-    <div className={`kid${reading ? ' kid-focus' : ''}`} role="dialog" aria-label="Chế độ của bé">
+    <div ref={playRef} className={`kid${reading ? ' kid-focus' : ''}`} role="dialog" aria-label="Chế độ của bé">
       {!reading && <PondBackdrop rich playful />}
       {!reading && <KidLeaves />}
       {!reading && (

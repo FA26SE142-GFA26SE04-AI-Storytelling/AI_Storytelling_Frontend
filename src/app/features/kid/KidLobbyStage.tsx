@@ -6,6 +6,7 @@ import type * as B from "@/app/types/backendContracts";
 import type { ChildRewards } from "@/app/types/childReading";
 import Frog, { type FrogPokeAction } from "@/app/components/brand/Frog";
 import KnowledgeTreeArt from "@/app/components/brand/KnowledgeTreeArt";
+import Lotus from "@/app/components/brand/Lotus";
 import { croak } from "@/app/lib/croak";
 import { coverFor } from "@/app/lib/storyView";
 
@@ -24,17 +25,18 @@ const REST_MS = 8000;
 /** Phóng to tối đa khi màn rất rộng, để ếch và nút không bị vỡ nét. */
 const MAX_FIT = 1.5;
 
-/** Nút vuông 3D trên sân khấu: icon trên, nhãn ngắn dưới, badge số ở góc (nếu > 0). */
-export function StageButton({ icon: Icon, label, variant, badge = 0, badgeLabel, onClick }: {
+/** Nút vuông 3D trên sân khấu: icon trên, nhãn ngắn dưới, badge số ở góc (nếu > 0). `frog`: động tác của ếch khi rê chuột lên nút. */
+export function StageButton({ icon: Icon, label, variant, badge = 0, badgeLabel, frog, onClick }: {
   icon: LucideIcon;
   label: string;
   variant: string;
   badge?: number;
   badgeLabel?: string;
+  frog?: FrogPokeAction;
   onClick: () => void;
 }) {
   return (
-    <button type="button" className={`kid-btn3d ${variant} kls-btn`} onClick={onClick} aria-label={badge > 0 && badgeLabel ? `${label}: ${badgeLabel}` : label}>
+    <button type="button" className={`kid-btn3d ${variant} kls-btn`} data-frog={frog} onClick={onClick} aria-label={badge > 0 && badgeLabel ? `${label}: ${badgeLabel}` : label}>
       <span className="kid-btn3d-icon"><Icon aria-hidden="true" /></span>
       <span className="kid-btn3d-label">{label}</span>
       {badge > 0 && <span className="kls-badge display" aria-hidden="true">{badge}</span>}
@@ -119,19 +121,49 @@ export default function KidLobbyStage({
   const open = roadmap?.openStories[0];
   const water = rewards?.knowledgeTree.expToWater ?? 0;
 
-  // Bé bấm vào ếch: mỗi lần một động tác (đếm số lần bấm để chạy lại hoạt cảnh).
+  // Bé bấm vào ếch: mỗi lần một động tác (đếm số lần bấm để chạy lại hoạt cảnh cả thân).
   const [pokes, setPokes] = useState(0);
   const act = pokes ? POKE_ACTIONS[(pokes - 1) % POKE_ACTIONS.length] : null;
-  // Đứng yên lâu thì cười mỉm; bấm vào thì vui trở lại rồi đếm lại thời gian.
+  // Cử động mặt/tay của ếch: do bấm ếch hoặc rê chuột lên nút (n tăng để Frog chạy lại động tác).
+  const [cue, setCue] = useState<{ n: number; action?: FrogPokeAction }>({ n: 0 });
+  // Đứng yên lâu thì cười mỉm; bấm hoặc rê nút thì vui trở lại rồi đếm lại thời gian.
   const [resting, setResting] = useState(false);
   useEffect(() => {
     const t = window.setTimeout(() => setResting(true), REST_MS);
     return () => window.clearTimeout(t);
-  }, [pokes]);
-  const pokeFrog = () => { croak(); setResting(false); setPokes((n) => n + 1); };
+  }, [cue.n]);
+  const pokeFrog = () => {
+    croak();
+    setResting(false);
+    setPokes((n) => n + 1);
+    setCue((c) => ({ n: c.n + 1, action: POKE_ACTIONS[pokes % POKE_ACTIONS.length].frog }));
+  };
+
+  const boxRef = useRef<HTMLElement>(null);
+  // Rê chuột lên nút có data-frog thì ếch làm động tác của nút. Nghe ở .kid-lobby vì cột nút hai bên nằm ngoài sân khấu.
+  useEffect(() => {
+    const root = boxRef.current?.closest<HTMLElement>(".kid-lobby") ?? boxRef.current;
+    if (!root) return;
+    let current: HTMLButtonElement | null = null;
+    let timer = 0;
+    const onOver = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      const btn = e.target instanceof Element ? e.target.closest<HTMLButtonElement>("button[data-frog]") : null;
+      if (btn === current) return;
+      current = btn;
+      window.clearTimeout(timer);
+      if (!btn || btn.disabled) return;
+      const action = btn.dataset.frog as FrogPokeAction;
+      // Chờ một nhịp: chuột chỉ lướt ngang qua nút thì ếch không giật liên tục
+      timer = window.setTimeout(() => { setResting(false); setCue((c) => ({ n: c.n + 1, action })); }, 180);
+    };
+    const onLeave = () => { current = null; window.clearTimeout(timer); };
+    root.addEventListener("pointerover", onOver);
+    root.addEventListener("pointerleave", onLeave);
+    return () => { root.removeEventListener("pointerover", onOver); root.removeEventListener("pointerleave", onLeave); window.clearTimeout(timer); };
+  }, []);
 
   // Sân khấu dựng theo kích thước thiết kế cố định rồi co giãn cho vừa khung (như màn hình game), không để trống hay phải cuộn.
-  const boxRef = useRef<HTMLElement>(null);
   const fitRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const box = boxRef.current, fit = fitRef.current;
@@ -158,10 +190,12 @@ export default function KidLobbyStage({
           {nickname ? <span className="kls-name display">{nickname}</span> : null}
           <div className="kls-hero">
             <span className="kls-pad" aria-hidden="true" />
+            <span className="kls-lily kls-lily-l" aria-hidden="true" />
+            <span className="kls-lily kls-lily-r" aria-hidden="true"><span className="kls-lily-flower"><Lotus size={66} /></span></span>
             <button type="button" className="kls-frog" onClick={pokeFrog} aria-label="Chạm vào bạn ếch">
               {/* key đổi mỗi lần bấm để chạy lại cú nhảy */}
               <span key={pokes} className={`kls-poke${act ? ` is-${act.motion}` : ""}`}>
-                <Frog mood={!roadmap ? "think" : resting ? "smile" : "happy"} size={300} pokeKey={pokes} pokeAction={act?.frog} followPointer tongue />
+                <Frog mood={!roadmap ? "think" : resting ? "smile" : "happy"} size={300} pokeKey={cue.n} pokeAction={cue.action} followPointer tongue />
               </span>
             </button>
           </div>
@@ -170,16 +204,17 @@ export default function KidLobbyStage({
         </div>
 
         <div className="kls-bottom">
-          <StageButton icon={Library} label="Kho truyện" variant="is-sky" onClick={onOpenLibrary} />
+          <StageButton icon={Library} label="Kho truyện" variant="is-sky" frog="wink" onClick={onOpenLibrary} />
           <button
             type="button"
             className="kid-btn3d is-gold is-big kls-go"
+            data-frog="wave"
             disabled={!roadmap || busy}
             onClick={() => (open ? onRead(open.storyId) : onOpenLibrary())}
           >
             {open ? <><Play aria-hidden="true" />Đọc ngay</> : "Chọn truyện"}
           </button>
-          <StageButton icon={Sprout} label="Cây" variant="is-green" badge={water} badgeLabel={`${water} giọt nước chờ tưới`} onClick={onRewards} />
+          <StageButton icon={Sprout} label="Cây" variant="is-green" frog="tongue" badge={water} badgeLabel={`${water} giọt nước chờ tưới`} onClick={onRewards} />
         </div>
       </div>
     </section>

@@ -42,12 +42,13 @@ const BLUSH = "#f4a3b4";
 function flickTongue(root: SVGSVGElement, timing: { duration: number; delay?: number; loop?: boolean; loopDelay?: number }) {
   const tongueEl = root.querySelector<SVGElement>(".frog-tongue");
   if (!tongueEl) return [];
-  const anims = [animate(tongueEl, { scale: [0, 0, 1, 1, 0, 0], ease: "outQuad", ...timing })];
+  // composition "none": lè lưỡi khi được bấm không huỷ vòng lè lưỡi lúc chờ (cùng phần tử)
+  const anims = [animate(tongueEl, { scale: [0, 0, 1, 1, 0, 0], ease: "outQuad", composition: "none", ...timing })];
   const open = root.querySelector<SVGElement>(".frog-mouth-open");
   const closed = root.querySelector<SVGElement>(".frog-mouth");
   if (open && closed) {
-    anims.push(animate(open, { opacity: [0, 1, 1, 1, 1, 0], ease: "linear", ...timing }));
-    anims.push(animate(closed, { opacity: [1, 0, 0, 0, 0, 1], ease: "linear", ...timing }));
+    anims.push(animate(open, { opacity: [0, 1, 1, 1, 1, 0], ease: "linear", composition: "none", ...timing }));
+    anims.push(animate(closed, { opacity: [1, 0, 0, 0, 0, 1], ease: "linear", composition: "none", ...timing }));
   }
   return anims;
 }
@@ -108,7 +109,7 @@ export default function Frog({ size = 120, mood = "idle", variant = "full", anim
     if (pokeAction === "wave" && arm) anims.push(animate(arm, { rotate: [0, -155, -132, -162, -136, -155, 0], duration: 1500, ease: "inOutSine" }));
     if (pokeAction === "spin") anims.push(show(".frog-wow", 1200), hide(".frog-mouth", 1200));
     if (pokeAction === "tongue") anims.push(...flickTongue(root, { duration: 760, delay: 100 }));
-    if (pokeAction === "wink" && rightLid) anims.push(animate(rightLid, { scaleY: [0, 1, 1, 0], duration: 700, ease: "inOutSine" }));
+    if (pokeAction === "wink" && rightLid) anims.push(animate(rightLid, { scaleY: [0, 1, 1, 0], duration: 700, ease: "inOutSine", composition: "none" }));
     return () => anims.forEach((a) => a.revert());
     // pokeAction đi kèm pokeKey (đổi cùng lúc), chỉ chạy lại khi pokeKey đổi
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -198,7 +199,7 @@ export default function Frog({ size = 120, mood = "idle", variant = "full", anim
             <circle cx={cx} cy={cy} r="27" fill={RING} />
             <g className="frog-pupil"><circle cx={cx + look.x} cy={cy + look.y} r="21" fill={INK} /></g>
             {/* mí mắt: phủ xuống khi chớp */}
-            <ellipse className="frog-lid" cx={cx} cy={cy} rx="28" ry="28" fill={GREEN} style={{ transform: "scaleY(0)", transformBox: "fill-box", transformOrigin: "50% 0%" }} />
+            <ellipse className="frog-lid" cx={cx} cy={cy} rx="28" ry="28" fill={GREEN} />
           </g>
         ))}
 
@@ -239,8 +240,7 @@ export default function Frog({ size = 120, mood = "idle", variant = "full", anim
           </g>
         )}
         {tongue && (mood === "happy" || mood === "smile") && (
-          <line className="frog-tongue" x1="203" y1="152" x2="300" y2="104" stroke="#e0707f" strokeWidth="14" strokeLinecap="round"
-            style={{ transformBox: "view-box", transformOrigin: "203px 152px", transform: "scale(0)" }} />
+          <line className="frog-tongue" x1="203" y1="152" x2="300" y2="104" stroke="#e0707f" strokeWidth="14" strokeLinecap="round" />
         )}
 
         {mood === "think" && (

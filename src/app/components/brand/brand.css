@@ -1,5 +1,10 @@
 /* Trang trí đầm sen: nền ao, ếch nhảy qua lá sen, ếch ngồi đầu trang, gợn nước khi bấm. */
 
+/* ===== Ếch (Frog): trạng thái gốc của mí mắt và lưỡi đặt ở CSS, không inline.
+   animejs revert() xoá style inline khi một động tác bị ngắt giữa chừng; inline thì mắt kẹt nhắm / lưỡi kẹt thè. ===== */
+.frog-lid { transform: scaleY(0); transform-box: fill-box; transform-origin: 50% 0%; }
+.frog-tongue { transform: scale(0); transform-box: view-box; transform-origin: 203px 152px; }
+
 /* ===== Nền ao (PondBackdrop) ===== */
 .pond { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
 .pond .pad { position: absolute; display: block; }

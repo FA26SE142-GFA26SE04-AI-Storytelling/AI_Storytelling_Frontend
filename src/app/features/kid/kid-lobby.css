@@ -108,7 +108,7 @@
   position: relative; box-sizing: border-box; width: 100%; flex: 1; min-height: 0;
   background: radial-gradient(ellipse 58% 52% at 50% 46%,
     color-mix(in srgb, var(--gold) 34%, transparent) 0%,
-    color-mix(in srgb, var(--sky) 20%, transparent) 55%, transparent 76%);
+    color-mix(in srgb, var(--gold) 12%, transparent) 50%, transparent 72%);
 }
 .kls-grid {
   display: grid; grid-template-columns: minmax(0, 1fr); grid-template-areas: "center" "bottom";
@@ -129,6 +129,15 @@
 }
 .kls-btn .kid-btn3d-icon { width: 28px; height: 28px; }
 .kls-btn .kid-btn3d-label { font-size: var(--fs-md); white-space: nowrap; text-align: center; line-height: 1.15; }
+/* Lơ lửng bằng `top` (nút đã position: relative) để không đè transform của hover/nhấn và translate của hút nút/parallax; lệch nhịp từng nút */
+.kid-btn3d.kls-btn { animation: kls-bob 3.2s ease-in-out infinite; }
+.kl-rail-r .kls-btn, .kls-bottom .kls-btn:last-child { animation-delay: -1.6s; }
+.kl-rail .kls-btn:nth-child(2) { animation-duration: 3.8s; }
+@keyframes kls-bob { 0%, 100% { top: 0; } 50% { top: -5px; } }
+.kid-lobby .kl-panel { animation: kl-drift 6s ease-in-out infinite; }
+.kid-lobby .kl-family { animation-delay: -2s; }
+.kid-lobby .kl-words { animation-delay: -4s; }
+@keyframes kl-drift { 0%, 100% { top: 0; } 50% { top: -3px; } }
 .kls-badge {
   position: absolute; top: -10px; right: -10px; min-width: 26px; height: 26px; padding: 0 6px; box-sizing: border-box;
   display: grid; place-items: center; border-radius: 999px; border: 2px solid var(--panel);
@@ -145,10 +154,16 @@
   grid-area: name; max-width: 100%; box-sizing: border-box; padding: 4px 20px; border-radius: 999px;
   background: var(--panel); border: 3px solid var(--gold); color: var(--text); box-shadow: 0 4px 0 var(--gold-deep);
   font-size: var(--fs-xl); font-weight: 800; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  /* Lắc lư như bảng treo trên dây (dùng `rotate`, không đụng transform) */
+  transform-origin: 50% 0; animation: kls-swing 4.5s ease-in-out infinite;
 }
+@keyframes kls-swing { 0%, 100% { rotate: -2deg; } 50% { rotate: 2deg; } }
 .kls-hero { --frog-w: 300px; grid-area: hero; position: relative; isolation: isolate; display: flex; justify-content: center; padding-bottom: 26px;
   /* Chừa khoảng trên đầu cho cú nhảy và tay vẫy, không để chạm mép khung */
-  padding-top: calc(var(--frog-w) * .12); }
+  padding-top: calc(var(--frog-w) * .12);
+  translate: calc(var(--px, 0) * 8px) calc(var(--py, 0) * 5px);
+  transition: translate .6s cubic-bezier(.2, .8, .3, 1);
+}
 /* Ếch ngồi trên lá: SVG có ~17.4% khoảng trống dưới chân, kéo xuống để chân chạm giữa lá (đệm 26px + 6px) */
 .kls-frog {
   position: relative; z-index: 1; display: flex; transform-origin: 50% 100%; animation: kls-idle 7s ease-in-out infinite;
@@ -204,15 +219,26 @@
 
 /* Bục lá sen: vòng sáng vàng phát nhịp, mặt lá xanh có khía và gân lá */
 .kls-pad {
-  position: absolute; left: 50%; bottom: 0; width: 125%; height: 64px; transform: translateX(-50%); border-radius: 50%;
+  position: absolute; left: 50%; bottom: 0; width: 125%; height: 64px; transform: translateX(-50%);
+  /* Lá lún xuống khi ếch đáp (cùng nhịp 7 giây với ếch) */
+  animation: kls-pad-land 7s ease-in-out infinite;
+}
+/* Mặt lá sen dùng chung cho bục ếch và hai lá nhỏ bên cạnh */
+.kls-pad, .kls-lily {
+  border-radius: 50%;
   background:
     repeating-conic-gradient(from 0deg at 50% 50%, color-mix(in srgb, var(--primary-strong) 45%, transparent) 0deg 2deg, transparent 2deg 30deg),
     conic-gradient(from 160deg at 50% 50%, transparent 0deg 22deg, var(--primary) 22deg 360deg);
   border: 4px solid var(--primary-strong); box-sizing: border-box;
   box-shadow: inset 0 -8px 0 color-mix(in srgb, var(--primary-strong) 55%, transparent);
-  /* Lá lún xuống khi ếch đáp (cùng nhịp 7 giây với ếch) */
-  animation: kls-pad-land 7s ease-in-out infinite;
 }
+/* Hai lá nhỏ: trái lùi phía sau (nhỏ, cao hơn, lật khía), phải nhô ra trước có bông sen; dập dềnh lệch nhịp */
+.kls-lily { position: absolute; border-width: 3px; box-shadow: inset 0 -5px 0 color-mix(in srgb, var(--primary-strong) 55%, transparent); animation: kls-lily-bob 4s ease-in-out infinite; }
+.kls-lily-l { left: -18%; bottom: 30px; width: 32%; height: 22px; z-index: -1; scale: -1 1; opacity: .9; }
+.kls-lily-r { right: -22%; bottom: -8px; width: 40%; height: 28px; z-index: 2; animation-delay: -2s; }
+.kls-lily-flower { position: absolute; left: 50%; bottom: 35%; translate: -50% 0; display: flex; }
+.kls-lily-flower svg { width: calc(var(--frog-w) * .22); height: auto; filter: drop-shadow(0 3px 3px color-mix(in srgb, var(--shadow) 25%, transparent)); }
+@keyframes kls-lily-bob { 0%, 100% { translate: 0 0; } 50% { translate: 0 -3px; } }
 @keyframes kls-pad-land {
   0%, 70%, 100% { transform: translateX(-50%) translateY(0) scale(1, 1); }
   74% { transform: translateX(-50%) translateY(3px) scale(1.04, .86); }
@@ -304,7 +330,8 @@
     height: calc(100dvh - 100px - env(safe-area-inset-top)); min-height: 560px;
     align-items: stretch;
   }
-  .kl-col { overflow-y: auto; max-height: 100%; padding: 16px 4px 8px; scrollbar-width: thin; }
+  /* overflow-x: hidden: nút bị hút / thẻ nghiêng nhô vào phần đệm mép không sinh thanh cuộn ngang */
+  .kl-col { overflow-y: auto; overflow-x: hidden; max-height: 100%; padding: 16px 4px 8px; scrollbar-width: thin; }
   /* Sân khấu đã tự co giãn vừa khung, không cần cuộn: để ếch nhảy/vẫy tay không bị cắt mép */
   .kl-center { overflow: visible; }
   /* Khung ở trên, cột nút ở dưới sát mép; chừa chỗ cho badge nhô ra góc nút */
@@ -382,7 +409,8 @@
 
 /* Giảm chuyển động */
 @media (prefers-reduced-motion: reduce) {
-  .kl-word, .kls-frog, .kls-poke, .kls-pad, .kls-pad::before, .kls-pad::after, .kls-card, .kid-btn3d.kls-go { animation: none; }
+  .kl-word, .kls-frog, .kls-poke, .kls-pad, .kls-pad::before, .kls-pad::after, .kls-card, .kid-btn3d.kls-go, .kid-btn3d.kls-btn, .kid-lobby .kl-panel, .kls-name, .kls-lily { animation: none; }
   .kl-row, .kl-family-item, .kl-dots > span { transition: none; }
   .kl-row:hover:not(:disabled), .kl-family-item:hover:not(:disabled) { transform: none; }
+  .kls-hero { translate: none; }
 }

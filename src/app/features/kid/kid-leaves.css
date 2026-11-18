@@ -5,6 +5,8 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
+  translate: calc(var(--px, 0) * -10px) calc(var(--py, 0) * -6px);
+  transition: translate .6s cubic-bezier(.2, .8, .3, 1);
 }
 
 .kid-leaf-fall {
@@ -84,3 +86,6 @@
 /* Lá rơi bay trên nội dung (không chặn bấm, trừ 3 lá bắt được ở sát mép), dưới nút khóa và dock đáy */
 .kid > .kid-leaves.kid-leaves { position: absolute; inset: 0; z-index: 3; }
 
+.kid .pond { translate: calc(var(--px, 0) * -5px) calc(var(--py, 0) * -3px); transition: translate .6s cubic-bezier(.2, .8, .3, 1); }
+
+@media (prefers-reduced-motion: reduce) { .kid-leaves, .kid .pond { translate: none; } }
