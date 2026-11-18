@@ -11,6 +11,7 @@ import { ReviewPanelHeader } from './ReviewPanelHeader';
 import { moderationStatusLabel } from './moderationConfig';
 import { formatSubmittedAt, queueDueInfo } from './moderationQueueDisplay';
 import { extractRemovalRequestReason } from './readableJson';
+import RemovalStoryPreview from './RemovalStoryPreview';
 import { useReviewItem } from './useReviewItem';
 
 /** Tài liệu 07 — Panel Yêu cầu gỡ truyện công khai: hiển thị `Flags.requestReason` và metadata hàng đợi hiện có. */
@@ -113,6 +114,7 @@ export default function PublicStoryRemovalPanel({
               {requestReason || 'Creator không ghi lý do hoặc chưa có dữ liệu lý do.'}
             </p>
           </ModerationCallout>
+          <RemovalStoryPreview storyId={d.storyId} />
           <div className="row st-wrap">
             {onBack && (
               <button type="button" className="btn btn-g" disabled={busy} onClick={onBack}>

@@ -7,6 +7,7 @@ import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/us
 import { childProfileService } from "@/app/services/childProfileService";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
 import { copyrightHits, GENRES } from "@/app/lib/storyRules";
+import { readingLevelInfo } from "@/app/lib/guardian";
 import { STUDIO_PREFILL_KEY } from "@/app/features/learning/WishItem";
 import { parentWishService } from "@/app/services/storyWishService";
 import { takeLandingIdea } from "@/app/features/landing/landingIdea";
@@ -108,6 +109,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   const tone = vocabularyTone(values.vocabularyLevel, context.defaultVocabularyLevel);
   const copyright = copyrightHits([values.topic, values.charactersText, values.setting, values.lesson].join("\n"));
   const modes = outputModesOf(context);
+  const levelMeta = readingLevelInfo(context.readingLevel);
 
   // Ô nhập tự do + ô "Gợi ý" xổ xuống bên cạnh để chọn nhanh (chọn xong ô gợi ý tự trở về trống).
   const text = (k: TextKey, label: string, placeholder: string, opts: { required?: boolean; hint?: string; suggestions?: string[]; onPick?: (v: string) => void } = {}) => (
@@ -132,7 +134,9 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
       <div className="brief-head">
         <h3 className="display">{locked ? "Yêu cầu đã gửi" : `Truyện mới cho ${context.childNickname}`}</h3>
         <span className="brief-tag" title="Lấy từ hồ sơ của bé, đổi trong Cài đặt an toàn"><Lock aria-hidden />{context.ageBand.replace("Age_", "").replace("_", "–")} tuổi</span>
-        <span className="brief-tag" title="Lấy từ hồ sơ của bé, đổi trong Cài đặt an toàn"><Lock aria-hidden />Mức đọc {context.readingLevel}</span>
+        <span className="brief-tag" title={levelMeta ? `${levelMeta.grade} — ${levelMeta.title}: câu thường ~${levelMeta.typicalWords} từ, ví dụ “${levelMeta.sample}”. Đổi trong Cài đặt an toàn` : "Lấy từ hồ sơ của bé, đổi trong Cài đặt an toàn"}>
+          <Lock aria-hidden />Mức đọc {context.readingLevel}{levelMeta ? ` · Lớp ${levelMeta.level}` : ""}
+        </span>
       </div>
 
       {prefilled && <div className="notice ok">{prefilled === "wish" ? `Đã điền sẵn từ điều ước của ${context.childNickname}.` : prefilled === "landing" ? "Đã điền sẵn ý tưởng bạn nhập ở trang giới thiệu." : `Đã điền sẵn chủ đề gợi ý cho ${context.childNickname}.`} Bạn có thể chỉnh trước khi tạo.</div>}

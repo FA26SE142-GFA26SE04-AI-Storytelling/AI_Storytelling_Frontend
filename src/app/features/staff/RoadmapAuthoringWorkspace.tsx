@@ -11,6 +11,7 @@ import IconButton from '@/app/components/IconButton';
 import InfoTip from '@/app/components/InfoTip';
 import { useStoryCovers } from '@/app/features/roadmap/roadmapData';
 import { confirmDialog } from '@/app/lib/confirm';
+import { readingLevelInfo } from '@/app/lib/guardian';
 import { ArrowDown, ArrowUp, Archive, Check, ChevronLeft, ChevronRight, CircleAlert, Copy, Plus, RefreshCw, Save, Send, Trash2, Undo2, X } from 'lucide-react';
 import RoadmapStoryPicker from './RoadmapStoryPicker';
 import { Page, fmt } from './ui';
@@ -184,9 +185,9 @@ export default function RoadmapAuthoringWorkspace({
                 <select className="inp" value={form.mainCategoryId} onChange={e => set({ mainCategoryId: Number(e.target.value) })}><option value={0}>Chọn chủ đề</option>{categories.map(c => <option key={c.id} value={c.id}>{c.displayName}</option>)}</select></label>
               <div className="field"><span className="lbl">Mức đọc <InfoTip text="Khoảng mức đọc phù hợp của bộ (1 là dễ nhất). Truyện ngoài khoảng này sẽ bị cảnh báo khi kiểm tra." /></span>
                 <div className="rt-range">
-                  <select className="inp" aria-label="Mức đọc từ" value={form.readingLevelMin} onChange={e => set({ readingLevelMin: Number(e.target.value) })}>{LEVELS.map(l => <option key={l} value={l}>Mức {l}</option>)}</select>
+                  <select className="inp" aria-label="Mức đọc từ" value={form.readingLevelMin} onChange={e => set({ readingLevelMin: Number(e.target.value) })}>{LEVELS.map(l => <option key={l} value={l}>{readingLevelInfo(l)?.shortLabel ?? `Mức ${l}`}</option>)}</select>
                   <span>đến</span>
-                  <select className="inp" aria-label="Mức đọc đến" value={form.readingLevelMax} onChange={e => set({ readingLevelMax: Number(e.target.value) })}>{LEVELS.map(l => <option key={l} value={l}>Mức {l}</option>)}</select>
+                  <select className="inp" aria-label="Mức đọc đến" value={form.readingLevelMax} onChange={e => set({ readingLevelMax: Number(e.target.value) })}>{LEVELS.map(l => <option key={l} value={l}>{readingLevelInfo(l)?.shortLabel ?? `Mức ${l}`}</option>)}</select>
                 </div></div>
               <div className="field"><span className="lbl">Số ngày đọc mỗi truyện <InfoTip text="Thời gian gợi ý cho mỗi truyện; có thể đặt riêng cho từng truyện ở bước 2." /></span>
                 <div className="rt-days-pick">

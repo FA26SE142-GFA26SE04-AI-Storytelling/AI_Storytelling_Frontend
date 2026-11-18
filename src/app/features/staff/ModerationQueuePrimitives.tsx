@@ -1,5 +1,5 @@
 'use client';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   AlarmClock, Archive, ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, ChevronsUp,
   CircleCheck, CircleX, Clock, Equal, HandHelping, Hourglass, Inbox, PanelLeftClose, PanelLeftOpen, RefreshCw, ShieldAlert, UserCheck,
@@ -7,11 +7,12 @@ import {
 } from 'lucide-react';
 import Frog from '@/app/components/brand/Frog';
 import Select from '@/app/components/Select';
-import type { QueueItem, QueueItemStatus } from '@/app/types/staff';
+import type { QueueItem } from '@/app/types/staff';
 import {
   claimOwnershipBadge,
   moderationStatusLabel,
   moderationTypeLabel,
+  type ModerationQueueStatusFilter,
   type ModerationSectionDef,
 } from './moderationConfig';
 import {
@@ -109,7 +110,7 @@ export function QueueSummaryCard({
   myName,
   busy,
   onClaim,
-  claimLabel = 'Nhận xử lý',
+  claimLabel = 'Nhận và xử lý',
   summaryNotice,
 }: {
   item: QueueItem;
@@ -240,6 +241,7 @@ export function ModerationQueueFrame({
   onReload,
   banner,
   detail,
+  claimFocusKey,
 }: {
   title: string;
   description: string;
@@ -262,8 +264,12 @@ export function ModerationQueueFrame({
   onReload: () => void;
   banner?: ReactNode;
   detail: ReactNode;
+  claimFocusKey?: number;
 }) {
   const [listCollapsed, setListCollapsed] = useState(false);
+  useEffect(() => {
+    if (claimFocusKey && claimFocusKey > 0) setListCollapsed(true);
+  }, [claimFocusKey]);
   const hasSelection = selectedId !== null;
   const collapseList = hasSelection && listCollapsed;
 
@@ -417,12 +423,13 @@ export function ModerationWorkspaceShell({
   onReload,
   banner,
   detail,
+  claimFocusKey,
 }: {
   title: string;
   description: string;
   sections: ModerationSectionDef[];
-  status: QueueItemStatus;
-  onStatusChange: (s: QueueItemStatus) => void;
+  status: ModerationQueueStatusFilter;
+  onStatusChange: (s: ModerationQueueStatusFilter) => void;
   priority: QueuePriorityFilter;
   onPriorityChange: (p: QueuePriorityFilter) => void;
   showPriorityFilter?: boolean;
@@ -443,6 +450,7 @@ export function ModerationWorkspaceShell({
   onReload: () => void;
   banner?: ReactNode;
   detail: ReactNode;
+  claimFocusKey?: number;
 }) {
   const workSections = sections.filter(s => s.group !== 'results');
   const resultSections = sections.filter(s => s.group === 'results');
@@ -456,10 +464,10 @@ export function ModerationWorkspaceShell({
       ? resultSections
       : workSections;
   const [rememberedByGroup, setRememberedByGroup] = useState<{
-    work?: QueueItemStatus;
-    results?: QueueItemStatus;
+    work?: ModerationQueueStatusFilter;
+    results?: ModerationQueueStatusFilter;
   }>({});
-  const showDueFilter = status === 'Pending' || status === 'Claimed';
+  const showDueFilter = status === 'Open' || status === 'Pending' || status === 'Claimed';
 
   const selectGroup = (targetGroup: 'work' | 'results') => {
     if (!hasTwoGroups || targetGroup === activeGroup) return;
@@ -569,6 +577,7 @@ export function ModerationWorkspaceShell({
       onReload={onReload}
       banner={banner}
       detail={detail}
+      claimFocusKey={claimFocusKey}
     />
   );
 }

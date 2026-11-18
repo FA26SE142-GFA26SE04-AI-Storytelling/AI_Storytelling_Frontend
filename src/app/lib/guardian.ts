@@ -28,26 +28,43 @@ const READING_LEVEL_SAMPLES = [
   "Dù đội của Na thua, cả nhóm vẫn vui vì hiểu rằng sự kiên trì mới đáng quý.",
 ];
 const TYPICAL_WORDS = [7, 9, 12, 15, 18];
+const READING_LEVEL_TITLES = [
+  "Mới tập đọc",
+  "Đọc câu đơn",
+  "Đọc trôi chảy",
+  "Đọc hiểu sâu",
+  "Đọc thành thạo",
+] as const;
 export const READING_LEVELS = [1, 2, 3, 4, 5].map((n) => ({
   level: n,
   label: `Mức ${n}`,
   grade: `Tương đương lớp ${n}`,
+  title: READING_LEVEL_TITLES[n - 1],
+  shortLabel: `Mức ${n} · Lớp ${n} (${READING_LEVEL_TITLES[n - 1]})`,
+  optionLabel: `Mức ${n} · Lớp ${n} — ${READING_LEVEL_TITLES[n - 1]} (câu ~${TYPICAL_WORDS[n - 1]} từ, tối đa ${6 + 4 * n} từ/câu)`,
   maxWords: 6 + 4 * n,
   typicalWords: TYPICAL_WORDS[n - 1],
   sample: READING_LEVEL_SAMPLES[n - 1],
 }));
+export const readingLevelInfo = (level?: number | null) =>
+  typeof level === "number" ? READING_LEVELS.find((l) => l.level === level) ?? null : null;
+export const readingLevelBadgeText = (level?: number | null) => {
+  const info = readingLevelInfo(level);
+  return info ? `Mức đọc ${info.level} · Lớp ${info.level}` : level != null ? `Mức đọc ${level}` : "Chưa gắn";
+};
 export const defaultReadingLevel = (ageBand: string) => (ageBand === "Age_9_10" ? 3 : 1);
 
+const isOlderAgeBand = (ageBand?: string) => ageBand === "Age_9_10" || ageBand === "9-10";
 /** Mức đọc từ đây trở lên dùng độ dài của bé 9–10 tuổi (backend LearningBatchOptions.OlderReadingLevelThreshold). */
 export const OLDER_READING_LEVEL = 4;
 /** Bé 6–8 tuổi chọn mức 4–5: mức đọc vượt nhóm tuổi, cần nhắc phụ huynh. */
-export const levelAboveAge = (ageBand: string | undefined, level: number) => ageBand !== "Age_9_10" && level >= OLDER_READING_LEVEL;
+export const levelAboveAge = (ageBand: string | undefined, level: number) => !isOlderAgeBand(ageBand) && level >= OLDER_READING_LEVEL;
 /**
  * Độ dài mặc định cả truyện (backend AI:LearningGeneration, chấp nhận ±10%): lấy mức lớn hơn giữa nhóm tuổi và mức đọc,
  * tức bé 9–10 tuổi hoặc mức đọc 4–5 thì khoảng 1500 từ, còn lại khoảng 900 từ.
  */
 export const storyLengthFor = (ageBand?: string, level?: number) => {
-  const target = ageBand === "Age_9_10" || (level ?? 0) >= OLDER_READING_LEVEL ? 1500 : 900;
+  const target = isOlderAgeBand(ageBand) || (level ?? 0) >= OLDER_READING_LEVEL ? 1500 : 900;
   return { target, min: Math.ceil(target * 0.9), max: Math.floor(target * 1.1) };
 };
 /** Thanh kéo "Độ dài tối đa của truyện" (cài đặt an toàn MaxStoryLength), dùng chung cho form tạo bé và trang An toàn. */

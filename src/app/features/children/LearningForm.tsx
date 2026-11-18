@@ -52,7 +52,7 @@ function LevelInfo({ level, ageBand }: { level: number; ageBand?: string }) {
   const basis = above ? " theo mức đọc 4–5" : age ? ` với bé ${age}` : "";
   return (
     <div className="level-info" aria-live="polite">
-      <b className="display">{info.label} · {info.grade}</b>
+      <b className="display">{info.label} · {info.grade} — {info.title}</b>
       <dl>
         <div><dt>Câu dài tối đa</dt><dd>trung bình {info.maxWords} từ/câu</dd></div>
         <div><dt>Câu thường dài</dt><dd>khoảng {info.typicalWords} từ</dd></div>
