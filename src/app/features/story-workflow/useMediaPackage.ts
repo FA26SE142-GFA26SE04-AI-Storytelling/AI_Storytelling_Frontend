@@ -5,6 +5,7 @@ import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationSer
 import { creatorPublicationService } from '@/app/services/creatorPublicationService';
 import type { RegenerationCounter, StoryMediaPackage } from '@/app/types/aiStory';
 import { mediaMutationSnapshot } from '@/app/features/story-workflow/mediaPackage';
+import { regenerationMessage } from '@/app/lib/storyRules';
 
 /** `source`: gói media mà màn hình đã có sẵn (vd. bản xem trước của Studio); truyền vào thì tạo lại / giữ bản cũ dùng luôn gói đó, không cần bấm tải riêng. */
 export function useMediaPackage({ storyId, versionId, onChanged, disabled = false, source = null }: {
@@ -50,7 +51,7 @@ export function useMediaPackage({ storyId, versionId, onChanged, disabled = fals
     if (run !== scope.current) return;
     lock.current = false; setBusy(false); setPack(null);
     setUncertain(r.status === 0 || (r.status ?? 0) >= 500);
-    setNote(r.success ? 'Đã đưa vào hàng đợi. Theo dõi trạng thái rồi tải gói mới để xem và xác nhận.' : r.message);
+    setNote(r.success ? 'Đã đưa vào hàng đợi. Theo dõi trạng thái rồi tải gói mới để xem và xác nhận.' : regenerationMessage(r.message));
     onChanged();
   };
   const confirm = async () => {

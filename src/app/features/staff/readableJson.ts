@@ -101,6 +101,31 @@ const AUDIT_ACTION: Record<string, string> = {
 };
 export const auditActionLabel = (action: string) => AUDIT_ACTION[action] ?? action;
 
+/** Trải object lồng nhau thành "đường dẫn → chữ" (vd. `account.bankName`). */
+function flatten(v: unknown, prefix: string, out: Map<string, string>) {
+  if (isObj(v)) { for (const [k, x] of Object.entries(v)) flatten(x, prefix ? `${prefix}.${k}` : k, out); return; }
+  if (Array.isArray(v) && v.some((x) => isObj(x) || Array.isArray(x))) { v.forEach((x, i) => flatten(x, `${prefix}[${i + 1}]`, out)); return; }
+  const text = Array.isArray(v) ? v.map(String).join(', ')
+    : typeof v === 'boolean' ? (v ? 'Có' : 'Không') : v == null ? '' : String(v);
+  out.set(prefix || 'Giá trị', text || '(trống)');
+}
+const stateFields = (raw: string | null) => {
+  const out = new Map<string, string>();
+  const text = (raw ?? '').trim();
+  if (text) flatten(parse(text) ?? text, '', out);
+  return out;
+};
+
+export type AuditStateRow = { field: string; before: string; after: string; changed: boolean };
+/** Trạng thái trước/sau của một dòng audit log thành từng trường, để không hiện JSON thô. */
+export function auditStateRows(beforeJson: string | null, afterJson: string | null): AuditStateRow[] {
+  const before = stateFields(beforeJson), after = stateFields(afterJson);
+  return [...new Set([...before.keys(), ...after.keys()])].map((field) => {
+    const b = before.get(field) ?? '—', a = after.get(field) ?? '—';
+    return { field, before: b, after: a, changed: b !== a };
+  });
+}
+
 const STATUS: Record<string, string> = { Draft: 'Bản nháp', Active: 'Đang dùng', Retired: 'Đã ngừng' };
 const show = (v: unknown) => { const s = str(v); return s ? `“${short(STATUS[s] ?? s, 80)}”` : '(trống)'; };
 
