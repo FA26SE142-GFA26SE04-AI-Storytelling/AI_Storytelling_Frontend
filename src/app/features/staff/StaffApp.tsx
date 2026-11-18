@@ -17,6 +17,8 @@ import NotificationBell from "@/app/components/shell/NotificationBell";
 import NavMenuButton from "@/app/components/shell/NavMenuButton";
 import AccountMenu from "@/app/components/shell/AccountMenu";
 import { circleReveal, useRiseIn } from "@/app/lib/motion";
+import { defaultPeriod } from "@/app/lib/monthPeriods";
+import { moderationStatisticsService } from "@/app/services/moderationStatisticsService";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import ContentReportsWorkspace from "./ContentReportsWorkspace";
 import CreatorStoryReviewWorkspace from "./CreatorStoryReviewWorkspace";
@@ -124,15 +126,30 @@ const NAV: Record<StaffRole, NavEntry[]> = {
   ContentCreator: ["library", "create-ai", "create-manual", "my-stories", "stats"],
 };
 
-function StaffNav({ role, pageId, onPage, upward }: { role: StaffRole; pageId: string; onPage: (id: string) => void; upward?: boolean }) {
+const MODERATOR_QUEUE_NAV_MAP: Record<string, string> = {
+  PublicStoryReview: "queue",
+  GrayZoneStory: "gray-zone",
+  ContentReport: "content-reports",
+  PublicStoryRemoval: "removal-requests",
+  RoadmapTemplateReview: "templates",
+};
+
+function StaffNav({ role, pageId, onPage, badges, upward }: { role: StaffRole; pageId: string; onPage: (id: string) => void; badges?: Record<string, number>; upward?: boolean }) {
   const pages = PAGES[role];
   const byId = (id: string) => pages.find((p) => p.id === id)!;
   return NAV[role].map((entry) => {
     if (typeof entry === "string") {
       const { id, label, short, icon: Icon } = byId(entry);
-      return <button key={id} className={pageId === id ? "on" : ""} data-tip={label} title={label} aria-label={label} aria-current={pageId === id ? "page" : undefined} onClick={() => onPage(id)}><Icon /><span className="nav-txt">{short ?? label}</span></button>;
+      const count = badges?.[id] ?? 0;
+      return (
+        <button key={id} className={pageId === id ? "on" : ""} data-tip={label} title={label} aria-label={label} aria-current={pageId === id ? "page" : undefined} onClick={() => onPage(id)}>
+          <Icon />
+          <span className="nav-txt">{short ?? label}</span>
+          {count > 0 && <span className="badge" aria-label={`${count} mục cần xử lý`}>{count > 99 ? "99+" : count}</span>}
+        </button>
+      );
     }
-    return <NavMenuButton key={entry.label} entry={entry} items={entry.items.map(byId)} ws={pageId} onWs={onPage} upward={upward} />;
+    return <NavMenuButton key={entry.label} entry={entry} items={entry.items.map(byId)} ws={pageId} onWs={onPage} badges={badges} upward={upward} />;
   });
 }
 
@@ -162,6 +179,43 @@ function StaffAppInner({ role, userId }: { role: StaffRole; userId: number | nul
   const [resumeId, setResumeId] = useState<number | null>(initial.resumeId);
   const go = (id: string, storyId: number | null = null) => { setPageId(id); setTarget(storyId); setResumeId(null); };
   useEffect(() => { if (userId !== null) writeStaffWorkspace(userId, { pageId, target }); }, [userId, pageId, target]);
+
+  const [navBadges, setNavBadges] = useState<Record<string, number>>({});
+  useEffect(() => {
+    if (role !== "Moderator" || userId === null) return;
+    let alive = true;
+    let ctrl: AbortController | null = null;
+    const load = () => {
+      ctrl?.abort();
+      ctrl = new AbortController();
+      const period = defaultPeriod();
+      moderationStatisticsService.get(period.start, period.end, ctrl.signal).then(
+        (r) => {
+          if (!alive || !r.success || !r.data) return;
+          const next: Record<string, number> = {};
+          for (const q of r.data.queueByType ?? []) {
+            const navId = MODERATOR_QUEUE_NAV_MAP[q.itemType];
+            if (!navId) continue;
+            const total = (q.pending ?? 0) + (q.claimed ?? 0);
+            if (total > 0) next[navId] = total;
+          }
+          setNavBadges(next);
+        },
+        () => { /* Bỏ qua khi bị hủy hoặc lỗi mạng tạm thời trên badge header. */ },
+      );
+    };
+    load();
+    const onRefresh = () => load();
+    window.addEventListener("moderation-queue-changed", onRefresh);
+    window.addEventListener("focus", onRefresh);
+    return () => {
+      alive = false;
+      ctrl?.abort();
+      window.removeEventListener("moderation-queue-changed", onRefresh);
+      window.removeEventListener("focus", onRefresh);
+    };
+  }, [role, userId, pageId]);
+
   const page = pages.find((p) => p.id === pageId) ?? pages[0];
   const View = page.view;
 
@@ -174,7 +228,7 @@ function StaffAppInner({ role, userId }: { role: StaffRole; userId: number | nul
         <span className="top-role">{ROLE_LABEL[role]}</span>
 
         <nav ref={navRef} className="topnav" aria-label={ROLE_LABEL[role]}>
-          <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} />
+          <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} badges={navBadges} />
         </nav>
         <div className="top-gap" />
 
@@ -185,7 +239,7 @@ function StaffAppInner({ role, userId }: { role: StaffRole; userId: number | nul
 
       {/* Điện thoại: header không đủ chỗ nên điều hướng nằm ở thanh tab dưới đáy. */}
       <nav className="rail rail-mobile" aria-label={ROLE_LABEL[role]}>
-        <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} upward />
+        <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} badges={navBadges} upward />
       </nav>
 
       <main className="stage"><View key={`${userId ?? "anon"}:${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} /></main>

@@ -7,14 +7,39 @@ import { authService } from './authService';
 /** Thành phần của gói cho một bé; tất cả false là gói chỉ đọc. */
 export interface PackageComponents { vocabulary: boolean; quiz: boolean; listening: boolean; images: boolean; narration: boolean }
 export type PackageStatus = 'PendingCheck' | 'Checking' | 'Generating' | 'Review' | 'Confirmed' | 'Failed' | 'Blocked' | 'Stale' | 'Cancelled';
-export type AssessmentStatus = 'Passed' | 'Warning' | 'Blocked' | 'Unavailable' | 'NotRun';
-/** Cảnh báo AI không chặn gói (vùng xám hoặc AI chấm tạm lỗi); `reason` là tiếng Anh nội bộ, không hiện ra UI. */
-export interface PackageAssessmentWarning { source: 'ContentSafety' | 'GrayZone' | string; code: string; reason: string; evidence: string[]; occurredAtUtc: string }
+export type PackageAssessmentStatus = 'Passed' | 'Warning' | 'Blocked' | 'Unavailable' | 'NotRun';
+/** Cảnh báo AI không chặn gói (vùng xám hoặc AI chấm tạm lỗi); `reason` là tiếng Anh nội bộ, dùng `warningReasonVi` khi hiển thị. */
+export interface PackageAssessmentWarning {
+  source: 'ContentSafety' | 'GrayZone' | string;
+  code: string;
+  reason: string;
+  evidence: string[];
+  occurredAtUtc: string;
+}
+export interface PackageAssessmentAcknowledgement {
+  packageId: number;
+  packageRevision: number;
+  acknowledgedByUserId: number;
+  acknowledgedAtUtc: string;
+  sourceFingerprint: string;
+  contextFingerprint: string;
+  warnings: PackageAssessmentWarning[];
+}
 export interface PackageCheck {
-  passed: boolean; errors: string[]; safetyScore: number | null; evidence?: string[] | null; reasonCode?: string | null; violations?: string[] | null;
-  /** Gói cũ không có các trường dưới. */
-  safetyStatus?: AssessmentStatus | null; grayZoneStatus?: AssessmentStatus | null;
-  warnings?: PackageAssessmentWarning[]; requiresParentAcknowledgement?: boolean;
+  passed: boolean;
+  errors: string[];
+  safetyScore: number | null;
+  safetyRuleVersion?: string | null;
+  evidence?: string[] | null;
+  reasonCode?: string | null;
+  violations?: string[] | null;
+  metadata?: unknown | null;
+  backendPassed?: boolean | null;
+  safetyStatus?: PackageAssessmentStatus | string | null;
+  grayZoneStatus?: PackageAssessmentStatus | string | null;
+  warnings?: PackageAssessmentWarning[] | null;
+  requiresParentAcknowledgement?: boolean;
+  acknowledgement?: PackageAssessmentAcknowledgement | null;
 }
 export interface ParentPackage {
   packageId: number; storyId: number; storyVersionId: number; childProfileId: number; revision: number;
@@ -56,8 +81,12 @@ export const parentPackageService = {
   /** Tạo bản gói mới (revision) với cấu hình đầy đủ; gói cũ giữ nguyên để tra lại. */
   revise: (id: number, p: ParentPackage, components: PackageComponents, regenerate: string[] = []) => apiRequest<ParentPackage>(`${root(id)}/packages/${p.packageId}/revise`, 'Chưa tạo được bản gói mới.', { method: 'POST', body: { operationId: op(), packageToken: p.packageToken, components, regenerate } }),
   preview: (id: number, packageId: number) => apiRequest<ParentPackagePreview>(`${root(id)}/packages/${packageId}/preview`, 'Chưa xem trước được gói.'),
-  /** Gói có cảnh báo AI (`check.requiresParentAcknowledgement`) phải gửi `acknowledge = true`, nếu không Backend trả 409. */
-  confirm: (id: number, p: ParentPackage, acknowledge = false) => apiRequest<ParentPackage>(`${root(id)}/packages/${p.packageId}/confirm`, 'Chưa chốt được gói.', { method: 'POST', body: { operationId: op(), packageToken: p.packageToken, acknowledgeAssessmentWarnings: acknowledge } }),
+  /** Gói có cảnh báo AI (`check.requiresParentAcknowledgement`) phải gửi `acknowledgeAssessmentWarnings = true`, nếu không Backend trả 409. */
+  confirm: (id: number, p: ParentPackage, acknowledgeAssessmentWarnings = false) =>
+    apiRequest<ParentPackage>(`${root(id)}/packages/${p.packageId}/confirm`, 'Chưa chốt được gói.', {
+      method: 'POST',
+      body: { operationId: op(), packageToken: p.packageToken, acknowledgeAssessmentWarnings },
+    }),
   /** Giao cùng lúc: một gói lỗi thì không bé nào được giao (Backend rollback cả lô). */
   deliver: (id: number, packages: ParentPackage[]) => apiRequest<PackageGrant[]>(`${root(id)}/family-confirmations/batch`, 'Chưa giao được truyện.', { method: 'POST', body: { operationId: op(), packages: packages.map((p) => ({ packageId: p.packageId, packageToken: p.packageToken })) } }),
   /** Ảnh / âm thanh xem trước cần Bearer token: tải về thành blob rồi tạo object URL (nhớ revoke khi bỏ). */

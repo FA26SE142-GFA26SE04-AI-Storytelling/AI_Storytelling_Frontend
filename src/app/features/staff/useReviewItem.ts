@@ -62,6 +62,7 @@ export function useReviewItem(kind: ReviewKind, id: number, onDecision: () => vo
     setMessage(r.message || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
     if (r.success) {
       setErrorStatus(null);
+      if (typeof window !== 'undefined') window.dispatchEvent(new Event('moderation-queue-changed'));
       if (terminal) onDecision();
       else setRevision(v => v + 1);
     } else {

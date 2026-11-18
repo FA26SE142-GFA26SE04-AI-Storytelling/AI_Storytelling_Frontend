@@ -54,7 +54,7 @@ export function StageCards({ roadmap, rewards, busy, onRead, onRewards, side = "
   onRewards: () => void;
   side?: "l" | "r" | "both";
 }) {
-  const open = side !== "r" ? roadmap?.openStories[0] : undefined;
+  const open = side !== "r" ? roadmap?.openStories?.[0] : undefined;
   const title = open?.title ?? "Truyện bố mẹ chọn";
   const tree = side !== "l" ? rewards?.knowledgeTree : undefined;
   const expPercent =
@@ -116,8 +116,8 @@ export default function KidLobbyStage({
   onOpenLibrary: () => void;
   onRewards: () => void;
 }) {
-  const open = roadmap?.openStories[0];
-  const water = rewards?.knowledgeTree.expToWater ?? 0;
+  const open = roadmap?.openStories?.[0];
+  const water = rewards?.knowledgeTree?.expToWater ?? 0;
 
   // Bé bấm vào ếch: mỗi lần một động tác (đếm số lần bấm để chạy lại hoạt cảnh).
   const [pokes, setPokes] = useState(0);

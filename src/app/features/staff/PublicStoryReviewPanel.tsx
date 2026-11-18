@@ -372,7 +372,6 @@ export default function PublicStoryReviewPanel({
                   {CHECK_LABEL[key]} <InfoTip text={evidence} />
                   {d.checklist[key] === null && <Warn why="Chưa chấm" />}
                 </span>
-                <p className="mod-evidence-inline">{evidence}</p>
                 <Select<string>
                   ariaLabel={CHECK_LABEL[key]}
                   disabled={locked}

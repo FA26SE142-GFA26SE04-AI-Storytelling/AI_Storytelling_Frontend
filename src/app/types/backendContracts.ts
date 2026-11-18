@@ -2982,3 +2982,48 @@ export interface ModerationDecisionCountDto {
 }
 export interface CreatorStoryRevenueDto { 'storyId': number; 'title': string; 'validReads': number; 'estimatedEarningsVnd': number; }
 
+
+
+export interface ParentPackageCommand {
+  'operationId': string;
+  'packageToken': string;
+}
+
+export interface ParentPackageConfirmRequest extends ParentPackageCommand {
+  'acknowledgeAssessmentWarnings': boolean;
+}
+
+export interface ParentPackageAssessmentWarning {
+  'source': string;
+  'code': string;
+  'reason': string;
+  'evidence': string[];
+  'occurredAtUtc': string;
+}
+
+export interface ParentPackageAssessmentAcknowledgement {
+  'packageId': number;
+  'packageRevision': number;
+  'acknowledgedByUserId': number;
+  'acknowledgedAtUtc': string;
+  'sourceFingerprint': string;
+  'contextFingerprint': string;
+  'warnings': ParentPackageAssessmentWarning[];
+}
+
+export interface ParentPackageCheck {
+  'passed': boolean;
+  'errors': string[];
+  'safetyScore': number | null;
+  'safetyRuleVersion'?: string | null;
+  'evidence'?: string[] | null;
+  'reasonCode'?: string | null;
+  'violations'?: string[] | null;
+  'metadata'?: unknown | null;
+  'backendPassed'?: boolean | null;
+  'safetyStatus'?: string | null;
+  'grayZoneStatus'?: string | null;
+  'warnings'?: ParentPackageAssessmentWarning[] | null;
+  'requiresParentAcknowledgement'?: boolean;
+  'acknowledgement'?: ParentPackageAssessmentAcknowledgement | null;
+}
