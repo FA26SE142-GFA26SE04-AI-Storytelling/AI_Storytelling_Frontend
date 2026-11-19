@@ -6,6 +6,7 @@ import Frog from "@/app/components/brand/Frog";
 import { showToast } from "@/app/lib/toast";
 import type { ChildProfile } from "@/app/types/childProfile";
 import type { ParentReadingFeedbackItem, ReadingFeedbackFilter } from "@/app/types/childReading";
+import { useStoryCovers } from "@/app/features/roadmap/roadmapData";
 import { useReadingFeedback } from "./learningData";
 import ReadingFilters from "./ReadingFilters";
 import ReadingOverview from "./ReadingOverview";
@@ -28,6 +29,7 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
   const changeFilter = (v: ReadingFeedbackFilter) => {
     setFilter(v);
     setPage(1);
+    setOpenStory(null);
   };
 
   const feedback = useReadingFeedback(child.id, page, PAGE, filter);
@@ -37,6 +39,10 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
   }, [feedback.error]);
 
   const fb = feedback.data;
+  // Bìa tra như tab Tổng quan / Lộ trình: truyện cộng đồng rồi GET /Story/{id} (không chỉ truyện của phụ huynh).
+  // Chỉ một ô mở cột lần đọc: mở ô khác thì ô cũ tự đóng; bấm lại ô đang mở thì đóng.
+  const [openStory, setOpenStory] = useState<number | null>(null);
+  const cover = useStoryCovers([...new Set((fb?.items ?? []).map((i) => i.storyId))]);
 
   const emptyText =
     (filter.status === "Completed"
@@ -72,6 +78,9 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
                   items={g}
                   childId={child.id}
                   nickname={child.nickname}
+                  cover={cover(g[0].storyId)}
+                  open={openStory === g[0].storyId}
+                  onToggle={() => setOpenStory((v) => (v === g[0].storyId ? null : g[0].storyId))}
                 />
               ))}
             </div>
@@ -83,7 +92,7 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
             totalPages={fb.totalPages}
             hasPrev={fb.hasPreviousPage}
             hasNext={fb.hasNextPage}
-            onPage={setPage}
+            onPage={(p) => { setPage(p); setOpenStory(null); }}
           />
         )}
       </section>

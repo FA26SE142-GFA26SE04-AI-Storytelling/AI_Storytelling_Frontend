@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { bounce, jelly } from "@/app/lib/motion";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import SafeImage from "@/app/components/SafeImage";
-import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import type { ParentReadingFeedbackItem } from "@/app/types/childReading";
 import { shortDate } from "./learningData";
 import { feelingPill, quizPill } from "./resultPills";
@@ -13,46 +12,59 @@ export interface StoryTileProps {
   items: ParentReadingFeedbackItem[];
   childId: number;
   nickname: string;
+  /** Giá trị CSS background của bìa (useStoryCovers), bìa mẫu khi chưa có. */
+  cover: string;
+  /** Ô này đang mở cột lần đọc (cả lưới chỉ mở một ô, ResultsTab giữ). */
+  open: boolean;
+  onToggle: () => void;
 }
 
-export default function StoryTile({ items, childId, nickname }: StoryTileProps) {
-  const [open, setOpen] = useState(false);
+export default function StoryTile({ items, childId, nickname, cover, open, onToggle }: StoryTileProps) {
   const [selected, setSelected] = useState<ParentReadingFeedbackItem | null>(null);
-  const { stories } = useWorkspaceData();
+  const coverRef = useRef<HTMLDivElement>(null);
+  /** Bấm mở / đóng cột lần đọc: nút rung kiểu thạch, bìa truyện nảy nhẹ. */
+  const toggle = (btn: HTMLButtonElement) => {
+    jelly(btn);
+    bounce(coverRef.current);
+    onToggle();
+  };
 
   if (!items.length) return null;
 
   const latest = items[0];
   const title = latest.title;
-  const coverUrl = stories.find((s) => s.id === latest.storyId)?.raw.coverImageUrl ?? null;
 
   return (
-    <div className="lr-story">
-      <SafeImage src={coverUrl} alt={title} className="lr-story-cover" />
-      <h3 className="lr-story-title">{title}</h3>
-      <div className="lr-pills">
-        {feelingPill(latest)}
-        {quizPill(latest)}
+    // Mở danh sách lần đọc thì ô nở ra 2 cột: thẻ truyện bên trái, cột lần đọc bên phải (đẩy các truyện sau sang).
+    <div className={`lr-story${open ? " is-open" : ""}`}>
+      <div className="lr-story-main">
+        <div ref={coverRef} className="lr-story-cover-wrap"><span className="lr-story-cover" role="img" aria-label={`Bìa truyện ${title}`} style={{ background: cover }} /></div>
+        <h3 className="lr-story-title">{title}</h3>
+        <div className="lr-pills">
+          {feelingPill(latest)}
+          {quizPill(latest)}
+        </div>
+        <div className="lr-story-meta">
+          Lần gần nhất {shortDate(latest.completedAt ?? latest.startedAt)}
+        </div>
+        <button
+          type="button"
+          className="btn btn-g lr-story-toggle"
+          aria-expanded={open}
+          onClick={(e) => toggle(e.currentTarget)}
+        >
+          <span>{items.length} lần đọc</span>
+          <ChevronDown className="ic lr-story-chev" aria-hidden />
+        </button>
       </div>
-      <div className="lr-story-meta">
-        Lần gần nhất {shortDate(latest.completedAt ?? latest.startedAt)}
-      </div>
-      <button
-        type="button"
-        className="btn btn-g lr-story-toggle"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
-      >
-        <span>{items.length} lần đọc</span>
-        <ChevronDown className="ic lr-story-chev" aria-hidden />
-      </button>
 
       {open && (
+        <div className="lr-runs-col">
         <ul className="lr-runs">
           {items.map((i, idx) => {
             const ordinal = i.readOrdinal ?? (items.length - idx);
             return (
-              <li key={i.sessionId}>
+              <li key={i.sessionId} style={{ "--i": Math.min(idx, 8) } as React.CSSProperties}>
                 <button
                   type="button"
                   className="lr-run"
@@ -73,6 +85,7 @@ export default function StoryTile({ items, childId, nickname }: StoryTileProps) 
             );
           })}
         </ul>
+        </div>
       )}
 
       {selected && (

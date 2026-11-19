@@ -105,6 +105,12 @@ export function bounce(el: HTMLElement | null) {
   animate(el, { scale: [1, 1.06, 1], duration: 480, ease: "outBack(3)", onComplete: () => clear([el], ["transform"]) });
 }
 
+/** Rung kiểu thạch khi bấm (nút mở / đóng): bóp ngang rồi bật lại, nảy vài nhịp. */
+export function jelly(el: HTMLElement | null) {
+  if (!el || prefersReducedMotion()) return;
+  animate(el, { scaleX: [1, 0.9, 1.07, 0.98, 1], scaleY: [1, 1.08, 0.95, 1.02, 1], duration: 560, ease: "outQuad", onComplete: () => clear([el], ["transform"]) });
+}
+
 /**
  * Đổi theme với vòng tròn lan ra từ điểm bấm (View Transitions API).
  * Pseudo-element của view transition không animejs nào chạm tới được nên dùng Web Animations API.

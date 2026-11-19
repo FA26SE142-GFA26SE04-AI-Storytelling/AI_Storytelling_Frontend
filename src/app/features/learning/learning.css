@@ -293,3 +293,27 @@
 /* Dòng lần đọc: chữ bên trái, % câu đố và mũi tên dồn sang phải. */
 .lr-run > span:first-child { flex: 1 1 auto; }
 .lr-run > .ic { margin-left: auto; flex: none; }
+/* Mở danh sách lần đọc: ô truyện chiếm 2 cột, thẻ truyện bên trái, cột lần đọc bên phải cao bằng thẻ (dài thì cuộn). */
+.lr-story-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.lr-story.is-open { grid-column: span 2; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; border-color: var(--primary); }
+.lr-runs-col { position: relative; min-width: 0; min-height: 160px; }
+.lr-runs-col .lr-runs { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; padding: 2px 4px 2px 0; animation: none; }
+.lr-story-toggle[aria-expanded="true"] .lr-story-chev { transform: rotate(-90deg); }
+/* Mở cột lần đọc: ô nảy nhẹ khi nở ra, từng dòng trượt từ trái sang và nảy lần lượt (--i = thứ tự dòng, tối đa 8). */
+.lr-story.is-open { animation: lr-story-pop .5s cubic-bezier(.34, 1.56, .64, 1) both; }
+.lr-runs-col .lr-runs li { animation: lr-run-in .5s cubic-bezier(.34, 1.56, .64, 1) both; animation-delay: calc(var(--i, 0) * 55ms + 80ms); }
+.lr-story-chev { transition: transform .35s cubic-bezier(.34, 1.56, .64, 1); }
+@keyframes lr-story-pop { 0% { transform: scale(.97); } 60% { transform: scale(1.015); } 100% { transform: none; } }
+@keyframes lr-run-in { from { opacity: 0; transform: translateX(-28px) scale(.92); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .lr-story.is-open, .lr-runs-col .lr-runs li { animation: none; } .lr-story-chev { transition: none; } }
+/* Bấm nút "N lần đọc": nhấn giữ thì lún xuống, thả ra thì rung kiểu thạch (jelly) và bìa nảy (bounce) — xem StoryTile. */
+.lr-story-cover-wrap { display: block; transform-origin: 50% 80%; }
+.lr-story-toggle { transition: transform .12s ease-out, background-color .2s; }
+.lr-story-toggle:active { transform: scale(.94); }
+@media (prefers-reduced-motion: reduce) { .lr-story-toggle:active { transform: none; } }
+/* Các ô truyện trong một hàng cao bằng nhau: kéo giãn theo ô cao nhất, tên luôn giữ chỗ 2 dòng, nút "N lần đọc" dồn xuống đáy. */
+.lr-grid { align-items: stretch; }
+.lr-story-main { flex: 1 1 auto; }
+.lr-story-title { line-height: 1.35; min-height: calc(2em * 1.35); }
+.lr-story-toggle { margin-top: auto; }
+.lr-story-cover { background-color: var(--surface-2); }

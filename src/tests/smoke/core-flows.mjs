@@ -385,9 +385,27 @@ try {
     await page.getByText('4 lần đọc', { exact: true }).waitFor();
     assert.equal(await page.locator('.lr-story').count(), 2, 'Ba lần đọc cùng truyện gộp thành một ô');
     const tile = page.locator('.lr-story', { hasText: 'Sóc Bông và Thỏ Trắng' });
+    // Mở cột lần đọc có animation nảy: ô nở ra (lr-story-pop) và từng dòng trượt vào (lr-run-in).
+    // Bộ test chạy ở chế độ giảm chuyển động (animation tắt); bật tạm để kiểm tra rồi trả lại.
+    await page.emulateMedia({ reducedMotion: 'no-preference' });
     await tile.getByRole('button', { name: '3 lần đọc' }).click();
-    assert.equal(await tile.locator('.lr-run').count(), 3, 'Sổ xuống thì thấy đủ 3 lần đọc');
+    const anims = await page.evaluate(() => document.getAnimations().map((x) => x.animationName));
+    assert(anims.includes('lr-story-pop') && anims.includes('lr-run-in'), `Thiếu animation mở cột: ${anims.join(', ')}`);
+    // Hiệu ứng lúc bấm (animejs ghi transform trực tiếp lên phần tử): nút rung kiểu thạch, bìa nảy.
+    const pressed = await tile.evaluate((el) => [el.querySelector('.lr-story-toggle')?.style.transform ?? '', el.querySelector('.lr-story-cover-wrap')?.style.transform ?? '']);
+    assert(pressed.every((t) => t.includes('scale')), `Thiếu hiệu ứng khi bấm: ${pressed.join(' | ')}`);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal(await tile.locator('.lr-run').count(), 3, 'Mở ra thì thấy đủ 3 lần đọc');
+    await page.waitForTimeout(900);
     await shots(page, 'LearningGrouped', '.lr-grid');
+    // Chỉ một ô mở: mở "Rùa và thỏ" thì ô "Sóc Bông…" tự đóng; bấm lại ô đang mở thì đóng.
+    const other = page.locator('.lr-story', { hasText: 'Rùa và thỏ' });
+    await other.getByRole('button', { name: '1 lần đọc' }).click();
+    await other.locator('.lr-run').first().waitFor();
+    assert.equal(await tile.locator('.lr-run').count(), 0, 'Ô cũ tự đóng khi mở ô khác');
+    assert.equal(await page.locator('.lr-story.is-open').count(), 1, 'Chỉ một ô đang mở');
+    await other.getByRole('button', { name: '1 lần đọc' }).click();
+    assert.equal(await page.locator('.lr-story.is-open').count(), 0, 'Bấm lại thì đóng');
   });
 
   await smoke('KidLobbyThemeFrog', 'Parent', async ({ page }) => {
