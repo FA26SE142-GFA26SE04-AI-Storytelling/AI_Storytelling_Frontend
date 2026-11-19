@@ -6,7 +6,7 @@ import type * as B from "@/app/types/backendContracts";
 import type { VocabularyLevel } from "@/app/types/aiStory";
 import { copyrightHits, GENRES, OUTPUT_MODE } from "@/app/lib/storyRules";
 import { READING_LEVELS, countWords, levelAboveAge, readingLevelInfo, storyLengthFor } from "@/app/lib/guardian";
-import { clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, vocabularyTone, type LengthPreset } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
+import { clampTargetLength, lengthPresets, MIN_TARGET_LENGTH, vocabularyTone, type LengthPreset } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
 import { detectPii, piiMessage } from "@/app/features/story-workflow/piiHints";
 import CreatorQuotaChip from "./CreatorQuotaChip";
 
@@ -40,9 +40,8 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
   const presets = lengthPresets(max, context?.readingLevel ?? 2, context?.recommendedTargetLength);
   const preset = LENGTHS.find(([k]) => presets[k] === values.targetLength)?.[0] ?? null;
   const missingText = !values.topic.trim() || !values.lesson.trim();
-  const topicTooLong = values.topic.length > FREE_TEXT_MAX;
-  const disabled = !loaded || busy || missingText || topicTooLong;
-  const reason = !loaded ? "Đang tải cấu hình tạo truyện…" : missingText ? "Hãy nhập ý tưởng và bài học trước." : topicTooLong ? `Ý tưởng tối đa ${FREE_TEXT_MAX} ký tự.` : null;
+  const disabled = !loaded || busy || missingText;
+  const reason = !loaded ? "Đang tải cấu hình tạo truyện…" : missingText ? "Hãy nhập ý tưởng và bài học trước." : null;
   const pii = piiMessage(detectPii([values.topic, values.charactersText, values.setting, values.lesson].join("\n"), ""));
   const copyright = copyrightHits([values.topic, values.charactersText, values.setting, values.lesson].join("\n"));
   const modes = (context?.availableOutputModes ?? []).filter((m): m is keyof typeof OUTPUT_MODE => m in OUTPUT_MODE);
@@ -66,13 +65,13 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
         <fieldset className="brief-group">
           <legend className="display">Câu chuyện về điều gì?</legend>
           <div className="field">
-            <label className="lbl row" htmlFor="cbrief-topic" style={{ justifyContent: "space-between" }}>Ý tưởng câu chuyện<em className={`count${topicTooLong ? " warn" : ""}`}>{values.topic.length}/{FREE_TEXT_MAX}</em></label>
+            <label className="lbl" htmlFor="cbrief-topic">Ý tưởng câu chuyện</label>
             <textarea id="cbrief-topic" className="inp brief-topic" rows={4} required value={values.topic} onChange={(e) => onChange({ topic: e.target.value })} placeholder="Ví dụ: Rùa Bông mang đèn lồng đến hội Trung thu…" />
           </div>
           <div className="field">
-            <label className="lbl row" htmlFor="cbrief-lesson" style={{ justifyContent: "space-between" }}>Bài học muốn gửi tới các bé<em className="count">{values.lesson.length}/{FREE_TEXT_MAX}</em></label>
+            <label className="lbl" htmlFor="cbrief-lesson">Bài học muốn gửi tới các bé</label>
             <div className="brief-combo">
-              <input id="cbrief-lesson" autoComplete="off" className="inp" required maxLength={FREE_TEXT_MAX} value={values.lesson} placeholder="Ví dụ: Biết chia sẻ cùng bạn bè…" onChange={(e) => onChange({ lesson: e.target.value })} />
+              <input id="cbrief-lesson" autoComplete="off" className="inp" required value={values.lesson} placeholder="Ví dụ: Biết chia sẻ cùng bạn bè…" onChange={(e) => onChange({ lesson: e.target.value })} />
             </div>
           </div>
         </fieldset>
@@ -88,13 +87,13 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
             </select>
           </div>
           <div className="field">
-            <label className="lbl row" htmlFor="cbrief-characters" style={{ justifyContent: "space-between" }}>Nhân vật<em className="count">{values.charactersText.length}/{FREE_TEXT_MAX}</em></label>
-            <input id="cbrief-characters" autoComplete="off" className="inp" maxLength={FREE_TEXT_MAX} value={values.charactersText} placeholder="Ví dụ: Sóc Bông, Thỏ Trắng…" onChange={(e) => onChange({ charactersText: e.target.value })} />
+            <label className="lbl" htmlFor="cbrief-characters">Nhân vật</label>
+            <input id="cbrief-characters" autoComplete="off" className="inp" value={values.charactersText} placeholder="Ví dụ: Sóc Bông, Thỏ Trắng…" onChange={(e) => onChange({ charactersText: e.target.value })} />
             <small className="hint">Nhiều nhân vật thì cách nhau bằng dấu phẩy. Để trống thì AI tự nghĩ.</small>
           </div>
           <div className="field">
-            <label className="lbl row" htmlFor="cbrief-setting" style={{ justifyContent: "space-between" }}>Bối cảnh<em className="count">{values.setting.length}/{FREE_TEXT_MAX}</em></label>
-            <input id="cbrief-setting" autoComplete="off" className="inp" maxLength={FREE_TEXT_MAX} value={values.setting} placeholder="Ví dụ: Khu rừng tre ven hồ sen…" onChange={(e) => onChange({ setting: e.target.value })} />
+            <label className="lbl" htmlFor="cbrief-setting">Bối cảnh</label>
+            <input id="cbrief-setting" autoComplete="off" className="inp" value={values.setting} placeholder="Ví dụ: Khu rừng tre ven hồ sen…" onChange={(e) => onChange({ setting: e.target.value })} />
           </div>
         </fieldset>
 
@@ -164,7 +163,6 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
         </fieldset>
 
         <div className="brief-submit">
-          {topicTooLong && <div className="notice err" role="alert">Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
           <button type="submit" className="btn btn-p brief-go" disabled={disabled} aria-describedby="cbrief-go-why">
             <Sparkles className="ic" aria-hidden />{busy ? "Đang gửi ý tưởng…" : "Viết dàn ý"}
           </button>

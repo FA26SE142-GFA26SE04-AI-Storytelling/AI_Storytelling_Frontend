@@ -12,7 +12,7 @@ import { STUDIO_PREFILL_KEY } from "@/app/features/learning/WishItem";
 import { parentWishService } from "@/app/services/storyWishService";
 import { takeLandingIdea } from "@/app/features/landing/landingIdea";
 import {
-  clampTargetLength, FREE_TEXT_MAX, lengthPresets, MIN_TARGET_LENGTH, outputModesOf, restoreFormValues, vocabularyTone,
+  clampTargetLength, lengthPresets, MIN_TARGET_LENGTH, outputModesOf, restoreFormValues, vocabularyTone,
   type AIStoryInputFormValues, type LengthPreset,
 } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
 import { OUTPUT_MODE } from "@/app/lib/storyRules";
@@ -90,13 +90,11 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   // Bước này nút "Viết dàn ý" chỉ nằm trong form (không đăng ký lên thanh tiến trình) để không có hai nút cùng việc.
   const loaded = !!values && !!context;
   const missingText = !values?.topic.trim() || !values?.lesson.trim();
-  const topicTooLong = (values?.topic.length ?? 0) > FREE_TEXT_MAX;
   const outOfQuota = !!quota && !quota.isUnlimited && (quota.remaining ?? 1) <= 0;
-  const submitDisabled = !loaded || isBusy || missingText || topicTooLong || outOfQuota;
+  const submitDisabled = !loaded || isBusy || missingText || outOfQuota;
   const submitReason = !loaded ? "Đang tải cấu hình của bé…"
     : outOfQuota ? "Bạn đã hết lượt tạo truyện AI."
-    : missingText ? "Hãy nhập ý tưởng và bài học trước."
-    : topicTooLong ? `Ý tưởng tối đa ${FREE_TEXT_MAX} ký tự.` : null;
+    : missingText ? "Hãy nhập ý tưởng và bài học trước." : null;
   const formRef = useRiseIn<HTMLFormElement>(".kv, .field, button[type=submit], .btn-p", [!!values && !!context], { delay: 50 });
 
   if (!values || !context) {
@@ -114,9 +112,9 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   // Ô nhập tự do + ô "Gợi ý" xổ xuống bên cạnh để chọn nhanh (chọn xong ô gợi ý tự trở về trống).
   const text = (k: TextKey, label: string, placeholder: string, opts: { required?: boolean; hint?: string; suggestions?: string[]; onPick?: (v: string) => void } = {}) => (
     <div className="field">
-      <label className="lbl row" htmlFor={`brief-${k}`} style={{ justifyContent: "space-between" }}>{label}<em className="count">{values[k].length}/{FREE_TEXT_MAX}</em></label>
+      <label className="lbl" htmlFor={`brief-${k}`}>{label}</label>
       <div className="brief-combo">
-        <input id={`brief-${k}`} name={k} autoComplete="off" className="inp" disabled={locked} required={opts.required} maxLength={FREE_TEXT_MAX} value={values[k]} placeholder={placeholder}
+        <input id={`brief-${k}`} name={k} autoComplete="off" className="inp" disabled={locked} required={opts.required} value={values[k]} placeholder={placeholder}
           onChange={(e) => updateValues({ [k]: e.target.value } as Partial<AIStoryInputFormValues>)} />
         {!locked && !!opts.suggestions?.length && (
           <select className="inp brief-suggest" aria-label={`Gợi ý ${label.toLowerCase()}`} value="" onChange={(e) => e.target.value && opts.onPick?.(e.target.value)}>
@@ -147,7 +145,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
           <fieldset className="brief-group">
             <legend className="display">Câu chuyện về điều gì?</legend>
             <div className="field">
-              <label className="lbl row" htmlFor="brief-topic" style={{ justifyContent: "space-between" }}>Ý tưởng câu chuyện<em className={`count${topicTooLong ? " warn" : ""}`}>{values.topic.length}/{FREE_TEXT_MAX}</em></label>
+              <label className="lbl" htmlFor="brief-topic">Ý tưởng câu chuyện</label>
               <textarea id="brief-topic" name="topic" className="inp brief-topic" rows={4} disabled={locked} required value={values.topic} onChange={(e) => updateValues({ topic: e.target.value })} placeholder="Ví dụ: Rùa Bông mang đèn lồng đến hội Trung thu…" />
             </div>
             {text("lesson", "Bài học muốn gửi tới con", "Ví dụ: Biết chia sẻ cùng bạn bè…", {
@@ -208,7 +206,6 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
 
           {!locked && (
             <div className="brief-submit">
-              {topicTooLong && <div className="notice err" role="alert" data-inline-notice>Ý tưởng tối đa {FREE_TEXT_MAX} ký tự.</div>}
               {errorMessage && <div className="notice err" role="alert">{errorMessage}</div>}
               {outOfQuota && <div className="notice err row" role="alert" data-inline-notice style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}><span>Bạn đã hết lượt tạo truyện AI. Nâng lên Gói Sáng tạo hoặc mua Add-on để tạo thêm.</span><a className="btn btn-s" href="#account-payment">Nâng cấp gói</a></div>}
               <button type="submit" className="btn btn-p brief-go" disabled={submitDisabled} aria-describedby={submitReason ? "brief-go-why" : undefined}>
