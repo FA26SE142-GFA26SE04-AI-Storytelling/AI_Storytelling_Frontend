@@ -5,6 +5,8 @@ import { useState } from "react";
 import { BookUp, Lightbulb, ShieldCheck, UserRoundPen } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
+import type { UseAiGenerationCapacityResult } from "@/app/features/story-workflow/useAiGenerationCapacity";
+import AiCapacityBanner from "./AiCapacityBanner";
 import BriefForm from "./BriefForm";
 import ImportStoryPanel from "./ImportStoryPanel";
 import OutlinePanel from "./OutlinePanel";
@@ -34,6 +36,7 @@ type Props = {
   childId: number;
   /** Mở truyện vừa nhập trong Studio (tiếp tục từ bước tạo học liệu). */
   onOpenStory: (storyId: number) => void;
+  capacity?: UseAiGenerationCapacityResult;
 };
 
 type View = "brief" | "outline" | "status";
@@ -46,7 +49,7 @@ function autoView(stage: Stage): View {
   return "status";
 }
 
-export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, retryFailed, refresh, onOutlineApproved, kidName, onChangeKid, childId, onOpenStory }: Props) {
+export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, retryFailed, refresh, onOutlineApproved, kidName, onChangeKid, childId, onOpenStory, capacity }: Props) {
   // Chưa có truyện: chọn viết từ ý tưởng hay nhập truyện có sẵn (Luồng 3b).
   const [entry, setEntry] = useState<"idea" | "import">("idea");
   const canImport = stage === "brief" && storyId === null;
@@ -84,7 +87,20 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
                 <button type="button" role="radio" aria-checked={entry === "idea"} className={entry === "idea" ? "on" : ""} onClick={() => setEntry("idea")}><Lightbulb className="ic" />Viết từ ý tưởng</button>
                 <button type="button" role="radio" aria-checked={entry === "import"} className={entry === "import" ? "on" : ""} onClick={() => setEntry("import")}><BookUp className="ic" />Nhập truyện có sẵn</button>
               </div>}
-              {canImport && entry === "import" ? <ImportStoryPanel childId={childId} kidName={kidName} onOpen={onOpenStory} /> : <BriefForm flow={flow} locked={stage !== "brief"} />}
+              {canImport && entry === "import" ? <ImportStoryPanel childId={childId} kidName={kidName} onOpen={onOpenStory} /> : <>
+                {stage === "brief" && capacity && (
+                  <AiCapacityBanner
+                    capacity={capacity.capacity}
+                    loading={capacity.loading}
+                    limitRejected={flow.concurrencyLimitReached}
+                    onRefresh={() => void capacity.refresh()}
+                    onRetrySubmit={flow.concurrencyLimitReached ? () => void flow.submit() : undefined}
+                    onOpenStory={onOpenStory}
+                    busy={flow.isBusy}
+                  />
+                )}
+                <BriefForm flow={flow} locked={stage !== "brief"} />
+              </>}
             </div>}
             {/* Luôn dựng khi đã có dàn ý (ẩn khi xem tab khác) để nút duyệt trên thanh tiến trình còn đó. */}
             {hasOutline && storyId !== null && (

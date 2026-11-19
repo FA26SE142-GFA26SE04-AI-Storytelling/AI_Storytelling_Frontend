@@ -260,3 +260,66 @@ export function transitionWorkspace(update: () => void) {
   activeTransition = finished;
   void finished.then(() => { if (activeTransition === finished) activeTransition = null; });
 }
+
+export function magnetOffset(pointer: number, center: number, strength = 0.25, max = 10): number {
+  return Math.min(max, Math.max(-max, (pointer - center) * strength));
+}
+
+/** Chuột di chuyển: nền/lá/thẻ dịch theo (--px,--py); nút .kid-btn3d hút nhẹ về con trỏ (--mag-x,--mag-y). Chỉ bật với chuột và không giảm chuyển động. */
+export function usePointerPlay<T extends HTMLElement = HTMLElement>(selector = ".kid-btn3d"): RefObject<T | null> {
+  const ref = useRef<T | null>(null);
+  useEffect(() => {
+    const root = ref.current;
+    if (!root || prefersReducedMotion() || !window.matchMedia("(hover: hover) and (pointer: fine)").matches) return;
+    let raf = 0;
+    let last: PointerEvent | null = null;
+    let magnet: HTMLElement | null = null;
+    const clearMagnet = () => {
+      magnet?.style.removeProperty("--mag-x");
+      magnet?.style.removeProperty("--mag-y");
+      magnet = null;
+    };
+    const clamp = (v: number) => Math.round(Math.min(1, Math.max(-1, v)) * 1000) / 1000;
+    const frame = () => {
+      raf = 0;
+      const e = last;
+      if (!e) return;
+      const r = root.getBoundingClientRect();
+      root.style.setProperty("--px", String(clamp((e.clientX - (r.left + r.width / 2)) / (r.width / 2))));
+      root.style.setProperty("--py", String(clamp((e.clientY - (r.top + r.height / 2)) / (r.height / 2))));
+      const found = e.target instanceof Element ? e.target.closest<HTMLElement>(selector) : null;
+      const btn = found && root.contains(found) && !(found as HTMLButtonElement).disabled ? found : null;
+      if (btn !== magnet) clearMagnet();
+      if (btn) {
+        const b = btn.getBoundingClientRect();
+        btn.style.setProperty("--mag-x", `${magnetOffset(e.clientX, b.left + b.width / 2)}px`);
+        btn.style.setProperty("--mag-y", `${magnetOffset(e.clientY, b.top + b.height / 2)}px`);
+        magnet = btn;
+      }
+    };
+    const onMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      last = e;
+      if (!raf) raf = requestAnimationFrame(frame);
+    };
+    const onLeave = () => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+      last = null;
+      root.style.setProperty("--px", "0");
+      root.style.setProperty("--py", "0");
+      clearMagnet();
+    };
+    root.addEventListener("pointermove", onMove);
+    root.addEventListener("pointerleave", onLeave);
+    return () => {
+      root.removeEventListener("pointermove", onMove);
+      root.removeEventListener("pointerleave", onLeave);
+      cancelAnimationFrame(raf);
+      root.style.removeProperty("--px");
+      root.style.removeProperty("--py");
+      clearMagnet();
+    };
+  }, [selector]);
+  return ref;
+}

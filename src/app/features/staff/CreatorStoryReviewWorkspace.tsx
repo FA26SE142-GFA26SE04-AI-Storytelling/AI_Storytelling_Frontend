@@ -9,7 +9,7 @@ import { useModerationSectionQueue } from './useModerationSectionQueue';
 
 /** Tài liệu 01 — Trang Duyệt truyện Creator (cố định PublicStoryReview, một status mỗi phân khu). */
 export default function CreatorStoryReviewWorkspace({ go }: { go?: (pageId: string) => void }) {
-  const q = useModerationSectionQueue({ itemType: 'PublicStoryReview', initialStatus: 'Pending', pageSize: 10 });
+  const q = useModerationSectionQueue({ itemType: 'PublicStoryReview', initialStatus: 'Open', pageSize: 10 });
   const [outcomeBanner, setOutcomeBanner] = useState<'Approved' | 'ChangesRequested' | 'Rejected' | null>(null);
   const current = q.selectedItem;
   const mine = !!current && current.status === 'Claimed' && q.user?.id != null && current.claimedByUserId === q.user.id;
@@ -30,7 +30,7 @@ export default function CreatorStoryReviewWorkspace({ go }: { go?: (pageId: stri
       me={q.user?.id}
       myName={q.user?.fullName || q.user?.username}
       busy={q.claiming}
-      claimLabel="Nhận duyệt"
+      claimLabel="Nhận và xử lý"
       onClaim={current.status === 'Pending' ? () => {
         setOutcomeBanner(null);
         void q.claimItem(current.id);
@@ -90,6 +90,7 @@ export default function CreatorStoryReviewWorkspace({ go }: { go?: (pageId: stri
       }}
       banner={banner}
       detail={detail}
+      claimFocusKey={q.claimFocusKey}
     />
   );
 }

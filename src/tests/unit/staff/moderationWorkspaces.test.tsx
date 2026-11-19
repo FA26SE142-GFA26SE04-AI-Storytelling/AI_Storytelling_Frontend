@@ -79,7 +79,7 @@ describe('Moderator workspaces (specs 00-03 & 12)', () => {
     expect(moderationStatusLabel('CommunitySubmission', 'Removed')).toBe('Đã gỡ chia sẻ');
     expect(moderationStatusLabel('GrayZoneStory', 'Cleared')).toBe('Đã cho phép tiếp tục');
     expect(PUBLIC_STORY_SECTIONS.map(s => s.status)).toEqual([
-      'Pending', 'Claimed', 'ChangesRequested', 'Approved', 'Rejected', 'Withdrawn', 'Closed',
+      'Open', 'ChangesRequested', 'Approved', 'Rejected', 'Withdrawn', 'Closed',
     ]);
   });
 

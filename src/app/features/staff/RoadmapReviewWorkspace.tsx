@@ -8,7 +8,7 @@ import { useModerationSectionQueue } from './useModerationSectionQueue';
 
 /** Tài liệu 08 — Phân khu Duyệt lộ trình (cố định RoadmapTemplateReview, một status mỗi mục, giữ đủ mọi Claimed). */
 export default function RoadmapReviewWorkspace() {
-  const q = useModerationSectionQueue({ itemType: 'RoadmapTemplateReview', initialStatus: 'Pending', pageSize: 10 });
+  const q = useModerationSectionQueue({ itemType: 'RoadmapTemplateReview', initialStatus: 'Open', pageSize: 10 });
   const [outcomeBanner, setOutcomeBanner] = useState<'Approved' | 'ChangesRequested' | 'Rejected' | null>(null);
   const current = q.selectedItem;
   const mine = !!current && current.status === 'Claimed' && q.user?.id != null && current.claimedByUserId === q.user.id;
@@ -35,7 +35,7 @@ export default function RoadmapReviewWorkspace() {
       me={q.user?.id}
       myName={q.user?.fullName || q.user?.username}
       busy={q.claiming}
-      claimLabel="Nhận duyệt"
+      claimLabel="Nhận và xử lý"
       summaryNotice={summaryNotice}
       onClaim={current.status === 'Pending' ? () => {
         setOutcomeBanner(null);
@@ -85,6 +85,7 @@ export default function RoadmapReviewWorkspace() {
       onReload={q.reload}
       banner={banner}
       detail={detail}
+      claimFocusKey={q.claimFocusKey}
     />
   );
 }

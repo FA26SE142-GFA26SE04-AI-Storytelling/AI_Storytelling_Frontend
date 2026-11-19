@@ -19,6 +19,7 @@ import type { AIStoryInputFormValues } from "@/app/features/story-workflow/aiSto
 import { studioProgress } from "./studioProgress";
 import { useSteppedProgress } from "./useSteppedProgress";
 import { useMediaProgress, useStoryPipeline, type Stage } from "./useStoryPipeline";
+import { useAiGenerationCapacity } from "@/app/features/story-workflow/useAiGenerationCapacity";
 import { useRiseIn } from "@/app/lib/motion";
 import { useMyRole } from "@/app/features/children/useMyRole";
 import Frog from "@/app/components/brand/Frog";
@@ -57,6 +58,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
     if (p.storyId) window.history.replaceState(null,'',workspaceLocation(window.location.href,'studio',p.storyId));
   }, [p.storyId]);
   const media = useMediaProgress(p.stage === "media" ? p.storyId : null);
+  const capacityState = useAiGenerationCapacity(true, `${p.stage}:${p.storyId ?? "new"}:${p.flow.concurrencyLimitReached}`);
   const section = sectionOf(p.stage, p.storyId);
   // Chỉ phần thân (các khung mới vào) hiện dần khi đổi bố cục; thanh tiến trình đứng yên nên không nháy.
   const bodyRef = useRiseIn<HTMLElement>(":scope > :not(.studio-steps)", [section], { delay: 60, distance: 10 });
@@ -123,6 +125,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           onChangeKid={p.storyId === null && kids.length > 1 ? onChangeKid : undefined}
           childId={childId}
           onOpenStory={onOpenStory}
+          capacity={capacityState}
         />
       )}
       </ApproveSlot.Provider>

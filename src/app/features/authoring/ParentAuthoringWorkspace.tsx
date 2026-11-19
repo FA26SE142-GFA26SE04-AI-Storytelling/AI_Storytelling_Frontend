@@ -169,14 +169,19 @@ export default function ParentAuthoringWorkspace({
   );
   const [stepId, setStepId] = useState<StepId | null>(null);
   const [viewId, setViewId] = useState<StepId | null>(null);
+  const [reselectMode, setReselectMode] = useState(false);
+  const [packageCommandBusy, setPackageCommandBusy] = useState(false);
   // Đổi bước thì các khung của bước mới hiện lần lượt.
   const stageRef = useRiseIn<HTMLDivElement>(
     ".pa-card, .pa-fold",
     [stepId, h.draft?.story.storyId ?? 0],
     { delay: 50, distance: 10 },
   );
+  const latestDraftTitleRef = useRef(h.draft?.story.title ?? "");
+  useEffect(() => {
+    latestDraftTitleRef.current = h.draft?.story.title ?? "";
+  }, [h.draft?.story.title]);
   // Chỉ nạp lại biểu mẫu khi đổi phiên bản; đổi tiêu đề truyện không được xoá nội dung đang soạn.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     setReferences([]);
     setForm(
@@ -187,7 +192,7 @@ export default function ParentAuthoringWorkspace({
             sourceDeclaration: h.version.sourceDeclaration,
             rightsDeclaration: h.version.rightsDeclaration,
           }
-        : { ...empty, title: h.draft?.story.title ?? "" },
+        : { ...empty, title: latestDraftTitleRef.current },
     );
     setPreview(null);
     setChecklist({
@@ -203,6 +208,8 @@ export default function ParentAuthoringWorkspace({
   useEffect(() => {
     setStepId(null);
     setViewId(null);
+    setReselectMode(false);
+    setPackageCommandBusy(false);
   }, [storyKey]);
   // Giao cho nhiều bé (gói riêng từng bé). Truyện đã có gói thì luôn ở cách này, không trộn với cách giao một bé.
   const [multi, setMulti] = useState(false);
@@ -423,8 +430,8 @@ export default function ParentAuthoringWorkspace({
     locked: false,
   };
   const pk = packageProgress(pkList, h.workflow);
-  // Gói đang kiểm tra / tạo học liệu: khoá chuyển bước, mở lại và bản nháp mới.
-  const pkBusy = multi && packagesBusy(pkList);
+  // Gói đang kiểm tra / tạo học liệu hoặc đang gửi command gói: khoá chuyển bước, mở lại và bản nháp mới.
+  const pkBusy = (multi && packagesBusy(pkList)) || packageCommandBusy;
   // Cách nhiều bé: ba bước sau cùng nằm trong khung "Gói cho từng bé", bấm bước nào thì cuộn tới phần đó.
   const steps: {
     id: StepId;
@@ -816,7 +823,7 @@ export default function ParentAuthoringWorkspace({
                                   className="btn btn-g pa-import-btn"
                                   disabled={reading}
                                   title={
-                                    "Tệp .txt hoặc .docx, mỗi dòng đầu một mục:\nTên truyện: …\nNguồn nội dung: …\nCam kết quyền sử dụng: …\nNội dung: … (phần truyện viết tiếp bên dưới)"
+                                    "Tệp .txt hoặc .docx, có thể ghi theo mục:\nTên truyện: …\nNội dung: … (phần truyện viết tiếp bên dưới)"
                                   }
                                   onClick={() => fileRef.current?.click()}
                                 >
@@ -828,7 +835,7 @@ export default function ParentAuthoringWorkspace({
                                   className="btn btn-g pa-import-btn"
                                   disabled={reading}
                                   onClick={() => setPasting(true)}
-                                  title="Dán cả bài; nếu bài theo mẫu (Tên truyện:, Nguồn nội dung:, …) thì tự tách vào từng ô"
+                                  title="Dán cả bài; nếu bài có dòng Tên truyện:, Nội dung: thì tự tách vào từng ô"
                                 >
                                   <ClipboardPaste className="ic" />
                                   Dán văn bản
@@ -837,7 +844,7 @@ export default function ParentAuthoringWorkspace({
                                   type="button"
                                   className="btn btn-g pa-import-btn"
                                   onClick={downloadTemplate}
-                                  title="Tải tệp mẫu .txt để điền sẵn Tên truyện, Nguồn nội dung, Cam kết quyền sử dụng và Nội dung"
+                                  title="Tải tệp mẫu .txt để điền Tên truyện và Nội dung"
                                 >
                                   <Download className="ic" />
                                   Tải tệp mẫu
@@ -860,6 +867,7 @@ export default function ParentAuthoringWorkspace({
                               form={form}
                               onChange={(p) => setForm((f) => ({ ...f, ...p }))}
                               onSelect={setSelection}
+                              showDeclarations={false}
                               rightsLabel="Cam kết quyền sử dụng"
                               rightsPlaceholder="VD: Tôi là tác giả hoặc có quyền dùng nội dung này"
                             />
@@ -879,7 +887,7 @@ export default function ParentAuthoringWorkspace({
                               <label className="field">
                                 <span className="lbl">
                                   Nội dung{" "}
-                                  <InfoTip text="Dán cả bài. Nếu bài theo tệp mẫu (Tên truyện:, Nguồn nội dung:, Cam kết quyền sử dụng:, Nội dung:) thì sẽ tự tách vào từng ô." />
+                                  <InfoTip text="Dán cả bài. Nếu bài theo tệp mẫu (Tên truyện:, Nội dung:) thì sẽ tự tách vào từng ô." />
                                 </span>
                                 <textarea
                                   className="inp"
@@ -941,7 +949,13 @@ export default function ParentAuthoringWorkspace({
                                 !!form.content.trim() &&
                                 canWrite &&
                                 !h.busy),
-                            dirty ? "Lưu và tiếp tục" : "Bước tiếp theo",
+                            reselectMode && multi
+                              ? dirty
+                                ? "Lưu và chọn lại thành phần gói"
+                                : "Chọn lại thành phần gói"
+                              : dirty
+                                ? "Lưu và tiếp tục"
+                                : "Bước tiếp theo",
                             dirty ? saveThenNext : undefined,
                           )}
                         </section>
@@ -1330,8 +1344,11 @@ export default function ParentAuthoringWorkspace({
                         canWrite={
                           !h.busy && !h.uncertain && !!canApprove && !!canAssign
                         }
+                        reselectMode={reselectMode}
+                        onReselectDone={() => setReselectMode(false)}
+                        onCancelReselect={() => setReselectMode(false)}
+                        onBusyChange={setPackageCommandBusy}
                         onReload={() => h.load(story.storyId)}
-                        onReopen={reopenContent}
                         onList={onPkList}
                         onBack={
                           hasPackages
@@ -1345,11 +1362,15 @@ export default function ParentAuthoringWorkspace({
                       <div className="pa-actions bar">
                         <button
                           className="btn btn-g"
-                          disabled={pkBusy}
-                          onClick={() => setStepId("write")}
+                          disabled={pkBusy || h.busy || h.uncertain}
+                          onClick={() => {
+                            setReselectMode(true);
+                            setViewId(null);
+                            setStepId("write");
+                          }}
                         >
                           <ArrowLeft className="ic" />
-                          Quay lại
+                          Chỉnh sửa truyện và gói
                         </button>
                         {grant && onDone && (
                           <button className="btn btn-p push" onClick={onDone}>

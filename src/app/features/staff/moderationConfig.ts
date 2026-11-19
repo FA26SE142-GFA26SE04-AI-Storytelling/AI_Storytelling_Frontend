@@ -2,8 +2,10 @@ import type { QueueItem, QueueItemStatus, QueueItemType } from '@/app/types/staf
 
 export type PillTone = 'ok' | 'wait' | 'draft' | 'flag';
 
+export type ModerationQueueStatusFilter = QueueItemStatus | 'Open';
+
 export type ModerationSectionDef = {
-  status: QueueItemStatus;
+  status: ModerationQueueStatusFilter;
   label: string;
   group: 'work' | 'waiting' | 'results';
   hint: string;
@@ -87,8 +89,7 @@ const FALLBACK_STATUS_LABELS: Record<string, string> = {
 };
 
 export const PUBLIC_STORY_SECTIONS: ModerationSectionDef[] = [
-  { status: 'Pending', label: 'Chờ tiếp nhận', group: 'work', hint: 'Hồ sơ Creator mới gửi, chưa có người nhận duyệt.' },
-  { status: 'Claimed', label: 'Đang xử lý', group: 'work', hint: 'Hồ sơ đang được giữ xử lý (tối đa 2 giờ).' },
+  { status: 'Open', label: 'Cần xử lý', group: 'work', hint: 'Hồ sơ Creator mới gửi chờ tiếp nhận và hồ sơ đang được giữ duyệt (tối đa 2 giờ).' },
   { status: 'ChangesRequested', label: 'Chờ sửa', group: 'waiting', hint: 'Đã gửi yêu cầu chỉnh sửa cho Creator; chỉ xem tóm tắt.' },
   { status: 'Approved', label: 'Đã duyệt', group: 'results', hint: 'Hồ sơ đã được duyệt công khai.' },
   { status: 'Rejected', label: 'Từ chối', group: 'results', hint: 'Hồ sơ đã bị từ chối.' },
@@ -97,16 +98,14 @@ export const PUBLIC_STORY_SECTIONS: ModerationSectionDef[] = [
 ];
 
 export const GRAY_ZONE_SECTIONS: ModerationSectionDef[] = [
-  { status: 'Pending', label: 'Chờ tiếp nhận', group: 'work', hint: 'Hồ sơ vùng xám mới vào hàng đợi, chưa có Moderator nhận kiểm tra.' },
-  { status: 'Claimed', label: 'Đang kiểm tra', group: 'work', hint: 'Hồ sơ đang được giữ kiểm tra (tối đa 2 giờ). Hiển thị tất cả hồ sơ kèm người giữ.' },
+  { status: 'Open', label: 'Cần xử lý', group: 'work', hint: 'Hồ sơ vùng xám chờ tiếp nhận và hồ sơ đang được giữ kiểm tra (tối đa 2 giờ).' },
   { status: 'Cleared', label: 'Đã cho phép tiếp tục', group: 'results', hint: 'Đã cho phép quy trình nguồn tiếp tục; quyết định này KHÔNG tự động xuất bản lên thư viện công khai.' },
   { status: 'Blocked', label: 'Đã chặn', group: 'results', hint: 'Nội dung vùng xám đã bị chặn theo quyết định kiểm duyệt.' },
   { status: 'Closed', label: 'Đã đóng', group: 'results', hint: 'Hồ sơ vùng xám đã đóng khi nguồn gốc thay đổi hoặc hết hiệu lực.' },
 ];
 
 export const CONTENT_REPORT_SECTIONS: ModerationSectionDef[] = [
-  { status: 'Pending', label: 'Chờ tiếp nhận', group: 'work', hint: 'Báo cáo nội dung mới, chưa có Moderator nhận xử lý.' },
-  { status: 'Claimed', label: 'Đang xử lý', group: 'work', hint: 'Hồ sơ báo cáo đang được giữ xử lý. Chỉ người đang giữ mới mở được chi tiết.' },
+  { status: 'Open', label: 'Cần xử lý', group: 'work', hint: 'Báo cáo nội dung chờ tiếp nhận và hồ sơ đang được giữ xử lý.' },
   { status: 'Escalated', label: 'Đã chuyển Admin', group: 'waiting', hint: 'Dữ liệu cũ: ca đã chuyển lên Administrator trước đây; không còn tạo ca mới.' },
   { status: 'Dismissed', label: 'Đã bác báo cáo', group: 'results', hint: 'Báo cáo đã được bác, giữ nguyên nội dung.' },
   { status: 'Archived', label: 'Đã xử lý gỡ vi phạm', group: 'results', hint: 'Đã xử lý lưu trữ hoặc gỡ nội dung vi phạm từ báo cáo.' },
@@ -142,16 +141,14 @@ export const REMOVAL_RECORD_SOURCES: RemovalRecordSourceDef[] = [
 ];
 
 export const PUBLIC_STORY_REMOVAL_SECTIONS: ModerationSectionDef[] = [
-  { status: 'Pending', label: 'Chờ tiếp nhận', group: 'work', hint: 'Yêu cầu gỡ truyện công khai mới vào hàng đợi, chưa có Moderator nhận.' },
-  { status: 'Claimed', label: 'Đang xử lý', group: 'work', hint: 'Hồ sơ đang được giữ xử lý. Chỉ người đang giữ mới mở được chi tiết hàng đợi.' },
+  { status: 'Open', label: 'Cần xử lý', group: 'work', hint: 'Yêu cầu gỡ truyện chờ tiếp nhận và hồ sơ đang được giữ xử lý.' },
   { status: 'Approved', label: 'Đã chấp thuận gỡ', group: 'results', hint: 'Đã chấp thuận gỡ truyện khỏi thư viện công khai (không phải duyệt đăng).' },
   { status: 'Rejected', label: 'Đã từ chối yêu cầu gỡ', group: 'results', hint: 'Đã từ chối yêu cầu gỡ (không phải từ chối xuất bản và không khẳng định truyện vẫn công khai).' },
   { status: 'Closed', label: 'Đã đóng', group: 'results', hint: 'Hồ sơ đã đóng theo trạng thái hệ thống nếu API trả về.' },
 ];
 
 export const ROADMAP_REVIEW_SECTIONS: ModerationSectionDef[] = [
-  { status: 'Pending', label: 'Chờ tiếp nhận', group: 'work', hint: 'Lộ trình mẫu mới gửi duyệt, chưa có Moderator nhận.' },
-  { status: 'Claimed', label: 'Đang xử lý', group: 'work', hint: 'Hồ sơ đang được giữ duyệt (không tự duyệt bộ do mình tạo).' },
+  { status: 'Open', label: 'Cần xử lý', group: 'work', hint: 'Lộ trình mẫu chờ tiếp nhận và hồ sơ đang được giữ duyệt (không tự duyệt bộ do mình tạo).' },
   { status: 'ChangesRequested', label: 'Yêu cầu sửa', group: 'waiting', hint: 'Đã gửi yêu cầu chỉnh sửa cho người soạn lộ trình; chỉ xem tóm tắt.' },
   { status: 'Approved', label: 'Đã duyệt', group: 'results', hint: 'Lộ trình mẫu đã được duyệt.' },
   { status: 'Rejected', label: 'Từ chối', group: 'results', hint: 'Hồ sơ duyệt lộ trình đã bị từ chối.' },

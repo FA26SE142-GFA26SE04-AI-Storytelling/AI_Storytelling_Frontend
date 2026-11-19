@@ -138,7 +138,7 @@ describe('Moderation queue work title & submitter display', () => {
     expect(html).toContain('Tác giả gửi duyệt: Nguyễn Văn A');
     expect(html).toContain('Thời điểm gửi');
     expect(html).toContain(formatSubmittedAt(baseQueueItem.createdAt));
-    expect(html).toContain('Nhận xử lý');
+    expect(html).toContain('Nhận và xử lý');
     expect(html).not.toContain('Nội dung bản thảo bí mật');
   });
 

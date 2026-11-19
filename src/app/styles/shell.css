@@ -30,7 +30,7 @@
 /* Khung phụ huynh: điều hướng nằm ngang trên header, không còn thanh bên. */
 .shell.top-nav { grid-template-columns: minmax(0, 1fr); }
 .shell.top-nav > .rail-mobile { display: none; }
-.topnav { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 0 8px; }
+.topnav { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 4px 8px; }
 .topnav::-webkit-scrollbar { display: none; }
 /* Nút có biểu tượng kèm chữ ngắn, để không phải rê chuột mới biết là gì. */
 .topnav button { height: 38px; flex: none; border-radius: 999px; display: inline-flex; align-items: center; gap: 7px; padding: 0 13px; color: var(--muted); font-size: var(--fs-sm); font-weight: 700; white-space: nowrap; position: relative; transition: background .15s, color .15s; }
@@ -66,6 +66,7 @@
 .nav-menu .grow { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .nav-menu b { font-size: var(--fs-sm); }
 .nav-menu small { font-size: var(--fs-xs); color: var(--muted); line-height: 1.35; }
+.nav-menu-badge { flex: none; min-width: 20px; height: 20px; border-radius: 99px; background: var(--rose); color: #fff; font-size: var(--fs-xs); font-weight: 800; display: grid; place-items: center; padding: 0 6px; }
 
 /* Avatar mở menu tài khoản */
 .acc-pick { position: relative; flex: none; }

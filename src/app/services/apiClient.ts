@@ -14,6 +14,9 @@ export type ApiOptions = {
   emptyResponse?: boolean;
 };
 
+const AI_STORY_CONCURRENCY_LIMIT_CODE = 'AI_STORY_CONCURRENCY_LIMIT';
+const AI_STORY_CONCURRENCY_LIMIT_MESSAGE = 'Bạn đang tạo 2 truyện. Hãy hoàn tất một truyện trước khi bắt đầu truyện khác.';
+
 /** Preserves error progress, false/0/null payloads and actual HTTP status. */
 export async function apiRequest<T>(path: string, fallback: string, opts: ApiOptions = {}): Promise<ApiResponse<T>> {
   if (opts.session === 'child' && !opts.token) {
@@ -39,14 +42,18 @@ export async function apiRequest<T>(path: string, fallback: string, opts: ApiOpt
         ? Object.values(parsed.errors).flat().filter((v): v is string => typeof v === 'string') : null;
     if (typeof parsed?.success === 'boolean') {
       const success = response.ok && parsed.success;
-      return { success, status: response.status, message: typeof parsed.message === 'string' ? parsed.message : success ? '' : fallback,
-        data: (parsed.data ?? null) as T | null, errors };
+      const isConcurrencyLimit = response.status === 409 && errors?.includes(AI_STORY_CONCURRENCY_LIMIT_CODE);
+      const message = isConcurrencyLimit
+        ? AI_STORY_CONCURRENCY_LIMIT_MESSAGE
+        : typeof parsed.message === 'string' ? parsed.message : success ? '' : fallback;
+      return { success, status: response.status, message, data: (parsed.data ?? null) as T | null, errors };
     }
     if (response.ok && !text.trim() && (opts.emptyResponse || response.status === 204)) {
       return { success: true, status: response.status, message: '', data: null };
     }
     const detail = typeof parsed?.detail === 'string' ? parsed.detail : typeof parsed?.title === 'string' ? parsed.title : undefined;
-    return { success: false, status: response.status, message: errors?.[0] || detail || fallback, data: null, errors };
+    const isConcurrencyLimit = response.status === 409 && errors?.includes(AI_STORY_CONCURRENCY_LIMIT_CODE);
+    return { success: false, status: response.status, message: isConcurrencyLimit ? AI_STORY_CONCURRENCY_LIMIT_MESSAGE : (errors?.[0] || detail || fallback), data: null, errors };
   } catch (error) {
     return { success: false, status: 0, message: opts.signal?.aborted ? 'Đã dừng theo dõi.' : fallback,
       data: null, errors: [error instanceof Error ? error.message : 'Network error'] };

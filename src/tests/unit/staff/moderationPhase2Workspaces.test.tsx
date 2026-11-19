@@ -152,7 +152,7 @@ describe('Moderator Phase 2 workspaces (specs 04-06 & 12)', () => {
 
   it('defines GrayZoneStory sections, parses real AI flags honestly, protects privacy, and locks actions on claim conflict', () => {
     expect(GRAY_ZONE_SECTIONS.map(s => s.status)).toEqual([
-      'Pending', 'Claimed', 'Cleared', 'Blocked', 'Closed',
+      'Open', 'Cleared', 'Blocked', 'Closed',
     ]);
     expect(moderationStatusLabel('GrayZoneStory', 'Cleared')).toBe('Đã cho phép tiếp tục');
     expect(moderationStatusLabel('GrayZoneStory', 'Blocked')).toBe('Đã chặn');
@@ -301,7 +301,7 @@ describe('Moderator Phase 2 workspaces (specs 04-06 & 12)', () => {
 
   it('validates HTTP(S) URLs strictly, hides reporter identity, and enforces role-appropriate ContentReport actions', () => {
     expect(CONTENT_REPORT_SECTIONS.map(s => s.status)).toEqual([
-      'Pending', 'Claimed', 'Escalated', 'Dismissed', 'Archived', 'Closed',
+      'Open', 'Escalated', 'Dismissed', 'Archived', 'Closed',
     ]);
     expect(safeHttpUrl('https://cdn.example.com/evidence.png')).toBe('https://cdn.example.com/evidence.png');
     expect(safeHttpUrl('http://example.com/doc')).toBe('http://example.com/doc');

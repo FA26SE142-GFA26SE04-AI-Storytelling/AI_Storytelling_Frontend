@@ -1,7 +1,7 @@
 /** Hoa sen: năm cánh hồng quanh nhụy vàng. Chỉ để trang trí. */
 export default function Lotus({ size = 56, className }: { size?: number; className?: string }) {
   const petal = (rot: number, scale = 1, fill = "var(--lotus)") => (
-    <path key={`${rot}-${scale}`} d="M50 56 C34 44 34 22 50 8 C66 22 66 44 50 56Z" fill={fill} transform={`rotate(${rot} 50 56) scale(${scale})`} style={{ transformOrigin: "50px 56px" }} />
+    <path key={`${rot}-${scale}`} d="M50 56 C34 44 34 22 50 8 C66 22 66 44 50 56Z" fill={fill} transform={`rotate(${rot} 50 56) translate(50 56) scale(${scale}) translate(-50 -56)`} />
   );
   return (
     <svg className={className} width={size} height={size * 0.78} viewBox="0 0 100 78" aria-hidden>

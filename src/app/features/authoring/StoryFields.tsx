@@ -3,13 +3,14 @@ import type { AssistanceSelection } from '@/app/features/story-workflow/assistan
 
 export type StoryFormValue = { title: string; content: string; sourceDeclaration: string; rightsDeclaration: string };
 
-/** Bốn ô soạn truyện dùng chung cho Creator và phụ huynh để hai giao diện luôn giống nhau; chỉ lời cam kết quyền khác nhau theo vai trò. */
-export default function StoryFields({ form, onChange, onSelect, rightsLabel = 'Cam kết bản quyền', rightsPlaceholder = 'VD: Tôi có quyền phát hành nội dung này' }: {
+/** Các ô soạn truyện dùng chung cho Creator và phụ huynh; phần nguồn nội dung và cam kết quyền hiển thị theo vai trò (mặc định bật cho Creator). */
+export default function StoryFields({ form, onChange, onSelect, rightsLabel = 'Cam kết bản quyền', rightsPlaceholder = 'VD: Tôi có quyền phát hành nội dung này', showDeclarations = true }: {
   form: StoryFormValue;
   onChange: (patch: Partial<StoryFormValue>) => void;
   onSelect: (selection: AssistanceSelection) => void;
   rightsLabel?: string;
   rightsPlaceholder?: string;
+  showDeclarations?: boolean;
 }) {
   const trimmed = form.content.trim();
   const wordCount = trimmed ? trimmed.split(/\s+/).length : 0;
@@ -30,11 +31,13 @@ export default function StoryFields({ form, onChange, onSelect, rightsLabel = 'C
         <span>Bôi đen một đoạn trong bài nếu muốn AI gợi ý sửa đoạn đó</span>
       </div>
     </div>
-    <div className="pa-fields">
-      <label className="field"><span className="lbl">Nguồn nội dung</span>
-        <input className="inp" maxLength={2000} value={form.sourceDeclaration} placeholder="VD: Tự sáng tác" onChange={e => onChange({ sourceDeclaration: e.target.value })} /></label>
-      <label className="field"><span className="lbl">{rightsLabel}</span>
-        <input className="inp" maxLength={2000} value={form.rightsDeclaration} placeholder={rightsPlaceholder} onChange={e => onChange({ rightsDeclaration: e.target.value })} /></label>
-    </div>
+    {showDeclarations && (
+      <div className="pa-fields">
+        <label className="field"><span className="lbl">Nguồn nội dung</span>
+          <input className="inp" maxLength={2000} value={form.sourceDeclaration} placeholder="VD: Tự sáng tác" onChange={e => onChange({ sourceDeclaration: e.target.value })} /></label>
+        <label className="field"><span className="lbl">{rightsLabel}</span>
+          <input className="inp" maxLength={2000} value={form.rightsDeclaration} placeholder={rightsPlaceholder} onChange={e => onChange({ rightsDeclaration: e.target.value })} /></label>
+      </div>
+    )}
   </>;
 }

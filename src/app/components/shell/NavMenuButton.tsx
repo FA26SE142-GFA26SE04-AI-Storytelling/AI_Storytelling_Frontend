@@ -12,6 +12,8 @@ type Props<Id extends string> = {
   items: MenuItem<Id>[];
   ws: Id;
   onWs: (id: Id) => void;
+  /** Số lượng mục chờ xử lý theo từng id trang con (nếu có). */
+  badges?: Partial<Record<Id, number>>;
   /** Thanh tab ở đáy (điện thoại): menu mở lên trên thay vì xuống dưới. */
   upward?: boolean;
 };
@@ -20,13 +22,14 @@ type Props<Id extends string> = {
  * Nút trên thanh điều hướng có menu xổ xuống. Menu gắn thẳng vào body, vì thanh điều hướng cuộn ngang
  * sẽ cắt mất mọi thứ tràn ra ngoài nó.
  */
-export default function NavMenuButton<Id extends string>({ entry, items, ws, onWs, upward }: Props<Id>) {
+export default function NavMenuButton<Id extends string>({ entry, items, ws, onWs, badges, upward }: Props<Id>) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState<{ left: number; top?: number; bottom?: number } | null>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const active = items.some((i) => i.id === ws);
   const Icon = entry.icon;
+  const groupBadge = items.reduce((sum, item) => sum + Math.max(0, badges?.[item.id] ?? 0), 0);
 
   useLayoutEffect(() => {
     if (!open || !btnRef.current) return;
@@ -56,15 +59,20 @@ export default function NavMenuButton<Id extends string>({ entry, items, ws, onW
         <Icon />
         <span className="nav-txt">{entry.short ?? entry.label}</span>
         <ChevronDown className="nav-caret" aria-hidden />
+        {groupBadge > 0 && <span className="badge" aria-label={`${groupBadge} mục cần xử lý`}>{groupBadge > 99 ? "99+" : groupBadge}</span>}
       </button>
       {open && pos && createPortal(
         <div ref={menuRef} className="nav-menu" role="menu" aria-label={entry.label} style={{ left: pos.left, top: pos.top, bottom: pos.bottom }}>
-          {items.map(({ id, label, menuLabel, hint, icon: ItemIcon }) => (
-            <button key={id} role="menuitem" className={ws === id ? "on" : ""} aria-current={ws === id ? "page" : undefined} onClick={() => { setOpen(false); onWs(id); }}>
-              <span className="nav-menu-ic"><ItemIcon /></span>
-              <span className="grow"><b>{menuLabel ?? label}</b>{hint && <small>{hint}</small>}</span>
-            </button>
-          ))}
+          {items.map(({ id, label, menuLabel, hint, icon: ItemIcon }) => {
+            const count = badges?.[id] ?? 0;
+            return (
+              <button key={id} role="menuitem" className={ws === id ? "on" : ""} aria-current={ws === id ? "page" : undefined} onClick={() => { setOpen(false); onWs(id); }}>
+                <span className="nav-menu-ic"><ItemIcon /></span>
+                <span className="grow"><b>{menuLabel ?? label}</b>{hint && <small>{hint}</small>}</span>
+                {count > 0 && <span className="nav-menu-badge">{count > 99 ? "99+" : count}</span>}
+              </button>
+            );
+          })}
         </div>,
         document.body,
       )}

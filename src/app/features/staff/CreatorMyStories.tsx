@@ -44,6 +44,7 @@ export function CreatorStoryCard({
   const name = story.title || "Truyện chưa đặt tên";
   const shelf = creatorShelfOf(story);
   const state = creatorPublicationState(story);
+  const badgeText = state?.kind.startsWith('removal_') ? state.label : shelf.badge;
   return (
     <button
       className={`bk${selected ? " on" : ""}`}
@@ -52,7 +53,7 @@ export function CreatorStoryCard({
       aria-label={`Xem chi tiết truyện ${name}`}
     >
       <span className="bk-cover" style={{ background: coverFor(story.coverImageUrl) }}>
-        <span className={`pill ${shelf.tone} bk-badge`}>{state?.kind.startsWith('removal_') ? state.label : shelf.badge}</span>
+        <span className={`pill ${shelf.tone} bk-badge`} title={badgeText}>{badgeText}</span>
         <span className="bk-name display">{name}</span>
         {stats && <StoryStatsBadge viewCount={stats.viewCount} favoriteCount={stats.favoriteCount} belowPill />}
       </span>

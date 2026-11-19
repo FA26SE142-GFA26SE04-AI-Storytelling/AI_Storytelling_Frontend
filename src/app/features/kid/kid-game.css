@@ -21,7 +21,8 @@
   font-weight: 800;
   text-shadow: 0 2px 0 color-mix(in srgb, var(--btn-edge) 70%, transparent);
   cursor: pointer;
-  transition: transform 0.12s, box-shadow 0.12s;
+  translate: var(--mag-x, 0px) var(--mag-y, 0px);
+  transition: transform 0.12s, box-shadow 0.12s, translate 0.35s cubic-bezier(.3, 1.5, .5, 1);
 }
 
 .kid-btn3d:hover:not(:disabled) {
@@ -138,3 +139,5 @@
     transform: none;
   }
 }
+
+@media (prefers-reduced-motion: reduce) { .kid-btn3d { translate: none; } }
