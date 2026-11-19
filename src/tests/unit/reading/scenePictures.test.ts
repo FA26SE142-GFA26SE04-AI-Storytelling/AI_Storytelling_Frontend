@@ -61,20 +61,34 @@ describe('vị trí đang đọc', () => {
     expect(parseWordTimings(null)).toEqual([]);
   });
 
-  it('chữ đang đọc theo mốc thời gian; không có mốc thì ước theo tỉ lệ thời gian', () => {
+  it('chữ đang đọc theo mốc thời gian; không có mốc thì ước theo nhịp đọc', () => {
     const timings = parseWordTimings('[{"word":"Thỏ","start":0,"end":0.3},{"word":"thấy","start":0.3,"end":0.6},{"word":"cà","start":0.6,"end":0.8},{"word":"rốt","start":0.8,"end":1}]');
     expect(charInSegment('Thỏ thấy cà rốt.', timings, 0.65, 1)).toBe(9);
     expect(charInSegment('Thỏ thấy cà rốt.', [], 0.5, 2)).toBe(4);
     expect(charInSegment('Thỏ thấy cà rốt.', [], 1, Number.NaN)).toBe(0);
   });
 
+  it('không có mốc: mỗi tiếng một phần, ngừng thêm ở dấu câu (không theo số ký tự)', () => {
+    // "Nghiêng" dài 7 ký tự nhưng đọc lâu bằng "là": nửa thời gian của 4 tiếng không dấu là đầu tiếng thứ 3.
+    expect(charInSegment('Nghiêng là đi về', [], 2.01, 4)).toBe(11);
+    // Câu 1 = 2 tiếng + ngừng cuối câu 1.2 = 3.2 phần; tổng 3.2 + 2 + 1.2 = 6.4 phần.
+    const text = 'Thỏ chạy. Rùa đi.';
+    expect(charInSegment(text, [], 3.1, 6.4)).toBe(4);   // vẫn đang ngừng sau "chạy."
+    expect(charInSegment(text, [], 3.25, 6.4)).toBe(10); // sang câu sau mới tô "Rùa"
+    // Nhảy tới chữ và tô sáng dùng cùng nhịp: giây của "Rùa" tô lại đúng "Rùa".
+    const sec = secondsAtChar(text, null, 10, 6.4);
+    expect(sec).toBeCloseTo(3.2);
+    expect(charInSegment(text, [], sec, 6.4)).toBe(10);
+  });
+
   describe('mốc thời gian theo vị trí ký tự (secondsAtChar)', () => {
     const sampleText = 'Thỏ thấy cà rốt.';
     const timings = parseWordTimings('[{"word":"Thỏ","start":0,"end":0.3},{"word":"thấy","start":0.3,"end":0.6},{"word":"cà","start":0.6,"end":0.8},{"word":"rốt","start":0.8,"end":1.0}]');
 
-    it('không có timings: tính theo tỉ lệ ký tự', () => {
-      expect(secondsAtChar(sampleText, null, 8, 16)).toBe(8);
-      expect(secondsAtChar(sampleText, [], 4, 16)).toBe(4);
+    it('không có timings: tính theo nhịp đọc (Thỏ 0, thấy 1, cà 2, rốt. 3 trên tổng 5.2 phần)', () => {
+      expect(secondsAtChar(sampleText, null, 8, 5.2)).toBeCloseTo(1);
+      expect(secondsAtChar(sampleText, [], 4, 5.2)).toBeCloseTo(1);
+      expect(secondsAtChar(sampleText, [], 12, 5.2)).toBeCloseTo(3);
     });
 
     it('có timings: lấy mốc thời gian của từ tương ứng', () => {

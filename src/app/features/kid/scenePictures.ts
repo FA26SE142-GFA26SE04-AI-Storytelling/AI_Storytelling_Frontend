@@ -47,6 +47,24 @@ export function segmentStarts(scene: ReadingScene): number[] {
 
 type Timing = { word: string; start: number; end: number | null };
 
+/** Ngừng thêm sau dấu câu (tính bằng "tiếng"): giọng TTS nghỉ ở dấu phẩy ngắn hơn ở cuối câu. */
+const PAUSE_SHORT = 0.6, PAUSE_LONG = 1.2;
+
+/**
+ * Ước nhịp đọc khi Backend không có mốc thời gian từng chữ (hiện TTS chưa trả về):
+ * tiếng Việt đọc theo tiếng, mỗi tiếng (chữ cách nhau bởi khoảng trắng) là 1 phần, sau dấu câu cộng thêm thời gian ngừng.
+ * at = vị trí ký tự của chữ, start = số phần đã qua khi bắt đầu đọc chữ đó.
+ */
+function paceOf(text: string): { words: { at: number; start: number }[]; total: number } {
+  const words: { at: number; start: number }[] = [];
+  let total = 0;
+  for (const m of text.matchAll(/\S+/g)) {
+    words.push({ at: m.index ?? 0, start: total });
+    total += 1 + (/[.!?…]["”'’)\]]*$/.test(m[0]) ? PAUSE_LONG : /[,;:]["”'’)\]]*$/.test(m[0]) ? PAUSE_SHORT : 0);
+  }
+  return { words, total };
+}
+
 /** Mốc thời gian từng chữ do Backend lưu: [{ word, start, end }] tính bằng giây. Sai định dạng thì bỏ qua. */
 export function parseWordTimings(json: string | null): Timing[] {
   if (!json) return [];
@@ -60,7 +78,7 @@ export function parseWordTimings(json: string | null): Timing[] {
 
 /**
  * Vị trí ký tự đang được đọc trong một đoạn: theo mốc thời gian từng chữ nếu có,
- * không có thì ước theo tỉ lệ thời gian đã phát trên độ dài đoạn.
+ * không có thì ước theo nhịp đọc (số tiếng + ngừng ở dấu câu, xem paceOf).
  */
 export function charInSegment(text: string, timings: Timing[], seconds: number, duration: number): number {
   if (timings.length) {
@@ -74,7 +92,11 @@ export function charInSegment(text: string, timings: Timing[], seconds: number, 
     return hit;
   }
   if (!duration || !Number.isFinite(duration)) return 0;
-  return Math.min(text.length - 1, Math.floor((seconds / duration) * text.length));
+  const { words, total } = paceOf(text);
+  const target = (Math.max(0, seconds) / duration) * total;
+  let hit = 0;
+  for (const w of words) { if (w.start <= target) hit = w.at; else break; }
+  return hit;
 }
 
 /**
@@ -95,7 +117,7 @@ export function wordAt(text: string, offset: number): { start: number; end: numb
 /**
  * Số giây tương ứng vị trí ký tự charOffset trong text.
  * Có timings: mốc start của từ chứa charOffset hoặc từ đầu tiên có vị trí >= charOffset.
- * Không có timings: tỉ lệ theo ký tự trong [0, duration].
+ * Không có timings: theo nhịp đọc ước (paceOf), cùng cách với charInSegment.
  */
 export function secondsAtChar(text: string, timings: Timing[] | null | undefined, charOffset: number, duration: number): number {
   if (!duration || !Number.isFinite(duration) || duration <= 0) return 0;
@@ -116,6 +138,9 @@ export function secondsAtChar(text: string, timings: Timing[] | null | undefined
     return duration;
   }
 
-  const ratio = (duration * charOffset) / text.length;
-  return Math.min(Math.max(0, ratio), duration);
+  // Cùng cách ước với charInSegment để nhảy tới chữ nào thì tô sáng đúng chữ đó.
+  const { words, total } = paceOf(text);
+  const word = words.find((w, i) => charOffset < (words[i + 1]?.at ?? text.length)) ?? null;
+  if (!word || !total) return duration;
+  return Math.min(Math.max(0, (word.start / total) * duration), duration);
 }
