@@ -203,6 +203,8 @@
 /* Thẻ sau khi đọc gọn trong một màn: lời chúc trên, phần lật trang ở giữa tự cuộn, thanh lật trang dưới. */
 .kid-finish-page { min-height: 0; }
 .kid-after-card { max-height: 100%; min-height: 0; gap: 12px; padding: 20px clamp(14px, 3vw, 32px) 16px; }
+.kid-after-card .kid-reflection, .kid-after-card .kid-summary { border: 0; box-shadow: none; padding: 0; background: transparent; }
+.kid-ask-hint { text-align: center; font-size: var(--fs-md); color: var(--muted); margin: 0; max-width: 100%; }
 .kid-after-intro { display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .kid-after-intro h2 { font-size: clamp(22px, 2.6vw, 30px); }
 .kid-after-intro .kid-finish-lesson { font-size: var(--fs-md); line-height: 1.45; }
@@ -212,13 +214,20 @@
 .kid-after-page > [hidden] { display: none; }
 .kid-after-card h3 { margin: 0; font-size: var(--fs-lg); }
 .kid-finish-card .kid-after-nav { flex: none; width: 100%; margin: 0; padding: 10px 0 0; border-top: 1px solid var(--line); flex-wrap: nowrap; }
+.kid-after-nav .kid-reflection-dots { flex: none; min-width: 0; flex-wrap: nowrap; gap: 6px; align-items: center; }
+.kid-after-nav .kid-reflection-dots li { width: 9px; height: 9px; }
 .kid-after-nav .kid-scene-count { min-width: 64px; text-align: center; font-weight: 700; }
 .kid-after-nav .kid-btn3d.is-gold { margin-left: auto; flex-wrap: nowrap; white-space: nowrap; }
-@media (max-width: 480px) { .kid-after-nav { gap: 6px; } .kid-after-nav .kid-scene-count { min-width: 32px; } }
+@media (max-width: 480px) {
+  .kid-after-nav { gap: 6px; }
+  .kid-after-nav .kid-reflection-dots { gap: 5px; }
+  .kid-after-nav .kid-reflection-dots li { width: 8px; height: 8px; }
+  .kid-after-nav .kid-scene-count { min-width: 32px; }
+}
 .kid-theater .kid-after-nav button.kid-side-nav { width: 48px; height: 48px; }
 .kid-theater .kid-after-nav button.kid-side-nav svg { width: 24px; height: 24px; }
 /* Popup sau khi đọc: thẻ không cao quá màn hình, phần giữa tự cuộn. */
-.kid-finish-dialog { width: min(720px, 100%); max-height: calc(100dvh - 32px); display: flex; }
+.kid-finish-dialog { width: min(960px, 100%); max-height: calc(100dvh - 32px); display: flex; }
 .kid-finish-dialog:focus { outline: none; }
 .kid-finish-dialog .kid-after-card { width: 100%; max-height: 100%; }
 @media (prefers-reduced-motion: reduce) { .kid-finish-card { animation: none; } }
@@ -509,22 +518,18 @@
 @media (prefers-reduced-motion: reduce) { .kid-sent { animation: none; } }
 /* Cảm nhận của em: thẻ viền vàng đi từng bước, chấm tiến độ (bước hiện tại vàng), 7 nút cảm xúc tự xuống dòng. */
 .kid-reflection { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 16px; background: color-mix(in srgb, var(--panel) 82%, transparent); border: 3px solid var(--gold-deep); border-radius: 24px; box-shadow: 0 6px 0 color-mix(in srgb, var(--text) 12%, transparent); }
-.kid-reflection.is-done { flex-direction: row; flex-wrap: wrap; justify-content: center; border-color: var(--line-2); }
-.kid-reflection-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 16px; }
 .kid-reflection h3 { margin: 0; font-size: var(--fs-lg); }
 .kid-reflection-dots { display: flex; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .kid-reflection-dots li { width: 12px; height: 12px; border-radius: 50%; background: var(--line-2); transition: background .2s, transform .2s; }
 .kid-reflection-dots li.past { background: color-mix(in srgb, var(--gold) 50%, var(--line-2)); }
 .kid-reflection-dots li.on { background: var(--gold); box-shadow: 0 0 0 2px var(--gold-deep); transform: scale(1.25); }
 .kid-reflection-step { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
-.kid-reflection-step h4 { margin: 0; font-size: var(--fs-md); }
 .kid-emotions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; width: 100%; }
 .kid-btn3d.kid-emotion { flex-direction: column; gap: 2px; min-width: 88px; min-height: 80px; padding: 6px 8px; font-size: var(--fs-sm); line-height: 1.15; }
 .kid-emotion-face { font-size: var(--fs-2xl); line-height: 1; }
 .kid-btn3d.kid-emotion:disabled:not([aria-pressed="true"]) { opacity: .4; }
 .kid-reflection-text { width: 100%; max-width: 480px; padding: 8px 14px; border: 2px solid var(--line-2); font-size: var(--fs-md); resize: vertical; }
 .kid-reflection audio { max-width: 100%; }
-.kid-reflection-faces { margin: 0; display: flex; gap: 6px; font-size: var(--fs-2xl); }
 @media (prefers-reduced-motion: reduce) { .kid-reflection-dots li { transition: none; } }
 /* Trang luyện đọc to: thẻ tiêu đề vàng thay chỗ tranh, câu trích chữ to trong ngoặc kép ở cột chữ. */
 .kid-practice-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; width: 100%; padding: 24px 18px; border: 3px solid var(--gold-deep); border-radius: 28px; background: color-mix(in srgb, var(--gold) 16%, var(--surface)); text-align: center; }
@@ -820,3 +825,11 @@
 }
 
 .kid-skeleton.kid-picture-wait { display: grid; place-items: center; align-content: center; gap: 12px; color: var(--text); font-size: var(--fs-lg); font-weight: 800; font-family: var(--font-display); background: linear-gradient(100deg, var(--surface-2) 30%, var(--surface) 50%, var(--surface-2) 70%); background-size: 200% 100%; }
+.kid-finish-dialog .kid-ask-grid { grid-template-columns: repeat(auto-fill, minmax(min(130px, 100%), 150px)); }
+/* Popup sau khi đọc trên màn hẹp: thẻ được co theo màn hình, nút "Về thư viện" chỉ còn icon để hàng dưới vừa một dòng. */
+.kid-finish-dialog .kid-after-card { min-width: 0; }
+@media (max-width: 480px) {
+  .kid-after-lib-text { display: none; }
+  .kid-finish-dialog .kid-ask-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kid-after-nav .kid-btn3d.kid-after-lib { width: 48px; min-width: 48px; padding: 0; justify-content: center; }
+}

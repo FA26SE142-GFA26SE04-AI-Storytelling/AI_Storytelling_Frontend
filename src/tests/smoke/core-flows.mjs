@@ -514,21 +514,26 @@ try {
     await finish.click();
     await page.getByRole('button', { name: 'Xác nhận', exact: true }).click();
     const popup = page.getByRole('dialog', { name: 'Em đã đọc xong' });
-    await popup.getByRole('heading', { name: 'Câu chuyện đã khép lại!' }).waitFor();
-    await popup.getByText('1/2', { exact: true }).waitFor();
+    // 7 trang, mỗi trang một việc, một thanh điều hướng: trang 1 là mức thích.
+    await popup.getByRole('heading', { name: 'Em thấy truyện này thế nào?' }).waitFor();
+    assert.equal(await popup.getByText('Câu chuyện đã khép lại!').count(), 0, 'Popup không còn tiêu đề và ếch phía trên');
+    await popup.getByRole('list', { name: 'Bước 1 trên 7' }).waitFor();
     await shots(page, 'KidFinish-popup', 'body');
-    await popup.getByRole('button', { name: 'Phần sau', exact: true }).click();
-    await popup.getByText('2/2', { exact: true }).waitFor();
+    // › bỏ qua từng trang tới trang 6: chỗ còn thắc mắc.
+    for (let i = 0; i < 5; i++) await popup.getByRole('button', { name: 'Phần sau', exact: true }).click();
+    await popup.getByRole('list', { name: 'Bước 6 trên 7' }).waitFor();
+    assert.equal(state.feeling, undefined, 'Bỏ qua thì không gửi gì');
     const grid = page.getByRole('group', { name: 'Chọn tranh em muốn hỏi bố mẹ' });
     const tiles = grid.getByRole('button');
     await tiles.first().waitFor();
     assert.equal(await tiles.count(), 5, 'Cảnh 1 có 3 tranh, cảnh 2 và 3 mỗi cảnh một ô');
+    assert.deepEqual(await tiles.evaluateAll((els) => els.map((e) => e.getAttribute('aria-label'))), ['Tranh 1', 'Tranh 2', 'Tranh 3', 'Tranh 4', 'Tranh 5'], 'Ô ghi Tranh N liên tục như lúc lật trang');
     await grid.scrollIntoViewIfNeeded();
-    await shots(page, 'KidSummaryQuestions-grid', '.kid-summary');
+    await shots(page, 'KidSummaryQuestions-grid', '.kid-finish-dialog');
     // Hỏi về tranh 2 của cảnh 1, có gõ chữ.
     await tiles.nth(1).click();
     await page.getByRole('textbox', { name: 'Câu hỏi của em' }).fill('Sao thỏ lại ra vườn?');
-    await shots(page, 'KidSummaryQuestions-panel', '.kid-summary');
+    await shots(page, 'KidSummaryQuestions-panel', '.kid-finish-dialog');
     await page.locator('.kid-ask-panel').getByRole('button', { name: 'Gửi bố mẹ' }).click();
     await page.getByText('(1/5)').waitFor();
     // Hỏi về cả cảnh 2 (không có tranh riêng), không gõ chữ.
@@ -540,7 +545,7 @@ try {
     assert(/name="SceneId"\r?\n\r?\n1\r?\n/.test(sent[0]) && /name="BeatOrder"\r?\n\r?\n2\r?\n/.test(sent[0]) && sent[0].includes('Sao thỏ lại ra vườn?'), 'Câu 1 gửi đúng cảnh, tranh và chữ');
     assert(/name="SceneId"\r?\n\r?\n2\r?\n/.test(sent[1]) && !sent[1].includes('BeatOrder'), 'Câu 2 hỏi cả cảnh, không gửi BeatOrder');
     assert(await tiles.nth(1).isDisabled(), 'Tranh đã hỏi bị khoá');
-    await shots(page, 'KidSummaryQuestions-sent', '.kid-summary');
+    await shots(page, 'KidSummaryQuestions-sent', '.kid-finish-dialog');
   });
 
   await smoke('CreatorRegister', 'ContentCreator', async ({ page, state }) => {
@@ -626,36 +631,36 @@ try {
     assert(!requests.some((r) => r.path.endsWith('/progress') && r.body?.page > 3), 'Không lưu vị trí đọc với trang luyện');
     await finish.click();
     await page.getByRole('button', { name: 'Xác nhận', exact: true }).click();
-    // Popup mở ở phần 1/2: cảm nhận.
-    await page.getByRole('dialog', { name: 'Em đã đọc xong' }).getByText('1/2', { exact: true }).waitFor();
-    // Cảm nhận từng bước: 2 cảm xúc → cảnh 2 → viết lời.
-    const card = page.getByRole('region', { name: 'Cảm nhận của em' });
+    // Popup 7 trang: mức thích → 2 cảm xúc → tranh 4 (cảnh 2) → viết lời, mỗi bước gửi xong tự sang trang sau.
+    const card = page.getByRole('dialog', { name: 'Em đã đọc xong' });
+    await card.getByRole('list', { name: 'Bước 1 trên 7' }).waitFor();
     // Bước 1 là mức thích: chọn xong tự sang bước cảm xúc.
     await card.getByRole('heading', { name: 'Em thấy truyện này thế nào?' }).waitFor();
     assert.equal(await page.getByRole('heading', { name: 'Em thấy truyện này thế nào?' }).count(), 1, 'Chỉ còn một chỗ hỏi cảm nhận');
     await card.getByRole('button', { name: 'Thích', exact: true }).click();
     await card.getByRole('heading', { name: 'Truyện làm em cảm thấy gì?' }).waitFor();
     assert.deepEqual(state.feeling, { feeling: 'Like' });
+    // Không còn nút "Tiếp": chọn là lưu, đủ 2 cảm xúc thì tự sang trang tranh.
+    assert.equal(await card.getByRole('button', { name: 'Tiếp' }).count(), 0, 'Đã bỏ nút Tiếp');
     await card.getByRole('button', { name: 'Vui', exact: true }).click();
     await card.getByRole('button', { name: 'Cảm động', exact: true }).click();
-    assert(await card.getByRole('button', { name: 'Buồn', exact: true }).isDisabled(), 'Đủ 2 cảm xúc thì khoá nút khác');
-    await card.scrollIntoViewIfNeeded();
-    await shots(page, 'KidReflection-emotions', '.kid-reflection');
-    await card.getByRole('button', { name: 'Tiếp' }).click();
-    await card.getByRole('heading', { name: 'Cảnh em thích nhất' }).waitFor();
+    await shots(page, 'KidReflection-emotions', '.kid-finish-dialog');
+    await card.getByRole('heading', { name: 'Tranh em thích nhất' }).waitFor();
     assert.deepEqual(state.emotions, { emotions: ['Happy', 'Touched'] });
-    await card.getByRole('group', { name: 'Chọn cảnh em thích nhất' }).getByRole('button', { name: 'Cảnh 2' }).click();
-    await card.getByRole('button', { name: 'Tiếp' }).click();
-    await card.getByRole('heading', { name: 'Điều gì em thích ở cảnh này?' }).waitFor();
+    // Chạm tranh là lưu và sang trang lời gửi.
+    await card.getByRole('group', { name: 'Chọn tranh em thích nhất' }).getByRole('button', { name: 'Tranh 4' }).click();
+    await card.getByRole('heading', { name: 'Điều gì em thích ở tranh này?' }).waitFor();
     assert.deepEqual(state.favorite, { sceneId: 2 });
-    await card.getByRole('textbox', { name: 'Điều em thích ở cảnh này' }).fill('Con thích thỏ về nhà');
-    await shots(page, 'KidReflection-note', '.kid-reflection');
+    await card.getByRole('textbox', { name: 'Điều em thích ở tranh này' }).fill('Con thích thỏ về nhà');
+    await shots(page, 'KidReflection-note', '.kid-finish-dialog');
     await card.getByRole('button', { name: 'Gửi bố mẹ' }).click();
-    await page.locator('.kid-reflection.is-done').waitFor();
+    // Gửi xong tự sang trang 5: kể lại cho bố mẹ.
+    await card.getByRole('heading', { name: 'Em kể lại cho bố mẹ nghe nhé' }).waitFor();
+    await card.getByRole('list', { name: 'Bước 5 trên 7' }).waitFor();
     assert(state.noteSent, 'Phải gửi lời của bé');
     const note = requests.find((r) => r.path.endsWith('/reflection/note'))?.raw ?? '';
     assert(/name="Text"\r?\n\r?\nCon thích thỏ về nhà/.test(note), 'Lời bé gửi dạng multipart Text');
-    await shots(page, 'KidReflection-done', '.kid-reflection');
+    await shots(page, 'KidReflection-done', '.kid-finish-dialog');
   });
 
   await smoke('ModeratorRoadmap', 'Moderator', async ({ page, state }) => {
