@@ -14,6 +14,8 @@ interface AuthedImageProps {
   className?: string;
   onLoad?: () => void;
   onError?: () => void;
+  /** Vẽ thêm chính ảnh đó phủ kín + làm mờ phía sau (class `authed-backdrop`), dùng chung link đã tải. */
+  backdrop?: boolean;
 }
 
 /**
@@ -30,6 +32,7 @@ export function AuthedImage({
   className,
   onLoad,
   onError,
+  backdrop,
 }: AuthedImageProps) {
   const media = useAuthedMediaUrl(src);
 
@@ -65,15 +68,21 @@ export function AuthedImage({
 
   // Thành công: hiện ảnh thật
   return (
-    <SafeImage
-      src={media.src}
-      alt={alt}
-      title={title}
-      style={style}
-      className={className}
-      onLoad={onLoad}
-      onError={onError ? () => onError() : undefined}
-    />
+    <>
+      {backdrop && media.src && (
+        // eslint-disable-next-line @next/next/no-img-element -- lớp trang trí, cùng link blob đã tải
+        <img className="authed-backdrop" src={media.src} alt="" aria-hidden="true" />
+      )}
+      <SafeImage
+        src={media.src}
+        alt={alt}
+        title={title}
+        style={style}
+        className={className}
+        onLoad={onLoad}
+        onError={onError ? () => onError() : undefined}
+      />
+    </>
   );
 }
 

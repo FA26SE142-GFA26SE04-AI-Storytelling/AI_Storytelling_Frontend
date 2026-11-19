@@ -37,7 +37,7 @@ function ScenePictures({pictures,active,alt,children}:{pictures:ScenePicture[];a
   const [ready,setReady]=useState(false);
   return <div className={`kid-story-picture${ready?'':' loading'}${pictures.length>1?' multi':''}`}>
     {pictures.map((p,i)=><span key={i} className={`kid-pic-layer${i===active?' on':''}`} aria-hidden={i!==active}>
-      <AuthedImage src={p.url} alt={pictures.length>1?`${alt}, tranh ${i+1}`:alt} onLoad={()=>{if(i===0)setReady(true);}} onError={()=>{if(i===0)setReady(true);}}/>
+      <AuthedImage backdrop src={p.url} alt={pictures.length>1?`${alt}, tranh ${i+1}`:alt} onLoad={()=>{if(i===0)setReady(true);}} onError={()=>{if(i===0)setReady(true);}}/>
     </span>)}
     {!ready&&<span className="kid-skeleton kid-picture-wait" role="status"><Frog mood="think" size={72}/><span>Đang mở tranh cho em…</span></span>}
     {children}
