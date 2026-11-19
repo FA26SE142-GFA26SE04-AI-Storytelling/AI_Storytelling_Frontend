@@ -3,6 +3,7 @@ import type { ReactNode, RefObject } from 'react';
 import { BookOpen, Check, ChevronRight, CircleAlert, History } from 'lucide-react';
 import type * as B from '@/app/types/backendContracts';
 import { moderationStatusLabel } from './moderationConfig';
+import PeekReviewRail from './PeekReviewRail';
 
 export type SnapshotMetric = {
   id: string;
@@ -225,24 +226,34 @@ export function EditorialReviewSplit({
   readingControls,
   left,
   right,
+  railMode = 'docked',
+  railBadge,
 }: {
   innerRef?: RefObject<HTMLDivElement | null>;
   header: ReactNode;
   readingControls?: ReactNode;
   left: ReactNode;
   right: ReactNode;
+  /** 'peek': cột phải thu gọn ở mép, rê chuột vào mới mở (Duyệt truyện Creator). */
+  railMode?: 'docked' | 'peek';
+  /** Số việc còn chặn duyệt, hiện trên tab khi cột phải đang thu gọn. */
+  railBadge?: number;
 }) {
   return (
     <div className="mod-desk-shell st-review" ref={innerRef}>
       <div className="st-card mod-desk-header-card">{header}</div>
-      <div className="mod-desk-split">
+      <div className={`mod-desk-split${railMode === 'peek' ? ' peek' : ''}`}>
         <div className="st-card mod-desk-main">
           {readingControls}
           {left}
         </div>
-        <aside className="st-card mod-desk-rail" aria-label="Kiểm tra và quyết định">
-          {right}
-        </aside>
+        {railMode === 'peek' ? (
+          <PeekReviewRail label="Kiểm tra & quyết định" badge={railBadge}>{right}</PeekReviewRail>
+        ) : (
+          <aside className="st-card mod-desk-rail" aria-label="Kiểm tra và quyết định">
+            {right}
+          </aside>
+        )}
       </div>
     </div>
   );

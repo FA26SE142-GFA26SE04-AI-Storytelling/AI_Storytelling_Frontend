@@ -65,7 +65,59 @@
 }
 
 .mod-shell.has-detail.list-collapsed .mod-grid {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: 48px minmax(0, 1fr);
+}
+
+/* Cột danh sách đã ẩn: tab dọc ở mép trái, bấm để hiện lại (đối xứng với tab Kiểm tra & quyết định bên phải). */
+.mod-list-rail {
+  position: sticky;
+  top: 4px;
+  align-self: start;
+  width: 48px;
+  height: calc(100vh - 185px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 0;
+  border: 1.5px solid var(--line-2);
+  border-radius: 20px;
+  background: var(--panel);
+  color: var(--primary-strong);
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+
+.mod-list-rail:hover,
+.mod-list-rail:focus-visible {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--panel));
+}
+
+.mod-list-rail-text {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  letter-spacing: .02em;
+}
+
+.mod-list-rail-count {
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 16%, var(--panel));
+  font-size: var(--fs-xs);
+}
+
+/* Nút thu gọn đặt ngay đầu thẻ danh sách, cạnh tiêu đề phân khu. */
+.mod-list-collapse {
+  flex: none;
+  padding: 4px 10px;
+  font-size: var(--fs-xs);
 }
 
 .mod-shell.has-detail.list-collapsed .mod-list-col {
@@ -225,6 +277,10 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+}
+
+.mod-list-info > .sub {
+  margin-left: auto;
 }
 
 .mod-list-info b {

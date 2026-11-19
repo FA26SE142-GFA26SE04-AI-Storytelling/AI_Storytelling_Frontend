@@ -56,8 +56,17 @@ export function publicBlockerAnchor(code: string): PublicAnchorTarget {
   return { id: 'creator-sec-decision', label: 'Xem Quyết định' };
 }
 
-function jumpTo(id: string) {
-  document.getElementById(id)?.scrollIntoView({
+function jumpTo(id: string, retried = false) {
+  const el = document.getElementById(id);
+  const rail = el?.closest<HTMLElement>('.mod-peek-rail');
+  // Mục nằm trong ngăn bên phải đang thu gọn: focus tab để ngăn mở ra, đợi một khung hình rồi mới cuộn tới.
+  const handle = rail?.querySelector<HTMLElement>('.mod-peek-handle');
+  if (el && rail && handle?.offsetParent && !rail.classList.contains('open') && !retried) {
+    handle.focus({ preventScroll: true });
+    requestAnimationFrame(() => jumpTo(id, true));
+    return;
+  }
+  el?.scrollIntoView({
     behavior: prefersReducedMotion() ? 'auto' : 'smooth',
     block: 'start',
   });
@@ -486,6 +495,8 @@ export default function PublicStoryReviewPanel({
         }
         left={left}
         right={right}
+        railMode="peek"
+        railBadge={blockers.length}
       />
 
       <ChangeRequestDialog
