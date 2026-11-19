@@ -76,11 +76,9 @@
 
 /* Cột danh sách đã ẩn: tab dọc ở mép trái, bấm để hiện lại (đối xứng với tab Kiểm tra & quyết định bên phải). */
 .mod-list-rail {
-  position: sticky;
-  top: 4px;
-  align-self: start;
+  /* Giãn đúng bằng hàng của lưới (phần nhìn thấy), không đoán theo chiều cao màn hình. */
+  align-self: stretch;
   width: 48px;
-  height: calc(100vh - 185px);
   display: flex;
   flex-direction: column;
   align-items: center;
