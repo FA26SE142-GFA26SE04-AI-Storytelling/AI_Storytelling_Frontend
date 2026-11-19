@@ -86,8 +86,8 @@
   align-items: center;
   gap: 10px;
   padding: 16px 0;
-  border: 1.5px solid var(--line-2);
-  border-radius: 20px;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
+  border-radius: 18px;
   background: var(--panel);
   color: var(--primary-strong);
   font-size: var(--fs-sm);
