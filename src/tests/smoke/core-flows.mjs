@@ -506,6 +506,8 @@ try {
     await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
     // Màn "Câu chuyện đã khép lại" là popup (không tính trang): số trang chỉ gồm tranh.
     await page.getByText('Trang 1/5').waitFor();
+    assert.equal(await page.getByRole('switch').count(), 0, 'Không còn công tắc Tự đọc / Nghe đọc');
+    await shots(page, 'KidReader-top', 'body');
     const finish = page.getByRole('button', { name: 'Em đã đọc xong', exact: true });
     for (let i = 0; i < 10 && !(await finish.isVisible()); i++) {
       await page.getByRole('button', { name: 'Trang sau', exact: true }).click(); await page.waitForTimeout(600);

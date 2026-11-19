@@ -367,17 +367,6 @@
 .kid-mode-choice .kid-soft-button[aria-pressed="true"] { background: var(--primary-strong); color: var(--on-primary); }
 
 /* Công tắc cách đọc ở góc trên bên phải: Tự đọc | Nghe đọc, nút trượt sang bên đang chọn. */
-.kid-mode-switch { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 4px; border-radius: 999px; background: var(--surface-2, var(--surface)); border: 3px solid var(--line); min-width: 250px; }
-.kid-mode-switch:disabled { opacity: .6; }
-.kid-mode-opt { position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 14px; font-size: var(--fs-md); font-weight: 800; color: var(--muted); border: 2px solid transparent; border-radius: 999px; transition: color .2s, border-color .2s, background .2s; white-space: nowrap; }
-.kid-mode-opt svg { width: 20px; height: 20px; }
-.kid-mode-thumb { position: absolute; z-index: 0; top: 4px; bottom: 4px; left: 4px; width: calc(50% - 4px); border-radius: 999px; background: var(--primary-strong); box-shadow: 0 6px 14px -6px rgba(0,0,0,.45); transition: transform .22s cubic-bezier(.3,.9,.3,1); }
-.kid-mode-switch .kid-mode-opt:first-child { color: #fff; }
-.kid-mode-switch:not(.listen) .kid-mode-opt:first-child,
-.kid-mode-switch.listen .kid-mode-opt:nth-child(2) { border-color: var(--gold-deep); background: color-mix(in srgb, var(--gold) 28%, var(--surface)); color: var(--on-gold, var(--text)); }
-.kid-mode-switch.listen .kid-mode-opt:first-child { color: var(--muted); border-color: transparent; background: transparent; }
-.kid-mode-switch.listen .kid-mode-thumb { transform: translateX(100%); }
-@media (max-width: 640px) { .kid-mode-switch { min-width: 0; } .kid-mode-opt { padding: 8px 10px; font-size: var(--fs-md); } .kid-mode-opt svg { width: 16px; height: 16px; } }
 
 /* Thông báo ở thư viện của bé: nổi phía trên rồi tự ẩn, không chiếm chỗ. */
 .kid-reading .kid-toast { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 250; margin: 0; max-width: min(92vw, 560px); padding: 10px 20px; border-radius: 999px; background: var(--text); color: var(--bg); font-size: var(--fs-md); font-weight: 700; text-align: center; box-shadow: 0 12px 30px -10px rgba(0,0,0,.5); pointer-events: none; animation: kid-note 3.2s ease forwards; }
@@ -559,9 +548,9 @@
 .kid-library-tabs .kid-library-refresh { margin-left: auto; align-self: center; }
 
 /* Màn đọc hai cột: ảnh bên trái; chữ truyện, điều hướng cảnh và các nút còn lại bên phải */
-.kid-theater .kid-reader { flex: 1; min-height: 0; width: 100%; max-width: 1480px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: clamp(16px, 3vw, 44px); align-items: stretch; }
+.kid-theater .kid-reader { flex: 1; min-height: 0; width: 100%; max-width: 1480px; margin: 0 auto; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); gap: clamp(16px, 3vw, 44px); align-items: stretch; }
 .kid-reader-visual { min-width: 0; min-height: 0; display: flex; align-items: center; justify-content: center; }
-.kid-reader .kid-story-picture { position: relative; width: 100%; height: auto; max-height: 100%; aspect-ratio: 4 / 3; margin: 0; display: block; border: 0; border-radius: 28px; background: var(--surface); overflow: hidden; box-shadow: 0 18px 40px -22px rgba(0, 0, 0, .55); }
+.kid-reader .kid-story-picture { position: relative; width: 100%; height: auto; max-height: 100%; aspect-ratio: 16 / 10; margin: 0; display: block; border: 0; border-radius: 28px; background: var(--surface); overflow: hidden; box-shadow: 0 18px 40px -22px rgba(0, 0, 0, .55); }
 /* Hiện trọn tranh (không cắt hai bên khi tranh rộng hơn khung 4:3); phần thừa là chính tranh làm mờ. */
 .kid-reader .kid-story-picture img { position: relative; z-index: 1; width: 100%; height: 100%; max-height: none; min-height: 0; object-fit: contain; display: block; }
 .kid-reader .kid-story-picture img.authed-backdrop { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; max-height: none; object-fit: cover; filter: blur(18px) brightness(.95); transform: scale(1.12); }
@@ -577,7 +566,7 @@
 .kid-reader-side .kid-story-navigation .kid-btn3d.is-gold { margin-left: auto; }
 .kid-reader-side .kid-word-panel { flex: none; max-height: 30dvh; overflow-y: auto; }
 @media (max-width: 900px) {
-  .kid-theater .kid-reader { grid-template-columns: minmax(0, 1fr); overflow-y: auto; align-items: start; }
+  .kid-theater .kid-reader { grid-template-columns: minmax(0, 1fr); overflow-y: auto; align-items: start; align-content: start; }
   .kid-reader .kid-story-picture { aspect-ratio: 16 / 10; }
   .kid-reader-side .kid-story-caption { overflow: visible; }
   .kid-reader-side .kid-story-caption p { font-size: clamp(20px, 5vw, 28px); }
@@ -804,7 +793,6 @@
   .kid-story-navigation { gap: 6px; flex-wrap: wrap; justify-content: center; width: 100%; }
   .kid-story-navigation .kid-btn3d { max-width: 100%; flex-wrap: wrap; }
   .kid-bar-actions { flex-wrap: wrap; justify-content: center; max-width: 100%; }
-  .kid-mode-switch { min-width: 0; width: 100%; max-width: 100%; }
   .kid-side-nav { width: 38px; height: 38px; }
   .kid-theater .kid-side-nav svg { width: 20px; height: 20px; }
   .kid-story-row { gap: 4px; }
