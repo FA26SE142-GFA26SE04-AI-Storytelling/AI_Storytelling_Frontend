@@ -4,6 +4,7 @@ import type { QueueItem } from '@/app/types/staff';
 import type { ReviewPackage } from '@/app/services/moderationService';
 import {
   CreatorOutlineStrip,
+  EditorialReviewSplit,
   InspectionSnapshotBar,
   ManuscriptCard,
   ReviewHistoryList,
@@ -200,6 +201,12 @@ describe('Moderator inspection UI primitives', () => {
     expect(html).toContain('mod-desk-split');
     expect(html).toContain('mod-desk-main');
     expect(html).toContain('mod-desk-rail');
+    // Cột kiểm tra & quyết định thu gọn mặc định, tab hiện số việc còn chặn duyệt.
+    expect(html).toContain('mod-desk-split peek');
+    expect(html).toContain('class="mod-peek-rail"');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).toContain('<span class="mod-peek-badge" aria-label="1 việc cần xử lý">1</span>');
+    expect(html).toContain('Ghim mở');
     expect(html).toContain('mod-read-tabs');
     expect(html).toContain('Thông tin &amp; Dàn ý');
     expect(html).toContain('Cảnh &amp; Media (1)');
@@ -317,5 +324,24 @@ describe('Moderator inspection UI primitives', () => {
     );
     expect(singleGroupShell).not.toContain('role="tablist"');
     expect(singleGroupShell).toContain('Cần xử lý');
+  });
+});
+
+describe('EditorialReviewSplit rail mode', () => {
+  it('keeps the docked rail for other review desks by default', () => {
+    const html = renderToStaticMarkup(<EditorialReviewSplit header={<b>H</b>} left={<p>L</p>} right={<p>R</p>} />);
+    expect(html).toContain('class="mod-desk-split"');
+    expect(html).toContain('class="st-card mod-desk-rail"');
+    expect(html).not.toContain('mod-peek-rail');
+  });
+
+  it('collapses the rail into a hover tab in peek mode without a badge when nothing blocks', () => {
+    const html = renderToStaticMarkup(
+      <EditorialReviewSplit header={<b>H</b>} left={<p>L</p>} right={<p>R</p>} railMode="peek" railBadge={0} />,
+    );
+    expect(html).toContain('mod-desk-split peek');
+    expect(html).toContain('aria-label="Kiểm tra &amp; quyết định"');
+    expect(html).toContain('<p>R</p>');
+    expect(html).not.toContain('mod-peek-badge');
   });
 });

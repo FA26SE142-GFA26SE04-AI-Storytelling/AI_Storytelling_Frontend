@@ -281,17 +281,6 @@ export function ModerationQueueFrame({
             <h1 className="display" title={description}>{title}</h1>
           </div>
           <div className="mod-head-actions">
-            {hasSelection && (
-              <button
-                type="button"
-                className="btn btn-s mod-list-toggle"
-                aria-pressed={listCollapsed}
-                onClick={() => setListCollapsed(v => !v)}
-              >
-                {listCollapsed ? <PanelLeftOpen className="ic" /> : <PanelLeftClose className="ic" />}
-                <span>{listCollapsed ? 'Hiện danh sách' : 'Ẩn danh sách'}</span>
-              </button>
-            )}
             <button type="button" className="btn btn-g" disabled={loading} onClick={onReload} aria-label="Tải lại danh sách" title="Tải lại">
               <RefreshCw className="ic" />
               <span>Tải lại</span>
@@ -315,6 +304,19 @@ export function ModerationQueueFrame({
         {sidebar}
 
         <div className="mod-grid">
+          {collapseList && (
+            <button
+              type="button"
+              className="mod-list-rail mod-list-toggle"
+              aria-expanded={false}
+              aria-label={`Hiện danh sách (${totalCount} hồ sơ)`}
+              onClick={() => setListCollapsed(false)}
+            >
+              <PanelLeftOpen className="ic" aria-hidden="true" />
+              <span className="mod-list-rail-text">Hiện danh sách</span>
+              <span className="mod-list-rail-count" aria-hidden="true">{totalCount}</span>
+            </button>
+          )}
           <div className="mod-list-col">
             <div className="mod-list-tools">
               <div className="mod-list-info">
@@ -322,6 +324,19 @@ export function ModerationQueueFrame({
                 <span className="sub" role="status">
                   {loading ? 'Đang tải…' : !error ? `${totalCount} hồ sơ · Trang ${pageIndex}/${Math.max(1, totalPages)}` : 'Lỗi tải dữ liệu'}
                 </span>
+                {hasSelection && (
+                  <button
+                    type="button"
+                    className="btn btn-s mod-list-collapse mod-list-toggle"
+                    aria-expanded={true}
+                    aria-label="Ẩn danh sách"
+                    title="Ẩn danh sách để đọc rộng hơn"
+                    onClick={() => setListCollapsed(true)}
+                  >
+                    <PanelLeftClose className="ic" aria-hidden="true" />
+                    <span>Ẩn</span>
+                  </button>
+                )}
               </div>
               {sectionHint && <p className="sub mod-section-hint">{sectionHint}</p>}
               {filters}

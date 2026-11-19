@@ -437,6 +437,24 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 @media (max-width: 1120px) {
   .mod-desk-split { grid-template-columns: minmax(0, 1fr); }
 }
+/* Duyệt truyện Creator: cột "Kiểm tra & quyết định" thu thành tab dọc; rê chuột vào thì cột mở rộng và cột đọc co lại nhường chỗ (PeekReviewRail). */
+@media (min-width: 1121px) {
+  .mod-desk-split.peek { grid-template-columns: minmax(0, 1fr) 48px; transition: grid-template-columns .22s ease; }
+  .mod-desk-split.peek:has(> .mod-peek-rail.open) { grid-template-columns: minmax(0, 1fr) min(480px, 40%); }
+  .mod-peek-rail { position: sticky; top: 4px; z-index: 6; width: 100%; height: calc(100vh - 185px); }
+  .mod-peek-handle { width: 48px; height: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 16px 0; border: 1px solid color-mix(in srgb, var(--line) 70%, transparent); border-radius: 18px; background: var(--panel); color: var(--primary-strong); font-size: var(--fs-sm); font-weight: 800; cursor: pointer; transition: border-color .15s, background .15s; }
+  .mod-peek-handle:hover, .mod-peek-handle:focus-visible { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 10%, var(--panel)); }
+  .mod-peek-handle-text { writing-mode: vertical-rl; letter-spacing: .02em; }
+  .mod-peek-badge { min-width: 24px; height: 24px; padding: 0 6px; display: inline-grid; place-items: center; border-radius: 999px; background: var(--danger); color: var(--panel); font-size: var(--fs-xs); }
+  .mod-peek-rail .mod-peek-drawer { position: absolute; top: 0; right: 0; width: 100%; height: 100%; max-height: none; overflow-y: auto; opacity: 0; visibility: hidden; transform: translateX(18px); pointer-events: none; transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s; }
+  .mod-peek-rail.open .mod-peek-drawer { opacity: 1; visibility: visible; transform: none; pointer-events: auto; transition-delay: 0s; }
+  .mod-peek-rail.open .mod-peek-handle { visibility: hidden; }
+  .mod-peek-tools { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-bottom: 12px; margin-bottom: 4px; border-bottom: 1px solid var(--line); }
+}
+@media (max-width: 1120px) {
+  .mod-peek-handle, .mod-peek-tools { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .mod-desk-split.peek, .mod-peek-rail .mod-peek-drawer, .mod-peek-handle { transition: none; transform: none; } }
 
 .mod-pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 .mod-meta-line { margin: 0; }
