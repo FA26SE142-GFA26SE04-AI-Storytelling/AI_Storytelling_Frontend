@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { aiStoryCreationService } from '@/app/services/aiStoryCreationService';
+import { aiStoryCreationService, isAiConcurrencyLimitResponse } from '@/app/services/aiStoryCreationService';
 import { parentWishService } from '@/app/services/storyWishService';
 import {
   AIStoryCreativeInputDto,
@@ -39,6 +39,7 @@ export interface UseAIStoryInputFlowResult {
   /** true khi biết chắc ý tưởng đang hiển thị là ý tưởng đã gửi (gửi trong phiên này hoặc được điền lại khi làm lại). */
   valuesKnown: boolean;
   canRetryInput: boolean;
+  concurrencyLimitReached: boolean;
   updateValues: (updates: Partial<AIStoryInputFormValues>) => void;
   submit: () => Promise<void>;
   retry: () => Promise<void>;
@@ -63,6 +64,7 @@ export function useAIStoryInputFlow(
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isPollingTimedOut, setIsPollingTimedOut] = useState(false);
   const [hasCreativeInput, setHasCreativeInput] = useState(false);
+  const [concurrencyLimitReached, setConcurrencyLimitReached] = useState(false);
 
   const mountedRef = useRef(true);
   const flowVersionRef = useRef(0);
@@ -116,6 +118,7 @@ export function useAIStoryInputFlow(
     setProgress(null);
     setErrorMessage(null);
     setIsPollingTimedOut(false);
+    setConcurrencyLimitReached(false);
 
     if (!childProfileId) {
       setPhase('editing_input');
@@ -249,6 +252,8 @@ export function useAIStoryInputFlow(
     setPhase('submitting');
     setErrorMessage(null);
     setIsPollingTimedOut(false);
+    setConcurrencyLimitReached(false);
+    setConcurrencyLimitReached(false);
 
     try {
       const controller = new AbortController();
@@ -262,8 +267,13 @@ export function useAIStoryInputFlow(
       if (!mountedRef.current || flowVersion !== flowVersionRef.current) return;
       if (response.data) {
         if (fromWish !== null) setWishId(null);
+        setConcurrencyLimitReached(false);
         beginTracking(response.data, flowVersion);
         return;
+      }
+      if (isAiConcurrencyLimitResponse(response)) {
+        idempotencyKeyRef.current = null;
+        setConcurrencyLimitReached(true);
       }
       setPhase('editing_input');
       setErrorMessage(response.message || 'Không thể gửi ý tưởng câu chuyện.');
@@ -341,6 +351,7 @@ export function useAIStoryInputFlow(
     isBusy: phase === 'loading_context' || phase === 'submitting',
     valuesKnown: hasCreativeInput || !!initial,
     canRetryInput: hasCreativeInput && !!progress?.canRetry,
+    concurrencyLimitReached,
     updateValues,
     submit,
     retry,

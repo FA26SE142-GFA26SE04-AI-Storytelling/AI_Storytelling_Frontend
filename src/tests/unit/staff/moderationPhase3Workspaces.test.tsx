@@ -87,7 +87,7 @@ const removalQueueItem: QueueItem = {
 describe('Moderator Phase 3 workspaces (specs 07-10, 12-13)', () => {
   it('spec 07: defines PublicStoryRemoval sections, renders Flags.requestReason cleanly without leaking private fields, and locks actions on conflict', () => {
     expect(PUBLIC_STORY_REMOVAL_SECTIONS.map(s => s.status)).toEqual([
-      'Pending', 'Claimed', 'Approved', 'Rejected', 'Closed',
+      'Open', 'Approved', 'Rejected', 'Closed',
     ]);
     expect(moderationStatusLabel('PublicStoryRemoval', 'Approved')).toBe('Đã chấp thuận gỡ');
     expect(moderationStatusLabel('PublicStoryRemoval', 'Rejected')).toBe('Đã từ chối yêu cầu gỡ');
@@ -167,7 +167,7 @@ describe('Moderator Phase 3 workspaces (specs 07-10, 12-13)', () => {
 
   it('spec 08: defines RoadmapTemplateReview sections, renders roadmap review checklist/ineligibility, and preserves Authoring groups + Role-based Library view', () => {
     expect(ROADMAP_REVIEW_SECTIONS.map(s => s.status)).toEqual([
-      'Pending', 'Claimed', 'ChangesRequested', 'Approved', 'Rejected', 'Withdrawn', 'Closed',
+      'Open', 'ChangesRequested', 'Approved', 'Rejected', 'Withdrawn', 'Closed',
     ]);
 
     testState.reviewHookState = {

@@ -308,6 +308,17 @@
 /* Báo đang tạo học liệu ở đầu khung gói: viền vàng, biểu tượng xoay. */
 .fp-running { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 14px; border-radius: 12px; border-left: 5px solid var(--gold); background: color-mix(in srgb, var(--gold) 12%, var(--surface)); font-weight: 600; }
 .fp-running .ic { color: var(--gold-deep); flex-shrink: 0; }
+/* Trạng thái đánh giá an toàn & vùng xám, cảnh báo và ô xác nhận cho từng gói. */
+.fp-assess { display: flex; flex-direction: column; gap: 8px; }
+.fp-assess-statuses { display: flex; flex-wrap: wrap; gap: 6px; }
+.fp-ack { display: flex; align-items: flex-start; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid color-mix(in srgb, var(--gold) 45%, var(--line)); background: color-mix(in srgb, var(--gold) 10%, var(--surface)); font-size: var(--fs-sm); font-weight: 600; line-height: 1.5; cursor: pointer; }
+.fp-ack input { margin-top: 3px; accent-color: var(--primary); flex-shrink: 0; }
+.fp-ack-done { margin: 0; font-size: var(--fs-xs); font-weight: 700; color: var(--muted); }
+.fp-reselect { gap: 12px; }
+.fp-reselect-head { display: flex; flex-direction: column; gap: 4px; }
+.fp-reselect-head .sub { margin: 0; font-size: var(--fs-sm); color: var(--muted); }
+.fp-reselect-note { margin: 0; font-size: var(--fs-xs); color: var(--muted); line-height: 1.5; }
+.fp-reselect-add { display: flex; flex-direction: column; gap: 10px; padding-top: 8px; border-top: 1px solid var(--line); }
 
 /* Popup xem trước nội dung nhập (phụ huynh): nội dung đã tách, ba ô khai báo xếp từ trên xuống, nút ở cuối. */
 .pa-import { display: flex; flex-direction: column; gap: 14px; }

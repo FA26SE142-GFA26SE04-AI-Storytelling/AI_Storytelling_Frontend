@@ -1,5 +1,5 @@
 'use client';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   AlarmClock, Archive, ArrowLeft, ChevronDown, ChevronLeft, ChevronRight, ChevronsUp,
   CircleCheck, CircleX, Clock, Equal, HandHelping, Hourglass, Inbox, PanelLeftClose, PanelLeftOpen, RefreshCw, ShieldAlert, UserCheck,
@@ -7,11 +7,12 @@ import {
 } from 'lucide-react';
 import Frog from '@/app/components/brand/Frog';
 import Select from '@/app/components/Select';
-import type { QueueItem, QueueItemStatus } from '@/app/types/staff';
+import type { QueueItem } from '@/app/types/staff';
 import {
   claimOwnershipBadge,
   moderationStatusLabel,
   moderationTypeLabel,
+  type ModerationQueueStatusFilter,
   type ModerationSectionDef,
 } from './moderationConfig';
 import {
@@ -109,7 +110,7 @@ export function QueueSummaryCard({
   myName,
   busy,
   onClaim,
-  claimLabel = 'Nhận xử lý',
+  claimLabel = 'Nhận và xử lý',
   summaryNotice,
 }: {
   item: QueueItem;
@@ -240,6 +241,7 @@ export function ModerationQueueFrame({
   onReload,
   banner,
   detail,
+  claimFocusKey,
 }: {
   title: string;
   description: string;
@@ -262,8 +264,12 @@ export function ModerationQueueFrame({
   onReload: () => void;
   banner?: ReactNode;
   detail: ReactNode;
+  claimFocusKey?: number;
 }) {
   const [listCollapsed, setListCollapsed] = useState(false);
+  useEffect(() => {
+    if (claimFocusKey && claimFocusKey > 0) setListCollapsed(true);
+  }, [claimFocusKey]);
   const hasSelection = selectedId !== null;
   const collapseList = hasSelection && listCollapsed;
 
@@ -272,21 +278,9 @@ export function ModerationQueueFrame({
       <div className={`pane st-page mod-shell${hasSelection ? ' has-detail' : ''}${collapseList ? ' list-collapsed' : ''}`}>
         <header className="mod-head">
           <div className="mod-head-text">
-            <h1 className="display">{title}</h1>
-            <p className="sub">{description}</p>
+            <h1 className="display" title={description}>{title}</h1>
           </div>
           <div className="mod-head-actions">
-            {hasSelection && (
-              <button
-                type="button"
-                className="btn btn-s mod-list-toggle"
-                aria-pressed={listCollapsed}
-                onClick={() => setListCollapsed(v => !v)}
-              >
-                {listCollapsed ? <PanelLeftOpen className="ic" /> : <PanelLeftClose className="ic" />}
-                <span>{listCollapsed ? 'Hiện danh sách' : 'Ẩn danh sách'}</span>
-              </button>
-            )}
             <button type="button" className="btn btn-g" disabled={loading} onClick={onReload} aria-label="Tải lại danh sách" title="Tải lại">
               <RefreshCw className="ic" />
               <span>Tải lại</span>
@@ -310,6 +304,19 @@ export function ModerationQueueFrame({
         {sidebar}
 
         <div className="mod-grid">
+          {collapseList && (
+            <button
+              type="button"
+              className="mod-list-rail mod-list-toggle"
+              aria-expanded={false}
+              aria-label={`Hiện danh sách (${totalCount} hồ sơ)`}
+              onClick={() => setListCollapsed(false)}
+            >
+              <PanelLeftOpen className="ic" aria-hidden="true" />
+              <span className="mod-list-rail-text">Hiện danh sách</span>
+              <span className="mod-list-rail-count" aria-hidden="true">{totalCount}</span>
+            </button>
+          )}
           <div className="mod-list-col">
             <div className="mod-list-tools">
               <div className="mod-list-info">
@@ -317,6 +324,19 @@ export function ModerationQueueFrame({
                 <span className="sub" role="status">
                   {loading ? 'Đang tải…' : !error ? `${totalCount} hồ sơ · Trang ${pageIndex}/${Math.max(1, totalPages)}` : 'Lỗi tải dữ liệu'}
                 </span>
+                {hasSelection && (
+                  <button
+                    type="button"
+                    className="btn btn-s mod-list-collapse mod-list-toggle"
+                    aria-expanded={true}
+                    aria-label="Ẩn danh sách"
+                    title="Ẩn danh sách để đọc rộng hơn"
+                    onClick={() => setListCollapsed(true)}
+                  >
+                    <PanelLeftClose className="ic" aria-hidden="true" />
+                    <span>Ẩn</span>
+                  </button>
+                )}
               </div>
               {sectionHint && <p className="sub mod-section-hint">{sectionHint}</p>}
               {filters}
@@ -417,12 +437,13 @@ export function ModerationWorkspaceShell({
   onReload,
   banner,
   detail,
+  claimFocusKey,
 }: {
   title: string;
   description: string;
   sections: ModerationSectionDef[];
-  status: QueueItemStatus;
-  onStatusChange: (s: QueueItemStatus) => void;
+  status: ModerationQueueStatusFilter;
+  onStatusChange: (s: ModerationQueueStatusFilter) => void;
   priority: QueuePriorityFilter;
   onPriorityChange: (p: QueuePriorityFilter) => void;
   showPriorityFilter?: boolean;
@@ -443,6 +464,7 @@ export function ModerationWorkspaceShell({
   onReload: () => void;
   banner?: ReactNode;
   detail: ReactNode;
+  claimFocusKey?: number;
 }) {
   const workSections = sections.filter(s => s.group !== 'results');
   const resultSections = sections.filter(s => s.group === 'results');
@@ -456,10 +478,10 @@ export function ModerationWorkspaceShell({
       ? resultSections
       : workSections;
   const [rememberedByGroup, setRememberedByGroup] = useState<{
-    work?: QueueItemStatus;
-    results?: QueueItemStatus;
+    work?: ModerationQueueStatusFilter;
+    results?: ModerationQueueStatusFilter;
   }>({});
-  const showDueFilter = status === 'Pending' || status === 'Claimed';
+  const showDueFilter = status === 'Open' || status === 'Pending' || status === 'Claimed';
 
   const selectGroup = (targetGroup: 'work' | 'results') => {
     if (!hasTwoGroups || targetGroup === activeGroup) return;
@@ -569,6 +591,7 @@ export function ModerationWorkspaceShell({
       onReload={onReload}
       banner={banner}
       detail={detail}
+      claimFocusKey={claimFocusKey}
     />
   );
 }

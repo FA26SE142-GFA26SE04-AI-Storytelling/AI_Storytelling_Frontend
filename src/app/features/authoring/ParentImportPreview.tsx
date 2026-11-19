@@ -11,9 +11,29 @@ import { parseStoryFile, type StoryFileFields } from './parseStoryFile';
 export interface ParentImportPending { preview: B.CreatorImportPreviewDto; revisionToken: string; baseVersionId: number | null; fallbackTitle: string }
 type Fields = { title: string; sourceDeclaration: string; rightsDeclaration: string };
 
+/** Tạo payload xác nhận nhập nội dung cho Parent, giữ nguyên token/phiên bản và metadata hiện có/đã tách. */
+export function buildParentImportConfirmPayload(
+  pending: Pick<ParentImportPending, 'revisionToken' | 'baseVersionId'>,
+  preview: Pick<B.CreatorImportPreviewDto, 'previewToken' | 'content'>,
+  fields: Fields,
+  operationId: string,
+): B.ConfirmCreatorImportRequest {
+  return {
+    operationId,
+    revisionToken: pending.revisionToken,
+    baseVersionId: pending.baseVersionId,
+    previewToken: preview.previewToken,
+    content: preview.content,
+    title: fields.title.trim(),
+    sourceDeclaration: fields.sourceDeclaration.trim(),
+    rightsDeclaration: fields.rightsDeclaration.trim(),
+  };
+}
+
 /**
- * Popup xem trước nội dung nhập (tệp hoặc văn bản dán): hiện nội dung đã tách, cho sửa tên / nguồn / cam kết,
- * rồi "Xác nhận nhập" (tạo phiên bản Import qua POST /parent/stories/{id}/imports/confirm) hoặc "Điền vào ô" để sửa thêm trước khi lưu.
+ * Popup xem trước nội dung nhập (tệp hoặc văn bản dán): hiện nội dung đã tách, cho sửa tên truyện,
+ * giữ nguyên metadata nguồn/cam kết đã có trong state/payload,
+ * rồi "Xác nhận nhập" (tạo phiên bản Import qua POST /parent/stories/{id}/imports/confirm) hoặc "Sửa trước" để chỉnh thêm trước khi lưu.
  */
 export default function ParentImportPreview({ storyId, pending, defaults, beforeConfirm, onFill, onSaved, onConflict, onClose }: {
   storyId: number;
@@ -35,7 +55,7 @@ export default function ParentImportPreview({ storyId, pending, defaults, before
     rightsDeclaration: parsed.rightsDeclaration || defaults.rightsDeclaration,
   });
   const [busy, setBusy] = useState(false);
-  const ready = !!body.trim() && !!fields.sourceDeclaration.trim() && !!fields.rightsDeclaration.trim();
+  const ready = !!body.trim();
 
   const fail = (status: number | undefined, message: string) => {
     if (status === 409) { showToast('Truyện vừa được lưu ở nơi khác hoặc bản xem trước đã hết hạn. Hãy nhập lại nội dung.', 'warn'); onConflict(); return; }
@@ -53,11 +73,10 @@ export default function ParentImportPreview({ storyId, pending, defaults, before
       if (!again.success || !again.data) { setBusy(false); fail(again.status, again.message); return; }
       preview = again.data;
     }
-    const r = await service.confirmImport(storyId, {
-      operationId: crypto.randomUUID(), revisionToken: pending.revisionToken, baseVersionId: pending.baseVersionId,
-      previewToken: preview.previewToken, content: preview.content,
-      title: fields.title.trim(), sourceDeclaration: fields.sourceDeclaration.trim(), rightsDeclaration: fields.rightsDeclaration.trim(),
-    });
+    const r = await service.confirmImport(
+      storyId,
+      buildParentImportConfirmPayload(pending, preview, fields, crypto.randomUUID()),
+    );
     setBusy(false);
     if (r.success && r.data) { showToast(`Đã nhập nội dung thành phiên bản V${r.data.version.versionNo}.`, 'ok'); onSaved(r.data); return; }
     fail(r.status, r.message);
@@ -70,12 +89,10 @@ export default function ParentImportPreview({ storyId, pending, defaults, before
         {body.trim() ? body.split(/\n\s*\n/).map((t, i) => <p key={i}>{t}</p>) : <p>Không tìm thấy nội dung truyện trong phần đã nhập.</p>}
       </div>
       <label className="field"><span className="lbl">Tên truyện</span><input className="inp" maxLength={200} value={fields.title} onChange={e => setFields(f => ({ ...f, title: e.target.value }))} /></label>
-      <label className="field"><span className="lbl">Nguồn nội dung</span><input className="inp" maxLength={2000} value={fields.sourceDeclaration} placeholder="VD: Tự sáng tác" onChange={e => setFields(f => ({ ...f, sourceDeclaration: e.target.value }))} /></label>
-      <label className="field"><span className="lbl">Cam kết quyền sử dụng</span><input className="inp" maxLength={2000} value={fields.rightsDeclaration} placeholder="VD: Tôi là tác giả hoặc có quyền dùng nội dung này" onChange={e => setFields(f => ({ ...f, rightsDeclaration: e.target.value }))} /></label>
       <div className="pa-actions bar">
         <button type="button" className="btn btn-g" disabled={busy} onClick={onClose}><X className="ic" />Huỷ</button>
         <button type="button" className="btn btn-s" disabled={busy || !body.trim()} title="Đưa vào các ô để sửa thêm, lưu sau" onClick={() => onFill({ ...parsed, ...fields })}><PencilLine className="ic" />Sửa trước</button>
-        <button type="button" className="btn btn-p push" disabled={busy || !ready} title={ready ? 'Lưu nội dung này thành phiên bản mới' : 'Điền nguồn nội dung và cam kết quyền sử dụng'} onClick={() => void confirm()}><Check className="ic" />{busy ? 'Đang nhập…' : 'Xác nhận nhập'}</button>
+        <button type="button" className="btn btn-p push" disabled={busy || !ready} title={ready ? 'Lưu nội dung này thành phiên bản mới' : 'Chưa có nội dung truyện để nhập'} onClick={() => void confirm()}><Check className="ic" />{busy ? 'Đang nhập…' : 'Xác nhận nhập'}</button>
       </div>
     </div>
   </Dialog>;

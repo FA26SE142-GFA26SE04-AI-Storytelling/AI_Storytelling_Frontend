@@ -17,6 +17,10 @@ const ISSUE_VI: Record<string, string> = {
   GRAY_ZONE_REVIEW_REQUIRED: 'Truyện có chỗ cần kiểm duyệt viên xem lại. Đợi kiểm duyệt xong rồi tiếp tục.',
   LANGUAGE_CONTEXT_MISMATCH: 'Ngôn ngữ của truyện khác ngôn ngữ trong hồ sơ của bé.',
   INTERACTIVE_STORIES_DISABLED: 'Bé đang tắt truyện tương tác. Bỏ chọn "Tương tác khi nghe" hoặc bật lại trong cài đặt của bé.',
+  PACKAGE_ASSESSMENT_ACKNOWLEDGEMENT_REQUIRED: 'Bạn cần đọc lại truyện, xem cảnh báo và tích xác nhận trước khi chốt gói cho bé.',
+  CONTENT_SAFETY_UNAVAILABLE: 'AI đánh giá an toàn tạm thời không khả dụng.',
+  MODERATION_UNAVAILABLE: 'AI kiểm tra vùng xám tạm thời không khả dụng.',
+  GRAY_ZONE_WARNING: 'Nội dung có chi tiết cần phụ huynh tự đọc lại và xác nhận.',
 };
 /** Tên chủ đề vi phạm (bỏ mã viết hoa như FANTASY, giữ tên hiển thị như "Cổ tích - Kỳ ảo"). */
 export const topicNames = (violations?: string[] | null) => [...new Set((violations ?? []).filter((v) => !/^[A-Z0-9_]+$/.test(v)))];

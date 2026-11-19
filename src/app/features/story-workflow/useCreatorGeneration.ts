@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type * as B from '@/app/types/backendContracts';
 import type { ApiResponse } from '@/app/types/auth';
 import { creatorInputService } from '@/app/services/creatorPublicationService';
+import { isAiConcurrencyLimitResponse } from '@/app/services/aiStoryCreationService';
 import { useStoryProgressPolling } from './useStoryProgressPolling';
 import { loadSnapshot, snapshotStage, keepSnapshotPolling, pipelineFailure, type StatusSnapshot } from './generationSnapshot';
 import { useAuth } from '@/app/context/AuthContext';
@@ -13,6 +14,7 @@ export function useCreatorGeneration(initialId: number | null) {
   const [input, setInput] = useState<B.AIStoryInputProgressDto | null>(null);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
+  const [concurrencyLimitReached, setConcurrencyLimitReached] = useState(false);
   const pending = useRef<B.SubmitCreatorAIStoryInputRequestDto | null>(null);
   const retryPayload = useRef<B.RetryAIStoryInputRequestDto | null>(null);
   const locked = useRef(false);
@@ -28,13 +30,14 @@ export function useCreatorGeneration(initialId: number | null) {
   const stage = snapshotStage(snapshot.data, false);
   const submit = async (body: B.SubmitCreatorAIStoryInputRequestDto) => {
     if (locked.current) return;
-    locked.current = true; setBusy(true); setMessage(''); const run = epoch.current;
+    locked.current = true; setBusy(true); setMessage(''); setConcurrencyLimitReached(false); const run = epoch.current;
     // A changed payload gets a new key; a lost response reuses exactly the captured payload/key.
     if (!pending.current || JSON.stringify({ ...pending.current, idempotencyKey: '' }) !== JSON.stringify({ ...body, idempotencyKey: '' })) pending.current = body;
     const r = await creatorInputService.submit(pending.current);
     if (run !== epoch.current) return;
     locked.current = false; setBusy(false); setMessage(r.message);
-    if (r.data) { setId(r.data.storyId); setInput(r.data); pending.current = null; }
+    if (r.data) { setId(r.data.storyId); setInput(r.data); pending.current = null; setConcurrencyLimitReached(false); }
+    else if (isAiConcurrencyLimitResponse(r)) { pending.current = null; setConcurrencyLimitReached(true); }
     return r;
   };
   const retry = async (creative: B.AIStoryCreativeInputDto) => {
@@ -57,5 +60,5 @@ export function useCreatorGeneration(initialId: number | null) {
   };
   const refreshSnapshot = snapshot.refresh, refreshInput = check.refresh;
   const refresh = useCallback(() => { refreshSnapshot(); refreshInput(); }, [refreshSnapshot, refreshInput]);
-  return { id, input, stage, failure:pipelineFailure(snapshot.data,stage), snapshot: snapshot.data, error: snapshot.error ?? check.error, message, busy, timedOut: snapshot.timedOut || check.timedOut, submit, retry, command, refresh };
+  return { id, input, stage, failure:pipelineFailure(snapshot.data,stage), snapshot: snapshot.data, error: snapshot.error ?? check.error, message, busy, concurrencyLimitReached, timedOut: snapshot.timedOut || check.timedOut, submit, retry, command, refresh };
 }

@@ -3,6 +3,7 @@ import type * as B from '@/app/types/backendContracts';
 import SafeImage from '@/app/components/SafeImage';
 import { Check, ShieldCheck } from 'lucide-react';
 import { coverFor } from '@/app/lib/storyView';
+import { readingLevelBadgeText } from '@/app/lib/guardian';
 import ModerationEvidence, { ModerationFlagHeader } from './ModerationEvidence';
 import { formatFlagName } from './moderationFlagDisplay';
 import { CreatorOutlineStrip, ManuscriptCard } from './ModerationInspectionPrimitives';
@@ -57,6 +58,12 @@ function resolveCover(d: B.PublicReviewPackageDto): string | null {
   return pic ? `${pic.url}${m[2] ?? ''}` : null;
 }
 
+const formatVocabularyLevel = (raw?: string | null) => {
+  if (!raw?.trim()) return '—';
+  const m = raw.trim().match(/^level_(\d+)$/i);
+  return m ? `Mức ${m[1]}` : raw.trim();
+};
+
 /** Thông tin chung của truyện: ảnh bìa, độ tuổi, mức đọc, thể loại, dàn ý, mô tả, bài học. */
 export function StoryFacts({ d }: { d: B.PublicReviewPackageDto }) {
   const lesson = d.story.moralLesson || d.version.lesson;
@@ -65,8 +72,8 @@ export function StoryFacts({ d }: { d: B.PublicReviewPackageDto }) {
       <div className="pr-cover" role="img" aria-label="Ảnh bìa" style={{ background: coverFor(resolveCover(d)) }} />
       <div className="st-facts">
         <div><small>Độ tuổi</small><b>{AGE[d.story.ageBand] ?? d.story.ageBand}</b></div>
-        <div><small>Mức đọc</small><b>{d.story.readingLevel ?? '—'}</b></div>
-        <div><small>Mức từ vựng</small><b>{d.story.vocabularyLevel ?? '—'}</b></div>
+        <div><small>Mức đọc</small><b>{readingLevelBadgeText(d.story.readingLevel)}</b></div>
+        <div><small>Mức từ vựng</small><b>{formatVocabularyLevel(d.story.vocabularyLevel)}</b></div>
         <div><small>Thể loại</small><b>{d.story.genre ?? '—'}</b></div>
         <div><small>Phiên bản</small><b>V{d.versionNo}{d.isResubmission ? ' · gửi lại' : ''}</b></div>
       </div>
@@ -115,8 +122,8 @@ export function SafetyScanSection({
   return <div className="st-group">
     <b className="st-group-title">Cờ cần xử lý{unresolved && <Warn why="Còn cờ chưa xử lý" />}</b>
     <div className="row st-wrap">
-      <span className={`pill ${pill.cls}`}>{pill.label}</span>
-      {metaParts.length > 0 && <span className="st-review-meta">{metaParts.join(' · ')}</span>}
+      <span className={`pill ${pill.cls}`} title={metaParts.length > 0 ? metaParts.join(' · ') : undefined}>{pill.label}</span>
+      {status !== 'Safe' && metaParts.length > 0 && <span className="st-review-meta">{metaParts.join(' · ')}</span>}
     </div>
     {flags.length > 0
       ? flags.map((f) => {

@@ -18,3 +18,11 @@ export function workspaceLocation(href: string, workspace:WorkspaceId, storyId:n
   if (takesStoryId(workspace) && storyId !== null && Number.isSafeInteger(storyId) && storyId > 0) url.searchParams.set('storyId',String(storyId));
   return `${url.pathname}${url.search}${url.hash}`;
 }
+/** Route Next.js chuẩn cho không gian phụ huynh (`/app/<workspace>`). */
+export function appWorkspaceRoute(workspace: WorkspaceId, storyId: number | null = null): string {
+  const valid = WORKSPACES.some((w) => w.id === workspace) ? workspace : DEFAULT_WORKSPACE;
+  if (takesStoryId(valid) && storyId !== null && Number.isSafeInteger(storyId) && storyId > 0) {
+    return `/app/${valid}?storyId=${storyId}`;
+  }
+  return `/app/${valid}`;
+}

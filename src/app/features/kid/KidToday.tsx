@@ -24,14 +24,14 @@ function buildStops(roadmap: B.MyRoadmapDto | null): JourneyStop[] {
       status: 'done',
     }));
 
-  const openStops: JourneyStop[] = roadmap.openStories.map((o) => ({
+  const openStops: JourneyStop[] = (roadmap.openStories ?? []).map((o) => ({
     storyId: o.storyId,
     title: o.title,
     coverImageUrl: o.coverImageUrl,
     status: 'open',
   }));
 
-  const upcomingStops: JourneyStop[] = [...roadmap.upcoming]
+  const upcomingStops: JourneyStop[] = [...(roadmap.upcoming ?? [])]
     .sort((a, b) => a.order - b.order)
     .map((u) => ({
       storyId: u.storyId,
@@ -75,7 +75,7 @@ export default function KidToday({
     );
   }
 
-  const opens = roadmap.openStories;
+  const opens = roadmap.openStories ?? [];
   const open = opens[0];
 
   if (!open) {
@@ -106,7 +106,7 @@ export default function KidToday({
     }
   };
 
-  const note = roadmap.openStories.find((o) => o.storyId === selected.storyId)?.note;
+  const note = opens.find((o) => o.storyId === selected.storyId)?.note;
 
   return (
     <section className="kl-panel kid-today-journey">

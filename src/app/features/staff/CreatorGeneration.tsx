@@ -8,6 +8,8 @@ import { creatorService } from '@/app/services/creatorService';
 import { aiStoryCreationService as api } from '@/app/services/aiStoryCreationService';
 import { notifyCreatorQuotaChanged } from '@/app/services/paymentService';
 import { useCreatorGeneration } from '@/app/features/story-workflow/useCreatorGeneration';
+import { useAiGenerationCapacity } from '@/app/features/story-workflow/useAiGenerationCapacity';
+import AiCapacityBanner from '@/app/features/studio/AiCapacityBanner';
 import { lengthPresets } from '@/app/features/story-workflow/aiStoryInputFlowUtils';
 import { useStoryProgressPolling } from '@/app/features/story-workflow/useStoryProgressPolling';
 import { ApproveSlot, type ApproveAction } from '@/app/features/story-workflow/approveSlot';
@@ -44,10 +46,21 @@ type Seed = { topic: string; lesson: string; genre: string; charactersText: stri
 export default function CreatorGeneration({ initialId = null, onBuyCredits }: { initialId?: number | null; onBack: () => void; onBuyCredits?: () => void }) {
   const [run, setRun] = useState(0);
   const [seed, setSeed] = useState<Seed>(null);
-  return <CreatorGenerationRun key={run} initialId={run === 0 ? initialId : null} seed={seed} onReset={(next) => { setSeed(next); setRun((n) => n + 1); }} onBuyCredits={onBuyCredits} />;
+  const [activeStoryId, setActiveStoryId] = useState<number | null>(initialId);
+  return (
+    <CreatorGenerationRun
+      key={run}
+      initialId={activeStoryId}
+      seed={seed}
+      onReset={(next) => { setSeed(next); setActiveStoryId(null); setRun((n) => n + 1); }}
+      onOpenStory={(storyId) => { setSeed(null); setActiveStoryId(storyId); setRun((n) => n + 1); }}
+      onBuyCredits={onBuyCredits}
+    />
+  );
 }
-function CreatorGenerationRun({ initialId, seed, onReset, onBuyCredits }: { initialId: number | null; seed: Seed; onReset: (seed: Seed) => void; onBuyCredits?: () => void }) {
+function CreatorGenerationRun({ initialId, seed, onReset, onOpenStory, onBuyCredits }: { initialId: number | null; seed: Seed; onReset: (seed: Seed) => void; onOpenStory: (storyId: number) => void; onBuyCredits?: () => void }) {
   const flow = useCreatorGeneration(initialId);
+  const capacityState = useAiGenerationCapacity(true, `${flow.stage}:${flow.id ?? 'new'}:${flow.concurrencyLimitReached}`);
   // Nhớ truyện AI đang soạn để tải lại trang vẫn mở lại đúng truyện (truyện mới bắt đầu thì xóa).
   const { user: sessionUser } = useAuth();
   const sessionUserId = sessionUser?.id ?? null;
@@ -165,11 +178,22 @@ function CreatorGenerationRun({ initialId, seed, onReset, onBuyCredits }: { init
         </CreatorMedia>
       )}
       {!reviewing && !mediaStage && <div className="pane"><div className="plan-stage"><div className="plan-scroll">
-        {flow.id === null && <CreatorBrief
+        {flow.id === null && <>
+          <AiCapacityBanner
+            capacity={capacityState.capacity}
+            loading={capacityState.loading}
+            limitRejected={flow.concurrencyLimitReached}
+            onRefresh={() => void capacityState.refresh()}
+            onRetrySubmit={flow.concurrencyLimitReached ? start : undefined}
+            onOpenStory={onOpenStory}
+            busy={flow.busy}
+          />
+          <CreatorBrief
           values={{ topic, lesson, genre, charactersText, setting, targetLength, vocabularyLevel, outputMode }} context={context} contextError={contextError} busy={flow.busy}
           ageBand={ageBand} readingLevel={readingLevel} onAudience={(a, l) => { setAgeBand(a); setReadingLevel(l); }}
           onChange={(v) => { if (v.topic !== undefined) setTopic(v.topic); if (v.lesson !== undefined) setLesson(v.lesson); if (v.genre !== undefined) setGenre(v.genre); if (v.charactersText !== undefined) setCharactersText(v.charactersText); if (v.setting !== undefined) setSetting(v.setting); if (v.targetLength !== undefined) setTargetLength(v.targetLength); if (v.vocabularyLevel !== undefined) setVocabularyLevel(v.vocabularyLevel); if (v.outputMode !== undefined) setOutputMode(v.outputMode); }}
-          onSubmit={start} onBuyCredits={onBuyCredits} />}
+          onSubmit={start} onBuyCredits={onBuyCredits} />
+        </>}
         {/* Lúc AI đang làm: thẻ chờ giống phụ huynh (con cóc ngồi chờ + bước hiện tại). */}
         {waiting && <div style={{ height: '100%', minHeight: 380 }}><StageProgress stage={stage} snapshot={flow.snapshot} outputMode={outputMode} message={flow.error || flow.message} onRetry={refreshState} /></div>}
         <div style={{ maxWidth: 900, margin: '0 auto', display: 'grid', gap: 16 }}>

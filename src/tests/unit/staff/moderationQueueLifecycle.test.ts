@@ -58,7 +58,11 @@ vi.mock('react', () => ({
 vi.mock('@/app/context/AuthContext', () => ({ useAuth: () => ({ user: { id: 5 } }) }));
 vi.mock('@/app/services/staffService', () => ({ staffService: { queue: host.queue, claim: host.claim } }));
 
-import { buildModerationQueueQuery, useModerationSectionQueue } from '@/app/features/staff/useModerationSectionQueue';
+import {
+  buildModerationQueueQuery,
+  mergeOpenQueueItems,
+  useModerationSectionQueue,
+} from '@/app/features/staff/useModerationSectionQueue';
 
 function deferred<T>() {
   let resolve!: (value: T) => void;
@@ -181,4 +185,33 @@ describe('moderation queue lifecycle', () => {
       })).not.toHaveProperty('onlyOverdue');
     },
   );
+
+  it('merges Claimed (mine first) + Pending + Claimed (others) in Open mode', () => {
+    const base = {
+      itemType: 'PublicStoryReview',
+      priority: 'Medium',
+      storyId: 1,
+      storyTitle: 'Test',
+      storyVersionId: 1,
+      contentReportId: null,
+      readingRoadmapId: null,
+      createdByUserId: 10,
+      createdByName: 'Author',
+      isResubmission: false,
+      slaDueAt: null,
+      isOverdue: false,
+      claimedAt: null,
+      claimExpiresAt: null,
+      createdAt: '2026-11-10T00:00:00Z',
+    };
+    const merged = mergeOpenQueueItems(
+      [
+        { ...base, id: 1, status: 'Claimed', claimedByUserId: 9, claimedByName: 'Other' },
+        { ...base, id: 2, status: 'Claimed', claimedByUserId: 5, claimedByName: 'Me' },
+      ],
+      [{ ...base, id: 3, status: 'Pending', claimedByUserId: null, claimedByName: null }],
+      5,
+    );
+    expect(merged.map(i => i.id)).toEqual([2, 3, 1]);
+  });
 });

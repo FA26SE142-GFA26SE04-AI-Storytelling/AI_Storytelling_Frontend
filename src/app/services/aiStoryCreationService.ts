@@ -18,6 +18,29 @@ interface ProblemDetails {
   errors?: Record<string, string[]> | string[];
 }
 
+export const AI_STORY_CONCURRENCY_LIMIT_CODE = 'AI_STORY_CONCURRENCY_LIMIT';
+export const AI_STORY_CONCURRENCY_LIMIT_MESSAGE = 'Bạn đang tạo 2 truyện. Hãy hoàn tất một truyện trước khi bắt đầu truyện khác.';
+
+export interface ActiveAiStoryDto {
+  storyId: number;
+  title: string;
+  activityMode: string;
+  storyStatus: string;
+  startedAt?: string | null;
+}
+
+export interface AiGenerationCapacityDto {
+  limit: number;
+  activeCount: number;
+  canStartNewStory: boolean;
+  activeStories: ActiveAiStoryDto[];
+}
+
+export function isAiConcurrencyLimitResponse(response: Pick<ApiResponse<unknown>, 'status' | 'errors' | 'message'> | null | undefined): boolean {
+  if (!response || response.status !== 409) return false;
+  return Boolean(response.errors?.includes(AI_STORY_CONCURRENCY_LIMIT_CODE) || response.message?.includes(AI_STORY_CONCURRENCY_LIMIT_CODE));
+}
+
 const ARCHIVE_REASON_TEXT: Record<string, string> = { supervisor_preference: 'Không muốn dùng truyện này nữa', safety_concern: 'Nội dung chưa an toàn' };
 
 const HTTP_ERROR_MESSAGES: Record<number, string> = {
@@ -50,10 +73,13 @@ async function parseApiResponse<T>(response: Response, fallbackMessage: string):
   const candidate = body as Partial<ApiResponse<T>>;
   if (typeof candidate.success === 'boolean' && typeof candidate.message === 'string') {
     const hasData = candidate.data !== null && candidate.data !== undefined;
+    const isConcurrencyLimit = response.status === 409 && candidate.errors?.includes(AI_STORY_CONCURRENCY_LIMIT_CODE);
     return {
       success: response.ok && candidate.success && hasData,
       status: response.status,
-      message: candidate.message || HTTP_ERROR_MESSAGES[response.status] || fallbackMessage,
+      message: isConcurrencyLimit
+        ? AI_STORY_CONCURRENCY_LIMIT_MESSAGE
+        : candidate.message || HTTP_ERROR_MESSAGES[response.status] || fallbackMessage,
       data: hasData ? (candidate.data as T) : null,
       errors: candidate.errors ?? null,
     };
@@ -99,6 +125,7 @@ const review = (id: number) => `${story(id)}/review`;
 const outline = (id: number) => `${story(id)}/outline`;
 
 export const aiStoryCreationService = {
+  getAiCapacity: (signal?: AbortSignal) => apiRequest<AiGenerationCapacityDto>('/ai-generation/capacity', 'Không tải được trạng thái giới hạn tạo truyện.', { signal }),
   autoPublishCheck: (id: number) => apiRequest<D.ApproveResponseDto | null>(`/stories/${id}/review/auto-publish-check`, 'Không kiểm tra được điều kiện duyệt tự động.', {method:'POST'}),
   getCreationContext: (id: number, signal?: AbortSignal) => request<D.AIStoryInputContextDto>(`/ai-story-input/children/${id}/context`, 'GET', undefined, signal),
   submitInput: (input: D.SubmitAIStoryInputRequestDto, signal?: AbortSignal) => request<D.AIStoryInputProgressDto>('/ai-story-input/requests', 'POST', input, signal),
