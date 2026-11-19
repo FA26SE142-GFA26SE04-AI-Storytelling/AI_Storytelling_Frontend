@@ -116,6 +116,7 @@ function api({ path, method, body, url, state }) {
     case path === '/ParentReadingFeedback/10' && state.grouped: return paged([3, 2, 1].map((n) => ({ sessionId: 100 + n, storyId: 7, title: 'Sóc Bông và Thỏ Trắng', completedAt: now, startedAt: now, feeling: 'Like', feelingLabel: 'Thích', quizTotalQuestions: 5, quizBestPercent: 54, timeSpentSeconds: 60 * n, pagesCompleted: 3, totalPages: 4, readCount: 3, readOrdinal: n, status: 'Completed', expEarned: 0 }))
       .concat([{ sessionId: 200, storyId: 8, title: 'Rùa và thỏ', completedAt: now, startedAt: now, feeling: null, feelingLabel: null, quizTotalQuestions: 0, quizBestPercent: null, timeSpentSeconds: 180, pagesCompleted: 2, totalPages: 3, readCount: 1, readOrdinal: 1, status: 'Completed', expEarned: 10 }]));
     case path === '/ParentReadingFeedback/10': return paged([{ sessionId: 1, storyId: 7, title: 'Truyện đã đọc xong', completedAt: now, feeling: 'VeryLike', feelingLabel: 'Rất thích', quizTotalQuestions: 5, quizBestPercent: 90, conversationAnswers: [{ question: 'Em thấy thế nào?', kind: 'Emotion', answerText: 'Vui lắm', sceneIndex: 0, answeredAt: now }],
+      retell: { summaryId: 3, createdAt: now, hasRecording: false, flagCount: state.withQuestions ? 2 : 0, unansweredCount: state.withQuestions ? 2 : 0 }, quizRunCount: 1, quizLatestPercent: 80,
       ...(state.withReflection ? { emotions: [{ code: 'Happy', label: 'Vui' }, { code: 'Touched', label: 'Cảm động' }], reflection: state.noteRemoved ? { favoriteSceneId: 1, favoriteSceneIndex: 0, hasNoteText: false, hasNoteRecording: false } : { favoriteSceneId: 1, favoriteSceneIndex: 0, hasNoteText: true, hasNoteRecording: true },
         readAloudRecordingCount: 2, readAloudPractice: { attempts: 2, totalWords: 5, latestGoodWords: 4, latestGoodPercent: 80, bestGoodPercent: 100 } } : {}) }]);
     // Nghe bé đọc và cảm nhận sau khi đọc (phiên 1).
@@ -237,6 +238,15 @@ async function smoke(label, role, run) {
 }
 
 const parent = (hash = '') => `${base}/${hash}`;
+/** Kết quả đọc: sổ xuống các lần đọc của một ô truyện, bấm lần mới nhất và trả về popup chi tiết. */
+async function openRun(page, title) {
+  const tile = page.locator('.lr-story', { hasText: title });
+  await tile.getByRole('button', { name: /lần đọc$/ }).click();
+  await tile.locator('.lr-run').first().click();
+  const dlg = page.getByRole('dialog', { name: new RegExp(title) });
+  await dlg.waitFor();
+  return dlg;
+}
 const nav = (page, name) => page.getByRole('button', { name, exact: true }).first().click();
 
 try {
@@ -309,30 +319,38 @@ try {
   await smoke('LearningResults', 'Parent', async ({ page, state }) => {
     await page.goto(parent('#roadmap'), { waitUntil: 'domcontentloaded' });
     await page.getByRole('tab', { name: 'Kết quả đọc', exact: true }).click();
-    await page.getByText('⭐ Câu đố 90%', { exact: true }).waitFor();
-    await page.getByRole('button', { name: /Bé trả lời \(1\)/ }).click();
-    await page.getByText('“Vui lắm”', { exact: true }).waitFor();
-    await page.getByRole('button', { name: 'Xoá phần kể lại về Truyện bé kể lại', exact: true }).click();
+    // Lưới truyện: mỗi truyện một ô có bìa; sổ xuống các lần đọc, bấm một lần thì mở popup chi tiết.
+    await page.locator('.lr-story').getByText('⭐ Câu đố 90%', { exact: true }).waitFor();
+    await shots(page, 'LearningResults-grid', '.lr-grid');
+    const dlg = await openRun(page, 'Truyện đã đọc xong');
+    await dlg.getByText('“Vui lắm”', { exact: true }).waitFor();
+    await dlg.getByText('Gần nhất 80%', { exact: true }).waitFor();
+    await shots(page, 'LearningResults-dialog', '[role="dialog"]');
+    // Phần kể lại nằm trong popup: xoá được, xoá xong thì phần đó biến mất.
+    await dlg.getByRole('button', { name: 'Xoá phần kể lại về Truyện bé kể lại', exact: true }).click();
     await page.getByRole('button', { name: 'Xác nhận', exact: true }).click();
-    await page.getByText('Chưa có phần kể lại nào', { exact: true }).waitFor();
+    await dlg.getByRole('button', { name: 'Xoá phần kể lại về Truyện bé kể lại', exact: true }).waitFor({ state: 'detached' });
     assert(state.summaryDeleted, 'Phải gọi API xoá phần kể lại');
+    assert.equal(await page.getByText('Chưa có phần kể lại nào', { exact: true }).count(), 0, 'Không còn khung kể lại riêng');
   });
 
   await smoke('LearningQuestions', 'Parent', async ({ page, state }) => {
     state.withQuestions = true;
     await page.goto(parent('#roadmap'), { waitUntil: 'domcontentloaded' });
     await page.getByRole('tab', { name: 'Kết quả đọc', exact: true }).click();
-    await page.getByText('2 chưa trả lời', { exact: true }).first().waitFor();
-    await page.getByText('“Sao thỏ lại ra vườn?”', { exact: true }).waitFor();
-    await shots(page, 'LearningQuestions', '.lr-flags');
     // Ẩn toast (API tổng quan không có trong fixture) để ảnh thấy rõ cả thanh trên.
+    await page.locator('.lr-story').first().waitFor();
     await page.locator('.app-toast').evaluateAll((els) => els.forEach((e) => e.remove()));
     await shots(page, 'ParentHeader', 'header.top');
-    await page.getByRole('button', { name: 'Đánh dấu đã trả lời' }).first().click();
-    await page.getByText('1 chưa trả lời', { exact: true }).first().waitFor();
+    const dlg = await openRun(page, 'Truyện đã đọc xong');
+    await dlg.getByText('2 chưa trả lời', { exact: true }).first().waitFor();
+    await dlg.getByText('“Sao thỏ lại ra vườn?”', { exact: true }).waitFor();
+    await shots(page, 'LearningQuestions', '.lr-flags');
+    await dlg.getByRole('button', { name: 'Đánh dấu đã trả lời' }).first().click();
+    await dlg.getByText('1 chưa trả lời', { exact: true }).first().waitFor();
     assert.deepEqual(state.answered, { answered: true });
-    await page.getByRole('button', { name: 'Bỏ đánh dấu đã trả lời' }).click();
-    await page.getByText('2 chưa trả lời', { exact: true }).first().waitFor();
+    await dlg.getByRole('button', { name: 'Bỏ đánh dấu đã trả lời' }).click();
+    await dlg.getByText('2 chưa trả lời', { exact: true }).first().waitFor();
     assert.deepEqual(state.answered, { answered: false });
   });
 
@@ -340,23 +358,17 @@ try {
     state.withReflection = true;
     await page.goto(parent('#roadmap'), { waitUntil: 'domcontentloaded' });
     await page.getByRole('tab', { name: 'Kết quả đọc', exact: true }).click();
-    await page.locator('.lr-emotions').getByText('Cảm động').waitFor();
-    await page.getByText('Bé gửi lời', { exact: true }).first().waitFor();
-    await shots(page, 'LearningReflection-list', '.lr-emotions');
+    await page.locator('.lr-story').getByText('Cảm động').waitFor();
+    // Popup chi tiết lần đọc gồm cả nghe bé đọc và cảm nhận.
+    const refl = await openRun(page, 'Truyện đã đọc xong');
     // Nghe bé đọc: 2 bản ghi (trang 1 và luyện đọc), xoá bản của trang 1.
-    await page.getByRole('button', { name: 'Nghe bé đọc (2 bản ghi)' }).click();
-    const rec = page.getByRole('dialog', { name: /Nghe bé đọc/ });
-    await rec.locator('li.is-practice').waitFor();
+    await refl.locator('li.is-practice').waitFor();
     await shots(page, 'LearningReflection-recordings', '.lr-recs');
-    await rec.getByRole('button', { name: 'Xoá bản ghi Trang 1' }).click();
+    await refl.getByRole('button', { name: 'Xoá bản ghi Trang 1' }).click();
     await page.getByRole('button', { name: 'Xác nhận', exact: true }).click();
-    await rec.getByRole('button', { name: 'Xoá bản ghi Trang 1' }).waitFor({ state: 'detached' });
+    await refl.getByRole('button', { name: 'Xoá bản ghi Trang 1' }).waitFor({ state: 'detached' });
     assert.equal(state.removedRec, 5);
-    await rec.getByRole('button', { name: 'Đóng' }).click();
     // Cảm nhận: xoá lời bé gửi, cảm xúc và cảnh vẫn còn.
-    // Pill "Bé gửi lời" có ghi âm bấm được và mở thẳng popup Cảm nhận.
-    await page.getByRole('button', { name: 'Nghe lời bé gửi' }).first().click();
-    const refl = page.getByRole('dialog', { name: /Cảm nhận/ });
     await refl.getByText('Con thích lúc thỏ chia cà rốt', { exact: false }).waitFor();
     await shots(page, 'LearningReflection-dialog', '[role="dialog"]');
     await refl.getByRole('button', { name: 'Xoá lời bé gửi' }).click();
@@ -371,10 +383,11 @@ try {
     await page.goto(parent('#roadmap'), { waitUntil: 'domcontentloaded' });
     await page.getByRole('tab', { name: 'Kết quả đọc', exact: true }).click();
     await page.getByText('4 lần đọc', { exact: true }).waitFor();
-    assert.equal(await page.getByText('Sóc Bông và Thỏ Trắng', { exact: true }).count(), 1, 'Ba lần đọc cùng truyện gộp thành một thẻ');
-    await page.getByRole('button', { name: 'Xem 2 lần đọc trước' }).click();
-    assert.equal(await page.getByText('Sóc Bông và Thỏ Trắng', { exact: true }).count(), 3, 'Mở ra thì thấy đủ 3 lần đọc');
-    await shots(page, 'LearningGrouped', '.lr-list');
+    assert.equal(await page.locator('.lr-story').count(), 2, 'Ba lần đọc cùng truyện gộp thành một ô');
+    const tile = page.locator('.lr-story', { hasText: 'Sóc Bông và Thỏ Trắng' });
+    await tile.getByRole('button', { name: '3 lần đọc' }).click();
+    assert.equal(await tile.locator('.lr-run').count(), 3, 'Sổ xuống thì thấy đủ 3 lần đọc');
+    await shots(page, 'LearningGrouped', '.lr-grid');
   });
 
   await smoke('KidLobbyThemeFrog', 'Parent', async ({ page }) => {
