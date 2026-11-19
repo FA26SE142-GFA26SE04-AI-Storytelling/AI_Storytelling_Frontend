@@ -193,12 +193,35 @@
 .kid-quiz-modal .kid-quiz-feedback { font-size: var(--fs-lg); }
 
 /* Cửa sổ khi bé đọc xong truyện. */
-.kid-finish-modal { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; width: min(620px, 100%); }
-.kid-finish-modal h2 { margin: 0; font-size: clamp(26px, 3.4vw, 36px); }
-.kid-finish-lesson { margin: 0; max-width: 520px; font-size: clamp(19px, 2.2vw, 24px); line-height: 1.55; color: var(--muted); }
-.kid-finish-modal .kid-after { max-width: none; }
-.kid-finish-modal .kid-after h3 { margin: 0; font-size: var(--fs-xl); }
-.kid-finish-modal > .kid-btn3d { width: 100%; max-width: 360px; }
+/* Trang "Câu chuyện đã khép lại": thay cho khung đọc, thẻ giữa trang, trang tự cuộn khi dài. */
+.kid-finish-page { flex: 1; display: flex; justify-content: center; align-items: flex-start; padding: 8px 0 16px; }
+.kid-finish-card { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px; width: min(720px, 100%); background: color-mix(in srgb, var(--panel) 92%, transparent); border: 3px solid var(--gold-deep); border-radius: 24px; padding: 30px clamp(16px, 4vw, 44px) 28px; box-shadow: 0 6px 0 color-mix(in srgb, var(--text) 12%, transparent); animation: kid-sent-pop .35s cubic-bezier(.2, .9, .3, 1.3) both; }
+.kid-finish-card h2 { margin: 0; font-size: clamp(26px, 3.4vw, 36px); }
+.kid-finish-card h2:focus { outline: none; }
+.kid-finish-lesson { margin: 0; max-width: 560px; font-size: clamp(19px, 2.2vw, 24px); line-height: 1.55; color: var(--muted); }
+.kid-finish-card > .kid-btn3d { width: 100%; max-width: 360px; }
+/* Thẻ sau khi đọc gọn trong một màn: lời chúc trên, phần lật trang ở giữa tự cuộn, thanh lật trang dưới. */
+.kid-finish-page { min-height: 0; }
+.kid-after-card { max-height: 100%; min-height: 0; gap: 12px; padding: 20px clamp(14px, 3vw, 32px) 16px; }
+.kid-after-intro { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.kid-after-intro h2 { font-size: clamp(22px, 2.6vw, 30px); }
+.kid-after-intro .kid-finish-lesson { font-size: var(--fs-md); line-height: 1.45; }
+.kid-after-intro p { margin: 0; }
+.kid-after-page { flex: 1 1 auto; min-height: 0; width: 100%; overflow-y: auto; padding: 4px; }
+.kid-after-page > div { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.kid-after-page > [hidden] { display: none; }
+.kid-after-card h3 { margin: 0; font-size: var(--fs-lg); }
+.kid-finish-card .kid-after-nav { flex: none; width: 100%; margin: 0; padding: 10px 0 0; border-top: 1px solid var(--line); flex-wrap: nowrap; }
+.kid-after-nav .kid-scene-count { min-width: 64px; text-align: center; font-weight: 700; }
+.kid-after-nav .kid-btn3d.is-gold { margin-left: auto; flex-wrap: nowrap; white-space: nowrap; }
+@media (max-width: 480px) { .kid-after-nav { gap: 6px; } .kid-after-nav .kid-scene-count { min-width: 32px; } }
+.kid-theater .kid-after-nav button.kid-side-nav { width: 48px; height: 48px; }
+.kid-theater .kid-after-nav button.kid-side-nav svg { width: 24px; height: 24px; }
+/* Popup sau khi đọc: thẻ không cao quá màn hình, phần giữa tự cuộn. */
+.kid-finish-dialog { width: min(720px, 100%); max-height: calc(100dvh - 32px); display: flex; }
+.kid-finish-dialog:focus { outline: none; }
+.kid-finish-dialog .kid-after-card { width: 100%; max-height: 100%; }
+@media (prefers-reduced-motion: reduce) { .kid-finish-card { animation: none; } }
 .kid-quiz-open { min-width: 260px; font-size: var(--fs-lg); }
 
 /* Nút Yêu thích: chỉ một chữ, trái tim đặc khi đã chọn. */

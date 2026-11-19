@@ -491,6 +491,8 @@ try {
     state.multiScene = true;
     await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
+    // Màn "Câu chuyện đã khép lại" là popup (không tính trang): số trang chỉ gồm tranh.
+    await page.getByText('Trang 1/5').waitFor();
     const finish = page.getByRole('button', { name: 'Em đã đọc xong', exact: true });
     for (let i = 0; i < 10 && !(await finish.isVisible()); i++) {
       await page.getByRole('button', { name: 'Trang sau', exact: true }).click(); await page.waitForTimeout(600);
@@ -498,6 +500,12 @@ try {
     }
     await finish.click();
     await page.getByRole('button', { name: 'Xác nhận', exact: true }).click();
+    const popup = page.getByRole('dialog', { name: 'Em đã đọc xong' });
+    await popup.getByRole('heading', { name: 'Câu chuyện đã khép lại!' }).waitFor();
+    await popup.getByText('1/2', { exact: true }).waitFor();
+    await shots(page, 'KidFinish-popup', 'body');
+    await popup.getByRole('button', { name: 'Phần sau', exact: true }).click();
+    await popup.getByText('2/2', { exact: true }).waitFor();
     const grid = page.getByRole('group', { name: 'Chọn tranh em muốn hỏi bố mẹ' });
     const tiles = grid.getByRole('button');
     await tiles.first().waitFor();
@@ -605,6 +613,8 @@ try {
     assert(!requests.some((r) => r.path.endsWith('/progress') && r.body?.page > 3), 'Không lưu vị trí đọc với trang luyện');
     await finish.click();
     await page.getByRole('button', { name: 'Xác nhận', exact: true }).click();
+    // Popup mở ở phần 1/2: cảm nhận.
+    await page.getByRole('dialog', { name: 'Em đã đọc xong' }).getByText('1/2', { exact: true }).waitFor();
     // Cảm nhận từng bước: 2 cảm xúc → cảnh 2 → viết lời.
     const card = page.getByRole('region', { name: 'Cảm nhận của em' });
     // Bước 1 là mức thích: chọn xong tự sang bước cảm xúc.

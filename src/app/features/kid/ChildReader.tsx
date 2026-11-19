@@ -15,17 +15,28 @@ import {useRecorder} from './useRecorder';
 import KidReadAloudPractice from './KidReadAloudPractice';
 import {showToast} from '@/app/lib/toast';
 
-/** Khi bé đọc xong: lời chúc, cảm nhận và câu đố hiện trong cửa sổ giữa màn hình, không bắt bé lăn xuống. */
+/**
+ * Khi bé đọc xong: lời chúc, cảm nhận, kể lại và câu đố hiện trong cửa sổ nổi đè lên trang đọc (không tính là một trang).
+ * Không đóng bằng Esc để bé không lỡ tay mất phần cảm nhận; rời đi bằng nút "Về thư viện".
+ */
 function FinishPopup({reader:r}:{reader:ReturnType<typeof useChildReader>}) {
-  const ref=useDialog<HTMLDivElement>(r.close);
+  const ref=useDialog<HTMLDivElement>(()=>{});
+  const titleRef=useRef<HTMLHeadingElement>(null);
+  // Mở popup thì đưa tiêu điểm vào tiêu đề để trình đọc màn hình đọc ngay.
+  useEffect(()=>{titleRef.current?.focus();},[]);
   const lesson=r.content?.lesson;
-  return <div className="kid-quiz-backdrop"><div className="kid-quiz-modal kid-finish-modal" role="dialog" aria-modal="true" aria-label="Em đã đọc xong" ref={ref} tabIndex={-1}>
-    <Frog mood="happy" size={96}/>
-    <h2 className="display">Câu chuyện đã khép lại!</h2>
+  const intro=<>
+    <Frog mood="happy" size={64}/>
+    <h2 className="display" ref={titleRef} tabIndex={-1}>Câu chuyện đã khép lại!</h2>
     {lesson&&<p className="kid-finish-lesson">{lesson}</p>}
-    {r.completed&&<KidAfterReading token={r.token} completed={r.completed} scenes={r.content?.scenes??[]} onLibrary={r.close}/>}
-    <button type="button" className="kid-btn3d is-gold" onClick={r.close}>Về thư viện của em</button>
-  </div></div>;
+  </>;
+  return <div className="kid-quiz-backdrop">
+    <div className="kid-finish-dialog" role="dialog" aria-modal="true" aria-label="Em đã đọc xong" ref={ref} tabIndex={-1}>
+      {r.completed
+        ?<KidAfterReading token={r.token} completed={r.completed} scenes={r.content?.scenes??[]} onLibrary={r.close}>{intro}</KidAfterReading>
+        :<div className="kid-finish-card kid-after-card"><div className="kid-after-intro">{intro}</div><button type="button" className="kid-btn3d is-gold" onClick={r.close}>Về thư viện của em</button></div>}
+    </div>
+  </div>;
 }
 
 /**
