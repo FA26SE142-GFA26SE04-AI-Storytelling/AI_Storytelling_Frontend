@@ -153,17 +153,60 @@ function StaffNav({ role, pageId, onPage, badges, upward }: { role: StaffRole; p
   });
 }
 
-export default function StaffApp({ role }: { role: StaffRole }) {
-  const { user } = useAuth();
-  return <StaffAppInner key={`${role}:${user?.id ?? "anon"}`} role={role} userId={user?.id ?? null} />;
+export function defaultStaffSection(role: StaffRole): string {
+  return PAGES[role][0].id;
 }
 
-function StaffAppInner({ role, userId }: { role: StaffRole; userId: number | null }) {
+export default function StaffApp({
+  role,
+  initialSection,
+  initialTarget = null,
+  onNavigate,
+}: {
+  role: StaffRole;
+  initialSection?: string;
+  initialTarget?: number | null;
+  onNavigate?: (section: string, storyId: number | null) => void;
+}) {
+  const { user } = useAuth();
+  return (
+    <StaffAppInner
+      key={`${role}:${user?.id ?? "anon"}`}
+      role={role}
+      userId={user?.id ?? null}
+      initialSection={initialSection}
+      initialTarget={initialTarget}
+      onNavigate={onNavigate}
+    />
+  );
+}
+
+function StaffAppInner({
+  role,
+  userId,
+  initialSection,
+  initialTarget = null,
+  onNavigate,
+}: {
+  role: StaffRole;
+  userId: number | null;
+  initialSection?: string;
+  initialTarget?: number | null;
+  onNavigate?: (section: string, storyId: number | null) => void;
+}) {
   const { theme, toggleTheme } = useTheme();
   const navRef = useRiseIn<HTMLElement>("button", [], { delay: 40, distance: 10 });
   const pages = PAGES[role];
-  // Tải lại trang hay quay lại từ tab khác thì quay về đúng trang (và truyện AI đang soạn), không về trang đầu.
+  // Ưu tiên section từ URL Next.js (/staff/<section>), sau đó mới fallback về session đã lưu.
   const [initial] = useState(() => {
+    const fromRoute = initialSection && pages.some((p) => p.id === initialSection) ? initialSection : null;
+    if (fromRoute) {
+      return {
+        pageId: fromRoute,
+        target: initialTarget,
+        resumeId: fromRoute === "create-ai" && initialTarget === null && userId !== null ? readCreatorAiStory(userId) : null,
+      };
+    }
     const saved = userId !== null ? readStaffWorkspace(userId) : null;
     const valid = !!saved && pages.some((p) => p.id === saved.pageId);
     return {
@@ -177,7 +220,17 @@ function StaffAppInner({ role, userId }: { role: StaffRole; userId: number | nul
   const [target, setTarget] = useState<number | null>(initial.target);
   // Truyện AI đang soạn dở trước khi tải lại; chỉ dùng cho lần mở đầu, điều hướng sau đó thì bỏ.
   const [resumeId, setResumeId] = useState<number | null>(initial.resumeId);
-  const go = (id: string, storyId: number | null = null) => { setPageId(id); setTarget(storyId); setResumeId(null); };
+  useEffect(() => {
+    if (!initialSection || !pages.some((p) => p.id === initialSection)) return;
+    setPageId(initialSection);
+    setTarget(initialTarget);
+  }, [initialSection, initialTarget, pages]);
+  const go = (id: string, storyId: number | null = null) => {
+    setPageId(id);
+    setTarget(storyId);
+    setResumeId(null);
+    onNavigate?.(id, storyId);
+  };
   useEffect(() => { if (userId !== null) writeStaffWorkspace(userId, { pageId, target }); }, [userId, pageId, target]);
 
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});

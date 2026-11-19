@@ -278,8 +278,7 @@ export function ModerationQueueFrame({
       <div className={`pane st-page mod-shell${hasSelection ? ' has-detail' : ''}${collapseList ? ' list-collapsed' : ''}`}>
         <header className="mod-head">
           <div className="mod-head-text">
-            <h1 className="display">{title}</h1>
-            <p className="sub">{description}</p>
+            <h1 className="display" title={description}>{title}</h1>
           </div>
           <div className="mod-head-actions">
             {hasSelection && (

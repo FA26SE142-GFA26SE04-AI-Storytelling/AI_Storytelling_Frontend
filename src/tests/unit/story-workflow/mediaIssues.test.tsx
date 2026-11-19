@@ -18,7 +18,9 @@ describe('Media diagnostics tied to backend scene and asset IDs', () => {
     const html = renderToStaticMarkup(<MediaIssues progress={progress} onSelectScene={() => {}}/>);
     expect(html).toContain('Cảnh 2 · Tranh 2');
     expect(html).toContain('Xử lý quá thời gian chờ.');
-    expect(html).toContain('Asset #42');
+    expect(html).toContain('Dịch vụ AI phản hồi quá chậm.');
+    expect(html).not.toContain('MEDIA_PROVIDER_TIMEOUT');
+    expect(html).not.toContain('Asset #42');
     expect(html).toContain('<button');
   });
   it('distinguishes queued and processing retries from terminal failures', () => {

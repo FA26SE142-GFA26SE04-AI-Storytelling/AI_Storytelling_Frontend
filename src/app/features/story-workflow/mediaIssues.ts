@@ -40,3 +40,13 @@ export function mediaIssueMessage(issue: MediaGenerationIssue): string {
   if (issue.errorCode === 'MEDIA_ITEM_INCOMPLETE') return 'Mục này chưa hoàn thành, hệ thống chưa cho biết lý do.';
   return 'Chưa xử lý thành công mục này.';
 }
+
+/** Chuyển đổi danh sách mã lỗi & mục ảnh hưởng thành thông báo thân thiện với người dùng. */
+export function friendlyMediaDetails(items: readonly MediaGenerationIssue[]): string {
+  const explanations = [...new Set(items.map(item =>
+    mediaIssueReason(item.errorCode) ?? mediaIssueMessage(item),
+  ))];
+  const affected = items.map(mediaIssueLabel).join(', ');
+  const reasonPart = explanations.join(' ');
+  return affected ? `${reasonPart} Các mục bị ảnh hưởng: ${affected}.` : reasonPart;
+}
