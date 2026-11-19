@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { CircleAlert, Lock, ShieldAlert, Sparkles } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
@@ -207,7 +208,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
           {!locked && (
             <div className="brief-submit">
               {errorMessage && <div className="notice err" role="alert">{errorMessage}</div>}
-              {outOfQuota && <div className="notice err row" role="alert" data-inline-notice style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}><span>Bạn đã hết lượt tạo truyện AI. Nâng lên Gói Sáng tạo hoặc mua Add-on để tạo thêm.</span><a className="btn btn-s" href="#account-payment">Nâng cấp gói</a></div>}
+              {outOfQuota && <div className="notice err row" role="alert" data-inline-notice style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}><span>Bạn đã hết lượt tạo truyện AI. Nâng lên Gói Sáng tạo hoặc mua Add-on để tạo thêm.</span><Link className="btn btn-s" href="/app/account-payment">Nâng cấp gói</Link></div>}
               <button type="submit" className="btn btn-p brief-go" disabled={submitDisabled} aria-describedby={submitReason ? "brief-go-why" : undefined}>
                 <Sparkles className="ic" aria-hidden />{isBusy ? "Đang gửi ý tưởng…" : "Viết dàn ý"}
               </button>

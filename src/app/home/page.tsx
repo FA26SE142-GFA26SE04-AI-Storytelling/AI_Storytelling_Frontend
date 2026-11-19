@@ -2,26 +2,12 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/app/context/AuthContext";
-import Landing from "@/app/features/landing/Landing";
-import { useClickRipple } from "@/app/lib/motion";
 
-// Trang giới thiệu công khai. Người đã đăng nhập vào thẳng khu làm việc ở "/".
-export default function IntroPage() {
-  useClickRipple();
+/** Giữ tương thích cho các đường dẫn cũ trỏ tới `/home`: chuyển về trang chủ `/`. */
+export default function LegacyHomeRedirectPage() {
   const router = useRouter();
-  const { user, isLoading } = useAuth();
-
   useEffect(() => {
-    if (!isLoading && user) router.replace("/");
-  }, [isLoading, user, router]);
-
-  if (user) return <div className="splash">Đang mở không gian làm việc…</div>;
-  return (
-    <Landing
-      onStart={mode => router.push(mode === "register" ? "/?auth=signup" : "/?auth=login")}
-      // Cùng lối vào với link trong mã QR (/?kid=<mã>): trang "/" mở phiên của bé.
-      onKidCode={code => router.push(`/?kid=${encodeURIComponent(code)}`)}
-    />
-  );
+    router.replace("/");
+  }, [router]);
+  return <div className="splash">Đang chuyển về trang chủ…</div>;
 }
