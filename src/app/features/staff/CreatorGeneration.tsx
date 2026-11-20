@@ -1,6 +1,6 @@
 'use client';
-import '@/app/features/studio/studio.css';
-import '@/app/features/review/review.css';
+import '@/app/styles/features/studio/studio.css';
+import '@/app/styles/features/review/review.css';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type * as B from '@/app/types/backendContracts';
 import { creatorInputService } from '@/app/services/creatorPublicationService';

@@ -1,5 +1,5 @@
 'use client';
-import './moderator-workspaces.css';
+import '@/app/styles/features/staff/moderator-workspaces.css';
 import { useState } from 'react';
 import { Archive } from 'lucide-react';
 import { PUBLIC_STORY_REMOVAL_SECTIONS } from './moderationConfig';

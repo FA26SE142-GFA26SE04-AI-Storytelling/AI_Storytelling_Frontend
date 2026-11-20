@@ -1,9 +1,9 @@
 "use client";
 
-import "@/app/features/library/library.css";
-import "@/app/features/children/children.css";
-import "@/app/features/roadmap/roadmap.css";
-import "./learning.css";
+import "@/app/styles/features/library/library.css";
+import "@/app/styles/features/children/children.css";
+import "@/app/styles/features/roadmap/roadmap.css";
+import "@/app/styles/features/learning/learning.css";
 import { useCallback, useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";

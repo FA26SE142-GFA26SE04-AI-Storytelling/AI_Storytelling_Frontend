@@ -1,7 +1,7 @@
 "use client";
 
-import "@/app/features/review/review-tools.css";
-import "./roadmap.css";
+import "@/app/styles/features/review/review-tools.css";
+import "@/app/styles/features/roadmap/roadmap.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, BookOpen, Check, Library, Lock, Plus, X } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";

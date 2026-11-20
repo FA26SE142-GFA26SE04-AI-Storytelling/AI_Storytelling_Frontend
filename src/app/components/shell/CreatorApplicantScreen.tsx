@@ -1,7 +1,7 @@
 "use client";
 
-import "./login.css";
-import "./applicant.css";
+import "@/app/styles/components/shell/login.css";
+import "@/app/styles/components/shell/applicant.css";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { ExternalLink, LogOut, RefreshCw, Send } from "lucide-react";
 import Frog from "@/app/components/brand/Frog";

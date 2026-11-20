@@ -1,6 +1,6 @@
 "use client";
 
-import "@/app/features/review/review-tools.css";
+import "@/app/styles/features/review/review-tools.css";
 import { useEffect, useRef, useState } from "react";
 import { TriangleAlert, CircleHelp } from "lucide-react";
 import { subscribeConfirm, type ConfirmRequest } from "@/app/lib/confirm";

@@ -10,7 +10,7 @@ import {
   customPeriod,
   isValidRange,
 } from '@/app/lib/monthPeriods';
-import './PeriodPicker.css';
+import '@/app/styles/components/stats/PeriodPicker.css';
 
 const PRESETS: PeriodPreset[] = ['thisMonth', 'lastMonth', 'last3Months', 'custom'];
 

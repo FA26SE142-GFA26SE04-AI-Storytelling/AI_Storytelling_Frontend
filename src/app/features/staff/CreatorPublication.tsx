@@ -9,7 +9,7 @@ import type { ApiResponse } from '@/app/types/auth';
 import { confirmDialog } from "@/app/lib/confirm";
 import { Check, FilePen, ImagePlus, RefreshCw, Send, Trash2 } from 'lucide-react';
 import Dialog from '@/app/components/Dialog';
-import '@/app/features/created/created.css';
+import '@/app/styles/features/created/created.css';
 import CoverPickerDialog, { CoverPickerPanel, prefetchCoverPictures } from '@/app/features/created/CoverPickerDialog';
 import { creatorService } from '@/app/services/creatorService';
 import { coverFor } from '@/app/lib/storyView';

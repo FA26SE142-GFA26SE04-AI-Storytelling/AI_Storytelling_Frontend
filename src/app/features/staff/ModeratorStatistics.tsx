@@ -1,6 +1,6 @@
 'use client';
 
-import './ModeratorStatistics.css';
+import '@/app/styles/features/staff/ModeratorStatistics.css';
 import { useEffect, useState } from 'react';
 import {
   Inbox,

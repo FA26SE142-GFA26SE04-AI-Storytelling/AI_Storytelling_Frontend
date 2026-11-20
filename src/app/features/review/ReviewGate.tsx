@@ -1,7 +1,7 @@
 "use client";
 import { useTabActions } from "@/app/features/story-workflow/tabActions";
 
-import "./review.css";
+import "@/app/styles/features/review/review.css";
 import { useEffect, useState } from "react";
 import { BookOpenText, Check, CircleAlert, ClipboardCheck, PencilLine, PenLine, RefreshCw, WandSparkles } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";

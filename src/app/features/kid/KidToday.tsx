@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import './kid-lobby.css';
-import './kid-today.css';
+import '@/app/styles/features/kid/kid-lobby.css';
+import '@/app/styles/features/kid/kid-today.css';
 import { Library, Lock, Mail, Map as MapIcon, Play, RotateCcw } from 'lucide-react';
 import type * as B from '@/app/types/backendContracts';
 import Frog from '@/app/components/brand/Frog';

@@ -1,6 +1,6 @@
 'use client';
 
-import './CreatorContentTab.css';
+import '@/app/styles/features/staff/CreatorContentTab.css';
 import { useEffect, useState } from 'react';
 import {
   FilePen,

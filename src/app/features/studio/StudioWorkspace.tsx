@@ -1,6 +1,6 @@
 "use client";
 
-import "./studio.css";
+import "@/app/styles/features/studio/studio.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AsideContext } from "@/app/components/shell/AsidePane";
 import { ApproveSlot, type ApproveAction } from "@/app/features/story-workflow/approveSlot";

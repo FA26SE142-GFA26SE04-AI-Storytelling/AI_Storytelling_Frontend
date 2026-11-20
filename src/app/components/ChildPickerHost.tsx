@@ -1,6 +1,6 @@
 "use client";
 
-import "@/app/features/review/review-tools.css";
+import "@/app/styles/features/review/review-tools.css";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";

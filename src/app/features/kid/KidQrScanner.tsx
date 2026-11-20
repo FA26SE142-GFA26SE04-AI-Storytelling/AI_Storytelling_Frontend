@@ -1,7 +1,7 @@
 "use client";
 
-import "./kid.css";
-import "@/app/features/review/review-tools.css";
+import "@/app/styles/features/kid/kid.css";
+import "@/app/styles/features/review/review-tools.css";
 import { useCallback, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Camera, ImageUp } from "lucide-react";
 import Dialog from "@/app/components/Dialog";

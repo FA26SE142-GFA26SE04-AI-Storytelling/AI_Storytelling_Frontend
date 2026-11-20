@@ -1,7 +1,7 @@
 "use client";
 
-import "./staff.css";
-import "@/app/features/children/children.css";
+import "@/app/styles/features/staff/staff.css";
+import "@/app/styles/features/children/children.css";
 import { useEffect, useState, type ComponentType } from "react";
 import {
   Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,

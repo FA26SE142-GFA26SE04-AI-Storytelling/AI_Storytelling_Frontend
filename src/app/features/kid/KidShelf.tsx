@@ -1,8 +1,8 @@
 import type { ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import { ChevronRight } from "lucide-react";
-import "./kid-lobby.css";
-import "./kid-shelves.css";
+import "@/app/styles/features/kid/kid-lobby.css";
+import "@/app/styles/features/kid/kid-shelves.css";
 
 interface KidShelfProps {
   title: string;

@@ -12,7 +12,7 @@ import type {
   PlanBenefitsInput,
 } from "@/app/types/planSettings";
 import CreatePlanBenefitsSection from "./plan-settings/CreatePlanBenefitsSection";
-import "./plan-settings/plan-dialogs.css";
+import "@/app/styles/features/staff/plan-settings/plan-dialogs.css";
 
 export interface CreatePlanDialogProps {
   open: boolean;
