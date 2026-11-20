@@ -1,5 +1,6 @@
 "use client";
 
+import { authScreenHref, readAuthScreenMode, type AuthScreenMode } from "@/app/lib/authLocation";
 import PasswordInput from "@/app/components/PasswordInput";
 import "@/app/styles/components/shell/login.css";
 import { useEffect, useState, type FormEvent } from "react";
@@ -13,7 +14,7 @@ import { passwordProblem } from "@/app/lib/guardian";
 import KidQrScanner from "@/app/features/kid/KidQrScanner";
 
 
-type Mode = "login" | "register" | "verify" | "forgot" | "reset" | "creator" | "activate";
+type Mode = AuthScreenMode;
 
 const TITLES: Record<Mode, string> = {
   login: "Chào mừng trở lại",
@@ -32,17 +33,7 @@ const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: 
  * ?auth=reset&token=...&email=...  → đặt mật khẩu mới
  * ?auth=forgot | signup | signin | creator → mở đúng biểu mẫu
  */
-function modeFromUrl(params: URLSearchParams): Mode | null {
-  const auth = params.get("auth");
-  if (auth === "verify") return "verify";
-  if (auth === "activate") return "activate";
-  if (auth === "creator") return "creator";
-  if (params.get("token") || params.get("resetToken") || auth === "reset") return "reset";
-  if (auth === "forgot") return "forgot";
-  if (auth === "signup") return "register";
-  if (auth === "signin") return "login";
-  return null;
-}
+
 
 /**
  * `initialMode`: mở thẳng biểu mẫu đăng nhập hoặc đăng ký (từ trang giới thiệu). `onHome`: có thì hiện nút về trang giới thiệu.
@@ -60,18 +51,24 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const next = modeFromUrl(params);
-    if (!next) return;
-    setMode(next);
-    setF((cur) => ({ ...cur, email: params.get("email") ?? "", token: params.get("token") ?? params.get("resetToken") ?? "" }));
-  }, []);
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      setMode(readAuthScreenMode(window.location.pathname, params, initialMode));
+      setF((cur) => ({ ...cur, email: params.get("email") ?? cur.email, token: params.get("token") ?? params.get("resetToken") ?? "" }));
+    };
+    const onPopState = () => { syncFromUrl(); setMsg(null); };
+    syncFromUrl();
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [initialMode]);
 
   const go = (next: Mode) => {
     setMode(next);
     setMsg(null);
-    // Bỏ tham số trên URL để tải lại trang không mở lại biểu mẫu cũ.
-    if (window.location.search) window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+    const href = authScreenHref(next, window.location.href);
+    if (href !== window.location.pathname + window.location.search + window.location.hash) {
+      window.history.pushState(null, "", href);
+    }
   };
 
   const submit = async (e: FormEvent) => {
