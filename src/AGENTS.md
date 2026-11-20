@@ -19,11 +19,11 @@ app/
 ├── page.tsx, layout.tsx, not-found.tsx   # Next.js App Router, chỉ một route "/"
 ├── icon.svg                              # Favicon (mặt ếch)
 ├── globals.css                           # Chỉ nạp Tailwind; xem styles/
-├── styles/        tokens.css (màu, theme sáng/tối) · base.css (thành phần nhỏ) · shell.css (khung, panel)
+├── styles/        tokens.css · base.css · shell.css · components/ · features/ (toàn bộ CSS tách riêng)
 ├── components/
-│   ├── brand/     Linh vật và trang trí đầm sen (Frog, Lotus, PondBackdrop, LilyStepper, HeroPond) + brand.css
+│   ├── brand/     Linh vật và trang trí đầm sen (Frog, Lotus, PondBackdrop, LilyStepper, HeroPond)
 │   └── shell/     Khung ứng dụng (AppShell, LoginScreen, nav.ts)
-├── features/      Mỗi màn một thư mục, CSS riêng đặt cạnh và import ngay trong component
+├── features/      Mỗi màn một thư mục; file CSS đặt tương ứng trong styles/features/<tên>/ và import qua `@/app/styles/...`
 │   ├── home/ library/ review/ report/ safety/ kid/
 │   ├── studio/          Studio tạo truyện (giao diện + useStoryPipeline)
 │   └── story-workflow/  Logic nghiệp vụ tạo/duyệt truyện AI (hook + hàm thuần), không có JSX
