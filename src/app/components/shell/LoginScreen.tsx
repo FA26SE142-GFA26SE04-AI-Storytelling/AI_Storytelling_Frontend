@@ -1,7 +1,7 @@
 "use client";
 
 import PasswordInput from "@/app/components/PasswordInput";
-import "./login.css";
+import "@/app/styles/components/shell/login.css";
 import { useEffect, useState, type FormEvent } from "react";
 import Frog from "@/app/components/brand/Frog";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";

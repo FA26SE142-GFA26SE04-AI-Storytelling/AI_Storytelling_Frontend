@@ -11,7 +11,7 @@ import { confirmDialog } from '@/app/lib/confirm';
 import RubricEvaluationHistory, { type TrialInput, type ValidationResult } from './RubricEvaluationHistory';
 import RubricExamplesEditor from './RubricExamplesEditor';
 import { Page, fmt } from './ui';
-import './rubric-workspace.css';
+import '@/app/styles/features/staff/rubric-workspace.css';
 
 const STATUS_LABEL: Record<string, string> = { Draft: 'Bản nháp', Active: 'Đang áp dụng', Retired: 'Ngừng áp dụng' };
 const STATUS_FILTERS = [

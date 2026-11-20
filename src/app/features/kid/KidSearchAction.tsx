@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent } from 'react';
 import { ArrowRight, Search, X } from 'lucide-react';
-import './kid-shelves.css';
+import '@/app/styles/features/kid/kid-shelves.css';
 
 interface KidSearchActionProps {
   open: boolean;

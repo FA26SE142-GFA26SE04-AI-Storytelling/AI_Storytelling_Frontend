@@ -9,7 +9,7 @@ import { staffService } from '@/app/services/staffService';
 import type { ContentCategory } from '@/app/types/childProfile';
 import type { PagedResult } from '@/app/types/backendContracts';
 import type { ManagedWishCardGroup, WishCardDto } from '@/app/types/storyWish';
-import '@/app/features/review/review-tools.css';
+import '@/app/styles/features/review/review-tools.css';
 import { Page } from './ui';
 import WishCardDialog, {
   EMPTY_WISH_FORM,

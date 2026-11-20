@@ -9,8 +9,8 @@ import IconButton from '@/app/components/IconButton';
 import SafeImage from "@/app/components/SafeImage";
 import { useRiseIn } from '@/app/lib/motion';
 import { showToast } from '@/app/lib/toast';
-import './kid-lobby.css';
-import './kid-panes.css';
+import '@/app/styles/features/kid/kid-lobby.css';
+import '@/app/styles/features/kid/kid-panes.css';
 
 const STEPS: { group: WishCardGroup; question: string; optional: boolean; icon: LucideIcon }[] = [
   { group: 'Character', question: 'Ai là nhân vật chính?', optional: false, icon: UserRound },

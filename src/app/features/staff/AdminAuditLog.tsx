@@ -1,6 +1,6 @@
 "use client";
 
-import "./AdminAuditLog.css";
+import "@/app/styles/features/staff/AdminAuditLog.css";
 import { useCallback, useEffect, useState } from "react";
 import { Eye, Filter, RotateCcw } from "lucide-react";
 import Dialog from "@/app/components/Dialog";

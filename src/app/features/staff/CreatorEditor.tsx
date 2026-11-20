@@ -9,7 +9,7 @@ import type { ContentSaved, CreatorDraft, CreatorResult, CreatorVersion, SaveVer
 import { detectPii } from "@/app/lib/storyRules";
 import { fmt } from "./ui";
 import CreatorImport from "./CreatorImport";
-import "@/app/features/authoring/authoring.css";
+import "@/app/styles/features/authoring/authoring.css";
 
 import AssistancePanel from "@/app/features/authoring/AssistancePanel";
 import StoryFields from "@/app/features/authoring/StoryFields";

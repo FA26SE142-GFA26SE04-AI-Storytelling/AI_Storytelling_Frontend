@@ -10,7 +10,7 @@ import { childReadingService } from "@/app/services/childReadingService";
 import type { ChildStory } from "@/app/types/childReading";
 import KidSearchAction from "./KidSearchAction";
 import KidShelf from "./KidShelf";
-import "./kid-lobby.css";
+import "@/app/styles/features/kid/kid-lobby.css";
 
 interface KidShelvesProps {
   token: string; busy: boolean; unlockTitle?: string; refreshKey: number;

@@ -1,6 +1,6 @@
 "use client";
 
-import "./review-tools.css";
+import "@/app/styles/features/review/review-tools.css";
 import { useState } from "react";
 import { Check, Plus, RefreshCw, Trash2, X } from "lucide-react";
 import { aiStoryCreationService as api } from "@/app/services/aiStoryCreationService";

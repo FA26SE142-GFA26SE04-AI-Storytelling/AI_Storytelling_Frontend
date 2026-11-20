@@ -1,5 +1,5 @@
 'use client';
-import './moderator-workspaces.css';
+import '@/app/styles/features/staff/moderator-workspaces.css';
 import { useState } from 'react';
 import { LibraryBig } from 'lucide-react';
 import { PUBLIC_STORY_SECTIONS } from './moderationConfig';

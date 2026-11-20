@@ -1,7 +1,7 @@
 "use client";
 
-import "@/app/features/library/library.css";
-import "@/app/features/created/created.css";
+import "@/app/styles/features/library/library.css";
+import "@/app/styles/features/created/created.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Eye, Info, PencilLine, RefreshCw, Search, Undo2, WandSparkles, X } from "lucide-react";
 import { Shelf, ShelfRow } from "@/app/features/library/LibraryWorkspace";

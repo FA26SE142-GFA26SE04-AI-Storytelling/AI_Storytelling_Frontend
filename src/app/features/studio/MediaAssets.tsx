@@ -5,7 +5,7 @@ import Dialog from '@/app/components/Dialog';
 import { useMediaPackage } from '@/app/features/story-workflow/useMediaPackage';
 import { showToast } from '@/app/lib/toast';
 import SafeImage from "@/app/components/SafeImage";
-import './media-assets.css';
+import '@/app/styles/features/studio/media-assets.css';
 
 /** Trạng thái từng tranh / đoạn âm thanh của backend: [tông pill, chữ]. */
 const ASSET: Record<string, [string, string]> = {

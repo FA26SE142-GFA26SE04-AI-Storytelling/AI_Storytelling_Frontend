@@ -1,8 +1,8 @@
 "use client";
 import { confirmDialog } from "@/app/lib/confirm";
-import "./authoring.css";
-import "@/app/features/studio/workflow.css";
-import "@/app/features/review/review-tools.css";
+import "@/app/styles/features/authoring/authoring.css";
+import "@/app/styles/features/studio/workflow.css";
+import "@/app/styles/features/review/review-tools.css";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowLeft,

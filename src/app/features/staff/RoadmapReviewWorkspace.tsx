@@ -1,5 +1,5 @@
 'use client';
-import './moderator-workspaces.css';
+import '@/app/styles/features/staff/moderator-workspaces.css';
 import { useState } from 'react';
 import { ROADMAP_REVIEW_SECTIONS } from './moderationConfig';
 import { ModerationWorkspaceShell, QueueSummaryCard } from './ModerationQueuePrimitives';

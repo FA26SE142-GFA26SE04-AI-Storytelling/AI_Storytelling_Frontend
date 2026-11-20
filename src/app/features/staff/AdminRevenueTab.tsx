@@ -11,7 +11,7 @@ import MonthBars from "@/app/components/stats/MonthBars";
 import { useMonthlyStats } from "@/app/components/stats/useMonthlyStats";
 import { count, money, pct, shortMoney } from "@/app/components/stats/statFormat";
 import RevenueByPlanDonut from "./RevenueByPlanDonut";
-import "./AdminRevenueTab.css";
+import "@/app/styles/features/staff/AdminRevenueTab.css";
 
 /** Nguồn cấp lượt AI (CreditSource của Backend) bằng tiếng Việt; nguồn lạ thì giữ nguyên tên. */
 const CREDIT_SOURCE_LABELS: Record<string, string> = {

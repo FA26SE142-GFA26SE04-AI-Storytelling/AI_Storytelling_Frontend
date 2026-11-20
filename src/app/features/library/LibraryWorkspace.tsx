@@ -1,6 +1,6 @@
 "use client";
 
-import "./library.css";
+import "@/app/styles/features/library/library.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { aiStoryCreationService } from "@/app/services/aiStoryCreationService";

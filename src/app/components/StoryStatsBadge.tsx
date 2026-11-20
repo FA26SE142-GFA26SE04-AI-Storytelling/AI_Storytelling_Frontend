@@ -1,7 +1,7 @@
 "use client";
 
 import { Eye, Heart } from "lucide-react";
-import "./StoryStatsBadge.css";
+import "@/app/styles/components/StoryStatsBadge.css";
 
 /**
  * Huy hiệu hiển thị số liệu truyện (lượt đọc, lượt yêu thích).

@@ -1,4 +1,4 @@
-import './CreatorQuotaPanel.css';
+import '@/app/styles/features/account/CreatorQuotaPanel.css';
 import type { CreatorQuotaDto, SubscriptionPlanDto } from '@/app/types/backendContracts';
 import { useGrowBars, usePop } from '@/app/lib/motion';
 import { WandSparkles, Send, Package, Check, CreditCard, CalendarClock } from 'lucide-react';

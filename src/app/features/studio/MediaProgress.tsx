@@ -6,7 +6,7 @@ import { useStoryProgressPolling } from '@/app/features/story-workflow/useStoryP
 import { mediaNeedsPolling as continuePolling } from '@/app/features/story-workflow/mediaPackage';
 import type { MediaProgressDto } from '@/app/types/aiStory';
 import MediaAssets from './MediaAssets';
-import './workflow.css';
+import '@/app/styles/features/studio/workflow.css';
 
 /** Trạng thái job media của backend là chuỗi tiếng Anh; dịch các giá trị đã biết. */
 const JOB: Record<string, string> = {

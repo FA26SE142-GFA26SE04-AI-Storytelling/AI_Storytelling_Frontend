@@ -5,7 +5,7 @@ import { confirmDialog } from '@/app/lib/confirm';
 import RoadmapAuthoringWorkspace from './RoadmapAuthoringWorkspace';
 import RoadmapPublishedView from './RoadmapPublishedView';
 import RoadmapReviewWorkspace from './RoadmapReviewWorkspace';
-import './roadmap-templates.css';
+import '@/app/styles/features/staff/roadmap-templates.css';
 
 type RoadmapMode = 'author' | 'review' | 'published' | 'archived';
 

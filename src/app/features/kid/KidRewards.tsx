@@ -7,8 +7,8 @@ import KnowledgeTreeArt, { TREE_STAGE_CODES, treeStageIndex } from '@/app/compon
 import Frog from '@/app/components/brand/Frog';
 import { usePop, useRiseIn } from '@/app/lib/motion';
 import { showToast } from '@/app/lib/toast';
-import './kid-lobby.css';
-import './kid-panes.css';
+import '@/app/styles/features/kid/kid-lobby.css';
+import '@/app/styles/features/kid/kid-panes.css';
 
 /** Tổng EXP, chuỗi ngày đọc và huy hiệu của bé. */
 export default function KidRewards({ token }: { token: string }) {

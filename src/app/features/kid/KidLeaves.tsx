@@ -4,7 +4,7 @@
 import { useEffect, useRef, useState, type MouseEvent } from "react";
 import { prefersReducedMotion } from "@/app/lib/motion";
 import { petalBurst } from "./kidFx";
-import "./kid-leaves.css";
+import "@/app/styles/features/kid/kid-leaves.css";
 
 interface LeafConfig {
   left: string;

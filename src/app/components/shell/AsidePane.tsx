@@ -1,6 +1,6 @@
 "use client";
 
-import "./aside.css";
+import "@/app/styles/components/shell/aside.css";
 import { createContext, useContext, type ReactNode, type Ref } from "react";
 import { ChevronsRight, PanelRight, type LucideIcon } from "lucide-react";
 

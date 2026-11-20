@@ -19,7 +19,7 @@ import Frog from "@/app/components/brand/Frog";
 import Lotus from "@/app/components/brand/Lotus";
 import { Check, Lock, Plus, UserCheck } from "lucide-react";
 import { petalBurst } from "@/app/features/kid/kidFx";
-import "./LilyPondRoadmap.css";
+import "@/app/styles/components/roadmap/LilyPondRoadmap.css";
 
 /* ========== Types ========== */
 

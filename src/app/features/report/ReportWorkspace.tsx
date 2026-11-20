@@ -1,6 +1,6 @@
 "use client";
 
-import "./report.css";
+import "@/app/styles/features/report/report.css";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { ageLabel } from "@/app/lib/storyView";
 import { useRiseIn, useDrawDonut } from "@/app/lib/motion";

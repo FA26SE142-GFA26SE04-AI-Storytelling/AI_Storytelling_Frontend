@@ -246,7 +246,7 @@ describe('Moderation queue work title & submitter display', () => {
     expect(rowHtml).toContain(longAuthor);
     expect(detailHtml).toContain('st-detail-title');
 
-    const css = readFileSync(path.resolve(process.cwd(), 'app/features/staff/staff.css'), 'utf8');
+    const css = readFileSync(path.resolve(process.cwd(), 'app/styles/features/staff/staff.css'), 'utf8');
     expect(css).toMatch(/\.st-item-title[\s\S]*overflow-wrap:\s*anywhere/);
     expect(css).toMatch(/\.st-item-author[\s\S]*overflow-wrap:\s*anywhere/);
     expect(css).toMatch(/\.st-detail-title[\s\S]*overflow-wrap:\s*anywhere/);

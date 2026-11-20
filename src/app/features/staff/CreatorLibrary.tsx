@@ -1,6 +1,6 @@
 "use client";
 
-import "@/app/features/library/library.css";
+import "@/app/styles/features/library/library.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Eye, Info, PencilLine, Search, SlidersHorizontal, WandSparkles, X } from "lucide-react";
 import CreatorPreview from "./CreatorPreview";

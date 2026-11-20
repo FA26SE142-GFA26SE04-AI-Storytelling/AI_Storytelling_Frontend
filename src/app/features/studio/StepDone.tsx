@@ -1,6 +1,6 @@
 'use client';
 import { Check } from 'lucide-react';
-import './workflow.css';
+import '@/app/styles/features/studio/workflow.css';
 
 /** Dòng "Đã xong" có dấu tick, dùng khi một bước trong trình soạn (Creator, phụ huynh) đã hoàn tất. */
 export default function StepDone({ label = 'Đã xong' }: { label?: string }) {

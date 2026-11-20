@@ -1,4 +1,4 @@
-import './components/shell/login.css';
+import '@/app/styles/components/shell/login.css';
 import Link from 'next/link';
 import { Home } from 'lucide-react';
 import Frog from './components/brand/Frog';
