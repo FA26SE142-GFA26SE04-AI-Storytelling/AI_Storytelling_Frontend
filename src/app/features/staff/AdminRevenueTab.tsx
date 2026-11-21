@@ -11,17 +11,17 @@ import MonthBars from "@/app/components/stats/MonthBars";
 import { useMonthlyStats } from "@/app/components/stats/useMonthlyStats";
 import { count, money, pct, shortMoney } from "@/app/components/stats/statFormat";
 import RevenueByPlanDonut from "./RevenueByPlanDonut";
-import "./AdminRevenueTab.css";
+import "@/app/styles/features/staff/AdminRevenueTab.css";
 
 /** Nguồn cấp lượt AI (CreditSource của Backend) bằng tiếng Việt; nguồn lạ thì giữ nguyên tên. */
 const CREDIT_SOURCE_LABELS: Record<string, string> = {
   Trial: "Dùng thử",
   Cycle: "Chu kỳ gói",
-  AddOn: "Add-on",
+  AddOn: "Gói bổ sung",
   Legacy: "Gói cũ",
-  AdminAdjust: "Admin cấp",
-  CreatorMonthly: "Hạn mức Creator",
-  CreatorPack: "Gói Creator",
+  AdminAdjust: "Quản trị viên cấp",
+  CreatorMonthly: "Hạn mức nhà sáng tạo",
+  CreatorPack: "Gói nhà sáng tạo",
 };
 
 export function AdminRevenueTab({
@@ -108,7 +108,7 @@ export function AdminRevenueTab({
         />
         <StatCard
           icon={Gift}
-          label="Quỹ Creator"
+          label="Quỹ nhà sáng tạo"
           value={money(data.creatorFundVnd)}
           info={`Tỉ lệ quỹ: Đọc ${pct(data.readingFundRate)}, Sáng tạo ${pct(data.creativeFundRate)}`}
         />

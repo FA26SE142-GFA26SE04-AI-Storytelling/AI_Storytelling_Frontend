@@ -1,5 +1,5 @@
 'use client';
-import './moderator-workspaces.css';
+import '@/app/styles/features/staff/moderator-workspaces.css';
 import { useState } from 'react';
 import { Archive } from 'lucide-react';
 import { PUBLIC_STORY_REMOVAL_SECTIONS } from './moderationConfig';
@@ -72,7 +72,7 @@ export default function RemovalRequestsWorkspace({ go }: { go?: (pageId: string)
   return (
     <ModerationWorkspaceShell
       title="Yêu cầu gỡ truyện"
-      description="Tiếp nhận và xử lý yêu cầu gỡ truyện công khai từ Creator."
+      description="Tiếp nhận và xử lý yêu cầu gỡ truyện công khai từ nhà sáng tạo."
       sections={PUBLIC_STORY_REMOVAL_SECTIONS}
       status={q.status}
       onStatusChange={next => {

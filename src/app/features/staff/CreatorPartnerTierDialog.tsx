@@ -36,11 +36,11 @@ export function CreatorPartnerTierDialog({ creator, onClose }: { creator: { id: 
   useEffect(() => { void load(); }, [load]);
 
   const revoke = async () => {
-    if (!(await confirmDialog(`Thu hồi cấp đối tác của ${creator.fullName}? Creator về cấp thường ngay và nhận thông báo.`))) return;
+    if (!(await confirmDialog(`Thu hồi cấp đối tác của ${creator.fullName}? Nhà sáng tạo về cấp thường ngay và nhận thông báo.`))) return;
     setBusy(true);
     const r = await creatorAdminService.revokePartner(creator.id, reason.trim());
     setBusy(false);
-    setNote({ ok: r.success, text: r.success ? "Đã thu hồi cấp đối tác; Creator về cấp thường ngay." : r.message });
+    setNote({ ok: r.success, text: r.success ? "Đã thu hồi cấp đối tác; nhà sáng tạo về cấp thường ngay." : r.message });
     if (r.success && r.data) { setTier(r.data); setReason(""); }
   };
 
@@ -51,7 +51,7 @@ export function CreatorPartnerTierDialog({ creator, onClose }: { creator: { id: 
       {!tier && !note && <p className="sub">Đang tải…</p>}
       {tier && <>
         <div className="kv">
-          <div><small>Cấp hiện tại</small><b><Award className="ic" />{partner ? "Creator đối tác" : "Creator"}</b></div>
+          <div><small>Cấp hiện tại</small><b><Award className="ic" />{partner ? "Nhà sáng tạo đối tác" : "Nhà sáng tạo thường"}</b></div>
           <div><small>Đối tác từ</small><b>{partner ? fmtDay(tier.partnerSince) : "—"}</b></div>
         </div>
 
@@ -77,7 +77,7 @@ export function CreatorPartnerTierDialog({ creator, onClose }: { creator: { id: 
                 <tr key={e.periodMonth}>
                   <td>{month(e.periodMonth)}</td>
                   <td>{e.eligible ? "Đạt cả 4 tiêu chí" : "Chưa đạt"}</td>
-                  <td>{e.tierBefore === e.tierAfter ? (e.tierAfter === "Partner" ? "Giữ đối tác" : "Creator") : e.tierAfter === "Partner" ? "Lên đối tác" : "Về Creator"}</td>
+                  <td>{e.tierBefore === e.tierAfter ? (e.tierAfter === "Partner" ? "Giữ đối tác" : "Giữ cấp thường") : e.tierAfter === "Partner" ? "Lên đối tác" : "Về cấp thường"}</td>
                 </tr>
               ))}
             </tbody>

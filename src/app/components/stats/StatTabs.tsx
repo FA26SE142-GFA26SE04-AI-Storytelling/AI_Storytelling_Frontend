@@ -1,6 +1,6 @@
 "use client";
 
-import "./StatTabs.css";
+import "@/app/styles/components/stats/StatTabs.css";
 
 export default function StatTabs({
   label,

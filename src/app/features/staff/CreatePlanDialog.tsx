@@ -12,7 +12,7 @@ import type {
   PlanBenefitsInput,
 } from "@/app/types/planSettings";
 import CreatePlanBenefitsSection from "./plan-settings/CreatePlanBenefitsSection";
-import "./plan-settings/plan-dialogs.css";
+import "@/app/styles/features/staff/plan-settings/plan-dialogs.css";
 
 export interface CreatePlanDialogProps {
   open: boolean;
@@ -22,17 +22,17 @@ export interface CreatePlanDialogProps {
 
 const AUDIENCE_OPTIONS: SelectOption<PlanAudience>[] = [
   { value: "User", label: "Phụ huynh" },
-  { value: "Creator", label: "Creator" },
+  { value: "Creator", label: "Nhà sáng tạo" },
 ];
 
 const USER_PLAN_TYPES: SelectOption<CreatablePlanType>[] = [
   { value: "Reading", label: "Gói Đọc" },
   { value: "Creative", label: "Gói Sáng tạo" },
-  { value: "AddOn", label: "Add-on" },
+  { value: "AddOn", label: "Gói bổ sung" },
 ];
 
 const CREATOR_PLAN_TYPES: SelectOption<CreatablePlanType>[] = [
-  { value: "CreatorPack", label: "Gói Creator" },
+  { value: "CreatorPack", label: "Gói nhà sáng tạo" },
 ];
 
 export default function CreatePlanDialog({

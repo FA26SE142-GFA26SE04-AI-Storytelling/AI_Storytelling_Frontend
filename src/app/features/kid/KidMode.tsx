@@ -1,6 +1,6 @@
 "use client";
 
-import "./kid.css";
+import "@/app/styles/features/kid/kid.css";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";

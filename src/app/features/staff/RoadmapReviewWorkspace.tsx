@@ -1,5 +1,5 @@
 'use client';
-import './moderator-workspaces.css';
+import '@/app/styles/features/staff/moderator-workspaces.css';
 import { useState } from 'react';
 import { ROADMAP_REVIEW_SECTIONS } from './moderationConfig';
 import { ModerationWorkspaceShell, QueueSummaryCard } from './ModerationQueuePrimitives';
@@ -59,7 +59,7 @@ export default function RoadmapReviewWorkspace() {
   return (
     <ModerationWorkspaceShell
       title="Duyệt lộ trình mẫu"
-      description="Tiếp nhận và duyệt các lộ trình mẫu do Moderator khác gửi lên (không tự duyệt bộ do mình tạo)."
+      description="Tiếp nhận và duyệt các lộ trình mẫu do kiểm duyệt viên khác gửi lên (không tự duyệt bộ do mình tạo)."
       sections={ROADMAP_REVIEW_SECTIONS}
       status={q.status}
       onStatusChange={next => {

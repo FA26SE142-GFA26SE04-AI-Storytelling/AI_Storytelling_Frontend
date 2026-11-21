@@ -1,5 +1,5 @@
 'use client';
-import './moderator-workspaces.css';
+import '@/app/styles/features/staff/moderator-workspaces.css';
 import { useState } from 'react';
 import Select from '@/app/components/Select';
 import { REMOVAL_RECORD_SOURCES, type RemovalRecordSourceDef } from './moderationConfig';

@@ -27,15 +27,15 @@ export function CreatorApplicationDialog({ app, onClose, onDone }: { app: AdminC
     onDone();
   };
   const approve = async () => {
-    if (!(await confirmDialog(`Duyệt đơn của ${app.applicantFullName}? Tài khoản được kích hoạt, Creator nhận thông báo và email.`))) return;
+    if (!(await confirmDialog(`Duyệt đơn của ${app.applicantFullName}? Tài khoản được kích hoạt, nhà sáng tạo nhận thông báo và email.`))) return;
     await finish(() => svc.approve(app.id), "Đã duyệt đơn đăng ký.");
   };
 
   return (
-    <Dialog title="Đơn đăng ký Content Creator" onClose={onClose} className="st-dlg" wide>
+    <Dialog title="Đơn đăng ký nhà sáng tạo nội dung" onClose={onClose} className="st-dlg" wide>
       <div className="kv">
         <div><small>Họ tên</small><b>{app.applicantFullName}</b></div>
-        <div><small>Username</small><b>{app.applicantUsername}</b></div>
+        <div><small>Tên đăng nhập</small><b>{app.applicantUsername}</b></div>
         <div><small>Email</small><b>{app.applicantEmail}</b></div>
         <div><small>Nộp lúc</small><b>{fmt(app.createdAt)}</b></div>
         <div><small>Tài khoản</small><Pill status={app.applicantStatus} /></div>
@@ -45,7 +45,7 @@ export function CreatorApplicationDialog({ app, onClose, onDone }: { app: AdminC
         <span className="lbl">Giới thiệu bản thân</span>
         <div className="st-content">{app.introduction}</div>
       </div>
-      {portfolio && <a className="btn btn-s" href={portfolio} target="_blank" rel="noopener noreferrer"><ExternalLink className="ic" />Mở portfolio</a>}
+      {portfolio && <a className="btn btn-s" href={portfolio} target="_blank" rel="noopener noreferrer"><ExternalLink className="ic" />Mở hồ sơ năng lực</a>}
       {!pending && (
         <div className="kv">
           <div><small>Người xử lý</small><b>{app.reviewedByName ?? "—"}</b></div>
@@ -54,7 +54,7 @@ export function CreatorApplicationDialog({ app, onClose, onDone }: { app: AdminC
       )}
       {app.rejectionReason && <div className="field"><span className="lbl">Lý do từ chối</span><div className="st-content">{app.rejectionReason}</div></div>}
 
-      {pending && unverified && <div className="notice warn" role="status"><MailWarning className="ic" /> Creator chưa xác thực email nên chưa duyệt được đơn.</div>}
+      {pending && unverified && <div className="notice warn" role="status"><MailWarning className="ic" /> Nhà sáng tạo chưa xác thực email nên chưa duyệt được đơn.</div>}
       {pending && !unverified && (rejecting ? <>
         <ReasonField label="Lý do từ chối" value={reason} onChange={setReason} />
         <div className="row">

@@ -7,7 +7,7 @@ import { Award, Map as MapIcon, NotebookPen, Sparkles } from "lucide-react";
 import KidLobbyStage, { StageButton, StageCards } from "./KidLobbyStage";
 import KidLobbySide from "./KidLobbySide";
 import KidLobbyStories from "./KidLobbyStories";
-import "./kid-lobby.css";
+import "@/app/styles/features/kid/kid-lobby.css";
 
 export interface KidLobbyProps {
   roadmap: B.MyRoadmapDto | null;

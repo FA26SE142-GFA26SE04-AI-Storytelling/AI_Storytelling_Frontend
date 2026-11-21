@@ -1,6 +1,6 @@
 "use client";
 
-import "./children.css";
+import "@/app/styles/features/children/children.css";
 import { useEffect, useRef, useState } from "react";
 import { Lock, Plus, RotateCcw, UserCheck } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";

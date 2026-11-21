@@ -1,6 +1,6 @@
 "use client";
 
-import "./roadmap.css";
+import "@/app/styles/features/roadmap/roadmap.css";
 import type * as B from "@/app/types/backendContracts";
 import { ageLabel } from "@/app/lib/storyView";
 import { useStoryCovers, useTemplateDetail } from "./roadmapData";

@@ -1,8 +1,8 @@
 "use client";
 
-import "@/app/features/library/library.css";
-import "@/app/features/review/review-tools.css";
-import "@/app/features/studio/workflow.css";
+import "@/app/styles/features/library/library.css";
+import "@/app/styles/features/review/review-tools.css";
+import "@/app/styles/features/studio/workflow.css";
 import { useRef, useState } from "react";
 import { FilePlus2 } from "lucide-react";
 import Dialog from "@/app/components/Dialog";

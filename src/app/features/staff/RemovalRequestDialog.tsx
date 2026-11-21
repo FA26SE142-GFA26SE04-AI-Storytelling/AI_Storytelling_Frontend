@@ -23,7 +23,7 @@ export default function RemovalRequestDialog({ storyId, title, onClose, onDone }
 
   const submit = async () => {
     if (!ok || busy) return;
-    if (!(await confirmDialog("Gửi yêu cầu gỡ truyện? Moderator sẽ xem xét việc gỡ truyện khỏi thư viện công khai."))) return;
+    if (!(await confirmDialog("Gửi yêu cầu gỡ truyện? Kiểm duyệt viên sẽ xem xét việc gỡ truyện khỏi thư viện công khai."))) return;
     setBusy(true);
     const r = await creatorPublicationService.remove(storyId, reason.trim());
     setBusy(false);

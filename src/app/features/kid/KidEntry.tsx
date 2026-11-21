@@ -1,6 +1,6 @@
 "use client";
 
-import "./kid.css";
+import "@/app/styles/features/kid/kid.css";
 import { useEffect, useRef, useState } from "react";
 import { childAccessService } from "@/app/services/childAccessService";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";

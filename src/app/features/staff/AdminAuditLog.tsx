@@ -1,6 +1,6 @@
 "use client";
 
-import "./AdminAuditLog.css";
+import "@/app/styles/features/staff/AdminAuditLog.css";
 import { useCallback, useEffect, useState } from "react";
 import { Eye, Filter, RotateCcw } from "lucide-react";
 import Dialog from "@/app/components/Dialog";
@@ -83,10 +83,10 @@ export function AdminAuditLog() {
   const actor = (r: AuditRow) => (r.actorUserId == null ? "Hệ thống" : r.actorFullName || r.actorUsername || `#${r.actorUserId}`);
 
   return (
-    <Page title="Audit log">
+    <Page title="Nhật ký thao tác">
       <form className="st-card" onSubmit={(e) => { e.preventDefault(); if (badRange) return; setPage(1); setApplied(draft); }}>
         <div className="audit-filters">
-          <label className="field"><span className="lbl">Action</span>
+          <label className="field"><span className="lbl">Hành động</span>
             <select className="inp" value={draft.action} onChange={(e) => set("action", e.target.value)}>
               <option value="">Tất cả</option>
               {filters.actions.map((a) => <option key={a} value={a}>{actionOption(a)}</option>)}
@@ -124,7 +124,7 @@ export function AdminAuditLog() {
         {error && <div className="notice err" role="status">{error}</div>}
         <div className="row"><h3 className="grow">Nhật ký thao tác</h3><span className="sub">{total.toLocaleString("vi-VN")} dòng</span></div>
         <table className="st-table stack-table">
-          <thead><tr><th>Thời điểm</th><th>Người làm</th><th>Action</th><th>Đối tượng</th><th /></tr></thead>
+          <thead><tr><th>Thời điểm</th><th>Người làm</th><th>Hành động</th><th>Đối tượng</th><th /></tr></thead>
           <tbody>
             {rows.map((r) => (
               <tr key={r.id}>

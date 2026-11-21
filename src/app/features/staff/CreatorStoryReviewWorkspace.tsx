@@ -1,5 +1,5 @@
 'use client';
-import './moderator-workspaces.css';
+import '@/app/styles/features/staff/moderator-workspaces.css';
 import { useState } from 'react';
 import { LibraryBig } from 'lucide-react';
 import { PUBLIC_STORY_SECTIONS } from './moderationConfig';
@@ -51,7 +51,7 @@ export default function CreatorStoryReviewWorkspace({ go }: { go?: (pageId: stri
     <div className="notice ok mod-banner" role="status" data-inline-notice>
       <span>
         {outcomeBanner === 'ChangesRequested'
-          ? 'Đã gửi yêu cầu chỉnh sửa cho Content Creator.'
+          ? 'Đã gửi yêu cầu chỉnh sửa cho nhà sáng tạo nội dung.'
           : 'Đã ghi nhận quyết định từ chối phiên bản.'}
       </span>
     </div>
@@ -59,8 +59,8 @@ export default function CreatorStoryReviewWorkspace({ go }: { go?: (pageId: stri
 
   return (
     <ModerationWorkspaceShell
-      title="Duyệt truyện Creator"
-      description="Tiếp nhận và duyệt phiên bản truyện do Content Creator gửi lên thư viện công khai."
+      title="Duyệt truyện nhà sáng tạo"
+      description="Tiếp nhận và duyệt phiên bản truyện do nhà sáng tạo nội dung gửi lên thư viện công khai."
       sections={PUBLIC_STORY_SECTIONS}
       status={q.status}
       onStatusChange={next => {

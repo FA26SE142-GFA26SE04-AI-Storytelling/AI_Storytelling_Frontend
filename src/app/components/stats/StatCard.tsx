@@ -3,7 +3,7 @@
 import type { LucideIcon } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";
 import { usePop } from "@/app/lib/motion";
-import "./StatCard.css";
+import "@/app/styles/components/stats/StatCard.css";
 
 export default function StatCard({
   icon: Icon,

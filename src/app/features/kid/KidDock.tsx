@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Home, Library, Map, NotebookPen, Sparkles, type LucideIcon } from 'lucide-react';
 import { bounce, prefersReducedMotion } from '@/app/lib/motion';
-import './kid-dock.css';
+import '@/app/styles/features/kid/kid-dock.css';
 
 export type DockTab = 'lobby' | 'library' | 'journey' | 'notebook' | 'wishes' | 'rewards';
 

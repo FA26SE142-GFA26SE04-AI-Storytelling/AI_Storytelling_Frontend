@@ -4,7 +4,7 @@ import type { CSSProperties } from 'react';
 import type { MonthPeriod } from '@/app/lib/monthPeriods';
 import { useGrowBars } from '@/app/lib/motion';
 import { niceScale } from './statFormat';
-import './MonthBars.css';
+import '@/app/styles/components/stats/MonthBars.css';
 
 export default function MonthBars({
   title,

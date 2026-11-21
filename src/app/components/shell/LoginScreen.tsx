@@ -1,7 +1,8 @@
 "use client";
 
+import { authScreenHref, readAuthScreenMode, type AuthScreenMode } from "@/app/lib/authLocation";
 import PasswordInput from "@/app/components/PasswordInput";
-import "./login.css";
+import "@/app/styles/components/shell/login.css";
 import { useEffect, useState, type FormEvent } from "react";
 import Frog from "@/app/components/brand/Frog";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
@@ -13,7 +14,7 @@ import { passwordProblem } from "@/app/lib/guardian";
 import KidQrScanner from "@/app/features/kid/KidQrScanner";
 
 
-type Mode = "login" | "register" | "verify" | "forgot" | "reset" | "creator" | "activate";
+type Mode = AuthScreenMode;
 
 const TITLES: Record<Mode, string> = {
   login: "Chào mừng trở lại",
@@ -21,7 +22,7 @@ const TITLES: Record<Mode, string> = {
   verify: "Xác thực email",
   forgot: "Quên mật khẩu",
   reset: "Đặt mật khẩu mới",
-  creator: "Đăng ký làm Content Creator",
+  creator: "Đăng ký làm nhà sáng tạo nội dung",
   activate: "Kích hoạt tài khoản vận hành",
 };
 const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: "Đăng ký", verify: "Xác thực", forgot: "Gửi hướng dẫn", reset: "Đổi mật khẩu", creator: "Nộp đơn", activate: "Kích hoạt" };
@@ -32,17 +33,7 @@ const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: 
  * ?auth=reset&token=...&email=...  → đặt mật khẩu mới
  * ?auth=forgot | signup | signin | creator → mở đúng biểu mẫu
  */
-function modeFromUrl(params: URLSearchParams): Mode | null {
-  const auth = params.get("auth");
-  if (auth === "verify") return "verify";
-  if (auth === "activate") return "activate";
-  if (auth === "creator") return "creator";
-  if (params.get("token") || params.get("resetToken") || auth === "reset") return "reset";
-  if (auth === "forgot") return "forgot";
-  if (auth === "signup") return "register";
-  if (auth === "signin") return "login";
-  return null;
-}
+
 
 /**
  * `initialMode`: mở thẳng biểu mẫu đăng nhập hoặc đăng ký (từ trang giới thiệu). `onHome`: có thì hiện nút về trang giới thiệu.
@@ -60,18 +51,24 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const next = modeFromUrl(params);
-    if (!next) return;
-    setMode(next);
-    setF((cur) => ({ ...cur, email: params.get("email") ?? "", token: params.get("token") ?? params.get("resetToken") ?? "" }));
-  }, []);
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      setMode(readAuthScreenMode(window.location.pathname, params, initialMode));
+      setF((cur) => ({ ...cur, email: params.get("email") ?? cur.email, token: params.get("token") ?? params.get("resetToken") ?? "" }));
+    };
+    const onPopState = () => { syncFromUrl(); setMsg(null); };
+    syncFromUrl();
+    window.addEventListener("popstate", onPopState);
+    return () => window.removeEventListener("popstate", onPopState);
+  }, [initialMode]);
 
   const go = (next: Mode) => {
     setMode(next);
     setMsg(null);
-    // Bỏ tham số trên URL để tải lại trang không mở lại biểu mẫu cũ.
-    if (window.location.search) window.history.replaceState(null, "", window.location.pathname + window.location.hash);
+    const href = authScreenHref(next, window.location.href);
+    if (href !== window.location.pathname + window.location.search + window.location.hash) {
+      window.history.pushState(null, "", href);
+    }
   };
 
   const submit = async (e: FormEvent) => {
@@ -153,7 +150,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         {mode === "creator" && (
           <>
             <label className="field"><span className="lbl">Giới thiệu bản thân ({cr.intro.length}/1000)</span><textarea className="inp" rows={4} minLength={20} maxLength={1000} required value={cr.intro} onChange={(e) => setCr({ ...cr, intro: e.target.value })} placeholder="Kinh nghiệm viết, biên tập hoặc dạy học cho trẻ em (ít nhất 20 ký tự)" /></label>
-            <label className="field"><span className="lbl">Link portfolio (không bắt buộc)</span><input className="inp" type="url" maxLength={500} value={cr.portfolio} onChange={(e) => setCr({ ...cr, portfolio: e.target.value })} placeholder="https://" /></label>
+            <label className="field"><span className="lbl">Link hồ sơ năng lực (không bắt buộc)</span><input className="inp" type="url" maxLength={500} value={cr.portfolio} onChange={(e) => setCr({ ...cr, portfolio: e.target.value })} placeholder="https://" /></label>
           </>
         )}
         {needsPassword && (
@@ -173,7 +170,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         {mode === "activate" && (
           <>
             <label className="field"><span className="lbl">Mã mời trong email</span><input className="inp" required value={f.token} onChange={set("token")} autoComplete="off" spellCheck={false} /></label>
-            <p className="sub">Mã có hiệu lực 72 giờ và chỉ dùng được một lần. Hết hạn thì nhờ Administrator gửi lại lời mời.</p>
+            <p className="sub">Mã có hiệu lực 72 giờ và chỉ dùng được một lần. Hết hạn thì nhờ quản trị viên gửi lại lời mời.</p>
             <label className="row" style={{ alignItems: "flex-start", fontSize: "var(--fs-sm)" }}>
               <input type="checkbox" checked={cr.commit} onChange={(e) => setCr({ ...cr, commit: e.target.checked })} style={{ marginTop: 3 }} />
               <span>Tôi cam kết bảo mật dữ liệu trẻ em và tuân thủ quy tắc kiểm duyệt nội dung của nền tảng.</span>
@@ -201,7 +198,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
             <div className="login-staff">
               <span>Dành cho đội ngũ nội dung</span>
               <div>
-                <button type="button" onClick={() => go("creator")}>Đăng ký làm Content Creator</button>
+                <button type="button" onClick={() => go("creator")}>Đăng ký làm nhà sáng tạo nội dung</button>
                 <button type="button" onClick={() => go("activate")}>Kích hoạt tài khoản vận hành</button>
               </div>
             </div>
@@ -209,7 +206,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         ) : (
           <div className="login-links">
             {mode === "verify" && <button type="button" disabled={busy} onClick={() => void resend()}>Gửi lại mã</button>}
-            {mode === "register" && <button type="button" onClick={() => go("creator")}>Đăng ký làm Content Creator</button>}
+            {mode === "register" && <button type="button" onClick={() => go("creator")}>Đăng ký làm nhà sáng tạo nội dung</button>}
             {mode === "creator" && <button type="button" onClick={() => go("register")}>Đăng ký tài khoản phụ huynh</button>}
             <button type="button" onClick={() => go("login")}>Quay lại đăng nhập</button>
           </div>

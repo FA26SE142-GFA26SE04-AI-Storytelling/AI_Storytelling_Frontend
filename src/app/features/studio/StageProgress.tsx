@@ -4,7 +4,7 @@ import { useState } from "react";
 import Frog from "@/app/components/brand/Frog";
 import type { Stage, StatusSnapshot } from "./useStoryPipeline";
 import { STUDIO_STEPS, studioProgress } from "./studioProgress";
-import { providerFailureMessage } from '@/app/features/story-workflow/storyGenerationFlow';
+import { generationFailureMessage, providerFailureMessage } from '@/app/features/story-workflow/storyGenerationFlow';
 import { useRiseIn } from "@/app/lib/motion";
 
 type Props = {
@@ -77,12 +77,12 @@ export default function StageProgress({ stage, snapshot, message, errorCode, tim
           <small className="hint">Bước {progress.current + 1}/{steps.length} · {steps[progress.current]}</small>
           <h3 className="display">{waitingUser ? "Dàn ý đã sẵn sàng" : progress.caption}</h3>
           <p className="sub">{waitingUser ? "Mở tab Dàn ý để xem và duyệt, rồi AI sẽ viết truyện." : errorCode
-            ? providerError ?? 'Máy chủ xác nhận lần xử lý này đã thất bại. Bạn có thể thử lại khi sẵn sàng.'
+            ? generationFailureMessage(errorCode)
             : 'Đang chờ kết quả từ máy chủ. Các thao tác chuyển bước sẽ mở khi xử lý hoàn tất; bạn có thể rời màn hình rồi quay lại kiểm tra.'}</p>
         </div>
         {errorCode && (
           <div className="notice err row" role="alert" style={{ justifyContent: "space-between", flexWrap: "wrap" }}>
-            <span>Bước này bị lỗi (mã {errorCode}).</span>
+            <span title={`Mã lỗi: ${errorCode}`}>{providerError ? "Cần quản trị viên xử lý trước khi tiếp tục." : "Bạn có thể thử lại bước này."}</span>
             {providerError ? onRetry && <button className="btn btn-s" onClick={onRetry}>Kiểm tra lại trạng thái</button>
               : onRetryFailed && <button className="btn btn-s" disabled={retrying} onClick={() => void retry()}>{retrying ? "Đang thử lại…" : "Thử lại"}</button>}
           </div>

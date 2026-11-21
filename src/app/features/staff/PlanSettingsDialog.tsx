@@ -10,7 +10,7 @@ import { fmt } from "@/app/features/staff/ui";
 import PlanQuotaSections from "./plan-settings/PlanQuotaSections";
 import PlanFreeSections from "./plan-settings/PlanFreeSections";
 import PlanRegenerationSection, { MAX_REGENERATION_LIMIT } from "./plan-settings/PlanRegenerationSection";
-import "./plan-settings/plan-dialogs.css";
+import "@/app/styles/features/staff/plan-settings/plan-dialogs.css";
 
 export interface PlanSettingsDialogProps {
   open: boolean;

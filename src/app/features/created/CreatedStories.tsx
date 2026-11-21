@@ -1,7 +1,7 @@
 "use client";
 
-import "@/app/features/library/library.css";
-import "./created.css";
+import "@/app/styles/features/library/library.css";
+import "@/app/styles/features/created/created.css";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, Eye, Info, PencilLine, RefreshCw, Search, SquarePen, Trash2, WandSparkles, X } from "lucide-react";
 import { confirmDialog } from "@/app/lib/confirm";

@@ -3,13 +3,13 @@
 import type { PlanTypeRevenueDto } from "@/app/types/backendContracts";
 import { useDrawDonut } from "@/app/lib/motion";
 import { count, money } from "@/app/components/stats/statFormat";
-import "./AdminRevenueTab.css";
+import "@/app/styles/features/staff/AdminRevenueTab.css";
 
 const PLAN_TYPE_LABELS: Record<string, string> = {
   Reading: "Gói Đọc",
   Creative: "Gói Sáng tạo",
-  AddOn: "Add-on",
-  CreatorPack: "Gói Creator",
+  AddOn: "Gói bổ sung",
+  CreatorPack: "Gói nhà sáng tạo",
   Legacy: "Gói cũ",
 };
 

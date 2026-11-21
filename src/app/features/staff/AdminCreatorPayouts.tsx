@@ -40,7 +40,7 @@ export function AdminCreatorPayouts() {
       {loadError && <div className="notice err" role="status">{loadError}</div>}
       <div className="row">
         <h3 className="grow">Danh sách chi</h3>
-        {rows.length > 0 && <span className="sub">{rows.length} Creator · tổng {formatVnd(total)}</span>}
+        {rows.length > 0 && <span className="sub">{rows.length} nhà sáng tạo · tổng {formatVnd(total)}</span>}
       </div>
       <p className="sub">Thu nhập của tháng trước được cộng vào số dư từ ngày 8 hằng tháng. Số dư dưới 200.000 đ được cộng dồn sang kỳ sau.</p>
 
@@ -68,11 +68,11 @@ export function AdminCreatorPayouts() {
         onClose={() => setHistoryOf(null)} onChanged={() => void load()} />}
 
       <table className="st-table stack-table">
-        <thead><tr><th>Creator</th><th>Số dư</th><th>Ngân hàng</th><th>Số tài khoản</th><th>Chủ tài khoản</th><th /></tr></thead>
+        <thead><tr><th>Nhà sáng tạo</th><th>Số dư</th><th>Ngân hàng</th><th>Số tài khoản</th><th>Chủ tài khoản</th><th /></tr></thead>
         <tbody>
           {rows.map((r) => (
             <tr key={r.creatorUserId}>
-              <td data-label="Creator"><b>{r.fullName}</b><br /><small className="sub">{r.username}</small></td>
+              <td data-label="Nhà sáng tạo"><b>{r.fullName}</b><br /><small className="sub">{r.username}</small></td>
               <td data-label="Số dư"><b>{formatVnd(r.balanceVnd)}</b></td>
               <td data-label="Ngân hàng">{r.bankName}</td>
               <td data-label="Số tài khoản">{r.accountNumber}</td>
@@ -83,7 +83,7 @@ export function AdminCreatorPayouts() {
               </td>
             </tr>
           ))}
-          {rows.length === 0 && !loadError && <tr><td colSpan={6} className="sub">Chưa có Creator nào đến hạn chi.</td></tr>}
+          {rows.length === 0 && !loadError && <tr><td colSpan={6} className="sub">Chưa có nhà sáng tạo nào đến hạn chi.</td></tr>}
         </tbody>
       </table>
     </div>

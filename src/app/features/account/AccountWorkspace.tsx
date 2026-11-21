@@ -2,7 +2,7 @@
 import { confirmDialog } from "@/app/lib/confirm";
 
 import PasswordInput from "@/app/components/PasswordInput";
-import "../children/children.css";
+import "@/app/styles/features/children/children.css";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { KeyRound, LogOut, MonitorSmartphone, X } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";

@@ -1,7 +1,7 @@
 "use client";
 
 import PasswordInput from "@/app/components/PasswordInput";
-import "../children/children.css";
+import "@/app/styles/features/children/children.css";
 import { useState, type FormEvent } from "react";
 import { Lock } from "lucide-react";
 import { childAccessService } from "@/app/services/childAccessService";

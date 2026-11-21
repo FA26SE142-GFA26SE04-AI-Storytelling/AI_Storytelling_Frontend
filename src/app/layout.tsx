@@ -4,7 +4,7 @@ import "./globals.css";
 import "./styles/tokens.css";
 import "./styles/base.css";
 import "./styles/shell.css";
-import "./components/brand/brand.css";
+import "@/app/styles/components/brand/brand.css";
 import { ThemeProvider } from "./context/ThemeContext";
 import ToastHost from "./components/ToastHost";
 import ConfirmHost from "./components/ConfirmHost";

@@ -1,8 +1,8 @@
 "use client";
 import { confirmDialog } from "@/app/lib/confirm";
 
-import "./safety.css";
-import "../children/children.css";
+import "@/app/styles/features/safety/safety.css";
+import "@/app/styles/features/children/children.css";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { Clock, FileCheck, Inbox, Target, ShieldCheck, Sparkles, Mic, Trash2 } from "lucide-react";
 import Dialog from "@/app/components/Dialog";

@@ -1,4 +1,4 @@
-import './CreatorQuotaPanel.css';
+import '@/app/styles/features/account/CreatorQuotaPanel.css';
 import type { CreatorQuotaDto, SubscriptionPlanDto } from '@/app/types/backendContracts';
 import { useGrowBars, usePop } from '@/app/lib/motion';
 import { WandSparkles, Send, Package, Check, CreditCard, CalendarClock } from 'lucide-react';
@@ -124,7 +124,7 @@ export default function CreatorQuotaPanel(props: {
         {packLoading && !pack ? (
           <p className="sub">Đang tải gói…</p>
         ) : !pack ? (
-          <p className="notice warn">Hiện chưa có Gói Creator.</p>
+          <p className="notice warn">Hiện chưa có Gói nhà sáng tạo.</p>
         ) : (
           <>
             <div className="cqp-pack-head">

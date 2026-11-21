@@ -5,7 +5,7 @@ import Dialog from '@/app/components/Dialog';
 import { useMediaPackage } from '@/app/features/story-workflow/useMediaPackage';
 import { showToast } from '@/app/lib/toast';
 import SafeImage from "@/app/components/SafeImage";
-import './media-assets.css';
+import '@/app/styles/features/studio/media-assets.css';
 
 /** Trạng thái từng tranh / đoạn âm thanh của backend: [tông pill, chữ]. */
 const ASSET: Record<string, [string, string]> = {
@@ -100,7 +100,7 @@ export default function MediaAssets({ storyId, versionId, onChanged, disabled = 
     <input ref={fileRef} type="file" hidden aria-label="Chọn tệp media" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} />
     {upload && <Dialog title={`Tải lên: ${upload.name}`} onClose={() => setUpload(null)}>
       <div className="st-form">
-        <p className="notice">Tệp <b>{upload.file.name}</b> được kiểm tra an toàn{upload.kind === 'image' ? ' và độ khớp với nội dung cảnh' : ''} trước khi dùng. Moderator sẽ nghe lại mọi giọng đọc bạn tải lên.</p>
+        <p className="notice">Tệp <b>{upload.file.name}</b> được kiểm tra an toàn{upload.kind === 'image' ? ' và độ khớp với nội dung cảnh' : ''} trước khi dùng. Kiểm duyệt viên sẽ nghe lại mọi giọng đọc bạn tải lên.</p>
         <label className="field"><span className="lbl">Nguồn của tệp</span><input className="inp" maxLength={2000} value={decl.sourceDeclaration} onChange={(e) => setDecl({ ...decl, sourceDeclaration: e.target.value })} /></label>
         <label className="field"><span className="lbl">Cam kết quyền sử dụng</span><input className="inp" maxLength={2000} value={decl.rightsDeclaration} onChange={(e) => setDecl({ ...decl, rightsDeclaration: e.target.value })} /></label>
         <div className="row"><button className="btn btn-g" onClick={() => setUpload(null)}>Huỷ</button><span className="grow" />

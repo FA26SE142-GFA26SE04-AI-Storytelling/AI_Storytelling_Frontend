@@ -9,7 +9,7 @@ import type { ApiResponse } from '@/app/types/auth';
 import { confirmDialog } from "@/app/lib/confirm";
 import { Check, FilePen, ImagePlus, RefreshCw, Send, Trash2 } from 'lucide-react';
 import Dialog from '@/app/components/Dialog';
-import '@/app/features/created/created.css';
+import '@/app/styles/features/created/created.css';
 import CoverPickerDialog, { CoverPickerPanel, prefetchCoverPictures } from '@/app/features/created/CoverPickerDialog';
 import { creatorService } from '@/app/services/creatorService';
 import { coverFor } from '@/app/lib/storyView';
@@ -27,9 +27,9 @@ export const PublicationDock = createContext<HTMLElement | null>(null);
 
 /** Trạng thái duyệt của backend là chuỗi tiếng Anh; dịch các giá trị đã biết, giá trị lạ giữ nguyên. */
 export const REVIEW: Record<string, string> = {
-  None: 'Chưa gửi duyệt', Pending: 'Đang chờ Moderator duyệt', Approved: 'Đã được duyệt', Rejected: 'Bị từ chối', ChangesRequested: 'Moderator yêu cầu sửa', Withdrawn: 'Đã rút yêu cầu',
+  None: 'Chưa gửi duyệt', Pending: 'Đang chờ kiểm duyệt viên duyệt', Approved: 'Đã được duyệt', Rejected: 'Bị từ chối', ChangesRequested: 'Kiểm duyệt viên yêu cầu sửa', Withdrawn: 'Đã rút yêu cầu',
 };
-const OPEN_ITEM: Record<string, string> = { Pending: 'đang chờ Moderator nhận', Claimed: 'Moderator đang xem xét', Approved: 'đã duyệt', Rejected: 'bị từ chối' };
+const OPEN_ITEM: Record<string, string> = { Pending: 'đang chờ kiểm duyệt viên nhận', Claimed: 'Kiểm duyệt viên đang xem xét', Approved: 'đã duyệt', Rejected: 'bị từ chối' };
 
 export default function CreatorPublication({ storyId, versionId, storyStatus, onRevision, onLockChange, onPublicationChange, onBuyCredits, hidden = false, showCheck = true, stepNo = 3 }: { storyId: number; versionId: number | null; storyStatus?: string; onRevision: () => void; onLockChange?: (locked: boolean) => void; onPublicationChange?: (status: B.CreatorPublicationStatus | null) => void; onBuyCredits?: () => void; hidden?: boolean; showCheck?: boolean; stepNo?: number }) {
   const { user } = useAuth();
@@ -137,16 +137,16 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
   const headline = !status ? 'Đang tải trạng thái…'
     : publicationState ? publicationState.label
     : withdrawn ? 'Đã rút yêu cầu duyệt'
-    : grayWaiting ? 'Đang chờ Moderator xem xét vùng xám'
+    : grayWaiting ? 'Đang chờ kiểm duyệt viên xem xét vùng xám'
     : status.openItemId ? `${REVIEW[status.reviewStatus] ?? status.reviewStatus}${status.openItemStatus ? ` (${OPEN_ITEM[status.openItemStatus] ?? status.openItemStatus})` : ''}`
     : REVIEW[status.reviewStatus] ?? status.reviewStatus;
   const blocker = !status ? null
     : publicationState ? publicationState.hint
-    : pendingReview ? 'Khi Moderator chưa nhận xử lý, bạn có thể rút yêu cầu và giữ nguyên truyện cùng media đã xác nhận.'
-    : grayWaiting ? 'Truyện đang chờ Moderator xem xét vùng xám nên chưa gửi duyệt được.'
+    : pendingReview ? 'Khi kiểm duyệt viên chưa nhận xử lý, bạn có thể rút yêu cầu và giữ nguyên truyện cùng media đã xác nhận.'
+    : grayWaiting ? 'Truyện đang chờ kiểm duyệt viên xem xét vùng xám nên chưa gửi duyệt được.'
     : !ready ? 'Truyện chưa sẵn sàng: hoàn tất bước 2 (media tạo xong và bạn đã xác nhận gói) rồi mới gửi duyệt được.'
     : withdrawn ? 'Có thể gửi lại phiên bản này, không cần tạo lại nội dung, tranh hoặc giọng đọc. Nếu muốn sửa nội dung, hãy tạo phiên bản chỉnh sửa mới.'
-    : labelsOnlyReturn ? 'Moderator trả về chỉ vì nhãn nội dung. Chọn lại nhãn bên dưới rồi gửi lại, không cần sửa truyện hay tạo lại tranh và âm thanh.'
+    : labelsOnlyReturn ? 'Kiểm duyệt viên trả về chỉ vì nhãn nội dung. Chọn lại nhãn bên dưới rồi gửi lại, không cần sửa truyện hay tạo lại tranh và âm thanh.'
     : status.reviewStatus !== 'None' ? 'Bản này đã từng được gửi duyệt. Muốn gửi lại, hãy tạo phiên bản chỉnh sửa mới.'
     : null;
 
@@ -177,7 +177,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
   return <section className="pa-card" aria-label="Phát hành"><div className="pa-head"><h3><span className="pa-num">{stepNo}</span>Phát hành truyện</h3></div>
     {note && <p className="notice" role="status">{note}</p>}
     <p style={{ margin: 0, fontWeight: 800, fontSize: "var(--fs-md)" }}>{headline}</p>
-    {status && !publicationState && <p className="sub">Gửi bản hiện tại cho Moderator duyệt công khai. Khi yêu cầu còn chờ nhận, bạn có thể rút và gửi lại cùng phiên bản. Nếu sửa nội dung đã nộp, hãy tạo phiên bản chỉnh sửa mới.</p>}
+    {status && !publicationState && <p className="sub">Gửi bản hiện tại cho kiểm duyệt viên duyệt công khai. Khi yêu cầu còn chờ nhận, bạn có thể rút và gửi lại cùng phiên bản. Nếu sửa nội dung đã nộp, hãy tạo phiên bản chỉnh sửa mới.</p>}
 
     {showCheck && <CreatorSafetyPanel check={status?.safetyCheck} busy={busy} checkable={checkable} onCheck={() => void runCheck()}/>}
 
@@ -186,7 +186,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
       {blocker && <p className="sub">{blocker}</p>}
       {!dock && pickers}
       <div className="pa-actions">
-        {canSubmit && <><CreatorQuotaChip kind="submit" onBuy={onBuyCredits} /><button className="btn btn-p" disabled={busy || !safetyReady || !cover || labelIds.length === 0 || sameAsReturned} title={!cover ? 'Chọn ảnh bìa trước khi gửi' : labelIds.length === 0 ? 'Chọn ít nhất một nhãn nội dung trước khi gửi' : sameAsReturned ? 'Hãy thay đổi bộ nhãn so với lần bị trả về' : undefined} onClick={() => { if (safetyReady && !checkRequest.current && status?.storyId === storyId && status.versionId === versionId) void act(() => service.submit(storyId, status.versionId, labelIds).then((r) => { if (r.success) notifyCreatorQuotaChanged(); return r; })); }}><Send className="ic" />{labelsOnlyReturn ? 'Gửi lại với nhãn mới' : withdrawn ? 'Gửi lại phiên bản hiện tại' : 'Gửi bản hiện tại cho Moderator'}</button></>}
+        {canSubmit && <><CreatorQuotaChip kind="submit" onBuy={onBuyCredits} /><button className="btn btn-p" disabled={busy || !safetyReady || !cover || labelIds.length === 0 || sameAsReturned} title={!cover ? 'Chọn ảnh bìa trước khi gửi' : labelIds.length === 0 ? 'Chọn ít nhất một nhãn nội dung trước khi gửi' : sameAsReturned ? 'Hãy thay đổi bộ nhãn so với lần bị trả về' : undefined} onClick={() => { if (safetyReady && !checkRequest.current && status?.storyId === storyId && status.versionId === versionId) void act(() => service.submit(storyId, status.versionId, labelIds).then((r) => { if (r.success) notifyCreatorQuotaChanged(); return r; })); }}><Send className="ic" />{labelsOnlyReturn ? 'Gửi lại với nhãn mới' : withdrawn ? 'Gửi lại phiên bản hiện tại' : 'Gửi bản hiện tại cho kiểm duyệt viên'}</button></>}
         {pendingReview && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Rút yêu cầu duyệt? Nội dung, tranh và giọng đọc đã xác nhận được giữ nguyên. Bạn có thể gửi lại cùng phiên bản khi sẵn sàng."))) return; void act(() => service.withdraw(status!.openItemId!)); }}>Rút yêu cầu duyệt</button>}
         {canRevise && <button className="btn btn-s" disabled={busy} onClick={async () => { if (!(await confirmDialog("Tạo bản chỉnh sửa mới? Nội dung và học liệu được sao chép sang bản mới. Bản cũ cùng media được giữ nguyên trong lịch sử; bạn cần chuẩn bị media riêng cho bản mới."))) return; void act(() => service.revision(storyId, status!.versionId), true); }}><FilePen className="ic" />{publicationState?.kind === 'revision' ? 'Tạo bản chỉnh sửa để gửi lại' : 'Tạo bản chỉnh sửa'}</button>}
         <button className="btn btn-g icon-only" aria-label="Tải lại trạng thái" title="Tải lại trạng thái" disabled={busy} onClick={() => setRefresh(n => n + 1)}><RefreshCw className="ic" /></button>
@@ -203,7 +203,7 @@ export default function CreatorPublication({ storyId, versionId, storyStatus, on
     </div>}
     {removing && <Dialog title="Yêu cầu gỡ truyện" onClose={() => { if (!busy) setRemoving(false); }}>
       <label className="field"><span className="lbl">Lý do yêu cầu gỡ</span><textarea className="inp" autoFocus rows={3} maxLength={2000} value={reason} onChange={e => setReason(e.target.value)} /></label>
-      <div className="row"><button className="btn btn-g" disabled={busy} onClick={() => setRemoving(false)}>Huỷ</button><span className="grow" /><button className="btn btn-no" disabled={busy || !reason.trim()} onClick={async () => { if (!(await confirmDialog("Gửi yêu cầu gỡ truyện? Moderator sẽ xem xét việc gỡ truyện khỏi thư viện công khai."))) return; void act(() => service.remove(storyId, reason)); }}><Send className="ic" />Gửi yêu cầu</button></div>
+      <div className="row"><button className="btn btn-g" disabled={busy} onClick={() => setRemoving(false)}>Huỷ</button><span className="grow" /><button className="btn btn-no" disabled={busy || !reason.trim()} onClick={async () => { if (!(await confirmDialog("Gửi yêu cầu gỡ truyện? Kiểm duyệt viên sẽ xem xét việc gỡ truyện khỏi thư viện công khai."))) return; void act(() => service.remove(storyId, reason)); }}><Send className="ic" />Gửi yêu cầu</button></div>
     </Dialog>}
   </section>;
 }

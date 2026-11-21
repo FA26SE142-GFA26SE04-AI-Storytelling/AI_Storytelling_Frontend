@@ -1,7 +1,7 @@
 "use client";
 import { useTabActions } from "@/app/features/story-workflow/tabActions";
 
-import "./review.css";
+import "@/app/styles/features/review/review.css";
 import { useEffect, useState } from "react";
 import { BookOpenText, Check, CircleAlert, ClipboardCheck, PencilLine, PenLine, RefreshCw, WandSparkles } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
@@ -29,7 +29,17 @@ const ISSUE_VI: [RegExp, (m: RegExpMatchArray) => string][] = [
   [/^Listening interactions must match the plan/, () => 'Các tương tác khi nghe chưa khớp kế hoạch, hãy tạo lại loại bị lỗi thời.'],
   [/^Vocabulary needs at least 5 unique.*(current: (d+))/, (m) => `Từ vựng cần ít nhất 5 từ không trùng và đều xuất hiện trong truyện (hiện có ${m[1]}).`],
   [/^Artifacts must be bound to the current story version/, () => 'Học liệu chưa gắn với bản truyện hiện tại.'],
+  [/^READABILITY_POLICY_CHANGED$/, () => 'Tiêu chí độ dễ đọc vừa thay đổi. Hãy tải lại trang rồi kiểm tra lại.'],
+  [/^SAFETY_MODERATION_REQUIRED$/, () => 'Truyện đang chờ kiểm duyệt an toàn. Đợi kiểm duyệt viên xử lý xong rồi kiểm tra lại.'],
 ];
+/** Tên bước kiểm tra trước khi duyệt (backend trả mã) đổi sang tiếng Việt. */
+const CHECK_VI: Record<string, string> = {
+  story_exists: 'Truyện tồn tại', story_complete: 'Đủ tiêu đề, nội dung, bài học', creator_audience_policy: 'Phù hợp độc giả',
+  readability_context_current: 'Tiêu chí độ dễ đọc', readability_valid: 'Độ dễ đọc', safety_passed: 'An toàn',
+  profile_decision_resolved: 'Phù hợp hồ sơ bé', vocabulary_valid: 'Từ vựng', quiz_valid: 'Câu hỏi đọc hiểu',
+  artifact_bindings_valid: 'Học liệu khớp bản truyện', listening_valid: 'Tương tác khi nghe', listening_reviewed: 'Xác nhận tương tác khi nghe',
+  review_complete: 'Hoàn tất duyệt',
+};
 const viIssues = (text: string) => text.split(' • ').map((s) => { for (const [re, fn] of ISSUE_VI) { const m = s.match(re); if (m) return fn(m); } return s; }).join(' • ');
 const ARTIFACTS: ArtifactKind[] = ["vocabulary", "quiz"];
 
@@ -180,7 +190,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
               </button>
             )}
             {validation?.checks.map((c) => (
-              <div key={c.name} className="ck"><span className={`st ${c.passed ? "ok" : "warn"}`}>{c.passed ? <Check /> : <CircleAlert />}</span>{c.name}<small>{c.message ?? ""}</small></div>
+              <div key={c.name} className="ck"><span className={`st ${c.passed ? "ok" : "warn"}`}>{c.passed ? <Check /> : <CircleAlert />}</span>{CHECK_VI[c.name] ?? c.name}<small>{c.name === 'readability_valid' ? '' : c.message ?? ""}</small></div>
             ))}
           </div>
 

@@ -23,7 +23,7 @@ export function AdminBusinessReport() {
         items={[
           { id: "revenue", label: "Doanh thu" },
           { id: "accounts", label: "Tài khoản" },
-          { id: "creators", label: "Creator" },
+          { id: "creators", label: "Nhà sáng tạo" },
           { id: "saved", label: "Báo cáo đã lưu" },
         ]}
         value={tab}

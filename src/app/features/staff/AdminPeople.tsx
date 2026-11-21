@@ -9,9 +9,9 @@ import { staffService } from "@/app/services/staffService";
 import type { StaffAccount, StaffAccountRole } from "@/app/types/staff";
 import { Notice, Page, Pill, fmtDay, useAction } from "./ui";
 
-const ROLE: Record<string, string> = { Administrator: "Administrator", Moderator: "Moderator", ContentCreator: "Content Creator" };
+const ROLE: Record<string, string> = { Administrator: "Quản trị viên", Moderator: "Kiểm duyệt viên", ContentCreator: "Nhà sáng tạo nội dung" };
 const ROLE_FILTERS: { id: StaffAccountRole | "all"; label: string }[] = [
-  { id: "all", label: "Tất cả" }, { id: "Moderator", label: "Moderator" }, { id: "Administrator", label: "Administrator" },
+  { id: "all", label: "Tất cả" }, { id: "Moderator", label: "Kiểm duyệt viên" }, { id: "Administrator", label: "Quản trị viên" },
 ];
 const EMPTY_INVITE = { role: "Moderator" as StaffAccountRole, email: "", fullName: "", expertise: "", note: "" };
 
@@ -35,7 +35,7 @@ export function AdminStaff() {
   const canInvite = /^\S+@\S+\.\S+$/.test(inv.email) && !!inv.fullName.trim() && (!isModerator || !!inv.expertise.trim());
 
   return (
-    <Page title="Tài khoản vận hành" sub="Moderator và Administrator được mời qua email: email chứa mã mời 72 giờ, dùng 1 lần; người được mời mở trang đăng nhập → “Kích hoạt tài khoản vận hành” để đặt mật khẩu và xác nhận cam kết. Content Creator tự đăng ký, Administrator duyệt.">
+    <Page title="Tài khoản vận hành" sub="Kiểm duyệt viên và quản trị viên được mời qua email: email chứa mã mời 72 giờ, dùng 1 lần; người được mời mở trang đăng nhập → “Kích hoạt tài khoản vận hành” để đặt mật khẩu và xác nhận cam kết. Nhà sáng tạo nội dung tự đăng ký, quản trị viên duyệt.">
       <Notice note={note} />
       <div className="row"><button className="btn btn-p" onClick={() => setInviteOpen(true)}><UserPlus className="ic" />Mời nhân sự</button></div>
       {inviteOpen && <Dialog title="Mời tài khoản vận hành" onClose={() => setInviteOpen(false)}>
@@ -68,7 +68,7 @@ export function AdminStaff() {
 
       <div className="st-card st-scroll">
         <div className="row">
-          <h3 className="grow">Moderator và Administrator</h3>
+          <h3 className="grow">Kiểm duyệt viên và quản trị viên</h3>
           <div className="seg" role="radiogroup" aria-label="Lọc theo vai trò" style={{ maxWidth: 360 }}>
             {ROLE_FILTERS.map((r) => (
               <button key={r.id} type="button" role="radio" aria-checked={filter === r.id} className={filter === r.id ? "on" : ""} onClick={() => setFilter(r.id)}>{r.label}</button>

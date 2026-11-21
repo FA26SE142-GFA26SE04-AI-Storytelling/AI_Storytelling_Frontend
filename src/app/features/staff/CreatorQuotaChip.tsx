@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { WandSparkles, Send, CreditCard } from 'lucide-react';
 import { paymentService, CREATOR_QUOTA_CHANGED } from '@/app/services/paymentService';
 import { usePop } from '@/app/lib/motion';
-import './CreatorQuotaChip.css';
+import '@/app/styles/features/staff/CreatorQuotaChip.css';
 
 export default function CreatorQuotaChip({
   kind,

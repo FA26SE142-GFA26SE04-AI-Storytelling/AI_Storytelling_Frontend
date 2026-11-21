@@ -8,7 +8,7 @@ import { childAccessService } from '@/app/services/childAccessService';
 import { childRewardsService } from '@/app/services/childReadingService';
 import type { ChildRewards } from '@/app/types/childReading';
 import KidDock, { type DockTab } from './KidDock';
-import './kid-hud.css';
+import '@/app/styles/features/kid/kid-hud.css';
 
 /** Phần thưởng của bé (cây tri thức, huy hiệu, streak). Gọi một lần ở trang cha rồi chia cho HUD và sảnh. */
 export function useKidRewards(childId: number, revision: number): ChildRewards | null {

@@ -42,9 +42,9 @@ export interface CreatorShelfMeta {
 /** Thứ tự kệ Kiểu A trên "Truyện của tôi": tách rõ phần kiểm duyệt công khai và mục Bị từ chối riêng. */
 export const CREATOR_SHELVES: CreatorShelfMeta[] = [
   { id: 'published', title: 'Đã công khai', badge: 'Đã công khai', tone: 'ok' },
-  { id: 'changes_requested', title: 'Moderator yêu cầu sửa', badge: 'Yêu cầu sửa', tone: 'wait' },
-  { id: 'pending_review', title: 'Chờ Moderator tiếp nhận', badge: 'Chờ tiếp nhận', tone: 'wait' },
-  { id: 'claimed_review', title: 'Moderator đang xử lý', badge: 'Đang xử lý', tone: 'wait' },
+  { id: 'changes_requested', title: 'Kiểm duyệt viên yêu cầu sửa', badge: 'Yêu cầu sửa', tone: 'wait' },
+  { id: 'pending_review', title: 'Chờ kiểm duyệt viên tiếp nhận', badge: 'Chờ tiếp nhận', tone: 'wait' },
+  { id: 'claimed_review', title: 'Kiểm duyệt viên đang xử lý', badge: 'Đang xử lý', tone: 'wait' },
   { id: 'revision_required', title: 'Cần tạo bản chỉnh sửa', badge: 'Cần bản chỉnh sửa', tone: 'draft' },
   { id: 'ready', title: 'Sẵn sàng gửi duyệt', badge: 'Sẵn sàng gửi', tone: 'draft' },
   { id: 'review', title: 'Đang chuẩn bị', badge: 'Đang chuẩn bị', tone: 'wait' },

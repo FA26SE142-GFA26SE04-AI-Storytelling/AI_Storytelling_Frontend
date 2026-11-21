@@ -8,8 +8,8 @@ import Select from '@/app/components/Select';
 import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Flag, RefreshCw, Send } from 'lucide-react';
 import Dialog from '@/app/components/Dialog';
 import { coverFor } from '@/app/lib/storyView';
-import '@/app/features/library/library.css';
-import '@/app/features/created/created.css';
+import '@/app/styles/features/library/library.css';
+import '@/app/styles/features/created/created.css';
 import { Page } from './ui';
 import StoryWishCards from './StoryWishCards';
 import LearningMaterials from './LearningMaterials';
@@ -168,9 +168,9 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
   const inDetail = !!story || !!roadmap;
   const isModerator = user?.role === 'Moderator';
   const SOURCES = isModerator
-    ? ([{ id: 'PublicLibrary', label: 'Truyện Creator đang công khai' }] as const)
+    ? ([{ id: 'PublicLibrary', label: 'Truyện nhà sáng tạo đang công khai' }] as const)
     : ([
-        { id: 'PublicLibrary', label: 'Truyện Creator đang công khai' },
+        { id: 'PublicLibrary', label: 'Truyện nhà sáng tạo đang công khai' },
         { id: 'RoadmapTemplate', label: 'Lộ trình mẫu công khai' },
       ] as const);
 
@@ -184,8 +184,8 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
         </h2>
         <p className="sub">
           {isModerator
-            ? 'Truyện Creator đang công khai trên thư viện (lộ trình mẫu đang phát hành xem tại Lộ trình mẫu → Đang phát hành).'
-            : 'Truyện Creator và lộ trình mẫu đang công khai trên thư viện.'}
+            ? 'Truyện nhà sáng tạo đang công khai trên thư viện (lộ trình mẫu đang phát hành xem tại Lộ trình mẫu → Đang phát hành).'
+            : 'Truyện nhà sáng tạo và lộ trình mẫu đang công khai trên thư viện.'}
         </p>
       </div>
 
@@ -252,7 +252,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
                 <div className="st-group">
                   <h3>{story.story.title ?? `Truyện #${story.story.storyId}`}</h3>
                   <div className="st-facts">
-                    <div><small>Nguồn</small><b>Truyện Creator</b></div>
+                    <div><small>Nguồn</small><b>Truyện nhà sáng tạo</b></div>
                     <div><small>Độ tuổi</small><b>{AGE_LABEL[story.story.ageBand] ?? story.story.ageBand}</b></div>
                     <div><small>Mức đọc</small><b>{story.story.readingLevel ?? '—'}</b></div>
                     <div><small>Thể loại</small><b>{story.story.genre ?? '—'}</b></div>
