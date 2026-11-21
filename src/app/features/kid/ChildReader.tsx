@@ -80,6 +80,8 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
   const [autoScene,setAutoScene]=useState<number|null>(null);
   /** Chữ giọng kể đang đọc (vị trí trong chữ của cảnh) để tô sáng theo lời kể. */
   const [readingWord,setReadingWord]=useState<{start:number;end:number}|null>(null);
+  // Mỗi phiên đọc chỉ báo một lần là truyện không có tô sáng chữ.
+  const noHighlightTold=useRef<number|null>(null);
   const pendingSend=useRef(false);
   const c=r.content;
   const scenes=c?c.scenes.slice().sort((a,b)=>a.sceneIndex-b.sceneIndex):[];
@@ -278,7 +280,7 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
     {scene&&!onPractice&&<div className="kid-reader" key={scene.sceneIndex}>
       <div className="kid-reader-visual">
           <ScenePictures pictures={pictures} active={active} alt={`Tranh cảnh ${index+1}`}>
-          {!r.done&&<KidNarrator key={`${c.sessionId}:${scene.sceneIndex}`} scene={scene} disabled={disabled} paused={words||!!ask||aloudState==='recording'||aloudState==='busy'} onListen={()=>r.mode==='ListenFirst'?Promise.resolve(true):r.save(r.page,'ListenFirst')} onEvent={r.event} range={part?{start:part.start,end:part.end}:{start:0,end:scene.text.length}} onSceneEnd={sceneEnded} onSegmentChange={setNarratorPart} autoStart={autoScene===scene.sceneIndex} onPartEnd={partEnded} onPlayingChange={p=>{narrating.current=p;if(p)setAutoScene(null);}} onWord={setReadingWord}/>}
+          {!r.done&&<KidNarrator key={`${c.sessionId}:${scene.sceneIndex}`} scene={scene} disabled={disabled} paused={words||!!ask||aloudState==='recording'||aloudState==='busy'} onListen={()=>r.mode==='ListenFirst'?Promise.resolve(true):r.save(r.page,'ListenFirst')} onEvent={r.event} range={part?{start:part.start,end:part.end}:{start:0,end:scene.text.length}} onSceneEnd={sceneEnded} onSegmentChange={setNarratorPart} autoStart={autoScene===scene.sceneIndex} onPartEnd={partEnded} onPlayingChange={p=>{narrating.current=p;if(p)setAutoScene(null);}} onWord={setReadingWord} onNoHighlight={()=>{if(noHighlightTold.current===c.sessionId)return;noHighlightTold.current=c.sessionId;showToast('Truyện này chưa có tô sáng chữ khi nghe đọc.','info');}}/>}
         </ScenePictures>
       </div>
       <div className="kid-reader-side">
