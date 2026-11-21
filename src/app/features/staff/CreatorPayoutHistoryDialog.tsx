@@ -32,7 +32,7 @@ export function CreatorPayoutHistoryDialog({ creatorUserId, name, onClose, onCha
   const cancel = async () => {
     const target = cancelling;
     if (!target) return;
-    if (!(await confirmDialog(`Huỷ lần chi ${formatVnd(target.amountVnd)}? Số dư của ${name} được cộng lại và Creator nhận thông báo.`))) return;
+    if (!(await confirmDialog(`Huỷ lần chi ${formatVnd(target.amountVnd)}? Số dư của ${name} được cộng lại và nhà sáng tạo nhận thông báo.`))) return;
     setBusy(true);
     const r = await creatorAdminService.cancelPayout(target.payoutId, reason.trim());
     setBusy(false);

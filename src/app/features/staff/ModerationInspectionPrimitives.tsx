@@ -117,9 +117,9 @@ export function CreatorOutlineStrip({
   if (steps.length === 0) return null;
 
   return (
-    <div className="mod-outline-strip" aria-label="Dàn ý truyện Creator gửi">
+    <div className="mod-outline-strip" aria-label="Dàn ý truyện nhà sáng tạo gửi">
       <div className="mod-outline-head">
-        <b className="st-scene-label">Dàn ý 3 phần từ Creator</b>
+        <b className="st-scene-label">Dàn ý 3 phần từ nhà sáng tạo</b>
       </div>
       <div className="mod-outline-grid">
         {steps.map(s => (

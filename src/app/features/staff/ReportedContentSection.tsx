@@ -7,7 +7,7 @@ import ReviewPicture, { ZoomLightbox } from './ReviewPicture';
 
 const SCOPE_LABELS: Record<string, string> = {
   Parent: 'Truyện gia đình (ẩn danh)',
-  Creator: 'Truyện Creator',
+  Creator: 'Truyện nhà sáng tạo',
   Public: 'Thư viện công khai',
 };
 

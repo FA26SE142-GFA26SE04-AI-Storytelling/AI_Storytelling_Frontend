@@ -170,9 +170,9 @@ export default function RoadmapAuthoringWorkspace({
         <header className="rt-head">
           <h3 className="display">{form.name.trim() || (detail ? `Bộ #${detail.id}` : 'Lộ trình mới')}</h3>
           {detail && <span className={`pill ${statusOf(detail.status)[1]}`}>{statusOf(detail.status)[0]}</span>}
-          {detail && !detail.isMine && <span className="pill draft">Của {detail.createdByName ?? 'Moderator khác'}</span>}
+          {detail && !detail.isMine && <span className="pill draft">Của {detail.createdByName ?? 'Kiểm duyệt viên khác'}</span>}
         </header>
-        {detail && !writable && <p className="notice">{!moderator ? 'Bạn đang xem lộ trình (chỉ Moderator được sửa).' : !detail.isMine ? 'Lộ trình của Moderator khác: bạn chỉ xem được.' : detail.status === 'PendingReview' ? 'Đang chờ duyệt nên chưa sửa được. Muốn sửa, hãy rút yêu cầu duyệt.' : detail.status === 'Published' ? 'Đang công khai nên không sửa trực tiếp được. Muốn sửa, hãy nhân bản.' : 'Lộ trình này không còn sửa được.'}</p>}
+        {detail && !writable && <p className="notice">{!moderator ? 'Bạn đang xem lộ trình (chỉ kiểm duyệt viên được sửa).' : !detail.isMine ? 'Lộ trình của kiểm duyệt viên khác: bạn chỉ xem được.' : detail.status === 'PendingReview' ? 'Đang chờ duyệt nên chưa sửa được. Muốn sửa, hãy rút yêu cầu duyệt.' : detail.status === 'Published' ? 'Đang công khai nên không sửa trực tiếp được. Muốn sửa, hãy nhân bản.' : 'Lộ trình này không còn sửa được.'}</p>}
         <fieldset className="rt-body" disabled={!writable || busy}>
           <section className="rt-step">
             <h4><span className="rt-num">1</span>Thông tin chung</h4>
@@ -237,7 +237,7 @@ export default function RoadmapAuthoringWorkspace({
               {(detail.status === 'Published' || group === 'Orphaned') && <button className="btn btn-s" disabled={busy} onClick={() => void act(() => service.clone(detail.id), (c) => thenOpen(c.roadmapId, 'Drafts'))}><Copy className="ic" />Nhân bản để sửa</button>}
               {detail.status === 'Published' && <button className="btn btn-no" disabled={busy} onClick={() => { setReason(''); setArchiving(true); }}><Archive className="ic" />Lưu trữ</button>}
               {detail.isMine && detail.status === 'Draft' && (dirty || !detail.canSubmit) && <span className="rt-why">{dirty ? 'Lưu thay đổi trước khi gửi duyệt.' : 'Cần đạt hết các điều kiện ở trên.'}</span>}
-              {detail.status === 'PendingReview' && <span className="rt-why">Moderator khác sẽ duyệt lộ trình này.</span>}
+              {detail.status === 'PendingReview' && <span className="rt-why">Kiểm duyệt viên khác sẽ duyệt lộ trình này.</span>}
             </div>}
           </>}
         </section>

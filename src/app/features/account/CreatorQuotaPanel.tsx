@@ -124,7 +124,7 @@ export default function CreatorQuotaPanel(props: {
         {packLoading && !pack ? (
           <p className="sub">Đang tải gói…</p>
         ) : !pack ? (
-          <p className="notice warn">Hiện chưa có Gói Creator.</p>
+          <p className="notice warn">Hiện chưa có Gói nhà sáng tạo.</p>
         ) : (
           <>
             <div className="cqp-pack-head">

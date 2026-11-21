@@ -104,7 +104,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
             {AGE_BANDS.map((a) => <button key={a.id} type="button" disabled={!isOwner} className={ageBand === a.id ? "on" : ""} onClick={() => setAgeBand(a.id)}>{a.label}</button>)}
           </div>
         </div>
-        <div className="field"><span className="lbl">Avatar</span>
+        <div className="field"><span className="lbl">Ảnh đại diện</span>
           <div className="avatars" role="radiogroup" aria-label="Avatar của bé">
             {AVATARS.map((a) => (
               <button key={a.id} type="button" role="radio" disabled={!isOwner} aria-checked={avatar === a.id} aria-label={a.label} className={`avatar${avatar === a.id ? " on" : ""}`} onClick={() => setAvatar(a.id)}>{a.emoji}</button>

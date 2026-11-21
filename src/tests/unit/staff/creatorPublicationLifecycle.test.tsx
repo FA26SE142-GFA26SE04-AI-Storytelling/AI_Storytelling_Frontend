@@ -88,7 +88,7 @@ describe('Creator publication requests and revisions', () => {
     const current = data({ storyId: 45, versionId: 102, reviewStatus: 'Pending', openItemId: 30, openItemType: 'PublicStoryReview', openItemStatus: 'Claimed' });
     next.resolve(ok(current)); await flush();
     old.resolve(ok(data())); await flush();
-    expect(text(render(45, 102))).toContain('Moderator đang xử lý');
+    expect(text(render(45, 102))).toContain('Kiểm duyệt viên đang xử lý');
     expect(changed).toHaveBeenLastCalledWith(current);
     expect(text(render(45, 102))).not.toContain('Tạo bản chỉnh sửa để gửi lại');
   });

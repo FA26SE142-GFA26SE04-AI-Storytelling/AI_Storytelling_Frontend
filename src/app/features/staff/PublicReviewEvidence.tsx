@@ -39,7 +39,7 @@ export function criterionEvidence(d: B.PublicReviewPackageDto, key: CheckKey): s
     case 'ageFit': return [AGE[d.story.ageBand] ?? d.story.ageBand, d.story.readingLevel ? `mức đọc ${d.story.readingLevel}` : null, d.story.vocabularyLevel ? `từ vựng ${d.story.vocabularyLevel}` : null].filter(Boolean).join(' · ');
     case 'education': return `${d.vocabulary.length} từ vựng · ${d.quizzes.length} câu đố${d.story.moralLesson || d.version.lesson ? ' · có bài học' : ' · chưa có bài học'}`;
     case 'language': { const warn = segs.filter((s) => s.hasPronunciationWarning).length; return `${d.story.language === 'vi' ? 'Tiếng Việt' : d.story.language}${warn ? ` · ${warn} đoạn cảnh báo phát âm` : ''}`; }
-    case 'copyright': { const up = pics.filter((p) => !isAi(p.source)).length + segs.filter((s) => !isAi(s.audioSource)).length; return up ? `${up} tệp do Creator tải lên, xem cam kết ở từng cảnh` : 'Tranh và âm thanh đều do AI của nền tảng tạo'; }
+    case 'copyright': { const up = pics.filter((p) => !isAi(p.source)).length + segs.filter((s) => !isAi(s.audioSource)).length; return up ? `${up} tệp do nhà sáng tạo tải lên, xem cam kết ở từng cảnh` : 'Tranh và âm thanh đều do AI của nền tảng tạo'; }
     case 'image': return `${pics.filter((p) => p.url).length}/${pics.length} tranh · đã xem ${d.scenes.filter((s) => s.viewed).length}/${d.scenes.length} cảnh`;
     case 'audio': return `${segs.filter((s) => s.audioUrl).length}/${segs.length} đoạn có âm thanh · đã nghe ${segs.filter((s) => s.heard).length}`;
     case 'interaction': return interactions.length ? `${interactions.length} tương tác khi nghe, xem mục bên dưới` : 'Truyện không có tương tác khi nghe';
@@ -85,7 +85,7 @@ export function StoryFacts({ d }: { d: B.PublicReviewPackageDto }) {
     />
     <div className="mod-brief-pair">
       {d.story.description && <ManuscriptCard variant="brief" label="Mô tả truyện" text={d.story.description} />}
-      <ManuscriptCard variant="brief" label="Bài học" text={lesson} emptyText="Creator chưa ghi bài học." />
+      <ManuscriptCard variant="brief" label="Bài học" text={lesson} emptyText="Nhà sáng tạo chưa ghi bài học." />
     </div>
   </div>;
 }
@@ -142,7 +142,7 @@ export function SafetyScanSection({
             {status === 'Safe'
               ? 'AI không gắn cờ vùng xám nào trên phiên bản này.'
               : status === 'HardBlock'
-                ? 'AI đánh dấu mức chặn; Moderator không nên duyệt công khai khi chưa xử lý vấn đề an toàn.'
+                ? 'AI đánh dấu mức chặn; kiểm duyệt viên không nên duyệt công khai khi chưa xử lý vấn đề an toàn.'
                 : 'Phiên bản này chưa có kết quả quét an toàn bằng AI. Hãy rà soát kỹ toàn bộ nội dung trước khi quyết định.'}
           </p>
           {advisory.length > 0 && <>
@@ -159,7 +159,7 @@ export function SafetyScanSection({
 /** Nguồn của một tranh / đoạn âm thanh: AI tạo hay Creator tải lên (kèm cam kết). */
 export function SourceNote({ source, sourceDeclaration, rightsDeclaration }: { source?: string | null; sourceDeclaration?: string | null; rightsDeclaration?: string | null }) {
   if (isAi(source)) return <span className="pill draft">AI tạo</span>;
-  return <span className="pill wait" title={[sourceDeclaration && `Nguồn: ${sourceDeclaration}`, rightsDeclaration && `Cam kết: ${rightsDeclaration}`].filter(Boolean).join('\n') || 'Creator chưa ghi nguồn'}>Creator tải lên</span>;
+  return <span className="pill wait" title={[sourceDeclaration && `Nguồn: ${sourceDeclaration}`, rightsDeclaration && `Cam kết: ${rightsDeclaration}`].filter(Boolean).join('\n') || 'Nhà sáng tạo chưa ghi nguồn'}>Nhà sáng tạo tải lên</span>;
 }
 
 /** Danh sách tương tác khi nghe để chấm tiêu chí "Tương tác". */

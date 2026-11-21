@@ -68,7 +68,7 @@ export function CreatorPayoutsTab() {
             <div><small>Cập nhật</small><b>{fmt(current.updatedAt)}</b></div>
           </div>
         ) : <p className="sub">Chưa có thông tin nhận tiền.</p>}
-        <p className="sub">Hệ thống không chuyển tiền: Administrator chuyển khoản đúng bằng số dư rồi ghi nhận lần chi. Số tiền là số trước thuế; bạn tự kê khai và nộp thuế.</p>
+        <p className="sub">Hệ thống không chuyển tiền: Quản trị viên chuyển khoản đúng bằng số dư rồi ghi nhận lần chi. Số tiền là số trước thuế; bạn tự kê khai và nộp thuế.</p>
       </div>
 
       <div className="st-card st-scroll"><CreatorPayoutTables data={data} /></div>
