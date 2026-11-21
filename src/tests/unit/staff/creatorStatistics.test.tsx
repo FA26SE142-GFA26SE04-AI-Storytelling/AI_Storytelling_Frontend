@@ -347,7 +347,7 @@ describe('Creator Statistics Tabs', () => {
   });
 
   describe('CreatorIncomeTab', () => {
-    it('(b) displays "250.000 đ", "25", and "Quỹ Creator"', async () => {
+    it('(b) displays "250.000 đ", "25", and "Quỹ nhà sáng tạo"', async () => {
       renderIncome();
       await tick();
       const tree = renderIncome();
@@ -355,7 +355,7 @@ describe('Creator Statistics Tabs', () => {
       const text = allText(tree);
       expect(text).toContain('250.000 đ');
       expect(text).toContain('25');
-      expect(text).toContain('Quỹ Creator');
+      expect(text).toContain('Quỹ nhà sáng tạo');
     });
 
     it('calls showToast and hides "250.000 đ" when revenue service returns success: false', async () => {

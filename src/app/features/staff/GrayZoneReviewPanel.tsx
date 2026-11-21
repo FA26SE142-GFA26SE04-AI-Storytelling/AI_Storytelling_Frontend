@@ -121,7 +121,7 @@ export default function GrayZoneReviewPanel({
       right={
         <>
           <div id="gz-sec-evidence" className="st-group mod-anchor-target">
-            <b className="st-group-title">Evidence AI</b>
+            <b className="st-group-title">Bằng chứng từ AI</b>
             {metaFacts.length > 0 && (
               <div className="st-facts">
                 {metaFacts.map(([label, value]) => (
@@ -156,7 +156,7 @@ export default function GrayZoneReviewPanel({
           </div>
 
           <div id="gz-sec-note" className="st-group mod-anchor-target">
-            <b className="st-group-title">Nhận định Moderator</b>
+            <b className="st-group-title">Nhận định kiểm duyệt viên</b>
             {claimBlocked && (
               <div className="notice err" role="alert" data-inline-notice>
                 <span>

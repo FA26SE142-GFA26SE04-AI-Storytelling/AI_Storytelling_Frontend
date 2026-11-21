@@ -87,7 +87,7 @@ export default function PublicStoryRemovalPanel({
           {!requestReason && (
             <div className="notice" role="status" data-inline-notice>
               <span>
-                Hồ sơ này chưa có nội dung lý do từ Creator; bạn có thể quay lại danh sách hoặc tải lại nếu chưa đủ cơ sở quyết định.
+                Hồ sơ này chưa có nội dung lý do từ nhà sáng tạo; bạn có thể quay lại danh sách hoặc tải lại nếu chưa đủ cơ sở quyết định.
               </span>
             </div>
           )}
@@ -109,9 +109,9 @@ export default function PublicStoryRemovalPanel({
               </div>
             )}
           </div>
-          <ModerationCallout label="Lý do Creator yêu cầu gỡ" tone="warn">
+          <ModerationCallout label="Lý do nhà sáng tạo yêu cầu gỡ" tone="warn">
             <p className="mod-pre">
-              {requestReason || 'Creator không ghi lý do hoặc chưa có dữ liệu lý do.'}
+              {requestReason || 'Nhà sáng tạo không ghi lý do hoặc chưa có dữ liệu lý do.'}
             </p>
           </ModerationCallout>
           <RemovalStoryPreview storyId={d.storyId} />

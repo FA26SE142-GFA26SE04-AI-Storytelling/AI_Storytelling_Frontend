@@ -14,7 +14,7 @@ import CreatePlanDialog from "./CreatePlanDialog";
 import PlanSettingsDialog from "./PlanSettingsDialog";
 
 const money = (n: number) => `${n.toLocaleString("vi-VN")}đ`;
-const PLAN_TYPE: Record<PlanType, string> = { Reading: "Gói Đọc", Creative: "Gói Sáng tạo", AddOn: "Add-on", Legacy: "Gói cũ", CreatorPack: "Gói Creator" };
+const PLAN_TYPE: Record<PlanType, string> = { Reading: "Gói Đọc", Creative: "Gói Sáng tạo", AddOn: "Gói bổ sung", Legacy: "Gói cũ", CreatorPack: "Gói nhà sáng tạo" };
 const PAY_STATUS: Record<PaymentStatus, [string, string]> = {
   Pending: ["wait", "Chờ thanh toán"], Paid: ["ok", "Đã thanh toán"], Expired: ["draft", "Hết hạn"], MismatchAmount: ["flag", "Sai số tiền"],
 };

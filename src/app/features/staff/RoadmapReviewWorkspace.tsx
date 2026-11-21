@@ -59,7 +59,7 @@ export default function RoadmapReviewWorkspace() {
   return (
     <ModerationWorkspaceShell
       title="Duyệt lộ trình mẫu"
-      description="Tiếp nhận và duyệt các lộ trình mẫu do Moderator khác gửi lên (không tự duyệt bộ do mình tạo)."
+      description="Tiếp nhận và duyệt các lộ trình mẫu do kiểm duyệt viên khác gửi lên (không tự duyệt bộ do mình tạo)."
       sections={ROADMAP_REVIEW_SECTIONS}
       status={q.status}
       onStatusChange={next => {

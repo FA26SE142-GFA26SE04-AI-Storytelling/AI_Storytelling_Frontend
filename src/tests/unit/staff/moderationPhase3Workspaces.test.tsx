@@ -142,7 +142,7 @@ describe('Moderator Phase 3 workspaces (specs 07-10, 12-13)', () => {
     const emptyReasonHtml = renderToStaticMarkup(
       <PublicStoryRemovalPanel id={601} queueItem={removalQueueItem} onBack={() => {}} onDecision={() => {}} />,
     );
-    expect(emptyReasonHtml).toContain('Creator không ghi lý do hoặc chưa có dữ liệu lý do.');
+    expect(emptyReasonHtml).toContain('Nhà sáng tạo không ghi lý do hoặc chưa có dữ liệu lý do.');
     expect(emptyReasonHtml).not.toContain('{broken');
 
     for (const file of [
@@ -220,7 +220,7 @@ describe('Moderator Phase 3 workspaces (specs 07-10, 12-13)', () => {
 
     testState.userRole = 'Moderator';
     const modPubHtml = renderToStaticMarkup(<PublishedReviewWorkspace />);
-    expect(modPubHtml).toContain('Truyện Creator đang công khai');
+    expect(modPubHtml).toContain('Truyện nhà sáng tạo đang công khai');
     expect(modPubHtml).not.toContain('Lộ trình mẫu công khai');
 
     testState.userRole = 'Administrator';

@@ -11,7 +11,7 @@ const ACTION: Record<string, string> = {
   RESEND_VERIFICATION_EMAIL: 'Gửi lại email xác minh',
   LOGOUT_ALL_DEVICES: 'Đăng xuất mọi thiết bị',
   DELETE_ACCOUNT: 'Xoá tài khoản',
-  ModeratorActivated: 'Kích hoạt tài khoản Moderator',
+  ModeratorActivated: 'Kích hoạt tài khoản kiểm duyệt viên',
   AdministratorActivated: 'Kích hoạt tài khoản quản trị',
   // Hồ sơ bé
   CREATE_CHILD_PROFILE: 'Tạo hồ sơ bé',
@@ -48,8 +48,8 @@ const ACTION: Record<string, string> = {
   // Soạn truyện
   parent_manual_draft_created: 'Phụ huynh tạo bản nháp truyện',
   parent_manual_content_saved: 'Phụ huynh lưu nội dung truyện',
-  creator_manual_draft_created: 'Creator tạo bản nháp truyện',
-  creator_manual_content_saved: 'Creator lưu nội dung truyện',
+  creator_manual_draft_created: 'Nhà sáng tạo tạo bản nháp truyện',
+  creator_manual_content_saved: 'Nhà sáng tạo lưu nội dung truyện',
   CREATE_STORY: 'Tạo truyện',
   UPDATE_STORY: 'Sửa truyện',
   ASSIGN_STORY: 'Giao truyện cho bé',
@@ -86,7 +86,7 @@ const ACTION: Record<string, string> = {
   GrayZoneReviewOpened: 'Mở mục vùng xám',
   ContentReportCreated: 'Báo cáo nội dung',
   ContentReportOpened: 'Mở báo cáo nội dung',
-  ContentReportEscalated: 'Chuyển báo cáo lên Admin',
+  ContentReportEscalated: 'Chuyển báo cáo lên quản trị viên',
   GrayZone: 'Gửi nội dung vùng xám đi duyệt',
   ParentPackageGrayZone: 'Gửi gói truyện vùng xám đi duyệt',
   StoryRatingOpened: 'Mở đánh giá truyện bị báo cáo',
@@ -136,11 +136,11 @@ const ACTION: Record<string, string> = {
   StoryCreditHoldReleased: 'Trả lượt AI của truyện bỏ dở',
   ReadingSlotsChanged: 'Đổi số bé được đọc',
   // Creator
-  CreatorApplicationApproved: 'Duyệt đơn Creator',
-  CreatorApplicationRejected: 'Từ chối đơn Creator',
-  ContentCreatorDeactivated: 'Khoá tài khoản Creator',
-  ContentCreatorReactivated: 'Mở lại tài khoản Creator',
-  CreatorPartnerGranted: 'Lên Creator đối tác',
+  CreatorApplicationApproved: 'Duyệt đơn nhà sáng tạo',
+  CreatorApplicationRejected: 'Từ chối đơn nhà sáng tạo',
+  ContentCreatorDeactivated: 'Khoá tài khoản nhà sáng tạo',
+  ContentCreatorReactivated: 'Mở lại tài khoản nhà sáng tạo',
+  CreatorPartnerGranted: 'Lên nhà sáng tạo đối tác',
   CreatorPartnerLost: 'Mất cấp đối tác (không đạt tiêu chí)',
   CreatorPartnerLostByViolation: 'Mất cấp đối tác (truyện vi phạm)',
   CreatorPartnerRevoked: 'Thu hồi cấp đối tác',
@@ -178,9 +178,9 @@ const ENTITY: Record<string, string> = {
   PaymentReconciliationException: 'Thanh toán lệch',
   CreditAdjustment: 'Điều chỉnh lượt',
   CreditUsage: 'Lượt AI',
-  CreatorApplication: 'Đơn Creator',
+  CreatorApplication: 'Đơn nhà sáng tạo',
   CreatorPayoutAccount: 'Thông tin nhận tiền',
-  CreatorBalanceEntry: 'Chi trả Creator',
+  CreatorBalanceEntry: 'Chi trả nhà sáng tạo',
 };
 
 /** Một số chỗ chỉ ghi động từ chung (Created, Updated…): ghép với tên đối tượng. */

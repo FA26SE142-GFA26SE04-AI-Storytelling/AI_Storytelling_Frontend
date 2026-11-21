@@ -173,7 +173,7 @@ export default function ConnectedModerationQueue({
             className="btn btn-s"
             onClick={() => { setStatus('Pending'); setKind('PublicStoryReview'); setPageIndex(1); reload(); }}
           >
-            Truyện Creator chờ duyệt
+            Truyện nhà sáng tạo chờ duyệt
           </button>
         )}
         <span className="sub" role="status">

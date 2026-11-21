@@ -139,7 +139,7 @@ export default function CreatorContentTab({ period }: { period: Period }) {
       <div className="st-card cct-partner">
         <div className="cct-partner-head">
           <h3 className="sec-h">
-            Tiến độ lên Creator đối tác{' '}
+            Tiến độ lên nhà sáng tạo đối tác{' '}
             <InfoTip text="Tính trong 90 ngày gần nhất. Đạt cả 4 tiêu chí để lên hạng đối tác." />
           </h3>
           <span className="pill cct-tier">

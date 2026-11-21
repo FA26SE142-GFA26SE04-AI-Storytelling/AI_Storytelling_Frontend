@@ -52,7 +52,7 @@ export default function AdminReportDetailDialog({ reportId, onClose }: { reportI
             <div className="st-grid">
               <div className="st-kpi"><small>Tổng doanh thu</small><b>{money(report.revenue.totalRevenueVnd)}</b></div>
               <div className="st-kpi"><small>Giao dịch đã thanh toán</small><b>{count(report.revenue.paidTransactionCount)}</b></div>
-              <div className="st-kpi"><small>Quỹ Creator</small><b>{money(report.revenue.creatorFundVnd)}</b></div>
+              <div className="st-kpi"><small>Quỹ nhà sáng tạo</small><b>{money(report.revenue.creatorFundVnd)}</b></div>
             </div>
           )}
 
@@ -71,14 +71,14 @@ export default function AdminReportDetailDialog({ reportId, onClose }: { reportI
             </>
           )}
 
-          <h4 className="sec-h" style={{ marginTop: 16 }}>Creator</h4>
+          <h4 className="sec-h" style={{ marginTop: 16 }}>Nhà sáng tạo</h4>
           {!report.creators ? (
-            <div className="notice" data-inline-notice>Báo cáo cũ chưa có số liệu Creator.</div>
+            <div className="notice" data-inline-notice>Báo cáo cũ chưa có số liệu nhà sáng tạo.</div>
           ) : (
             <>
               <div className="st-grid">
-                <div className="st-kpi"><small>Creator đang hoạt động</small><b>{count(report.creators.activeCreators)}</b></div>
-                <div className="st-kpi"><small>Creator đối tác</small><b>{count(report.creators.partnerCreators)}</b></div>
+                <div className="st-kpi"><small>Nhà sáng tạo đang hoạt động</small><b>{count(report.creators.activeCreators)}</b></div>
+                <div className="st-kpi"><small>Nhà sáng tạo đối tác</small><b>{count(report.creators.partnerCreators)}</b></div>
                 <div className="st-kpi"><small>Truyện tạo trong kỳ</small><b>{count(report.creators.storiesCreated)}</b></div>
                 <div className="st-kpi"><small>Thu nhập dự kiến</small><b>{money(report.creators.estimatedEarningsVnd)}</b></div>
               </div>

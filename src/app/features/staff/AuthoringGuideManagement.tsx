@@ -13,7 +13,7 @@ import GuideItemEditor from './GuideItemEditor';
 import GuidePreviewSection from './GuidePreviewSection';
 import { Page } from './ui';
 
-/** Tài liệu 10 — Trang Hướng dẫn sáng tác (catalog mẫu do Moderator quản lý; tách 4 khu vực, chặn mất form khi đang lưu / lỗi 409). */
+/** Tài liệu 10 — Trang Hướng dẫn sáng tác (catalog mẫu do kiểm duyệt viên quản lý; tách 4 khu vực, chặn mất form khi đang lưu / lỗi 409). */
 export default function AuthoringGuideManagement() {
   const h = useGuideManagement();
   const model = h.overview;
@@ -120,7 +120,7 @@ export default function AuthoringGuideManagement() {
   return (
     <Page title="Hướng dẫn sáng tác cho phụ huynh">
       <p className="sub">
-        Catalog hướng dẫn sáng tác mẫu do Moderator quản lý — độc lập với công cụ AI gợi ý theo ngữ cảnh từng bản nháp.
+        Danh mục hướng dẫn sáng tác mẫu do kiểm duyệt viên quản lý — độc lập với công cụ AI gợi ý theo ngữ cảnh từng bản nháp.
       </p>
       {h.note && (
         <p className={`notice ${h.errorKind ? 'err' : ''}`} role={h.errorKind ? 'alert' : 'status'} data-inline-notice>

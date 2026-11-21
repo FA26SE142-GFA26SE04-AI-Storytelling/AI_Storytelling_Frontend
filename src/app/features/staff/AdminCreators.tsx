@@ -20,8 +20,8 @@ export function AdminCreators() {
   }, [recount]);
 
   return (
-    <Page title="Content Creator">
-      <div className="seg" role="tablist" aria-label="Content Creator" style={{ maxWidth: 360 }}>
+    <Page title="Nhà sáng tạo nội dung">
+      <div className="seg" role="tablist" aria-label="Nhà sáng tạo nội dung" style={{ maxWidth: 360 }}>
         <button type="button" role="tab" aria-selected={tab === "apps"} className={tab === "apps" ? "on" : ""} onClick={() => setTab("apps")}>
           Đơn đăng ký{!!pending && <> <span className="pill gold-pill" aria-label={`${pending} đơn chờ duyệt`}>{pending}</span></>}
         </button>

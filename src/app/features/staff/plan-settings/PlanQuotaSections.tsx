@@ -17,7 +17,7 @@ export default function PlanQuotaSections({ draft, onChange }: PlanQuotaSections
         <div className="cp-section-header">
           <div className="cp-section-title">
             <Coins className="ic" style={{ color: "var(--gold-deep)" }} />
-            <span>Quỹ Creator</span>
+            <span>Quỹ nhà sáng tạo</span>
           </div>
         </div>
         <div className="ps-grid">
@@ -57,7 +57,7 @@ export default function PlanQuotaSections({ draft, onChange }: PlanQuotaSections
         <div className="cp-section-header">
           <div className="cp-section-title">
             <Sparkles className="ic" style={{ color: "var(--gold-deep)" }} />
-            <span>Hạn mức Creator</span>
+            <span>Hạn mức nhà sáng tạo</span>
           </div>
         </div>
         <div className="ps-grid">
