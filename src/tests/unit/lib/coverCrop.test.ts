@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { coverFor, joinCover, splitCover } from '@/app/lib/storyView';
+import { coverFor, joinCover, splitCover, uncroppedCover } from '@/app/lib/storyView';
 
 describe('Vùng cắt ảnh bìa trong đường dẫn', () => {
   it('ghép rồi tách lại đúng vùng cắt', () => {
@@ -13,6 +13,12 @@ describe('Vùng cắt ảnh bìa trong đường dẫn', () => {
   });
   it('vùng cắt hỏng thì bỏ qua', () => {
     expect(splitCover('https://x.com/a.jpg#crop=0,0,2,0.5').crop).toBeNull();
+  });
+  it('uncroppedCover bỏ vùng cắt 3:4 cho khung ngang (không phóng méo ảnh)', () => {
+    const bg = uncroppedCover('https://x.com/a.jpg#crop=0.1,0,0.6,1');
+    expect(bg).toContain('center / cover no-repeat url("https://x.com/a.jpg")');
+    expect(bg).not.toContain('#crop');
+    expect(uncroppedCover(null)).toContain('default-cover.svg');
   });
   it('coverFor phóng đúng vùng: nửa trái-trên của ảnh', () => {
     expect(coverFor('https://x.com/a.jpg#crop=0,0,0.5,0.5')).toContain('0% 0% / 200% 200% no-repeat url("https://x.com/a.jpg")');
