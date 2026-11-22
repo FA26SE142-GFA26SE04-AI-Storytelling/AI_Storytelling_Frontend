@@ -6,7 +6,7 @@ Cập nhật: 14/11/2026 — đối chiếu Backend `4fb6afa`, Frontend `2065533
 
 - [x] QR EasyLogin: BE trả lại secret đang hoạt động nếu giải mã được bản bảo vệ; FE `AccessTab.tsx` đọc `cred.secret`, hiện lại mã và tải PNG (`qrImage.ts`). Đã có luồng bé quét QR trên web; chưa thử camera thiết bị thật trong lần rà soát này.
 - [x] BE có đánh giá truyện Creator (1–5 sao, nhận xét, báo cáo; Moderator duyệt/ẩn).
-- [ ] FE chưa nối 8 endpoint đánh giá: xem/tạo/sửa/xoá/báo cáo của phụ huynh, Creator xem/báo cáo, Moderator xem/duyệt/ẩn. Đây là phần mới chưa nằm trong các trạng thái hoàn tất F-10 bên dưới.
+- [x] FE đã nối 8 endpoint đánh giá (21/11): phụ huynh xem/viết/sửa/xoá/báo cáo ở Thư viện; Creator xem ở Truyện của tôi; Moderator duyệt Giữ/Ẩn ở trang "Đánh giá truyện". Chưa chụp màn hình kiểm tra (môi trường local tắt).
 - [x] F-05 giữ/hoàn lượt AI: BE `ca9204d` (17/11) giữ lượt khi gửi yêu cầu, trừ khi AI sinh xong, trả khi lỗi/bị chặn/từ chối dàn ý; thử lại job lỗi giữ lại 1 lượt (409 khi hết). FE không cần đổi API.
 - Audit mới: **373 endpoint, 347 CONNECTED_SOURCE, 2 webhook/alias, 24 MISSING hoặc SERVICE_ONLY; frontendOnly = 0**. Chạy `node scripts/audit-core-api.mjs`; chi tiết tại `src/out/core-api-audit.json`. 24 mục gồm 8 API đánh giá mới và 16 mục cần phân loại tiếp (hàm bọc, service dư, route cũ hoặc luồng duyệt chưa nối). Số liệu 364 endpoint bên dưới là lịch sử, đã được thay thế bởi kết quả này.
 - Chỉ xác minh bằng đọc code và audit tĩnh; chưa build/test/E2E hoặc xác nhận lại các lỗi runtime trước đây.
@@ -238,7 +238,7 @@ Cập nhật sau đối chiếu API ngày **14/11/2026**, BE `4fb6afa`, FE `2065
 
 ### 7.2. Frontend (FE)
 
-- [ ] **FE-01 — Nối 8 endpoint đánh giá truyện (BE đã có, FE chưa có service/caller):** cần màn phụ huynh xem/viết/sửa/xoá/báo cáo; Creator xem/báo cáo; Moderator xem/duyệt/ẩn trong hàng đợi. Bám DTO: rating 1–5, comment tối đa 1.000 ký tự, danh sách phân trang, summary/myRating/canRate; báo cáo gửi reason/note, ẩn gửi lý do. CanRate phụ thuộc bé Active đã mở đọc, không tự cho phép chỉ vì đăng nhập.
+- [x] **FE-01 — Nối 8 endpoint đánh giá truyện (xong 21/11, chưa chụp UI):** service `storyRatingService.ts`; popup dùng chung `components/ratings/StoryRatingDialog.tsx` (mode parent/creator); sao `components/StarRating.tsx`; Thư viện (dòng ★ + nút Đánh giá, chỉ truyện Creator); CreatorMyStories (Xem đánh giá khi đang công khai); Moderator trang `story-ratings` + `StoryRatingReviewPanel` (Admin không thấy); nhãn thông báo StoryRatingPublished/Moderated. Creator báo cáo đánh giá: cố ý chưa hiện. Yêu cầu gốc: cần màn phụ huynh xem/viết/sửa/xoá/báo cáo; Creator xem/báo cáo; Moderator xem/duyệt/ẩn trong hàng đợi. Bám DTO: rating 1–5, comment tối đa 1.000 ký tự, danh sách phân trang, summary/myRating/canRate; báo cáo gửi reason/note, ẩn gửi lý do. CanRate phụ thuộc bé Active đã mở đọc, không tự cho phép chỉ vì đăng nhập.
 
 | Method | Route (tiền tố /api/v1) | Vai trò BE |
 | --- | --- | --- |

@@ -3,8 +3,12 @@
 import "@/app/styles/features/library/library.css";
 import "@/app/styles/features/created/created.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, Eye, Info, PencilLine, RefreshCw, Search, Undo2, WandSparkles, X } from "lucide-react";
+import { ChevronLeft, Eye, Info, PencilLine, RefreshCw, Search, Star, Undo2, WandSparkles, X } from "lucide-react";
 import { Shelf, ShelfRow } from "@/app/features/library/Shelf";
+import { StarRating } from "@/app/components/StarRating";
+import { storyRatingService } from "@/app/services/storyRatingService";
+import StoryRatingDialog from "@/app/components/ratings/StoryRatingDialog";
+import type { StoryRatingSummaryDto } from "@/app/types/storyRating";
 import CreatorPreview from "./CreatorPreview";
 import RemovalRequestDialog from "./RemovalRequestDialog";
 import { REVIEW } from "./CreatorPublication";
@@ -112,6 +116,8 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
   const [collapsed, setCollapsed] = useState(true);
   const aside = useMemo(() => ({ collapsed, toggle: () => setCollapsed((v) => !v) }), [collapsed]);
   const [statsMap, setStatsMap] = useState<Map<number, { viewCount: number; favoriteCount: number }>>(new Map());
+  const [ratingSummary, setRatingSummary] = useState<StoryRatingSummaryDto | null>(null);
+  const [ratingOpen, setRatingOpen] = useState(false);
   const aliveRef = useRef(true);
   useEffect(() => {
     aliveRef.current = true;
@@ -180,6 +186,20 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
   const openShelf = shelves.find((g) => g.id === expanded) ?? null;
   const rawSel = all.find((s) => s.storyId === selected) ?? null;
   const sel = rawSel ? resolveStoryDisplayState(rawSel, pub) : null;
+  const ratingEligible = !!sel && (pub ? pub.isPublished : sel.isPublished);
+  const ratingStoryId = sel?.storyId;
+  useEffect(() => {
+    if (!ratingEligible || ratingStoryId === undefined) {
+      setRatingSummary(null);
+      return;
+    }
+    setRatingSummary(null);
+    const controller = new AbortController();
+    void storyRatingService.listForCreator(ratingStoryId, { pageSize: 1 }, controller.signal).then((r) => {
+      if (!controller.signal.aborted && r.success && r.data) setRatingSummary(r.data.summary);
+    }).catch(() => {});
+    return () => controller.abort();
+  }, [ratingEligible, ratingStoryId]);
   const pick = (s: CreatorDraft) => { setSelected(s.storyId); if (collapsed) setCollapsed(false); };
   useEffect(() => {
     setPublicationSnapshot(null);
@@ -248,15 +268,31 @@ export function CreatorMyStories({ go }: Pick<CreatorPageProps, "go">) {
             <>
               <div className="cover cover-portrait" style={{ background: coverFor(sel.coverImageUrl) }} />
               <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
+              {ratingEligible && ratingSummary && (
+                <button type="button" className="rating-line" onClick={() => setRatingOpen(true)}>
+                  {ratingSummary.ratingCount > 0 && ratingSummary.averageRating != null ? (
+                    <>
+                      <StarRating value={ratingSummary.averageRating} size={16} />
+                      <span>
+                        {ratingSummary.averageRating.toLocaleString("vi-VN", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} · {ratingSummary.ratingCount} đánh giá
+                      </span>
+                    </>
+                  ) : (
+                    <span>Chưa có đánh giá</span>
+                  )}
+                </button>
+              )}
               {sel.description && <p className="sub">{sel.description}</p>}
               <CreatorStoryDetailMeta story={sel} pub={pub} />
               <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
+              {ratingEligible && <button className="btn btn-s btn-c" onClick={() => setRatingOpen(true)}><Star className="ic" />Xem đánh giá</button>}
               {canRemove && <button className="btn btn-no btn-c" onClick={() => setRemoving(true)}><Undo2 className="ic" />Yêu cầu gỡ</button>}
               <button className="btn btn-p btn-c" onClick={() => open(sel)}>{isAi(sel) ? <WandSparkles className="ic" /> : <PencilLine className="ic" />}Mở để soạn tiếp</button>
             </>
           ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
         </AsidePane>
         {sel && removing && <RemovalRequestDialog storyId={sel.storyId} title={sel.title} onClose={() => setRemoving(false)} onDone={() => { setPubTick((n) => n + 1); void load(); }} />}
+        {sel && ratingOpen && <StoryRatingDialog storyId={sel.storyId} title={sel.title} mode="creator" onClose={() => setRatingOpen(false)} />}
         {sel && reading && <CreatorPreview story={sel} onClose={() => setReading(false)} />}
       </section>
     </AsideContext.Provider>

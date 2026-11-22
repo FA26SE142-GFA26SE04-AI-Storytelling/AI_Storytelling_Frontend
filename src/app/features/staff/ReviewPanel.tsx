@@ -7,6 +7,7 @@ import PublicStoryRemovalPanel from './PublicStoryRemovalPanel';
 import PublicStoryReviewPanel from './PublicStoryReviewPanel';
 import { ReviewPanelHeader } from './ReviewPanelHeader';
 import RoadmapReviewPanel from './RoadmapReviewPanel';
+import StoryRatingReviewPanel from './StoryRatingReviewPanel';
 
 export { ReviewPanelHeader };
 
@@ -17,7 +18,7 @@ export default function ReviewPanel({
   queueItem,
   onDecision,
 }: {
-  kind: ReviewKind;
+  kind: ReviewKind | 'StoryRating';
   id: number;
   queueItem?: QueueItem;
   onDecision: () => void;
@@ -33,5 +34,7 @@ export default function ReviewPanel({
       return <PublicStoryRemovalPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
     case 'RoadmapTemplateReview':
       return <RoadmapReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
+    case 'StoryRating':
+      return <StoryRatingReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
   }
 }

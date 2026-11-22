@@ -5,7 +5,7 @@ import "@/app/styles/features/children/children.css";
 import { useEffect, useState, type ComponentType } from "react";
 import {
   Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
-  Shield, ShieldAlert, Sparkles, Sun, ScrollText, UserRound, UserRoundCheck, Users, WandSparkles, type LucideIcon,
+  Shield, ShieldAlert, Sparkles, Star, Sun, ScrollText, UserRound, UserRoundCheck, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import { useAuth } from "@/app/context/AuthContext";
@@ -21,6 +21,7 @@ import { defaultPeriod } from "@/app/lib/monthPeriods";
 import { moderationStatisticsService } from "@/app/services/moderationStatisticsService";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import ContentReportsWorkspace from "./ContentReportsWorkspace";
+import StoryRatingsWorkspace from "./StoryRatingsWorkspace";
 import CreatorStoryReviewWorkspace from "./CreatorStoryReviewWorkspace";
 import GrayZoneReviewWorkspace from "./GrayZoneReviewWorkspace";
 import RoadmapTemplates from "./RoadmapTemplates";
@@ -85,6 +86,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "removal-records", label: "Hồ sơ gỡ truyện", short: "Hồ sơ gỡ", icon: Archive, view: RemovalRecordsWorkspace, hint: "Theo dõi các hồ sơ gỡ truyện và vi phạm theo 2 nguồn độc lập" },
     { id: "gray-zone", label: "Kiểm tra vùng xám", short: "Vùng xám", icon: ShieldAlert, view: GrayZoneReviewWorkspace, hint: "Kiểm tra nội dung rơi vào vùng xám an toàn" },
     { id: "content-reports", label: "Báo cáo nội dung", short: "Báo cáo", icon: Flag, view: ContentReportsWorkspace, hint: "Tiếp nhận và xử lý báo cáo vi phạm nội dung" },
+    { id: "story-ratings", label: "Đánh giá truyện", short: "Đánh giá", icon: Star, view: StoryRatingsWorkspace, hint: "Xử lý đánh giá của phụ huynh bị báo cáo hoặc bị lọc tự động" },
     { id: "removal-requests", label: "Yêu cầu gỡ truyện", short: "Yêu cầu gỡ", icon: Archive, view: RemovalRequestsWorkspace, hint: "Xử lý yêu cầu gỡ truyện công khai từ nhà sáng tạo" },
     { id: "rubrics", label: "Tiêu chí vùng xám", short: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", short: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
@@ -118,7 +120,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
   Moderator: [
     "queue",
     { label: "Thư viện", icon: LibraryBig, items: ["published", "removal-records"] },
-    { label: "Xử lý an toàn", icon: ShieldAlert, items: ["gray-zone", "content-reports", "removal-requests"] },
+    { label: "Xử lý an toàn", icon: ShieldAlert, items: ["gray-zone", "content-reports", "story-ratings", "removal-requests"] },
     { label: "Công cụ", icon: ListChecks, items: ["rubrics", "authoring-guides", "wish-cards", "catalog"] },
     "templates",
     "stats",
@@ -130,6 +132,7 @@ const MODERATOR_QUEUE_NAV_MAP: Record<string, string> = {
   PublicStoryReview: "queue",
   GrayZoneStory: "gray-zone",
   ContentReport: "content-reports",
+  StoryRating: "story-ratings",
   PublicStoryRemoval: "removal-requests",
   RoadmapTemplateReview: "templates",
 };

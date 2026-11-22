@@ -30,7 +30,9 @@ export function DetailCard({
   onClaim?: () => void;
   userRole?: string;
 }) {
-  const cannotClaim = userRole === 'Administrator' && item.itemType === 'ContentReport';
+  const cannotClaim =
+    userRole === 'Administrator' &&
+    (item.itemType === 'ContentReport' || item.itemType === 'StoryRating');
   return (
     <QueueSummaryCard
       item={item}
@@ -48,6 +50,7 @@ const ALL_TYPES: QueueItemType[] = [
   'ContentReport',
   'PublicStoryRemoval',
   'RoadmapTemplateReview',
+  'StoryRating',
 ];
 
 const ALL_STATUSES: QueueItemStatus[] = [
@@ -76,7 +79,7 @@ export default function ConnectedModerationQueue({
   description?: string;
 }) {
   const { user } = useAuth();
-  const visibleTypes = allowedTypes && allowedTypes.length > 0 ? allowedTypes : ALL_TYPES;
+  const visibleTypes = (allowedTypes && allowedTypes.length > 0 ? allowedTypes : ALL_TYPES).filter(t => !(user?.role === 'Administrator' && t === 'StoryRating'));
   const [status, setStatus] = useState<QueueItemStatus>('Pending');
   const [kind, setKind] = useState<QueueItemType | ''>(allowedTypes?.length ? allowedTypes[0] : '');
   const [pageIndex, setPageIndex] = useState(1);
@@ -92,7 +95,7 @@ export default function ConnectedModerationQueue({
   const reload = useCallback(() => {
     setSelected(null);
     setRevision(n => n + 1);
-  }, []);
+  }, [setSelected]);
   const { note, busy, run } = useAction(reload);
 
   useEffect(() => {
@@ -135,7 +138,8 @@ export default function ConnectedModerationQueue({
     visibleTypes.includes(current.itemType as QueueItemType) &&
     current.status === 'Claimed' &&
     current.claimedByUserId === user?.id;
-  const canClaim = !(user?.role === 'Administrator' && current?.itemType === 'ContentReport');
+  const canClaim =
+    !(user?.role === 'Administrator' && (current?.itemType === 'ContentReport' || current?.itemType === 'StoryRating'));
 
   const typeOptions: { value: QueueItemType | ''; label: string }[] = allowedTypes?.length
     ? visibleTypes.map(k => ({ value: k, label: MODERATION_TYPE_LABELS[k] }))
