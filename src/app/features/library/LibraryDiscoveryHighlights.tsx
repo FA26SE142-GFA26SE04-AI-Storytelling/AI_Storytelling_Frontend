@@ -22,7 +22,9 @@ export function LibraryFeaturedStory({ story, onPickStory }: {
   return (
     <article className="lib-featured" aria-labelledby="lib-featured-title">
       <div className="lib-featured-art" aria-hidden="true">
-        <span style={{ background: story.cover }} />
+        {/* Bìa truyện là ảnh đứng 3:4: giữ nguyên tỷ lệ ở giữa, nền là chính bìa làm mờ để khỏi kéo/cắt ảnh. */}
+        <span className="lib-featured-bg" style={{ background: story.cover }} />
+        <span className="lib-featured-cover" style={{ background: story.cover }} />
       </div>
       <div className="lib-featured-copy">
         <span className="lib-featured-label"><Star className="ic" aria-hidden="true" />Truyện nổi bật</span>
