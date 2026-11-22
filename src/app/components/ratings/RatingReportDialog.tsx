@@ -81,7 +81,7 @@ export default function RatingReportDialog({
             onChange={(e) => setNote(e.target.value)}
             disabled={submitting}
             rows={3}
-            className="srd-textarea"
+            className="inp"
           />
           <div className="srd-counter">
             {note.length}/{RATING_REPORT_NOTE_MAX}

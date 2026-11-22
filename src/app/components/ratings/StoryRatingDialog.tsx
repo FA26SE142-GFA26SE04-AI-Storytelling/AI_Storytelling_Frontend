@@ -126,6 +126,8 @@ export default function StoryRatingDialog({
             </section>
           )}
 
+          {/* Chưa có đánh giá nào: phần tóm tắt đã báo, không lặp câu trống ở khối bình luận. */}
+          {data.summary.ratingCount > 0 && (
           <section className="srd-block">
             <RatingComments
               mode={mode}
@@ -140,6 +142,7 @@ export default function StoryRatingDialog({
               myRatingId={data.myRating?.ratingId ?? null}
             />
           </section>
+          )}
         </>
       )}
     </Dialog>

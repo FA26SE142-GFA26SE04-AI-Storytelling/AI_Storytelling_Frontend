@@ -120,10 +120,14 @@ export default function MyRatingForm({
             </div>
           )}
 
+          {/* Backend chỉ cho gửi/sửa khi có bé đang hoạt động đã đọc truyện; đánh giá cũ vẫn xem và xoá được. */}
+          {!canRate ? (
+            <p className="srd-hint">Bé cần đọc truyện này để bạn sửa đánh giá.</p>
+          ) : (
           <div className="srd-form">
             <StarRating value={value} onChange={setValue} size={28} />
             <textarea
-              className="srd-textarea"
+              className="inp"
               value={comment}
               onChange={(e) => setComment(e.target.value)}
               maxLength={RATING_COMMENT_MAX}
@@ -148,6 +152,7 @@ export default function MyRatingForm({
               </div>
             )}
           </div>
+          )}
         </>
       )}
     </div>

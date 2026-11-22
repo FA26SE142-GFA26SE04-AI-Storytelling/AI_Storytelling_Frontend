@@ -95,7 +95,7 @@ export default function ConnectedModerationQueue({
   const reload = useCallback(() => {
     setSelected(null);
     setRevision(n => n + 1);
-  }, []);
+  }, [setSelected]);
   const { note, busy, run } = useAction(reload);
 
   useEffect(() => {
