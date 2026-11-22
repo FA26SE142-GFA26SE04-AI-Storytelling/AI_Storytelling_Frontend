@@ -116,7 +116,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
   Administrator: [
     { label: "Kiểm duyệt", icon: Inbox, items: ["published", "rubrics"] },
     { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards"] },
-    { label: "Người dùng", icon: Users, items: ["staff", "creators", "audit"] },
+    { label: "Người dùng", icon: Users, items: ["staff", "permissions", "creators", "audit"] },
     { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "plans", "quota"] },
   ],
   Moderator: [
