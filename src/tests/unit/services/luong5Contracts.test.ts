@@ -16,6 +16,7 @@ describe('Luồng 5 — quản trị và kiểm duyệt', () => {
     ['trừ lượt của một tài khoản kèm lý do', () => adminPaymentService.adjust({ userId: 13, amount: -2, reason: 'Bù trừ lượt cấp nhầm' }), '/TokenQuota/admin/adjustments', { userId: 13, amount: -2, reason: 'Bù trừ lượt cấp nhầm' }],
     ['sửa giá và lượt của gói', () => adminPaymentService.updatePlan(3, { name: 'Gói Sáng tạo', priceVnd: 109000, aiCredits: 5, isActive: true }), '/Payment/admin/plans/3', { name: 'Gói Sáng tạo', priceVnd: 109000, aiCredits: 5, isActive: true }],
     ['giữ danh sách chặn theo tuổi khi sửa danh mục', () => staffService.updateCategory(2, 'Bạo lực', true, ['Age_6_8', 'Age_9_10']), '/ContentCategory/2', { displayName: 'Bạo lực', isActive: true, defaultBlockedAgeBands: ['Age_6_8', 'Age_9_10'] }],
+    ['tạo danh mục gửi kèm nhóm nhãn', () => staffService.createCategory('SPACE', 'Vũ trụ', 'Learning', true), '/ContentCategory', { code: 'SPACE', displayName: 'Vũ trụ', group: 'Learning', isActive: true, defaultBlockedAgeBands: [] }],
   ] as const)('%s', async (_name, call, route, payload) => {
     const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody());
     await call();
@@ -31,6 +32,14 @@ describe('Luồng 5 — quản trị và kiểm duyệt', () => {
     expect(first.pathname).toMatch(/\/Payment\/admin\/transactions$/);
     expect(Object.fromEntries(first.searchParams)).toEqual({ pageIndex: '2', pageSize: '20', status: 'MismatchAmount', search: 'sepay12' });
     expect(Object.fromEntries(second.searchParams)).toEqual({ pageIndex: '1', pageSize: '20' });
+  });
+
+  it('màn danh mục của Moderator lấy cả danh mục đã ẩn, màn khác chỉ lấy danh mục đang dùng', async () => {
+    const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody([]));
+    await staffService.categories(true);
+    await staffService.categories();
+    expect(String(spy.mock.calls[0][0])).toMatch(/\/ContentCategory\?includeInactive=true$/);
+    expect(String(spy.mock.calls[1][0])).toMatch(/\/ContentCategory$/);
   });
 
   it('phụ huynh xem lịch sử giao dịch của mình và lượt còn lại', async () => {

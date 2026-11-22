@@ -70,7 +70,6 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Xem lộ trình mẫu", icon: Route, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
-    { id: "catalog", label: "Danh mục nội dung", icon: ListChecks, view: AdminCatalog },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
     { id: "creators", label: "Nhà sáng tạo nội dung", icon: UserRoundCheck, view: AdminCreators },
     { id: "audit", label: "Nhật ký thao tác", icon: ScrollText, view: AdminAuditLog, hint: "Nhật ký thao tác nhạy cảm của toàn hệ thống" },
@@ -91,6 +90,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", short: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Lộ trình mẫu", icon: Route, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
+    { id: "catalog", label: "Danh mục nội dung", short: "Danh mục", icon: ListChecks, view: AdminCatalog, hint: "Tạo, sửa, ẩn hoặc xoá danh mục nội dung dùng chung" },
     { id: "stats", label: "Thống kê", short: "Thống kê", icon: ChartColumn, view: ModeratorStatistics, hint: "Hàng đợi, SLA và quyết định của bạn" },
     ...ACCOUNT_PAGES,
   ],
@@ -111,7 +111,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
 const NAV: Record<StaffRole, NavEntry[]> = {
   Administrator: [
     { label: "Kiểm duyệt", icon: Inbox, items: ["published", "rubrics"] },
-    { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards", "catalog"] },
+    { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards"] },
     { label: "Người dùng", icon: Users, items: ["staff", "creators", "audit"] },
     { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "plans", "quota"] },
   ],
@@ -119,7 +119,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     "queue",
     { label: "Thư viện", icon: LibraryBig, items: ["published", "removal-records"] },
     { label: "Xử lý an toàn", icon: ShieldAlert, items: ["gray-zone", "content-reports", "removal-requests"] },
-    { label: "Công cụ", icon: ListChecks, items: ["rubrics", "authoring-guides", "wish-cards"] },
+    { label: "Công cụ", icon: ListChecks, items: ["rubrics", "authoring-guides", "wish-cards", "catalog"] },
     "templates",
     "stats",
   ],
