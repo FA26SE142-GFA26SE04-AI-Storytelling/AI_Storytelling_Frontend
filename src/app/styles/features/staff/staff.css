@@ -15,6 +15,9 @@
 .st-table tr:last-child td { border-bottom: 0; }
 .st-table tr.on td { background: color-mix(in srgb, var(--primary) 7%, transparent); }
 .st-scroll { overflow-x: auto; }
+/* Trang Phân quyền: thẻ giữ đủ chiều cao, cả trang cuộn (không co thành khung cuộn riêng trong .st-body). */
+.st-body > .perm-card { flex: none; }
+.perm-card td:last-child, .perm-card th:last-child { width: 72px; text-align: center; }
 .st-form { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; align-items: end; }
 .st-split { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; gap: 14px; min-height: 0; }
 .st-list { display: flex; flex-direction: column; gap: 6px; }
