@@ -1992,6 +1992,8 @@ export interface StoryReviewDto {
 export type StoryStatus = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 export type StoryStatusName = 'Draft' | 'OutlineReview' | 'ContentReview' | 'Approved' | 'MediaProcessing' | 'MediaReview' | 'Ready' | 'Rejected' | 'Archived';
 export interface SubmitAIStoryInputRequestDto {
+  'generationMode'?: string;
+  'quizQuestionCount'?: number | null;
   'topic': string;
   'genre': string | null;
   'characterMode': string;
@@ -2009,6 +2011,8 @@ export interface SubmitAIStoryInputRequestDto {
 }
 
 export interface SubmitCreatorAIStoryInputRequestDto {
+  'generationMode'?: string;
+  'quizQuestionCount'?: number | null;
   'topic': string;
   'genre': string | null;
   'characterMode': string;

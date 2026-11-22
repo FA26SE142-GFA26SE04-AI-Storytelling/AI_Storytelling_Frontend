@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { CircleAlert, Lock, ShieldAlert, Sparkles } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";
+import GenerationOptions from "./GenerationOptions";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { TokenQuotaStatus } from "@/app/types/childProfile";
@@ -202,6 +203,9 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
                 <button type="button" key={m} disabled={locked} aria-pressed={values.outputMode === m} className={values.outputMode === m ? "on" : ""} onClick={() => updateValues({ outputMode: m })}>{OUTPUT_MODE[m].label}</button>
               ))}</div>
             </div>
+          )}
+          {flow.wishId === null && (
+            <GenerationOptions mode={values.generationMode} quizCount={values.quizQuestionCount} hasQuiz={values.outputMode === "learning"} disabled={locked} onChange={updateValues} />
           )}
         </fieldset>
 

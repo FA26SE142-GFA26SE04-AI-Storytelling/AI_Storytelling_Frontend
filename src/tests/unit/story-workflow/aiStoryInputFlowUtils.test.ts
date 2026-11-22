@@ -124,6 +124,18 @@ describe('AI Story Input Phase 1 contract', () => {
     expect(buildSubmitRequest(7, values, { ...context, availableOutputModes: ['learning'] }, 'ai-story-fixed-key').outputMode).toBe('learning');
   });
 
+  it('sends the quick quiz target only when the output includes learning material', () => {
+    const supported: AIStoryInputContextDto = { ...context, availableOutputModes: ['learning', 'reading_media_only'] };
+    const values = restoreFormValues({ generationMode: 'quick', quizQuestionCount: 6 }, supported);
+    expect(buildSubmitRequest(7, values, supported, 'quick-learning')).toMatchObject({
+      generationMode: 'quick',
+      quizQuestionCount: 6,
+    });
+    const reading = buildSubmitRequest(7, { ...values, outputMode: 'reading_media_only' }, supported, 'quick-reading');
+    expect(reading.generationMode).toBe('quick');
+    expect(reading).not.toHaveProperty('quizQuestionCount');
+  });
+
   it('uses ai_suggested when no characters are provided', () => {
     const request = buildSubmitRequest(
       7,

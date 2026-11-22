@@ -47,8 +47,12 @@ export interface AIStoryCreativeInputDto {
   targetLength: number;
 }
 
+export type GenerationMode = 'standard' | 'quick';
+
 export interface SubmitAIStoryInputRequestDto extends AIStoryCreativeInputDto {
   outputMode: StoryOutputMode;
+  generationMode?: GenerationMode;
+  quizQuestionCount?: number;
   childProfileId: number;
   existingStoryId?: number;
   idempotencyKey: string;
