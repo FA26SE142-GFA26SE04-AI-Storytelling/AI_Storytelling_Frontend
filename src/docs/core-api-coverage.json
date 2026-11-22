@@ -8257,8 +8257,19 @@
     "controller": "StoryRatingController.cs",
     "action": "GetForStory",
     "controllerLine": 24,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/StoryRating/story/{}",
+        "service": "storyRatingService",
+        "operation": "list",
+        "file": "app/services/storyRatingService.ts",
+        "line": 16,
+        "callers": [
+          "app/components/ratings/StoryRatingDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "PUT",
@@ -8267,8 +8278,19 @@
     "controller": "StoryRatingController.cs",
     "action": "UpsertMine",
     "controllerLine": 34,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "PUT /api/v1/StoryRating/story/{}/me",
+        "service": "storyRatingService",
+        "operation": "upsertMine",
+        "file": "app/services/storyRatingService.ts",
+        "line": 18,
+        "callers": [
+          "app/components/ratings/MyRatingForm.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "DELETE",
@@ -8277,8 +8299,19 @@
     "controller": "StoryRatingController.cs",
     "action": "DeleteMine",
     "controllerLine": 44,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/StoryRating/story/{}/me",
+        "service": "storyRatingService",
+        "operation": "deleteMine",
+        "file": "app/services/storyRatingService.ts",
+        "line": 20,
+        "callers": [
+          "app/components/ratings/MyRatingForm.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -8287,8 +8320,19 @@
     "controller": "StoryRatingController.cs",
     "action": "Report",
     "controllerLine": 53,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/StoryRating/{}/reports",
+        "service": "storyRatingService",
+        "operation": "report",
+        "file": "app/services/storyRatingService.ts",
+        "line": 22,
+        "callers": [
+          "app/components/ratings/RatingReportDialog.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -8297,8 +8341,20 @@
     "controller": "StoryRatingController.cs",
     "action": "GetForMyStory",
     "controllerLine": 63,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/creator/stories/{}/ratings",
+        "service": "storyRatingService",
+        "operation": "listForCreator",
+        "file": "app/services/storyRatingService.ts",
+        "line": 25,
+        "callers": [
+          "app/components/ratings/StoryRatingDialog.tsx",
+          "app/features/staff/CreatorMyStories.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",
@@ -8307,8 +8363,19 @@
     "controller": "StoryRatingModerationController.cs",
     "action": "GetDetail",
     "controllerLine": 22,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "GET /api/v1/StoryRatingModeration/{}",
+        "service": "storyRatingService",
+        "operation": "moderationDetail",
+        "file": "app/services/storyRatingService.ts",
+        "line": 28,
+        "callers": [
+          "app/features/staff/StoryRatingReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -8317,8 +8384,19 @@
     "controller": "StoryRatingModerationController.cs",
     "action": "Approve",
     "controllerLine": 31,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/StoryRatingModeration/{}/approve",
+        "service": "storyRatingService",
+        "operation": "approve",
+        "file": "app/services/storyRatingService.ts",
+        "line": 30,
+        "callers": [
+          "app/features/staff/StoryRatingReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "POST",
@@ -8327,8 +8405,19 @@
     "controller": "StoryRatingModerationController.cs",
     "action": "Hide",
     "controllerLine": 40,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "POST /api/v1/StoryRatingModeration/{}/hide",
+        "service": "storyRatingService",
+        "operation": "hide",
+        "file": "app/services/storyRatingService.ts",
+        "line": 32,
+        "callers": [
+          "app/features/staff/StoryRatingReviewPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "GET",

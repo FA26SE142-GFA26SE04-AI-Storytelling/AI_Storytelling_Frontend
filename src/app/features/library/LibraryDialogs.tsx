@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import StoryRatingDialog from "@/app/components/ratings/StoryRatingDialog";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import type { StoryCard } from "@/app/lib/storyView";
 import { showToast } from "@/app/lib/toast";
@@ -13,7 +15,9 @@ import LibraryDetailDialog from "./LibraryDetailDialog";
 import { ReportDialog } from "./ModerationDialogs";
 import { Preview } from "./StoryPreviewDialog";
 
-export type LibraryDialogKind = "preview" | "roadmap" | "report" | null;
+export type LibraryDialogKind = "preview" | "roadmap" | "report" | "rating" | null;
+
+type RatingStat = { averageRating: number | null; ratingCount: number };
 
 export type LibraryDialogsProps = {
   selectedStory: StoryCard | null;
@@ -51,9 +55,17 @@ export default function LibraryDialogs({
   onCloseAddingTpl,
   onCloseStoryRoadmap,
 }: LibraryDialogsProps) {
+  // Số sao trong danh sách truyện bị cache tới 1 phút ở backend: giữ số mới nhất sau khi phụ huynh gửi/xoá đánh giá.
+  const [ratingOverride, setRatingOverride] = useState<Record<number, RatingStat>>({});
+  const rating: RatingStat | null = selectedStory
+    ? ratingOverride[selectedStory.id] ?? {
+        averageRating: selectedStory.raw.averageRating ?? null,
+        ratingCount: selectedStory.raw.ratingCount ?? 0,
+      }
+    : null;
   return (
     <>
-      {selectedStory && !dialog && (
+      {selectedStory && rating && !dialog && (
         <LibraryDetailDialog
           story={selectedStory}
           go={go}
@@ -62,6 +74,22 @@ export default function LibraryDialogs({
           onPreview={() => onDialogChange("preview")}
           onAddRoadmap={() => onDialogChange("roadmap")}
           onReport={() => onDialogChange("report")}
+          onRate={() => onDialogChange("rating")}
+          rating={rating}
+        />
+      )}
+      {selectedStory && dialog === "rating" && (
+        <StoryRatingDialog
+          storyId={selectedStory.id}
+          title={selectedStory.title}
+          mode="parent"
+          onClose={() => onDialogChange(null)}
+          onChanged={(summary) =>
+            setRatingOverride((prev) => ({
+              ...prev,
+              [selectedStory.id]: { averageRating: summary.averageRating, ratingCount: summary.ratingCount },
+            }))
+          }
         />
       )}
       {selectedStory && dialog === "preview" && (

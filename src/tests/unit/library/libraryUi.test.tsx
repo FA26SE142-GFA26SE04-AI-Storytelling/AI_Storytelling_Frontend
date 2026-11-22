@@ -94,6 +94,8 @@ describe("Library UI components", () => {
         onPreview={() => {}}
         onAddRoadmap={() => {}}
         onReport={() => {}}
+        onRate={() => {}}
+        rating={{ averageRating: 4.5, ratingCount: 12 }}
       />,
     );
 
@@ -107,6 +109,8 @@ describe("Library UI components", () => {
     expect(html).toContain("Thêm vào lộ trình");
     expect(html).toContain("Xem trước như bé thấy");
     expect(html).toContain("Báo cáo nội dung");
+    expect(html).toContain("4,5 · 12 đánh giá");
+    expect(html).toContain("Xem đánh giá của phụ huynh");
   });
 
   it("LibraryDetailDialog switches actions cleanly for family drafts and moderation stories", () => {
@@ -118,10 +122,14 @@ describe("Library UI components", () => {
         onPreview={() => {}}
         onAddRoadmap={() => {}}
         onReport={() => {}}
+        onRate={() => {}}
+        rating={{ averageRating: 4.5, ratingCount: 12 }}
       />,
     );
     expect(familyHtml).toContain("Mở trong trang Thủ công");
     expect(familyHtml).not.toContain("Thêm vào lộ trình");
+    // Đánh giá chỉ dành cho truyện Creator trong thư viện cộng đồng.
+    expect(familyHtml).not.toContain("đánh giá");
 
     const modHtml = renderToStaticMarkup(
       <LibraryDetailDialog
@@ -131,6 +139,8 @@ describe("Library UI components", () => {
         onPreview={() => {}}
         onAddRoadmap={() => {}}
         onReport={() => {}}
+        onRate={() => {}}
+        rating={{ averageRating: 4.5, ratingCount: 12 }}
       />,
     );
     expect(modHtml).toContain("Đang chờ kiểm duyệt");
@@ -169,6 +179,8 @@ describe("Library UI components", () => {
         onPreview={() => {}}
         onAddRoadmap={() => {}}
         onReport={() => {}}
+        onRate={() => {}}
+        rating={{ averageRating: 4.5, ratingCount: 12 }}
       />,
     );
     expect(html).toContain("Tác giả cộng đồng");

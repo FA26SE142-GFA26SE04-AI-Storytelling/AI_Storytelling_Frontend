@@ -9,6 +9,7 @@ import {
   PencilLine,
   Route,
   Sparkles,
+  Star,
   Tag,
   User,
   Users,
@@ -18,6 +19,8 @@ import Dialog from "@/app/components/Dialog";
 import StoryHandoverButton from "@/app/features/kid/StoryHandoverButton";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import type { StoryCard } from "@/app/lib/storyView";
+import { StarRating } from "@/app/components/StarRating";
+import "@/app/styles/components/StoryRatingDialog.css";
 import { canonicalAgeLabel, displayAuthorOf, SOURCE_LABEL, sourceOf, statusOf, topicOf } from "./libraryFilters";
 
 export type LibraryDetailDialogProps = {
@@ -28,6 +31,9 @@ export type LibraryDetailDialogProps = {
   onPreview: () => void;
   onAddRoadmap: () => void;
   onReport: () => void;
+  /** Chỉ truyện Creator có đánh giá; `rating` là số liệu mới nhất (ghi đè sau khi phụ huynh gửi/xoá). */
+  onRate: () => void;
+  rating: { averageRating: number | null; ratingCount: number };
 };
 
 /** Hộp chi tiết truyện của Thư viện phụ huynh: bìa đứng 3:4, tóm tắt & bài học trên nền giấy, hàng thao tác rõ thứ bậc. */
@@ -39,6 +45,8 @@ export default function LibraryDetailDialog({
   onPreview,
   onAddRoadmap,
   onReport,
+  onRate,
+  rating,
 }: LibraryDetailDialogProps) {
   const detailRef = useRef<HTMLDivElement>(null);
   const storyStatus = statusOf(story);
@@ -96,6 +104,20 @@ export default function LibraryDetailDialog({
                   </span>
                 )}
               </div>
+            )}
+            {story.creator && (
+              <button type="button" className="rating-line" onClick={onRate} aria-label="Xem đánh giá của phụ huynh">
+                {rating.ratingCount > 0 && rating.averageRating != null ? (
+                  <>
+                    <StarRating value={rating.averageRating} size={16} />
+                    <span className="lib-num">
+                      {rating.averageRating.toLocaleString("vi-VN", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} · {rating.ratingCount} đánh giá
+                    </span>
+                  </>
+                ) : (
+                  <span>Chưa có đánh giá</span>
+                )}
+              </button>
             )}
           </div>
         </div>
@@ -203,6 +225,12 @@ export default function LibraryDetailDialog({
                       <Eye className="ic" aria-hidden="true" />
                       Xem trước như bé thấy
                     </button>
+                    {story.creator && (
+                      <button type="button" className="btn btn-s" onClick={onRate}>
+                        <Star className="ic" aria-hidden="true" />
+                        Đánh giá
+                      </button>
+                    )}
                     <button type="button" className="btn btn-g lib-report-btn" onClick={onReport}>
                       <Flag className="ic" aria-hidden="true" />
                       Báo cáo nội dung

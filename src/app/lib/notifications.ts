@@ -43,6 +43,8 @@ const TEXT: Record<string, string> = {
   creator_payout_paid: "Bạn vừa được chi trả thu nhập",
   creator_payout_cancelled: "Một lần chi trả đã bị huỷ, số dư được cộng lại",
   story_credit_released: "Lượt AI giữ cho một truyện bỏ dở đã được trả lại",
+  story_rating_published: "Truyện của bạn vừa có đánh giá mới từ phụ huynh",
+  story_rating_moderated: "Đánh giá của bạn đã được kiểm duyệt",
 };
 
 const vnd = (value: unknown) => (typeof value === "number" ? `${value.toLocaleString("vi-VN")} đ` : "");
@@ -62,6 +64,11 @@ function detailedText(key: string, p: Record<string, unknown>): string | null {
       return p.amountVnd != null ? `Lần chi ${vnd(p.amountVnd)} đã bị huỷ, số dư được cộng lại` : null;
     case "story_credit_released":
       return `Đã trả lại ${typeof p.credits === "number" ? p.credits : 1} lượt AI của truyện${quoted(p.title)} vì bị bỏ dở; làm tiếp truyện sẽ giữ lại lượt`;
+    case "story_rating_published":
+      return typeof p.rating === "number" ? `Truyện của bạn vừa nhận đánh giá ${p.rating} sao từ phụ huynh` : null;
+    case "story_rating_moderated":
+      if (p.decision === "Hidden") return `Đánh giá của bạn đã bị ẩn${typeof p.reason === "string" && p.reason.trim() ? `. Lý do: ${p.reason.trim()}` : ""}`;
+      return p.decision === "Approved" ? "Đánh giá của bạn đã được duyệt và đang hiển thị" : null;
     default:
       return null;
   }
