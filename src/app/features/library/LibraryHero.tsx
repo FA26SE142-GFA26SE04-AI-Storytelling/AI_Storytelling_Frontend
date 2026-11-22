@@ -38,7 +38,7 @@ export function FeaturedShelf({ viewed, latest, card }: { viewed: StoryCard[]; l
   if (items.length === 0) return null;
   return (
     <Shelf title="Nổi bật" sub={ranked ? "Được các bé đọc nhiều nhất" : "Mới lên kệ"} items={items}>
-      <ShelfRow>{items.map((s, i) => card(s, ranked ? i + 1 : undefined))}</ShelfRow>
+      <ShelfRow autoPlay>{items.map((s, i) => card(s, ranked ? i + 1 : undefined))}</ShelfRow>
     </Shelf>
   );
 }

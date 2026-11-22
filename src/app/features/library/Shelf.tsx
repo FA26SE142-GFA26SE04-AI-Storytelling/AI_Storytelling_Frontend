@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useRiseIn } from "@/app/lib/motion";
+import { useAutoScroll, useRiseIn } from "@/app/lib/motion";
 
 type ShelfProps = { title: string; sub?: string; /** Kệ cần chú ý (việc phụ huynh phải làm): nền và viền vàng. */ accent?: boolean; items: { id: number }[]; pills?: { id: string; label: string }[]; pill?: string; onPill?: (id: string) => void; onAll?: () => void; children: React.ReactNode };
 
@@ -10,7 +10,7 @@ type ShelfProps = { title: string; sub?: string; /** Kệ cần chú ý (việc 
 export function Shelf({ title, sub, accent, items, pills, pill, onPill, onAll, children }: ShelfProps) {
   // Mỗi kệ tự chạy hiệu ứng hiện dần, chỉ khi danh sách truyện của chính kệ đó đổi (đổi chủ đề không làm kệ khác nháy lại).
   const animKey = items.map((s) => s.id).join(",");
-  const ref = useRiseIn<HTMLElement>(".bk", [animKey], { delay: 22, distance: 12 });
+  const ref = useRiseIn<HTMLElement>(".bk, .lbk", [animKey], { delay: 22, distance: 12 });
   return (
     <section ref={ref} className={`shelf${accent ? " accent" : ""}`} aria-label={title}>
       <div className="shelf-h">
@@ -28,9 +28,10 @@ export function Shelf({ title, sub, accent, items, pills, pill, onPill, onAll, c
   );
 }
 
-/** Hàng ngang cuộn được, có nút mũi tên hai bên. */
-export function ShelfRow({ children }: { children: React.ReactNode }) {
+/** Hàng ngang cuộn được, có nút mũi tên hai bên; `autoPlay` thì tự lướt từng thẻ (dừng khi rê chuột, focus hoặc tự cuộn). */
+export function ShelfRow({ children, autoPlay = false }: { children: React.ReactNode; autoPlay?: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
+  useAutoScroll(ref, autoPlay);
   const [edge, setEdge] = useState({ start: true, end: false });
   const measure = useCallback(() => {
     const el = ref.current; if (!el) return;
