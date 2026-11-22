@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { ArrowRight, BookOpen, ChevronRight, ChevronUp, Clock, Layers3, Star, Tags } from "lucide-react";
 import Lotus from "@/app/components/brand/Lotus";
-import type { StoryCard } from "@/app/lib/storyView";
+import { uncroppedCover, type StoryCard } from "@/app/lib/storyView";
 import { canonicalAgeLabel, estimatedReadingMinutes, topicOf } from "./libraryFilters";
 
 const GENRE_ROW_LIMIT = 4;
@@ -22,7 +22,7 @@ export function LibraryFeaturedStory({ story, onPickStory }: {
   return (
     <article className="lib-featured" aria-labelledby="lib-featured-title">
       <div className="lib-featured-art" aria-hidden="true">
-        <span style={{ background: story.cover }} />
+        <span style={{ background: uncroppedCover(story.raw.coverImageUrl) }} />
       </div>
       <div className="lib-featured-copy">
         <span className="lib-featured-label"><Star className="ic" aria-hidden="true" />Truyện nổi bật</span>
@@ -62,7 +62,7 @@ export function LibraryGenreTiles({
   const covers = new Map<string, string>();
   for (const story of stories) {
     const topic = topicOf(story);
-    if (!covers.has(topic)) covers.set(topic, story.cover);
+    if (!covers.has(topic)) covers.set(topic, uncroppedCover(story.raw.coverImageUrl));
   }
   return (
     <section className="lib-section" aria-labelledby="lib-genre-heading">
