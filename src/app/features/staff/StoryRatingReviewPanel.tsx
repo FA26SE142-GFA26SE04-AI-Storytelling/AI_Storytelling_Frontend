@@ -152,7 +152,7 @@ export default function StoryRatingReviewPanel({
     <div ref={riseRef} className="col" style={{ gap: 'var(--sp-md)' }}>
       {/* 2. Đầu panel: Tên truyện và hàng pill */}
       <div className="st-group">
-        <h2 className="sec-h">{detail.storyTitle || 'Đánh giá truyện'}</h2>
+        <h2 className="display st-detail-title" style={{ fontSize: 'var(--fs-xl)', margin: 0, lineHeight: 1.2 }}>{detail.storyTitle || 'Đánh giá truyện'}</h2>
         <div className="row st-wrap">
           {detail.holdSource === 'Report' && (
             <span className="pill flag">
