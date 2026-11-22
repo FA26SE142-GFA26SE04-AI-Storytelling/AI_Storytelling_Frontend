@@ -27,8 +27,9 @@ export function controllerInventory(directory) {
         : `/${prefix}/${template}`).replace(/\[controller\]/g, controller)
         .replace(/\{(\w+):[^}]+\}/g, '{$1}').replace(/\/+$/, '');
       const authorization = /\[AllowAnonymous\]/.test(attributes) ? 'AllowAnonymous'
-        : [...header.matchAll(/\[Authorize(?:\(([^\]]*)\))?\]/g), ...attributes.matchAll(/\[Authorize(?:\(([^\]]*)\))?\]/g)]
-          .map(match => match[1] || 'Authenticated').join('; ') || 'See controller and authentication policy';
+        : [...header.matchAll(/\[(Authorize|HasPermission)(?:\(([^\]]*)\))?\]/g), ...attributes.matchAll(/\[(Authorize|HasPermission)(?:\(([^\]]*)\))?\]/g)]
+          .map(match => match[1] === 'HasPermission' ? `Permission = ${match[2]}` : match[2] || 'Authenticated')
+          .join('; ') || 'See controller and authentication policy';
       routes.push({ method: attribute[1].toUpperCase(), route, authorization, controller: file, action,
         controllerLine: source.slice(0, attribute.index).split('\n').length });
     }

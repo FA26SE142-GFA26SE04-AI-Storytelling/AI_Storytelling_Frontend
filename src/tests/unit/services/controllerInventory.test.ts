@@ -25,3 +25,14 @@ public sealed class ExampleController : BaseApiController {
   expect(result[1].authorization).toContain('Parent,Administrator'); expect(result[1].authorization).toContain('Roles = "Parent"');
   expect(result[2].action).toBe('Check');
 });
+it('reads HasPermission attributes as the endpoint authorization', () => {
+  const dir = mkdtempSync(path.join(tmpdir(),'frontend-controller-inventory-')); directories.push(dir);
+  writeFileSync(path.join(dir,'BaseApiController.cs'),'[Route("api/v1/[controller]")]\npublic abstract class BaseApiController : ControllerBase {}');
+  writeFileSync(path.join(dir,'GrayController.cs'),`[HasPermission(Permissions.Review.GrayZone)]
+public sealed class GrayController : BaseApiController {
+    [HttpGet("{id:int}")]
+    public IActionResult Get(int id) => Ok();
+}`);
+  const result = controllerInventory(dir);
+  expect(result[0].authorization).toBe('Permission = Permissions.Review.GrayZone');
+});

@@ -4,7 +4,7 @@ import "@/app/styles/features/staff/staff.css";
 import "@/app/styles/features/children/children.css";
 import { useEffect, useState, type ComponentType } from "react";
 import {
-  Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
+  Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, KeyRound, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
   Shield, ShieldAlert, Sparkles, Star, Sun, ScrollText, UserRound, UserRoundCheck, Users, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
@@ -38,6 +38,7 @@ import ModeratorStatistics from "./ModeratorStatistics";
 import { AdminStaff } from "./AdminPeople";
 import { AdminCreators } from "./AdminCreators";
 import { AdminAuditLog } from "./AdminAuditLog";
+import AdminPermissions from "./AdminPermissions";
 import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
 import { AdminPayments, AdminPlans, AdminQuota } from "./AdminSystem";
@@ -72,6 +73,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "templates", label: "Xem lộ trình mẫu", icon: Route, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
+    { id: "permissions", label: "Phân quyền", icon: KeyRound, view: AdminPermissions, hint: "Bật/tắt quyền của Moderator và Administrator" },
     { id: "creators", label: "Nhà sáng tạo nội dung", icon: UserRoundCheck, view: AdminCreators },
     { id: "audit", label: "Nhật ký thao tác", icon: ScrollText, view: AdminAuditLog, hint: "Nhật ký thao tác nhạy cảm của toàn hệ thống" },
     { id: "business", label: "Báo cáo nghiệp vụ", icon: ChartColumn, view: AdminBusinessReport },
