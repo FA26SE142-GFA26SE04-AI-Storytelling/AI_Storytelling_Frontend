@@ -329,3 +329,37 @@ export function usePointerPlay<T extends HTMLElement = HTMLElement>(selector = "
   }, [selector]);
   return ref;
 }
+
+/**
+ * Tự lướt một hàng ngang cuộn được (hàng truyện nổi bật): mỗi `intervalMs` cuộn thêm một thẻ, tới cuối thì quay về đầu.
+ * Dừng khi rê chuột hoặc focus vào hàng, khi tab bị ẩn, và một lúc sau khi người dùng tự cuộn/chạm/bấm mũi tên.
+ * Tắt hẳn khi bật "giảm chuyển động".
+ */
+export function useAutoScroll<T extends HTMLElement = HTMLElement>(ref: RefObject<T | null>, enabled = true, intervalMs = 3500, idleMs = 6000) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !enabled || prefersReducedMotion()) return;
+    const zone = el.parentElement ?? el;
+    let hover = false, focus = false, resumeAt = 0;
+    const nudge = () => { resumeAt = Date.now() + idleMs; };
+    const tick = () => {
+      if (hover || focus || document.hidden || Date.now() < resumeAt) return;
+      if (el.scrollWidth - el.clientWidth < 4) return;
+      const first = el.firstElementChild as HTMLElement | null;
+      const gap = parseFloat(getComputedStyle(el).columnGap) || 0;
+      const step = (first?.offsetWidth ?? el.clientWidth * 0.8) + gap;
+      const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+      el.scrollTo({ left: atEnd ? 0 : el.scrollLeft + step, behavior: "smooth" });
+    };
+    const id = window.setInterval(tick, intervalMs);
+    const on: [string, EventListener][] = [
+      ["mouseenter", () => { hover = true; }],
+      ["mouseleave", () => { hover = false; }],
+      ["focusin", () => { focus = true; }],
+      ["focusout", () => { focus = false; }],
+      ["pointerdown", nudge], ["wheel", nudge], ["touchstart", nudge],
+    ];
+    on.forEach(([e, f]) => zone.addEventListener(e, f, { passive: true }));
+    return () => { window.clearInterval(id); on.forEach(([e, f]) => zone.removeEventListener(e, f)); };
+  }, [ref, enabled, intervalMs, idleMs]);
+}

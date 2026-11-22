@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Eye, Info, PencilLine, Search, SlidersHorizontal, WandSparkles, X } from "lucide-react";
 import CreatorPreview from "./CreatorPreview";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
-import { Shelf, ShelfRow } from "@/app/features/library/LibraryWorkspace";
+import { Shelf, ShelfRow } from "@/app/features/library/Shelf";
 import { creatorService } from "@/app/services/creatorService";
 import { creatorPublicationService } from "@/app/services/creatorPublicationService";
 import type { CreatorDraft } from "@/app/types/creator";
