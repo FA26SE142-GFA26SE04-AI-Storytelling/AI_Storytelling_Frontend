@@ -92,10 +92,14 @@ export interface SafetyPolicyCategory {
   rule: string;
 }
 
+export type ContentCategoryGroup = 'Genre' | 'LifeValue' | 'Learning' | 'SafetyWarning';
+
 export interface ContentCategory {
   id: number;
   code: string;
   displayName: string;
+  /** Nhóm nhãn backend trả về (Genre, LifeValue, Learning, SafetyWarning). */
+  group?: ContentCategoryGroup;
   isActive: boolean;
   /** Nhóm tuổi mà danh mục này bị chặn mặc định khi tạo hồ sơ. */
   defaultBlockedAgeBands?: string[];

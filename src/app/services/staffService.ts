@@ -1,5 +1,5 @@
 import type { ApiResponse } from '@/app/types/auth';
-import type { ContentCategory } from '@/app/types/childProfile';
+import type { ContentCategory, ContentCategoryGroup } from '@/app/types/childProfile';
 import type { PagedResult } from '@/app/types/story';
 import type { BusinessReport, InviteStaffInput, QueueItem, QueueItemDetail, QueueQuery, StaffAccount, StaffAccountDto, StaffAccountRole } from '@/app/types/staff';
 import type * as B from '@/app/types/backendContracts';
@@ -23,9 +23,12 @@ const toStaff = (m: StaffAccountDto): StaffAccount => ({
 
 export const staffService = {
   // ---------- Danh mục nội dung ----------
-  categories: (): Promise<ApiResponse<ContentCategory[]>> => apiRequest('/ContentCategory', 'Không tải được danh mục.'),
-  createCategory: (code: string, displayName: string, isActive: boolean, defaultBlockedAgeBands: string[] = []): Promise<ApiResponse<ContentCategory>> =>
-    apiRequest('/ContentCategory', 'Không thêm được danh mục.', { method: 'POST', body: { code, displayName, isActive, defaultBlockedAgeBands } }),
+  /** Mặc định chỉ danh mục đang dùng; `includeInactive` (chỉ Moderator/Administrator) lấy cả danh mục đã ẩn. */
+  categories: (includeInactive = false): Promise<ApiResponse<ContentCategory[]>> =>
+    apiRequest(`/ContentCategory${includeInactive ? apiQuery({ includeInactive: true }) : ''}`, 'Không tải được danh mục.'),
+  /** Chỉ Moderator gọi được; `group` bắt buộc (Genre, LifeValue, Learning, SafetyWarning). */
+  createCategory: (code: string, displayName: string, group: ContentCategoryGroup, isActive: boolean, defaultBlockedAgeBands: string[] = []): Promise<ApiResponse<ContentCategory>> =>
+    apiRequest('/ContentCategory', 'Không thêm được danh mục.', { method: 'POST', body: { code, displayName, group, isActive, defaultBlockedAgeBands } }),
   /** `defaultBlockedAgeBands` bỏ trống thì backend giữ nguyên danh sách cũ. */
   updateCategory: (id: number, displayName: string, isActive: boolean, defaultBlockedAgeBands?: string[]): Promise<ApiResponse<ContentCategory>> =>
     apiRequest(`/ContentCategory/${id}`, 'Không lưu được danh mục.', { method: 'PUT', body: { displayName, isActive, defaultBlockedAgeBands } }),
