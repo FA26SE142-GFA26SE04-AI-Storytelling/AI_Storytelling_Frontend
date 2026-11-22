@@ -52,9 +52,9 @@ export default function AdminPermissions() {
   return (
     <Page title="Phân quyền">
       <Notice note={note} />
-      <div className="st-card">
+      <div className="st-card perm-card">
         <div className="st-filters">
-          <Select ariaLabel="Chọn role" value={roleCode} disabled={busy || roles.length === 0}
+          <Select ariaLabel="Chọn role" value={roleCode} disabled={busy || roles.length === 0} portal
             options={roles.map((r) => ({ value: r.code, label: r.name }))} onChange={(v) => setRoleCode(v)} />
           <span className="grow" />
           {dirty && <button className="btn btn-g" disabled={busy} onClick={() => setDraft(saved)}><RotateCcw className="ic" />Hoàn tác</button>}
@@ -63,7 +63,7 @@ export default function AdminPermissions() {
         <p className="sub">Chỉ chỉnh được quyền nhân viên. Quyền của phụ huynh và nhà sáng tạo giữ cố định. Mỗi bước duyệt nội dung cho trẻ phải còn ít nhất một role được duyệt.</p>
       </div>
       {groups.map((g) => (
-        <div className="st-card st-scroll" key={g.group}>
+        <div className="st-card perm-card" key={g.group}>
           <h3>{g.group}</h3>
           <table className="st-table stack-table">
             <thead><tr><th>Quyền</th><th>Mô tả</th><th>Bật</th></tr></thead>
