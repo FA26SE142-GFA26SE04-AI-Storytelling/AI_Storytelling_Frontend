@@ -49,7 +49,7 @@ export default function CreatorApplicantScreen() {
           return;
         }
       }
-      showToast("Đơn của bạn đã được duyệt. Chào mừng đến khu Content Creator!", "ok");
+      showToast("Đơn của bạn đã được duyệt. Chào mừng đến khu nhà sáng tạo nội dung!", "ok");
       return;
     }
     setApp(r.data);
@@ -69,7 +69,7 @@ export default function CreatorApplicantScreen() {
           <IconButton icon={RefreshCw} label="Kiểm tra lại" className="btn btn-g" iconClassName={loading ? "ic cap-spin" : "ic"} disabled={loading} onClick={() => void check(true)} />
           <IconButton icon={LogOut} label="Đăng xuất" className="btn btn-g" onClick={() => void logout()} />
         </div>
-        <h1 className="display">{!app ? "Đơn đăng ký Content Creator" : rejected ? "Đơn chưa được duyệt" : "Đơn của bạn đang chờ duyệt"}</h1>
+        <h1 className="display">{!app ? "Đơn đăng ký nhà sáng tạo nội dung" : rejected ? "Đơn chưa được duyệt" : "Đơn của bạn đang chờ duyệt"}</h1>
         {!app ? (
           <p className="sub">{loading ? "Đang tải đơn đăng ký…" : "Chưa tải được đơn. Bấm Kiểm tra lại để thử lần nữa."}</p>
         ) : (
@@ -89,7 +89,7 @@ export default function CreatorApplicantScreen() {
               <span className="lbl">Giới thiệu bản thân</span>
               <p className="cap-intro">{app.introduction}</p>
               {isWebLink(app.portfolioUrl) && (
-                <a className="cap-link" href={app.portfolioUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="ic" aria-hidden />Xem portfolio</a>
+                <a className="cap-link" href={app.portfolioUrl} target="_blank" rel="noopener noreferrer"><ExternalLink className="ic" aria-hidden />Xem hồ sơ năng lực</a>
               )}
             </div>
             {rejected
@@ -128,7 +128,7 @@ function ResubmitDialog({ app, onClose, onDone }: { app: CreatorApplication; onC
       <form className="cap-form" onSubmit={submit}>
         <label className="field"><span className="lbl">Giới thiệu bản thân ({intro.length}/1000)</span>
           <textarea className="inp" rows={6} minLength={20} maxLength={1000} required autoFocus value={intro} onChange={(e) => setIntro(e.target.value)} /></label>
-        <label className="field"><span className="lbl">Link portfolio (không bắt buộc)</span>
+        <label className="field"><span className="lbl">Link hồ sơ năng lực (không bắt buộc)</span>
           <input className="inp" type="url" maxLength={500} placeholder="https://" value={portfolio} onChange={(e) => setPortfolio(e.target.value)} /></label>
         <button className="btn btn-p btn-c" disabled={!valid || !dirty || busy}><Send className="ic" aria-hidden />{busy ? "Đang gửi…" : "Gửi"}</button>
       </form>

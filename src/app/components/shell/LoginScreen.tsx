@@ -22,7 +22,7 @@ const TITLES: Record<Mode, string> = {
   verify: "Xác thực email",
   forgot: "Quên mật khẩu",
   reset: "Đặt mật khẩu mới",
-  creator: "Đăng ký làm Content Creator",
+  creator: "Đăng ký làm nhà sáng tạo nội dung",
   activate: "Kích hoạt tài khoản vận hành",
 };
 const SUBMIT_LABELS: Record<Mode, string> = { login: "Đăng nhập", register: "Đăng ký", verify: "Xác thực", forgot: "Gửi hướng dẫn", reset: "Đổi mật khẩu", creator: "Nộp đơn", activate: "Kích hoạt" };
@@ -150,7 +150,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         {mode === "creator" && (
           <>
             <label className="field"><span className="lbl">Giới thiệu bản thân ({cr.intro.length}/1000)</span><textarea className="inp" rows={4} minLength={20} maxLength={1000} required value={cr.intro} onChange={(e) => setCr({ ...cr, intro: e.target.value })} placeholder="Kinh nghiệm viết, biên tập hoặc dạy học cho trẻ em (ít nhất 20 ký tự)" /></label>
-            <label className="field"><span className="lbl">Link portfolio (không bắt buộc)</span><input className="inp" type="url" maxLength={500} value={cr.portfolio} onChange={(e) => setCr({ ...cr, portfolio: e.target.value })} placeholder="https://" /></label>
+            <label className="field"><span className="lbl">Link hồ sơ năng lực (không bắt buộc)</span><input className="inp" type="url" maxLength={500} value={cr.portfolio} onChange={(e) => setCr({ ...cr, portfolio: e.target.value })} placeholder="https://" /></label>
           </>
         )}
         {needsPassword && (
@@ -170,7 +170,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         {mode === "activate" && (
           <>
             <label className="field"><span className="lbl">Mã mời trong email</span><input className="inp" required value={f.token} onChange={set("token")} autoComplete="off" spellCheck={false} /></label>
-            <p className="sub">Mã có hiệu lực 72 giờ và chỉ dùng được một lần. Hết hạn thì nhờ Administrator gửi lại lời mời.</p>
+            <p className="sub">Mã có hiệu lực 72 giờ và chỉ dùng được một lần. Hết hạn thì nhờ quản trị viên gửi lại lời mời.</p>
             <label className="row" style={{ alignItems: "flex-start", fontSize: "var(--fs-sm)" }}>
               <input type="checkbox" checked={cr.commit} onChange={(e) => setCr({ ...cr, commit: e.target.checked })} style={{ marginTop: 3 }} />
               <span>Tôi cam kết bảo mật dữ liệu trẻ em và tuân thủ quy tắc kiểm duyệt nội dung của nền tảng.</span>
@@ -198,7 +198,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
             <div className="login-staff">
               <span>Dành cho đội ngũ nội dung</span>
               <div>
-                <button type="button" onClick={() => go("creator")}>Đăng ký làm Content Creator</button>
+                <button type="button" onClick={() => go("creator")}>Đăng ký làm nhà sáng tạo nội dung</button>
                 <button type="button" onClick={() => go("activate")}>Kích hoạt tài khoản vận hành</button>
               </div>
             </div>
@@ -206,7 +206,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         ) : (
           <div className="login-links">
             {mode === "verify" && <button type="button" disabled={busy} onClick={() => void resend()}>Gửi lại mã</button>}
-            {mode === "register" && <button type="button" onClick={() => go("creator")}>Đăng ký làm Content Creator</button>}
+            {mode === "register" && <button type="button" onClick={() => go("creator")}>Đăng ký làm nhà sáng tạo nội dung</button>}
             {mode === "creator" && <button type="button" onClick={() => go("register")}>Đăng ký tài khoản phụ huynh</button>}
             <button type="button" onClick={() => go("login")}>Quay lại đăng nhập</button>
           </div>

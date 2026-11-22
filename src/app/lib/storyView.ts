@@ -130,4 +130,4 @@ export function splitScenes(content: string): string[] {
 }
 
 export const AGE_LABEL: Record<string, string> = { Age_6_8: "6–8 tuổi", Age_9_10: "9–10 tuổi" };
-export const ageLabel = (band: string) => AGE_LABEL[band] ?? band.replace(/^Age_/, "").replace("_", "–") + " tuổi";
+export const ageLabel = (band: string) => AGE_LABEL[band] ?? band.replace(/^Age_/, "").replace(/[_-]/, "–") + " tuổi";

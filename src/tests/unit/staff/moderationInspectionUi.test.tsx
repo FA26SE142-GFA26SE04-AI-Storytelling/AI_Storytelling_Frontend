@@ -52,7 +52,7 @@ describe('Moderator inspection UI primitives', () => {
         ending="Mọi người cùng trở về an toàn"
       />,
     );
-    expect(outlineHtml).toContain('Dàn ý 3 phần từ Creator');
+    expect(outlineHtml).toContain('Dàn ý 3 phần từ nhà sáng tạo');
     expect(outlineHtml).toContain('Mở đầu khu rừng xanh');
     expect(outlineHtml).toContain('Chú ếch giúp bạn tìm đường');
     expect(outlineHtml).toContain('Mọi người cùng trở về an toàn');
@@ -93,7 +93,7 @@ describe('Moderator inspection UI primitives', () => {
       />,
     );
     expect(historyHtml).toContain('Lịch sử các lần duyệt trước (1)');
-    expect(historyHtml).toContain('Chờ Creator sửa');
+    expect(historyHtml).toContain('Chờ nhà sáng tạo sửa');
     expect(historyHtml).toContain('Cần sửa lại đoạn kết cho dịu nhẹ hơn');
   });
 
@@ -213,9 +213,9 @@ describe('Moderator inspection UI primitives', () => {
     expect(html).toContain('Tổng quan tiến độ rà soát');
     expect(html).toContain('0/1');
     expect(html).toContain('1/8');
-    expect(html).toContain('Dàn ý 3 phần từ Creator');
+    expect(html).toContain('Dàn ý 3 phần từ nhà sáng tạo');
     expect(html).toContain('Ếch con tập viết bên lá sen.');
-    expect(html).toContain('Đọc toàn văn bản gốc Creator gửi');
+    expect(html).toContain('Đọc toàn văn bản gốc nhà sáng tạo gửi');
     expect(html).toContain('Câu hỏi thảo luận (1)');
     expect(html).toContain('Đã quét AI: An toàn (Safe) · điểm rủi ro 2');
     expect(html).toContain('Kiên trì');

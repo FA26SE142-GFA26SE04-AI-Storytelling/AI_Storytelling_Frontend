@@ -145,7 +145,7 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
   };
 
   const credits = quota ? [
-    ['Gói tháng', quota.cycleCredits], ['Add-on', quota.addOnCredits], ['Dùng thử', quota.trialCredits], ['Lượt khác', quota.otherCredits],
+    ['Gói tháng', quota.cycleCredits], ['Gói bổ sung', quota.addOnCredits], ['Dùng thử', quota.trialCredits], ['Lượt khác', quota.otherCredits],
   ].filter(([, n]) => (n as number) > 0) as [string, number][] : [];
 
   const featured = audience === 'creator' ? 'CreatorPack' : 'Creative';

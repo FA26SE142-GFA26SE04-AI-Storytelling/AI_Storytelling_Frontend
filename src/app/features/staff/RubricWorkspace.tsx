@@ -237,7 +237,7 @@ export default function RubricWorkspace() {
                     )}
                   </div>
                   {user?.role === 'Moderator' && current.status === 'Draft' && (
-                    <span className="sub">Quyền Kích hoạt chỉ dành cho Administrator; Moderator chịu trách nhiệm soạn thảo, kiểm tra định nghĩa và chạy thử.</span>
+                    <span className="sub">Quyền Kích hoạt chỉ dành cho quản trị viên; kiểm duyệt viên chịu trách nhiệm soạn thảo, kiểm tra định nghĩa và chạy thử.</span>
                   )}
                 </div>
 

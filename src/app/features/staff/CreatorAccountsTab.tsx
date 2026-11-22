@@ -39,13 +39,13 @@ export function CreatorAccountsTab() {
     void svc.creators({ status: status || undefined, search, pageIndex: page, pageSize: 20 }).then((r) => {
       if (!alive) return;
       setList(r.success ? r.data : null);
-      if (!r.success) showToast(r.message || "Không tải được danh sách Content Creator.", "err");
+      if (!r.success) showToast(r.message || "Không tải được danh sách nhà sáng tạo nội dung.", "err");
     });
     return () => { alive = false; };
   }, [status, search, page, reload]);
 
   const deactivate = async (c: CreatorAccount) => {
-    if (!(await confirmDialog(`Vô hiệu hoá ${c.fullName}? Creator không đăng nhập được, yêu cầu gửi duyệt đang mở bị rút. Truyện đã xuất bản vẫn giữ nguyên.`))) return;
+    if (!(await confirmDialog(`Vô hiệu hoá ${c.fullName}? Nhà sáng tạo không đăng nhập được, yêu cầu gửi duyệt đang mở bị rút. Truyện đã xuất bản vẫn giữ nguyên.`))) return;
     setBusy(true);
     const r = await svc.deactivate(c.id, reason.trim());
     setBusy(false);
@@ -57,7 +57,7 @@ export function CreatorAccountsTab() {
     setReload((n) => n + 1);
   };
   const reactivate = async (c: CreatorAccount) => {
-    if (!(await confirmDialog(`Kích hoạt lại ${c.fullName}? Creator đăng nhập và gửi duyệt truyện lại được.`))) return;
+    if (!(await confirmDialog(`Kích hoạt lại ${c.fullName}? Nhà sáng tạo đăng nhập và gửi duyệt truyện lại được.`))) return;
     setBusy(true);
     const r = await svc.reactivate(c.id);
     setBusy(false);
@@ -67,17 +67,17 @@ export function CreatorAccountsTab() {
 
   return <>
     <div className="st-filters">
-      <input className="inp" style={{ flex: "1 1 200px", maxWidth: 320 }} placeholder="Tìm tên, username, email" aria-label="Tìm Content Creator" value={searchText} onChange={(e) => setSearchText(e.target.value)} />
+      <input className="inp" style={{ flex: "1 1 200px", maxWidth: 320 }} placeholder="Tìm tên, tên đăng nhập, email" aria-label="Tìm nhà sáng tạo nội dung" value={searchText} onChange={(e) => setSearchText(e.target.value)} />
       <Select<CreatorAccountStatus | ""> ariaLabel="Lọc trạng thái" value={status} options={STATUS_FILTER} onChange={(v) => { setStatus(v); setPage(1); }} />
     </div>
     <div className="st-card st-scroll">
       <table className="st-table stack-table">
-        <thead><tr><th>Họ tên</th><th className="st-col-wide">Username</th><th>Email</th><th>Trạng thái</th><th>Đã xuất bản</th><th>Đăng nhập gần nhất</th><th /></tr></thead>
+        <thead><tr><th>Họ tên</th><th className="st-col-wide">Tên đăng nhập</th><th>Email</th><th>Trạng thái</th><th>Đã xuất bản</th><th>Đăng nhập gần nhất</th><th /></tr></thead>
         <tbody ref={bodyRef}>
           {list?.items.map((c) => (
             <tr key={c.id}>
               <td data-label="Họ tên">{c.fullName}</td>
-              <td data-label="Username" className="st-col-wide">{c.username}</td>
+              <td data-label="Tên đăng nhập" className="st-col-wide">{c.username}</td>
               <td data-label="Email">{c.email}</td>
               <td data-label="Trạng thái"><Pill status={c.status} /></td>
               <td data-label="Đã xuất bản">{c.publishedStoryCount}</td>
@@ -89,7 +89,7 @@ export function CreatorAccountsTab() {
               </td>
             </tr>
           ))}
-          {list && list.items.length === 0 && <tr><td colSpan={7} className="sub">Không có Content Creator phù hợp.</td></tr>}
+          {list && list.items.length === 0 && <tr><td colSpan={7} className="sub">Không có nhà sáng tạo nội dung phù hợp.</td></tr>}
         </tbody>
       </table>
       {tierOf && <CreatorPartnerTierDialog creator={tierOf} onClose={() => setTierOf(null)} />}

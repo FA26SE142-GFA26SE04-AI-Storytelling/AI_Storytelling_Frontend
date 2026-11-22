@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Eye, Info, PencilLine, Search, SlidersHorizontal, WandSparkles, X } from "lucide-react";
 import CreatorPreview from "./CreatorPreview";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
-import { Shelf, ShelfRow } from "@/app/features/library/LibraryWorkspace";
+import { Shelf, ShelfRow } from "@/app/features/library/Shelf";
 import { creatorService } from "@/app/services/creatorService";
 import { creatorPublicationService } from "@/app/services/creatorPublicationService";
 import type { CreatorDraft } from "@/app/types/creator";
@@ -25,7 +25,7 @@ const statusKey = (s: CreatorDraft) => (s.status ?? "draft").toLowerCase().repla
 /** Kệ theo trạng thái; mỗi truyện chỉ nằm ở đúng một kệ. */
 export const SHELVES: { id: string; title: string; sub: string; keys: string[] }[] = [
   { id: "draft", title: "Đang soạn", sub: "Bản nháp chưa gửi duyệt", keys: ["draft"] },
-  { id: "review", title: "Đang duyệt & chuẩn bị", sub: "Chờ Moderator duyệt hoặc đang tạo tranh và giọng đọc",
+  { id: "review", title: "Đang duyệt & chuẩn bị", sub: "Chờ kiểm duyệt viên duyệt hoặc đang tạo tranh và giọng đọc",
     keys: ["inputaccepted", "generating", "outlinereview", "moderationreview", "contentreview", "approved", "mediaprocessing", "mediareview"] },
   { id: "ready", title: "Sẵn sàng", sub: "Đã hoàn tất nội dung và media", keys: ["ready", "published"] },
 ];

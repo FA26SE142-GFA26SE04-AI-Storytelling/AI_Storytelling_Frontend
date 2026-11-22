@@ -24,7 +24,7 @@ export const STATUS_LABELS_BY_TYPE: Record<QueueItemType, Partial<Record<QueueIt
   PublicStoryReview: {
     Pending: 'Chờ tiếp nhận',
     Claimed: 'Đang xử lý',
-    ChangesRequested: 'Chờ Creator sửa',
+    ChangesRequested: 'Chờ nhà sáng tạo sửa',
     Approved: 'Đã duyệt',
     Rejected: 'Từ chối',
     Withdrawn: 'Đã rút',
@@ -49,7 +49,7 @@ export const STATUS_LABELS_BY_TYPE: Record<QueueItemType, Partial<Record<QueueIt
   ContentReport: {
     Pending: 'Chờ tiếp nhận',
     Claimed: 'Đang xử lý',
-    Escalated: 'Đã chuyển Admin',
+    Escalated: 'Đã chuyển quản trị viên',
     Dismissed: 'Đã bác báo cáo',
     Archived: 'Đã xử lý gỡ vi phạm',
     Closed: 'Hồ sơ đã đóng',
@@ -75,7 +75,7 @@ export const STATUS_LABELS_BY_TYPE: Record<QueueItemType, Partial<Record<QueueIt
 const FALLBACK_STATUS_LABELS: Record<string, string> = {
   Pending: 'Chờ tiếp nhận',
   Claimed: 'Đang xử lý',
-  Escalated: 'Chuyển lên Admin',
+  Escalated: 'Chuyển lên quản trị viên',
   Approved: 'Đã duyệt',
   ChangesRequested: 'Yêu cầu sửa',
   Rejected: 'Từ chối',
@@ -89,11 +89,11 @@ const FALLBACK_STATUS_LABELS: Record<string, string> = {
 };
 
 export const PUBLIC_STORY_SECTIONS: ModerationSectionDef[] = [
-  { status: 'Open', label: 'Cần xử lý', group: 'work', hint: 'Hồ sơ Creator mới gửi chờ tiếp nhận và hồ sơ đang được giữ duyệt (tối đa 2 giờ).' },
-  { status: 'ChangesRequested', label: 'Chờ sửa', group: 'waiting', hint: 'Đã gửi yêu cầu chỉnh sửa cho Creator; chỉ xem tóm tắt.' },
+  { status: 'Open', label: 'Cần xử lý', group: 'work', hint: 'Hồ sơ nhà sáng tạo mới gửi chờ tiếp nhận và hồ sơ đang được giữ duyệt (tối đa 2 giờ).' },
+  { status: 'ChangesRequested', label: 'Chờ sửa', group: 'waiting', hint: 'Đã gửi yêu cầu chỉnh sửa cho nhà sáng tạo; chỉ xem tóm tắt.' },
   { status: 'Approved', label: 'Đã duyệt', group: 'results', hint: 'Hồ sơ đã được duyệt công khai.' },
   { status: 'Rejected', label: 'Từ chối', group: 'results', hint: 'Hồ sơ đã bị từ chối.' },
-  { status: 'Withdrawn', label: 'Đã rút', group: 'results', hint: 'Creator đã rút yêu cầu khi đang chờ.' },
+  { status: 'Withdrawn', label: 'Đã rút', group: 'results', hint: 'Nhà sáng tạo đã rút yêu cầu khi đang chờ.' },
   { status: 'Closed', label: 'Đã đóng', group: 'results', hint: 'Hồ sơ đã được hệ thống đóng.' },
 ];
 
@@ -106,7 +106,7 @@ export const GRAY_ZONE_SECTIONS: ModerationSectionDef[] = [
 
 export const CONTENT_REPORT_SECTIONS: ModerationSectionDef[] = [
   { status: 'Open', label: 'Cần xử lý', group: 'work', hint: 'Báo cáo nội dung chờ tiếp nhận và hồ sơ đang được giữ xử lý.' },
-  { status: 'Escalated', label: 'Đã chuyển Admin', group: 'waiting', hint: 'Dữ liệu cũ: ca đã chuyển lên Administrator trước đây; không còn tạo ca mới.' },
+  { status: 'Escalated', label: 'Đã chuyển quản trị viên', group: 'waiting', hint: 'Dữ liệu cũ: ca đã chuyển lên quản trị viên trước đây; không còn tạo ca mới.' },
   { status: 'Dismissed', label: 'Đã bác báo cáo', group: 'results', hint: 'Báo cáo đã được bác, giữ nguyên nội dung.' },
   { status: 'Archived', label: 'Đã xử lý gỡ vi phạm', group: 'results', hint: 'Đã xử lý lưu trữ hoặc gỡ nội dung vi phạm từ báo cáo.' },
   { status: 'Closed', label: 'Hồ sơ đã đóng', group: 'results', hint: 'Hồ sơ báo cáo đã đóng.' },

@@ -57,13 +57,13 @@ export function CreatorIncomeTab({
     return <p className="sub">Đang tải…</p>;
   }
 
-  const validReadsSub = `Trên tổng ${count(data.totalValidReadsAllCreators)} lượt của tất cả Creator${
+  const validReadsSub = `Trên tổng ${count(data.totalValidReadsAllCreators)} lượt của tất cả nhà sáng tạo${
     data.totalValidReadsAllCreators > 0
       ? ` (${pct(data.myValidReads / data.totalValidReadsAllCreators)})`
       : ''
   }`;
 
-  const earningsInfo = `Chỉ lượt đọc xong ít nhất ${data.minimumReadSeconds} giây được tính. Quỹ Creator chia theo tỉ lệ: Đọc ${pct(data.readingFundRate)}, Sáng tạo ${pct(data.creativeFundRate)}.`;
+  const earningsInfo = `Chỉ lượt đọc xong ít nhất ${data.minimumReadSeconds} giây được tính. Quỹ nhà sáng tạo chia theo tỉ lệ: Đọc ${pct(data.readingFundRate)}, Sáng tạo ${pct(data.creativeFundRate)}.`;
 
   const sortedStories = [...(data.stories ?? [])].sort(
     (a, b) => b.estimatedEarningsVnd - a.estimatedEarningsVnd,
@@ -87,7 +87,7 @@ export function CreatorIncomeTab({
         />
         <StatCard
           icon={Gift}
-          label="Quỹ Creator kỳ"
+          label="Quỹ nhà sáng tạo kỳ"
           value={money(data.creatorFundVnd)}
         />
       </div>

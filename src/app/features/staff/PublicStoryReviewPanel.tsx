@@ -163,7 +163,7 @@ export default function PublicStoryReviewPanel({
   if (!item || item.kind !== 'PublicStoryReview') {
     return (
       <div className="st-card">
-        <p role="status">{message || 'Đang tải gói duyệt truyện Creator…'}</p>
+        <p role="status">{message || 'Đang tải gói duyệt truyện nhà sáng tạo…'}</p>
         <div className="row">
           <button type="button" className="btn btn-s" onClick={refresh}>
             <RefreshCw className="ic" />Tải lại
@@ -244,13 +244,13 @@ export default function PublicStoryReviewPanel({
           </b>
           {d.scenes.length > 0 && content.trim().length > 0 && (
             <details className="mod-fulltext-acc">
-              <summary>Đọc toàn văn bản gốc Creator gửi ({countWords(content)} từ)</summary>
+              <summary>Đọc toàn văn bản gốc nhà sáng tạo gửi ({countWords(content)} từ)</summary>
               <ManuscriptCard variant="story" label="Toàn văn tác phẩm" text={content} />
             </details>
           )}
           {d.scenes.length === 0 ? (
             content.trim()
-              ? <ManuscriptCard variant="story" label="Toàn văn tác phẩm Creator gửi" text={content} />
+              ? <ManuscriptCard variant="story" label="Toàn văn tác phẩm nhà sáng tạo gửi" text={content} />
               : <p className="sub">Phiên bản này chưa có cảnh hoặc nội dung văn bản.</p>
           ) : (
             d.scenes.map(scene => {
@@ -369,7 +369,7 @@ export default function PublicStoryReviewPanel({
 
       <div id="creator-sec-checklist" className="st-group mod-anchor-target">
         <b className="st-group-title">
-          Checklist chấm điểm của Moderator
+          Danh sách tiêu chí chấm điểm của kiểm duyệt viên
           {has('checklist_incomplete') && <Warn why="Checklist chưa chấm đủ" />}
         </b>
         <div className="st-checks">
@@ -396,8 +396,8 @@ export default function PublicStoryReviewPanel({
 
       <div id="creator-sec-labels" className="st-group mod-anchor-target">
         <b className="st-group-title">
-          Nhãn nội dung Creator đề xuất
-          {has('no_labels') && <Warn why="Creator chưa đề xuất nhãn nào" />}
+          Nhãn nội dung nhà sáng tạo đề xuất
+          {has('no_labels') && <Warn why="Nhà sáng tạo chưa đề xuất nhãn nào" />}
         </b>
         {d.proposedLabels.length > 0 ? (
           <div className="st-label-pills">
@@ -406,7 +406,7 @@ export default function PublicStoryReviewPanel({
         ) : (
           <div className="st-quote">
             <small>Chưa có nhãn</small>
-            <p>Chưa duyệt được khi chưa có nhãn. Dùng &ldquo;Yêu cầu sửa&rdquo; (phần Thông tin chung) để Creator bổ sung.</p>
+            <p>Chưa duyệt được khi chưa có nhãn. Dùng &ldquo;Yêu cầu sửa&rdquo; (phần Thông tin chung) để nhà sáng tạo bổ sung.</p>
           </div>
         )}
       </div>
@@ -441,7 +441,7 @@ export default function PublicStoryReviewPanel({
             rows={3}
             value={reason}
             onChange={e => setReason(e.target.value)}
-            placeholder="Ghi rõ lý do nếu từ chối hoặc yêu cầu Creator chỉnh sửa…"
+            placeholder="Ghi rõ lý do nếu từ chối hoặc yêu cầu nhà sáng tạo chỉnh sửa…"
           />
         </label>
         <div className="row st-wrap">
@@ -466,7 +466,7 @@ export default function PublicStoryReviewPanel({
             type="button"
             className="btn btn-no"
             disabled={locked || !usableReason}
-            onClick={() => void decide('Từ chối phiên bản này? Lý do sẽ được gửi cho Creator.', 'Rejected', () => moderationService.reject('PublicStoryReview', id, reason))}
+            onClick={() => void decide('Từ chối phiên bản này? Lý do sẽ được gửi cho nhà sáng tạo.', 'Rejected', () => moderationService.reject('PublicStoryReview', id, reason))}
           >
             <X className="ic" />Từ chối
           </button>
