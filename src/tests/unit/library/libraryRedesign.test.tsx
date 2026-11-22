@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import BookCover from '@/app/features/library/BookCover';
-import { EMPTY_FILTER, isFiltering } from '@/app/features/library/LibraryFilters';
+import { EMPTY_FILTER, isFiltering } from '@/app/features/library/LegacyLibraryFilters';
 import { ageLabel } from '@/app/lib/storyView';
 
 describe('BookCover', () => {

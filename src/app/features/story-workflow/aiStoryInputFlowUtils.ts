@@ -2,6 +2,7 @@ import {
   AIStoryCreativeInputDto,
   AIStoryInputContextDto,
   AIStoryInputProgressDto,
+  GenerationMode,
   StoryOutputMode,
   SubmitAIStoryInputRequestDto,
   VocabularyLevel,
@@ -18,6 +19,8 @@ export interface AIStoryInputFormValues {
   targetLength: number;
   /** Kèm học liệu (từ vựng, câu đố) hoặc chỉ để đọc. */
   outputMode: StoryOutputMode;
+  generationMode?: GenerationMode;
+  quizQuestionCount?: number;
 }
 
 /** Chế độ đầu ra backend cho phép với bé này; context cũ chưa có trường thì chỉ có "kèm học liệu". */
@@ -103,6 +106,8 @@ export function restoreFormValues(saved: Partial<AIStoryInputFormValues> | null 
       : defaults.vocabularyLevel,
     targetLength: typeof saved.targetLength === 'number' ? clampTargetLength(saved.targetLength, context.maximumLength) : defaults.targetLength,
     outputMode: saved.outputMode && outputModesOf(context).includes(saved.outputMode) ? saved.outputMode : defaults.outputMode,
+    generationMode: saved.generationMode === 'quick' ? 'quick' : undefined,
+    quizQuestionCount: [3, 4, 5, 6].find((count) => count === saved.quizQuestionCount),
   };
 }
 
@@ -133,6 +138,11 @@ export function buildCreativeInput(
   };
 }
 
+export function generationOptions(outputMode: string, mode?: GenerationMode, quizCount = 3) {
+  if (mode !== 'quick') return {};
+  return { generationMode: mode, ...(outputMode === 'learning' ? { quizQuestionCount: quizCount } : {}) };
+}
+
 export function buildSubmitRequest(
   childProfileId: number,
   values: AIStoryInputFormValues,
@@ -140,9 +150,11 @@ export function buildSubmitRequest(
   idempotencyKey: string,
   existingStoryId?: number
 ): SubmitAIStoryInputRequestDto {
+  const outputMode = outputModesOf(context).includes(values.outputMode) ? values.outputMode : 'learning';
   return {
     ...buildCreativeInput(values, context),
-    outputMode: outputModesOf(context).includes(values.outputMode) ? values.outputMode : 'learning',
+    outputMode,
+    ...generationOptions(outputMode, values.generationMode, values.quizQuestionCount),
     childProfileId,
     existingStoryId,
     idempotencyKey,

@@ -3,7 +3,8 @@
 import { CircleAlert, Lock, ShieldAlert, Sparkles } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";
 import type * as B from "@/app/types/backendContracts";
-import type { VocabularyLevel } from "@/app/types/aiStory";
+import type { GenerationMode, VocabularyLevel } from "@/app/types/aiStory";
+import GenerationOptions from "@/app/features/studio/GenerationOptions";
 import { copyrightHits, GENRES, OUTPUT_MODE } from "@/app/lib/storyRules";
 import { READING_LEVELS, countWords, levelAboveAge, readingLevelInfo, storyLengthFor } from "@/app/lib/guardian";
 import { clampTargetLength, lengthPresets, MIN_TARGET_LENGTH, vocabularyTone, type LengthPreset } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
@@ -19,15 +20,16 @@ const TONE_HINT = {
 } as const;
 
 export type CreatorBriefValues = { topic: string; lesson: string; genre: string; charactersText: string; setting: string; targetLength: number; vocabularyLevel: string; outputMode: string };
+type CreatorGenerationOptions = { generationMode?: GenerationMode; quizQuestionCount?: number };
 type Props = {
-  values: CreatorBriefValues;
+  values: CreatorBriefValues & CreatorGenerationOptions;
   context: B.CreatorAIStoryInputContextDto | null;
   contextError: string;
   busy: boolean;
   ageBand: string;
   readingLevel: number;
   onAudience: (ageBand: string, readingLevel: number) => void;
-  onChange: (patch: Partial<CreatorBriefValues>) => void;
+  onChange: (patch: Partial<CreatorBriefValues> & CreatorGenerationOptions) => void;
   onSubmit: () => void;
   /** Mở trang Gói và lượt khi hết lượt AI. */
   onBuyCredits?: () => void;
@@ -160,6 +162,7 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
               {values.outputMode in OUTPUT_MODE && <small className="hint">{OUTPUT_MODE[values.outputMode as keyof typeof OUTPUT_MODE].hint}</small>}
             </div>
           )}
+          <GenerationOptions mode={values.generationMode} quizCount={values.quizQuestionCount} hasQuiz={values.outputMode === "learning"} disabled={busy} onChange={onChange} />
         </fieldset>
 
         <div className="brief-submit">

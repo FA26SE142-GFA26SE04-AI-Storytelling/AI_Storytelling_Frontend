@@ -10,7 +10,8 @@ import { notifyCreatorQuotaChanged } from '@/app/services/paymentService';
 import { useCreatorGeneration } from '@/app/features/story-workflow/useCreatorGeneration';
 import { useAiGenerationCapacity } from '@/app/features/story-workflow/useAiGenerationCapacity';
 import AiCapacityBanner from '@/app/features/studio/AiCapacityBanner';
-import { lengthPresets } from '@/app/features/story-workflow/aiStoryInputFlowUtils';
+import { generationOptions, lengthPresets } from '@/app/features/story-workflow/aiStoryInputFlowUtils';
+import type { GenerationMode } from '@/app/types/aiStory';
 import { useStoryProgressPolling } from '@/app/features/story-workflow/useStoryProgressPolling';
 import { ApproveSlot, type ApproveAction } from '@/app/features/story-workflow/approveSlot';
 import { mediaKeepPolling } from '@/app/features/story-workflow/mediaPackage';
@@ -33,7 +34,7 @@ import { generationFailureMessage } from '@/app/features/story-workflow/storyGen
 const continueMedia = mediaKeepPolling;
 
 /** Ý tưởng đã nhập, giữ lại khi quay về form (sửa ý tưởng); null = form trống. */
-type Seed = { topic: string; lesson: string; genre: string; charactersText: string; setting: string } | null;
+type Seed = { topic: string; lesson: string; genre: string; charactersText: string; setting: string; outputMode: string; generationMode: GenerationMode; quizQuestionCount: number } | null;
 
 /**
  * Vỏ ngoài: "bỏ truyện / quay lại sửa ý tưởng" dựng lại toàn bộ luồng bằng key mới, nên mọi trạng thái cũ (dàn ý, tiến trình) sạch hẳn.
@@ -72,7 +73,9 @@ function CreatorGenerationRun({ initialId, seed, onReset, onOpenStory, onBuyCred
   const [lesson, setLesson] = useState(seed?.lesson ?? '');
   const [targetLength, setTargetLength] = useState(500);
   const [vocabularyLevel, setVocabularyLevel] = useState('basic');
-  const [outputMode, setOutputMode] = useState('reading_media_only');
+  const [outputMode, setOutputMode] = useState(seed?.outputMode ?? 'reading_media_only');
+  const [generationMode, setGenerationMode] = useState<GenerationMode>(seed?.generationMode ?? 'standard');
+  const [quizQuestionCount, setQuizQuestionCount] = useState(seed?.quizQuestionCount ?? 3);
   const [contextError, setContextError] = useState('');
   const [approve, setApprove] = useState<ApproveAction | null>(null);
   const [locked, setLocked] = useState(true);
@@ -102,7 +105,11 @@ function CreatorGenerationRun({ initialId, seed, onReset, onOpenStory, onBuyCred
     return { topic, genre: genre || null, characterMode: characters.length ? 'specified' : 'ai_suggested', characters, settingMode: place ? 'specified' : 'ai_suggested', setting: place || null, lesson, vocabularyLevel, language: 'vi', targetLength };
   };
   const start = () => {
-    const body = { ...creative(), ageBand, readingLevel, outputMode, existingStoryId: null, idempotencyKey: `creator-${crypto.randomUUID()}` };
+    const body = {
+      ...creative(), ageBand, readingLevel, outputMode,
+      ...generationOptions(outputMode, generationMode, quizQuestionCount),
+      existingStoryId: null, idempotencyKey: `creator-${crypto.randomUUID()}`,
+    };
     // Tải lại số lượt sau khi Backend nhận yêu cầu (đã trừ lượt), không phải ngay lúc bấm.
     setSubmitted(body); void Promise.resolve(flow.submit(body)).finally(notifyCreatorQuotaChanged);
   };
@@ -148,7 +155,7 @@ function CreatorGenerationRun({ initialId, seed, onReset, onOpenStory, onBuyCred
   </>;
   // Cụm nút điều khiển giống phụ huynh (quay lại / bỏ / duyệt, chỉ có biểu tượng). Creator không có API huỷ truyện,
   // nên "bỏ" chỉ làm mới form và bản nháp vẫn nằm trong Thư viện.
-  const currentSeed: Seed = { topic, lesson, genre, charactersText, setting };
+  const currentSeed: Seed = { topic, lesson, genre, charactersText, setting, outputMode, generationMode, quizQuestionCount };
   const controls = <StudioControls stage={stage} valuesKnown={submitted !== null} localOnly failed={failed !== null}
     onEditIdea={() => onReset(currentSeed)}
     onRestart={async (keepIdea) => { onReset(keepIdea ? currentSeed : null); return null; }}
@@ -185,9 +192,20 @@ function CreatorGenerationRun({ initialId, seed, onReset, onOpenStory, onBuyCred
             busy={flow.busy}
           />
           <CreatorBrief
-          values={{ topic, lesson, genre, charactersText, setting, targetLength, vocabularyLevel, outputMode }} context={context} contextError={contextError} busy={flow.busy}
+          values={{ topic, lesson, genre, charactersText, setting, targetLength, vocabularyLevel, outputMode, generationMode, quizQuestionCount }} context={context} contextError={contextError} busy={flow.busy}
           ageBand={ageBand} readingLevel={readingLevel} onAudience={(a, l) => { setAgeBand(a); setReadingLevel(l); }}
-          onChange={(v) => { if (v.topic !== undefined) setTopic(v.topic); if (v.lesson !== undefined) setLesson(v.lesson); if (v.genre !== undefined) setGenre(v.genre); if (v.charactersText !== undefined) setCharactersText(v.charactersText); if (v.setting !== undefined) setSetting(v.setting); if (v.targetLength !== undefined) setTargetLength(v.targetLength); if (v.vocabularyLevel !== undefined) setVocabularyLevel(v.vocabularyLevel); if (v.outputMode !== undefined) setOutputMode(v.outputMode); }}
+          onChange={(v) => {
+            if (v.topic !== undefined) setTopic(v.topic);
+            if (v.lesson !== undefined) setLesson(v.lesson);
+            if (v.genre !== undefined) setGenre(v.genre);
+            if (v.charactersText !== undefined) setCharactersText(v.charactersText);
+            if (v.setting !== undefined) setSetting(v.setting);
+            if (v.targetLength !== undefined) setTargetLength(v.targetLength);
+            if (v.vocabularyLevel !== undefined) setVocabularyLevel(v.vocabularyLevel);
+            if (v.outputMode !== undefined) setOutputMode(v.outputMode);
+            if (v.generationMode !== undefined) setGenerationMode(v.generationMode);
+            if (v.quizQuestionCount !== undefined) setQuizQuestionCount(v.quizQuestionCount);
+          }}
           onSubmit={start} onBuyCredits={onBuyCredits} />
         </>}
         {/* Lúc AI đang làm: thẻ chờ giống phụ huynh (con cóc ngồi chờ + bước hiện tại). */}
