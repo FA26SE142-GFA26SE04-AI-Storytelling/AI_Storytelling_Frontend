@@ -17,8 +17,8 @@ import {
 import Dialog from "@/app/components/Dialog";
 import StoryHandoverButton from "@/app/features/kid/StoryHandoverButton";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
-import { ageLabel, type StoryCard } from "@/app/lib/storyView";
-import { SOURCE_LABEL, sourceOf, statusOf, topicOf } from "./libraryFilters";
+import type { StoryCard } from "@/app/lib/storyView";
+import { canonicalAgeLabel, displayAuthorOf, SOURCE_LABEL, sourceOf, statusOf, topicOf } from "./libraryFilters";
 
 export type LibraryDetailDialogProps = {
   story: StoryCard;
@@ -56,24 +56,21 @@ export default function LibraryDetailDialog({
       ).filter((element) => element.getClientRects().length > 0);
     tabbable()[0]?.focus({ preventScroll: true });
     const onKey = (event: KeyboardEvent) => {
+      if (event.key !== "Tab") return;
       const dialogs = document.querySelectorAll('[role="dialog"][aria-modal="true"]');
       if (dialogs[dialogs.length - 1] !== modal) return;
-      if (event.key === "Escape") {
+      const items = tabbable();
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first || !last) return;
+      if (!modal.contains(document.activeElement) || document.activeElement === (event.shiftKey ? first : last)) {
         event.preventDefault();
-        onClose();
-      } else if (event.key === "Tab") {
-        const items = tabbable();
-        const first = items[0];
-        const last = items[items.length - 1];
-        if (!modal.contains(document.activeElement) || document.activeElement === (event.shiftKey ? first : last)) {
-          event.preventDefault();
-          (event.shiftKey ? last : first)?.focus();
-        }
+        (event.shiftKey ? last : first).focus();
       }
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
+  }, []);
 
   return (
     <Dialog title={story.title} onClose={onClose} wide className="lib-detail">
@@ -107,7 +104,7 @@ export default function LibraryDetailDialog({
           <div className="lib-detail-tags" aria-label="Thông tin truyện">
             <span className="lib-tag">
               <Users className="ic" aria-hidden="true" />
-              {ageLabel(story.ageBand)}
+              {canonicalAgeLabel(story.ageBand)}
             </span>
             <span className="lib-tag">
               <Tag className="ic" aria-hidden="true" />
@@ -125,7 +122,7 @@ export default function LibraryDetailDialog({
           <p className="lib-detail-author">
             <User className="ic" aria-hidden="true" />
             <span>Người tạo:</span>
-            <b>{story.by}</b>
+            <b>{displayAuthorOf(story)}</b>
           </p>
 
           {(story.raw.description || story.raw.moralLesson) && (

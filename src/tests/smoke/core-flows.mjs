@@ -96,11 +96,20 @@ function api({ path, method, body, url, state }) {
     case path === '/Notification': return [];
     case path === '/ChildProfile/mine': return [sen, lan];
     case path.startsWith('/SafetyPolicy/'): return { childProfileId: 10, maxStoryLength: 2000, parentalGateEnabled: false, categories: [] };
-    case path.startsWith('/LearningProfile/'): return { childProfileId: 10, readingLevel: 2, readingMode: 'ReadFirst', topics: [] };
+    case path.startsWith('/LearningProfile/'): return { childProfileId: 10, readingLevel: 2, readingMode: 'ReadFirst', topics: state.libraryDiscovery && path === '/LearningProfile/10' ? [{ topic: 'Kham pha', relation: 'FavoriteTopic' }] : [] };
     case path === '/ContentCategory': return [{ id: 1, code: 'nature', displayName: 'Thiên nhiên', isActive: true }];
     case path === '/Story': return paged([story, waiting]);
     // Truyện cộng đồng (của Creator) mã 9: GET /Story/9 không tìm thấy, ảnh bìa chỉ có ở danh sách cộng đồng.
-    case path === '/Story/community': return paged([{ ...story, id: 9, title: 'Truyện thứ hai', source: 'Creator', coverImageUrl: pictureUrl('#e96') }]);
+    case path === '/Story/community': {
+      const communityStory = { ...story, id: 9, title: 'Truyện thứ hai', source: 'Creator', coverImageUrl: pictureUrl('#e96') };
+      if (!state.libraryDiscovery) return paged([communityStory]);
+      return paged([
+        { ...communityStory, genre: 'Tình bạn', ageBand: 'Age_9_10', viewCount: 8, favoriteCount: 4,
+          authorUserId: 9, authorName: 'Hoa Sen Nhỏ', content: 'sen '.repeat(660).trim() },
+        { ...communityStory, id: 19, title: 'Khu vườn nhỏ', genre: 'Thiên nhiên', ageBand: '4-5', viewCount: 1, favoriteCount: 0 },
+        { ...communityStory, id: 20, title: 'Chuyến đi xa', genre: 'Phiêu lưu', ageBand: '6-8', viewCount: 1, favoriteCount: 0 },
+      ]);
+    }
     case path === '/Story/7': return story;
     case path === '/parent/stories': return paged([]);
     // Học tập của bé
@@ -262,8 +271,62 @@ try {
     assert(bar && Math.abs(bar.x + bar.width / 2 - 720) <= 40, `Thanh điều hướng lệch tâm: ${JSON.stringify(bar)}`);
   });
 
-  await smoke('ParentLibrary', 'Parent', async ({ page }) => {
+  await smoke('ParentLibrary', 'Parent', async ({ page, state }) => {
+    state.libraryDiscovery = true;
     await page.goto(parent('#library'), { waitUntil: 'domcontentloaded' });
+    const sidebar = page.getByRole('complementary', { name: 'Bộ lọc thư viện' });
+    await sidebar.waitFor();
+    const featured = page.getByRole('article', { name: 'Truyện thứ hai' });
+    const opener = featured.getByRole('button', { name: 'Xem truyện' });
+    await opener.click();
+    await page.getByRole('button', { name: 'Xem trước như bé thấy', exact: true }).waitFor();
+    await page.keyboard.press('Escape');
+    assert(await opener.evaluate(el => el === document.activeElement), 'Phải trả tiêu điểm về nút mở truyện nổi bật');
+    const genres = page.getByRole('region', { name: 'Theo thể loại' });
+    await genres.getByRole('button', { name: /Tình bạn/ }).click();
+    const results = page.getByRole('region', { name: 'Kết quả tìm kiếm' });
+    await results.getByRole('button', { name: /Truyện thứ hai/ }).waitFor();
+    assert.equal(await results.getByRole('button', { name: /Ếch con khám phá/ }).count(), 0);
+    await sidebar.getByRole('button', { name: 'Xóa tất cả' }).click();
+    await sidebar.getByRole('button', { name: /5 – dưới 10 phút/ }).click();
+    await results.getByRole('button', { name: /Truyện thứ hai/ }).waitFor();
+    assert.equal(await results.locator('.lib-card').count(), 1);
+    await sidebar.getByRole('button', { name: 'Xóa tất cả' }).click();
+    await sidebar.getByRole('region', { name: 'Tác giả nổi bật' }).getByRole('button', { name: /Hoa Sen Nhỏ/ }).click();
+    await results.getByRole('button', { name: /Truyện thứ hai/ }).waitFor();
+    assert.equal(await results.locator('.lib-card').count(), 1);
+    await sidebar.getByRole('button', { name: 'Xóa tất cả' }).click();
+    const shortcuts = page.getByRole('navigation', { name: 'Khám phá nhanh' });
+    await shortcuts.getByText('Truyện đã lưu', { exact: true }).waitFor();
+    await shortcuts.getByText('Chưa hỗ trợ lưu truyện cho gia đình', { exact: true }).waitFor();
+    await shortcuts.getByRole('button', { name: /Chủ đề phù hợp cho bé/ }).click();
+    const childTopics = page.getByRole('region', { name: 'Chủ đề phù hợp cho bé' });
+    const preferredTopic = childTopics.getByRole('button', { name: /Khám phá/ });
+    await preferredTopic.waitFor();
+    assert.equal(await childTopics.getByRole('button', { name: /Phiêu lưu|Tình bạn/ }).count(), 0);
+    await preferredTopic.click();
+    await results.getByRole('button', { name: /Ếch con khám phá/ }).waitFor();
+    await page.getByRole('button', { name: 'Bỏ Độ tuổi: 6–8 tuổi' }).waitFor();
+    await sidebar.getByRole('button', { name: 'Xóa tất cả' }).click();
+    const recommendations = page.getByRole('region', { name: 'Đề xuất cho bé' });
+    await recommendations.getByRole('button', { name: /Ếch con khám phá/ }).waitFor();
+    assert.equal(await recommendations.getByRole('button', { name: /Khu vườn nhỏ/ }).count(), 0);
+    const cards = page.getByRole('region', { name: 'Mới thêm gần đây' }).locator('.lib-card-compact');
+    const desktopCard = await cards.first().boundingBox();
+    assert(desktopCard && desktopCard.width > 230, 'Thẻ ngang phải tận dụng chiều rộng hàng truyện trên máy tính');
+    await shots(page, 'ParentLibraryLayout', '.lib-community-layout');
+    await page.setViewportSize({ width: 375, height: 850 });
+    assert.equal(await sidebar.isVisible(), false);
+    await page.getByRole('button', { name: 'Bộ lọc', exact: true }).click();
+    const mobileFilters = page.getByRole('dialog', { name: 'Lọc truyện' });
+    await mobileFilters.getByRole('button', { name: /5 – dưới 10 phút/ }).click();
+    await mobileFilters.getByRole('button', { name: /Hoa Sen Nhỏ/ }).waitFor();
+    await mobileFilters.getByRole('button', { name: 'Xoá bộ lọc' }).click();
+    await page.keyboard.press('Escape');
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.getByRole('button', { name: 'Chuyển sang giao diện tối' }).click();
+    await page.locator('html[data-theme="dark"]').waitFor();
+    await shots(page, 'ParentLibraryDark', '.lib-community-layout');
     await page.locator('button.bk').filter({ hasText: story.title }).first().click();
     for (const name of ['Cho bé đọc ngay', 'Thêm vào lộ trình', 'Xem trước như bé thấy']) await page.getByRole('button', { name, exact: true }).waitFor();
   });

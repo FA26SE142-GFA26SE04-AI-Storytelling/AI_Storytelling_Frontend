@@ -57,7 +57,105 @@ export function isNewStory(story: StoryCard, now = Date.now()): boolean {
 }
 
 export function normalizeAgeKey(band: string): string {
-  return ageLabel(band).replace(/[–—]/g, "-").trim().toLowerCase();
+  const trimmed = band.trim();
+  if (!trimmed) return "";
+  const formatted = /\btuổi$/i.test(trimmed) ? trimmed : ageLabel(trimmed);
+  return formatted.replace(/[–—]/g, "-").trim().toLowerCase();
+}
+
+/** Nhãn hiển thị độ tuổi thống nhất dấu gạch nối dài (6–8 tuổi, 9–10 tuổi) dù backend trả "6-8" hay "Age_6_8". */
+export function canonicalAgeLabel(band: string): string {
+  const trimmed = band.trim();
+  if (!trimmed) return "";
+  const formatted = /\btuổi$/i.test(trimmed) ? trimmed : ageLabel(trimmed);
+  return formatted.replace(/-/g, "–").trim();
+}
+
+export type AgeFilterOption = { key: string; label: string; count: number };
+
+/** Gom các định dạng nhóm tuổi tương đương ("6-8", "Age_6_8", "6–8") thành một nhóm lọc duy nhất kèm tổng số lượng. */
+export function collectAgeOptions(items: { ageBand?: string | null }[]): AgeFilterOption[] {
+  const map = new Map<string, AgeFilterOption>();
+  for (const item of items) {
+    const raw = item.ageBand?.trim();
+    if (!raw) continue;
+    const key = normalizeAgeKey(raw);
+    const existing = map.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      map.set(key, { key, label: canonicalAgeLabel(raw), count: 1 });
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => a.key.localeCompare(b.key, "vi", { numeric: true }));
+}
+
+/** Tên tác giả an toàn: truyện cộng đồng thiếu tên tác giả không gán nhầm thành "Bạn". */
+export function displayAuthorOf(story: StoryCard): string {
+  const rawName = story.raw.authorName?.trim();
+  if (rawName) return rawName;
+  if (story.creator) return "Tác giả cộng đồng";
+  return story.by?.trim() || "Bạn";
+}
+
+const READING_UNITS_PER_MINUTE = 120;
+
+export function estimatedReadingMinutes(story: StoryCard): number | null {
+  if (story.words <= 0) return null;
+  return Math.max(1, Math.round(story.words / READING_UNITS_PER_MINUTE));
+}
+
+export const LIBRARY_DURATION_OPTIONS = [
+  { key: "under-5", label: "Dưới 5 phút" },
+  { key: "5-to-10", label: "5 – dưới 10 phút" },
+  { key: "10-to-15", label: "10 – 15 phút" },
+  { key: "over-15", label: "Trên 15 phút" },
+] as const;
+
+function durationKey(story: StoryCard) {
+  if (story.words <= 0) return null;
+  const minutes = story.words / READING_UNITS_PER_MINUTE;
+  if (minutes < 5) return "under-5";
+  if (minutes < 10) return "5-to-10";
+  if (minutes <= 15) return "10-to-15";
+  return "over-15";
+}
+
+export function collectDurationOptions(stories: StoryCard[]) {
+  const counts = new Map<string, number>();
+  for (const story of stories) {
+    const key = durationKey(story);
+    if (key) counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return LIBRARY_DURATION_OPTIONS.map(({ key, label }) => ({ key, label, count: counts.get(key) ?? 0 }));
+}
+
+type LibraryAuthor = { key: string; label: string; count: number };
+
+function communityAuthorKey(story: StoryCard) {
+  const id = story.raw.authorUserId;
+  return story.creator && story.raw.isPublished && id && id > 0 ? String(id) : null;
+}
+
+export function collectLibraryAuthors(stories: StoryCard[]): LibraryAuthor[] {
+  const authors = new Map<string, LibraryAuthor>();
+  for (const story of stories) {
+    const key = communityAuthorKey(story);
+    if (!key) continue;
+    const author = authors.get(key) ?? { key, label: "", count: 0 };
+    author.label ||= story.raw.authorName?.trim() ?? "";
+    author.count += 1;
+    authors.set(key, author);
+  }
+  return [...authors.values()].filter(({ label }) => label)
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label, "vi"));
+}
+
+/** Chỉ gắn huy hiệu thứ hạng (#1, #2…) khi truyện thực sự có lượt đọc / lượt yêu thích > 0 ở tiêu chí đang sắp xếp. */
+export function rankForStory(story: StoryCard, index: number, sort: LibrarySort): number | undefined {
+  if (sort === "views") return (story.viewCount ?? 0) > 0 ? index + 1 : undefined;
+  if (sort === "favorites") return (story.favoriteCount ?? 0) > 0 ? index + 1 : undefined;
+  return undefined;
 }
 
 export type LibraryFilterState = {
@@ -66,15 +164,17 @@ export type LibraryFilterState = {
   genre: string;
   age: string;
   source: string;
+  duration: string;
+  author: string;
   sort: LibrarySort;
 };
 
-export function countActiveFilters(filters: Pick<LibraryFilterState, "status" | "genre" | "age" | "source">): number {
-  return [filters.status, filters.genre, filters.age, filters.source].filter((value) => value !== "all").length;
+export function countActiveFilters(filters: Pick<LibraryFilterState, "status" | "genre" | "age" | "source" | "duration" | "author">): number {
+  return countPopoverFilters(filters) + Number(filters.genre !== "all");
 }
 
-export function countPopoverFilters(filters: Pick<LibraryFilterState, "status" | "age" | "source">): number {
-  return [filters.status, filters.age, filters.source].filter((value) => value !== "all").length;
+export function countPopoverFilters(filters: Pick<LibraryFilterState, "status" | "age" | "source" | "duration" | "author">): number {
+  return [filters.status, filters.age, filters.source, filters.duration, filters.author].filter((value) => value !== "all").length;
 }
 
 export function isFocusedCatalog(filters: LibraryFilterState): boolean {
@@ -89,12 +189,15 @@ export function sortByNewest(stories: StoryCard[]): StoryCard[] {
 /** Lọc và sắp xếp danh sách truyện theo từ khóa, trạng thái, thể loại, độ tuổi, nguồn và tiêu chí sắp xếp. */
 export function filterAndSortStories(sortedByNewest: StoryCard[], filters: LibraryFilterState): StoryCard[] {
   const needle = filters.query.trim().toLowerCase();
+  const targetAge = filters.age === "all" ? null : normalizeAgeKey(filters.age);
   const filtered = sortedByNewest.filter((story) =>
     (filters.status === "all" || statusOf(story) === filters.status) &&
     (filters.genre === "all" || topicOf(story) === filters.genre) &&
-    (filters.age === "all" || story.ageBand === filters.age) &&
+    (targetAge === null || normalizeAgeKey(story.ageBand) === targetAge) &&
     (filters.source === "all" || sourceOf(story) === filters.source) &&
-    (!needle || `${story.title} ${topicOf(story)}`.toLowerCase().includes(needle)),
+    (filters.duration === "all" || durationKey(story) === filters.duration) &&
+    (filters.author === "all" || communityAuthorKey(story) === filters.author) &&
+    (!needle || `${story.title} ${topicOf(story)} ${story.raw.authorName?.trim() ?? ""}`.toLowerCase().includes(needle)),
   );
   if (filters.sort === "views") {
     return [...filtered].sort((a, b) => (b.viewCount ?? 0) - (a.viewCount ?? 0));
@@ -130,8 +233,9 @@ export function filterRoadmaps(
   ageBand = "all",
 ): B.RoadmapLibraryItemDto[] {
   const needle = query.trim().toLowerCase();
+  const targetAge = ageBand === "all" ? null : normalizeAgeKey(ageBand);
   return (templates ?? []).filter((item) => {
-    const matchesAge = ageBand === "all" || item.ageBand === ageBand;
+    const matchesAge = targetAge === null || normalizeAgeKey(item.ageBand) === targetAge;
     if (!matchesAge) return false;
     if (!needle) return true;
     const hay = `${item.name} ${item.description ?? ""} ${item.mainCategory?.displayName ?? ""}`.toLowerCase();

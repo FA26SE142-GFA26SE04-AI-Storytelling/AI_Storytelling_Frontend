@@ -1,25 +1,33 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { SlidersHorizontal, X } from "lucide-react";
-import { ageLabel, type StoryCard } from "@/app/lib/storyView";
-import { SOURCE_LABEL, STATUS_GROUPS, sourceOf, statusOf, type StorySourceKey } from "./libraryFilters";
+import type { StoryCard } from "@/app/lib/storyView";
+import LibraryExtraFilters, { type LibraryExtraFilterProps } from "./LibraryExtraFilters";
+import {
+  SOURCE_LABEL,
+  STATUS_GROUPS,
+  sourceOf,
+  statusOf,
+  type AgeFilterOption,
+  type StorySourceKey,
+} from "./libraryFilters";
 
 export type LibraryFilterPopoverProps = {
   open: boolean;
   onToggle: () => void;
   onClose: () => void;
   stories: StoryCard[];
-  ageBands: string[];
+  ageOptions: AgeFilterOption[];
   status: string;
   age: string;
   source: string;
   activePopoverCount: number;
-  hasAnyFilter: boolean;
+  extraFilters?: LibraryExtraFilterProps;
   onStatusChange: (value: string) => void;
   onAgeChange: (value: string) => void;
   onSourceChange: (value: string) => void;
-  onClearAll: () => void;
+  onClearPopover: () => void;
 };
 
 /** Bảng lọc mở rộng dạng nhóm viên thuốc: chọn nhanh độ tuổi, nguồn và trạng thái trong một lần chạm. */
@@ -28,18 +36,24 @@ export default function LibraryFilterPopover({
   onToggle,
   onClose,
   stories,
-  ageBands,
+  ageOptions,
   status,
   age,
   source,
   activePopoverCount,
-  hasAnyFilter,
+  extraFilters,
   onStatusChange,
   onAgeChange,
   onSourceChange,
-  onClearAll,
+  onClearPopover,
 }: LibraryFilterPopoverProps) {
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+
+  const closeAndReturnFocus = useCallback(() => {
+    onClose();
+    triggerRef.current?.focus({ preventScroll: true });
+  }, [onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -48,8 +62,9 @@ export default function LibraryFilterPopover({
     };
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        event.preventDefault();
         event.stopPropagation();
-        onClose();
+        closeAndReturnFocus();
       }
     };
     document.addEventListener("mousedown", onMouseDown);
@@ -58,7 +73,7 @@ export default function LibraryFilterPopover({
       document.removeEventListener("mousedown", onMouseDown);
       document.removeEventListener("keydown", onKeyDown);
     };
-  }, [open, onClose]);
+  }, [open, onClose, closeAndReturnFocus]);
 
   const statusCounts = Object.fromEntries(
     STATUS_GROUPS.map((group) => [group.id, stories.filter((story) => statusOf(story) === group.id).length]),
@@ -67,14 +82,20 @@ export default function LibraryFilterPopover({
   const availableSources = (Object.entries(SOURCE_LABEL) as [StorySourceKey, string][])
     .map(([id, label]) => ({ id, label, count: stories.filter((story) => sourceOf(story) === id).length }))
     .filter((entry) => entry.count > 0 || entry.id === source);
+  const hasFilterGroups =
+    ageOptions.length > 0 || availableSources.length > 0 || availableStatuses.length > 1 || status !== "all" ||
+    !!extraFilters?.durations.some(({ count }) => count > 0) || !!extraFilters?.authors.length;
+  const filterDisabled = !hasFilterGroups && activePopoverCount === 0;
 
   return (
     <div className="lfilter lib-filter" ref={rootRef}>
       <button
+        ref={triggerRef}
         type="button"
         className={`btn btn-s lib-filter-btn${activePopoverCount > 0 ? " on" : ""}`}
         aria-haspopup="dialog"
         aria-expanded={open}
+        disabled={filterDisabled}
         onClick={onToggle}
       >
         <SlidersHorizontal className="ic" aria-hidden="true" />
@@ -86,14 +107,23 @@ export default function LibraryFilterPopover({
         <div className="lib-filter-pop" role="dialog" aria-label="Lọc truyện">
           <div className="lib-filter-head">
             <b className="display">Lọc truyện</b>
-            <button type="button" className="btn btn-g icon-only" aria-label="Đóng bộ lọc" onClick={onClose}>
+            <button
+              type="button"
+              className="btn btn-g icon-only"
+              aria-label="Đóng bộ lọc"
+              onClick={closeAndReturnFocus}
+            >
               <X className="ic" aria-hidden="true" />
             </button>
           </div>
 
-          {ageBands.length > 0 && (
-            <fieldset className="lib-filter-group">
-              <legend>Độ tuổi</legend>
+          {!hasFilterGroups && <p className="sub">Chưa có tiêu chí lọc.</p>}
+
+          {ageOptions.length > 0 && (
+            <div className="lib-filter-group" role="group" aria-labelledby="lib-filter-age">
+              <span id="lib-filter-age" className="lib-filter-legend">
+                Độ tuổi
+              </span>
               <div className="lib-filter-pills">
                 <button
                   type="button"
@@ -103,28 +133,27 @@ export default function LibraryFilterPopover({
                 >
                   Tất cả
                 </button>
-                {ageBands.map((band) => {
-                  const count = stories.filter((story) => story.ageBand === band).length;
-                  return (
-                    <button
-                      type="button"
-                      key={band}
-                      className={`lib-pill${age === band ? " on" : ""}`}
-                      aria-pressed={age === band}
-                      onClick={() => onAgeChange(band)}
-                    >
-                      <span>{ageLabel(band)}</span>
-                      <span className="lib-pill-n lib-num">{count}</span>
-                    </button>
-                  );
-                })}
+                {ageOptions.map((opt) => (
+                  <button
+                    type="button"
+                    key={opt.key}
+                    className={`lib-pill${age === opt.key ? " on" : ""}`}
+                    aria-pressed={age === opt.key}
+                    onClick={() => onAgeChange(age === opt.key ? "all" : opt.key)}
+                  >
+                    <span>{opt.label}</span>
+                    <span className="lib-pill-n lib-num">{opt.count}</span>
+                  </button>
+                ))}
               </div>
-            </fieldset>
+            </div>
           )}
 
           {availableSources.length > 0 && (
-            <fieldset className="lib-filter-group">
-              <legend>Nguồn</legend>
+            <div className="lib-filter-group" role="group" aria-labelledby="lib-filter-source">
+              <span id="lib-filter-source" className="lib-filter-legend">
+                Nguồn
+              </span>
               <div className="lib-filter-pills">
                 <button
                   type="button"
@@ -140,19 +169,21 @@ export default function LibraryFilterPopover({
                     key={entry.id}
                     className={`lib-pill${source === entry.id ? " on" : ""}`}
                     aria-pressed={source === entry.id}
-                    onClick={() => onSourceChange(entry.id)}
+                    onClick={() => onSourceChange(source === entry.id ? "all" : entry.id)}
                   >
                     <span>{entry.label}</span>
                     <span className="lib-pill-n lib-num">{entry.count}</span>
                   </button>
                 ))}
               </div>
-            </fieldset>
+            </div>
           )}
 
           {(availableStatuses.length > 1 || status !== "all") && (
-            <fieldset className="lib-filter-group">
-              <legend>Trạng thái</legend>
+            <div className="lib-filter-group" role="group" aria-labelledby="lib-filter-status">
+              <span id="lib-filter-status" className="lib-filter-legend">
+                Trạng thái
+              </span>
               <div className="lib-filter-pills">
                 <button
                   type="button"
@@ -168,28 +199,30 @@ export default function LibraryFilterPopover({
                     key={group.id}
                     className={`lib-pill${status === group.id ? " on" : ""}`}
                     aria-pressed={status === group.id}
-                    onClick={() => onStatusChange(group.id)}
+                    onClick={() => onStatusChange(status === group.id ? "all" : group.id)}
                   >
                     <span>{group.label}</span>
                     <span className="lib-pill-n lib-num">{statusCounts[group.id]}</span>
                   </button>
                 ))}
               </div>
-            </fieldset>
+            </div>
           )}
 
-          {hasAnyFilter && (
+          {extraFilters && <LibraryExtraFilters {...extraFilters} />}
+
+          {activePopoverCount > 0 && (
             <div className="lib-filter-foot">
               <button
                 type="button"
                 className="btn btn-g"
                 onClick={() => {
-                  onClearAll();
-                  onClose();
+                  onClearPopover();
+                  closeAndReturnFocus();
                 }}
               >
                 <X className="ic" aria-hidden="true" />
-                Xoá tất cả bộ lọc
+                Xoá bộ lọc
               </button>
             </div>
           )}

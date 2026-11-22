@@ -2,13 +2,20 @@ import { describe, expect, it } from "vitest";
 import type { StoryCard } from "@/app/lib/storyView";
 import type * as B from "@/app/types/backendContracts";
 import {
+  canonicalAgeLabel,
+  collectAgeOptions,
+  collectDurationOptions,
+  collectLibraryAuthors,
   countActiveFilters,
   countPopoverFilters,
+  displayAuthorOf,
+  estimatedReadingMinutes,
   filterAndSortStories,
   filterRoadmaps,
   isFocusedCatalog,
   isNewStory,
   normalizeAgeKey,
+  rankForStory,
   recommendedStories,
   shouldShowRecommended,
   sortByNewest,
@@ -59,10 +66,28 @@ const DEFAULT_FILTERS: LibraryFilterState = {
   genre: "all",
   age: "all",
   source: "all",
+  duration: "all",
+  author: "all",
   sort: "recent",
 };
 
 describe("libraryFilters", () => {
+  it("buckets estimated reading times at the exact boundaries and ignores missing content", () => {
+    const stories = [0, 599, 600, 1199, 1200, 1800, 1801].map((words, id) => makeCard({ id, words }));
+    expect(collectDurationOptions(stories).map(({ count }) => count)).toEqual([1, 2, 2, 1]);
+    expect(filterAndSortStories(stories, { ...DEFAULT_FILTERS, duration: "10-to-15" }).map(({ words }) => words))
+      .toEqual([1200, 1800]);
+  });
+
+  it("ranks named community authors by story count and filters by ID even when names match", () => {
+    const author = (id: number, authorUserId: number, authorName: string | null, creator = true) =>
+      makeCard({ id, creator, raw: { authorUserId, authorName } });
+    const stories = [author(1, 10, "Sen"), author(2, 10, null), author(3, 20, "Sen"), author(4, 10, "Sen", false), author(5, 30, null)];
+    expect(collectLibraryAuthors(stories)).toEqual([
+      { key: "10", label: "Sen", count: 2 }, { key: "20", label: "Sen", count: 1 },
+    ]);
+    expect(filterAndSortStories(stories, { ...DEFAULT_FILTERS, author: "10" }).map(({ id }) => id)).toEqual([1, 2]);
+  });
   it("normalizes whitespace topics and resolves story source and status", () => {
     const blankTopic = makeCard({ topic: "   ", creator: true });
     const familyDraft = makeCard({ family: true, fromAi: false, raw: { status: "MediaProcessing", isPublished: false } });
@@ -181,6 +206,43 @@ describe("libraryFilters", () => {
     expect(filterRoadmaps(null, "abc")).toEqual([]);
     expect(filterRoadmaps(templates, "thiên nhiên").map((t) => t.id)).toEqual([1]);
     expect(filterRoadmaps(templates, "", "9-10").map((t) => t.id)).toEqual([2]);
+    expect(filterRoadmaps(templates, "", "Age_9_10").map((t) => t.id)).toEqual([2]);
     expect(filterRoadmaps(templates, "không tồn tại")).toEqual([]);
+  });
+
+  it("deduplicates mixed ageBand formats, stays idempotent, gates rank pills on positive stats, and prevents anonymous community misattribution", () => {
+    expect(normalizeAgeKey("6-8 tuổi")).toBe("6-8 tuổi");
+    expect(canonicalAgeLabel("6-8")).toBe("6–8 tuổi");
+    expect(canonicalAgeLabel("Age_6_8")).toBe("6–8 tuổi");
+    expect(canonicalAgeLabel("6–8 tuổi")).toBe("6–8 tuổi");
+
+    const s1 = makeCard({ id: 1, ageBand: "6-8", creator: true, viewCount: 50, favoriteCount: 0, raw: { authorName: "Cô Sen" } });
+    const s2 = makeCard({ id: 2, ageBand: "Age_6_8", creator: true, viewCount: 0, favoriteCount: 12, raw: { authorName: null } });
+    const s3 = makeCard({ id: 3, ageBand: "Age_9_10", fromAi: true, raw: { authorName: null } });
+    const s4 = makeCard({ id: 4, ageBand: "9-10", fromAi: false });
+
+    const options = collectAgeOptions([s1, s2, s3, s4]);
+    expect(options).toEqual([
+      { key: "6-8 tuổi", label: "6–8 tuổi", count: 2 },
+      { key: "9-10 tuổi", label: "9–10 tuổi", count: 2 },
+    ]);
+
+    expect(filterAndSortStories([s1, s2, s3, s4], { ...DEFAULT_FILTERS, age: "6-8 tuổi" }).map((s) => s.id)).toEqual([1, 2]);
+    expect(filterAndSortStories([s1, s2, s3, s4], { ...DEFAULT_FILTERS, age: "Age_9_10" }).map((s) => s.id)).toEqual([3, 4]);
+
+    expect(rankForStory(s1, 0, "recent")).toBeUndefined();
+    expect(rankForStory(s1, 0, "views")).toBe(1);
+    expect(rankForStory(s2, 1, "views")).toBeUndefined();
+    expect(rankForStory(s3, 2, "views")).toBeUndefined();
+    expect(rankForStory(s2, 0, "favorites")).toBe(1);
+    expect(rankForStory(s1, 1, "favorites")).toBeUndefined();
+
+    expect(displayAuthorOf(s1)).toBe("Cô Sen");
+    expect(displayAuthorOf(s2)).toBe("Tác giả cộng đồng");
+    expect(displayAuthorOf(s3)).toBe("Bạn");
+
+    expect(estimatedReadingMinutes(makeCard({ words: 0 }))).toBeNull();
+    expect(estimatedReadingMinutes(makeCard({ words: 840 }))).toBe(7);
+    expect(filterAndSortStories([s1, s2, s3], { ...DEFAULT_FILTERS, query: "cô sen" }).map((s) => s.id)).toEqual([1]);
   });
 });

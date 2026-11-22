@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { roadmapService } from "@/app/services/roadmapService";
 import { storyService } from "@/app/services/storyService";
 import { coverFor, DEFAULT_COVER } from "@/app/lib/storyView";
@@ -33,13 +33,23 @@ function loadTemplateList() {
 export function useRoadmapTemplates() {
   const [templates, setTemplates] = useState<B.RoadmapLibraryItemDto[] | null>(() => listCache?.data ?? null);
   const [error, setError] = useState<string | null>(null);
+  const [reloadTick, setReloadTick] = useState(0);
+
+  const reload = useCallback(() => {
+    listCache = null;
+    listLoading = null;
+    setError(null);
+    setTemplates(null);
+    setReloadTick((n) => n + 1);
+  }, []);
+
   useEffect(() => {
-    if (listCache && Date.now() - listCache.at < 60_000) return;
+    if (reloadTick === 0 && listCache && Date.now() - listCache.at < 60_000) return;
     let alive = true;
     void loadTemplateList().then((r) => { if (alive) { setTemplates(r.data); setError(r.error); } });
     return () => { alive = false; };
-  }, []);
-  return { templates, error };
+  }, [reloadTick]);
+  return { templates, error, reload };
 }
 
 const details = new Map<number, Promise<B.RoadmapLibraryDetailDto | null>>();

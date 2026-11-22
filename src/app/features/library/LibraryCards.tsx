@@ -4,8 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { StoryStatsBadge } from "@/app/components/StoryStatsBadge";
 import { useRiseIn } from "@/app/lib/motion";
-import { ageLabel, type StoryCard } from "@/app/lib/storyView";
-import { isNewStory, SOURCE_LABEL, sourceOf, statusOf, topicOf } from "./libraryFilters";
+import type { StoryCard } from "@/app/lib/storyView";
+import { canonicalAgeLabel, isNewStory, SOURCE_LABEL, sourceOf, statusOf, topicOf } from "./libraryFilters";
 
 export type ShelfProps = {
   title: string;
@@ -105,10 +105,12 @@ export function LibraryBookCard({
   story,
   rank,
   onPick,
+  compact = false,
 }: {
   story: StoryCard;
   rank?: number;
   onPick: (button: HTMLButtonElement) => void;
+  compact?: boolean;
 }) {
   const ready = statusOf(story) === "ready";
   const showNew = ready && rank === undefined && isNewStory(story);
@@ -119,7 +121,7 @@ export function LibraryBookCard({
   return (
     <button
       type="button"
-      className="bk lib-card"
+      className={compact ? "bk lib-card lib-card-compact" : "bk lib-card"}
       aria-haspopup="dialog"
       onClick={(event) => onPick(event.currentTarget)}
     >
@@ -134,20 +136,25 @@ export function LibraryBookCard({
         ) : (
           showNew && <span className="lib-new-pill">Mới</span>
         )}
-        {hasStats && (
+        {hasStats && !compact && (
           <StoryStatsBadge viewCount={story.viewCount} favoriteCount={story.favoriteCount} belowPill={hasLeftBadge} />
         )}
       </span>
       <span className="lib-card-body">
         <strong className="display lib-card-title">{story.title}</strong>
         <span className="lib-card-meta">
-          <span className="lib-card-topic">{topicOf(story)}</span>
+          <span className="lib-card-topic" title={topicOf(story)}>
+            {topicOf(story)}
+          </span>
           <span className="lib-card-dot" aria-hidden="true">
             ·
           </span>
-          <span>{ageLabel(story.ageBand)}</span>
+          <span className="lib-card-age">{canonicalAgeLabel(story.ageBand)}</span>
         </span>
-        <span className="lib-card-foot">
+        {compact && story.raw.description?.trim() && <span className="lib-card-synopsis">{story.raw.description}</span>}
+        {compact && hasStats ? (
+          <StoryStatsBadge viewCount={story.viewCount} favoriteCount={story.favoriteCount} />
+        ) : <span className="lib-card-foot">
           <span>{sourceLabel}</span>
           {story.words > 0 && (
             <>
@@ -157,7 +164,7 @@ export function LibraryBookCard({
               <span className="lib-num">{story.words.toLocaleString("vi-VN")} tiếng</span>
             </>
           )}
-        </span>
+        </span>}
       </span>
     </button>
   );
