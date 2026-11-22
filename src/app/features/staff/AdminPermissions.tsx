@@ -6,7 +6,7 @@ import { RotateCcw, Save } from "lucide-react";
 import Select from "@/app/components/Select";
 import { accessControlService as api } from "@/app/services/accessControlService";
 import type { PermissionDto, RoleDto } from "@/app/types/accessControl";
-import { changedCodes, groupPermissions, staffEditableCodes } from "./permissionMatrix";
+import { changedCodes, groupPermissions, lockedCodes, staffEditableCodes } from "./permissionMatrix";
 import { Notice, Page, useAction } from "./ui";
 
 /** Administrator bật/tắt quyền nhân viên (nhóm Kiểm duyệt, Quản trị) của Moderator và Administrator. */
@@ -16,6 +16,8 @@ export default function AdminPermissions() {
   const [roleCode, setRoleCode] = useState("Moderator");
   const [saved, setSaved] = useState<string[]>([]);
   const [draft, setDraft] = useState<string[]>([]);
+  // null: backend cũ chưa trả assignableCodes → không khóa ô nào (backend vẫn tự chặn khi lưu).
+  const [assignable, setAssignable] = useState<string[] | null>(null);
 
   const loadRole = useCallback(async () => {
     const [p, r] = await Promise.all([api.permissions(), api.rolePermissions(roleCode)]);
@@ -23,6 +25,7 @@ export default function AdminPermissions() {
     if (!r.success || !r.data) return r.message;
     const editable = staffEditableCodes(r.data.permissionCodes, p.data);
     setCatalog(p.data);
+    setAssignable(r.data.assignableCodes ?? null);
     setSaved(editable);
     setDraft(editable);
     return null;
@@ -38,6 +41,7 @@ export default function AdminPermissions() {
   useEffect(() => { void loadRole().then((err) => { if (err) setNote({ ok: false, text: err }); }); }, [loadRole, setNote]);
 
   const groups = useMemo(() => groupPermissions(catalog.filter((p) => p.isStaffGrantable)), [catalog]);
+  const locked = useMemo(() => (assignable ? lockedCodes(catalog, assignable) : new Set<string>()), [catalog, assignable]);
   const diff = changedCodes(saved, draft);
   const dirty = diff.added.length + diff.removed.length > 0;
   const roleName = roles.find((r) => r.code === roleCode)?.name ?? roleCode;
@@ -60,7 +64,7 @@ export default function AdminPermissions() {
           {dirty && <button className="btn btn-g" disabled={busy} onClick={() => setDraft(saved)}><RotateCcw className="ic" />Hoàn tác</button>}
           {dirty && <button className="btn btn-p" disabled={busy} onClick={() => void save()}><Save className="ic" />Lưu thay đổi</button>}
         </div>
-        <p className="sub">Chỉ chỉnh được quyền nhân viên. Quyền của phụ huynh và nhà sáng tạo giữ cố định. Mỗi bước duyệt nội dung cho trẻ phải còn ít nhất một role được duyệt.</p>
+        <p className="sub">Chỉ chỉnh được quyền nhân viên. Quyền của phụ huynh và nhà sáng tạo giữ cố định. Mỗi bước duyệt nội dung cho trẻ phải còn ít nhất một role được duyệt. Hiện chỉ thu hoặc trả lại quyền mặc định của role; quyền bị khóa chưa cấp được vì hệ thống vẫn kiểm role ở bước xử lý.</p>
       </div>
       {groups.map((g) => (
         <div className="st-card perm-card" key={g.group}>
@@ -73,7 +77,8 @@ export default function AdminPermissions() {
                   <td data-label="Quyền"><code>{p.code}</code></td>
                   <td data-label="Mô tả">{p.description}</td>
                   <td data-label="Bật">
-                    <input type="checkbox" aria-label={`Bật ${p.description}`} checked={draft.includes(p.code)} disabled={busy}
+                    <input type="checkbox" aria-label={`Bật ${p.description}`} checked={draft.includes(p.code)}
+                      disabled={busy || locked.has(p.code)} title={locked.has(p.code) ? `Chưa cấp được quyền này cho ${roleName}` : undefined}
                       onChange={(e) => toggle(p.code, e.target.checked)} style={{ accentColor: "var(--primary)" }} />
                   </td>
                 </tr>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { changedCodes, groupPermissions, staffEditableCodes } from '@/app/features/staff/permissionMatrix';
+import { changedCodes, groupPermissions, lockedCodes, staffEditableCodes } from '@/app/features/staff/permissionMatrix';
 import type { PermissionDto } from '@/app/types/accessControl';
 
 const p = (code: string, group: string, isStaffGrantable = true): PermissionDto => ({ code, group, description: code, isStaffGrantable });
@@ -24,6 +24,13 @@ describe('changedCodes', () => {
 
   it('reports nothing for the same set in another order', () => {
     expect(changedCodes(['a', 'b'], ['b', 'a'])).toEqual({ added: [], removed: [] });
+  });
+});
+
+describe('lockedCodes', () => {
+  it('locks staff permissions the role cannot be granted yet', () => {
+    const catalog = [p('review.gray_zone', 'Kiểm duyệt'), p('creator.payout.manage', 'Quản trị'), p('community.view', 'Dùng chung', false)];
+    expect(lockedCodes(catalog, ['review.gray_zone'])).toEqual(new Set(['creator.payout.manage']));
   });
 });
 

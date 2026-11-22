@@ -15,4 +15,6 @@ export interface RoleDto {
 export interface RolePermissionsDto {
   roleCode: string;
   permissionCodes: string[];
+  /** Quyền nhân viên role được bật: mặc định của role + quyền đang giữ. Ngoài tập này backend từ chối. */
+  assignableCodes?: string[];
 }
