@@ -5,8 +5,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { aiStoryCreationService } from "@/app/services/aiStoryCreationService";
 import AudioRing from "./AudioRing";
-import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Flag, Info, SlidersHorizontal, PencilLine, Route, Search, WandSparkles, X } from "lucide-react";
-import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
+import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Flag, BookOpen, SlidersHorizontal, PencilLine, Route, Search, WandSparkles, X } from "lucide-react";
+import Dialog from "@/app/components/Dialog";
 import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { avatarOf } from "@/app/lib/guardian";
@@ -26,7 +26,6 @@ import { roadmapTemplate } from "@/app/services/roadmapAdapters";
 import type { RoadmapTemplate } from "@/app/types/progress";
 import type * as B from "@/app/types/backendContracts";
 import { ReportDialog } from "./ModerationDialogs";
-import { useCommunityStatShelves } from "./useCommunityStatShelves";
 import { StoryStatsBadge } from "@/app/components/StoryStatsBadge";
 
 /** Luồng 2 mục 6.9 — nhóm trạng thái hiển thị cho phụ huynh. */
@@ -156,26 +155,21 @@ export function Preview({ story, onClose, loadContent }: { story: PreviewStory; 
   );
 }
 
-const NEW_DAYS = 3;
-const isNew = (s: StoryCard) => Date.now() - new Date(s.createdAt).getTime() < NEW_DAYS * 86_400_000;
 /** Thư viện chỉ hiện truyện đã được duyệt: các nhóm trạng thái còn lại (nháp, đang sinh, chờ duyệt, bị chặn, bị từ chối, lưu trữ) bị ẩn. */
 const SHOWN_GROUPS = ["media", "ready"];
-const IN_PROGRESS = ["media"];
 
 /** Thẻ truyện bìa đứng: tên truyện in trên bìa, nhãn trạng thái ở góc, số thứ tự lớn khi xếp hạng. */
-function BookCard({ story, rank, on, onPick }: { story: StoryCard; rank?: number; on: boolean; onPick: () => void }) {
-  const ready = statusOf(story) === "ready";
-  const hasStats = story.viewCount !== undefined || story.favoriteCount !== undefined;
+function BookCard({ story, onPick }: { story: StoryCard; onPick: (button: HTMLButtonElement) => void }) {
   return (
-    <button className={`bk${on ? " on" : ""}`} onClick={onPick} aria-pressed={on}>
-      <span className="bk-cover" style={{ background: story.cover }}>
-        {!ready ? <span className={`pill ${story.tone} bk-badge`}>{story.statusLabel}</span> : isNew(story) && <span className="bk-badge bk-new">Mới</span>}
-        {hasStats && <StoryStatsBadge viewCount={story.viewCount} favoriteCount={story.favoriteCount} />}
-        <span className="bk-name display">{story.title}</span>
-        {rank !== undefined && <span className="bk-rank display" aria-hidden>{rank}</span>}
+    <button type="button" className="lib-book" aria-haspopup="dialog" onClick={(event) => onPick(event.currentTarget)}>
+      <span className="lib-book-cover" style={{ background: story.cover }}>
+        {statusOf(story) !== "ready" && <span className={`pill ${story.tone} bk-badge`}>{story.statusLabel}</span>}
+        {(story.viewCount !== undefined || story.favoriteCount !== undefined) && <StoryStatsBadge viewCount={story.viewCount} favoriteCount={story.favoriteCount} />}
       </span>
-      <span className="bk-title">{story.title}</span>
-      <span className="bk-meta">{story.topic} · {ageLabel(story.ageBand)}</span>
+      <span className="lib-book-copy">
+        <strong className="display">{story.title}</strong>
+        <span>{story.topic} · {ageLabel(story.ageBand)}</span>
+      </span>
     </button>
   );
 }
@@ -230,7 +224,6 @@ export function ShelfRow({ children }: { children: React.ReactNode }) {
   );
 }
 
-const SOURCE_PILLS = [{ id: "all", label: "Tất cả" }, { id: "creator", label: "Của creator" }, { id: "ai", label: "Do AI tạo" }, { id: "manual", label: "Nhập sẵn" }, { id: "family", label: "Tự soạn" }];
 const sourceOf = (s: StoryCard) => (s.creator ? "creator" : s.family ? "family" : s.fromAi ? "ai" : "manual");
 const SOURCE_LABEL: Record<string, string> = { creator: "Của creator", ai: "Do AI tạo", manual: "Nhập sẵn", family: "Tự soạn gia đình" };
 
@@ -315,17 +308,13 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
     document.addEventListener("mousedown", down); document.addEventListener("keydown", key);
     return () => { document.removeEventListener("mousedown", down); document.removeEventListener("keydown", key); };
   }, [filterOpen]);
-  const [source, setSource] = useState("all");
-  const [topic, setTopic] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<{ title: string; items: StoryCard[] } | null>(null);
-  // Lộ trình mẫu (album) xen giữa các kệ truyện, giống playlist trong thư viện nhạc.
-  const { templates } = useRoadmapTemplates();
-  const [allRoadmaps, setAllRoadmaps] = useState(false);
+  const [tab, setTab] = useState<"stories" | "roadmaps">("stories");
+  const [roadmapQuery, setRoadmapQuery] = useState("");
+  const [sort, setSort] = useState("category");
+  const { templates, error: roadmapError } = useRoadmapTemplates();
   const [openedTpl, setOpenedTpl] = useState<B.RoadmapLibraryItemDto | null>(null);
   const [addingTpl, setAddingTpl] = useState<RoadmapTemplate | null>(null);
   const album = (t: B.RoadmapLibraryItemDto) => <RoadmapAlbum key={`rm-${t.id}`} item={t} onOpen={() => setOpenedTpl(t)} />;
-  const roadmapAll = templates ?? [];
-  const roadmapLatest = roadmapAll.slice(0, 10);
   const [status, setStatus] = useState("all");
   // Bộ lọc theo thể loại (genre), nhóm tuổi (ageBand) và nguồn (source). "all" là không lọc.
   const [genreF, setGenreF] = useState("all");
@@ -335,37 +324,18 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
   const [selected, setSelected] = useState<number | null>(null);
   const [dialog, setDialog] = useState<"preview" | "roadmap" | "report" | null>(null);
   const [toast, setToast] = useState("");
-  // Khung "Chi tiết" bên phải thu gọn được; cột lưới co theo bằng CSS (library.css).
-  // Mới vào thì thu gọn; bấm vào một truyện sẽ tự mở khung chi tiết.
-  const [asideCollapsed, setAsideCollapsed] = useState(true);
-  const toggleAside = useCallback(() => setAsideCollapsed((v) => !v), []);
-  const aside = useMemo(() => ({ collapsed: asideCollapsed, toggle: toggleAside }), [asideCollapsed, toggleAside]);
+  const returnFocus = useRef<HTMLButtonElement | null>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
+  const closeDetails = useCallback(() => {
+    setSelected(null);
+    returnFocus.current?.focus({ preventScroll: true });
+  }, []);
 
   const counts = useMemo(() => Object.fromEntries(STATUS_GROUPS.map((g) => [g.id, stories.filter((s) => statusOf(s) === g.id).length])), [stories]);
 
   // Mới tạo xếp trước; mọi kệ dùng chung thứ tự này.
   const sorted = useMemo(() => [...stories].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()), [stories]);
   const topics = useMemo(() => [...new Set(sorted.map((s) => s.topic).filter(Boolean))], [sorted]);
-  const activeTopic = topic && topics.includes(topic) ? topic : topics[0] ?? null;
-  // Mới nhất: chỉ truyện đã công khai (không hiện truyện riêng), mới ra mắt xếp trước.
-  const released = useMemo(() => sorted.filter((s) => !s.family && s.raw.isPublished), [sorted]);
-  const latest = released.slice(0, 10);
-  const inProgress = sorted.filter((s) => IN_PROGRESS.includes(statusOf(s)));
-  const byTopic = sorted.filter((s) => s.topic === activeTopic);
-  const bySource = sorted.filter((s) => source === "all" || sourceOf(s) === source);
-
-  // Đang tìm hoặc lọc trạng thái thì bỏ các kệ, chỉ hiện một lưới kết quả.
-  const filtering = genreF !== "all" || ageF !== "all" || srcF !== "all";
-  const searching = q.trim() !== "" || status !== "all" || filtering;
-  const { mostViewed, mostFavorited } = useCommunityStatShelves(!searching);
-  const viewedCards = useMemo(
-    () => mostViewed.map((s) => ({ ...toCard(s), creator: true, viewCount: s.viewCount, favoriteCount: s.favoriteCount })),
-    [mostViewed],
-  );
-  const favoritedCards = useMemo(
-    () => mostFavorited.map((s) => ({ ...toCard(s), creator: true, viewCount: s.viewCount, favoriteCount: s.favoriteCount })),
-    [mostFavorited],
-  );
   const ageBands = useMemo(() => [...new Set(sorted.map((s) => s.ageBand).filter(Boolean))], [sorted]);
   const results = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -374,27 +344,81 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
       (genreF === "all" || s.topic === genreF) &&
       (ageF === "all" || s.ageBand === ageF) &&
       (srcF === "all" || sourceOf(s) === srcF) &&
-      s.title.toLowerCase().includes(needle));
-  }, [sorted, q, status, genreF, ageF, srcF]);
+      s.title.toLowerCase().includes(needle)).sort((a, b) => {
+      if (sort === "views") return (b.viewCount ?? 0) - (a.viewCount ?? 0);
+      if (sort === "favorites") return (b.favoriteCount ?? 0) - (a.favoriteCount ?? 0);
+      return 0;
+    });
+  }, [sorted, q, status, genreF, ageF, srcF, sort]);
+  const categoryGroups = useMemo(() => {
+    if (sort !== "category") return [];
+    const groups = new Map<string, StoryCard[]>();
+    for (const story of results) {
+      const label = story.topic.trim() || "Khác";
+      const key = label.toLocaleLowerCase("vi");
+      const group = groups.get(key);
+      if (group) group.push(story);
+      else groups.set(key, [story]);
+    }
+    return Array.from(groups.values()).sort(([a], [b]) => a.topic.localeCompare(b.topic, "vi"));
+  }, [results, sort]);
+  const favorites = sorted
+    .filter((story) => statusOf(story) === "ready" && (story.favoriteCount ?? 0) > 0)
+    .sort((a, b) => (b.favoriteCount ?? 0) - (a.favoriteCount ?? 0)).slice(0, 6);
+  const ageKey = (band: string) => ageLabel(band).replace(/[–—]/g, "-").toLowerCase();
+  const recommendedAges = new Set((pickKid ? [pickKid] : kids).map((kid) => ageKey(kid.ageBand)));
+  const recommended = sorted.filter((story) =>
+    statusOf(story) === "ready" && (!recommendedAges.size || recommendedAges.has(ageKey(story.ageBand))),
+  ).slice(0, 6);
   const activeCount = [status, genreF, ageF, srcF].filter((v) => v !== "all").length;
-  // Tìm theo tên thì tìm cả lộ trình mẫu; bộ lọc trạng thái / thể loại / nguồn chỉ áp dụng cho truyện.
   const roadmapResults = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return needle ? (templates ?? []).filter((t) => `${t.name} ${t.description ?? ""}`.toLowerCase().includes(needle)) : [];
-  }, [templates, q]);
-
-  // Chưa bấm vào truyện nào thì không chọn sẵn truyện đầu tiên.
+    const needle = roadmapQuery.trim().toLowerCase();
+    return (templates ?? []).filter((t) => `${t.name} ${t.description ?? ""}`.toLowerCase().includes(needle));
+  }, [templates, roadmapQuery]);
   const sel = stories.find((s) => s.id === selected) ?? null;
-  const pick = (id: number) => { setSelected(id); if (asideCollapsed) setAsideCollapsed(false); };
-  const card = (s: StoryCard, rank?: number) => <BookCard key={s.id} story={s} rank={rank} on={sel?.id === s.id} onPick={() => pick(s.id)} />;
   const selStatus = sel ? statusOf(sel) : null;
+  const detailOpen = !!sel && !dialog;
+
+  useEffect(() => {
+    if (!detailOpen) return;
+    const modal = detailRef.current?.closest('[role="dialog"]');
+    if (!modal) return;
+    const tabbable = () => Array.from(modal.querySelectorAll<HTMLElement>('button:not([disabled]), a[href], input:not([disabled]), select:not([disabled]), [tabindex="0"]'))
+      .filter((element) => element.getClientRects().length > 0);
+    tabbable()[0]?.focus({ preventScroll: true });
+    const onKey = (event: KeyboardEvent) => {
+      const dialogs = document.querySelectorAll('[role="dialog"][aria-modal="true"]');
+      if (dialogs[dialogs.length - 1] !== modal) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeDetails();
+      } else if (event.key === "Tab") {
+        const items = tabbable();
+        const first = items[0];
+        const last = items[items.length - 1];
+        if (!modal.contains(document.activeElement) || document.activeElement === (event.shiftKey ? first : last)) {
+          event.preventDefault();
+          (event.shiftKey ? last : first)?.focus();
+        }
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [detailOpen, closeDetails]);
+
+  const storyGrid = (items: StoryCard[]) => (
+    <div className="lib-grid">
+      {items.map((story) => <BookCard key={story.id} story={story} onPick={(button) => {
+        returnFocus.current = button;
+        setSelected(story.id);
+      }} />)}
+    </div>
+  );
   const flash = (m: string) => { setToast(m); setTimeout(() => setToast(""), 3200); };
 
   return (
-    <AsideContext.Provider value={aside}>
-    <section className="ws dock lib" data-aside={asideCollapsed ? "collapsed" : undefined}>
+    <section className="ws dock lib lib-catalog">
       <div className="pane">
-        {error && <div className="notice err" role="alert">{error}</div>}
         <div className="lib-scroll">
           {pickKid && (
             <div className="lib-pickbar" role="status">
@@ -404,13 +428,20 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
               <button className="btn btn-g icon-only" aria-label="Thôi chọn" title="Thôi chọn" onClick={() => setLibPick(null)}><X className="ic" /></button>
             </div>
           )}
+          <header className="lib-heading">
+            <h2 className="display">Thư viện</h2>
+            <div className="lib-switch" role="group" aria-label="Danh mục thư viện">
+              <button type="button" aria-pressed={tab === "stories"} onClick={() => { setTab("stories"); setFilterOpen(false); }}><BookOpen className="ic" />Truyện</button>
+              <button type="button" aria-pressed={tab === "roadmaps"} onClick={() => { setTab("roadmaps"); setFilterOpen(false); }}><Route className="ic" />Lộ trình mẫu</button>
+            </div>
+          </header>
           <div className="lbar">
             <div className="lsearch">
             <label className="row grow" style={{ gap: 6, color: "var(--muted)" }}>
               <Search className="ic" />
-              <input className="inp" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm theo tên truyện" style={{ border: 0, background: "none" }} aria-label="Tìm theo tên truyện" />
+              <input className="inp" value={tab === "stories" ? q : roadmapQuery} onChange={(e) => (tab === "stories" ? setQ : setRoadmapQuery)(e.target.value)} placeholder={tab === "stories" ? "Tìm theo tên truyện" : "Tìm lộ trình mẫu"} style={{ border: 0, background: "none" }} aria-label={tab === "stories" ? "Tìm theo tên truyện" : "Tìm lộ trình mẫu"} />
             </label>
-            <div className="lfilter" ref={filterRef}>
+            {tab === "stories" && <div className="lfilter" ref={filterRef}>
               <button className={`btn btn-s lfilter-btn${activeCount > 0 ? " on" : ""}`} aria-haspopup="dialog" aria-expanded={filterOpen} onClick={() => setFilterOpen((v) => !v)}>
                 <SlidersHorizontal className="ic" />Bộ lọc{activeCount > 0 && <span className="lfilter-n">{activeCount}</span>}
               </button>
@@ -443,81 +474,69 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
                   {activeCount > 0 && <button className="btn btn-g" onClick={() => { setStatus("all"); setGenreF("all"); setAgeF("all"); setSrcF("all"); }}><X className="ic" />Xoá lọc</button>}
                 </div>
               )}
-            </div>
+            </div>}
             </div>
           </div>
-          {storiesLoading && stories.length === 0 ? <p className="sub lib-empty">Đang tải truyện…</p>
-          : stories.length === 0 ? (
-            <div className="lib-empty">
-              <b className="display">Chưa có truyện nào</b>
-              <div className="row"><button className="btn btn-gold" onClick={() => go("studio")}><WandSparkles className="ic" />Dùng AI tạo truyện</button><button className="btn btn-s" onClick={() => go("authoring")}>Viết thủ công</button></div>
-            </div>
-          ) : searching ? (
+          {tab === "stories" ? (
             <>
-              <Shelf title="Truyện" sub={`${results.length} truyện`} items={results}>
-                {results.length > 0 ? <div className="shelf-grid">{results.map((s) => card(s))}</div> : <p className="lib-none">Không tìm thấy truyện phù hợp.</p>}
-              </Shelf>
-              {roadmapResults.length > 0 && (
-                <Shelf title="Lộ trình" sub={`${roadmapResults.length} lộ trình`} items={roadmapResults}>
-                  <div className="shelf-grid">{roadmapResults.map(album)}</div>
-                </Shelf>
+              <div className="lib-results">
+                <span role="status">{storiesLoading ? "Đang tải truyện…" : `${results.length} truyện${activeCount ? ` · ${activeCount} bộ lọc` : ""}`}</span>
+                <label>Sắp xếp <select className="inp" value={sort} onChange={(event) => setSort(event.target.value)}>
+                  <option value="category">Theo thể loại</option>
+                  <option value="recent">Mới nhất</option>
+                  <option value="views">Đọc nhiều nhất</option>
+                  <option value="favorites">Được yêu thích</option>
+                </select></label>
+              </div>
+              {error && <div className="notice err" role="alert">{error}</div>}
+              {!q.trim() && !activeCount && stories.length > 0 && (
+                <>
+                  <section className="lib-collection" aria-labelledby="lib-favorites">
+                    <div className="lib-collection-heading">
+                      <h3 id="lib-favorites" className="display">Được yêu thích</h3>
+                      <span>Theo lượt yêu thích trong cộng đồng</span>
+                    </div>
+                    {favorites.length ? storyGrid(favorites) : <p className="lib-none">Chưa có truyện được yêu thích.</p>}
+                  </section>
+                  <section className="lib-collection" aria-labelledby="lib-recommended">
+                    <div className="lib-collection-heading">
+                      <h3 id="lib-recommended" className="display">{pickKid ? `Đề xuất cho ${pickKid.nickname}` : "Đề xuất cho bé"}</h3>
+                      <span>{recommendedAges.size ? "Truyện sẵn sàng theo nhóm tuổi của bé" : "Truyện mới đã sẵn sàng"}</span>
+                    </div>
+                    {recommended.length ? storyGrid(recommended) : <p className="lib-none">Chưa có truyện sẵn sàng trong nhóm tuổi này.</p>}
+                  </section>
+                </>
               )}
+              {results.length > 0 ? (
+                <section className="lib-collection" aria-labelledby="lib-story-results">
+                  <div className="lib-collection-heading"><h3 id="lib-story-results" className="display">{sort === "category" ? "Theo thể loại" : "Danh sách truyện"}</h3></div>
+                  {sort === "category" ? categoryGroups.map((items) => {
+                    const label = items[0].topic.trim() || "Khác";
+                    return (
+                      <section key={label} className="lib-category" aria-label={label}>
+                        <div className="lib-category-heading"><h4 className="display">{label}</h4><span>{items.length} truyện</span></div>
+                        {storyGrid(items)}
+                      </section>
+                    );
+                  }) : storyGrid(results)}
+                </section>
+              ) : !storiesLoading && !error && <p className="lib-none">{q.trim() || activeCount ? "Không tìm thấy truyện phù hợp." : "Chưa có truyện nào trong thư viện."}</p>}
             </>
-          ) : allRoadmaps ? (
-            <Shelf title="Lộ trình mẫu" sub={`${roadmapAll.length} lộ trình`} items={roadmapAll}>
-              <button className="shelf-back" onClick={() => setAllRoadmaps(false)}><ChevronLeft className="ic" />Quay lại thư viện</button>
-              <div className="shelf-grid">{roadmapAll.map(album)}</div>
-            </Shelf>
-          ) : expanded ? (
-            <Shelf title={expanded.title} sub={`${expanded.items.length} truyện`} items={expanded.items}>
-              <button className="shelf-back" onClick={() => setExpanded(null)}><ChevronLeft className="ic" />Quay lại thư viện</button>
-              <div className="shelf-grid">{expanded.items.map((s) => card(s))}</div>
-            </Shelf>
           ) : (
             <>
-              {viewedCards.length > 0 && (
-                <Shelf title="Đọc nhiều nhất" items={viewedCards} onAll={() => setExpanded({ title: "Đọc nhiều nhất", items: viewedCards })}>
-                  <ShelfRow>{viewedCards.map((s, i) => card(s, i + 1))}</ShelfRow>
-                </Shelf>
-              )}
-              {favoritedCards.length > 0 && (
-                <Shelf title="Được yêu thích" items={favoritedCards} onAll={() => setExpanded({ title: "Được yêu thích", items: favoritedCards })}>
-                  <ShelfRow>{favoritedCards.map((s, i) => card(s, i + 1))}</ShelfRow>
-                </Shelf>
-              )}
-              {latest.length > 0 && (
-                <Shelf title="Mới nhất" items={latest} onAll={released.length > latest.length ? () => setExpanded({ title: "Mới nhất", items: released }) : undefined}>
-                  <ShelfRow>{latest.map((s, i) => card(s, i + 1))}</ShelfRow>
-                </Shelf>
-              )}
-              {roadmapLatest.length > 0 && (
-                <Shelf title="Lộ trình mẫu" items={roadmapLatest} onAll={roadmapAll.length > roadmapLatest.length ? () => setAllRoadmaps(true) : undefined}>
-                  <ShelfRow>{roadmapLatest.map(album)}</ShelfRow>
-                </Shelf>
-              )}
-              {inProgress.length > 0 && (
-                <Shelf title="Đang chuẩn bị" items={inProgress} sub="Đã duyệt, đang tạo tranh và giọng đọc" onAll={() => setExpanded({ title: "Đang chuẩn bị", items: inProgress })}>
-                  <ShelfRow>{inProgress.map((s) => card(s))}</ShelfRow>
-                </Shelf>
-              )}
-              {topics.length > 0 && (
-                <Shelf title="Theo chủ đề" items={byTopic} pills={topics.map((t) => ({ id: t, label: t }))} pill={activeTopic ?? undefined} onPill={setTopic} onAll={() => setExpanded({ title: `Chủ đề: ${activeTopic}`, items: byTopic })}>
-                  <ShelfRow>{byTopic.map((s) => card(s))}</ShelfRow>
-                </Shelf>
-              )}
-              <Shelf title="Tất cả truyện" items={bySource} pills={SOURCE_PILLS} pill={source} onPill={setSource}>
-                {bySource.length > 0 ? <div className="shelf-grid">{bySource.map((s) => card(s))}</div> : <p className="lib-none">Chưa có truyện nào trong nhóm này.</p>}
-              </Shelf>
+              <div className="lib-results" role="status">{templates ? `${roadmapResults.length} lộ trình` : roadmapError ? "Không tải được lộ trình mẫu" : "Đang tải lộ trình mẫu…"}</div>
+              {roadmapError && <div className="notice err" role="alert">{roadmapError}</div>}
+              {roadmapResults.length > 0 ? <div className="lib-grid">{roadmapResults.map(album)}</div>
+                : templates && !roadmapError && <p className="lib-none">{roadmapQuery.trim() ? "Không tìm thấy lộ trình phù hợp." : "Chưa có lộ trình mẫu."}</p>}
             </>
           )}
         </div>
       </div>
 
-      <AsidePane title="Chi tiết" icon={Info}>
-          {sel ? (
-            <>
-              <div className="cover cover-portrait" style={{ background: sel.cover }} />
-              <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title}</h3>
+      {sel && detailOpen && <Dialog title={sel.title} onClose={closeDetails} wide className="lib-detail">
+        <div ref={detailRef} className="lib-detail-layout">
+          <div className="lib-detail-cover" style={{ background: sel.cover }} aria-hidden="true" />
+          <div className="lib-detail-copy">
               {sel.raw.description && <p className="lib-desc">{sel.raw.description}</p>}
               <div className="meta">
                 <span>Nguồn</span><b>{SOURCE_LABEL[sourceOf(sel)]}</b>
@@ -541,9 +560,9 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
               {selStatus === "ready" && <button className="btn btn-g btn-c" onClick={() => setDialog("report")}><Flag className="ic" />Báo cáo nội dung</button>}
               {selStatus === "ready" && <button className="btn btn-s btn-c" onClick={() => setDialog("preview")}><Eye className="ic" />Xem trước như bé thấy</button>}
               </>}
-            </>
-          ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
-      </AsidePane>
+          </div>
+        </div>
+      </Dialog>}
       {sel && dialog === "preview" && <Preview story={sel} onClose={() => setDialog(null)} />}
       {openedTpl && <TemplateDialog item={openedTpl} onClose={() => setOpenedTpl(null)} onAdd={(d) => { setOpenedTpl(null); setAddingTpl(roadmapTemplate(d)); }} />}
       {addingTpl && <AddToRoadmapDialog template={addingTpl} childId={pickKid?.id} single={!!pickKid} onDone={() => { addedRef.current = true; }} onClose={() => closeRoadmapDialog(() => setAddingTpl(null))} />}
@@ -551,6 +570,5 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps,'go'
       {sel && dialog === "report" && <ReportDialog story={sel} onClose={() => setDialog(null)} onDone={(m) => { setDialog(null); flash(m); }} />}
       {toast && <div className="toast" role="status">{toast}</div>}
     </section>
-    </AsideContext.Provider>
   );
 }
