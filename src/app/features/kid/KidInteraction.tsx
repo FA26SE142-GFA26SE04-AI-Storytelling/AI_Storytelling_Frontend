@@ -71,6 +71,8 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
       case 'FillBlank':
         return <div className="kid-fill">
           <p className="kid-roleplay-line">{q.maskedSentence}</p>
+          {/* Backend đọc nguyên câu ngắn (audioUrls.text) để bé nghe lại rồi điền; thiếu audio thì backend đã ẩn bài. */}
+          <button type="button" className="kid-btn3d is-sky" disabled={!q.audioUrls?.text} onClick={() => play(q.audioUrls?.text)}><Volume2 aria-hidden="true" />Nghe câu</button>
           {q.hint && <p className="kid-hint">Gợi ý: {q.hint}</p>}
           {!result && <>
             <input className="inp" aria-label="Chữ em điền" maxLength={ANSWER_MAX} value={answer} onChange={e => setAnswer(e.target.value)} />
