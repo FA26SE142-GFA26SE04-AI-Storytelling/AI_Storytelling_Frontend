@@ -260,6 +260,18 @@
 }
 .lib-featured-art { position: relative; overflow: hidden; }
 .lib-featured-art span { position: absolute; inset: 0; }
+.lib-featured-art .lib-featured-bg { inset: -24px; filter: blur(18px) saturate(1.1); opacity: .6; }
+.lib-featured-art .lib-featured-cover {
+  inset: auto;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  height: 84%;
+  aspect-ratio: 3 / 4;
+  border-radius: 12px;
+  border: 2px solid color-mix(in srgb, var(--surface) 70%, transparent);
+  box-shadow: 0 10px 24px -12px var(--shadow);
+}
 .lib-featured-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 76%, var(--panel)); }
 .lib-featured-copy { display: grid; align-content: center; justify-items: start; gap: 7px; padding: 14px 16px 14px 8px; min-width: 0; }
 .lib-featured-copy h3 { margin: 0; line-height: 1.15; font-size: var(--fs-xl); overflow-wrap: anywhere; }
