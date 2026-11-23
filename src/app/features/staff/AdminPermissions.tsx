@@ -6,10 +6,10 @@ import { RotateCcw, Save } from "lucide-react";
 import Select from "@/app/components/Select";
 import { accessControlService as api } from "@/app/services/accessControlService";
 import type { PermissionDto, RoleDto } from "@/app/types/accessControl";
-import { changedCodes, groupPermissions, lockedCodes, staffEditableCodes } from "./permissionMatrix";
+import { changedCodes, groupPermissions, lockedCodes } from "./permissionMatrix";
 import { Notice, Page, useAction } from "./ui";
 
-/** Administrator bật/tắt quyền nhân viên (nhóm Kiểm duyệt, Quản trị) của Moderator và Administrator. */
+/** Administrator thu hoặc trả lại quyền mặc định của mọi role người lớn. */
 export default function AdminPermissions() {
   const [catalog, setCatalog] = useState<PermissionDto[]>([]);
   const [roles, setRoles] = useState<RoleDto[]>([]);
@@ -23,24 +23,24 @@ export default function AdminPermissions() {
     const [p, r] = await Promise.all([api.permissions(), api.rolePermissions(roleCode)]);
     if (!p.success || !p.data) return p.message;
     if (!r.success || !r.data) return r.message;
-    const editable = staffEditableCodes(r.data.permissionCodes, p.data);
+    const held = [...r.data.permissionCodes].sort();
     setCatalog(p.data);
     setAssignable(r.data.assignableCodes ?? null);
-    setSaved(editable);
-    setDraft(editable);
+    setSaved(held);
+    setDraft(held);
     return null;
   }, [roleCode]);
   const { note, setNote, busy, run } = useAction(loadRole);
 
   useEffect(() => {
     void api.roles().then((r) => {
-      if (r.success && r.data) setRoles(r.data.filter((role) => role.isStaff));
+      if (r.success && r.data) setRoles(r.data);
       else setNote({ ok: false, text: r.message });
     });
   }, [setNote]);
   useEffect(() => { void loadRole().then((err) => { if (err) setNote({ ok: false, text: err }); }); }, [loadRole, setNote]);
 
-  const groups = useMemo(() => groupPermissions(catalog.filter((p) => p.isStaffGrantable)), [catalog]);
+  const groups = useMemo(() => groupPermissions(catalog), [catalog]);
   const locked = useMemo(() => (assignable ? lockedCodes(catalog, assignable) : new Set<string>()), [catalog, assignable]);
   const diff = changedCodes(saved, draft);
   const dirty = diff.added.length + diff.removed.length > 0;
@@ -64,7 +64,7 @@ export default function AdminPermissions() {
           {dirty && <button className="btn btn-g" disabled={busy} onClick={() => setDraft(saved)}><RotateCcw className="ic" />Hoàn tác</button>}
           {dirty && <button className="btn btn-p" disabled={busy} onClick={() => void save()}><Save className="ic" />Lưu thay đổi</button>}
         </div>
-        <p className="sub">Chỉ chỉnh được quyền nhân viên. Quyền của phụ huynh và nhà sáng tạo giữ cố định. Mỗi bước duyệt nội dung cho trẻ phải còn ít nhất một role được duyệt. Hiện chỉ thu hoặc trả lại quyền mặc định của role; quyền bị khóa chưa cấp được vì hệ thống vẫn kiểm role ở bước xử lý.</p>
+        <p className="sub">Chỉnh được quyền của mọi role người lớn; phiên của trẻ không dùng phân quyền. Mỗi bước duyệt nội dung cho trẻ (kể cả phụ huynh duyệt truyện) phải còn ít nhất một role được duyệt. Hiện chỉ thu hoặc trả lại quyền mặc định của role; quyền bị khóa chưa cấp được vì hệ thống vẫn kiểm role ở bước xử lý.</p>
       </div>
       {groups.map((g) => (
         <div className="st-card perm-card" key={g.group}>
