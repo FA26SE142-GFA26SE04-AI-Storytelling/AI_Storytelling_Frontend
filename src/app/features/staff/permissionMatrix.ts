@@ -25,14 +25,8 @@ export function changedCodes(saved: string[], draft: string[]): { added: string[
   };
 }
 
-/** Quyền nhân viên role chưa được cấp (ngoài `assignableCodes` backend trả về): chỉ được thu hoặc trả lại quyền mặc định. */
+/** Quyền role chưa được cấp (ngoài `assignableCodes` backend trả về): chỉ được thu hoặc trả lại quyền mặc định. */
 export function lockedCodes(catalog: PermissionDto[], assignable: string[]): Set<string> {
   const allowed = new Set(assignable);
-  return new Set(catalog.filter((p) => p.isStaffGrantable && !allowed.has(p.code)).map((p) => p.code));
-}
-
-/** Các mã role đang giữ mà Administrator chỉnh được (nhóm nhân viên); quyền khác backend tự giữ nguyên. */
-export function staffEditableCodes(roleCodes: string[], catalog: PermissionDto[]): string[] {
-  const grantable = new Set(catalog.filter((p) => p.isStaffGrantable).map((p) => p.code));
-  return roleCodes.filter((code) => grantable.has(code)).sort();
+  return new Set(catalog.filter((p) => !allowed.has(p.code)).map((p) => p.code));
 }
