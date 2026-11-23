@@ -35,7 +35,9 @@ export function tabEnabled(tab: string, disabled: ReadonlySet<string>): boolean 
 }
 
 /** Nguồn truyện của khung "Truyện em đọc được" ở sảnh: tắt thư viện thì chỉ còn truyện của em. */
-export function lobbyStorySources(disabled: ReadonlySet<string>): ("mine" | "library")[] {
+// `ready = false`: chưa biết chức năng nào bị tắt (thông tin phiên chưa về) → chưa tải gì, tránh gọi thư viện rồi bị 403.
+export function lobbyStorySources(disabled: ReadonlySet<string>, ready = true): ("mine" | "library")[] {
+  if (!ready) return [];
   return disabled.has(KID_FEATURE.libraryBrowse) ? ["mine"] : ["mine", "library"];
 }
 
@@ -44,18 +46,24 @@ export function isFeatureDisabledError(r: { status?: number; errors?: readonly s
   return r.status === 403 && !!r.errors?.includes("CHILD_FEATURE_DISABLED");
 }
 
-const KidFeaturesContext = createContext<ReadonlySet<string>>(new Set());
+/** Ngoài provider (không phải chế độ của bé): không tắt gì và coi như đã biết. */
+const KidFeaturesContext = createContext<{ disabled: ReadonlySet<string>; ready: boolean }>({ disabled: new Set(), ready: true });
 
-export function KidFeaturesProvider({ disabled, children }: { disabled: ReadonlySet<string>; children: ReactNode }) {
-  return <KidFeaturesContext.Provider value={disabled}>{children}</KidFeaturesContext.Provider>;
+export function KidFeaturesProvider({ disabled, ready = true, children }: { disabled: ReadonlySet<string>; ready?: boolean; children: ReactNode }) {
+  return <KidFeaturesContext.Provider value={{ disabled, ready }}>{children}</KidFeaturesContext.Provider>;
 }
 
 export function useKidDisabledFeatures(): ReadonlySet<string> {
-  return useContext(KidFeaturesContext);
+  return useContext(KidFeaturesContext).disabled;
+}
+
+/** Đã nhận danh sách chức năng bị tắt từ thông tin phiên chưa. */
+export function useKidFeaturesReady(): boolean {
+  return useContext(KidFeaturesContext).ready;
 }
 
 export function useKidFeature(code: string): boolean {
-  return !useContext(KidFeaturesContext).has(code);
+  return !useContext(KidFeaturesContext).disabled.has(code);
 }
 
 /** Khu bị tắt: câu nhẹ nhàng thay vì màn lỗi. */

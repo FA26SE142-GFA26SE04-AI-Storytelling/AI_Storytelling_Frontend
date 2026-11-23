@@ -7,7 +7,7 @@ import { coverFor } from "@/app/lib/storyView";
 import { showToast } from "@/app/lib/toast";
 import { childAccessService } from "@/app/services/childAccessService";
 import { childReadingService } from "@/app/services/childReadingService";
-import { isFeatureDisabledError, KID_FEATURE, lobbyStorySources, useKidDisabledFeatures } from './kidFeatures';
+import { isFeatureDisabledError, KID_FEATURE, lobbyStorySources, useKidDisabledFeatures, useKidFeaturesReady } from './kidFeatures';
 
 /** Số truyện hiện trong khung, còn lại xem ở Kho truyện. */
 const SHOWN = 4;
@@ -24,6 +24,7 @@ export default function KidLobbyStories({ childId, busy, onRead, onOpenLibrary }
 }) {
   const [stories, setStories] = useState<ChildStory[] | null>(null);
   const disabled = useKidDisabledFeatures();
+  const ready = useKidFeaturesReady();
   const libraryOn = !disabled.has(KID_FEATURE.libraryBrowse);
 
   useEffect(() => {
@@ -31,7 +32,9 @@ export default function KidLobbyStories({ childId, busy, onRead, onOpenLibrary }
     if (session?.childProfileId !== childId) return;
     const controller = new AbortController();
     const get = (source: "mine" | "library") => childReadingService.stories(session.accessToken, { source, pageIndex: 1 }, controller.signal);
-    void Promise.all(lobbyStorySources(disabled).map(get)).then((results) => {
+    const sources = lobbyStorySources(disabled, ready);
+    if (sources.length === 0) return;
+    void Promise.all(sources.map(get)).then((results) => {
       if (controller.signal.aborted) return;
       const failed = results.find((r) => !r.success && !isFeatureDisabledError(r));
       if (failed) showToast(failed.message, "err");
@@ -42,7 +45,7 @@ export default function KidLobbyStories({ childId, busy, onRead, onOpenLibrary }
       setStories(lock ? all.filter((s) => s.storyId === lock.unlockStoryId) : all);
     });
     return () => controller.abort();
-  }, [childId, disabled]);
+  }, [childId, disabled, ready]);
 
   return (
     <section className="kl-panel kl-stories" aria-labelledby="kl-stories-h" aria-busy={stories === null}>
