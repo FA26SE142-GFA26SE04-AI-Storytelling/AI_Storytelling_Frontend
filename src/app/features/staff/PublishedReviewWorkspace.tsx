@@ -513,7 +513,6 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
               </div>
             )}
             <div className="row st-pub-dlg-actions">
-              <button type="button" className="btn btn-g" onClick={() => setSummary(null)}>Đóng</button>
               <button type="button" className="btn btn-p" disabled={busy} onClick={() => void open(summary)}>
                 <Eye className="ic" />Bắt đầu rà soát
               </button>

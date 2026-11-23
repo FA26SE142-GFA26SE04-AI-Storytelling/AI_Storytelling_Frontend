@@ -547,3 +547,6 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
   .st-pub-layout .lib-sidebar { display: block; position: static; max-height: none; }
   .st-pub-layout .lib-sidebar-art { display: none; }
 }
+
+/* Nhóm nút lọc ngắn: chữ trong nút không xuống dòng. */
+.st-seg-nowrap button { white-space: nowrap; padding: 6px 12px; }

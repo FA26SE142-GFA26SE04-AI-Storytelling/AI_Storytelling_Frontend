@@ -68,8 +68,7 @@ export function AdminStaff() {
 
       <div className="st-card st-scroll">
         <div className="row">
-          <h3 className="grow">Kiểm duyệt viên và quản trị viên</h3>
-          <div className="seg" role="radiogroup" aria-label="Lọc theo vai trò" style={{ maxWidth: 360 }}>
+          <div className="seg st-seg-nowrap" role="radiogroup" aria-label="Lọc theo vai trò" style={{ maxWidth: 440 }}>
             {ROLE_FILTERS.map((r) => (
               <button key={r.id} type="button" role="radio" aria-checked={filter === r.id} className={filter === r.id ? "on" : ""} onClick={() => setFilter(r.id)}>{r.label}</button>
             ))}

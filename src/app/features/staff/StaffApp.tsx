@@ -43,6 +43,8 @@ import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
 import { AdminPayments, AdminPlans, AdminQuota } from "./AdminSystem";
 import { AdminBusinessReport } from "./AdminBusinessReport";
+// Trước đây chỉ ParentShell nạp file này nên ở điện thoại header nhân viên vẫn hiện thanh ngang (bị cắt) và không có thanh tab đáy.
+import "@/app/styles/mobile.css";
 
 /** Mọi trang nhân viên nhận go (chuyển trang, kèm id truyện cần mở) và target; trang không cần thì bỏ qua. */
 type PageDef = { id: string; label: string; icon: LucideIcon; view: ComponentType<CreatorPageProps>; hint?: string; menuLabel?: string; short?: string };
