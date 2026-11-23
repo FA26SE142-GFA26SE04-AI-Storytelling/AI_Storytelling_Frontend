@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Home, Library, Map, NotebookPen, Sparkles, type LucideIcon } from 'lucide-react';
 import { bounce, prefersReducedMotion } from '@/app/lib/motion';
 import '@/app/styles/features/kid/kid-dock.css';
+import { tabEnabled, useKidDisabledFeatures } from './kidFeatures';
 
 export type DockTab = 'lobby' | 'library' | 'journey' | 'notebook' | 'wishes' | 'rewards';
 
@@ -36,6 +37,7 @@ export default function KidDock({ value, onChange }: { value: DockTab; onChange:
   const [reduced, setReduced] = useState(false);
   const [lastPicked, setLastPicked] = useState<{ id: DockTab; n: number } | null>(null);
   const iconRefs = useRef<Partial<Record<DockTab, HTMLSpanElement | null>>>({});
+  const disabled = useKidDisabledFeatures();
 
   useEffect(() => {
     setReduced(prefersReducedMotion());
@@ -44,7 +46,7 @@ export default function KidDock({ value, onChange }: { value: DockTab; onChange:
   return (
     <nav className="kid-dock" aria-label="Các khu của em">
       <div className="kid-dock-row">
-        {ITEMS.map((item) => {
+        {ITEMS.filter((item) => tabEnabled(item.id, disabled)).map((item) => {
           const active = value === item.id;
           const Icon = item.icon;
           const showSprout = !reduced && lastPicked?.id === item.id;

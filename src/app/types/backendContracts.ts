@@ -1807,6 +1807,11 @@ export interface SafetyPolicyDto {
   'voiceConsentRequired': boolean;
   'consentOutdated': boolean;
   'effectiveVoiceAnswersEnabled': boolean;
+  'quizEnabled'?: boolean;
+  'notebookEnabled'?: boolean;
+  'libraryBrowseEnabled'?: boolean;
+  'reflectionEnabled'?: boolean;
+  'rewardsEnabled'?: boolean;
   'categories': (SafetyPolicyCategoryDto)[];
 }
 
@@ -1885,6 +1890,11 @@ export interface SetSafetyPolicyRequestDto {
   'childCreationMode': ChildCreationModeName;
   'voiceAnswersEnabled': boolean;
   'voiceConsentAccepted': boolean;
+  'quizEnabled'?: boolean | null;
+  'notebookEnabled'?: boolean | null;
+  'libraryBrowseEnabled'?: boolean | null;
+  'reflectionEnabled'?: boolean | null;
+  'rewardsEnabled'?: boolean | null;
   'applyAgePreset': boolean | null;
   'categories': (SetSafetyPolicyCategoryRequestDto)[];
 }

@@ -65,6 +65,12 @@ export interface SetSafetyPolicyRequest {
   childCreationMode?: string;
   voiceAnswersEnabled?: boolean;
   voiceConsentAccepted?: boolean;
+  /** Quyền của bé; bỏ trống = giữ nguyên giá trị đang lưu. */
+  quizEnabled?: boolean;
+  notebookEnabled?: boolean;
+  libraryBrowseEnabled?: boolean;
+  reflectionEnabled?: boolean;
+  rewardsEnabled?: boolean;
   /** Lần lưu đầu: có tự thêm danh sách chặn theo nhóm tuổi hay không. */
   applyAgePreset?: boolean;
   categories?: Array<{
@@ -127,6 +133,12 @@ export interface SafetyPolicy {
   voiceAnswersEnabled?: boolean;
   /** Lúc phụ huynh đồng ý mục (e) về giọng nói; null = chưa đồng ý, bật lần đầu phải đồng ý. */
   voiceConsentAt?: string | null;
+  /** Quyền của bé; thiếu (backend cũ) = bật. */
+  quizEnabled?: boolean;
+  notebookEnabled?: boolean;
+  libraryBrowseEnabled?: boolean;
+  reflectionEnabled?: boolean;
+  rewardsEnabled?: boolean;
   categories: SafetyPolicyCategory[];
 }
 

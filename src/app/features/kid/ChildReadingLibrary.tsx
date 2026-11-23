@@ -20,6 +20,7 @@ import { BookA, BookOpen, Trash2 } from 'lucide-react';
 import { showToast } from '@/app/lib/toast';
 import { useRiseIn } from '@/app/lib/motion';
 import PaneSwap from './PaneSwap';
+import { KID_FEATURE, KidFeatureOff, tabEnabled, useKidDisabledFeatures } from './kidFeatures';
 
 export type LibraryPane = DockTab;
 
@@ -94,6 +95,8 @@ export default function ChildReadingLibrary({
     return () => onReadingChange?.(false);
   }, [reading, onReadingChange]);
 
+  const disabled = useKidDisabledFeatures();
+  const notebookOn = !disabled.has(KID_FEATURE.notebook);
   const [entries, setEntries] = useState<NotebookEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [removing, setRemoving] = useState(false);
@@ -101,7 +104,7 @@ export default function ChildReadingLibrary({
   const scope = useRef(0);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token || !notebookOn) return;
     const controller = new AbortController();
     const run = ++scope.current;
     setEntries([]);
@@ -116,7 +119,7 @@ export default function ChildReadingLibrary({
       scope.current = run + 1;
       controller.abort();
     };
-  }, [token, revision]);
+  }, [token, revision, notebookOn]);
 
   const remove = async (id: number) => {
     if (removeLock.current || !(await confirmDialog('Xóa từ này khỏi sổ tay?'))) return;
@@ -156,7 +159,8 @@ export default function ChildReadingLibrary({
       )}
       <PaneSwap key={pane} dir={dir}>
         {pane === 'lobby' && lobby}
-        {pane === 'library' && (
+        {!tabEnabled(pane, disabled) && <KidFeatureOff />}
+        {pane === 'library' && tabEnabled(pane, disabled) && (
           <>
             <KidShelves
               token={token}
@@ -170,7 +174,7 @@ export default function ChildReadingLibrary({
           </>
         )}
         {pane === 'journey' && journey}
-        {pane === 'notebook' && (
+        {pane === 'notebook' && notebookOn && (
           <div ref={notebookRef}>
             <section className="kl-panel kl-words kid-notebook-panel" aria-labelledby="kid-notebook-h" aria-busy={loading}>
               <h2 id="kid-notebook-h" className="kl-head kl-words-head display"><BookA aria-hidden="true" />Từ vựng của em</h2>
@@ -213,8 +217,8 @@ export default function ChildReadingLibrary({
             </section>
           </div>
         )}
-        {pane === 'rewards' && <KidRewards key={revision} token={token} />}
-        {pane === 'wishes' && (
+        {pane === 'rewards' && tabEnabled(pane, disabled) && <KidRewards key={revision} token={token} />}
+        {pane === 'wishes' && tabEnabled(pane, disabled) && (
           <KidWish key={revision} token={token} busy={reader.busy} onRead={(target) => void reader.open(target)} />
         )}
       </PaneSwap>

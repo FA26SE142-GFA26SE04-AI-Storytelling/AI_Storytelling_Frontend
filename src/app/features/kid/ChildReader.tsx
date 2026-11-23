@@ -14,6 +14,7 @@ import {pictureParts,scenePictures,segmentStarts,type ScenePicture} from './scen
 import {useRecorder} from './useRecorder';
 import KidReadAloudPractice from './KidReadAloudPractice';
 import {showToast} from '@/app/lib/toast';
+import { KID_FEATURE, useKidFeature } from './kidFeatures';
 
 /**
  * Khi bé đọc xong: cảm nhận, kể lại và câu đố hiện trong cửa sổ nổi đè lên trang đọc (không tính là một trang).
@@ -64,6 +65,7 @@ function segmentForPart(scene: ReadingScene, part: { start: number; end: number 
 
 export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChildReader>}) {
   const [words,setWords]=useState(false);
+  const voiceOn=useKidFeature(KID_FEATURE.voice);
   /** Tương tác đang hiện và việc làm tiếp sau khi bé trả lời xong (sang cảnh khác, hoàn thành truyện). */
   const [ask,setAsk]=useState<{scene:ReadingScene;then:(resume:boolean)=>void}|null>(null);
   /** Trang đang hiện: tranh nào (scene = sceneIndex của cảnh, i = thứ tự tranh trong cảnh). Đổi cảnh thì về tranh đầu. */
@@ -274,7 +276,7 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
     {/* Không còn công tắc Tự đọc / Nghe đọc: cách đọc tự ghi theo việc bé bấm loa (onListen của KidNarrator). */}
     <header className="kid-theater-top"><button className="kid-btn3d is-sky" disabled={r.busy} onClick={()=>void r.leave()}><ArrowLeft aria-hidden="true"/>Về danh sách đọc</button><button type="button" className="kid-btn3d is-sky" aria-pressed={r.listenOnly} title="Chỉ nghe truyện, không dừng lại để chơi" disabled={disabled} onClick={()=>void r.flag('listenOnly')}><Headphones aria-hidden="true"/>Chỉ nghe</button></header>
     {!scene&&<section className="kid-reader-empty" role="status"><Frog mood="think" size={96}/><h2 className="display">Truyện này chưa có nội dung để đọc</h2><p>Em chọn truyện khác nhé!</p></section>}
-    {scene&&onPractice&&practice&&<KidReadAloudPractice key={c.sessionId} practice={practice} disabled={disabled} onRecord={r.readAloudPractice}>
+    {scene&&onPractice&&practice&&voiceOn&&<KidReadAloudPractice key={c.sessionId} practice={practice} disabled={disabled} onRecord={r.readAloudPractice}>
       <nav className="kid-story-navigation" aria-label="Tiến độ truyện"><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang trước" title="Trang trước" disabled={disabled} onClick={()=>setPracticeSession(null)}><ChevronLeft aria-hidden="true"/></button><span className="kid-scene-count">Trang {currentPage}/{pageCount}</span><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang sau" title="Trang sau" disabled><ChevronRight aria-hidden="true"/></button>{!r.done&&<button className="kid-btn3d is-gold" disabled={disabled} onClick={()=>void r.complete()}><Check aria-hidden="true"/>Em đã đọc xong</button>}</nav>
     </KidReadAloudPractice>}
     {scene&&!onPractice&&<div className="kid-reader" key={scene.sceneIndex}>

@@ -43,6 +43,8 @@ export interface ChildSessionProfile {
   childProfileId: number;
   nickname: string;
   ageBand: string;
+  /** Mã chức năng bố mẹ đang tắt; thiếu (backend cũ) = không tắt gì. */
+  disabledFeatures?: string[];
 }
 
 export interface LoginSession {

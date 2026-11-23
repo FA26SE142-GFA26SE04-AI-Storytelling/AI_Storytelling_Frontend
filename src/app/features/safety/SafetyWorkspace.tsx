@@ -17,6 +17,7 @@ import { fmtDate, presetBlocked } from "@/app/lib/guardian";
 import { CategoryRules, ConsentBlock, keptPolicyFields, normalizeRule, rulesToRequest } from "@/app/features/children/SafetyBlocks";
 import { useMyRole } from "@/app/features/children/useMyRole";
 import { profileLifecycleService } from '@/app/services/profileLifecycleService';
+import { CHILD_FEATURE_TOGGLES, readChildFeatures, type ChildFeatureFlags } from "./childFeatures";
 
 const MODES: { id: ApprovalMode; b: string; s: string }[] = [
   { id: "AlwaysManual", b: "Luôn cần duyệt", s: "Mọi truyện AI tạo đều vào hàng chờ. Khuyên dùng cho trẻ nhỏ." },
@@ -70,6 +71,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
   const [gate, setGate] = useState(true);
   const [wishes, setWishes] = useState(true);
   const [interactive, setInteractive] = useState(true);
+  const [features, setFeatures] = useState<ChildFeatureFlags>(() => readChildFeatures(null));
   const [consent, setConsent] = useState(false);
   const [threshold, setThreshold] = useState(70);
   const [safetyTh, setSafetyTh] = useState<number | null>(null);
@@ -99,6 +101,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
       setGate(pol.parentalGateEnabled);
       setWishes(pol.storyWishesEnabled ?? true);
       setInteractive(pol.allowInteractiveStories ?? true);
+      setFeatures(readChildFeatures(pol));
       // Điều khoản đổi phiên bản thì Owner phải đồng ý lại.
       setConsent(pol.consentRecorded && !pol.consentOutdated);
       setThreshold(Number(pol.comprehensionThresholdPercent ?? 70));
@@ -114,6 +117,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
       setGate(true);
       setWishes(true);
       setInteractive(true);
+      setFeatures(readChildFeatures(null));
       setThreshold(70);
       setSafetyTh(null);
       setReadTh(null);
@@ -142,7 +146,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
     return () => { alive = false; };
   }, [childId, childAge, apply]);
 
-  const settingsKey = JSON.stringify([mode, len, gate, wishes, interactive, threshold, safetyTh, readTh, voice, rules, consent]);
+  const settingsKey = JSON.stringify([mode, len, gate, wishes, interactive, features, threshold, safetyTh, readTh, voice, rules, consent]);
   useEffect(() => {
     if (loading || !canEdit || saving) return;
     if (baseline.current === null) { baseline.current = settingsKey; return; }
@@ -186,6 +190,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
       voiceConsentAccepted: voice && voiceAccepted,
       storyWishesEnabled: wishes,
       allowInteractiveStories: interactive,
+      ...features,
       // Danh sách chặn mặc định đã được điền sẵn ở giao diện, không để backend thêm lần nữa.
       applyAgePreset: false,
       categories: rulesToRequest(cats, rules),
@@ -300,6 +305,11 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
               <Toggle on={interactive} disabled={!canEdit} onChange={setInteractive} label="Tương tác khi nghe truyện" hint="Trong lúc nghe, bé đoán tranh, điền chữ, sắp xếp sự kiện… để hiểu truyện hơn" />
               <Toggle on={voice} disabled={!canEdit} onChange={(v) => { if (v && isOwner && !policy?.voiceConsentAt && !voiceAccepted) { setVoiceTick(false); setAskVoice(true); } else setVoice(v); }}
                 label="Cho bé trả lời bằng giọng nói" hint="Giọng bé đọc to, kể lại, gửi lời được lưu để bạn nghe lại" />
+              {CHILD_FEATURE_TOGGLES.map((t) => (
+                <Toggle key={t.field} on={features[t.field]} disabled={!canEdit} label={t.label}
+                  hint={!features[t.field] && t.warning ? t.warning : t.hint}
+                  onChange={(v) => setFeatures((f) => ({ ...f, [t.field]: v }))} />
+              ))}
             </section>
 
             <section id="s-hold">
