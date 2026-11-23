@@ -7,6 +7,7 @@ import { coverFor } from "@/app/lib/storyView";
 import { showToast } from "@/app/lib/toast";
 import { childAccessService } from "@/app/services/childAccessService";
 import { childReadingService } from "@/app/services/childReadingService";
+import { isFeatureDisabledError, KID_FEATURE, lobbyStorySources, useKidDisabledFeatures } from './kidFeatures';
 
 /** Số truyện hiện trong khung, còn lại xem ở Kho truyện. */
 const SHOWN = 4;
@@ -22,24 +23,26 @@ export default function KidLobbyStories({ childId, busy, onRead, onOpenLibrary }
   onOpenLibrary: () => void;
 }) {
   const [stories, setStories] = useState<ChildStory[] | null>(null);
+  const disabled = useKidDisabledFeatures();
+  const libraryOn = !disabled.has(KID_FEATURE.libraryBrowse);
 
   useEffect(() => {
     const session = childAccessService.readSession();
     if (session?.childProfileId !== childId) return;
     const controller = new AbortController();
     const get = (source: "mine" | "library") => childReadingService.stories(session.accessToken, { source, pageIndex: 1 }, controller.signal);
-    void Promise.all([get("mine"), get("library")]).then(([mine, lib]) => {
+    void Promise.all(lobbyStorySources(disabled).map(get)).then((results) => {
       if (controller.signal.aborted) return;
-      const failed = [mine, lib].find((r) => !r.success);
+      const failed = results.find((r) => !r.success && !isFeatureDisabledError(r));
       if (failed) showToast(failed.message, "err");
-      const pages = [mine, lib].flatMap((r) => (r.success && r.data ? [r.data] : []));
+      const pages = results.flatMap((r) => (r.success && r.data ? [r.data] : []));
       const lock = pages.find((p) => p.isLocked);
       const seen = new Set<number>();
       const all = pages.flatMap((p) => p.items).filter((s) => !seen.has(s.storyId) && seen.add(s.storyId));
       setStories(lock ? all.filter((s) => s.storyId === lock.unlockStoryId) : all);
     });
     return () => controller.abort();
-  }, [childId]);
+  }, [childId, disabled]);
 
   return (
     <section className="kl-panel kl-stories" aria-labelledby="kl-stories-h" aria-busy={stories === null}>
@@ -56,7 +59,7 @@ export default function KidLobbyStories({ childId, busy, onRead, onOpenLibrary }
           ))}
         </div>
       )}
-      {stories && stories.length > 0 && (
+      {libraryOn && stories && stories.length > 0 && (
         <button type="button" className="kid-btn3d is-gold kl-words-go" onClick={onOpenLibrary}>
           <Library aria-hidden="true" />{stories.length > SHOWN ? "Xem thêm truyện" : "Kho truyện"}
         </button>

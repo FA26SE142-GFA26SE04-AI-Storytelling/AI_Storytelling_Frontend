@@ -1,5 +1,26 @@
 import { describe, expect, it } from 'vitest';
-import { disabledSet, isFeatureDisabledError, KID_FEATURE, tabEnabled } from '@/app/features/kid/kidFeatures';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { disabledSet, isFeatureDisabledError, KID_FEATURE, lobbyStorySources, tabEnabled } from '@/app/features/kid/kidFeatures';
+
+describe('kid lobby', () => {
+  it('loads only the child own stories when library browse is off', () => {
+    expect(lobbyStorySources(disabledSet([]))).toEqual(['mine', 'library']);
+    expect(lobbyStorySources(disabledSet(['child.library.browse']))).toEqual(['mine']);
+  });
+
+  // Lỗi tìm thấy khi test prod 23/11/2026: sảnh vẫn hiện nút của chức năng bố mẹ đã tắt.
+  it('gates every lobby shortcut of a switchable feature', () => {
+    const read = (f: string) => readFileSync(path.resolve(process.cwd(), `app/features/kid/${f}`), 'utf8');
+    const lobby = read('KidLobby.tsx');
+    const stage = read('KidLobbyStage.tsx');
+    expect(lobby).toMatch(/notebookOn && <StageButton icon=\{NotebookPen\}/);
+    expect(lobby).toMatch(/wishesOn && <StageButton icon=\{Sparkles\}/);
+    expect(lobby).toMatch(/rewardsOn && <StageButton icon=\{Award\}/);
+    expect(stage).toMatch(/libraryOn && <StageButton icon=\{Library\}/);
+    expect(stage).toMatch(/rewardsOn && <StageButton icon=\{Sprout\}/);
+  });
+});
 
 describe('kid features', () => {
   it('treats a missing list (old backend) as nothing disabled', () => {

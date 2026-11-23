@@ -9,6 +9,7 @@ import KnowledgeTreeArt from "@/app/components/brand/KnowledgeTreeArt";
 import Lotus from "@/app/components/brand/Lotus";
 import { croak } from "@/app/lib/croak";
 import { coverFor } from "@/app/lib/storyView";
+import { KID_FEATURE, useKidFeature } from './kidFeatures';
 
 /** Mỗi lần bé bấm ếch làm một động tác khác, lặp vòng: chuyển động cả thân (CSS) + cử động của ếch (Frog). */
 const POKE_ACTIONS: { motion: "hop" | "spin" | "squash" | "dance"; frog: FrogPokeAction }[] = [
@@ -118,6 +119,8 @@ export default function KidLobbyStage({
   onOpenLibrary: () => void;
   onRewards: () => void;
 }) {
+  const libraryOn = useKidFeature(KID_FEATURE.libraryBrowse);
+  const rewardsOn = useKidFeature(KID_FEATURE.rewards);
   const open = roadmap?.openStories?.[0];
   const water = rewards?.knowledgeTree?.expToWater ?? 0;
 
@@ -204,7 +207,7 @@ export default function KidLobbyStage({
         </div>
 
         <div className="kls-bottom">
-          <StageButton icon={Library} label="Kho truyện" variant="is-sky" frog="wink" onClick={onOpenLibrary} />
+          {libraryOn && <StageButton icon={Library} label="Kho truyện" variant="is-sky" frog="wink" onClick={onOpenLibrary} />}
           <button
             type="button"
             className="kid-btn3d is-gold is-big kls-go"
@@ -214,7 +217,7 @@ export default function KidLobbyStage({
           >
             {open ? <><Play aria-hidden="true" />Đọc ngay</> : "Chọn truyện"}
           </button>
-          <StageButton icon={Sprout} label="Cây" variant="is-green" frog="tongue" badge={water} badgeLabel={`${water} giọt nước chờ tưới`} onClick={onRewards} />
+          {rewardsOn && <StageButton icon={Sprout} label="Cây" variant="is-green" frog="tongue" badge={water} badgeLabel={`${water} giọt nước chờ tưới`} onClick={onRewards} />}
         </div>
       </div>
     </section>
