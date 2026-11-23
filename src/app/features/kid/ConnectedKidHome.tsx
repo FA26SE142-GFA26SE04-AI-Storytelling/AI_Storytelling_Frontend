@@ -48,6 +48,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
   const wasReading = useRef(false);
   useEffect(() => { if (wasReading.current && !reading) setReadsDone(n => n + 1); wasReading.current = reading; }, [reading]);
   const [disabledFeatures, setDisabledFeatures] = useState<ReadonlySet<string>>(() => disabledSet(null));
+  const [featuresReady, setFeaturesReady] = useState(false);
   const rewards = useKidRewards(childId, revision + readsDone, !disabledFeatures.has(KID_FEATURE.rewards));
   // Mở truyện gia đình từ sảnh: nội dung hiện bên dưới sảnh nên cuộn tới cho bé thấy.
   const packRef = useRef<HTMLElement>(null);
@@ -55,12 +56,12 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
 
   useEffect(() => {
     const controller = new AbortController(); const run = Symbol(); scope.current = run;
-    setRoadmap(null); setLibrary([]); setPack(null); setErrors([]); setBusy(false);
+    setRoadmap(null); setLibrary([]); setPack(null); setErrors([]); setBusy(false); setFeaturesReady(false);
     const session = childAccessService.readSession();
     if (!session || session.childProfileId !== childId) { setErrors(['Phiên của bé không khớp hồ sơ. Hãy vào lại.']); return; }
     const token = session.accessToken;
     const fail = (message: string) => { if (scope.current === run) setErrors(v => [...v, message]); };
-    void childAccessService.getSessionProfile(token).then(r => { if (scope.current === run) { if (r.success && r.data?.childProfileId === childId) { setNickname(r.data.nickname); setDisabledFeatures(disabledSet(r.data.disabledFeatures)); } else fail(r.message || 'Phiên của bé đã thay đổi.'); } });
+    void childAccessService.getSessionProfile(token).then(r => { if (scope.current === run) { setFeaturesReady(true); if (r.success && r.data?.childProfileId === childId) { setNickname(r.data.nickname); setDisabledFeatures(disabledSet(r.data.disabledFeatures)); } else fail(r.message || 'Phiên của bé đã thay đổi.'); } });
     void roadmapService.mine(token, controller.signal).then(r => { if (scope.current === run) { if (r.success) setRoadmap(r.data); else fail(r.message); } });
     void childManualService.library(token, controller.signal).then(r => { if (scope.current === run) { if (r.success) setLibrary(r.data ?? []); else fail(r.message); } });
     return () => { scope.current = Symbol(); controller.abort(); };
@@ -81,7 +82,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
   };
 
   return (
-    <KidFeaturesProvider disabled={disabledFeatures}>
+    <KidFeaturesProvider disabled={disabledFeatures} ready={featuresReady}>
     <div ref={playRef} className={`kid${reading ? ' kid-focus' : ''}`} role="dialog" aria-label="Chế độ của bé">
       {!reading && <PondBackdrop rich playful />}
       {!reading && <KidLeaves />}
