@@ -72,11 +72,9 @@ const ALL_STATUSES: QueueItemStatus[] = [
 export default function ConnectedModerationQueue({
   allowedTypes,
   title = 'Hàng đợi kiểm duyệt',
-  description,
 }: {
   allowedTypes?: QueueItemType[];
   title?: string;
-  description?: string;
 }) {
   const { user } = useAuth();
   const visibleTypes = (allowedTypes && allowedTypes.length > 0 ? allowedTypes : ALL_TYPES).filter(t => !(user?.role === 'Administrator' && t === 'StoryRating'));
@@ -147,12 +145,6 @@ export default function ConnectedModerationQueue({
 
   return (
     <Page fit title={title}>
-      {description && (
-        <div className="st-group" style={{ paddingTop: 0, paddingBottom: 8 }}>
-          <h2 className="display" style={{ margin: 0, fontSize: 'var(--fs-xl)' }}>{title}</h2>
-          <p className="sub">{description}</p>
-        </div>
-      )}
       <Notice note={note} />
       {error && <div className="notice err" role="alert">{error}</div>}
       <div className="st-filters">

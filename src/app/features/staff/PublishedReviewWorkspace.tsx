@@ -243,17 +243,6 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
 
   return (
     <Page title={isModerator ? 'Thư viện cộng đồng' : 'Rà soát thư viện'}>
-      <div className="st-group" style={{ paddingTop: 0, paddingBottom: 8 }}>
-        <h2 className="display" style={{ margin: 0, fontSize: 'var(--fs-xl)' }}>
-          {isModerator ? 'Thư viện cộng đồng' : 'Rà soát thư viện'}
-        </h2>
-        <p className="sub">
-          {isModerator
-            ? 'Truyện nhà sáng tạo đang công khai trên thư viện (lộ trình mẫu đang phát hành xem tại Lộ trình mẫu → Đang phát hành).'
-            : 'Truyện nhà sáng tạo và lộ trình mẫu đang công khai trên thư viện.'}
-        </p>
-      </div>
-
       {message && (
         <div className="notice row st-wrap" role="status" data-inline-notice>
           <span className="grow">{message}</span>

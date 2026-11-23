@@ -110,16 +110,6 @@ export default function LibraryHeader({
             <Lotus className="lib-pond-lotus-large" size={88} />
           </div>
         )}
-        <div className="lib-head-copy">
-          <h2 className="display lib-title">{tab === "stories" ? "Thư viện truyện cộng đồng" : "Lộ trình mẫu"}</h2>
-          <p className="lib-sub">
-            {pickKid
-              ? `Chọn truyện phù hợp để thêm vào lộ trình của ${pickKid.nickname}.`
-              : tab === "stories"
-                ? "Kho truyện do cộng đồng Taletale cùng sáng tạo – những câu chuyện an toàn, ý nghĩa và phù hợp cho bé."
-                : "Khám phá các bộ lộ trình đọc gợi ý theo độ tuổi cho bé."}
-          </p>
-        </div>
         <div className="lib-switch" role="tablist" aria-label="Danh mục thư viện">
           <button
             type="button"

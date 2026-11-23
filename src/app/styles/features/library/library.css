@@ -126,7 +126,6 @@
 }
 .lib-community-main { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 .lib-community-layout .lib-head { position: relative; isolation: isolate; align-items: center; }
-.lib-community-layout .lib-head-copy { gap: 3px; }
 .lib-community-layout .lib-search {
   max-width: 760px;
   background: var(--panel);
@@ -418,9 +417,6 @@
   flex-wrap: wrap;
   gap: 14px 20px;
 }
-.lib-head-copy { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.lib-title { margin: 0; font-size: var(--fs-2xl); line-height: 1.15; text-wrap: balance; color: var(--text); }
-.lib-sub { margin: 0; font-size: var(--fs-sm); color: var(--muted); text-wrap: pretty; }
 
 .lib-switch {
   display: inline-flex;

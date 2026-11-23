@@ -28,8 +28,6 @@ export default function AdminCatalog(){
  const {note,busy,run}=useAction(load);
  return <Page title="Danh mục nội dung"><Notice note={note}/>{loadError&&<p className="notice err" role="alert">{loadError}</p>}
       <div className="st-card">
-        <h3>Danh mục nội dung</h3>
-        <p className="sub">Dùng chung cho cài đặt an toàn của bé, bộ lọc và nhãn nội dung. Ẩn danh mục chỉ bỏ khỏi lựa chọn mới, không xoá nhãn cũ.</p>
         <table className="st-table stack-table">
           <thead><tr><th>Mã</th><th>Tên hiển thị</th><th>Nhóm</th><th title="Hồ sơ bé mới thuộc nhóm tuổi này được chặn sẵn danh mục">Chặn mặc định cho</th><th>Trạng thái</th><th /></tr></thead>
           <tbody>
