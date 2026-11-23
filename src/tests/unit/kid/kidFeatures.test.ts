@@ -9,6 +9,20 @@ describe('kid lobby', () => {
     expect(lobbyStorySources(disabledSet(['child.library.browse']))).toEqual(['mine']);
   });
 
+  // Request thừa source=library (403) khi sảnh tải trước lúc biết chức năng bị tắt — thấy khi test prod 23/11/2026.
+  it('loads nothing until the disabled features are known', () => {
+    expect(lobbyStorySources(disabledSet([]), false)).toEqual([]);
+    expect(lobbyStorySources(disabledSet([]), true)).toEqual(['mine', 'library']);
+  });
+
+  it('kid home marks features ready only after the session profile answers', () => {
+    const home = readFileSync(path.resolve(process.cwd(), 'app/features/kid/ConnectedKidHome.tsx'), 'utf8');
+    const stories = readFileSync(path.resolve(process.cwd(), 'app/features/kid/KidLobbyStories.tsx'), 'utf8');
+    expect(home).toMatch(/<KidFeaturesProvider disabled=\{disabledFeatures\} ready=\{featuresReady\}>/);
+    expect(home).toMatch(/setFeaturesReady\(true\)/);
+    expect(stories).toMatch(/lobbyStorySources\(disabled, ready\)/);
+  });
+
   // Lỗi tìm thấy khi test prod 23/11/2026: sảnh vẫn hiện nút của chức năng bố mẹ đã tắt.
   it('gates every lobby shortcut of a switchable feature', () => {
     const read = (f: string) => readFileSync(path.resolve(process.cwd(), `app/features/kid/${f}`), 'utf8');
