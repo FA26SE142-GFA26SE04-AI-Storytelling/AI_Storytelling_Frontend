@@ -34,6 +34,11 @@ export function tabEnabled(tab: string, disabled: ReadonlySet<string>): boolean 
   return !feature || !disabled.has(feature);
 }
 
+/** Nguồn truyện của khung "Truyện em đọc được" ở sảnh: tắt thư viện thì chỉ còn truyện của em. */
+export function lobbyStorySources(disabled: ReadonlySet<string>): ("mine" | "library")[] {
+  return disabled.has(KID_FEATURE.libraryBrowse) ? ["mine"] : ["mine", "library"];
+}
+
 /** Lỗi backend khi bé gọi chức năng bố mẹ vừa tắt. */
 export function isFeatureDisabledError(r: { status?: number; errors?: readonly string[] | null }): boolean {
   return r.status === 403 && !!r.errors?.includes("CHILD_FEATURE_DISABLED");
