@@ -5,9 +5,14 @@ import { moderationService as service } from '@/app/services/moderationService';
 import { useAuth } from '@/app/context/AuthContext';
 import Frog from '@/app/components/brand/Frog';
 import Select from '@/app/components/Select';
-import { ArrowLeft, ChevronLeft, ChevronRight, Eye, Flag, RefreshCw, Send } from 'lucide-react';
+import { ArrowLeft, CalendarDays, Eye, Flag, PenLine, RefreshCw, Send, Shapes, SlidersHorizontal, Tag, Users } from 'lucide-react';
 import Dialog from '@/app/components/Dialog';
 import { coverFor } from '@/app/lib/storyView';
+import { storyService } from '@/app/services/storyService';
+import { staffService } from '@/app/services/staffService';
+import type { ContentCategory } from '@/app/types/childProfile';
+import { loadAllPages } from '@/app/features/library/useLibraryCatalog';
+import { FilterGroup } from '@/app/features/library/LibraryExtraFilters';
 import '@/app/styles/features/library/library.css';
 import '@/app/styles/features/created/created.css';
 import { Page } from './ui';
@@ -25,6 +30,17 @@ const REASONS: { value: B.ContentReportReasonName; label: string }[] = [
 ].map(([value, label]) => ({ value: value as B.ContentReportReasonName, label }));
 
 const AGE_LABEL: Record<string, string> = { '6-8': '6–8 tuổi', '9-10': '9–10 tuổi' };
+// Nhóm lọc gửi lên API không biết trước số lượng: count giả 1 để nút không bị khóa, số được ẩn bằng CSS (.st-filter-nocount).
+const AGE_OPTIONS = Object.entries(AGE_LABEL).map(([key, label]) => ({ key, label, count: 1 }));
+const DAY_OPTIONS = [7, 30, 90].map(d => ({ key: String(d), label: `${d} ngày qua`, count: 1 }));
+
+/** Gom giá trị thành lựa chọn lọc có số đếm; luôn giữ lựa chọn đang chọn để người dùng bỏ chọn được. */
+function tally(values: string[][], selected: string) {
+  const m = new Map<string, number>();
+  for (const vs of values) for (const v of new Set(vs)) m.set(v, (m.get(v) ?? 0) + 1);
+  if (selected !== 'all' && !m.has(selected)) m.set(selected, 0);
+  return [...m].sort((a, b) => b[1] - a[1]).map(([key, count]) => ({ key, label: key, count }));
+}
 
 function formatDay(iso?: string | null): string | null {
   if (!iso) return null;
@@ -36,9 +52,14 @@ function formatDay(iso?: string | null): string | null {
 export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string) => void }) {
   const { user } = useAuth();
   const [source, setSource] = useState<B.PublishedContentSourceName>('PublicLibrary');
-  const [page, setPage] = useState(1);
-  const [ageBand, setAgeBand] = useState('');
-  const [list, setList] = useState<B.PagedResult<B.PublishedContentItemDto> | null>(null);
+  const [ageBand, setAgeBand] = useState('all');
+  const [categoryId, setCategoryId] = useState('all');
+  const [days, setDays] = useState('all');
+  const [label, setLabel] = useState('all');
+  const [author, setAuthor] = useState('all');
+  const [categories, setCategories] = useState<ContentCategory[]>([]);
+  const [community, setCommunity] = useState(new Map<number, { coverImageUrl: string | null; authorName: string | null }>());
+  const [list, setList] = useState<B.PublishedContentItemDto[] | null>(null);
   const [selectedItem, setSelectedItem] = useState<B.PublishedContentItemDto | null>(null);
   const [story, setStory] = useState<B.PublishedStoryContentDto | null>(null);
   const [roadmap, setRoadmap] = useState<B.PublishedRoadmapDto | null>(null);
@@ -65,19 +86,47 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
     setMessage('');
     setCreatedReportId(null);
     setFailed(false);
-    void service.published({ source, ageBand: ageBand || null, pageIndex: page, pageSize: 20 }, controller.signal).then(r => {
-      if (scope.current !== run) return;
-      setList(r.data);
-      if (!r.success) {
-        setFailed(true);
-        setMessage(r.message);
+    const publishedFrom = days === 'all' ? null : new Date(Date.now() - Number(days) * 864e5).toISOString();
+    void (async () => {
+      // Tải hết các trang vì Nhãn/Tác giả lọc tại chỗ.
+      const items: B.PublishedContentItemDto[] = [];
+      for (let pageIndex = 1; pageIndex <= 50; pageIndex++) {
+        const r = await service.published({
+          source,
+          ageBand: ageBand === 'all' ? null : ageBand,
+          contentCategoryId: categoryId === 'all' ? null : Number(categoryId),
+          publishedFrom,
+          pageIndex,
+          pageSize: 100,
+        }, controller.signal);
+        if (scope.current !== run) return;
+        if (!r.success) {
+          setFailed(true);
+          setMessage(r.message);
+          return;
+        }
+        items.push(...(r.data?.items ?? []));
+        if (!r.data?.hasNextPage) break;
       }
-    });
+      setList(items);
+    })();
     return () => {
       scope.current = Symbol();
       controller.abort();
     };
-  }, [source, ageBand, page, user?.id, retry]);
+  }, [source, ageBand, categoryId, days, user?.id, retry]);
+
+  // Bìa và tác giả chỉ có ở API thư viện cộng đồng; lỗi thì giữ bìa mặc định, không chặn trang.
+  useEffect(() => {
+    let alive = true;
+    void loadAllPages(pageIndex => storyService.getCommunityStories({ pageIndex, pageSize: 100, isDescending: true })).then(({ items }) => {
+      if (alive) setCommunity(new Map(items.map(s => [s.id, { coverImageUrl: s.coverImageUrl, authorName: s.authorName?.trim() || null }])));
+    });
+    void staffService.categories().then(r => {
+      if (alive && r.success && r.data) setCategories(r.data);
+    });
+    return () => { alive = false; };
+  }, []);
 
   const handleUnavailable = (status: number | undefined, fallbackMsg: string) => {
     if (status === 404) {
@@ -173,6 +222,22 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
         { id: 'PublicLibrary', label: 'Truyện nhà sáng tạo đang công khai' },
         { id: 'RoadmapTemplate', label: 'Lộ trình mẫu công khai' },
       ] as const);
+
+  const authorOf = (i: B.PublishedContentItemDto) => (i.source === 'PublicLibrary' && community.get(i.id)?.authorName) || null;
+  const hasLabel = (i: B.PublishedContentItemDto) => label === 'all' || i.labels.some(l => l.displayName === label);
+  const hasAuthor = (i: B.PublishedContentItemDto) => author === 'all' || authorOf(i) === author;
+  const shown = list?.filter(i => hasLabel(i) && hasAuthor(i)) ?? null;
+  const labelOptions = tally((list ?? []).filter(hasAuthor).map(i => i.labels.map(l => l.displayName)), label);
+  const authorOptions = source === 'PublicLibrary'
+    ? tally((list ?? []).filter(hasLabel).map(i => { const a = authorOf(i); return a ? [a] : []; }), author)
+    : [];
+  const clearFilters = () => {
+    setAgeBand('all');
+    setCategoryId('all');
+    setDays('all');
+    setLabel('all');
+    setAuthor('all');
+  };
 
   const publishedDate = formatDay(roadmap?.publishedAt ?? selectedItem?.publishedAt ?? null);
 
@@ -352,78 +417,81 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
           <ZoomLightbox zoom={zoom} onClose={() => setZoom(null)} />
         </>
       ) : (
-        <div className="created">
-          <div className="created-bar">
-            <div className="created-pills" role="tablist" aria-label="Nguồn nội dung">
-              {SOURCES.map(s => (
-                <button
-                  key={s.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={source === s.id}
-                  className={source === s.id ? 'on' : ''}
-                  disabled={busy}
-                  onClick={() => { setSource(s.id); setPage(1); }}
-                >
-                  {s.label}
-                  {source === s.id && list ? <em>{list.totalCount}</em> : null}
-                </button>
-              ))}
+        <div className="lib-community-layout st-pub-layout">
+          <aside className="lib-sidebar" aria-label="Bộ lọc thư viện">
+            <div className="lib-sidebar-art" aria-hidden="true">
+              <Frog size={74} mood="happy" animated={false} />
             </div>
-            <div className="created-actions">
-              <Select<string>
-                className="created-select"
-                ariaLabel="Lọc theo độ tuổi"
-                value={ageBand}
-                options={[{ value: '', label: 'Mọi độ tuổi' }, { value: '6-8', label: '6–8 tuổi' }, { value: '9-10', label: '9–10 tuổi' }]}
-                onChange={v => { setAgeBand(v); setPage(1); }}
-              />
+            <div className="lib-sidebar-inner">
+              <div className="lib-sidebar-head">
+                <h3 className="display"><SlidersHorizontal className="ic" aria-hidden="true" />Bộ lọc</h3>
+                <button type="button" className="lib-reset-btn" onClick={clearFilters}>Xóa tất cả</button>
+              </div>
+              <div className="st-filter-nocount">
+                <FilterGroup title="Độ tuổi" icon={Users} options={AGE_OPTIONS} value={ageBand} onChange={setAgeBand} />
+                <FilterGroup title="Danh mục" icon={Shapes} options={categories.map(c => ({ key: String(c.id), label: c.displayName, count: 1 }))} value={categoryId} onChange={setCategoryId} limit={6} />
+                <FilterGroup title="Ngày công khai" icon={CalendarDays} options={DAY_OPTIONS} value={days} onChange={setDays} />
+              </div>
+              <FilterGroup title="Nhãn" icon={Tag} options={labelOptions} value={label} onChange={setLabel} limit={6} />
+              <FilterGroup title="Tác giả" icon={PenLine} options={authorOptions} value={author} onChange={setAuthor} limit={6} />
             </div>
-          </div>
+          </aside>
 
-          {list && list.items.length > 0 ? (
-            <div className="created-grid">
-              {list.items.map(i => {
-                const pub = formatDay(i.publishedAt);
-                return (
-                  <button className="bk" key={`${i.source}:${i.id}`} disabled={busy} onClick={() => void open(i)} aria-label={`Xem ${i.title}`}>
-                    <span className="bk-cover" style={{ background: coverFor() }}>
-                      {i.needsUpdate && <span className="pill wait bk-badge">Cần cập nhật</span>}
-                      <span className="bk-name display">{i.title}</span>
-                    </span>
-                    <span className="bk-title">{i.title}</span>
-                    <span className="bk-meta">
-                      {i.storyCount != null ? `${i.storyCount} truyện · ` : ''}
-                      {AGE_LABEL[i.ageBand] ?? i.ageBand}
-                      {pub ? ` · ${pub}` : ''}
-                      {i.labels.length ? ` · ${i.labels.map(l => l.displayName).join(', ')}` : ''}
-                    </span>
+          <div className="created lib-community-main">
+            <div className="created-bar">
+              <div className="created-pills" role="tablist" aria-label="Nguồn nội dung">
+                {SOURCES.map(s => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={source === s.id}
+                    className={source === s.id ? 'on' : ''}
+                    disabled={busy}
+                    onClick={() => { setSource(s.id); setLabel('all'); setAuthor('all'); }}
+                  >
+                    {s.label}
+                    {source === s.id && shown ? <em>{shown.length}</em> : null}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          ) : list ? (
-            <div className="empty"><Frog size={110} mood="think" /><b className="display">Không có nội dung nào</b></div>
-          ) : failed ? (
-            <div className="empty">
-              <Frog size={110} mood="think" />
-              <b className="display">Chưa tải được nội dung</b>
-              <button type="button" className="btn btn-s" onClick={() => setRetry(n => n + 1)}>
-                <RefreshCw className="ic" />Thử lại
-              </button>
-            </div>
-          ) : (
-            <p className="sub">Đang tải…</p>
-          )}
 
-          <div className="row" style={{ justifyContent: 'center', gap: 12 }}>
-            <button type="button" className="btn btn-g" aria-label="Trang trước" title="Trang trước" disabled={busy || page === 1} onClick={() => setPage(p => p - 1)}>
-              <ChevronLeft className="ic" />
-            </button>
-            <span>Trang {page}</span>
-            <button type="button" className="btn btn-g" aria-label="Trang tiếp" title="Trang tiếp" disabled={busy || !list?.hasNextPage} onClick={() => setPage(p => p + 1)}>
-              <ChevronRight className="ic" />
-            </button>
+            {shown && shown.length > 0 ? (
+              <div className="created-grid">
+                {shown.map(i => {
+                  const pub = formatDay(i.publishedAt);
+                  const cover = i.source === 'PublicLibrary' ? community.get(i.id)?.coverImageUrl : null;
+                  return (
+                    <button className="bk" key={`${i.source}:${i.id}`} disabled={busy} onClick={() => void open(i)} aria-label={`Xem ${i.title}`}>
+                      <span className="bk-cover" style={{ background: coverFor(cover) }}>
+                        {i.needsUpdate && <span className="pill wait bk-badge">Cần cập nhật</span>}
+                        <span className="bk-name display">{i.title}</span>
+                      </span>
+                      <span className="bk-title">{i.title}</span>
+                      <span className="bk-meta">
+                        {i.storyCount != null ? `${i.storyCount} truyện · ` : ''}
+                        {AGE_LABEL[i.ageBand] ?? i.ageBand}
+                        {pub ? ` · ${pub}` : ''}
+                        {i.labels.length ? ` · ${i.labels.map(l => l.displayName).join(', ')}` : ''}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : shown ? (
+              <div className="empty"><Frog size={110} mood="think" /><b className="display">Không có nội dung nào</b></div>
+            ) : failed ? (
+              <div className="empty">
+                <Frog size={110} mood="think" />
+                <b className="display">Chưa tải được nội dung</b>
+                <button type="button" className="btn btn-s" onClick={() => setRetry(n => n + 1)}>
+                  <RefreshCw className="ic" />Thử lại
+                </button>
+              </div>
+            ) : (
+              <p className="sub">Đang tải…</p>
+            )}
           </div>
         </div>
       )}
