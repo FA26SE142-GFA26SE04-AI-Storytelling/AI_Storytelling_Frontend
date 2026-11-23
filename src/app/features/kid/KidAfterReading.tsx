@@ -8,6 +8,7 @@ import KidQuiz from './KidQuiz';
 import KidReflection from './KidReflection';
 import KidSummary from './KidSummary';
 import { useDialog } from './useDialog';
+import { FEATURE_OFF_MESSAGE, KID_FEATURE, useKidFeature } from './kidFeatures';
 
 /** Câu đố hiện trong cửa sổ nổi giữa màn hình: đóng bằng nút X, Esc hoặc bấm ra ngoài. */
 function QuizPopup({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
@@ -38,6 +39,9 @@ const TITLES = [
  * Các trang chỉ ẩn đi (không gỡ) để lật qua lại không mất bản ghi hay bước đang làm.
  */
 export default function KidAfterReading({ token, completed, scenes = [], onLibrary }: { token: string; completed: ReadingCompleted; scenes?: ReadingScene[]; onLibrary?: () => void }) {
+  const quizOn = useKidFeature(KID_FEATURE.quiz);
+  const reflectionOn = useKidFeature(KID_FEATURE.reflection);
+  const voiceOn = useKidFeature(KID_FEATURE.voice);
   const [quiz, setQuiz] = useState(false);
   const [page, setPage] = useState(0);
   const [dir, setDir] = useState(1);
@@ -73,7 +77,7 @@ export default function KidAfterReading({ token, completed, scenes = [], onLibra
     <div className="kid-after-page" ref={swap}>
       <div hidden={page > 3}>
         <h3 className="display">{TITLES[Math.min(page, 3)]}</h3>
-        <KidReflection
+        {reflectionOn ? <KidReflection
           token={token}
           sessionId={completed.sessionId}
           scenes={scenes}
@@ -81,18 +85,18 @@ export default function KidAfterReading({ token, completed, scenes = [], onLibra
           onNext={onNext}
           onGoto={onGoto}
           onResume={onResume}
-        />
+        /> : <p className="kid-after-off">{FEATURE_OFF_MESSAGE}</p>}
       </div>
       <div hidden={page !== 4}>
         <h3 className="display">{TITLES[4]}</h3>
-        <KidSummary part="voice" token={token} sessionId={completed.sessionId} scenes={scenes} />
+        {voiceOn ? <KidSummary part="voice" token={token} sessionId={completed.sessionId} scenes={scenes} /> : <p className="kid-after-off">{FEATURE_OFF_MESSAGE}</p>}
       </div>
       <div hidden={page !== 5}>
         <KidSummary part="questions" token={token} sessionId={completed.sessionId} scenes={scenes} />
       </div>
       <div hidden={page !== 6}>
         <h3 className="display">{TITLES[6]}</h3>
-        <button type="button" className="kid-btn3d is-gold kid-quiz-open" onClick={() => setQuiz(true)}><Puzzle aria-hidden="true" />Làm câu đố về truyện</button>
+        {quizOn ? <button type="button" className="kid-btn3d is-gold kid-quiz-open" onClick={() => setQuiz(true)}><Puzzle aria-hidden="true" />Làm câu đố về truyện</button> : <p className="kid-after-off">{FEATURE_OFF_MESSAGE}</p>}
       </div>
     </div>
     <nav className="kid-story-navigation kid-after-nav" aria-label="Trang sau khi đọc">
@@ -107,7 +111,7 @@ export default function KidAfterReading({ token, completed, scenes = [], onLibra
       <button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Phần sau" title="Phần sau" disabled={page === PAGES - 1} onClick={() => userGo(page + 1)}><ChevronRight aria-hidden="true" /></button>
       {onLibrary && <button type="button" className="kid-btn3d is-gold kid-after-lib" aria-label="Về thư viện" title="Về thư viện" onClick={onLibrary}><Library aria-hidden="true" /><span className="kid-after-lib-text">Về thư viện</span></button>}
     </nav>
-    {quiz && <QuizPopup onClose={() => setQuiz(false)}>
+    {quiz && quizOn && <QuizPopup onClose={() => setQuiz(false)}>
       <KidQuiz token={token} sessionId={completed.sessionId} onLibrary={onLibrary} onDone={(gained, codes) => { setExp(v => v + gained); setBadgeCodes(v => [...v, ...codes]); }} />
     </QuizPopup>}
   </div>;
