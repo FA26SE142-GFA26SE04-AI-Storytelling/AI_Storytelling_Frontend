@@ -5,8 +5,10 @@ import { moderationService as service } from '@/app/services/moderationService';
 import { useAuth } from '@/app/context/AuthContext';
 import Frog from '@/app/components/brand/Frog';
 import Select from '@/app/components/Select';
-import { ArrowLeft, CalendarDays, Eye, Flag, PenLine, RefreshCw, Send, Shapes, SlidersHorizontal, Tag, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Eye, Flag, PenLine, RefreshCw, Send, Shapes, SlidersHorizontal, Tag, Users } from 'lucide-react';
 import Dialog from '@/app/components/Dialog';
+import IconButton from '@/app/components/IconButton';
+import { showToast } from '@/app/lib/toast';
 import { coverFor } from '@/app/lib/storyView';
 import { storyService } from '@/app/services/storyService';
 import { staffService } from '@/app/services/staffService';
@@ -32,6 +34,7 @@ const REASONS: { value: B.ContentReportReasonName; label: string }[] = [
 const AGE_LABEL: Record<string, string> = { '6-8': '6–8 tuổi', '9-10': '9–10 tuổi' };
 // Nhóm lọc gửi lên API không biết trước số lượng: count giả 1 để nút không bị khóa, số được ẩn bằng CSS (.st-filter-nocount).
 const AGE_OPTIONS = Object.entries(AGE_LABEL).map(([key, label]) => ({ key, label, count: 1 }));
+const PAGE_SIZE = 12;
 const DAY_OPTIONS = [7, 30, 90].map(d => ({ key: String(d), label: `${d} ngày qua`, count: 1 }));
 
 /** Gom giá trị thành lựa chọn lọc có số đếm; luôn giữ lựa chọn đang chọn để người dùng bỏ chọn được. */
@@ -68,7 +71,8 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
   const [attachmentUrl, setAttachmentUrl] = useState('');
   const [reportOpen, setReportOpen] = useState(false);
   const [createdReportId, setCreatedReportId] = useState<number | null>(null);
-  const [message, setMessage] = useState('');
+  const [summary, setSummary] = useState<B.PublishedContentItemDto | null>(null);
+  const [page, setPage] = useState(1);
   const [busy, setBusy] = useState(false);
   const [failed, setFailed] = useState(false);
   const [retry, setRetry] = useState(0);
@@ -83,7 +87,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
     setSelectedItem(null);
     setStory(null);
     setRoadmap(null);
-    setMessage('');
+    setSummary(null);
     setCreatedReportId(null);
     setFailed(false);
     const publishedFrom = days === 'all' ? null : new Date(Date.now() - Number(days) * 864e5).toISOString();
@@ -102,7 +106,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
         if (scope.current !== run) return;
         if (!r.success) {
           setFailed(true);
-          setMessage(r.message);
+          showToast(r.message || 'Không tải được danh sách nội dung.', 'err');
           return;
         }
         items.push(...(r.data?.items ?? []));
@@ -134,26 +138,22 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
       setRoadmap(null);
       setSelectedItem(null);
       setReportOpen(false);
-      setMessage('Nội dung này không còn công khai hoặc đã bị gỡ. Danh sách đã được tải lại.');
+      showToast('Nội dung này không còn công khai hoặc đã bị gỡ. Danh sách đã được tải lại.', 'warn');
       setRetry(n => n + 1);
       return;
     }
-    setMessage(fallbackMsg);
+    showToast(fallbackMsg || 'Có lỗi xảy ra, vui lòng thử lại.', 'err');
   };
 
-  const grantView = async () => {
-    if (busy || (!story && !roadmap)) return;
+  // Nhận id trực tiếp (không đọc state) để gọi được ngay khi chi tiết vừa tải xong.
+  const grantView = async (body: B.GrantReviewViewRequestDto) => {
     const run = scope.current;
     setBusy(true);
-    const r = await service.grantReviewView(
-      roadmap
-        ? { sourceTab: 'roadmap_templates', storyId: null, storyVersionId: null, readingRoadmapId: roadmap.roadmapId }
-        : { sourceTab: 'published_content', storyId: story!.story.storyId, storyVersionId: story!.version?.versionId ?? null, readingRoadmapId: null },
-    );
+    const r = await service.grantReviewView(body);
     if (scope.current !== run) return;
     setBusy(false);
     if (r.success && r.data) {
-      setMessage(`Quyền rà soát có hiệu lực đến ${new Date(r.data.expiresAt).toLocaleString('vi-VN')}.`);
+      showToast(`Đã bắt đầu rà soát. Quyền rà soát có hiệu lực đến ${new Date(r.data.expiresAt).toLocaleString('vi-VN')}.`, 'ok');
     } else {
       handleUnavailable(r.status, r.message);
     }
@@ -163,23 +163,29 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
     const run = scope.current;
     setBusy(true);
     const r = await service.publishedStory(id);
-    if (scope.current !== run) return;
+    if (scope.current !== run) return null;
     setBusy(false);
-    if (r.success) setStory(r.data);
-    else handleUnavailable(r.status, r.message);
+    if (r.success && r.data) {
+      setStory(r.data);
+      return r.data;
+    }
+    handleUnavailable(r.status, r.message);
+    return null;
   };
 
+  /** "Bắt đầu rà soát" ở popup tóm tắt: tải chi tiết rồi ghi nhận quyền rà soát. */
   const open = async (item: B.PublishedContentItemDto) => {
+    setSummary(null);
     setSelectedItem(item);
     setStory(null);
     setRoadmap(null);
     setDescription('');
     setAttachmentUrl('');
-    setMessage('');
     setCreatedReportId(null);
     // Source values are defined by PublishedContentSource, never inferred from the numeric id.
     if (item.source !== 'RoadmapTemplate') {
-      await openStory(item.id);
+      const s = await openStory(item.id);
+      if (s) await grantView({ sourceTab: 'published_content', storyId: s.story.storyId, storyVersionId: s.version?.versionId ?? null, readingRoadmapId: null });
       return;
     }
     const run = scope.current;
@@ -187,8 +193,10 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
     const r = await service.publishedRoadmap(item.id);
     if (scope.current !== run) return;
     setBusy(false);
-    if (r.success) setRoadmap(r.data);
-    else handleUnavailable(r.status, r.message);
+    if (r.success && r.data) {
+      setRoadmap(r.data);
+      await grantView({ sourceTab: 'roadmap_templates', storyId: null, storyVersionId: null, readingRoadmapId: r.data.roadmapId });
+    } else handleUnavailable(r.status, r.message);
   };
 
   const report = async () => {
@@ -208,7 +216,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
       setReportOpen(false);
       setCreatedReportId(r.data.reportId);
       const nextLabel = user?.role === 'Administrator' ? 'Hàng đợi quản trị' : 'Báo cáo nội dung';
-      setMessage(`Đã tạo báo cáo #${r.data.reportId}. Mở ${nextLabel} để nhận xử lý theo quyền.`);
+      showToast(`Đã tạo báo cáo #${r.data.reportId}. Mở ${nextLabel} để nhận xử lý.`, 'ok');
     } else {
       handleUnavailable(r.status, r.message);
     }
@@ -231,7 +239,13 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
   const authorOptions = source === 'PublicLibrary'
     ? tally((list ?? []).filter(hasLabel).map(i => { const a = authorOf(i); return a ? [a] : []; }), author)
     : [];
+  const pageCount = Math.max(1, Math.ceil((shown?.length ?? 0) / PAGE_SIZE));
+  const curPage = Math.min(page, pageCount); // kẹp lại khi lọc làm giảm số trang
+  const paged = shown?.slice((curPage - 1) * PAGE_SIZE, curPage * PAGE_SIZE) ?? null;
+  // Đổi bộ lọc nào cũng quay về trang 1.
+  const pick = (set: (v: string) => void) => (v: string) => { set(v); setPage(1); };
   const clearFilters = () => {
+    setPage(1);
     setAgeBand('all');
     setCategoryId('all');
     setDays('all');
@@ -243,21 +257,6 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
 
   return (
     <Page title={isModerator ? 'Thư viện cộng đồng' : 'Rà soát thư viện'}>
-      {message && (
-        <div className="notice row st-wrap" role="status" data-inline-notice>
-          <span className="grow">{message}</span>
-          {createdReportId != null && go && user?.role !== 'Administrator' && (
-            <button
-              type="button"
-              className="btn btn-s"
-              onClick={() => go('content-reports')}
-            >
-              Mở Báo cáo nội dung
-            </button>
-          )}
-        </div>
-      )}
-
       {inDetail ? (
         <>
           <div className="row">
@@ -268,7 +267,6 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
                 setStory(null);
                 setRoadmap(null);
                 setSelectedItem(null);
-                setMessage('');
                 setCreatedReportId(null);
               }}
             >
@@ -276,13 +274,6 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
             </button>
           </div>
           <div className="st-card">
-            <div className="st-group">
-              <div className="row">
-                <button type="button" className="btn btn-s" disabled={busy} onClick={() => void grantView()} title="Ghi nhận lượt xem để rà soát">
-                  <Eye className="ic" />Bắt đầu rà soát
-                </button>
-              </div>
-            </div>
             {roadmap && (
               <section>
                 <div className="st-group">
@@ -374,6 +365,11 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
                       <button type="button" className="btn btn-s" disabled={busy} onClick={() => setReportOpen(true)}>
                         <Flag className="ic" />Tạo mục rà soát
                       </button>
+                      {createdReportId != null && go && (
+                        <button type="button" className="btn btn-g" onClick={() => go('content-reports')}>
+                          Mở Báo cáo nội dung
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
@@ -417,12 +413,12 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
                 <button type="button" className="lib-reset-btn" onClick={clearFilters}>Xóa tất cả</button>
               </div>
               <div className="st-filter-nocount">
-                <FilterGroup title="Độ tuổi" icon={Users} options={AGE_OPTIONS} value={ageBand} onChange={setAgeBand} />
-                <FilterGroup title="Danh mục" icon={Shapes} options={categories.map(c => ({ key: String(c.id), label: c.displayName, count: 1 }))} value={categoryId} onChange={setCategoryId} limit={6} />
-                <FilterGroup title="Ngày công khai" icon={CalendarDays} options={DAY_OPTIONS} value={days} onChange={setDays} />
+                <FilterGroup title="Độ tuổi" icon={Users} options={AGE_OPTIONS} value={ageBand} onChange={pick(setAgeBand)} />
+                <FilterGroup title="Danh mục" icon={Shapes} options={categories.map(c => ({ key: String(c.id), label: c.displayName, count: 1 }))} value={categoryId} onChange={pick(setCategoryId)} limit={6} />
+                <FilterGroup title="Ngày công khai" icon={CalendarDays} options={DAY_OPTIONS} value={days} onChange={pick(setDays)} />
               </div>
-              <FilterGroup title="Nhãn" icon={Tag} options={labelOptions} value={label} onChange={setLabel} limit={6} />
-              <FilterGroup title="Tác giả" icon={PenLine} options={authorOptions} value={author} onChange={setAuthor} limit={6} />
+              <FilterGroup title="Nhãn" icon={Tag} options={labelOptions} value={label} onChange={pick(setLabel)} limit={6} />
+              <FilterGroup title="Tác giả" icon={PenLine} options={authorOptions} value={author} onChange={pick(setAuthor)} limit={6} />
             </div>
           </aside>
 
@@ -437,7 +433,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
                     aria-selected={source === s.id}
                     className={source === s.id ? 'on' : ''}
                     disabled={busy}
-                    onClick={() => { setSource(s.id); setLabel('all'); setAuthor('all'); }}
+                    onClick={() => { setSource(s.id); setLabel('all'); setAuthor('all'); setPage(1); }}
                   >
                     {s.label}
                     {source === s.id && shown ? <em>{shown.length}</em> : null}
@@ -446,13 +442,14 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
               </div>
             </div>
 
-            {shown && shown.length > 0 ? (
+            {paged && paged.length > 0 ? (
+              <>
               <div className="created-grid">
-                {shown.map(i => {
+                {paged.map(i => {
                   const pub = formatDay(i.publishedAt);
                   const cover = i.source === 'PublicLibrary' ? community.get(i.id)?.coverImageUrl : null;
                   return (
-                    <button className="bk" key={`${i.source}:${i.id}`} disabled={busy} onClick={() => void open(i)} aria-label={`Xem ${i.title}`}>
+                    <button className="bk" key={`${i.source}:${i.id}`} disabled={busy} onClick={() => setSummary(i)} aria-label={`Xem tóm tắt ${i.title}`}>
                       <span className="bk-cover" style={{ background: coverFor(cover) }}>
                         {i.needsUpdate && <span className="pill wait bk-badge">Cần cập nhật</span>}
                         <span className="bk-name display">{i.title}</span>
@@ -468,6 +465,14 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
                   );
                 })}
               </div>
+              {pageCount > 1 && (
+                <div className="st-pub-pager">
+                  <IconButton icon={ChevronLeft} label="Trang trước" className="btn btn-g" disabled={curPage === 1} onClick={() => setPage(curPage - 1)} />
+                  <span>Trang {curPage} / {pageCount}</span>
+                  <IconButton icon={ChevronRight} label="Trang sau" className="btn btn-g" disabled={curPage === pageCount} onClick={() => setPage(curPage + 1)} />
+                </div>
+              )}
+              </>
             ) : shown ? (
               <div className="empty"><Frog size={110} mood="think" /><b className="display">Không có nội dung nào</b></div>
             ) : failed ? (
@@ -484,6 +489,38 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
           </div>
         </div>
       )}
+
+      {summary && (() => {
+        const pub = formatDay(summary.publishedAt);
+        const cover = summary.source === 'PublicLibrary' ? community.get(summary.id)?.coverImageUrl : null;
+        const by = authorOf(summary);
+        return (
+          <Dialog title={summary.title} className="st-pub-dlg" onClose={() => setSummary(null)}>
+            <span className="st-pub-cover" style={{ background: coverFor(cover) }} role="img" aria-label={`Bìa ${summary.title}`} />
+            <div className="st-label-pills">
+              <span className="pill ok">Đang công khai</span>
+              {summary.needsUpdate && <span className="pill wait">Cần cập nhật</span>}
+            </div>
+            <div className="st-facts">
+              <div><small>Độ tuổi</small><b>{AGE_LABEL[summary.ageBand] ?? summary.ageBand}</b></div>
+              {pub && <div><small>Ngày công khai</small><b>{pub}</b></div>}
+              {by && <div><small>Tác giả</small><b>{by}</b></div>}
+              {summary.storyCount != null && <div><small>Số truyện</small><b>{summary.storyCount}</b></div>}
+            </div>
+            {summary.labels.length > 0 && (
+              <div className="st-label-pills">
+                {summary.labels.map(l => <span key={l.displayName} className="pill draft">{l.displayName}</span>)}
+              </div>
+            )}
+            <div className="row st-pub-dlg-actions">
+              <button type="button" className="btn btn-g" onClick={() => setSummary(null)}>Đóng</button>
+              <button type="button" className="btn btn-p" disabled={busy} onClick={() => void open(summary)}>
+                <Eye className="ic" />Bắt đầu rà soát
+              </button>
+            </div>
+          </Dialog>
+        );
+      })()}
     </Page>
   );
 }

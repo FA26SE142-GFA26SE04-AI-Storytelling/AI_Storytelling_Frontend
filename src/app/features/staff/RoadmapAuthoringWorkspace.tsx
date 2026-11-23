@@ -17,9 +17,9 @@ import RoadmapStoryPicker from './RoadmapStoryPicker';
 import { Page, fmt } from './ui';
 
 const blank = (): B.SaveRoadmapRequestDto => ({ name: '', description: null, ageBand: '6-8', mainCategoryId: 0, readingLevelMin: 1, readingLevelMax: 3, defaultDaysPerStory: 3 });
+// Published / Archived đã có khu riêng ("Đang phát hành", "Lưu trữ") ở thanh phân khu nên không lặp lại ở đây.
 const GROUPS: { id: B.RoadmapListGroupName; label: string }[] = [
-  { id: 'Drafts', label: 'Bản nháp' }, { id: 'Pending', label: 'Chờ duyệt' }, { id: 'Published', label: 'Đang công khai' },
-  { id: 'Archived', label: 'Đã lưu trữ' }, { id: 'Orphaned', label: 'Cần tiếp quản' },
+  { id: 'Drafts', label: 'Bản nháp' }, { id: 'Pending', label: 'Chờ duyệt' }, { id: 'Orphaned', label: 'Cần tiếp quản' },
 ];
 const STATUS: Record<string, [string, string]> = {
   Draft: ['Bản nháp', 'draft'], PendingReview: ['Đang chờ duyệt', 'wait'], Published: ['Đang công khai', 'ok'], Archived: ['Đã lưu trữ', 'draft'],
@@ -32,7 +32,7 @@ const LEVELS = range(1, 10);
 const DAYS = range(1, 30);
 const DAY_CHOICES = [2, 3, 5, 7];
 
-/** Phân khu Soạn lộ trình: giữ đủ 5 group (Drafts, Pending, Published, Archived, Orphaned), two-step save và dirty guard. */
+/** Phân khu Soạn lộ trình (chỉ Moderator): group Drafts, Pending, Orphaned, two-step save và dirty guard. */
 export default function RoadmapAuthoringWorkspace({
   pendingDraftId,
   onConsumedDraft,

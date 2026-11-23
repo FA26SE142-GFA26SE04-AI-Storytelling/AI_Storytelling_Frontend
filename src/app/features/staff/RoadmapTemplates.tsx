@@ -19,7 +19,10 @@ const MODES: { id: RoadmapMode; label: string }[] = [
 /** Tài liệu 08 — Lộ trình mẫu: chia Soạn lộ trình, Duyệt lộ trình, Đang phát hành và Lưu trữ. */
 export default function RoadmapTemplates() {
   const { user } = useAuth();
-  const [mode, setMode] = useState<RoadmapMode>('author');
+  // Backend: chỉ Moderator có quyền soạn (template.roadmap.author); Admin và Moderator đều duyệt được (review.roadmap).
+  const modes = user?.role === 'Moderator' ? MODES : MODES.filter(m => m.id !== 'author');
+  const [picked, setMode] = useState<RoadmapMode>('author');
+  const mode = modes.some(m => m.id === picked) ? picked : modes[0].id;
   const [authorDirty, setAuthorDirty] = useState(false);
   const [pendingOpenDraftId, setPendingOpenDraftId] = useState<number | null>(null);
 
@@ -34,13 +37,12 @@ export default function RoadmapTemplates() {
     <div className="rt-wrap">
       <div className="rt-modebar">
         <div className="rt-modepills" role="group" aria-label="Phân khu lộ trình mẫu">
-          {MODES.filter(m => m.id !== 'review' || user?.role === 'Moderator').map(m => (
+          {modes.map(m => (
             <button key={m.id} type="button" aria-pressed={mode === m.id} className={mode === m.id ? 'on' : ''} onClick={() => void switchMode(m.id)}>
               {m.label}
             </button>
           ))}
         </div>
-        <span className="sub">Lộ trình mẫu công khai và kiểm duyệt sử dụng trực tiếp API hiện có.</span>
       </div>
       <div className="rt-stage">
         {mode === 'author' && (
