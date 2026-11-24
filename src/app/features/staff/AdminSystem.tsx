@@ -18,8 +18,8 @@ const PLAN_TYPE: Record<PlanType, string> = { Reading: "Gói Đọc", Creative: 
 const PAY_STATUS: Record<PaymentStatus, [string, string]> = {
   Pending: ["wait", "Chờ thanh toán"], Paid: ["ok", "Đã thanh toán"], Expired: ["draft", "Hết hạn"], MismatchAmount: ["flag", "Sai số tiền"],
 };
-const PayPill = ({ status }: { status: PaymentStatus }) => { const [tone, label] = PAY_STATUS[status] ?? ["draft", status]; return <span className={`pill ${tone}`}>{label}</span>; };
-const Payer = ({ t }: { t: AdminPaymentTransactionDto }) => <span className="pay-payer"><b>{t.payerName || `Tài khoản #${t.payerUserId}`}</b><small>{t.payerEmail}</small></span>;
+export const PayPill = ({ status }: { status: PaymentStatus }) => { const [tone, label] = PAY_STATUS[status] ?? ["draft", status]; return <span className={`pill ${tone}`}>{label}</span>; };
+export const Payer = ({ t }: { t: AdminPaymentTransactionDto }) => <span className="pay-payer"><b>{t.payerName || `Tài khoản #${t.payerUserId}`}</b><small>{t.payerEmail}</small></span>;
 
 /** Gói và lượt của một tài khoản: dùng chung cho trang lượt và popup điều chỉnh. */
 function QuotaSummary({ q }: { q: MyQuotaDto }) {

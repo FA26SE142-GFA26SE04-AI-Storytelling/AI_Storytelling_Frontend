@@ -4,8 +4,8 @@ import "@/app/styles/features/staff/staff.css";
 import "@/app/styles/features/children/children.css";
 import { useEffect, useState, type ComponentType } from "react";
 import {
-  Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, KeyRound, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
-  Shield, ShieldAlert, Sparkles, Star, Sun, ScrollText, UserRound, UserRoundCheck, Users, WandSparkles, type LucideIcon,
+  Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, KeyRound, LayoutDashboard, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
+  Shield, ShieldAlert, Sparkles, Star, Sun, ScrollText, UserRound, UserRoundCheck, Users, WalletCards, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import { useAuth } from "@/app/context/AuthContext";
@@ -43,6 +43,9 @@ import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
 import { AdminPayments, AdminPlans, AdminQuota } from "./AdminSystem";
 import { AdminBusinessReport } from "./AdminBusinessReport";
+import AdminOverview from "./AdminOverview";
+import AdminSidebar, { type SideGroup } from "./AdminSidebar";
+import { adminNavBadges, useAdminTodo } from "./adminTodo";
 // Trước đây chỉ ParentShell nạp file này nên ở điện thoại header nhân viên vẫn hiện thanh ngang (bị cắt) và không có thanh tab đáy.
 import "@/app/styles/mobile.css";
 
@@ -69,6 +72,7 @@ const CREATOR_ACCOUNT_PAGES: PageDef[] = [
 /** Luồng 5 — ba khu tách biệt theo vai trò; mỗi tài khoản đúng một vai trò (BR-5.7a). */
 const PAGES: Record<StaffRole, PageDef[]> = {
   Administrator: [
+    { id: "overview", label: "Tổng quan", icon: LayoutDashboard, view: AdminOverview, hint: "Việc cần xử lý và tình hình kinh doanh" },
     { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và lộ trình mẫu đang công khai" },
     { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
@@ -111,15 +115,16 @@ const PAGES: Record<StaffRole, PageDef[]> = {
 };
 
 /**
- * Thanh điều hướng ngang của từng vai trò. Admin nhiều trang nên gom theo nhóm việc, mỗi nhóm một menu xổ xuống;
- * vai trò ít trang thì mở thẳng. Các trang tài khoản không nằm ở đây mà trong menu avatar.
+ * Điều hướng của từng vai trò. Moderator và Creator dùng thanh ngang trên header (nhóm thành menu xổ xuống).
+ * Admin trên máy tính dùng thanh bên trái (AdminSidebar): mỗi nhóm ở đây là một mục có tiêu đề;
+ * trên điện thoại vẫn là thanh tab đáy với menu xổ lên. Các trang tài khoản nằm trong menu avatar.
  */
 const NAV: Record<StaffRole, NavEntry[]> = {
   Administrator: [
-    { label: "Kiểm duyệt", icon: Inbox, items: ["published", "rubrics"] },
-    { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards"] },
-    { label: "Người dùng", icon: Users, items: ["staff", "permissions", "creators", "audit"] },
-    { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "plans", "quota"] },
+    "overview",
+    { label: "Người dùng", icon: Users, items: ["staff", "creators", "permissions", "audit"] },
+    { label: "Tài chính", icon: WalletCards, items: ["business", "payments", "plans", "quota"] },
+    { label: "Nội dung & kiểm duyệt", icon: BookOpenText, items: ["published", "rubrics", "authoring-guides", "templates", "wish-cards"] },
   ],
   Moderator: [
     "queue",
@@ -158,6 +163,13 @@ function StaffNav({ role, pageId, onPage, badges, upward }: { role: StaffRole; p
     }
     return <NavMenuButton key={entry.label} entry={entry} items={entry.items.map(byId)} ws={pageId} onWs={onPage} badges={badges} upward={upward} />;
   });
+}
+
+/** Nhóm của thanh bên Admin, dựng từ NAV để menu máy tính và thanh tab điện thoại luôn cùng danh sách trang. */
+function sideGroups(role: StaffRole): SideGroup[] {
+  const pages = PAGES[role];
+  const item = (id: string) => { const { label, icon } = pages.find((p) => p.id === id)!; return { id, label, icon }; };
+  return NAV[role].map((entry) => (typeof entry === "string" ? { items: [item(entry)] } : { label: entry.label, items: entry.items.map(item) }));
 }
 
 export function defaultStaffSection(role: StaffRole): string {
@@ -276,20 +288,60 @@ function StaffAppInner({
     };
   }, [role, userId, pageId]);
 
+  const isAdmin = role === "Administrator";
+  const adminTodo = useAdminTodo(isAdmin && userId !== null, pageId);
+  const badges = isAdmin ? adminNavBadges(adminTodo) : navBadges;
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return localStorage.getItem("adm_sidebar_collapsed") === "1";
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("adm_sidebar_collapsed", next ? "1" : "0");
+      } catch {}
+      return next;
+    });
+  };
+
   const page = pages.find((p) => p.id === pageId) ?? pages[0];
   const View = page.view;
 
   return (
-    <div className="shell no-status top-nav">
+    <div className={`shell no-status top-nav${isAdmin ? " adm-shell" : ""}${isAdmin && sidebarCollapsed ? " adm-shell-collapsed" : ""}`}>
       <PondBackdrop rich />
+      {isAdmin && (
+        <AdminSidebar
+          groups={sideGroups(role)}
+          pageId={pageId}
+          onPage={(id) => go(id)}
+          badges={badges}
+          label={ROLE_LABEL[role]}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebar}
+        />
+      )}
       <header className="top">
         <div className="logo" aria-label="Taletale"><Frog variant="face" size={46} /></div>
         <b className="display" style={{ fontSize: "var(--fs-lg)", fontWeight: 800 }}>Taletale</b>
         <span className="top-role">{ROLE_LABEL[role]}</span>
 
-        <nav ref={navRef} className="topnav" aria-label={ROLE_LABEL[role]}>
-          <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} badges={navBadges} />
-        </nav>
+        {isAdmin ? (
+          <div className="adm-top-title"><b>{page.label}</b>{page.hint && <small>{page.hint}</small>}</div>
+        ) : (
+          <nav ref={navRef} className="topnav" aria-label={ROLE_LABEL[role]}>
+            <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} badges={badges} />
+          </nav>
+        )}
         <div className="top-gap" />
 
         <button className="btn btn-g" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Giao diện sáng" : "Giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
@@ -299,7 +351,7 @@ function StaffAppInner({
 
       {/* Điện thoại: header không đủ chỗ nên điều hướng nằm ở thanh tab dưới đáy. */}
       <nav className="rail rail-mobile" aria-label={ROLE_LABEL[role]}>
-        <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} badges={navBadges} upward />
+        <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} badges={badges} upward />
       </nav>
 
       <main className="stage"><View key={`${userId ?? "anon"}:${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} /></main>
