@@ -9,6 +9,8 @@ export interface PermissionDto {
 }
 
 export interface RoleDto {
+  /** Id role, khớp `entityId` của audit log `RolePermissionsUpdated`. Backend cũ chưa trả. */
+  id?: number;
   code: string;
   name: string;
   isStaff: boolean;
@@ -17,8 +19,14 @@ export interface RoleDto {
 export interface RolePermissionsDto {
   roleCode: string;
   permissionCodes: string[];
-  /** Quyền nhân viên role được bật: mặc định của role + quyền đang giữ. Ngoài tập này backend từ chối. */
+  /** Quyền role được bật: mặc định của role + quyền đang giữ. Ngoài tập này backend từ chối. */
   assignableCodes?: string[];
   /** Điều kiện kèm theo khi role này dùng quyền (câu tiếng Việt), chỉ gồm quyền có điều kiện. Chỉ đọc. */
   conditions?: Record<string, string[]>;
+  /** Mã điều kiện theo quyền, cùng thứ tự với `conditions`. */
+  conditionCodes?: Record<string, string[]>;
+  /** Bản gán mặc định của role. */
+  defaultCodes?: string[];
+  /** Phạm vi theo role cho từng quyền assignable (`Any` / `Own` / `Assigned`). */
+  scopes?: Record<string, string>;
 }

@@ -79,7 +79,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "templates", label: "Xem lộ trình mẫu", icon: Route, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
-    { id: "permissions", label: "Phân quyền", icon: KeyRound, view: AdminPermissions, hint: "Bật/tắt quyền của Moderator và Administrator" },
+    { id: "permissions", label: "Phân quyền", icon: KeyRound, view: AdminPermissions, hint: "Xem và bật/tắt quyền của các role người lớn" },
     { id: "creators", label: "Nhà sáng tạo nội dung", icon: UserRoundCheck, view: AdminCreators },
     { id: "audit", label: "Nhật ký thao tác", icon: ScrollText, view: AdminAuditLog, hint: "Nhật ký thao tác nhạy cảm của toàn hệ thống" },
     { id: "business", label: "Báo cáo nghiệp vụ", icon: ChartColumn, view: AdminBusinessReport },

@@ -1,98 +1,63 @@
 "use client";
-import { confirmDialog } from "@/app/lib/confirm";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { RotateCcw, Save } from "lucide-react";
-import Select from "@/app/components/Select";
+import { useCallback, useEffect, useState } from "react";
+import "@/app/styles/features/staff/permissions.css";
 import { accessControlService as api } from "@/app/services/accessControlService";
-import type { PermissionDto, RoleDto } from "@/app/types/accessControl";
-import { changedCodes, groupPermissions, lockedCodes, scopeLabel } from "./permissionMatrix";
-import { Notice, Page, useAction } from "./ui";
+import type { PermissionDto, RoleDto, RolePermissionsDto } from "@/app/types/accessControl";
+import PermissionMatrixView from "./PermissionMatrixView";
+import RolePermissionEditor from "./RolePermissionEditor";
+import { Notice, Page, type Note } from "./ui";
 
-/** Administrator thu hoặc trả lại quyền mặc định của mọi role người lớn. */
+type Tab = "matrix" | "edit";
+
+/** Phân quyền: ma trận mọi role người lớn và trang chỉnh quyền từng role (chỉ thu hoặc trả lại quyền mặc định). */
 export default function AdminPermissions() {
   const [catalog, setCatalog] = useState<PermissionDto[]>([]);
   const [roles, setRoles] = useState<RoleDto[]>([]);
+  const [byRole, setByRole] = useState<Record<string, RolePermissionsDto>>({});
+  const [tab, setTab] = useState<Tab>("matrix");
   const [roleCode, setRoleCode] = useState("Moderator");
-  const [saved, setSaved] = useState<string[]>([]);
-  const [draft, setDraft] = useState<string[]>([]);
-  // null: backend cũ chưa trả assignableCodes → không khóa ô nào (backend vẫn tự chặn khi lưu).
-  const [assignable, setAssignable] = useState<string[] | null>(null);
-  const [conditions, setConditions] = useState<Record<string, string[]>>({});
+  const [note, setNote] = useState<Note>(null);
 
-  const loadRole = useCallback(async () => {
-    const [p, r] = await Promise.all([api.permissions(), api.rolePermissions(roleCode)]);
-    if (!p.success || !p.data) return p.message;
-    if (!r.success || !r.data) return r.message;
-    const held = [...r.data.permissionCodes].sort();
+  const load = useCallback(async () => {
+    const [p, r] = await Promise.all([api.permissions(), api.roles()]);
+    if (!p.success || !p.data) return setNote({ ok: false, text: p.message });
+    if (!r.success || !r.data) return setNote({ ok: false, text: r.message });
+    const all = await Promise.all(r.data.map((role) => api.rolePermissions(role.code)));
+    const failed = all.find((x) => !x.success || !x.data);
+    if (failed) return setNote({ ok: false, text: failed.message });
     setCatalog(p.data);
-    setAssignable(r.data.assignableCodes ?? null);
-    setConditions(r.data.conditions ?? {});
-    setSaved(held);
-    setDraft(held);
-    return null;
-  }, [roleCode]);
-  const { note, setNote, busy, run } = useAction(loadRole);
+    setRoles(r.data);
+    setByRole(Object.fromEntries(all.map((x) => [x.data!.roleCode, x.data!])));
+  }, []);
 
-  useEffect(() => {
-    void api.roles().then((r) => {
-      if (r.success && r.data) setRoles(r.data);
-      else setNote({ ok: false, text: r.message });
-    });
-  }, [setNote]);
-  useEffect(() => { void loadRole().then((err) => { if (err) setNote({ ok: false, text: err }); }); }, [loadRole, setNote]);
+  useEffect(() => { void load(); }, [load]);
 
-  const groups = useMemo(() => groupPermissions(catalog), [catalog]);
-  const locked = useMemo(() => (assignable ? lockedCodes(catalog, assignable) : new Set<string>()), [catalog, assignable]);
-  const diff = changedCodes(saved, draft);
-  const dirty = diff.added.length + diff.removed.length > 0;
-  const roleName = roles.find((r) => r.code === roleCode)?.name ?? roleCode;
-  const toggle = (code: string, on: boolean) => setDraft((d) => (on ? [...d, code] : d.filter((c) => c !== code)));
-
-  const save = async () => {
-    const parts = [diff.added.length ? `bật ${diff.added.length} quyền` : "", diff.removed.length ? `tắt ${diff.removed.length} quyền` : ""].filter(Boolean);
-    if (!(await confirmDialog(`Lưu thay đổi cho ${roleName}: ${parts.join(", ")}? Quyền mới có hiệu lực trong tối đa 60 giây.`))) return;
-    await run(() => api.updateRolePermissions(roleCode, draft), `Đã cập nhật quyền của ${roleName}.`);
-  };
+  const openRole = (code: string) => { setRoleCode(code); setTab("edit"); };
+  const saved = (data: RolePermissionsDto) => setByRole((prev) => ({ ...prev, [data.roleCode]: data }));
 
   return (
     <Page title="Phân quyền">
       <Notice note={note} />
       <div className="st-card perm-card">
-        <div className="st-filters">
-          <Select ariaLabel="Chọn role" value={roleCode} disabled={busy || roles.length === 0} portal
-            options={roles.map((r) => ({ value: r.code, label: r.name }))} onChange={(v) => setRoleCode(v)} />
-          <span className="grow" />
-          {dirty && <button className="btn btn-g" disabled={busy} onClick={() => setDraft(saved)}><RotateCcw className="ic" />Hoàn tác</button>}
-          {dirty && <button className="btn btn-p" disabled={busy} onClick={() => void save()}><Save className="ic" />Lưu thay đổi</button>}
+        <div className="perm-head">
+          <div className="seg" role="tablist" aria-label="Chế độ xem phân quyền">
+            <button type="button" role="tab" aria-selected={tab === "matrix"} className={tab === "matrix" ? "on" : ""} onClick={() => setTab("matrix")}>Ma trận</button>
+            <button type="button" role="tab" aria-selected={tab === "edit"} className={tab === "edit" ? "on" : ""} onClick={() => setTab("edit")}>Chỉnh role</button>
+          </div>
         </div>
-        <p className="sub">Chỉnh được quyền của mọi role người lớn; phiên của trẻ không dùng phân quyền. Mỗi bước duyệt nội dung cho trẻ (kể cả phụ huynh duyệt truyện) phải còn ít nhất một role được duyệt. Hiện chỉ thu hoặc trả lại quyền mặc định của role; quyền bị khóa chưa cấp được vì hệ thống vẫn kiểm role ở bước xử lý. Phạm vi và điều kiện của từng quyền do hệ thống quy định, không sửa ở đây.</p>
+        <p className="sub">
+          Mỗi role người lớn có một bộ quyền mặc định. Quản trị viên có thể tắt bớt rồi bật lại các quyền đó, nhưng chưa cấp
+          được quyền ngoài mặc định. Hệ thống kiểm quyền ở cả API và bước xử lý, nên quyền bị tắt có hiệu lực ngay
+          (tối đa 60 giây). Phạm vi và điều kiện của từng quyền do hệ thống quy định. Phiên của trẻ không dùng phân quyền.
+        </p>
       </div>
-      {groups.map((g) => (
-        <div className="st-card perm-card" key={g.group}>
-          <h3>{g.group}</h3>
-          <table className="st-table stack-table">
-            <thead><tr><th>Quyền</th><th>Mô tả</th><th>Phạm vi</th><th>Bật</th></tr></thead>
-            <tbody>
-              {g.items.map((p) => (
-                <tr key={p.code}>
-                  <td data-label="Quyền"><code>{p.code}</code></td>
-                  <td data-label="Mô tả">
-                    {p.description}
-                    {conditions[p.code]?.map((c) => <div key={c} className="sub" style={{ margin: 0 }}>Điều kiện: {c}</div>)}
-                  </td>
-                  <td data-label="Phạm vi">{scopeLabel(p.scope)}</td>
-                  <td data-label="Bật">
-                    <input type="checkbox" aria-label={`Bật ${p.description}`} checked={draft.includes(p.code)}
-                      disabled={busy || locked.has(p.code)} title={locked.has(p.code) ? `Chưa cấp được quyền này cho ${roleName}` : undefined}
-                      onChange={(e) => toggle(p.code, e.target.checked)} style={{ accentColor: "var(--primary)" }} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      ))}
+      {catalog.length === 0 ? null : tab === "matrix" ? (
+        <PermissionMatrixView catalog={catalog} roles={roles} byRole={byRole} onOpenRole={openRole} />
+      ) : (
+        <RolePermissionEditor catalog={catalog} roles={roles} roleCode={roleCode} data={byRole[roleCode]}
+          onRoleChange={setRoleCode} onSaved={saved} />
+      )}
     </Page>
   );
 }
