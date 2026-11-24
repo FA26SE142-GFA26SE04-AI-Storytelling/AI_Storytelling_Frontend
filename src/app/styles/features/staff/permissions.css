@@ -1,0 +1,60 @@
+/* Trang Phân quyền: ma trận quyền × role và trang chỉnh quyền từng role. */
+.perm-head { display: flex; align-items: center; gap: 10px; }
+.perm-head .seg { width: 260px; max-width: 100%; }
+.perm-head .seg button { padding: 6px 10px; font-size: var(--fs-sm); }
+
+/* Tên quyền: mô tả tiếng Việt trước, mã kỹ thuật nhỏ bên dưới. */
+.perm-name { display: flex; flex-direction: column; gap: 2px; text-align: left; font-weight: 600; min-width: 0; }
+.perm-name code { font-size: var(--fs-xs); font-weight: 400; color: var(--faint); overflow-wrap: anywhere; }
+
+/* Ma trận */
+.perm-matrix { min-width: 760px; }
+.perm-matrix th.perm-name { width: 34%; font-size: var(--fs-sm); color: var(--text); white-space: normal; }
+.perm-matrix th.perm-role { text-align: center; white-space: normal; vertical-align: bottom; }
+.perm-role-btn { font: inherit; font-weight: 800; color: var(--link); text-decoration: underline dotted; text-underline-offset: 3px; }
+.perm-role-btn:hover { color: var(--primary-strong); }
+.perm-section th { padding-top: 14px; font-size: var(--fs-xs); font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; background: none; }
+.perm-cell { text-align: center; vertical-align: middle; position: relative; }
+.perm-cell.on .ic { color: var(--primary-strong); }
+.perm-cell.off .ic { color: var(--faint); }
+.perm-cell.na { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+.perm-conds { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-top: 4px; }
+
+.perm-dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: var(--gold-deep); margin-left: 4px; vertical-align: middle; }
+.perm-cond, .perm-scope, .perm-changed {
+  display: inline-flex; align-items: center; padding: 1px 8px; border-radius: 999px; font-size: var(--fs-xs); font-weight: 600; white-space: nowrap;
+}
+.perm-cond { background: color-mix(in srgb, var(--sky) 22%, transparent); color: var(--text); }
+.perm-scope { background: var(--surface-2); color: var(--muted); }
+.perm-changed { background: color-mix(in srgb, var(--gold) 30%, transparent); color: var(--warn-ink); }
+
+.perm-legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: var(--fs-xs); color: var(--muted); }
+.perm-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.perm-legend .ic { width: 14px; height: 14px; }
+.perm-cond-legend { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 6px 18px; margin: 0; font-size: var(--fs-xs); }
+.perm-cond-legend div { display: flex; gap: 8px; align-items: baseline; }
+.perm-cond-legend dt { flex: none; }
+.perm-cond-legend dd { margin: 0; color: var(--muted); }
+
+/* Chỉnh role */
+.perm-tools { margin-bottom: 0; flex-wrap: wrap; }
+.perm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.perm-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 4px; border-bottom: 1px solid var(--line); }
+.perm-list li:last-child { border-bottom: 0; }
+.perm-row { display: flex; align-items: flex-start; gap: 10px; min-width: 0; cursor: pointer; }
+.perm-row input { margin-top: 3px; accent-color: var(--primary); flex: none; }
+.perm-list li:not(.on) .perm-name > span { color: var(--muted); }
+.perm-meta { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; flex: none; max-width: 50%; }
+
+.perm-history { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; font-size: var(--fs-sm); }
+.perm-history li { display: flex; flex-direction: column; gap: 2px; padding-bottom: 8px; border-bottom: 1px solid var(--line); }
+.perm-history li:last-child { border-bottom: 0; padding-bottom: 0; }
+.perm-history small { color: var(--muted); font-size: var(--fs-xs); }
+.perm-added { color: var(--ok-ink); }
+.perm-removed { color: var(--danger); }
+
+@media (max-width: 720px) {
+  .perm-list li { flex-direction: column; align-items: stretch; gap: 6px; }
+  .perm-meta { justify-content: flex-start; max-width: none; padding-left: 26px; }
+  .perm-cond-legend { grid-template-columns: 1fr; }
+}
