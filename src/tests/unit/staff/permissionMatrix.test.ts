@@ -1,21 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { changedCodes, groupPermissions, lockedCodes, scopeLabel } from '@/app/features/staff/permissionMatrix';
-import type { PermissionDto } from '@/app/types/accessControl';
+import {
+  changedCodes, conditionLegend, conditionsOf, differsFromDefault, historyChange, matrixCell,
+  scopeLabel, sectionOf, sectionPermissions,
+} from '@/app/features/staff/permissionMatrix';
+import type { PermissionDto, RolePermissionsDto } from '@/app/types/accessControl';
 
 const p = (code: string, group: string, isStaffGrantable = true): PermissionDto => ({ code, group, description: code, isStaffGrantable });
-
-describe('groupPermissions', () => {
-  it('keeps the fixed group order and sorts codes inside a group', () => {
-    const list = [p('wishcard.manage', 'Kiểm duyệt'), p('audit.view', 'Quản trị'), p('community.view', 'Dùng chung', false), p('category.manage', 'Kiểm duyệt')];
-    const groups = groupPermissions(list);
-    expect(groups.map((g) => g.group)).toEqual(['Dùng chung', 'Kiểm duyệt', 'Quản trị']);
-    expect(groups[1].items.map((i) => i.code)).toEqual(['category.manage', 'wishcard.manage']);
-  });
-
-  it('puts unknown groups last', () => {
-    expect(groupPermissions([p('x.y', 'Khác'), p('audit.view', 'Quản trị')]).map((g) => g.group)).toEqual(['Quản trị', 'Khác']);
-  });
-});
 
 describe('scopeLabel', () => {
   it('names each scope and treats a missing or unknown scope as all records', () => {
@@ -37,9 +27,60 @@ describe('changedCodes', () => {
   });
 });
 
-describe('lockedCodes', () => {
-  it('locks every permission the role cannot be granted yet, in any group', () => {
-    const catalog = [p('review.gray_zone', 'Kiểm duyệt'), p('creator.payout.manage', 'Quản trị'), p('community.view', 'Dùng chung', false), p('creator.studio', 'Creator', false)];
-    expect(lockedCodes(catalog, ['review.gray_zone', 'community.view'])).toEqual(new Set(['creator.payout.manage', 'creator.studio']));
+
+const admin: RolePermissionsDto = {
+  roleCode: 'Administrator',
+  permissionCodes: ['review.gray_zone', 'audit.view'],
+  assignableCodes: ['review.gray_zone', 'audit.view', 'template.roadmap.author'],
+  defaultCodes: ['review.gray_zone', 'audit.view', 'template.roadmap.author'],
+  conditionCodes: { 'review.gray_zone': ['NotOwnContent', 'AdminFallback'] },
+  conditions: { 'review.gray_zone': ['Không xử lý nội dung do chính mình tạo', 'Chỉ nhận mục đã chuyển lên'] },
+};
+
+describe('matrixCell', () => {
+  it('marks held, re-enable-able and not-applicable permissions', () => {
+    expect(matrixCell(admin, 'review.gray_zone').state).toBe('on');
+    expect(matrixCell(admin, 'template.roadmap.author').state).toBe('off');
+    expect(matrixCell(admin, 'creator.studio')).toEqual({ state: 'na', changed: false, conditions: [] });
+    expect(matrixCell(undefined, 'audit.view').state).toBe('na');
+  });
+
+  it('flags a permission that differs from the role default', () => {
+    expect(matrixCell(admin, 'template.roadmap.author').changed).toBe(true);
+    expect(matrixCell(admin, 'audit.view').changed).toBe(false);
+    expect(differsFromDefault({ ...admin, defaultCodes: undefined })).toEqual(new Set());
+  });
+
+  it('pairs condition codes with their short label and full text', () => {
+    expect(conditionsOf(admin, 'review.gray_zone')).toEqual([
+      { code: 'NotOwnContent', label: 'Không tự duyệt', text: 'Không xử lý nội dung do chính mình tạo' },
+      { code: 'AdminFallback', label: 'Dự phòng', text: 'Chỉ nhận mục đã chuyển lên' },
+    ]);
+    expect(matrixCell(admin, 'review.gray_zone').conditions.map((c) => c.label)).toEqual(['Không tự duyệt', 'Dự phòng']);
+  });
+});
+
+describe('sections', () => {
+  it('splits moderation into queue work and configuration, and renames role-like groups', () => {
+    expect(sectionOf({ ...p('review.gray_zone', 'Kiểm duyệt'), scope: 'Assigned' })).toBe('Kiểm duyệt – xử lý hàng đợi');
+    expect(sectionOf(p('rubric.manage', 'Kiểm duyệt'))).toBe('Kiểm duyệt – cấu hình và xem');
+    expect(sectionOf(p('child.profile.manage', 'Phụ huynh', false))).toBe('Việc của phụ huynh');
+    expect(sectionPermissions([p('audit.view', 'Quản trị'), p('community.view', 'Dùng chung', false)]).map((s) => s.section))
+      .toEqual(['Dùng chung', 'Quản trị']);
+  });
+});
+
+describe('conditionLegend', () => {
+  it('lists every condition once across roles', () => {
+    const mod: RolePermissionsDto = { roleCode: 'Moderator', permissionCodes: [], conditionCodes: { 'review.gray_zone': ['NotOwnContent'] },
+      conditions: { 'review.gray_zone': ['Không xử lý nội dung do chính mình tạo'] } };
+    expect(conditionLegend([admin, mod, undefined]).map((c) => c.code)).toEqual(['NotOwnContent', 'AdminFallback']);
+  });
+});
+
+describe('historyChange', () => {
+  it('reads before/after permission lists from audit JSON and tolerates bad payloads', () => {
+    expect(historyChange('["a","b"]', '["b","c"]')).toEqual({ added: ['c'], removed: ['a'] });
+    expect(historyChange(null, 'not json')).toEqual({ added: [], removed: [] });
   });
 });
