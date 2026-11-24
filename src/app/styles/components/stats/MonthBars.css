@@ -1,4 +1,4 @@
-/* Biểu đồ cột thống kê theo tháng */
+/* Biểu đồ cột thống kê theo tháng - Chủ đề Đầm sen Taletale */
 .mb-chart {
   display: flex;
   flex-direction: column;
@@ -9,31 +9,36 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  font-family: var(--font-display);
   font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--ink-warm);
+  margin: 0;
 }
 
 /*
- * Lưới ba hàng (số trên cột / vùng cột / nhãn tháng). Cột đầu là trục các mức; mỗi .ce-bar dùng
- * display: contents để ba phần tử con rơi vào ba hàng của cột kế tiếp, nên đường kẻ ngang trong
- * vùng cột luôn thẳng với trục dù số và nhãn tháng cao thấp khác nhau.
+ * Lưới ba hàng (số trên cột / vùng cột / nhãn tháng).
+ * Cột đầu là trục các mức; mỗi .ce-bar dùng display: contents để ba phần tử con rơi vào ba hàng.
  */
 .ce-bars {
   display: grid;
   grid-auto-flow: column;
   grid-template-rows: auto 1fr auto;
-  grid-template-columns: auto repeat(var(--cols), minmax(44px, 1fr));
-  row-gap: 8px;
-  height: 280px;
-  padding-top: 12px;
+  grid-template-columns: auto repeat(var(--cols), minmax(46px, 1fr));
+  row-gap: 10px;
+  height: 290px;
+  padding-top: 8px;
 }
 
 .ce-bar {
   display: contents;
 }
 
+/* Trục giá trị bên trái */
 .ce-axis {
   position: relative;
-  min-width: 44px;
+  min-width: 48px;
+  padding-right: 6px;
 }
 
 .ce-axis span {
@@ -44,67 +49,189 @@
   font-weight: 700;
   color: var(--muted);
   white-space: nowrap;
+  font-variant-numeric: tabular-nums;
 }
 
-/* Đường kẻ ngang ở mỗi mức (n khoảng đều nhau), đường đáy đậm hơn. */
+/* Vùng rãnh cột: đường kẻ ngang mờ thanh thoát ở mỗi mức */
 .ce-bar-track {
   position: relative;
-  background: linear-gradient(color-mix(in srgb, var(--line-2) 70%, transparent) 1px, transparent 1px) 0 0 / 100% calc(100% / var(--n)) repeat-y;
-  border-bottom: 1px solid var(--line-2);
+  background: linear-gradient(color-mix(in srgb, var(--line-2) 40%, transparent) 1px, transparent 1px) 0 0 / 100% calc(100% / var(--n)) repeat-y;
+  border-bottom: 2px solid var(--line-2);
 }
 
+/* Rãnh cột nền mờ sang trọng định hình chiều cao tối đa */
+.ce-bar-slot {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: min(50px, 72%);
+  height: 100%;
+  border-radius: 14px 14px 6px 6px;
+  background: color-mix(in srgb, var(--surface-2) 36%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 40%, transparent);
+  pointer-events: none;
+  transition: background .2s ease, border-color .2s ease;
+}
+
+.ce-bar-track.on .ce-bar-slot {
+  background: color-mix(in srgb, var(--gold) 12%, var(--surface-2));
+  border-color: color-mix(in srgb, var(--gold) 45%, transparent);
+}
+
+/* Cột dữ liệu đổ đầy (Bar Fill) */
 .ce-bar-fill {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
   margin-inline: auto;
-  width: min(64px, 80%);
-  border-radius: 12px 12px 4px 4px;
-  background: linear-gradient(180deg, var(--primary), var(--primary-strong));
-  transition: height 0.4s ease;
+  width: min(50px, 72%);
+  border-radius: 12px 12px 5px 5px;
+  background: linear-gradient(180deg, var(--mint) 0%, var(--primary) 65%, var(--primary-strong) 100%);
+  box-shadow: 0 4px 16px -3px color-mix(in srgb, var(--primary) 45%, transparent);
+  transition: height 0.45s cubic-bezier(0.4, 0, 0.2, 1), filter .2s ease, transform .2s ease;
+  overflow: hidden;
 }
 
+/* Cột của tháng đang chọn / hiện tại (Tone vàng hoàng hôn sen) */
 .ce-bar-fill.on {
-  background: var(--gold);
+  background: linear-gradient(180deg, #ffe082 0%, var(--gold) 40%, var(--gold-deep) 100%);
+  box-shadow: 0 6px 22px -2px color-mix(in srgb, var(--gold-deep) 65%, transparent), 0 0 12px 0 color-mix(in srgb, var(--gold) 35%, transparent);
 }
 
+.ce-bar-fill.is-zero {
+  height: 0 !important;
+}
+
+/* Vệt sáng bóng ngọc trên đầu cột */
+.ce-bar-glow {
+  position: absolute;
+  top: 2px;
+  left: 15%;
+  right: 15%;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  pointer-events: none;
+}
+
+/* Mốc định vị số 0 cho các tháng chưa phát sinh doanh thu */
+.ce-bar-zero-dot {
+  position: absolute;
+  bottom: 1px;
+  left: 0;
+  right: 0;
+  margin-inline: auto;
+  width: 20px;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--line-2) 75%, transparent);
+}
+
+/* Nhãn giá trị phía trên cột */
 .ce-bar-val {
   justify-self: center;
-  font-size: var(--fs-sm);
-  font-weight: 800;
   white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.ce-bar-val-pill {
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 55%, transparent);
+  transition: all .2s ease;
+}
+
+.ce-bar-val.has-val .ce-bar-val-pill {
+  color: var(--ink-warm);
+  font-size: var(--fs-sm);
+  background: var(--surface);
+  border-color: var(--line-2);
+}
+
+.ce-bar-val.on .ce-bar-val-pill {
+  color: var(--on-gold);
+  background: var(--gold);
+  border-color: var(--gold-deep);
+  box-shadow: 0 2px 10px -2px color-mix(in srgb, var(--gold-deep) 70%, transparent);
+}
+
+/* Nhãn tháng phía dưới cột */
 .ce-bar-month {
   justify-self: center;
   display: flex;
   flex-direction: column;
   align-items: center;
-  font-size: var(--fs-md);
-  font-weight: 800;
-  line-height: 1.15;
-  color: var(--muted);
   white-space: nowrap;
+  gap: 1px;
 }
 
-.ce-bar-month small {
-  font-size: var(--fs-xs);
+.ce-bar-month-m {
+  font-size: var(--fs-sm);
+  font-weight: 800;
+  color: var(--ink-warm);
+  line-height: 1.2;
+}
+
+.ce-bar-month-y {
+  font-size: 11px;
   font-weight: 600;
+  color: var(--muted);
+}
+
+.ce-bar-month.on .ce-bar-month-m {
+  color: var(--primary-strong);
+  font-weight: 900;
+}
+
+.ce-bar-month-cur {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  margin-top: 3px;
+  box-shadow: 0 0 6px var(--primary);
+}
+
+/* Hiệu ứng tương tác rê chuột (Hover) */
+.ce-bar:hover .ce-bar-fill {
+  filter: brightness(1.15);
+  transform: scaleY(1.02);
+  transform-origin: bottom;
+}
+
+.ce-bar:hover .ce-bar-slot {
+  background: color-mix(in srgb, var(--surface-2) 65%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 50%, var(--line));
+}
+
+.ce-bar:hover .ce-bar-val-pill {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px -3px color-mix(in srgb, var(--shadow) 35%, transparent);
 }
 
 @media (max-width: 560px) {
   .ce-bars {
     overflow-x: auto;
-    grid-template-columns: auto repeat(var(--cols), minmax(40px, 1fr));
+    grid-template-columns: auto repeat(var(--cols), minmax(42px, 1fr));
   }
 
   .ce-axis {
-    min-width: 36px;
+    min-width: 38px;
   }
 
-  .ce-bar-month,
-  .ce-bar-val {
-    font-size: var(--fs-sm);
+  .ce-bar-month-m,
+  .ce-bar-val-pill {
+    font-size: var(--fs-xs);
   }
 }

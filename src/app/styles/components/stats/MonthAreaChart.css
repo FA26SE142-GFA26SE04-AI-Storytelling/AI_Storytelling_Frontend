@@ -1,0 +1,211 @@
+/* Biểu đồ đường diện tích (Area Chart) theo phong cách DashStack - Chủ đề Đầm sen Taletale */
+.mac-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.mac-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 4px;
+}
+
+.mac-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-lg);
+  font-weight: 800;
+  color: var(--ink-warm);
+  margin: 0;
+}
+
+.mac-badge {
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  color: var(--muted);
+  background: color-mix(in srgb, var(--surface) 80%, transparent);
+  border: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.mac-chart-box {
+  width: 100%;
+  position: relative;
+  overflow: visible;
+}
+
+.mac-svg {
+  width: 100%;
+  height: 280px;
+  overflow: visible;
+  display: block;
+}
+
+/* Đường lưới trục tọa độ */
+.mac-grid-line {
+  stroke: color-mix(in srgb, var(--line-2) 32%, transparent);
+  stroke-dasharray: 4 4;
+  stroke-width: 1;
+}
+
+.mac-axis-base {
+  stroke: var(--line-2);
+  stroke-width: 1.5;
+}
+
+.mac-axis-txt {
+  fill: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: var(--font-ui);
+  user-select: none;
+}
+
+/* Vùng phủ diện tích gradient */
+.mac-area {
+  transition: d 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+/* Đường line đồ thị chính */
+.mac-line {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 3px 8px color-mix(in srgb, var(--primary) 40%, transparent));
+  transition: d 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+/* Đường con trỏ gióng dọc */
+.mac-cursor-line {
+  stroke: color-mix(in srgb, var(--primary) 45%, transparent);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 4;
+  pointer-events: none;
+  animation: mac-dash 0.8s linear infinite;
+}
+
+@keyframes mac-dash {
+  to {
+    stroke-dashoffset: -8;
+  }
+}
+
+/* Điểm dữ liệu (Data points) */
+.mac-point-group {
+  cursor: pointer;
+  outline: none;
+}
+
+.mac-point-dot {
+  fill: var(--chrome);
+  stroke: var(--primary);
+  stroke-width: 2.5;
+  transition: r 0.2s cubic-bezier(0.4, 0, 0.2, 1), fill 0.2s ease, stroke 0.2s ease;
+}
+
+.mac-point-group:hover .mac-point-dot {
+  r: 6;
+  stroke-width: 3;
+}
+
+.mac-point-group.is-active .mac-point-dot {
+  fill: var(--primary);
+  stroke: #ffffff;
+  stroke-width: 2.5;
+}
+
+.mac-halo-dot {
+  fill: color-mix(in srgb, var(--primary) 22%, transparent);
+  stroke: color-mix(in srgb, var(--primary) 45%, transparent);
+  stroke-width: 1;
+  animation: mac-pulse 2s ease-in-out infinite;
+}
+
+@keyframes mac-pulse {
+  0%, 100% {
+    r: 9;
+    opacity: 0.8;
+  }
+  50% {
+    r: 12;
+    opacity: 0.35;
+  }
+}
+
+/* Tooltip hiển thị trên đầu điểm dữ liệu (Phong cách DashStack) */
+.mac-tip-box {
+  fill: var(--primary-strong);
+  filter: drop-shadow(0 6px 14px color-mix(in srgb, var(--shadow) 50%, transparent));
+  transition: x 0.2s cubic-bezier(0.4, 0, 0.2, 1), y 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mac-tip-arrow {
+  fill: var(--primary-strong);
+  transition: points 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mac-tip-txt {
+  fill: #ffffff;
+  font-size: 13px;
+  font-weight: 800;
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  user-select: none;
+  transition: x 0.2s cubic-bezier(0.4, 0, 0.2, 1), y 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Nhãn tháng ở trục X */
+.mac-x-label {
+  cursor: pointer;
+  user-select: none;
+}
+
+.mac-month-m {
+  fill: var(--ink-warm);
+  font-size: 12px;
+  font-weight: 800;
+  font-family: var(--font-ui);
+  transition: fill 0.15s;
+}
+
+.mac-month-y {
+  fill: var(--muted);
+  font-size: 10px;
+  font-weight: 600;
+  font-family: var(--font-ui);
+}
+
+.mac-x-label:hover .mac-month-m {
+  fill: var(--primary);
+}
+
+.mac-x-label.is-active .mac-month-m {
+  fill: var(--primary-strong);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.mac-active-pip {
+  fill: var(--primary);
+  box-shadow: 0 0 6px var(--primary);
+}
+
+@media (max-width: 600px) {
+  .mac-svg {
+    height: 240px;
+  }
+  .mac-axis-txt {
+    font-size: 9.5px;
+  }
+  .mac-month-m {
+    font-size: 11px;
+  }
+}

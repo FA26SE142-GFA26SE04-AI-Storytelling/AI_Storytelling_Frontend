@@ -49,26 +49,36 @@ export default function MonthBars({
           const text = isNum ? format(v) : v === null ? '—' : '…';
           const dataH = isNum
             ? v > 0
-              ? `${Math.max(4, Math.round((v / top) * 100))}%`
+              ? `${Math.max(6, Math.round((v / top) * 100))}%`
               : '0%'
             : undefined;
 
           return (
             <div className="ce-bar" key={m.key}>
-              <span className="ce-bar-val">{text}</span>
-              <div className="ce-bar-track">
+              <span className={`ce-bar-val${m.key === selectedKey ? ' on' : ''}${isNum && v > 0 ? ' has-val' : ''}`}>
+                <span className="ce-bar-val-pill">{text}</span>
+              </span>
+              <div className={`ce-bar-track${m.key === selectedKey ? ' on' : ''}`}>
+                {/* Rãnh cột nền mờ sang trọng định hình chiều cao tối đa */}
+                <div className="ce-bar-slot" aria-hidden="true" />
                 {isNum && (
                   <i
-                    className={`ce-bar-fill${m.key === selectedKey ? ' on' : ''}`}
+                    className={`ce-bar-fill${m.key === selectedKey ? ' on' : ''}${v === 0 ? ' is-zero' : ''}`}
                     data-h={dataH}
                     style={{ height: dataH }}
-                  />
+                  >
+                    <span className="ce-bar-glow" aria-hidden="true" />
+                  </i>
+                )}
+                {isNum && v === 0 && (
+                  <span className="ce-bar-zero-dot" aria-hidden="true" />
                 )}
               </div>
               {/* Nhãn "T9/2026" tách hai dòng (tháng / năm) để không dính nhau ở màn hẹp. */}
-              <span className="ce-bar-month" title={m.label}>
-                {m.label.split('/')[0]}
-                {m.label.includes('/') && <small>{m.label.split('/')[1]}</small>}
+              <span className={`ce-bar-month${m.key === selectedKey ? ' on' : ''}`} title={m.label}>
+                <span className="ce-bar-month-m">{m.label.split('/')[0]}</span>
+                {m.label.includes('/') && <small className="ce-bar-month-y">{m.label.split('/')[1]}</small>}
+                {m.key === selectedKey && <span className="ce-bar-month-cur" aria-hidden="true" />}
               </span>
             </div>
           );
