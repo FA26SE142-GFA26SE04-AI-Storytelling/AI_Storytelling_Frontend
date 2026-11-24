@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { changedCodes, groupPermissions, lockedCodes } from '@/app/features/staff/permissionMatrix';
+import { changedCodes, groupPermissions, lockedCodes, scopeLabel } from '@/app/features/staff/permissionMatrix';
 import type { PermissionDto } from '@/app/types/accessControl';
 
 const p = (code: string, group: string, isStaffGrantable = true): PermissionDto => ({ code, group, description: code, isStaffGrantable });
@@ -14,6 +14,16 @@ describe('groupPermissions', () => {
 
   it('puts unknown groups last', () => {
     expect(groupPermissions([p('x.y', 'Khác'), p('audit.view', 'Quản trị')]).map((g) => g.group)).toEqual(['Quản trị', 'Khác']);
+  });
+});
+
+describe('scopeLabel', () => {
+  it('names each scope and treats a missing or unknown scope as all records', () => {
+    expect(scopeLabel('Assigned')).toBe('Mục đã nhận');
+    expect(scopeLabel('Own')).toBe('Của mình');
+    expect(scopeLabel('Any')).toBe('Tất cả');
+    expect(scopeLabel(undefined)).toBe('Tất cả');
+    expect(scopeLabel('Other')).toBe('Tất cả');
   });
 });
 

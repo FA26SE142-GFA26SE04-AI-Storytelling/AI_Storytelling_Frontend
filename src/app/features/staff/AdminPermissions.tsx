@@ -6,7 +6,7 @@ import { RotateCcw, Save } from "lucide-react";
 import Select from "@/app/components/Select";
 import { accessControlService as api } from "@/app/services/accessControlService";
 import type { PermissionDto, RoleDto } from "@/app/types/accessControl";
-import { changedCodes, groupPermissions, lockedCodes } from "./permissionMatrix";
+import { changedCodes, groupPermissions, lockedCodes, scopeLabel } from "./permissionMatrix";
 import { Notice, Page, useAction } from "./ui";
 
 /** Administrator thu hoặc trả lại quyền mặc định của mọi role người lớn. */
@@ -18,6 +18,7 @@ export default function AdminPermissions() {
   const [draft, setDraft] = useState<string[]>([]);
   // null: backend cũ chưa trả assignableCodes → không khóa ô nào (backend vẫn tự chặn khi lưu).
   const [assignable, setAssignable] = useState<string[] | null>(null);
+  const [conditions, setConditions] = useState<Record<string, string[]>>({});
 
   const loadRole = useCallback(async () => {
     const [p, r] = await Promise.all([api.permissions(), api.rolePermissions(roleCode)]);
@@ -26,6 +27,7 @@ export default function AdminPermissions() {
     const held = [...r.data.permissionCodes].sort();
     setCatalog(p.data);
     setAssignable(r.data.assignableCodes ?? null);
+    setConditions(r.data.conditions ?? {});
     setSaved(held);
     setDraft(held);
     return null;
@@ -64,18 +66,22 @@ export default function AdminPermissions() {
           {dirty && <button className="btn btn-g" disabled={busy} onClick={() => setDraft(saved)}><RotateCcw className="ic" />Hoàn tác</button>}
           {dirty && <button className="btn btn-p" disabled={busy} onClick={() => void save()}><Save className="ic" />Lưu thay đổi</button>}
         </div>
-        <p className="sub">Chỉnh được quyền của mọi role người lớn; phiên của trẻ không dùng phân quyền. Mỗi bước duyệt nội dung cho trẻ (kể cả phụ huynh duyệt truyện) phải còn ít nhất một role được duyệt. Hiện chỉ thu hoặc trả lại quyền mặc định của role; quyền bị khóa chưa cấp được vì hệ thống vẫn kiểm role ở bước xử lý.</p>
+        <p className="sub">Chỉnh được quyền của mọi role người lớn; phiên của trẻ không dùng phân quyền. Mỗi bước duyệt nội dung cho trẻ (kể cả phụ huynh duyệt truyện) phải còn ít nhất một role được duyệt. Hiện chỉ thu hoặc trả lại quyền mặc định của role; quyền bị khóa chưa cấp được vì hệ thống vẫn kiểm role ở bước xử lý. Phạm vi và điều kiện của từng quyền do hệ thống quy định, không sửa ở đây.</p>
       </div>
       {groups.map((g) => (
         <div className="st-card perm-card" key={g.group}>
           <h3>{g.group}</h3>
           <table className="st-table stack-table">
-            <thead><tr><th>Quyền</th><th>Mô tả</th><th>Bật</th></tr></thead>
+            <thead><tr><th>Quyền</th><th>Mô tả</th><th>Phạm vi</th><th>Bật</th></tr></thead>
             <tbody>
               {g.items.map((p) => (
                 <tr key={p.code}>
                   <td data-label="Quyền"><code>{p.code}</code></td>
-                  <td data-label="Mô tả">{p.description}</td>
+                  <td data-label="Mô tả">
+                    {p.description}
+                    {conditions[p.code]?.map((c) => <div key={c} className="sub" style={{ margin: 0 }}>Điều kiện: {c}</div>)}
+                  </td>
+                  <td data-label="Phạm vi">{scopeLabel(p.scope)}</td>
                   <td data-label="Bật">
                     <input type="checkbox" aria-label={`Bật ${p.description}`} checked={draft.includes(p.code)}
                       disabled={busy || locked.has(p.code)} title={locked.has(p.code) ? `Chưa cấp được quyền này cho ${roleName}` : undefined}

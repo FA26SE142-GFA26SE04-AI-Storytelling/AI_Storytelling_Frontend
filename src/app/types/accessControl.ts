@@ -4,6 +4,8 @@ export interface PermissionDto {
   group: string;
   description: string;
   isStaffGrantable: boolean;
+  /** Phạm vi áp quyền: `Any` (tất cả), `Own` (của mình), `Assigned` (mục đang do mình nhận). Backend cũ chưa trả. */
+  scope?: string;
 }
 
 export interface RoleDto {
@@ -17,4 +19,6 @@ export interface RolePermissionsDto {
   permissionCodes: string[];
   /** Quyền nhân viên role được bật: mặc định của role + quyền đang giữ. Ngoài tập này backend từ chối. */
   assignableCodes?: string[];
+  /** Điều kiện kèm theo khi role này dùng quyền (câu tiếng Việt), chỉ gồm quyền có điều kiện. Chỉ đọc. */
+  conditions?: Record<string, string[]>;
 }
