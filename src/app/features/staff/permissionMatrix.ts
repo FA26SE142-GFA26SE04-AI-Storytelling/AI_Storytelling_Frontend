@@ -25,6 +25,13 @@ export function changedCodes(saved: string[], draft: string[]): { added: string[
   };
 }
 
+const SCOPE_LABELS: Record<string, string> = { Any: 'Tất cả', Own: 'Của mình', Assigned: 'Mục đã nhận' };
+
+/** Nhãn phạm vi áp quyền; thiếu hoặc lạ thì coi là áp cho tất cả. */
+export function scopeLabel(scope?: string): string {
+  return SCOPE_LABELS[scope ?? 'Any'] ?? SCOPE_LABELS.Any;
+}
+
 /** Quyền role chưa được cấp (ngoài `assignableCodes` backend trả về): chỉ được thu hoặc trả lại quyền mặc định. */
 export function lockedCodes(catalog: PermissionDto[], assignable: string[]): Set<string> {
   const allowed = new Set(assignable);
