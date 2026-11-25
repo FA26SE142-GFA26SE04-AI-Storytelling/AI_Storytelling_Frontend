@@ -628,6 +628,8 @@ describe("Library UI components", () => {
     // Tác giả nổi bật nằm trên cùng, trước các nhóm lọc.
     expect(iAuthors).toBeGreaterThan(-1);
     expect(iAuthors).toBeLessThan(iAge);
+    // Tác giả nổi bật là khung riêng, nằm ngoài khung Bộ lọc (<aside>).
+    expect(iAuthors).toBeLessThan(sidebarHtml.indexOf("<aside"));
     expect(iAge).toBeLessThan(iTopic);
     expect(iTopic).toBeLessThan(iDuration);
     expect(iDuration).toBeLessThan(iSource);

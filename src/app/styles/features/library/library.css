@@ -226,7 +226,10 @@
   border: 1px solid color-mix(in srgb, var(--gold) 46%, var(--line));
   background: color-mix(in srgb, var(--gold) 14%, var(--panel));
 }
-.lib-sidebar-inner > .lib-top-authors:first-child { margin: 0 0 12px; }
+/* Cột trái gồm khung "Tác giả nổi bật" và khung Bộ lọc; cả cột dính khi cuộn, khung Bộ lọc tự cuộn bên trong. */
+.lib-side-col { position: sticky; top: 0; display: flex; flex-direction: column; gap: 12px; min-width: 0; max-height: calc(100dvh - 124px); }
+.lib-side-col > .lib-top-authors { margin: 0; flex: none; box-shadow: 0 8px 20px -17px var(--shadow); }
+.lib-side-col > .lib-sidebar { position: static; min-height: 0; max-height: none; }
 .lib-top-authors h4 { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: var(--fs-md); }
 .lib-top-authors h4 .ic { width: 16px; height: 16px; flex: none; color: var(--gold-deep); }
 .lib-top-authors ul { display: grid; gap: 4px; list-style: none; margin: 0; padding: 0; }
@@ -393,7 +396,7 @@
 }
 @media (max-width: 960px) {
   .lib-community-layout { grid-template-columns: minmax(0, 1fr); }
-  .lib-sidebar { display: none; }
+  .lib-sidebar, .lib-side-col { display: none; }
 }
 @media (max-width: 700px) {
   .lib-community-layout .lib-head { align-items: flex-start; }

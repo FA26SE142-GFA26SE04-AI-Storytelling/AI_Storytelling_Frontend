@@ -35,10 +35,9 @@ export function FilterSidebarShell({ active, onClear, top, children }: { active:
     );
   }
 
-  return (
+  const sidebar = (
     <aside className="lib-sidebar" aria-label="Bộ lọc thư viện">
       <div className="lib-sidebar-inner">
-        {top}
         <div className="lib-sidebar-head">
           <h3 className="display"><SlidersHorizontal className="ic" aria-hidden="true" />Bộ lọc</h3>
           <span className="lib-sidebar-actions">
@@ -52,6 +51,8 @@ export function FilterSidebarShell({ active, onClear, top, children }: { active:
       </div>
     </aside>
   );
+  // Phần phụ (vd "Tác giả nổi bật") là khung riêng phía trên khung Bộ lọc, cùng một cột.
+  return top ? <div className="lib-side-col">{top}{sidebar}</div> : sidebar;
 }
 
 export default function LibraryFilterSidebar({ stories, ages, topics, age, genre, source, status, extraFilters, community = false, onAge, onGenre, onSource, onStatus, onClear }: {
