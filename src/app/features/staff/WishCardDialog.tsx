@@ -57,6 +57,7 @@ export default function WishCardDialog({
   groups,
   busy,
   saveError,
+  canEdit = true,
   onFormChange,
   onSwitchToEdit,
   onReloadCard,
@@ -70,6 +71,7 @@ export default function WishCardDialog({
   groups: { id: ManagedWishCardGroup; label: string }[];
   busy: boolean;
   saveError: string;
+  canEdit?: boolean;
   onFormChange: (next: WishCardForm) => void;
   onSwitchToEdit: () => void;
   onReloadCard: () => void;
@@ -241,7 +243,7 @@ export default function WishCardDialog({
           </button>
         )}
         {readOnly ? (
-          <button type="button" className="btn btn-p" disabled={busy} onClick={onSwitchToEdit}>
+          <button type="button" className="btn btn-p" disabled={busy || !canEdit} onClick={onSwitchToEdit}>
             <Pencil className="ic" />Chỉnh sửa thẻ
           </button>
         ) : (

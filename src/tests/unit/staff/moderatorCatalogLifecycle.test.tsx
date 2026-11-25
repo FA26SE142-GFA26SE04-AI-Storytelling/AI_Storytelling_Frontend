@@ -38,6 +38,11 @@ const host = vi.hoisted(() => {
   };
 });
 
+// Host test không có useContext; quyền không phải điều đang kiểm ở đây nên coi như được phép.
+vi.mock('@/app/features/staff/staffAccess', () => ({
+  AccessNotice: () => null,
+  useAccess: () => ({ state: 'Allowed', reason: null }),
+}));
 vi.mock('react', async importOriginal => ({
   ...await importOriginal<typeof import('react')>(),
   useState: host.useState, useRef: host.useRef, useEffect: host.useEffect,

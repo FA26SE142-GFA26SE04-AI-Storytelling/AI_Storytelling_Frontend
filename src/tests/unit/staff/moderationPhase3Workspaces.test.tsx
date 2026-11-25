@@ -276,7 +276,9 @@ describe('Moderator Phase 3 workspaces (specs 07-10, 12-13)', () => {
     expect(evalHtml).toContain('Định nghĩa hợp lệ');
 
     const rubricSrc = readFileSync(path.resolve(process.cwd(), 'app/features/staff/RubricWorkspace.tsx'), 'utf8');
-    expect(rubricSrc).toContain("user?.role === 'Administrator' && current.status === 'Draft'");
+    // Luồng 5: cả hai role được kích hoạt rubric, không khoá theo role.
+    expect(rubricSrc).not.toContain("user?.role === 'Administrator' && current.status === 'Draft'");
+    expect(rubricSrc).toContain('service.activate');
     expect(rubricSrc).toContain('conflictBlocked');
     expect(rubricSrc).toContain('guardUnsaved');
 

@@ -502,14 +502,14 @@
   },
   {
     "method": "GET",
-    "route": "/api/v1/Auth/me/permissions",
+    "route": "/api/v1/Auth/me/access",
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
-    "action": "GetMyPermissions",
+    "action": "GetMyAccess",
     "controllerLine": 195,
     "evidence": [
       {
-        "key": "GET /api/v1/Auth/me/permissions",
+        "key": "GET /api/v1/Auth/me/access",
         "service": "accessControlService",
         "operation": "mine",
         "file": "app/services/accessControlService.ts",

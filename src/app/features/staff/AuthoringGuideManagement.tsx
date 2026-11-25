@@ -11,6 +11,7 @@ import { FilePlus2, RefreshCw } from 'lucide-react';
 import GuideHistorySection from './GuideHistorySection';
 import GuideItemEditor from './GuideItemEditor';
 import GuidePreviewSection from './GuidePreviewSection';
+import { AccessNotice, useAccess } from './staffAccess';
 import { Page } from './ui';
 
 /** Tài liệu 10 — Trang Hướng dẫn sáng tác (catalog mẫu do kiểm duyệt viên quản lý; tách 4 khu vực, chặn mất form khi đang lưu / lỗi 409). */
@@ -115,6 +116,9 @@ export default function AuthoringGuideManagement() {
   };
 
   const disabled = h.busy || h.blocked || reading || !model;
+  const access = useAccess('guide.manage');
+  // Chỉ xem: đọc, xem thử và mở lịch sử vẫn dùng được, mọi nút ghi bị khoá.
+  const writeDisabled = disabled || access.state === 'Blocked';
   const previewValid = preview?.revisionToken === model?.revisionToken && !!preview && !dirty;
 
   return (
@@ -122,6 +126,7 @@ export default function AuthoringGuideManagement() {
       <p className="sub">
         Danh mục hướng dẫn sáng tác mẫu do kiểm duyệt viên quản lý — độc lập với công cụ AI gợi ý theo ngữ cảnh từng bản nháp.
       </p>
+      <AccessNotice access={access} />
       {h.note && (
         <p className={`notice ${h.errorKind ? 'err' : ''}`} role={h.errorKind ? 'alert' : 'status'} data-inline-notice>
           {h.errorKind === 'load' ? 'Lỗi tải dữ liệu: ' : h.errorKind === 'save' ? 'Lỗi lưu thay đổi: ' : ''}
@@ -162,7 +167,7 @@ export default function AuthoringGuideManagement() {
             )}
             {!model.draft && (
               <div className="row">
-                <button type="button" className="btn btn-p" disabled={disabled || !model.published} onClick={() => void write(() => api.createDraft(null))} title="Tạo bản nháp từ bản đang dùng">
+                <button type="button" className="btn btn-p" disabled={writeDisabled || !model.published} onClick={() => void write(() => api.createDraft(null))} title="Tạo bản nháp từ bản đang dùng">
                   <FilePlus2 className="ic" />Tạo bản nháp
                 </button>
               </div>
@@ -174,10 +179,10 @@ export default function AuthoringGuideManagement() {
               <section className="st-card" aria-label="Bản nháp hướng dẫn">
                 <h3>Bản nháp: {model.draft.version.catalogVersion}</h3>
                 <div className="row st-wrap">
-                  <button type="button" className="btn btn-s" disabled={disabled} onClick={() => void select(null)}>
+                  <button type="button" className="btn btn-s" disabled={writeDisabled} onClick={() => void select(null)}>
                     Thêm hướng dẫn
                   </button>
-                  <button type="button" className="btn btn-no" disabled={disabled} onClick={async () => { if (await confirmDialog('Hủy toàn bộ bản nháp hướng dẫn?') && await discardEdits()) void write(() => api.discard(model.revisionToken)); }}>
+                  <button type="button" className="btn btn-no" disabled={writeDisabled} onClick={async () => { if (await confirmDialog('Hủy toàn bộ bản nháp hướng dẫn?') && await discardEdits()) void write(() => api.discard(model.revisionToken)); }}>
                     Hủy bản nháp
                   </button>
                 </div>
@@ -187,7 +192,7 @@ export default function AuthoringGuideManagement() {
                       <button type="button" className="btn btn-g grow" disabled={disabled} onClick={() => void select(g.id)}>
                         {g.title}
                       </button>
-                      <button type="button" className="btn btn-g" disabled={disabled || dirty} onClick={async () => { if (await confirmDialog(`Xóa hướng dẫn “${g.title}” khỏi bản nháp?`)) void write(() => api.remove(g.id, model.revisionToken)); }}>
+                      <button type="button" className="btn btn-g" disabled={writeDisabled || dirty} onClick={async () => { if (await confirmDialog(`Xóa hướng dẫn “${g.title}” khỏi bản nháp?`)) void write(() => api.remove(g.id, model.revisionToken)); }}>
                         Xóa khỏi bản nháp
                       </button>
                     </div>
@@ -200,7 +205,7 @@ export default function AuthoringGuideManagement() {
                   <GuideItemEditor
                     key={`${model.revisionToken}:${selected ?? 'new'}`}
                     item={item}
-                    disabled={disabled}
+                    disabled={writeDisabled}
                     onDirty={() => { setDirty(true); setPreview(null); }}
                     onSave={(id, value) => void write(() => api.upsert(id, { ...value, revisionToken: model.revisionToken })).then(ok => { if (ok) setEditing(false); })}
                   />
@@ -217,6 +222,7 @@ export default function AuthoringGuideManagement() {
                 previewValid={previewValid}
                 dirty={dirty}
                 disabled={disabled}
+                publishDisabled={access.state === 'Blocked'}
                 onPurposeChange={v => { setPurpose(v); setPreview(null); setPreviewPage(1); }}
                 onGroupChange={v => { setGroup(v); setPreview(null); setPreviewPage(1); }}
                 onPreviewPageChange={p => { setPreviewPage(p); setPreview(null); }}
@@ -235,6 +241,7 @@ export default function AuthoringGuideManagement() {
         version={version}
         hasDraft={!!model?.draft}
         disabled={disabled}
+        createDisabled={access.state === 'Blocked'}
         onPageChange={setPage}
         onSelectVersion={versionId => void openVersion(versionId)}
         onCreateDraftFrom={versionId => void write(() => api.createDraft(versionId))}

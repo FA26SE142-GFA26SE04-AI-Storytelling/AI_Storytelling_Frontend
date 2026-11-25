@@ -20,6 +20,7 @@ import '@/app/styles/features/library/library.css';
 import '@/app/styles/features/created/created.css';
 import { Page } from './ui';
 import StoryWishCards from './StoryWishCards';
+import { useAccess } from './staffAccess';
 import LearningMaterials from './LearningMaterials';
 import ReviewPicture, { ZoomLightbox } from './ReviewPicture';
 
@@ -216,7 +217,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
     if (r.success && r.data) {
       setReportOpen(false);
       setCreatedReportId(r.data.reportId);
-      const nextLabel = user?.role === 'Administrator' ? 'Hàng đợi quản trị' : 'Báo cáo nội dung';
+      const nextLabel = user?.role === 'Administrator' ? 'Hàng đợi dự phòng' : 'Báo cáo nội dung';
       showToast(`Đã tạo báo cáo #${r.data.reportId}. Mở ${nextLabel} để nhận xử lý.`, 'ok');
     } else {
       handleUnavailable(r.status, r.message);
@@ -225,6 +226,8 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
 
   const inDetail = !!story || !!roadmap;
   const isModerator = user?.role === 'Moderator';
+  const canReport = useAccess('moderation.published.review').state !== 'Hidden';
+  const canSeeWishCards = useAccess('wishcard.manage').state !== 'Hidden';
   const SOURCES = isModerator
     ? ([{ id: 'PublicLibrary', label: 'Truyện nhà sáng tạo đang công khai' }] as const)
     : ([
@@ -355,11 +358,11 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
                   </details>
                 </div>
 
-                {(user?.role === 'Moderator' || user?.role === 'Administrator') && (
+                {canSeeWishCards && (
                   <StoryWishCards key={story.story.storyId} storyId={story.story.storyId} versionId={story.version?.versionId} />
                 )}
 
-                {user?.role === 'Moderator' && (
+                {canReport && isModerator && (
                   <div className="st-group">
                     <b className="st-group-title">Báo cáo nội dung</b>
                     <div className="row">

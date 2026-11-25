@@ -47,8 +47,9 @@ import AdminOverview from "./AdminOverview";
 import AdminSidebar, { type SideGroup } from "./AdminSidebar";
 import { adminNavBadges, useAdminTodo } from "./adminTodo";
 import { canOpenPage, visibleNav } from "./staffPageAccess";
-import { useMyPermissions } from "./useMyPermissions";
+import { StaffAccessProvider, useMyAccess } from "./staffAccess";
 import { Page } from "./ui";
+import { ModerationQueue } from "./Moderation";
 // Trước đây chỉ ParentShell nạp file này nên ở điện thoại header nhân viên vẫn hiện thanh ngang (bị cắt) và không có thanh tab đáy.
 import "@/app/styles/mobile.css";
 
@@ -76,6 +77,7 @@ const CREATOR_ACCOUNT_PAGES: PageDef[] = [
 const PAGES: Record<StaffRole, PageDef[]> = {
   Administrator: [
     { id: "overview", label: "Tổng quan", icon: LayoutDashboard, view: AdminOverview, hint: "Việc cần xử lý và tình hình kinh doanh" },
+    { id: "queue", label: "Hàng đợi dự phòng", icon: Inbox, view: ModerationQueue, hint: "Nhận mục đã chuyển lên hoặc khi không còn kiểm duyệt viên" },
     { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và lộ trình mẫu đang công khai" },
     { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
@@ -127,7 +129,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     "overview",
     { label: "Người dùng", icon: Users, items: ["staff", "creators", "permissions", "audit"] },
     { label: "Tài chính", icon: WalletCards, items: ["business", "payments", "plans", "quota"] },
-    { label: "Nội dung & kiểm duyệt", icon: BookOpenText, items: ["published", "rubrics", "authoring-guides", "templates", "wish-cards"] },
+    { label: "Nội dung & kiểm duyệt", icon: BookOpenText, items: ["queue", "published", "rubrics", "authoring-guides", "templates", "wish-cards"] },
   ],
   Moderator: [
     "queue",
@@ -318,7 +320,7 @@ function StaffAppInner({
 
   const page = pages.find((p) => p.id === pageId) ?? pages[0];
   const View = page.view;
-  const granted = useMyPermissions(userId);
+  const granted = useMyAccess(userId, pageId);
   const nav = useMemo(() => visibleNav(NAV[role], (id) => canOpenPage(role, id, granted)), [role, granted]);
   const groups = useMemo(() => sideGroups(role, nav), [role, nav]);
   const allowed = canOpenPage(role, page.id, granted);
@@ -363,7 +365,9 @@ function StaffAppInner({
 
       <main className="stage">
         {allowed ? (
-          <View key={`${userId ?? "anon"}:${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} />
+          <StaffAccessProvider value={granted}>
+            <View key={`${userId ?? "anon"}:${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} />
+          </StaffAccessProvider>
         ) : (
           <Page title={page.label}>
             <div className="st-card">
