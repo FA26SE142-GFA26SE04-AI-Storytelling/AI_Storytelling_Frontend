@@ -21,6 +21,10 @@ export default function PermissionMatrixView({ catalog, roles, byRole, onOpenRol
     <div className="st-card perm-card">
       <div className="st-scroll">
         <table className="st-table perm-matrix">
+          <colgroup>
+            <col className="perm-task-col" />
+            {roles.map((r) => <col key={r.code} />)}
+          </colgroup>
           <thead>
             <tr>
               <th>Việc</th>
@@ -35,12 +39,14 @@ export default function PermissionMatrixView({ catalog, roles, byRole, onOpenRol
           </thead>
           {sections.map(({ section, items }) => (
             <tbody key={section}>
-              <tr className="perm-section"><th colSpan={roles.length + 1} scope="colgroup">{section}</th></tr>
+              <tr className="perm-section"><th colSpan={roles.length + 1} scope="colgroup"><span>{section}</span></th></tr>
               {items.map((p) => (
                 <tr key={p.code}>
-                  <th scope="row" className="perm-name">
-                    <span>{p.description}</span>
-                    <code>{p.code}</code>
+                  <th scope="row" className="perm-task">
+                    <div className="perm-name">
+                      <span>{p.description}</span>
+                      <code>{p.code}</code>
+                    </div>
                   </th>
                   {roles.map((r) => {
                     const cell = matrixCell(byRole[r.code], p.code);
