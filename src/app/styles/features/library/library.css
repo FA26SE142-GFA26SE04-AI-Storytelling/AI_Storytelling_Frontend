@@ -173,7 +173,7 @@
 .lib-sidebar-inner { padding: 12px; }
 .lib-sidebar-head, .lib-sidebar-head h3 { display: flex; align-items: center; gap: 7px; }
 .lib-sidebar-head { justify-content: space-between; }
-.lib-sidebar-head h3 { margin: 0; font-size: var(--fs-lg); }
+.lib-sidebar-head h3 { margin: 0; font-size: var(--fs-lg); white-space: nowrap; }
 .lib-sidebar-head .ic, .lib-side-group summary .ic { color: var(--link); width: 15px; height: 15px; flex: none; }
 .lib-sidebar-head .lib-reset-btn { white-space: nowrap; padding-inline: 3px; }
 .lib-side-group { padding: 10px 0; border-top: 1px solid var(--line); margin-top: 6px; }
@@ -328,16 +328,16 @@
 .lib-community-layout .shelf-row:has(.lib-card-compact) { gap: 10px; padding-inline: 1px; }
 .lib-community-layout .shelf-row > .bk.lib-card-compact {
   display: grid;
-  grid-template-columns: minmax(0, 38%) minmax(0, 1fr);
+  /* Cột ảnh 102px × cao 136px (138px trừ viền) = đúng tỉ lệ bìa 3:4, không cắt ảnh thành hình vuông. */
+  grid-template-columns: 102px minmax(0, 1fr);
   flex-basis: calc((100% - 30px) / 4);
-  min-height: 108px;
+  min-height: 138px;
   border-radius: 13px;
   scroll-snap-align: start;
   box-shadow: 0 6px 16px -14px var(--shadow);
 }
 .lib-card-compact .lib-card-media { aspect-ratio: auto; align-self: stretch; min-width: 0; height: auto; }
-.lib-card-compact .lib-card-body { min-width: 0; padding: 8px; gap: 4px; }
-.lib-card-compact .lib-card-title { font-size: var(--fs-sm); }
+.lib-card-compact .lib-card-body { min-width: 0; padding: 8px; gap: 4px; }.lib-card-compact .lib-card-title { font-size: var(--fs-sm); }
 .lib-card-compact .lib-card-meta { flex-wrap: wrap; row-gap: 1px; }
 .lib-card-compact .lib-card-synopsis { -webkit-line-clamp: 2; font-size: var(--fs-xs); }
 .lib-card-compact .story-stats-badge {
