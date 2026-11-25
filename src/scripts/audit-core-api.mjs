@@ -11,6 +11,24 @@ const routes = fs.existsSync(controllerDir) ? controllerInventory(controllerDir)
 const walkFiles = dir => fs.readdirSync(dir,{withFileTypes:true}).flatMap(d => d.isDirectory() ? walkFiles(path.join(dir,d.name)) : /\.tsx?$/.test(d.name) ? [path.join(dir,d.name)] : []);
 const all = walkFiles(path.join(root,'app'));
 const usages = all.map(p => ({p,text:fs.readFileSync(p,'utf8')}));
+// Reuse caller scans across route variants without sharing mutable evidence arrays.
+const callerCache = new Map();
+function operationCallers(file, service, name) {
+ const key = `${file}:${service}:${name}`;
+ if (callerCache.has(key)) return [...callerCache.get(key)];
+ const callers=[];
+    if(service&&name)for(const u of usages){
+     if(u.p===file)continue;
+     if(!u.text.includes(service)&&!(/^(parent|creator)AssistanceService$/.test(service)&&u.text.includes('useAssistance(')&&u.text.includes(`h.api.${name}(`)))continue;
+     const imports=[...u.text.matchAll(new RegExp(`\\b${service}(?:\\s+as\\s+(\\w+))?\\b`,'g'))];
+     const aliases=new Set([service,...imports.map(m=>m[1]).filter(Boolean)]);
+     for(const decl of u.text.matchAll(/const\s+(\w+)\s*=\s*([^;\n]+)/g))if([...aliases].some(a=>new RegExp(`\\b${a}\\b`).test(decl[2])))aliases.add(decl[1]);
+     if([...aliases].some(alias=>new RegExp(`\\b${alias}\\s*\\.${name}\\b`).test(u.text)))callers.push(path.relative(root,u.p).replaceAll('\\','/'));
+     if(/^(parent|creator)AssistanceService$/.test(service)&&u.text.includes('useAssistance(')&&u.text.includes(`h.api.${name}(`))callers.push(path.relative(root,u.p).replaceAll('\\','/'));
+    }
+ callerCache.set(key, callers);
+ return [...callers];
+}
 const evidence=[];
 for(const file of all.filter(p=>p.includes(`${path.sep}services${path.sep}`))) {
  const source=ts.createSourceFile(file,fs.readFileSync(file,'utf8'),ts.ScriptTarget.Latest,true);
@@ -69,15 +87,7 @@ for(const file of all.filter(p=>p.includes(`${path.sep}services${path.sep}`))) {
     if(!route.startsWith('/')||route.includes('//'))continue;
     if(!route.startsWith('/api/v1/'))route='/api/v1'+route;
     const key=method+' '+normalize(route);
-    const callers=[];
-    if(service&&name)for(const u of usages){
-     if(u.p===file)continue;
-     const imports=[...u.text.matchAll(new RegExp(`\\b${service}(?:\\s+as\\s+(\\w+))?\\b`,'g'))];
-     const aliases=new Set([service,...imports.map(m=>m[1]).filter(Boolean)]);
-     for(const decl of u.text.matchAll(/const\s+(\w+)\s*=\s*([^;\n]+)/g))if([...aliases].some(a=>new RegExp(`\\b${a}\\b`).test(decl[2])))aliases.add(decl[1]);
-     if([...aliases].some(alias=>new RegExp(`\\b${alias}\\s*\\.${name}\\b`).test(u.text)))callers.push(path.relative(root,u.p).replaceAll('\\','/'));
-     if(/^(parent|creator)AssistanceService$/.test(service)&&u.text.includes('useAssistance(')&&u.text.includes(`h.api.${name}(`))callers.push(path.relative(root,u.p).replaceAll('\\','/'));
-    }
+    const callers=operationCallers(file,service,name);
     evidence.push({key,service,operation:name,file:path.relative(root,file).replaceAll('\\','/'),line:source.getLineAndCharacterOfPosition(n.getStart(source)).line+1,callers});
    }
   }

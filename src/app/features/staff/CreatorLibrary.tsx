@@ -4,6 +4,7 @@ import "@/app/styles/features/library/library.css";
 import { useCallback, useRef, useState } from "react";
 import { Eye, PencilLine, WandSparkles } from "lucide-react";
 import Frog from "@/app/components/brand/Frog";
+import EventHighlightBanner from "@/app/features/events/EventHighlightBanner";
 import { useAuth } from "@/app/context/AuthContext";
 import { LibraryDetailShell } from "@/app/features/library/LibraryDetailDialog";
 import LibraryFilterSidebar from "@/app/features/library/LibraryFilterSidebar";
@@ -98,7 +99,9 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                 onSourceChange={d.setSrcF}
                 onClearPopover={d.clearPopoverFilters}
               />
+              <EventHighlightBanner role="ContentCreator" onOpenEvents={() => go("events")} />
               <LibraryStoriesView
+                audience="creator"
                 authors={d.extraFilters}
                 stories={stories}
                 sorted={d.sorted}

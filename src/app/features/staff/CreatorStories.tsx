@@ -3,7 +3,7 @@
 import "@/app/styles/features/library/library.css";
 import "@/app/styles/features/review/review-tools.css";
 import "@/app/styles/features/studio/workflow.css";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FilePlus2 } from "lucide-react";
 import Dialog from "@/app/components/Dialog";
 import Select from "@/app/components/Select";
@@ -27,10 +27,18 @@ export type CreatorPageProps = { go: (pageId: string, target?: number | null) =>
 /** Trang "Dùng AI": tạo truyện mẫu mới bằng AI, hoặc mở lại truyện AI từ Thư viện (`target`). */
 export function CreatorCreateAi({ go, target, resumeId = null }: CreatorPageProps) {
   const { user } = useAuth();
-  const initialId = target ?? resumeId;
+  const [eventId, setEventId] = useState<number | null | undefined>(undefined);
+  useEffect(() => {
+    const raw = new URLSearchParams(window.location.search).get("eventId");
+    const id = Number(raw);
+    setEventId(raw && Number.isSafeInteger(id) && id > 0 ? id : null);
+  }, []);
+  if (eventId === undefined) return <p role="status">Đang chuẩn bị trang sáng tác…</p>;
+  const initialId = target ?? (eventId ? null : resumeId);
   return (
     <CreatorGeneration
-      key={`${user?.id}:${initialId ?? "new"}`}
+      key={`${user?.id}:${initialId ?? "new"}:${eventId ?? "ordinary"}`}
+      eventId={eventId}
       initialId={initialId}
       onBack={() => go("library")}
       onBuyCredits={() => go("account-plan")}

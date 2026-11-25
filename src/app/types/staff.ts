@@ -1,3 +1,5 @@
+import type { ModerationItemEventSubmissionDto } from './backendContracts';
+
 /** Kiểu dữ liệu Luồng 5 — Admin Portal, Content Workspace (Creator / Moderator). */
 
 export type StaffRoleName = 'Administrator' | 'Moderator' | 'ContentCreator';
@@ -222,6 +224,7 @@ export interface QueueItem {
   claimedAt: string | null;
   claimExpiresAt: string | null;
   createdAt: string;
+  eventSubmissions?: ModerationItemEventSubmissionDto[];
 }
 
 /** Mục đang nhận: thêm cờ, checklist, tiến độ rà (chuỗi JSON). Nội dung truyện lấy riêng theo `storyId`. */
@@ -232,7 +235,7 @@ export interface QueueItemDetail extends QueueItem {
   reviewProgress: string | null;
 }
 
-export interface QueueQuery { itemType?: QueueItemType; status?: QueueItemStatus; priority?: 'High' | 'Medium' | 'Low'; onlyOverdue?: boolean; pageIndex?: number; pageSize?: number }
+export interface QueueQuery { itemType?: QueueItemType; status?: QueueItemStatus; priority?: 'High' | 'Medium' | 'Low'; onlyOverdue?: boolean; onlyMyEventSubmissions?: boolean; pageIndex?: number; pageSize?: number }
 export interface BusinessReport { id: number; periodStart: string; periodEnd: string; storiesGenerated: number; storiesApproved: number; storiesRejected: number; readingSessionsCompleted: number; status: string; publishedAt: string | null }
 /** Body `POST /StaffAccount/invite`. */
 export interface InviteStaffInput { role: StaffAccountRole; email: string; fullName: string; expertise?: string; note?: string }

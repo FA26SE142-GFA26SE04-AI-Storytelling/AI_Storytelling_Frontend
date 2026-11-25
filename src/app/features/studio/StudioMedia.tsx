@@ -112,7 +112,10 @@ export default function StudioMedia({ storyId, media }: Props) {
               {step(audio.done, audio.label, audio.nextRetryAt ? `${audio.detail} · thử lại lúc ${new Date(audio.nextRetryAt).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}` : audio.detail, Volume2)}
               {step(display.kind==='ready', display.label, "", Check)}
             </div>
-            <MediaIssues progress={m} pack={preview.pack} onSelectScene={(id, index) => {
+            <MediaIssues progress={m} pack={preview.pack} retry={m && !m.isConfirmed && !m.isReady ? {
+              run: () => void retry(), disabled: retryBusy,
+              blockedReason: mediaCanRetry(m) ? null : 'Có thể thử lại sau khi hệ thống tạo xong các mục còn lại.',
+            } : undefined} onSelectScene={(id, index) => {
               const position = mediaScenes.findIndex(s => s.sceneId === id);
               if (position >= 0) setActive(position);
               else if (index >= 0 && index < scenes.length) setActive(index);

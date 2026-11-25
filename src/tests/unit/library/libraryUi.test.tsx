@@ -59,6 +59,12 @@ function makeStory(overrides: Partial<StoryCard> & { raw?: Partial<StoryCard["ra
 }
 
 describe("Library UI components", () => {
+  it("uses the default cover when the URL is missing and preserves supplied URLs", () => {
+    expect(coverFor(null)).toBe(coverFor());
+    expect(coverFor("https://example.com/covers/story10.png")).toContain("example.com/covers/story10.png");
+    expect(coverFor("https://cdn.example.invalid/covers/story10.png")).toContain("cdn.example.invalid");
+  });
+
   it("LibraryBookCard keeps .bk smoke selector, preserves crop cover, and stacks stats below left badge", () => {
     const rankedHtml = renderToStaticMarkup(
       <LibraryBookCard story={makeStory({ creator: true, viewCount: 42, favoriteCount: 11 })} rank={1} onPick={() => {}} />,

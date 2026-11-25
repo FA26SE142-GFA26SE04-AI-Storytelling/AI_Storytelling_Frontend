@@ -51,7 +51,7 @@ describe('trang phụ huynh theo quyền', () => {
   const ids = (granted: string[]) => visibleWorkspaces((c) => granted.includes(c)).map((w) => w.id);
 
   it('ẩn trang cần quyền, giữ thư viện, báo cáo và tài khoản', () => {
-    expect(ids([])).toEqual(['library', 'report', 'account', 'account-payment', 'account-activity']);
+    expect(ids([])).toEqual(['library', 'events', 'report', 'account', 'account-payment', 'account-activity']);
   });
 
   it('mỗi quyền chỉ mở đúng các trang của nó', () => {
@@ -60,4 +60,12 @@ describe('trang phụ huynh theo quyền', () => {
     expect(ids(['child.profile.manage'])).toEqual(expect.arrayContaining(['roadmap', 'children']));
     expect(ids(['child.profile.manage'])).not.toContain('studio');
   });
+});
+
+it('retains event operations together with the new staff permission gates', () => {
+  expect(canOpenPage('Moderator', 'events', new Set())).toBe(false);
+  expect(canOpenPage('Moderator', 'events', new Set(['event.manage']))).toBe(true);
+  expect(canOpenPage('Moderator', 'events', new Set(['event.operate']))).toBe(true);
+  expect(canOpenPage('Administrator', 'events', new Set(['event.approve']))).toBe(true);
+  expect(canOpenPage('ContentCreator', 'events', new Set())).toBe(true);
 });

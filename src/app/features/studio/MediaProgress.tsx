@@ -46,7 +46,7 @@ export default function MediaProgress({ storyId, versionId, active, disabled, st
   const [note, setNote] = useState('');
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
-  const progress = useStoryProgressPolling(active ? storyId : null, media.getMediaProgress, continuePolling, 600_000);
+  const progress = useStoryProgressPolling(active ? storyId : null, media.getMediaProgress, continuePolling, 600_000, 15_000);
   const current = progress.data?.approvedStoryVersionId === versionId ? progress.data : null;
   const working = busy || active && (!current || continuePolling(current) || current.isAwaitingConfirmation);
   useEffect(() => { onWorkingChange?.(working); return () => onWorkingChange?.(false); }, [working, onWorkingChange]);

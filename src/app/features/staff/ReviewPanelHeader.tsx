@@ -2,7 +2,15 @@
 import type { ReactNode } from 'react';
 import type { ReviewPackage } from '@/app/services/moderationService';
 import type { QueueItem } from '@/app/types/staff';
-import { formatSubmittedAt, reviewPackageSubmittedAt, reviewPackageSubmitterLabel, reviewPackageTitle } from './moderationQueueDisplay';
+import {
+  formatEventReviewCutoffVn,
+  formatEventSubmissionLabel,
+  formatSubmittedAt,
+  reviewPackageEventSubmissions,
+  reviewPackageSubmittedAt,
+  reviewPackageSubmitterLabel,
+  reviewPackageTitle,
+} from './moderationQueueDisplay';
 
 export function ReviewPanelHeader({
   item,
@@ -22,11 +30,25 @@ export function ReviewPanelHeader({
   const authorLine = reviewPackageSubmitterLabel(item, queueItem);
   const submittedAt = reviewPackageSubmittedAt(item, queueItem);
   const expiryIso = 'claimExpiresAt' in data ? data.claimExpiresAt : queueItem?.claimExpiresAt;
+  const eventSubs = reviewPackageEventSubmissions(item, queueItem);
 
   return (
     <div className="st-group">
       <h3 className="st-detail-title">{title}</h3>
       {authorLine && <span className="st-item-author">{authorLine}</span>}
+      {eventSubs.length > 0 && (
+        <div className="row st-wrap">
+          {eventSubs.map(ev => {
+            const cutoff = formatEventReviewCutoffVn(ev.reviewCutoffAt);
+            return (
+              <span key={ev.eventId} className="pill ok mod-inline-pill">
+                {formatEventSubmissionLabel(ev)}
+                {cutoff ? ` · Hạn duyệt: ${cutoff}` : ''}
+              </span>
+            );
+          })}
+        </div>
+      )}
       <div className="row st-wrap">
         {sourceTag && <span className="pill draft">{sourceTag}</span>}
         <span className="st-review-meta">Thời điểm gửi: {formatSubmittedAt(submittedAt)}</span>

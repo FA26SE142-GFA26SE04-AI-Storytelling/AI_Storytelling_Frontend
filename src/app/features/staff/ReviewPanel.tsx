@@ -17,15 +17,17 @@ export default function ReviewPanel({
   id,
   queueItem,
   onDecision,
+  onAccessRevoked,
 }: {
   kind: ReviewKind | 'StoryRating';
   id: number;
   queueItem?: QueueItem;
   onDecision: () => void;
+  onAccessRevoked?: (message: string) => void;
 }) {
   switch (kind) {
     case 'PublicStoryReview':
-      return <PublicStoryReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
+      return <PublicStoryReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} onAccessRevoked={onAccessRevoked} />;
     case 'GrayZoneStory':
       return <GrayZoneReviewPanel id={id} queueItem={queueItem} onDecision={onDecision} />;
     case 'ContentReport':

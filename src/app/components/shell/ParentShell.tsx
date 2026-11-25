@@ -16,6 +16,7 @@ import KidMode from "@/app/features/kid/KidMode";
 import ChildrenWorkspace from "@/app/features/children/ChildrenWorkspace";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import LearningWorkspace from "@/app/features/learning/LearningWorkspace";
+import EventsWorkspace from "@/app/features/events/EventsWorkspace";
 import { transitionWorkspace } from "@/app/lib/motion";
 import { useAccessLookup, useAccessReady } from "@/app/features/staff/staffAccess";
 import "@/app/styles/mobile.css";
@@ -27,6 +28,7 @@ const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
   library: LibraryWorkspace,
   created: CreatedStories,
   roadmap: LearningWorkspace,
+  events: (props) => <EventsWorkspace onOpenStory={(sid) => props.go("library", { storyId: sid })} />,
   report: ReportWorkspace,
   account: () => <AccountWorkspace page="profile" />,
   "account-payment": () => <AccountWorkspace page="payment" />,

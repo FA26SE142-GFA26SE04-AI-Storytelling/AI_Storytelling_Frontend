@@ -5,7 +5,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "AIStoryInputController.cs",
     "action": "GetContext",
-    "controllerLine": 25,
+    "controllerLine": 24,
     "evidence": [
       {
         "key": "GET /api/v1/ai-story-input/children/{}/context",
@@ -26,7 +26,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "AIStoryInputController.cs",
     "action": "Submit",
-    "controllerLine": 34,
+    "controllerLine": 33,
     "evidence": [
       {
         "key": "POST /api/v1/ai-story-input/requests",
@@ -47,7 +47,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "AIStoryInputController.cs",
     "action": "GetProgress",
-    "controllerLine": 44,
+    "controllerLine": 43,
     "evidence": [
       {
         "key": "GET /api/v1/ai-story-input/stories/{}/requests/{}",
@@ -69,7 +69,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "AIStoryInputController.cs",
     "action": "Retry",
-    "controllerLine": 54,
+    "controllerLine": 53,
     "evidence": [
       {
         "key": "POST /api/v1/ai-story-input/stories/{}/requests/{}/retry",
@@ -90,7 +90,7 @@
     "authorization": "Permission = Permissions.Admin.AuditView",
     "controller": "AdminAuditLogController.cs",
     "action": "Search",
-    "controllerLine": 30,
+    "controllerLine": 29,
     "evidence": [
       {
         "key": "GET /api/v1/admin/audit-logs",
@@ -99,7 +99,8 @@
         "file": "app/services/creatorAdminService.ts",
         "line": 35,
         "callers": [
-          "app/features/staff/AdminAuditLog.tsx"
+          "app/features/staff/AdminAuditLog.tsx",
+          "app/features/staff/PermissionHistory.tsx"
         ]
       }
     ],
@@ -111,7 +112,7 @@
     "authorization": "Permission = Permissions.Admin.AuditView",
     "controller": "AdminAuditLogController.cs",
     "action": "GetFilters",
-    "controllerLine": 39,
+    "controllerLine": 38,
     "evidence": [
       {
         "key": "GET /api/v1/admin/audit-logs/filters",
@@ -132,7 +133,7 @@
     "authorization": "Permission = Permissions.Admin.AuditView",
     "controller": "AdminAuditLogController.cs",
     "action": "Get",
-    "controllerLine": 47,
+    "controllerLine": 46,
     "evidence": [
       {
         "key": "GET /api/v1/admin/audit-logs/{}",
@@ -151,14 +152,14 @@
     "authorization": "Permission = Permissions.Admin.PermissionManage",
     "controller": "AdminPermissionsController.cs",
     "action": "ListPermissions",
-    "controllerLine": 19,
+    "controllerLine": 18,
     "evidence": [
       {
         "key": "GET /api/v1/admin/permissions",
         "service": "accessControlService",
         "operation": "permissions",
         "file": "app/services/accessControlService.ts",
-        "line": 6,
+        "line": 8,
         "callers": [
           "app/features/staff/AdminPermissions.tsx"
         ]
@@ -172,14 +173,14 @@
     "authorization": "Permission = Permissions.Admin.PermissionManage",
     "controller": "AdminPermissionsController.cs",
     "action": "ListRoles",
-    "controllerLine": 24,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "GET /api/v1/admin/roles",
         "service": "accessControlService",
         "operation": "roles",
         "file": "app/services/accessControlService.ts",
-        "line": 7,
+        "line": 9,
         "callers": [
           "app/features/staff/AdminPermissions.tsx"
         ]
@@ -193,14 +194,14 @@
     "authorization": "Permission = Permissions.Admin.PermissionManage",
     "controller": "AdminPermissionsController.cs",
     "action": "GetRolePermissions",
-    "controllerLine": 29,
+    "controllerLine": 28,
     "evidence": [
       {
         "key": "GET /api/v1/admin/roles/{}/permissions",
         "service": "accessControlService",
         "operation": "rolePermissions",
         "file": "app/services/accessControlService.ts",
-        "line": 9,
+        "line": 11,
         "callers": [
           "app/features/staff/AdminPermissions.tsx"
         ]
@@ -214,16 +215,16 @@
     "authorization": "Permission = Permissions.Admin.PermissionManage",
     "controller": "AdminPermissionsController.cs",
     "action": "UpdateRolePermissions",
-    "controllerLine": 34,
+    "controllerLine": 33,
     "evidence": [
       {
         "key": "PUT /api/v1/admin/roles/{}/permissions",
         "service": "accessControlService",
         "operation": "updateRolePermissions",
         "file": "app/services/accessControlService.ts",
-        "line": 11,
+        "line": 13,
         "callers": [
-          "app/features/staff/AdminPermissions.tsx"
+          "app/features/staff/RolePermissionEditor.tsx"
         ]
       }
     ],
@@ -235,7 +236,7 @@
     "authorization": "Permission = Permissions.Shared.MediaGenerate",
     "controller": "AiGenerationCapacityController.cs",
     "action": "GetCapacity",
-    "controllerLine": 16,
+    "controllerLine": 15,
     "evidence": [
       {
         "key": "GET /api/v1/ai-generation/capacity",
@@ -256,7 +257,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "Register",
-    "controllerLine": 39,
+    "controllerLine": 41,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/register",
@@ -277,7 +278,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "RegisterCreator",
-    "controllerLine": 52,
+    "controllerLine": 54,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/register-creator",
@@ -298,7 +299,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "Login",
-    "controllerLine": 66,
+    "controllerLine": 68,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/login",
@@ -319,7 +320,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ActivateStaffAccount",
-    "controllerLine": 80,
+    "controllerLine": 82,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/staff-activation",
@@ -340,7 +341,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "VerifyEmail",
-    "controllerLine": 95,
+    "controllerLine": 97,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/verify-email",
@@ -369,7 +370,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ResendVerificationEmail",
-    "controllerLine": 109,
+    "controllerLine": 111,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/resend-verification-email",
@@ -390,7 +391,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ForgotPassword",
-    "controllerLine": 125,
+    "controllerLine": 127,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/forgot-password",
@@ -411,7 +412,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ResetPassword",
-    "controllerLine": 139,
+    "controllerLine": 141,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/reset-password",
@@ -429,10 +430,10 @@
   {
     "method": "POST",
     "route": "/api/v1/Auth/change-password",
-    "authorization": "Authenticated",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ChangePassword",
-    "controllerLine": 153,
+    "controllerLine": 155,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/change-password",
@@ -463,7 +464,7 @@
     "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "RefreshToken",
-    "controllerLine": 167,
+    "controllerLine": 169,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/refresh-token",
@@ -482,10 +483,10 @@
   {
     "method": "GET",
     "route": "/api/v1/Auth/me",
-    "authorization": "Authenticated",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "GetProfile",
-    "controllerLine": 180,
+    "controllerLine": 182,
     "evidence": [
       {
         "key": "GET /api/v1/Auth/me",
@@ -515,7 +516,7 @@
         "file": "app/services/accessControlService.ts",
         "line": 7,
         "callers": [
-          "app/features/staff/useMyPermissions.ts"
+          "app/features/staff/staffAccess.tsx"
         ]
       }
     ],
@@ -524,10 +525,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/Auth/me",
-    "authorization": "Authenticated",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "UpdateProfile",
-    "controllerLine": 190,
+    "controllerLine": 205,
     "evidence": [
       {
         "key": "PUT /api/v1/Auth/me",
@@ -545,10 +546,10 @@
   {
     "method": "POST",
     "route": "/api/v1/Auth/change-email",
-    "authorization": "Permission = Permissions.Parent.AccountSelfManage",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "RequestEmailChange",
-    "controllerLine": 201,
+    "controllerLine": 216,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/change-email",
@@ -566,10 +567,10 @@
   {
     "method": "POST",
     "route": "/api/v1/Auth/change-email/confirm",
-    "authorization": "Permission = Permissions.Parent.AccountSelfManage",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ConfirmEmailChange",
-    "controllerLine": 213,
+    "controllerLine": 228,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/change-email/confirm",
@@ -587,10 +588,10 @@
   {
     "method": "GET",
     "route": "/api/v1/Auth/me/delete-preview",
-    "authorization": "Permission = Permissions.Parent.AccountSelfManage",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "GetDeleteAccountPreview",
-    "controllerLine": 225,
+    "controllerLine": 240,
     "evidence": [
       {
         "key": "GET /api/v1/Auth/me/delete-preview",
@@ -608,10 +609,10 @@
   {
     "method": "DELETE",
     "route": "/api/v1/Auth/me",
-    "authorization": "Permission = Permissions.Parent.AccountSelfManage",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "DeleteAccount",
-    "controllerLine": 236,
+    "controllerLine": 251,
     "evidence": [
       {
         "key": "DELETE /api/v1/Auth/me",
@@ -629,10 +630,10 @@
   {
     "method": "POST",
     "route": "/api/v1/Auth/logout",
-    "authorization": "Authenticated",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "Logout",
-    "controllerLine": 249,
+    "controllerLine": 264,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/logout",
@@ -651,10 +652,10 @@
   {
     "method": "POST",
     "route": "/api/v1/Auth/logout-all-devices",
-    "authorization": "Authenticated",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "LogoutAllDevices",
-    "controllerLine": 263,
+    "controllerLine": 278,
     "evidence": [
       {
         "key": "POST /api/v1/Auth/logout-all-devices",
@@ -672,10 +673,10 @@
   {
     "method": "GET",
     "route": "/api/v1/Auth/sessions",
-    "authorization": "Authenticated",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "ListSessions",
-    "controllerLine": 274,
+    "controllerLine": 289,
     "evidence": [
       {
         "key": "GET /api/v1/Auth/sessions",
@@ -693,10 +694,10 @@
   {
     "method": "DELETE",
     "route": "/api/v1/Auth/sessions/{id}",
-    "authorization": "Authenticated",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "RevokeSession",
-    "controllerLine": 287,
+    "controllerLine": 302,
     "evidence": [
       {
         "key": "DELETE /api/v1/Auth/sessions/{}",
@@ -714,10 +715,10 @@
   {
     "method": "GET",
     "route": "/api/v1/Auth/me/audit-log",
-    "authorization": "Authenticated",
+    "authorization": "AllowAnonymous",
     "controller": "AuthController.cs",
     "action": "GetMyAuditLog",
-    "controllerLine": 299,
+    "controllerLine": 314,
     "evidence": [
       {
         "key": "GET /api/v1/Auth/me/audit-log",
@@ -746,7 +747,7 @@
     "authorization": "Permission = Permissions.Review.GuideManage",
     "controller": "AuthoringGuideManagementController.cs",
     "action": "Overview",
-    "controllerLine": 16,
+    "controllerLine": 15,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/authoring-guides",
@@ -767,7 +768,7 @@
     "authorization": "Permission = Permissions.Review.GuideManage",
     "controller": "AuthoringGuideManagementController.cs",
     "action": "Versions",
-    "controllerLine": 19,
+    "controllerLine": 18,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/authoring-guides/versions",
@@ -788,7 +789,7 @@
     "authorization": "Permission = Permissions.Review.GuideManage",
     "controller": "AuthoringGuideManagementController.cs",
     "action": "Version",
-    "controllerLine": 24,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/authoring-guides/versions/{}",
@@ -809,7 +810,7 @@
     "authorization": "Permission = Permissions.Review.GuideManage",
     "controller": "AuthoringGuideManagementController.cs",
     "action": "CreateDraft",
-    "controllerLine": 28,
+    "controllerLine": 27,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/authoring-guides/draft",
@@ -830,7 +831,7 @@
     "authorization": "Permission = Permissions.Review.GuideManage",
     "controller": "AuthoringGuideManagementController.cs",
     "action": "UpsertItem",
-    "controllerLine": 34,
+    "controllerLine": 33,
     "evidence": [
       {
         "key": "PUT /api/v1/moderation/authoring-guides/draft/items/{}",
@@ -851,7 +852,7 @@
     "authorization": "Permission = Permissions.Review.GuideManage",
     "controller": "AuthoringGuideManagementController.cs",
     "action": "RemoveItem",
-    "controllerLine": 38,
+    "controllerLine": 37,
     "evidence": [
       {
         "key": "DELETE /api/v1/moderation/authoring-guides/draft/items/{}",
@@ -872,7 +873,7 @@
     "authorization": "Permission = Permissions.Review.GuideManage",
     "controller": "AuthoringGuideManagementController.cs",
     "action": "DiscardDraft",
-    "controllerLine": 42,
+    "controllerLine": 41,
     "evidence": [
       {
         "key": "DELETE /api/v1/moderation/authoring-guides/draft",
@@ -893,7 +894,7 @@
     "authorization": "Permission = Permissions.Review.GuideManage",
     "controller": "AuthoringGuideManagementController.cs",
     "action": "Preview",
-    "controllerLine": 46,
+    "controllerLine": 45,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/authoring-guides/draft/preview",
@@ -914,7 +915,7 @@
     "authorization": "Permission = Permissions.Review.GuideManage",
     "controller": "AuthoringGuideManagementController.cs",
     "action": "Publish",
-    "controllerLine": 50,
+    "controllerLine": 49,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/authoring-guides/draft/publish",
@@ -935,7 +936,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "AuthoringGuidesController.cs",
     "action": "Get",
-    "controllerLine": 15,
+    "controllerLine": 14,
     "evidence": [
       {
         "key": "GET /api/v1/authoring-guides",
@@ -956,7 +957,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "AuthoringGuidesController.cs",
     "action": "Render",
-    "controllerLine": 19,
+    "controllerLine": 18,
     "evidence": [
       {
         "key": "POST /api/v1/authoring-guides/{}/render",
@@ -977,7 +978,7 @@
     "authorization": "Permission = Permissions.Admin.BusinessReportView",
     "controller": "BusinessReportController.cs",
     "action": "Generate",
-    "controllerLine": 37,
+    "controllerLine": 36,
     "evidence": [
       {
         "key": "POST /api/v1/BusinessReport/generate",
@@ -995,10 +996,10 @@
   {
     "method": "POST",
     "route": "/api/v1/BusinessReport/{reportId}/publish",
-    "authorization": "Permission = Permissions.Admin.BusinessReportView",
+    "authorization": "Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView",
     "controller": "BusinessReportController.cs",
     "action": "Publish",
-    "controllerLine": 50,
+    "controllerLine": 49,
     "evidence": [
       {
         "key": "POST /api/v1/BusinessReport/{}/publish",
@@ -1016,10 +1017,10 @@
   {
     "method": "GET",
     "route": "/api/v1/BusinessReport/latest-published",
-    "authorization": "Authenticated",
+    "authorization": "Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Authenticated",
     "controller": "BusinessReportController.cs",
     "action": "GetLatestPublished",
-    "controllerLine": 62,
+    "controllerLine": 61,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/latest-published",
@@ -1037,10 +1038,10 @@
   {
     "method": "GET",
     "route": "/api/v1/BusinessReport/admin/revenue",
-    "authorization": "Permission = Permissions.Admin.BusinessReportView",
+    "authorization": "Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Authenticated; Permission = Permissions.Admin.BusinessReportView",
     "controller": "BusinessReportController.cs",
     "action": "GetRevenue",
-    "controllerLine": 74,
+    "controllerLine": 73,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/admin/revenue",
@@ -1049,6 +1050,7 @@
         "file": "app/services/staffService.ts",
         "line": 38,
         "callers": [
+          "app/features/staff/AdminOverview.tsx",
           "app/features/staff/AdminRevenueTab.tsx"
         ]
       }
@@ -1058,10 +1060,10 @@
   {
     "method": "GET",
     "route": "/api/v1/BusinessReport/admin/accounts",
-    "authorization": "Permission = Permissions.Admin.BusinessReportView",
+    "authorization": "Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Authenticated; Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView",
     "controller": "BusinessReportController.cs",
     "action": "GetAccounts",
-    "controllerLine": 86,
+    "controllerLine": 85,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/admin/accounts",
@@ -1070,7 +1072,8 @@
         "file": "app/services/staffService.ts",
         "line": 39,
         "callers": [
-          "app/features/staff/AdminAccountsTab.tsx"
+          "app/features/staff/AdminAccountsTab.tsx",
+          "app/features/staff/AdminOverview.tsx"
         ]
       }
     ],
@@ -1079,10 +1082,10 @@
   {
     "method": "GET",
     "route": "/api/v1/BusinessReport/admin/creators",
-    "authorization": "Permission = Permissions.Admin.BusinessReportView",
+    "authorization": "Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Authenticated; Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView",
     "controller": "BusinessReportController.cs",
     "action": "GetCreators",
-    "controllerLine": 99,
+    "controllerLine": 98,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/admin/creators",
@@ -1091,7 +1094,8 @@
         "file": "app/services/creatorAdminService.ts",
         "line": 30,
         "callers": [
-          "app/features/staff/AdminCreatorsStatsTab.tsx"
+          "app/features/staff/AdminCreatorsStatsTab.tsx",
+          "app/features/staff/AdminOverview.tsx"
         ]
       }
     ],
@@ -1100,10 +1104,10 @@
   {
     "method": "GET",
     "route": "/api/v1/BusinessReport/admin",
-    "authorization": "Permission = Permissions.Admin.BusinessReportView",
+    "authorization": "Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Authenticated; Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView",
     "controller": "BusinessReportController.cs",
     "action": "List",
-    "controllerLine": 111,
+    "controllerLine": 110,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/admin",
@@ -1121,10 +1125,10 @@
   {
     "method": "GET",
     "route": "/api/v1/BusinessReport/admin/{reportId}",
-    "authorization": "Permission = Permissions.Admin.BusinessReportView",
+    "authorization": "Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Authenticated; Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView; Permission = Permissions.Admin.BusinessReportView",
     "controller": "BusinessReportController.cs",
     "action": "GetById",
-    "controllerLine": 123,
+    "controllerLine": 122,
     "evidence": [
       {
         "key": "GET /api/v1/BusinessReport/admin/{}",
@@ -1145,7 +1149,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildAccessCredentialController.cs",
     "action": "GetCredential",
-    "controllerLine": 26,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "GET /api/v1/ChildAccessCredential/{}",
@@ -1163,10 +1167,10 @@
   {
     "method": "DELETE",
     "route": "/api/v1/ChildAccessCredential/{childProfileId}",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildAccessCredentialController.cs",
     "action": "RevokeCredential",
-    "controllerLine": 39,
+    "controllerLine": 38,
     "evidence": [
       {
         "key": "DELETE /api/v1/ChildAccessCredential/{}",
@@ -1184,10 +1188,10 @@
   {
     "method": "POST",
     "route": "/api/v1/ChildAccessCredential/{childProfileId}/easylogin",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildAccessCredentialController.cs",
     "action": "CreateOrRegenerateEasyLogin",
-    "controllerLine": 52,
+    "controllerLine": 51,
     "evidence": [
       {
         "key": "POST /api/v1/ChildAccessCredential/{}/easylogin",
@@ -1205,10 +1209,10 @@
   {
     "method": "POST",
     "route": "/api/v1/ChildAccessCredential/{childProfileId}/handover",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildAccessCredentialController.cs",
     "action": "StartSupervisedSession",
-    "controllerLine": 66,
+    "controllerLine": 65,
     "evidence": [
       {
         "key": "POST /api/v1/ChildAccessCredential/{}/handover",
@@ -1226,10 +1230,10 @@
   {
     "method": "GET",
     "route": "/api/v1/ChildAccessCredential/story-handover",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildAccessCredentialController.cs",
     "action": "GetStoryHandoverOptions",
-    "controllerLine": 82,
+    "controllerLine": 81,
     "evidence": [
       {
         "key": "GET /api/v1/ChildAccessCredential/story-handover",
@@ -1247,10 +1251,10 @@
   {
     "method": "POST",
     "route": "/api/v1/ChildAccessCredential/{childProfileId}/handover-story",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildAccessCredentialController.cs",
     "action": "StartStoryHandover",
-    "controllerLine": 96,
+    "controllerLine": 95,
     "evidence": [
       {
         "key": "POST /api/v1/ChildAccessCredential/{}/handover-story",
@@ -1271,7 +1275,7 @@
     "authorization": "AllowAnonymous",
     "controller": "ChildAccessCredentialController.cs",
     "action": "LoginWithEasyLogin",
-    "controllerLine": 113,
+    "controllerLine": 112,
     "evidence": [
       {
         "key": "POST /api/v1/ChildAccessCredential/easylogin/login",
@@ -1289,10 +1293,10 @@
   {
     "method": "GET",
     "route": "/api/v1/ChildAccessCredential/me",
-    "authorization": "Policy = \"ChildSession\"",
+    "authorization": "AllowAnonymous",
     "controller": "ChildAccessCredentialController.cs",
     "action": "GetMySession",
-    "controllerLine": 128,
+    "controllerLine": 127,
     "evidence": [
       {
         "key": "GET /api/v1/ChildAccessCredential/me",
@@ -1302,7 +1306,8 @@
         "line": 49,
         "callers": [
           "app/features/kid/ConnectedKidHome.tsx",
-          "app/features/kid/KidEntry.tsx"
+          "app/features/kid/KidEntry.tsx",
+          "app/features/kid/useChildStatus.ts"
         ]
       },
       {
@@ -1366,7 +1371,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildNotebookController.cs",
     "action": "Collect",
-    "controllerLine": 36,
+    "controllerLine": 39,
     "evidence": [
       {
         "key": "POST /api/v1/child/notebook/sessions/{}/words",
@@ -1387,7 +1392,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildNotebookController.cs",
     "action": "List",
-    "controllerLine": 44,
+    "controllerLine": 47,
     "evidence": [
       {
         "key": "GET /api/v1/child/notebook",
@@ -1409,7 +1414,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildNotebookController.cs",
     "action": "Remove",
-    "controllerLine": 51,
+    "controllerLine": 54,
     "evidence": [
       {
         "key": "DELETE /api/v1/child/notebook/{}",
@@ -1440,14 +1445,14 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "GetReadingSlots",
-    "controllerLine": 36,
+    "controllerLine": 35,
     "evidence": [
       {
         "key": "GET /api/v1/ChildProfile/reading-slots",
         "service": "childProfileService",
         "operation": "getReadingSlots",
         "file": "app/services/childProfileService.ts",
-        "line": 123,
+        "line": 134,
         "callers": [
           "app/features/children/ChildrenWorkspace.tsx"
         ]
@@ -1458,17 +1463,17 @@
   {
     "method": "PUT",
     "route": "/api/v1/ChildProfile/reading-slots",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "SelectReadingSlots",
-    "controllerLine": 48,
+    "controllerLine": 47,
     "evidence": [
       {
         "key": "PUT /api/v1/ChildProfile/reading-slots",
         "service": "childProfileService",
         "operation": "selectReadingSlots",
         "file": "app/services/childProfileService.ts",
-        "line": 128,
+        "line": 139,
         "callers": [
           "app/features/children/ReadingSlotsDialog.tsx"
         ]
@@ -1479,17 +1484,17 @@
   {
     "method": "POST",
     "route": "/api/v1/ChildProfile",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "CreateChildProfile",
-    "controllerLine": 60,
+    "controllerLine": 59,
     "evidence": [
       {
         "key": "POST /api/v1/ChildProfile",
         "service": "childProfileService",
         "operation": "createChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 30,
+        "line": 32,
         "callers": [
           "app/features/children/CreateChildWizard.tsx"
         ]
@@ -1500,17 +1505,17 @@
   {
     "method": "GET",
     "route": "/api/v1/ChildProfile/mine",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "ListMyChildProfiles",
-    "controllerLine": 76,
+    "controllerLine": 75,
     "evidence": [
       {
         "key": "GET /api/v1/ChildProfile/mine",
         "service": "childProfileService",
         "operation": "getMyChildProfiles",
         "file": "app/services/childProfileService.ts",
-        "line": 21,
+        "line": 23,
         "callers": [
           "app/context/WorkspaceDataContext.tsx"
         ]
@@ -1521,17 +1526,17 @@
   {
     "method": "GET",
     "route": "/api/v1/ChildProfile/{id}",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "GetChildProfileById",
-    "controllerLine": 88,
+    "controllerLine": 87,
     "evidence": [
       {
         "key": "GET /api/v1/ChildProfile/{}",
         "service": "childProfileService",
         "operation": "getChildProfileById",
         "file": "app/services/childProfileService.ts",
-        "line": 25,
+        "line": 27,
         "callers": []
       }
     ],
@@ -1540,17 +1545,17 @@
   {
     "method": "GET",
     "route": "/api/v1/ChildProfile/{id}/audit-log",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "GetChildProfileAuditLog",
-    "controllerLine": 100,
+    "controllerLine": 99,
     "evidence": [
       {
         "key": "GET /api/v1/ChildProfile/{}/audit-log",
         "service": "childProfileService",
         "operation": "getChildAuditLog",
         "file": "app/services/childProfileService.ts",
-        "line": 71,
+        "line": 73,
         "callers": []
       },
       {
@@ -1569,17 +1574,17 @@
   {
     "method": "PUT",
     "route": "/api/v1/ChildProfile/{id}",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "UpdateChildProfile",
-    "controllerLine": 114,
+    "controllerLine": 113,
     "evidence": [
       {
         "key": "PUT /api/v1/ChildProfile/{}",
         "service": "childProfileService",
         "operation": "updateChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 38,
+        "line": 40,
         "callers": [
           "app/features/children/ProfileTab.tsx"
         ]
@@ -1590,17 +1595,17 @@
   {
     "method": "PATCH",
     "route": "/api/v1/ChildProfile/{id}/activate",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "ActivateChildProfile",
-    "controllerLine": 126,
+    "controllerLine": 125,
     "evidence": [
       {
         "key": "PATCH /api/v1/ChildProfile/{}/activate",
         "service": "childProfileService",
         "operation": "activateChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 46,
+        "line": 48,
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
           "app/features/children/ProfileTab.tsx"
@@ -1612,17 +1617,17 @@
   {
     "method": "PATCH",
     "route": "/api/v1/ChildProfile/{id}/suspend",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "SuspendChildProfile",
-    "controllerLine": 138,
+    "controllerLine": 137,
     "evidence": [
       {
         "key": "PATCH /api/v1/ChildProfile/{}/suspend",
         "service": "childProfileService",
         "operation": "suspendChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 51,
+        "line": 53,
         "callers": [
           "app/features/children/ProfileTab.tsx"
         ]
@@ -1633,17 +1638,17 @@
   {
     "method": "PATCH",
     "route": "/api/v1/ChildProfile/{id}/resume",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "ResumeChildProfile",
-    "controllerLine": 150,
+    "controllerLine": 149,
     "evidence": [
       {
         "key": "PATCH /api/v1/ChildProfile/{}/resume",
         "service": "childProfileService",
         "operation": "resumeChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 56,
+        "line": 58,
         "callers": [
           "app/features/children/ProfileTab.tsx"
         ]
@@ -1654,17 +1659,17 @@
   {
     "method": "PATCH",
     "route": "/api/v1/ChildProfile/{id}/restore",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "RestoreChildProfile",
-    "controllerLine": 163,
+    "controllerLine": 162,
     "evidence": [
       {
         "key": "PATCH /api/v1/ChildProfile/{}/restore",
         "service": "childProfileService",
         "operation": "restoreChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 66,
+        "line": 68,
         "callers": [
           "app/features/children/ChildrenWorkspace.tsx"
         ]
@@ -1683,17 +1688,17 @@
   {
     "method": "DELETE",
     "route": "/api/v1/ChildProfile/{id}",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildProfileController.cs",
     "action": "ArchiveChildProfile",
-    "controllerLine": 176,
+    "controllerLine": 175,
     "evidence": [
       {
         "key": "DELETE /api/v1/ChildProfile/{}",
         "service": "childProfileService",
         "operation": "archiveChildProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 61,
+        "line": 63,
         "callers": [
           "app/features/children/ProfileTab.tsx"
         ]
@@ -1707,7 +1712,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildQuizController.cs",
     "action": "GetQuiz",
-    "controllerLine": 28,
+    "controllerLine": 31,
     "evidence": [
       {
         "key": "GET /api/v1/child/quiz/sessions/{}",
@@ -1716,6 +1721,7 @@
         "file": "app/services/childReadingService.ts",
         "line": 42,
         "callers": [
+          "app/features/kid/KidAfterReading.tsx",
           "app/features/kid/KidQuiz.tsx"
         ]
       }
@@ -1728,7 +1734,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildQuizController.cs",
     "action": "SubmitAnswer",
-    "controllerLine": 33,
+    "controllerLine": 36,
     "evidence": [
       {
         "key": "POST /api/v1/child/quiz/sessions/{}/answers",
@@ -1749,7 +1755,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildQuizController.cs",
     "action": "GetResult",
-    "controllerLine": 37,
+    "controllerLine": 40,
     "evidence": [
       {
         "key": "GET /api/v1/child/quiz/sessions/{}/result",
@@ -1770,7 +1776,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SearchStories",
-    "controllerLine": 63,
+    "controllerLine": 65,
     "evidence": [
       {
         "key": "GET /api/v1/child/reading/stories",
@@ -1792,7 +1798,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "Start",
-    "controllerLine": 71,
+    "controllerLine": 73,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions",
@@ -1813,7 +1819,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "GetContent",
-    "controllerLine": 79,
+    "controllerLine": 81,
     "evidence": [
       {
         "key": "GET /api/v1/child/reading/sessions/{}/content",
@@ -1834,7 +1840,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SaveProgress",
-    "controllerLine": 86,
+    "controllerLine": 88,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/progress",
@@ -1855,7 +1861,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "Complete",
-    "controllerLine": 94,
+    "controllerLine": 96,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/complete",
@@ -1876,7 +1882,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SetBookmark",
-    "controllerLine": 101,
+    "controllerLine": 103,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/bookmark",
@@ -1897,7 +1903,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SetFavorite",
-    "controllerLine": 109,
+    "controllerLine": 111,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/favorite",
@@ -1918,7 +1924,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SetListenOnly",
-    "controllerLine": 119,
+    "controllerLine": 121,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/listen-only",
@@ -1939,7 +1945,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SubmitListeningAttempt",
-    "controllerLine": 128,
+    "controllerLine": 130,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/interactions/{}/attempts",
@@ -1960,7 +1966,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SetFeeling",
-    "controllerLine": 137,
+    "controllerLine": 139,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/feeling",
@@ -1981,7 +1987,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "GetSignal",
-    "controllerLine": 146,
+    "controllerLine": 148,
     "evidence": [
       {
         "key": "GET /api/v1/child/reading/sessions/{}/signal",
@@ -2002,7 +2008,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "LogEvent",
-    "controllerLine": 152,
+    "controllerLine": 154,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/events",
@@ -2023,7 +2029,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "GetDefinition",
-    "controllerLine": 160,
+    "controllerLine": 162,
     "evidence": [
       {
         "key": "GET /api/v1/child/reading/sessions/{}/vocabulary/{}",
@@ -2044,7 +2050,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "ReadAloud",
-    "controllerLine": 170,
+    "controllerLine": 172,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/segments/{}/read-aloud",
@@ -2065,7 +2071,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "ReadAloudPractice",
-    "controllerLine": 183,
+    "controllerLine": 186,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/read-aloud-practice/{}",
@@ -2086,7 +2092,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildRewardsController.cs",
     "action": "Get",
-    "controllerLine": 36,
+    "controllerLine": 39,
     "evidence": [
       {
         "key": "GET /api/v1/child/rewards",
@@ -2109,7 +2115,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildRewardsController.cs",
     "action": "WaterKnowledgeTree",
-    "controllerLine": 45,
+    "controllerLine": 48,
     "evidence": [
       {
         "key": "POST /api/v1/child/rewards/knowledge-tree/water",
@@ -2130,7 +2136,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildRoadmapController.cs",
     "action": "AddStory",
-    "controllerLine": 21,
+    "controllerLine": 20,
     "evidence": [
       {
         "key": "POST /api/v1/ChildRoadmap/stories",
@@ -2153,7 +2159,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildRoadmapController.cs",
     "action": "Get",
-    "controllerLine": 29,
+    "controllerLine": 28,
     "evidence": [
       {
         "key": "GET /api/v1/ChildRoadmap/{}",
@@ -2176,7 +2182,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildRoadmapController.cs",
     "action": "Remove",
-    "controllerLine": 37,
+    "controllerLine": 36,
     "evidence": [
       {
         "key": "DELETE /api/v1/ChildRoadmap/{}/items/{}",
@@ -2198,7 +2204,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildRoadmapController.cs",
     "action": "Reorder",
-    "controllerLine": 45,
+    "controllerLine": 44,
     "evidence": [
       {
         "key": "PUT /api/v1/ChildRoadmap/{}/order",
@@ -2220,7 +2226,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ChildRoadmapController.cs",
     "action": "Clear",
-    "controllerLine": 53,
+    "controllerLine": 52,
     "evidence": [
       {
         "key": "DELETE /api/v1/ChildRoadmap/{}/items",
@@ -2242,7 +2248,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildStoryReflectionController.cs",
     "action": "Get",
-    "controllerLine": 41,
+    "controllerLine": 44,
     "evidence": [
       {
         "key": "GET /api/v1/child/reading/sessions/{}/reflection",
@@ -2263,7 +2269,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildStoryReflectionController.cs",
     "action": "SetEmotions",
-    "controllerLine": 49,
+    "controllerLine": 52,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/reflection/emotions",
@@ -2284,7 +2290,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildStoryReflectionController.cs",
     "action": "SetFavoriteScene",
-    "controllerLine": 58,
+    "controllerLine": 61,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/reflection/favorite-scene",
@@ -2305,7 +2311,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildStoryReflectionController.cs",
     "action": "SendNote",
-    "controllerLine": 67,
+    "controllerLine": 70,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/reflection/note",
@@ -2326,7 +2332,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildStorySummaryController.cs",
     "action": "SendRecording",
-    "controllerLine": 41,
+    "controllerLine": 44,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/summary/recording",
@@ -2347,7 +2353,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildStorySummaryController.cs",
     "action": "Ask",
-    "controllerLine": 68,
+    "controllerLine": 71,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/summary/questions",
@@ -2368,7 +2374,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildWishesController.cs",
     "action": "ListCards",
-    "controllerLine": 42,
+    "controllerLine": 45,
     "evidence": [
       {
         "key": "GET /api/v1/child/wish-cards",
@@ -2389,7 +2395,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildWishesController.cs",
     "action": "StartDraft",
-    "controllerLine": 51,
+    "controllerLine": 54,
     "evidence": [
       {
         "key": "POST /api/v1/child/wishes/draft",
@@ -2410,7 +2416,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildWishesController.cs",
     "action": "SelectCard",
-    "controllerLine": 59,
+    "controllerLine": 62,
     "evidence": [
       {
         "key": "PUT /api/v1/child/wishes/draft/cards",
@@ -2431,7 +2437,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildWishesController.cs",
     "action": "Submit",
-    "controllerLine": 68,
+    "controllerLine": 71,
     "evidence": [
       {
         "key": "POST /api/v1/child/wishes/draft/submit",
@@ -2452,7 +2458,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildWishesController.cs",
     "action": "ListMine",
-    "controllerLine": 76,
+    "controllerLine": 79,
     "evidence": [
       {
         "key": "GET /api/v1/child/wishes",
@@ -2473,7 +2479,7 @@
     "authorization": "Permission = Permissions.Moderation.CategoryManage",
     "controller": "ContentCategoryController.cs",
     "action": "CreateContentCategory",
-    "controllerLine": 29,
+    "controllerLine": 28,
     "evidence": [
       {
         "key": "POST /api/v1/ContentCategory",
@@ -2491,10 +2497,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/ContentCategory/{contentCategoryId}",
-    "authorization": "Permission = Permissions.Moderation.CategoryManage",
+    "authorization": "Permission = Permissions.Moderation.CategoryManage; Permission = Permissions.Moderation.CategoryManage",
     "controller": "ContentCategoryController.cs",
     "action": "UpdateContentCategory",
-    "controllerLine": 42,
+    "controllerLine": 41,
     "evidence": [
       {
         "key": "PUT /api/v1/ContentCategory/{}",
@@ -2512,10 +2518,10 @@
   {
     "method": "DELETE",
     "route": "/api/v1/ContentCategory/{contentCategoryId}",
-    "authorization": "Permission = Permissions.Moderation.CategoryManage",
+    "authorization": "Permission = Permissions.Moderation.CategoryManage; Permission = Permissions.Moderation.CategoryManage; Permission = Permissions.Moderation.CategoryManage",
     "controller": "ContentCategoryController.cs",
     "action": "DeleteContentCategory",
-    "controllerLine": 55,
+    "controllerLine": 54,
     "evidence": [
       {
         "key": "DELETE /api/v1/ContentCategory/{}",
@@ -2533,10 +2539,10 @@
   {
     "method": "GET",
     "route": "/api/v1/ContentCategory/{contentCategoryId}",
-    "authorization": "Authenticated",
+    "authorization": "Permission = Permissions.Moderation.CategoryManage; Permission = Permissions.Moderation.CategoryManage; Permission = Permissions.Moderation.CategoryManage; Authenticated",
     "controller": "ContentCategoryController.cs",
     "action": "GetContentCategory",
-    "controllerLine": 67,
+    "controllerLine": 66,
     "evidence": [
       {
         "key": "GET /api/v1/ContentCategory/{}",
@@ -2554,20 +2560,21 @@
   {
     "method": "GET",
     "route": "/api/v1/ContentCategory",
-    "authorization": "Authenticated",
+    "authorization": "Permission = Permissions.Moderation.CategoryManage; Permission = Permissions.Moderation.CategoryManage; Permission = Permissions.Moderation.CategoryManage; Authenticated; Authenticated",
     "controller": "ContentCategoryController.cs",
     "action": "ListContentCategories",
-    "controllerLine": 79,
+    "controllerLine": 78,
     "evidence": [
       {
         "key": "GET /api/v1/ContentCategory",
         "service": "childProfileService",
         "operation": "getContentCategories",
         "file": "app/services/childProfileService.ts",
-        "line": 114,
+        "line": 116,
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
-          "app/features/children/LearningForm.tsx",
+          "app/features/events/CreateEventModal.tsx",
+          "app/features/events/EventTaskFilterEditor.tsx",
           "app/features/safety/SafetyWorkspace.tsx",
           "app/features/story-workflow/useCreatorPublicationLabels.ts"
         ]
@@ -2581,6 +2588,7 @@
         "callers": [
           "app/features/staff/AdminCatalog.tsx",
           "app/features/staff/CreatorPublication.tsx",
+          "app/features/staff/PublishedReviewWorkspace.tsx",
           "app/features/staff/RoadmapAuthoringWorkspace.tsx",
           "app/features/staff/WishCardManagement.tsx"
         ]
@@ -2594,6 +2602,7 @@
         "callers": [
           "app/features/staff/AdminCatalog.tsx",
           "app/features/staff/CreatorPublication.tsx",
+          "app/features/staff/PublishedReviewWorkspace.tsx",
           "app/features/staff/RoadmapAuthoringWorkspace.tsx",
           "app/features/staff/WishCardManagement.tsx"
         ]
@@ -2650,7 +2659,7 @@
     "authorization": "Permission = Permissions.Parent.ContentReportSubmit",
     "controller": "ContentReportController.cs",
     "action": "Create",
-    "controllerLine": 28,
+    "controllerLine": 27,
     "evidence": [
       {
         "key": "POST /api/v1/ContentReport",
@@ -2671,7 +2680,7 @@
     "authorization": "Permission = Permissions.Moderation.ReportReview",
     "controller": "ContentReportReviewController.cs",
     "action": "GetDetail",
-    "controllerLine": 26,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "GET /api/v1/ContentReportReview/{}",
@@ -2692,7 +2701,7 @@
     "authorization": "Permission = Permissions.Moderation.ReportReview",
     "controller": "ContentReportReviewController.cs",
     "action": "Dismiss",
-    "controllerLine": 36,
+    "controllerLine": 35,
     "evidence": [
       {
         "key": "POST /api/v1/ContentReportReview/{}/dismiss",
@@ -2713,7 +2722,7 @@
     "authorization": "Permission = Permissions.Moderation.ReportReview",
     "controller": "ContentReportReviewController.cs",
     "action": "Archive",
-    "controllerLine": 48,
+    "controllerLine": 47,
     "evidence": [
       {
         "key": "POST /api/v1/ContentReportReview/{}/archive",
@@ -2734,7 +2743,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorAIStoryInputController.cs",
     "action": "GetContext",
-    "controllerLine": 25,
+    "controllerLine": 24,
     "evidence": [
       {
         "key": "GET /api/v1/creator/ai-story-input/context",
@@ -2755,7 +2764,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorAIStoryInputController.cs",
     "action": "Submit",
-    "controllerLine": 33,
+    "controllerLine": 32,
     "evidence": [
       {
         "key": "POST /api/v1/creator/ai-story-input/requests",
@@ -2776,7 +2785,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorAIStoryInputController.cs",
     "action": "GetProgress",
-    "controllerLine": 42,
+    "controllerLine": 41,
     "evidence": [
       {
         "key": "GET /api/v1/creator/ai-story-input/stories/{}/requests/{}",
@@ -2797,7 +2806,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorAIStoryInputController.cs",
     "action": "Retry",
-    "controllerLine": 52,
+    "controllerLine": 51,
     "evidence": [
       {
         "key": "POST /api/v1/creator/ai-story-input/stories/{}/requests/{}/retry",
@@ -2818,7 +2827,7 @@
     "authorization": "Permission = Permissions.Admin.CreatorAccountManage",
     "controller": "CreatorAccountController.cs",
     "action": "List",
-    "controllerLine": 29,
+    "controllerLine": 28,
     "evidence": [
       {
         "key": "GET /api/v1/admin/creators",
@@ -2839,7 +2848,7 @@
     "authorization": "Permission = Permissions.Admin.CreatorAccountManage",
     "controller": "CreatorAccountController.cs",
     "action": "Get",
-    "controllerLine": 37,
+    "controllerLine": 36,
     "evidence": [
       {
         "key": "GET /api/v1/admin/creators/{}",
@@ -2858,7 +2867,7 @@
     "authorization": "Permission = Permissions.Admin.CreatorAccountManage",
     "controller": "CreatorAccountController.cs",
     "action": "Deactivate",
-    "controllerLine": 49,
+    "controllerLine": 48,
     "evidence": [
       {
         "key": "POST /api/v1/admin/creators/{}/deactivate",
@@ -2879,7 +2888,7 @@
     "authorization": "Permission = Permissions.Admin.CreatorAccountManage",
     "controller": "CreatorAccountController.cs",
     "action": "Reactivate",
-    "controllerLine": 56,
+    "controllerLine": 55,
     "evidence": [
       {
         "key": "POST /api/v1/admin/creators/{}/reactivate",
@@ -2900,7 +2909,7 @@
     "authorization": "Permission = Permissions.Creator.ApplicationViewOwn",
     "controller": "CreatorApplicationController.cs",
     "action": "GetMine",
-    "controllerLine": 28,
+    "controllerLine": 27,
     "evidence": [
       {
         "key": "GET /api/v1/creator-applications/me",
@@ -2918,10 +2927,10 @@
   {
     "method": "POST",
     "route": "/api/v1/creator-applications/me/resubmit",
-    "authorization": "Permission = Permissions.Creator.ApplicationSubmit",
+    "authorization": "Permission = Permissions.Creator.ApplicationViewOwn; Permission = Permissions.Creator.ApplicationSubmit",
     "controller": "CreatorApplicationController.cs",
     "action": "Resubmit",
-    "controllerLine": 37,
+    "controllerLine": 36,
     "evidence": [
       {
         "key": "POST /api/v1/creator-applications/me/resubmit",
@@ -2939,10 +2948,10 @@
   {
     "method": "GET",
     "route": "/api/v1/admin/creator-applications",
-    "authorization": "Permission = Permissions.Admin.CreatorApplicationReview",
+    "authorization": "Permission = Permissions.Creator.ApplicationViewOwn; Permission = Permissions.Creator.ApplicationSubmit; Permission = Permissions.Admin.CreatorApplicationReview",
     "controller": "CreatorApplicationController.cs",
     "action": "List",
-    "controllerLine": 47,
+    "controllerLine": 46,
     "evidence": [
       {
         "key": "GET /api/v1/admin/creator-applications",
@@ -2952,6 +2961,7 @@
         "line": 45,
         "callers": [
           "app/features/staff/AdminCreators.tsx",
+          "app/features/staff/adminTodo.ts",
           "app/features/staff/CreatorApplicationsTab.tsx"
         ]
       }
@@ -2961,10 +2971,10 @@
   {
     "method": "GET",
     "route": "/api/v1/admin/creator-applications/{applicationId}",
-    "authorization": "Permission = Permissions.Admin.CreatorApplicationReview",
+    "authorization": "Permission = Permissions.Creator.ApplicationViewOwn; Permission = Permissions.Creator.ApplicationSubmit; Permission = Permissions.Admin.CreatorApplicationReview; Permission = Permissions.Admin.CreatorApplicationReview",
     "controller": "CreatorApplicationController.cs",
     "action": "Get",
-    "controllerLine": 56,
+    "controllerLine": 55,
     "evidence": [
       {
         "key": "GET /api/v1/admin/creator-applications/{}",
@@ -2980,10 +2990,10 @@
   {
     "method": "POST",
     "route": "/api/v1/admin/creator-applications/{applicationId}/approve",
-    "authorization": "Permission = Permissions.Admin.CreatorApplicationReview",
+    "authorization": "Permission = Permissions.Creator.ApplicationViewOwn; Permission = Permissions.Creator.ApplicationSubmit; Permission = Permissions.Admin.CreatorApplicationReview; Permission = Permissions.Admin.CreatorApplicationReview; Permission = Permissions.Admin.CreatorApplicationReview",
     "controller": "CreatorApplicationController.cs",
     "action": "Approve",
-    "controllerLine": 67,
+    "controllerLine": 66,
     "evidence": [
       {
         "key": "POST /api/v1/admin/creator-applications/{}/approve",
@@ -3001,10 +3011,10 @@
   {
     "method": "POST",
     "route": "/api/v1/admin/creator-applications/{applicationId}/reject",
-    "authorization": "Permission = Permissions.Admin.CreatorApplicationReview",
+    "authorization": "Permission = Permissions.Creator.ApplicationViewOwn; Permission = Permissions.Creator.ApplicationSubmit; Permission = Permissions.Admin.CreatorApplicationReview; Permission = Permissions.Admin.CreatorApplicationReview; Permission = Permissions.Admin.CreatorApplicationReview; Permission = Permissions.Admin.CreatorApplicationReview",
     "controller": "CreatorApplicationController.cs",
     "action": "Reject",
-    "controllerLine": 77,
+    "controllerLine": 76,
     "evidence": [
       {
         "key": "POST /api/v1/admin/creator-applications/{}/reject",
@@ -3236,7 +3246,7 @@
     "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorAuthoringController.cs",
     "action": "ConfirmContent",
-    "controllerLine": 18,
+    "controllerLine": 17,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/manual/confirm-content",
@@ -3254,10 +3264,10 @@
   {
     "method": "POST",
     "route": "/api/v1/creator/stories/manual",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorAuthoringController.cs",
     "action": "Create",
-    "controllerLine": 28,
+    "controllerLine": 27,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/manual",
@@ -3275,10 +3285,10 @@
   {
     "method": "GET",
     "route": "/api/v1/creator/stories",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorAuthoringController.cs",
     "action": "Mine",
-    "controllerLine": 32,
+    "controllerLine": 31,
     "evidence": [
       {
         "key": "GET /api/v1/creator/stories",
@@ -3287,7 +3297,8 @@
         "file": "app/services/creatorService.ts",
         "line": 37,
         "callers": [
-          "app/features/staff/CreatorLibrary.tsx",
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventCreatorView.tsx",
           "app/features/staff/CreatorMyStories.tsx"
         ]
       }
@@ -3297,10 +3308,10 @@
   {
     "method": "GET",
     "route": "/api/v1/creator/stories/{storyId}",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorAuthoringController.cs",
     "action": "Get",
-    "controllerLine": 37,
+    "controllerLine": 36,
     "evidence": [
       {
         "key": "GET /api/v1/creator/stories/{}",
@@ -3309,6 +3320,7 @@
         "file": "app/services/creatorService.ts",
         "line": 39,
         "callers": [
+          "app/features/events/CreatorGoalAndStoryCard.tsx",
           "app/features/staff/CreatorEditor.tsx",
           "app/features/staff/CreatorGeneration.tsx",
           "app/features/staff/CreatorPreview.tsx",
@@ -3321,10 +3333,10 @@
   {
     "method": "POST",
     "route": "/api/v1/creator/stories/{storyId}/manual/versions",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorAuthoringController.cs",
     "action": "Save",
-    "controllerLine": 41,
+    "controllerLine": 40,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/manual/versions",
@@ -3342,10 +3354,10 @@
   {
     "method": "GET",
     "route": "/api/v1/creator/stories/{storyId}/content/versions",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorAuthoringController.cs",
     "action": "Versions",
-    "controllerLine": 45,
+    "controllerLine": 44,
     "evidence": [
       {
         "key": "GET /api/v1/creator/stories/{}/content/versions",
@@ -3363,10 +3375,10 @@
   {
     "method": "GET",
     "route": "/api/v1/creator/stories/{storyId}/content/versions/{versionId}",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorAuthoringController.cs",
     "action": "Version",
-    "controllerLine": 49,
+    "controllerLine": 48,
     "evidence": [
       {
         "key": "GET /api/v1/creator/stories/{}/content/versions/{}",
@@ -3375,6 +3387,7 @@
         "file": "app/services/creatorService.ts",
         "line": 51,
         "callers": [
+          "app/features/events/CreatorGoalAndStoryCard.tsx",
           "app/features/staff/CreatorEditor.tsx",
           "app/features/staff/CreatorPreview.tsx"
         ]
@@ -3385,10 +3398,10 @@
   {
     "method": "POST",
     "route": "/api/v1/creator/stories/{storyId}/content/restore",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorAuthoringController.cs",
     "action": "Restore",
-    "controllerLine": 53,
+    "controllerLine": 52,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/content/restore",
@@ -3406,10 +3419,10 @@
   {
     "method": "POST",
     "route": "/api/v1/creator/stories/{storyId}/imports/preview",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorAuthoringController.cs",
     "action": "Preview",
-    "controllerLine": 57,
+    "controllerLine": 56,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/imports/preview",
@@ -3427,10 +3440,10 @@
   {
     "method": "POST",
     "route": "/api/v1/creator/stories/{storyId}/imports/preview-file",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorAuthoringController.cs",
     "action": "PreviewFile",
-    "controllerLine": 61,
+    "controllerLine": 60,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/imports/preview-file",
@@ -3448,10 +3461,10 @@
   {
     "method": "POST",
     "route": "/api/v1/creator/stories/{storyId}/imports/confirm",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorAuthoringController.cs",
     "action": "Confirm",
-    "controllerLine": 73,
+    "controllerLine": 72,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/imports/confirm",
@@ -3472,7 +3485,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorMediaUploadsController.cs",
     "action": "UploadImage",
-    "controllerLine": 21,
+    "controllerLine": 20,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/media/illustration-beats/{}/upload",
@@ -3493,7 +3506,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorMediaUploadsController.cs",
     "action": "UploadAudio",
-    "controllerLine": 26,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/media/segments/{}/upload",
@@ -3514,7 +3527,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorMediaUploadsController.cs",
     "action": "GenerateImage",
-    "controllerLine": 32,
+    "controllerLine": 31,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/media/illustration-beats/{}/generate",
@@ -3535,7 +3548,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorMediaUploadsController.cs",
     "action": "GenerateAudio",
-    "controllerLine": 37,
+    "controllerLine": 36,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/media/segments/{}/generate",
@@ -3556,7 +3569,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorModerationCheckController.cs",
     "action": "Check",
-    "controllerLine": 14,
+    "controllerLine": 13,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/content/check",
@@ -3578,7 +3591,7 @@
     "authorization": "Permission = Permissions.Creator.PayoutViewOwn",
     "controller": "CreatorPayoutController.cs",
     "action": "GetMine",
-    "controllerLine": 27,
+    "controllerLine": 26,
     "evidence": [
       {
         "key": "GET /api/v1/creator-payouts/me",
@@ -3596,10 +3609,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/creator-payouts/me/account",
-    "authorization": "Permission = Permissions.Creator.PayoutViewOwn",
+    "authorization": "Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Creator.PayoutViewOwn",
     "controller": "CreatorPayoutController.cs",
     "action": "UpdateMyAccount",
-    "controllerLine": 36,
+    "controllerLine": 35,
     "evidence": [
       {
         "key": "PUT /api/v1/creator-payouts/me/account",
@@ -3617,10 +3630,10 @@
   {
     "method": "GET",
     "route": "/api/v1/admin/creator-payouts/due",
-    "authorization": "Permission = Permissions.Admin.CreatorPayoutManage",
+    "authorization": "Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Admin.CreatorPayoutManage",
     "controller": "CreatorPayoutController.cs",
     "action": "GetDue",
-    "controllerLine": 46,
+    "controllerLine": 45,
     "evidence": [
       {
         "key": "GET /api/v1/admin/creator-payouts/due",
@@ -3629,7 +3642,8 @@
         "file": "app/services/creatorAdminService.ts",
         "line": 20,
         "callers": [
-          "app/features/staff/AdminCreatorPayouts.tsx"
+          "app/features/staff/AdminCreatorPayouts.tsx",
+          "app/features/staff/adminTodo.ts"
         ]
       }
     ],
@@ -3638,10 +3652,10 @@
   {
     "method": "GET",
     "route": "/api/v1/admin/creator-payouts/creators/{creatorUserId}",
-    "authorization": "Permission = Permissions.Admin.CreatorPayoutManage",
+    "authorization": "Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage",
     "controller": "CreatorPayoutController.cs",
     "action": "GetCreator",
-    "controllerLine": 55,
+    "controllerLine": 54,
     "evidence": [
       {
         "key": "GET /api/v1/admin/creator-payouts/creators/{}",
@@ -3659,10 +3673,10 @@
   {
     "method": "POST",
     "route": "/api/v1/admin/creator-payouts/creators/{creatorUserId}/mark-paid",
-    "authorization": "Permission = Permissions.Admin.CreatorPayoutManage",
+    "authorization": "Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage",
     "controller": "CreatorPayoutController.cs",
     "action": "MarkPaid",
-    "controllerLine": 65,
+    "controllerLine": 64,
     "evidence": [
       {
         "key": "POST /api/v1/admin/creator-payouts/creators/{}/mark-paid",
@@ -3680,10 +3694,10 @@
   {
     "method": "POST",
     "route": "/api/v1/admin/creator-payouts/{payoutId}/cancel",
-    "authorization": "Permission = Permissions.Admin.CreatorPayoutManage",
+    "authorization": "Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage",
     "controller": "CreatorPayoutController.cs",
     "action": "Cancel",
-    "controllerLine": 75,
+    "controllerLine": 74,
     "evidence": [
       {
         "key": "POST /api/v1/admin/creator-payouts/{}/cancel",
@@ -3704,7 +3718,7 @@
     "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "CreatorPublicationController.cs",
     "action": "GetStatus",
-    "controllerLine": 13,
+    "controllerLine": 12,
     "evidence": [
       {
         "key": "GET /api/v1/creator/stories/{}/publication",
@@ -3714,7 +3728,6 @@
         "line": 6,
         "callers": [
           "app/features/staff/CreatorContentCheck.tsx",
-          "app/features/staff/CreatorLibrary.tsx",
           "app/features/staff/CreatorMyStories.tsx",
           "app/features/staff/CreatorPublication.tsx"
         ]
@@ -3728,7 +3741,7 @@
     "authorization": "Authenticated; Permission = Permissions.Creator.Studio; Permission = Permissions.Creator.Studio",
     "controller": "CreatorPublicationController.cs",
     "action": "RequestRemoval",
-    "controllerLine": 17,
+    "controllerLine": 16,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/removal-requests",
@@ -3750,7 +3763,7 @@
     "authorization": "Authenticated; Permission = Permissions.Creator.Studio; Permission = Permissions.Creator.Studio; Permission = Permissions.Creator.Studio",
     "controller": "CreatorPublicationController.cs",
     "action": "CreateRevision",
-    "controllerLine": 21,
+    "controllerLine": 20,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/revisions",
@@ -3771,7 +3784,7 @@
     "authorization": "Authenticated; Permission = Permissions.Creator.Studio; Permission = Permissions.Creator.Studio; Permission = Permissions.Creator.Studio; Permission = Permissions.Review.CreatorPublication",
     "controller": "CreatorPublicationController.cs",
     "action": "DecideRemoval",
-    "controllerLine": 25,
+    "controllerLine": 24,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/public-story-removals/{}/decision",
@@ -3792,7 +3805,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorStatisticsController.cs",
     "action": "GetReading",
-    "controllerLine": 29,
+    "controllerLine": 28,
     "evidence": [
       {
         "key": "GET /api/v1/CreatorStatistics/reading",
@@ -3813,7 +3826,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorStatisticsController.cs",
     "action": "GetContent",
-    "controllerLine": 43,
+    "controllerLine": 42,
     "evidence": [
       {
         "key": "GET /api/v1/CreatorStatistics/content",
@@ -3834,7 +3847,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "CreatorStatisticsController.cs",
     "action": "GetRevenue",
-    "controllerLine": 56,
+    "controllerLine": 55,
     "evidence": [
       {
         "key": "GET /api/v1/CreatorStatistics/revenue",
@@ -3855,7 +3868,7 @@
     "authorization": "Permission = Permissions.Admin.CreatorTierManage",
     "controller": "CreatorTierController.cs",
     "action": "Get",
-    "controllerLine": 28,
+    "controllerLine": 27,
     "evidence": [
       {
         "key": "GET /api/v1/admin/creators/{}/partner-tier",
@@ -3876,7 +3889,7 @@
     "authorization": "Permission = Permissions.Admin.CreatorTierManage",
     "controller": "CreatorTierController.cs",
     "action": "Revoke",
-    "controllerLine": 36,
+    "controllerLine": 35,
     "evidence": [
       {
         "key": "POST /api/v1/admin/creators/{}/partner-tier/revoke",
@@ -3892,12 +3905,1057 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
+    "method": "GET",
+    "route": "/api/v1/events",
+    "authorization": "Authenticated",
+    "controller": "EventsController.cs",
+    "action": "List",
+    "controllerLine": 30,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events",
+        "service": "eventService",
+        "operation": "list",
+        "file": "app/services/eventService.ts",
+        "line": 108,
+        "callers": [
+          "app/features/events/EventHighlightBanner.tsx",
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/reward-plans",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "ListRewardPlans",
+    "controllerLine": 39,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/reward-plans",
+        "service": "eventService",
+        "operation": "rewardPlans",
+        "file": "app/services/eventService.ts",
+        "line": 104,
+        "callers": [
+          "app/features/events/EventRewardPlanField.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}",
+    "authorization": "Authenticated",
+    "controller": "EventsController.cs",
+    "action": "Detail",
+    "controllerLine": 44,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}",
+        "service": "eventService",
+        "operation": "detail",
+        "file": "app/services/eventService.ts",
+        "line": 112,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx",
+          "app/features/events/useEventListDetails.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}/lead-moderator",
+    "authorization": "Permission = Permissions.Admin.EventApprove",
+    "controller": "EventsController.cs",
+    "action": "UpdateLeadModerator",
+    "controllerLine": 56,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}/lead-moderator",
+        "service": "eventService",
+        "operation": "updateLeadModerator",
+        "file": "app/services/eventService.ts",
+        "line": 116,
+        "callers": [
+          "app/features/events/EventModeratorAssignment.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/clone-to-activity-draft",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "CloneToActivityDraft",
+    "controllerLine": 63,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/clone-to-activity-draft",
+        "service": "eventService",
+        "operation": "cloneToActivityDraft",
+        "file": "app/services/eventService.ts",
+        "line": 140,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "Create",
+    "controllerLine": 69,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events",
+        "service": "eventService",
+        "operation": "create",
+        "file": "app/services/eventService.ts",
+        "line": 122,
+        "callers": [
+          "app/features/events/CreateEventModal.tsx",
+          "app/features/events/EventActivityWizard.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "Update",
+    "controllerLine": 74,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}",
+        "service": "eventService",
+        "operation": "update",
+        "file": "app/services/eventService.ts",
+        "line": 129,
+        "callers": [
+          "app/features/events/CreateEventModal.tsx",
+          "app/features/events/EventActivityWizard.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/events/{eventId}",
+    "authorization": "Permission = Permissions.Admin.EventApprove",
+    "controller": "EventsController.cs",
+    "action": "DeleteDraft",
+    "controllerLine": 79,
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/events/{}",
+        "service": "eventService",
+        "operation": "deleteDraft",
+        "file": "app/services/eventService.ts",
+        "line": 136,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}/rules-section",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "UpdateRulesSection",
+    "controllerLine": 84,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}/rules-section",
+        "service": "eventService",
+        "operation": "updateRulesSection",
+        "file": "app/services/eventService.ts",
+        "line": 157,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}/schedule-section",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "UpdateScheduleSection",
+    "controllerLine": 89,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}/schedule-section",
+        "service": "eventService",
+        "operation": "updateScheduleSection",
+        "file": "app/services/eventService.ts",
+        "line": 176,
+        "callers": []
+      }
+    ],
+    "disposition": "SERVICE_ONLY"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}/tasks-section",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "UpdateTasksSection",
+    "controllerLine": 94,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}/tasks-section",
+        "service": "eventService",
+        "operation": "updateTasksSection",
+        "file": "app/services/eventService.ts",
+        "line": 191,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}/awards-section",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "UpdateAwardsSection",
+    "controllerLine": 99,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}/awards-section",
+        "service": "eventService",
+        "operation": "updateAwardsSection",
+        "file": "app/services/eventService.ts",
+        "line": 205,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/rules",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "UpsertRules",
+    "controllerLine": 104,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/rules",
+        "service": "eventService",
+        "operation": "upsertRules",
+        "file": "app/services/eventService.ts",
+        "line": 222,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/submit-approval",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "SubmitApproval",
+    "controllerLine": 109,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/submit-approval",
+        "service": "eventService",
+        "operation": "submitApproval",
+        "file": "app/services/eventService.ts",
+        "line": 229,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/approve",
+    "authorization": "Permission = Permissions.Admin.EventApprove",
+    "controller": "EventsController.cs",
+    "action": "Approve",
+    "controllerLine": 114,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/approve",
+        "service": "eventService",
+        "operation": "approve",
+        "file": "app/services/eventService.ts",
+        "line": 233,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/publish",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "Publish",
+    "controllerLine": 119,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/publish",
+        "service": "eventService",
+        "operation": "publish",
+        "file": "app/services/eventService.ts",
+        "line": 240,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/task-filter-stories",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "ListTaskFilterStories",
+    "controllerLine": 124,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/task-filter-stories",
+        "service": "eventService",
+        "operation": "taskFilterStories",
+        "file": "app/services/eventService.ts",
+        "line": 100,
+        "callers": [
+          "app/features/events/EventTaskFilterEditor.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/seed-stories",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "SeedStories",
+    "controllerLine": 133,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/seed-stories",
+        "service": "eventService",
+        "operation": "seedStories",
+        "file": "app/services/eventService.ts",
+        "line": 244,
+        "callers": [
+          "app/features/events/EventCuratedStoryPicker.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/summary",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "Summary",
+    "controllerLine": 138,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/summary",
+        "service": "eventService",
+        "operation": "summary",
+        "file": "app/services/eventService.ts",
+        "line": 251,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/close",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "Close",
+    "controllerLine": 146,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/close",
+        "service": "eventService",
+        "operation": "close",
+        "file": "app/services/eventService.ts",
+        "line": 255,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/register",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "Register",
+    "controllerLine": 151,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/register",
+        "service": "eventService",
+        "operation": "register",
+        "file": "app/services/eventService.ts",
+        "line": 265,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventCreatorView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/creator-submit",
+    "authorization": "Permission = Permissions.Creator.Studio",
+    "controller": "EventsController.cs",
+    "action": "CreatorSubmit",
+    "controllerLine": 156,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/creator-submit",
+        "service": "eventService",
+        "operation": "creatorSubmit",
+        "file": "app/services/eventService.ts",
+        "line": 299,
+        "callers": [
+          "app/features/events/EventCreatorView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/parent-submit",
+    "authorization": "Permission = Permissions.Parent.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "ParentSubmit",
+    "controllerLine": 161,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/parent-submit",
+        "service": "eventService",
+        "operation": "parentSubmit",
+        "file": "app/services/eventService.ts",
+        "line": 287,
+        "callers": [
+          "app/features/events/ParentEventSubmission.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/activities/submission/submit",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "SubmitActivityStory",
+    "controllerLine": 166,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/activities/submission/submit",
+        "service": "eventService",
+        "operation": "submitActivityStory",
+        "file": "app/services/eventService.ts",
+        "line": 276,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/my-submissions",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "MySubmissions",
+    "controllerLine": 171,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/my-submissions",
+        "service": "eventService",
+        "operation": "mySubmissions",
+        "file": "app/services/eventService.ts",
+        "line": 283,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/submissions/{submissionId}/review-parent",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "ReviewParent",
+    "controllerLine": 176,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/submissions/{}/review-parent",
+        "service": "eventService",
+        "operation": "reviewParentSubmission",
+        "file": "app/services/eventService.ts",
+        "line": 293,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/submissions",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "ListSubmissions",
+    "controllerLine": 181,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/submissions",
+        "service": "eventService",
+        "operation": "listSubmissions",
+        "file": "app/services/eventService.ts",
+        "line": 306,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/my-submission",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "MySubmission",
+    "controllerLine": 189,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/my-submission",
+        "service": "eventService",
+        "operation": "mySubmission",
+        "file": "app/services/eventService.ts",
+        "line": 310,
+        "callers": [
+          "app/features/events/EventCreatorView.tsx",
+          "app/features/events/ParentEventSubmission.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/my-participation",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "MyParticipation",
+    "controllerLine": 194,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/my-participation",
+        "service": "eventService",
+        "operation": "myParticipation",
+        "file": "app/services/eventService.ts",
+        "line": 314,
+        "callers": [
+          "app/features/events/EventCreatorView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/my-participations",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "MyParticipations",
+    "controllerLine": 200,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/my-participations",
+        "service": "eventService",
+        "operation": "myParticipations",
+        "file": "app/services/eventService.ts",
+        "line": 318,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/mission-dashboard",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "MissionDashboard",
+    "controllerLine": 205,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/mission-dashboard",
+        "service": "eventService",
+        "operation": "missionDashboard",
+        "file": "app/services/eventService.ts",
+        "line": 322,
+        "callers": [
+          "app/features/events/CreatorEventBallot.tsx",
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/votes",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "CastVote",
+    "controllerLine": 210,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/votes",
+        "service": "eventService",
+        "operation": "castVote",
+        "file": "app/services/eventService.ts",
+        "line": 329,
+        "callers": [
+          "app/features/events/CreatorEventBallot.tsx",
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/votes",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "ListVotes",
+    "controllerLine": 215,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/votes",
+        "service": "eventService",
+        "operation": "listVotes",
+        "file": "app/services/eventService.ts",
+        "line": 336,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/votes/{voteId}/disqualify",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "DisqualifyVote",
+    "controllerLine": 223,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/votes/{}/disqualify",
+        "service": "eventService",
+        "operation": "disqualifyVote",
+        "file": "app/services/eventService.ts",
+        "line": 340,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/leaderboard",
+    "authorization": "Authenticated",
+    "controller": "EventsController.cs",
+    "action": "Leaderboard",
+    "controllerLine": 228,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/leaderboard",
+        "service": "eventService",
+        "operation": "leaderboard",
+        "file": "app/services/eventService.ts",
+        "line": 347,
+        "callers": [
+          "app/features/events/CreatorEventBallot.tsx",
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventCreatorView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/tasks/{taskDefinitionId}/complete",
+    "authorization": "Permission = Permissions.Parent.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "CompleteTask",
+    "controllerLine": 238,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/tasks/{}/complete",
+        "service": "eventService",
+        "operation": "completeTask",
+        "file": "app/services/eventService.ts",
+        "line": 355,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/verify",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "Verify",
+    "controllerLine": 243,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/verify",
+        "service": "eventService",
+        "operation": "verify",
+        "file": "app/services/eventService.ts",
+        "line": 362,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/appeals",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "CreateAppeal",
+    "controllerLine": 248,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/appeals",
+        "service": "eventService",
+        "operation": "createAppeal",
+        "file": "app/services/eventService.ts",
+        "line": 366,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventCreatorView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/appeals",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "ListAppeals",
+    "controllerLine": 253,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/appeals",
+        "service": "eventService",
+        "operation": "listAppeals",
+        "file": "app/services/eventService.ts",
+        "line": 373,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/appeals/{appealId}/decide",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "DecideAppeal",
+    "controllerLine": 261,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/appeals/{}/decide",
+        "service": "eventService",
+        "operation": "decideAppeal",
+        "file": "app/services/eventService.ts",
+        "line": 377,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/submissions/{submissionId}/evaluate",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "EvaluateSubmission",
+    "controllerLine": 266,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/submissions/{}/evaluate",
+        "service": "eventService",
+        "operation": "evaluateSubmission",
+        "file": "app/services/eventService.ts",
+        "line": 387,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/awards/propose",
+    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "controller": "EventsController.cs",
+    "action": "ProposeAwards",
+    "controllerLine": 274,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/awards/propose",
+        "service": "eventService",
+        "operation": "proposeAwards",
+        "file": "app/services/eventService.ts",
+        "line": 394,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/awards/approve",
+    "authorization": "Permission = Permissions.Admin.EventApprove",
+    "controller": "EventsController.cs",
+    "action": "ApproveAwards",
+    "controllerLine": 279,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/awards/approve",
+        "service": "eventService",
+        "operation": "approveAwards",
+        "file": "app/services/eventService.ts",
+        "line": 398,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/my-rewards",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "MyRewards",
+    "controllerLine": 284,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/my-rewards",
+        "service": "eventService",
+        "operation": "myRewards",
+        "file": "app/services/eventService.ts",
+        "line": 402,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/awards/{awardId}/claim",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "ClaimReward",
+    "controllerLine": 289,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/awards/{}/claim",
+        "service": "eventService",
+        "operation": "claimReward",
+        "file": "app/services/eventService.ts",
+        "line": 412,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventCreatorView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/awards/process-expired",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "ProcessExpired",
+    "controllerLine": 294,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/awards/process-expired",
+        "service": "eventService",
+        "operation": "processExpired",
+        "file": "app/services/eventService.ts",
+        "line": 419,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/awards/{awardId}/recipient",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "RewardRecipient",
+    "controllerLine": 299,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/awards/{}/recipient",
+        "service": "eventService",
+        "operation": "rewardRecipient",
+        "file": "app/services/eventService.ts",
+        "line": 423,
+        "callers": [
+          "app/features/events/EventAwardsTable.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/awards/notify",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "NotifyAwardWinners",
+    "controllerLine": 305,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/awards/notify",
+        "service": "eventService",
+        "operation": "resendAwardNotifications",
+        "file": "app/services/eventService.ts",
+        "line": 427,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/awards/{awardId}/fulfill",
+    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "controller": "EventsController.cs",
+    "action": "Fulfill",
+    "controllerLine": 310,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/awards/{}/fulfill",
+        "service": "eventService",
+        "operation": "fulfillReward",
+        "file": "app/services/eventService.ts",
+        "line": 434,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
     "method": "POST",
     "route": "/api/v1/stories/import",
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ExistingStoriesController.cs",
     "action": "Import",
-    "controllerLine": 46,
+    "controllerLine": 45,
     "evidence": [
       {
         "key": "POST /api/v1/stories/import",
@@ -3918,7 +4976,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ExistingStoriesController.cs",
     "action": "ImportFile",
-    "controllerLine": 55,
+    "controllerLine": 54,
     "evidence": [
       {
         "key": "POST /api/v1/stories/import-file",
@@ -3939,7 +4997,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ExistingStoriesController.cs",
     "action": "Evaluate",
-    "controllerLine": 86,
+    "controllerLine": 85,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/existing/evaluate",
@@ -3960,7 +5018,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ExistingStoriesController.cs",
     "action": "GetLatestEvaluation",
-    "controllerLine": 97,
+    "controllerLine": 96,
     "evidence": [
       {
         "key": "GET /api/v1/stories/{}/existing/evaluation",
@@ -3981,7 +5039,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ExistingStoriesController.cs",
     "action": "Adapt",
-    "controllerLine": 112,
+    "controllerLine": 111,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/existing/adapt",
@@ -4002,7 +5060,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ExistingStoriesController.cs",
     "action": "UpdateContent",
-    "controllerLine": 135,
+    "controllerLine": 134,
     "evidence": [
       {
         "key": "PUT /api/v1/stories/{}/existing/content",
@@ -4023,7 +5081,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ExistingStoriesController.cs",
     "action": "KeepOriginal",
-    "controllerLine": 157,
+    "controllerLine": 156,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/existing/keep-original",
@@ -4044,7 +5102,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ExistingStoriesController.cs",
     "action": "Archive",
-    "controllerLine": 173,
+    "controllerLine": 172,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/existing/archive",
@@ -4065,7 +5123,7 @@
     "authorization": "Permission = Permissions.Review.GrayZone",
     "controller": "GrayZoneReviewController.cs",
     "action": "Get",
-    "controllerLine": 13,
+    "controllerLine": 12,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/gray-zone-stories/{}",
@@ -4086,7 +5144,7 @@
     "authorization": "Permission = Permissions.Review.GrayZone",
     "controller": "GrayZoneReviewController.cs",
     "action": "Decide",
-    "controllerLine": 16,
+    "controllerLine": 15,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/gray-zone-stories/{}/decision",
@@ -4107,14 +5165,14 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "LearningProfileController.cs",
     "action": "SetLearningProfile",
-    "controllerLine": 25,
+    "controllerLine": 24,
     "evidence": [
       {
         "key": "PUT /api/v1/LearningProfile/{}",
         "service": "childProfileService",
         "operation": "setLearningProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 80,
+        "line": 82,
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
           "app/features/children/LearningTab.tsx"
@@ -4126,10 +5184,10 @@
   {
     "method": "POST",
     "route": "/api/v1/LearningProfile/{childProfileId}",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "LearningProfileController.cs",
     "action": "CreateLearningProfile",
-    "controllerLine": 41,
+    "controllerLine": 40,
     "evidence": [
       {
         "key": "POST /api/v1/LearningProfile/{}",
@@ -4147,21 +5205,21 @@
   {
     "method": "GET",
     "route": "/api/v1/LearningProfile/{childProfileId}",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "LearningProfileController.cs",
     "action": "GetLearningProfile",
-    "controllerLine": 57,
+    "controllerLine": 56,
     "evidence": [
       {
         "key": "GET /api/v1/LearningProfile/{}",
         "service": "childProfileService",
         "operation": "getLearningProfile",
         "file": "app/services/childProfileService.ts",
-        "line": 75,
+        "line": 77,
         "callers": [
           "app/features/children/LearningTab.tsx",
           "app/features/children/ProfileTab.tsx",
-          "app/features/library/LibraryQuickTopics.tsx"
+          "app/features/safety/SafetyWorkspace.tsx"
         ]
       }
     ],
@@ -4170,10 +5228,10 @@
   {
     "method": "DELETE",
     "route": "/api/v1/LearningProfile/{childProfileId}",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "LearningProfileController.cs",
     "action": "DeleteLearningProfile",
-    "controllerLine": 69,
+    "controllerLine": 68,
     "evidence": [
       {
         "key": "DELETE /api/v1/LearningProfile/{}",
@@ -4194,7 +5252,7 @@
     "authorization": "Permission = Permissions.Shared.MediaGenerate",
     "controller": "MediaGenerationController.cs",
     "action": "GetProgress",
-    "controllerLine": 21,
+    "controllerLine": 20,
     "evidence": [
       {
         "key": "GET /api/v1/stories/{}/media/progress",
@@ -4219,7 +5277,7 @@
     "authorization": "Permission = Permissions.Shared.MediaGenerate",
     "controller": "MediaGenerationController.cs",
     "action": "GetPackage",
-    "controllerLine": 31,
+    "controllerLine": 30,
     "evidence": [
       {
         "key": "GET /api/v1/stories/{}/media/package",
@@ -4244,7 +5302,7 @@
     "authorization": "Permission = Permissions.Shared.MediaGenerate",
     "controller": "MediaGenerationController.cs",
     "action": "RegenerateIllustrationBeat",
-    "controllerLine": 41,
+    "controllerLine": 40,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/media/illustration-beats/{}/regenerate",
@@ -4265,7 +5323,7 @@
     "authorization": "Permission = Permissions.Shared.MediaGenerate; Permission = Permissions.Shared.MediaGenerate",
     "controller": "MediaGenerationController.cs",
     "action": "Confirm",
-    "controllerLine": 56,
+    "controllerLine": 55,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/media/confirm",
@@ -4284,10 +5342,10 @@
   {
     "method": "POST",
     "route": "/api/v1/stories/{storyId}/media/segments/{segmentId}/regenerate",
-    "authorization": "Permission = Permissions.Shared.MediaGenerate",
+    "authorization": "Permission = Permissions.Shared.MediaGenerate; Permission = Permissions.Shared.MediaGenerate",
     "controller": "MediaGenerationController.cs",
     "action": "RegenerateSegmentAudio",
-    "controllerLine": 68,
+    "controllerLine": 67,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/media/segments/{}/regenerate",
@@ -4305,10 +5363,10 @@
   {
     "method": "POST",
     "route": "/api/v1/stories/{storyId}/media/retry",
-    "authorization": "Permission = Permissions.Shared.MediaGenerate",
+    "authorization": "Permission = Permissions.Shared.MediaGenerate; Permission = Permissions.Shared.MediaGenerate",
     "controller": "MediaGenerationController.cs",
     "action": "Retry",
-    "controllerLine": 81,
+    "controllerLine": 80,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/media/retry",
@@ -4328,10 +5386,10 @@
   {
     "method": "POST",
     "route": "/api/v1/stories/{storyId}/media/replacements/{candidateAssetId}/keep-current",
-    "authorization": "Permission = Permissions.Shared.MediaGenerate",
+    "authorization": "Permission = Permissions.Shared.MediaGenerate; Permission = Permissions.Shared.MediaGenerate",
     "controller": "MediaGenerationController.cs",
     "action": "KeepCurrent",
-    "controllerLine": 97,
+    "controllerLine": 96,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/media/replacements/{}/keep-current",
@@ -4352,7 +5410,7 @@
     "authorization": "Permission = Permissions.Moderation.QueueProcess; Permission = Permissions.Moderation.StatisticsView",
     "controller": "ModerationQueueController.cs",
     "action": "GetStatistics",
-    "controllerLine": 36,
+    "controllerLine": 35,
     "evidence": [
       {
         "key": "GET /api/v1/ModerationQueue/statistics",
@@ -4371,10 +5429,10 @@
   {
     "method": "POST",
     "route": "/api/v1/ModerationQueue/review-views",
-    "authorization": "Permission = Permissions.Moderation.QueueProcess",
+    "authorization": "Permission = Permissions.Moderation.QueueProcess; Permission = Permissions.Moderation.StatisticsView",
     "controller": "ModerationQueueController.cs",
     "action": "GrantReviewView",
-    "controllerLine": 46,
+    "controllerLine": 45,
     "evidence": [
       {
         "key": "POST /api/v1/ModerationQueue/review-views",
@@ -4392,10 +5450,10 @@
   {
     "method": "GET",
     "route": "/api/v1/ModerationQueue",
-    "authorization": "Permission = Permissions.Moderation.QueueProcess",
+    "authorization": "Permission = Permissions.Moderation.QueueProcess; Permission = Permissions.Moderation.StatisticsView",
     "controller": "ModerationQueueController.cs",
     "action": "List",
-    "controllerLine": 55,
+    "controllerLine": 54,
     "evidence": [
       {
         "key": "GET /api/v1/ModerationQueue",
@@ -4414,10 +5472,10 @@
   {
     "method": "POST",
     "route": "/api/v1/ModerationQueue/{itemId}/claim",
-    "authorization": "Permission = Permissions.Moderation.QueueProcess",
+    "authorization": "Permission = Permissions.Moderation.QueueProcess; Permission = Permissions.Moderation.StatisticsView",
     "controller": "ModerationQueueController.cs",
     "action": "Claim",
-    "controllerLine": 64,
+    "controllerLine": 63,
     "evidence": [
       {
         "key": "POST /api/v1/ModerationQueue/{}/claim",
@@ -4436,10 +5494,10 @@
   {
     "method": "GET",
     "route": "/api/v1/ModerationQueue/{itemId}",
-    "authorization": "Permission = Permissions.Moderation.QueueProcess",
+    "authorization": "Permission = Permissions.Moderation.QueueProcess; Permission = Permissions.Moderation.StatisticsView",
     "controller": "ModerationQueueController.cs",
     "action": "Open",
-    "controllerLine": 73,
+    "controllerLine": 72,
     "evidence": [
       {
         "key": "GET /api/v1/ModerationQueue/{}",
@@ -4460,7 +5518,7 @@
     "authorization": "Permission = Permissions.Review.RubricManage",
     "controller": "ModerationRubricsController.cs",
     "action": "List",
-    "controllerLine": 13,
+    "controllerLine": 12,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/rubrics",
@@ -4488,7 +5546,7 @@
     "authorization": "Permission = Permissions.Review.RubricManage",
     "controller": "ModerationRubricsController.cs",
     "action": "Active",
-    "controllerLine": 16,
+    "controllerLine": 15,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/rubrics/active",
@@ -4509,7 +5567,7 @@
     "authorization": "Permission = Permissions.Review.RubricManage",
     "controller": "ModerationRubricsController.cs",
     "action": "Get",
-    "controllerLine": 18,
+    "controllerLine": 17,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/rubrics/{}",
@@ -4530,7 +5588,7 @@
     "authorization": "Permission = Permissions.Review.RubricManage",
     "controller": "ModerationRubricsController.cs",
     "action": "Create",
-    "controllerLine": 20,
+    "controllerLine": 19,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/rubrics",
@@ -4551,7 +5609,7 @@
     "authorization": "Permission = Permissions.Review.RubricManage",
     "controller": "ModerationRubricsController.cs",
     "action": "Clone",
-    "controllerLine": 22,
+    "controllerLine": 21,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/rubrics/{}/clone",
@@ -4572,7 +5630,7 @@
     "authorization": "Permission = Permissions.Review.RubricManage",
     "controller": "ModerationRubricsController.cs",
     "action": "Update",
-    "controllerLine": 24,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "PUT /api/v1/moderation/rubrics/{}",
@@ -4593,7 +5651,7 @@
     "authorization": "Permission = Permissions.Review.RubricManage",
     "controller": "ModerationRubricsController.cs",
     "action": "Delete",
-    "controllerLine": 26,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "DELETE /api/v1/moderation/rubrics/{}",
@@ -4614,7 +5672,7 @@
     "authorization": "Permission = Permissions.Review.RubricManage",
     "controller": "ModerationRubricsController.cs",
     "action": "Validate",
-    "controllerLine": 28,
+    "controllerLine": 27,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/rubrics/{}/validate",
@@ -4635,7 +5693,7 @@
     "authorization": "Permission = Permissions.Review.RubricManage",
     "controller": "ModerationRubricsController.cs",
     "action": "Evaluate",
-    "controllerLine": 30,
+    "controllerLine": 29,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/rubrics/{}/evaluations",
@@ -4656,7 +5714,7 @@
     "authorization": "Permission = Permissions.Review.RubricManage",
     "controller": "ModerationRubricsController.cs",
     "action": "Activate",
-    "controllerLine": 32,
+    "controllerLine": 31,
     "evidence": [
       {
         "key": "POST /api/v1/moderation/rubrics/{}/activate",
@@ -4677,7 +5735,7 @@
     "authorization": "Permission = Permissions.Review.RubricManage",
     "controller": "ModerationRubricsController.cs",
     "action": "Logs",
-    "controllerLine": 34,
+    "controllerLine": 33,
     "evidence": [
       {
         "key": "GET /api/v1/moderation/rubrics/{}/audit-logs",
@@ -4993,7 +6051,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAssistanceController.cs",
     "action": "Create",
-    "controllerLine": 26,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/assistance-tasks",
@@ -5014,7 +6072,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAssistanceController.cs",
     "action": "List",
-    "controllerLine": 31,
+    "controllerLine": 30,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories/{}/assistance-tasks",
@@ -5035,7 +6093,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAssistanceController.cs",
     "action": "Get",
-    "controllerLine": 34,
+    "controllerLine": 33,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories/{}/assistance-tasks/{}",
@@ -5056,7 +6114,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAssistanceController.cs",
     "action": "Steps",
-    "controllerLine": 37,
+    "controllerLine": 36,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories/{}/assistance-tasks/{}/steps",
@@ -5077,7 +6135,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAssistanceController.cs",
     "action": "Suggestions",
-    "controllerLine": 40,
+    "controllerLine": 39,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/suggestions",
@@ -5099,7 +6157,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAssistanceController.cs",
     "action": "Answer",
-    "controllerLine": 45,
+    "controllerLine": 44,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/clarification-answer",
@@ -5120,7 +6178,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAssistanceController.cs",
     "action": "Direction",
-    "controllerLine": 48,
+    "controllerLine": 47,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/direction",
@@ -5141,7 +6199,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAssistanceController.cs",
     "action": "Trial",
-    "controllerLine": 51,
+    "controllerLine": 50,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/trials",
@@ -5162,7 +6220,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAssistanceController.cs",
     "action": "Cancel",
-    "controllerLine": 56,
+    "controllerLine": 55,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/cancel",
@@ -5183,7 +6241,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAssistanceController.cs",
     "action": "Close",
-    "controllerLine": 59,
+    "controllerLine": 58,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/assistance-tasks/{}/close",
@@ -5204,7 +6262,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Create",
-    "controllerLine": 15,
+    "controllerLine": 14,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/manual",
@@ -5225,7 +6283,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Mine",
-    "controllerLine": 18,
+    "controllerLine": 17,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories",
@@ -5235,7 +6293,9 @@
         "line": 7,
         "callers": [
           "app/features/authoring/useParentAuthoring.ts",
-          "app/features/created/CreatedStories.tsx"
+          "app/features/created/CreatedStories.tsx",
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/ParentEventSubmission.tsx"
         ]
       }
     ],
@@ -5247,7 +6307,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Get",
-    "controllerLine": 22,
+    "controllerLine": 21,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories/{}",
@@ -5273,7 +6333,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Workflow",
-    "controllerLine": 26,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories/{}/workflow",
@@ -5294,7 +6354,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Setup",
-    "controllerLine": 30,
+    "controllerLine": 29,
     "evidence": [
       {
         "key": "PATCH /api/v1/parent/stories/{}/setup",
@@ -5315,7 +6375,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Save",
-    "controllerLine": 34,
+    "controllerLine": 33,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/manual/versions",
@@ -5336,7 +6396,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Versions",
-    "controllerLine": 38,
+    "controllerLine": 37,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories/{}/content/versions",
@@ -5357,7 +6417,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Version",
-    "controllerLine": 42,
+    "controllerLine": 41,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories/{}/content/versions/{}",
@@ -5381,7 +6441,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Restore",
-    "controllerLine": 46,
+    "controllerLine": 45,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/content/restore",
@@ -5402,7 +6462,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "PreviewImport",
-    "controllerLine": 50,
+    "controllerLine": 49,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/imports/preview",
@@ -5424,7 +6484,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "PreviewFile",
-    "controllerLine": 54,
+    "controllerLine": 53,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/imports/preview-file",
@@ -5445,7 +6505,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "ConfirmImport",
-    "controllerLine": 65,
+    "controllerLine": 64,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/imports/confirm",
@@ -5466,7 +6526,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Check",
-    "controllerLine": 69,
+    "controllerLine": 68,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/content/checks",
@@ -5487,7 +6547,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "ConfirmContent",
-    "controllerLine": 73,
+    "controllerLine": 72,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/content/confirm",
@@ -5508,7 +6568,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Prepare",
-    "controllerLine": 77,
+    "controllerLine": 76,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/preparations",
@@ -5529,7 +6589,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "GenerateMedia",
-    "controllerLine": 81,
+    "controllerLine": 80,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/manual/media/generate",
@@ -5550,7 +6610,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "Preview",
-    "controllerLine": 88,
+    "controllerLine": 87,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories/{}/preparations/{}",
@@ -5571,7 +6631,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "ConfirmFamily",
-    "controllerLine": 92,
+    "controllerLine": 91,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/family-confirmations",
@@ -5592,7 +6652,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentAuthoringController.cs",
     "action": "RevokeFamily",
-    "controllerLine": 96,
+    "controllerLine": 95,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/family-confirmations/revoke",
@@ -5614,7 +6674,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentPackageAssetsController.cs",
     "action": "Get",
-    "controllerLine": 17,
+    "controllerLine": 16,
     "evidence": [],
     "disposition": "MISSING"
   },
@@ -5624,7 +6684,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentReadingFeedbackController.cs",
     "action": "List",
-    "controllerLine": 25,
+    "controllerLine": 24,
     "evidence": [
       {
         "key": "GET /api/v1/ParentReadingFeedback/{}",
@@ -5645,7 +6705,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentReadingFeedbackController.cs",
     "action": "Quiz",
-    "controllerLine": 35,
+    "controllerLine": 34,
     "evidence": [
       {
         "key": "GET /api/v1/ParentReadingFeedback/{}/sessions/{}/quiz",
@@ -5666,7 +6726,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentReadingFeedbackController.cs",
     "action": "Overview",
-    "controllerLine": 44,
+    "controllerLine": 43,
     "evidence": [
       {
         "key": "GET /api/v1/ParentReadingFeedback/{}/overview",
@@ -5697,7 +6757,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentReadingFeedbackController.cs",
     "action": "ReadAloudRecordings",
-    "controllerLine": 52,
+    "controllerLine": 51,
     "evidence": [
       {
         "key": "GET /api/v1/ParentReadingFeedback/{}/sessions/{}/read-aloud",
@@ -5718,7 +6778,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentReadingFeedbackController.cs",
     "action": "DeleteReadAloudRecording",
-    "controllerLine": 61,
+    "controllerLine": 60,
     "evidence": [
       {
         "key": "DELETE /api/v1/ParentReadingFeedback/{}/sessions/{}/read-aloud/{}",
@@ -5739,7 +6799,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentReadingFeedbackController.cs",
     "action": "Reflection",
-    "controllerLine": 69,
+    "controllerLine": 68,
     "evidence": [
       {
         "key": "GET /api/v1/ParentReadingFeedback/{}/sessions/{}/reflection",
@@ -5760,7 +6820,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentReadingFeedbackController.cs",
     "action": "DeleteReflectionNote",
-    "controllerLine": 78,
+    "controllerLine": 77,
     "evidence": [
       {
         "key": "DELETE /api/v1/ParentReadingFeedback/{}/sessions/{}/reflection/note",
@@ -5781,7 +6841,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentStoryPackagesController.cs",
     "action": "FinalizeContent",
-    "controllerLine": 14,
+    "controllerLine": 13,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/content/finalize",
@@ -5803,7 +6863,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Reopen",
-    "controllerLine": 17,
+    "controllerLine": 16,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/content/reopen",
@@ -5824,7 +6884,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Create",
-    "controllerLine": 20,
+    "controllerLine": 19,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/packages",
@@ -5846,7 +6906,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentStoryPackagesController.cs",
     "action": "List",
-    "controllerLine": 24,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories/{}/packages",
@@ -5868,7 +6928,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Get",
-    "controllerLine": 27,
+    "controllerLine": 26,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories/{}/packages/{}",
@@ -5890,7 +6950,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Generate",
-    "controllerLine": 30,
+    "controllerLine": 29,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/packages/{}/generate",
@@ -5911,7 +6971,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Retry",
-    "controllerLine": 34,
+    "controllerLine": 33,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/packages/{}/retry",
@@ -5932,7 +6992,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Revise",
-    "controllerLine": 37,
+    "controllerLine": 36,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/packages/{}/revise",
@@ -5953,7 +7013,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Preview",
-    "controllerLine": 40,
+    "controllerLine": 39,
     "evidence": [
       {
         "key": "GET /api/v1/parent/stories/{}/packages/{}/preview",
@@ -5974,7 +7034,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Confirm",
-    "controllerLine": 43,
+    "controllerLine": 42,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/packages/{}/confirm",
@@ -5995,7 +7055,7 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "ParentStoryPackagesController.cs",
     "action": "Deliver",
-    "controllerLine": 46,
+    "controllerLine": 45,
     "evidence": [
       {
         "key": "POST /api/v1/parent/stories/{}/family-confirmations/batch",
@@ -6016,7 +7076,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentStorySummaryController.cs",
     "action": "List",
-    "controllerLine": 23,
+    "controllerLine": 22,
     "evidence": [
       {
         "key": "GET /api/v1/ParentStorySummary/{}",
@@ -6038,7 +7098,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentStorySummaryController.cs",
     "action": "Delete",
-    "controllerLine": 32,
+    "controllerLine": 31,
     "evidence": [
       {
         "key": "DELETE /api/v1/ParentStorySummary/{}/{}",
@@ -6059,7 +7119,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentStorySummaryController.cs",
     "action": "SetAnswered",
-    "controllerLine": 41,
+    "controllerLine": 40,
     "evidence": [
       {
         "key": "PUT /api/v1/ParentStorySummary/{}/{}/questions/{}/answered",
@@ -6080,7 +7140,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentWishSuggestionsController.cs",
     "action": "Get",
-    "controllerLine": 16,
+    "controllerLine": 15,
     "evidence": [
       {
         "key": "GET /api/v1/parent/wishes/{}/suggestions",
@@ -6101,7 +7161,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentWishesController.cs",
     "action": "List",
-    "controllerLine": 17,
+    "controllerLine": 16,
     "evidence": [
       {
         "key": "GET /api/v1/parent/wishes",
@@ -6122,7 +7182,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentWishesController.cs",
     "action": "Get",
-    "controllerLine": 24,
+    "controllerLine": 23,
     "evidence": [
       {
         "key": "GET /api/v1/parent/wishes/{}",
@@ -6143,7 +7203,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentWishesController.cs",
     "action": "GetGenerationForm",
-    "controllerLine": 31,
+    "controllerLine": 30,
     "evidence": [
       {
         "key": "GET /api/v1/parent/wishes/{}/generation-form",
@@ -6164,7 +7224,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentWishesController.cs",
     "action": "CreateStory",
-    "controllerLine": 41,
+    "controllerLine": 40,
     "evidence": [
       {
         "key": "POST /api/v1/parent/wishes/{}/create-story",
@@ -6185,7 +7245,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentWishesController.cs",
     "action": "GetGenerationProgress",
-    "controllerLine": 48,
+    "controllerLine": 47,
     "evidence": [
       {
         "key": "GET /api/v1/parent/wishes/{}/generation",
@@ -6206,7 +7266,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentWishesController.cs",
     "action": "UseExisting",
-    "controllerLine": 54,
+    "controllerLine": 53,
     "evidence": [
       {
         "key": "POST /api/v1/parent/wishes/{}/use-existing",
@@ -6227,7 +7287,7 @@
     "authorization": "Permission = Permissions.Parent.FeedbackManage",
     "controller": "ParentWishesController.cs",
     "action": "Decline",
-    "controllerLine": 61,
+    "controllerLine": 60,
     "evidence": [
       {
         "key": "POST /api/v1/parent/wishes/{}/decline",
@@ -6269,7 +7329,7 @@
     "authorization": "Authenticated",
     "controller": "PaymentController.cs",
     "action": "ListActivePlans",
-    "controllerLine": 33,
+    "controllerLine": 32,
     "evidence": [
       {
         "key": "GET /api/v1/Payment/plans",
@@ -6287,10 +7347,10 @@
   {
     "method": "GET",
     "route": "/api/v1/Payment/transactions/me",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Authenticated",
     "controller": "PaymentController.cs",
     "action": "ListMyTransactions",
-    "controllerLine": 45,
+    "controllerLine": 44,
     "evidence": [
       {
         "key": "GET /api/v1/Payment/transactions/me",
@@ -6308,10 +7368,10 @@
   {
     "method": "POST",
     "route": "/api/v1/Payment/transactions",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Authenticated; Authenticated",
     "controller": "PaymentController.cs",
     "action": "CreateTransaction",
-    "controllerLine": 58,
+    "controllerLine": 57,
     "evidence": [
       {
         "key": "POST /api/v1/Payment/transactions",
@@ -6332,27 +7392,27 @@
     "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "SePayWebhook",
-    "controllerLine": 71,
+    "controllerLine": 70,
     "evidence": [],
     "disposition": "SERVER_TO_SERVER"
   },
   {
     "method": "GET",
     "route": "/api/v1/Payment/mismatched",
-    "authorization": "Permission = Permissions.Admin.PaymentManage",
+    "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "ListMismatched",
-    "controllerLine": 84,
+    "controllerLine": 83,
     "evidence": [],
     "disposition": "MISSING"
   },
   {
     "method": "POST",
     "route": "/api/v1/Payment/transactions/{transactionId}/mark-paid",
-    "authorization": "Permission = Permissions.Admin.PaymentManage",
+    "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "MarkPaidManually",
-    "controllerLine": 96,
+    "controllerLine": 95,
     "evidence": [
       {
         "key": "POST /api/v1/Payment/transactions/{}/mark-paid",
@@ -6370,10 +7430,10 @@
   {
     "method": "GET",
     "route": "/api/v1/Payment/admin/transactions",
-    "authorization": "Permission = Permissions.Admin.PaymentManage",
+    "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "ListAllTransactions",
-    "controllerLine": 108,
+    "controllerLine": 107,
     "evidence": [
       {
         "key": "GET /api/v1/Payment/admin/transactions",
@@ -6382,7 +7442,9 @@
         "file": "app/services/paymentService.ts",
         "line": 21,
         "callers": [
-          "app/features/staff/AdminSystem.tsx"
+          "app/features/staff/AdminOverview.tsx",
+          "app/features/staff/AdminSystem.tsx",
+          "app/features/staff/adminTodo.ts"
         ]
       }
     ],
@@ -6391,10 +7453,10 @@
   {
     "method": "GET",
     "route": "/api/v1/Payment/admin/plans",
-    "authorization": "Permission = Permissions.Admin.PaymentManage",
+    "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "ListAllPlans",
-    "controllerLine": 120,
+    "controllerLine": 119,
     "evidence": [
       {
         "key": "GET /api/v1/Payment/admin/plans",
@@ -6412,10 +7474,10 @@
   {
     "method": "POST",
     "route": "/api/v1/Payment/admin/plans",
-    "authorization": "Permission = Permissions.Admin.PaymentManage",
+    "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "CreatePlan",
-    "controllerLine": 133,
+    "controllerLine": 132,
     "evidence": [
       {
         "key": "POST /api/v1/Payment/admin/plans",
@@ -6433,10 +7495,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/Payment/admin/plans/{planId}",
-    "authorization": "Permission = Permissions.Admin.PaymentManage",
+    "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "UpdatePlan",
-    "controllerLine": 147,
+    "controllerLine": 146,
     "evidence": [
       {
         "key": "PUT /api/v1/Payment/admin/plans/{}",
@@ -6454,10 +7516,10 @@
   {
     "method": "GET",
     "route": "/api/v1/Payment/admin/settings",
-    "authorization": "Permission = Permissions.Admin.PaymentManage",
+    "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "GetSettings",
-    "controllerLine": 160,
+    "controllerLine": 159,
     "evidence": [
       {
         "key": "GET /api/v1/Payment/admin/settings",
@@ -6475,10 +7537,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/Payment/admin/settings",
-    "authorization": "Permission = Permissions.Admin.PaymentManage",
+    "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "UpdateSettings",
-    "controllerLine": 171,
+    "controllerLine": 170,
     "evidence": [
       {
         "key": "PUT /api/v1/Payment/admin/settings",
@@ -6496,10 +7558,10 @@
   {
     "method": "GET",
     "route": "/api/v1/Payment/admin/reconciliation",
-    "authorization": "Permission = Permissions.Admin.PaymentManage",
+    "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "ListReconciliationExceptions",
-    "controllerLine": 183,
+    "controllerLine": 182,
     "evidence": [
       {
         "key": "GET /api/v1/Payment/admin/reconciliation",
@@ -6508,7 +7570,8 @@
         "file": "app/services/paymentService.ts",
         "line": 25,
         "callers": [
-          "app/features/staff/AdminSystem.tsx"
+          "app/features/staff/AdminSystem.tsx",
+          "app/features/staff/adminTodo.ts"
         ]
       }
     ],
@@ -6517,10 +7580,10 @@
   {
     "method": "POST",
     "route": "/api/v1/Payment/admin/reconciliation/{exceptionId}/resolve",
-    "authorization": "Permission = Permissions.Admin.PaymentManage",
+    "authorization": "AllowAnonymous",
     "controller": "PaymentController.cs",
     "action": "ResolveReconciliationException",
-    "controllerLine": 196,
+    "controllerLine": 195,
     "evidence": [
       {
         "key": "POST /api/v1/Payment/admin/reconciliation/{}/resolve",
@@ -6541,7 +7604,7 @@
     "authorization": "Permission = Permissions.Review.PublicStory",
     "controller": "PublicStoryReviewController.cs",
     "action": "GetPackage",
-    "controllerLine": 28,
+    "controllerLine": 27,
     "evidence": [
       {
         "key": "GET /api/v1/PublicStoryReview/{}",
@@ -6562,7 +7625,7 @@
     "authorization": "Permission = Permissions.Review.PublicStory",
     "controller": "PublicStoryReviewController.cs",
     "action": "MarkViewed",
-    "controllerLine": 42,
+    "controllerLine": 41,
     "evidence": [
       {
         "key": "POST /api/v1/PublicStoryReview/{}/views",
@@ -6583,7 +7646,7 @@
     "authorization": "Permission = Permissions.Review.PublicStory",
     "controller": "PublicStoryReviewController.cs",
     "action": "ResolveFlag",
-    "controllerLine": 56,
+    "controllerLine": 55,
     "evidence": [
       {
         "key": "POST /api/v1/PublicStoryReview/{}/flags/resolve",
@@ -6604,7 +7667,7 @@
     "authorization": "Permission = Permissions.Review.PublicStory",
     "controller": "PublicStoryReviewController.cs",
     "action": "SaveChecklist",
-    "controllerLine": 70,
+    "controllerLine": 69,
     "evidence": [
       {
         "key": "PUT /api/v1/PublicStoryReview/{}/checklist",
@@ -6625,7 +7688,7 @@
     "authorization": "Permission = Permissions.Review.PublicStory",
     "controller": "PublicStoryReviewController.cs",
     "action": "Approve",
-    "controllerLine": 84,
+    "controllerLine": 83,
     "evidence": [
       {
         "key": "POST /api/v1/PublicStoryReview/{}/approve",
@@ -6647,7 +7710,7 @@
     "authorization": "Permission = Permissions.Review.PublicStory",
     "controller": "PublicStoryReviewController.cs",
     "action": "RequestChanges",
-    "controllerLine": 99,
+    "controllerLine": 98,
     "evidence": [
       {
         "key": "POST /api/v1/PublicStoryReview/{}/request-changes",
@@ -6668,7 +7731,7 @@
     "authorization": "Permission = Permissions.Review.PublicStory",
     "controller": "PublicStoryReviewController.cs",
     "action": "Reject",
-    "controllerLine": 113,
+    "controllerLine": 112,
     "evidence": [
       {
         "key": "POST /api/v1/PublicStoryReview/{}/reject",
@@ -6690,7 +7753,7 @@
     "authorization": "Permission = Permissions.Review.PublicStory",
     "controller": "PublicStoryReviewController.cs",
     "action": "Compare",
-    "controllerLine": 126,
+    "controllerLine": 125,
     "evidence": [
       {
         "key": "GET /api/v1/PublicStoryReview/{}/compare",
@@ -6711,7 +7774,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "PublicStorySubmissionController.cs",
     "action": "Submit",
-    "controllerLine": 29,
+    "controllerLine": 28,
     "evidence": [
       {
         "key": "POST /api/v1/PublicStorySubmission/submit",
@@ -6732,7 +7795,7 @@
     "authorization": "Permission = Permissions.Creator.Studio",
     "controller": "PublicStorySubmissionController.cs",
     "action": "Withdraw",
-    "controllerLine": 42,
+    "controllerLine": 41,
     "evidence": [
       {
         "key": "POST /api/v1/PublicStorySubmission/{}/withdraw",
@@ -6753,7 +7816,7 @@
     "authorization": "Permission = Permissions.Moderation.PublishedView",
     "controller": "PublishedContentReviewController.cs",
     "action": "List",
-    "controllerLine": 25,
+    "controllerLine": 24,
     "evidence": [
       {
         "key": "GET /api/v1/PublishedContentReview",
@@ -6775,7 +7838,7 @@
     "authorization": "Permission = Permissions.Moderation.PublishedView",
     "controller": "PublishedContentReviewController.cs",
     "action": "GetStory",
-    "controllerLine": 34,
+    "controllerLine": 33,
     "evidence": [
       {
         "key": "GET /api/v1/PublishedContentReview/stories/{}",
@@ -6797,7 +7860,7 @@
     "authorization": "Permission = Permissions.Moderation.PublishedView",
     "controller": "PublishedContentReviewController.cs",
     "action": "GetRoadmap",
-    "controllerLine": 43,
+    "controllerLine": 42,
     "evidence": [
       {
         "key": "GET /api/v1/PublishedContentReview/roadmaps/{}",
@@ -6819,7 +7882,7 @@
     "authorization": "Permission = Permissions.Moderation.PublishedView; Permission = Permissions.Moderation.PublishedReview",
     "controller": "PublishedContentReviewController.cs",
     "action": "CreateReviewItem",
-    "controllerLine": 54,
+    "controllerLine": 53,
     "evidence": [
       {
         "key": "POST /api/v1/PublishedContentReview/review-items",
@@ -6840,7 +7903,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ReadingScheduleController.cs",
     "action": "GetReadingSchedule",
-    "controllerLine": 25,
+    "controllerLine": 24,
     "evidence": [
       {
         "key": "GET /api/v1/ReadingSchedule/{}",
@@ -6858,10 +7921,10 @@
   {
     "method": "GET",
     "route": "/api/v1/ReadingSchedule/suggestion",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ReadingScheduleController.cs",
     "action": "GetSuggestion",
-    "controllerLine": 35,
+    "controllerLine": 34,
     "evidence": [
       {
         "key": "GET /api/v1/ReadingSchedule/suggestion",
@@ -6879,10 +7942,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/ReadingSchedule/{childProfileId}",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ReadingScheduleController.cs",
     "action": "SetReadingSchedule",
-    "controllerLine": 44,
+    "controllerLine": 43,
     "evidence": [
       {
         "key": "PUT /api/v1/ReadingSchedule/{}",
@@ -6904,7 +7967,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "GetReviewPackage",
-    "controllerLine": 41,
+    "controllerLine": 40,
     "evidence": [
       {
         "key": "GET /api/v1/stories/{}/review",
@@ -6925,7 +7988,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "GenerateArtifacts",
-    "controllerLine": 53,
+    "controllerLine": 52,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/artifacts/generate",
@@ -6946,7 +8009,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "GenerateArtifacts",
-    "controllerLine": 56,
+    "controllerLine": 55,
     "evidence": [],
     "disposition": "COMPATIBILITY_ALIAS",
     "canonical": "/api/v1/stories/{storyId}/review/artifacts/generate"
@@ -6957,7 +8020,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "GetStory",
-    "controllerLine": 68,
+    "controllerLine": 67,
     "evidence": [
       {
         "key": "GET /api/v1/stories/{}/review/story",
@@ -6978,7 +8041,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "UpdateStory",
-    "controllerLine": 76,
+    "controllerLine": 75,
     "evidence": [
       {
         "key": "PUT /api/v1/stories/{}/review/story",
@@ -6999,7 +8062,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "PartialEdit",
-    "controllerLine": 84,
+    "controllerLine": 83,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/story/ai/partial-edit",
@@ -7020,7 +8083,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "CompleteStory",
-    "controllerLine": 93,
+    "controllerLine": 92,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/story/complete",
@@ -7047,7 +8110,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "GetVocabulary",
-    "controllerLine": 105,
+    "controllerLine": 104,
     "evidence": [
       {
         "key": "GET /api/v1/stories/{}/review/vocabulary",
@@ -7068,7 +8131,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "UpdateVocabulary",
-    "controllerLine": 113,
+    "controllerLine": 112,
     "evidence": [
       {
         "key": "PUT /api/v1/stories/{}/review/vocabulary",
@@ -7089,7 +8152,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "RegenerateVocabulary",
-    "controllerLine": 121,
+    "controllerLine": 120,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/vocabulary/ai/regenerate",
@@ -7111,7 +8174,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "CompleteVocabulary",
-    "controllerLine": 130,
+    "controllerLine": 129,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/vocabulary/complete",
@@ -7130,7 +8193,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "GetQuiz",
-    "controllerLine": 142,
+    "controllerLine": 141,
     "evidence": [
       {
         "key": "GET /api/v1/stories/{}/review/quiz",
@@ -7151,7 +8214,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "UpdateQuiz",
-    "controllerLine": 150,
+    "controllerLine": 149,
     "evidence": [
       {
         "key": "PUT /api/v1/stories/{}/review/quiz",
@@ -7173,7 +8236,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "RegenerateQuiz",
-    "controllerLine": 158,
+    "controllerLine": 157,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/quiz/ai/regenerate",
@@ -7195,7 +8258,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "CompleteQuiz",
-    "controllerLine": 167,
+    "controllerLine": 166,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/quiz/complete",
@@ -7214,7 +8277,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "GetListening",
-    "controllerLine": 179,
+    "controllerLine": 178,
     "evidence": [
       {
         "key": "GET /api/v1/stories/{}/review/listening",
@@ -7235,7 +8298,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "UpdateListening",
-    "controllerLine": 187,
+    "controllerLine": 186,
     "evidence": [
       {
         "key": "PUT /api/v1/stories/{}/review/listening/{}",
@@ -7254,7 +8317,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "RegenerateListening",
-    "controllerLine": 195,
+    "controllerLine": 194,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/listening/{}/ai/regenerate",
@@ -7275,7 +8338,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "CompleteListening",
-    "controllerLine": 204,
+    "controllerLine": 203,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/listening/complete",
@@ -7296,7 +8359,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "Validate",
-    "controllerLine": 216,
+    "controllerLine": 215,
     "evidence": [
       {
         "key": "GET /api/v1/stories/{}/review/validation",
@@ -7315,7 +8378,7 @@
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",
     "action": "AutoPublishCheck",
-    "controllerLine": 224,
+    "controllerLine": 223,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/auto-publish-check",
@@ -7336,7 +8399,7 @@
     "authorization": "Authenticated; Permission = Permissions.Creator.Studio",
     "controller": "ReviewController.cs",
     "action": "ConfirmCreatorContent",
-    "controllerLine": 238,
+    "controllerLine": 237,
     "evidence": [
       {
         "key": "POST /api/v1/creator/stories/{}/generation/confirm-content",
@@ -7352,10 +8415,10 @@
   {
     "method": "POST",
     "route": "/api/v1/stories/{storyId}/review/approve",
-    "authorization": "Authenticated; Permission = Permissions.Shared.StoryReviewApprove",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio; Permission = Permissions.Shared.StoryReviewApprove",
     "controller": "ReviewController.cs",
     "action": "Approve",
-    "controllerLine": 247,
+    "controllerLine": 246,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/approve",
@@ -7371,10 +8434,10 @@
   {
     "method": "POST",
     "route": "/api/v1/stories/{storyId}/review/reject",
-    "authorization": "Authenticated; Permission = Permissions.Shared.StoryReviewApprove",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio; Permission = Permissions.Shared.StoryReviewApprove; Permission = Permissions.Shared.StoryReviewApprove",
     "controller": "ReviewController.cs",
     "action": "Reject",
-    "controllerLine": 256,
+    "controllerLine": 255,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/reject",
@@ -7392,10 +8455,10 @@
   {
     "method": "GET",
     "route": "/api/v1/stories/{storyId}/review/proposals/{proposalId}",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio; Permission = Permissions.Shared.StoryReviewApprove; Permission = Permissions.Shared.StoryReviewApprove",
     "controller": "ReviewController.cs",
     "action": "GetProposal",
-    "controllerLine": 269,
+    "controllerLine": 268,
     "evidence": [
       {
         "key": "GET /api/v1/stories/{}/review/proposals/{}",
@@ -7413,10 +8476,10 @@
   {
     "method": "POST",
     "route": "/api/v1/stories/{storyId}/review/proposals/{proposalId}/apply",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio; Permission = Permissions.Shared.StoryReviewApprove; Permission = Permissions.Shared.StoryReviewApprove",
     "controller": "ReviewController.cs",
     "action": "ApplyProposal",
-    "controllerLine": 281,
+    "controllerLine": 280,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/proposals/{}/apply",
@@ -7434,10 +8497,10 @@
   {
     "method": "POST",
     "route": "/api/v1/stories/{storyId}/review/proposals/{proposalId}/discard",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Creator.Studio; Permission = Permissions.Shared.StoryReviewApprove; Permission = Permissions.Shared.StoryReviewApprove",
     "controller": "ReviewController.cs",
     "action": "DiscardProposal",
-    "controllerLine": 289,
+    "controllerLine": 288,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/proposals/{}/discard",
@@ -7458,7 +8521,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "RoadmapLibraryController.cs",
     "action": "List",
-    "controllerLine": 21,
+    "controllerLine": 20,
     "evidence": [
       {
         "key": "GET /api/v1/RoadmapLibrary",
@@ -7479,7 +8542,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "RoadmapLibraryController.cs",
     "action": "Get",
-    "controllerLine": 29,
+    "controllerLine": 28,
     "evidence": [
       {
         "key": "GET /api/v1/RoadmapLibrary/{}",
@@ -7500,7 +8563,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "RoadmapLibraryController.cs",
     "action": "Preview",
-    "controllerLine": 37,
+    "controllerLine": 36,
     "evidence": [
       {
         "key": "POST /api/v1/RoadmapLibrary/{}/preview",
@@ -7522,7 +8585,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "RoadmapLibraryController.cs",
     "action": "Copy",
-    "controllerLine": 45,
+    "controllerLine": 44,
     "evidence": [
       {
         "key": "POST /api/v1/RoadmapLibrary/{}/copy",
@@ -7544,7 +8607,7 @@
     "authorization": "Permission = Permissions.Review.Roadmap",
     "controller": "RoadmapReviewController.cs",
     "action": "GetPackage",
-    "controllerLine": 20,
+    "controllerLine": 19,
     "evidence": [
       {
         "key": "GET /api/v1/RoadmapReview/{}",
@@ -7565,7 +8628,7 @@
     "authorization": "Permission = Permissions.Review.Roadmap",
     "controller": "RoadmapReviewController.cs",
     "action": "SaveChecklist",
-    "controllerLine": 29,
+    "controllerLine": 28,
     "evidence": [
       {
         "key": "PUT /api/v1/RoadmapReview/{}/checklist",
@@ -7586,7 +8649,7 @@
     "authorization": "Permission = Permissions.Review.Roadmap",
     "controller": "RoadmapReviewController.cs",
     "action": "Approve",
-    "controllerLine": 40,
+    "controllerLine": 39,
     "evidence": [
       {
         "key": "POST /api/v1/RoadmapReview/{}/approve",
@@ -7608,7 +8671,7 @@
     "authorization": "Permission = Permissions.Review.Roadmap",
     "controller": "RoadmapReviewController.cs",
     "action": "RequestChanges",
-    "controllerLine": 49,
+    "controllerLine": 48,
     "evidence": [
       {
         "key": "POST /api/v1/RoadmapReview/{}/request-changes",
@@ -7629,7 +8692,7 @@
     "authorization": "Permission = Permissions.Review.Roadmap",
     "controller": "RoadmapReviewController.cs",
     "action": "Reject",
-    "controllerLine": 60,
+    "controllerLine": 59,
     "evidence": [
       {
         "key": "POST /api/v1/RoadmapReview/{}/reject",
@@ -7651,7 +8714,7 @@
     "authorization": "Permission = Permissions.Review.RoadmapTemplateView",
     "controller": "RoadmapTemplateController.cs",
     "action": "List",
-    "controllerLine": 20,
+    "controllerLine": 19,
     "evidence": [
       {
         "key": "GET /api/v1/RoadmapTemplate",
@@ -7680,7 +8743,7 @@
     "authorization": "Permission = Permissions.Review.RoadmapTemplateView",
     "controller": "RoadmapTemplateController.cs",
     "action": "Get",
-    "controllerLine": 28,
+    "controllerLine": 27,
     "evidence": [
       {
         "key": "GET /api/v1/RoadmapTemplate/{}",
@@ -7702,7 +8765,7 @@
     "authorization": "Permission = Permissions.Review.RoadmapTemplateView",
     "controller": "RoadmapTemplateController.cs",
     "action": "ListCandidates",
-    "controllerLine": 36,
+    "controllerLine": 35,
     "evidence": [
       {
         "key": "GET /api/v1/RoadmapTemplate/candidates",
@@ -7723,7 +8786,7 @@
     "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor",
     "controller": "RoadmapTemplateController.cs",
     "action": "Create",
-    "controllerLine": 47,
+    "controllerLine": 46,
     "evidence": [
       {
         "key": "POST /api/v1/RoadmapTemplate",
@@ -7741,10 +8804,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/RoadmapTemplate/{id}",
-    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor",
+    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor",
     "controller": "RoadmapTemplateController.cs",
     "action": "Update",
-    "controllerLine": 56,
+    "controllerLine": 55,
     "evidence": [
       {
         "key": "PUT /api/v1/RoadmapTemplate/{}",
@@ -7762,10 +8825,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/RoadmapTemplate/{id}/items",
-    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor",
+    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor",
     "controller": "RoadmapTemplateController.cs",
     "action": "SetItems",
-    "controllerLine": 65,
+    "controllerLine": 64,
     "evidence": [
       {
         "key": "PUT /api/v1/RoadmapTemplate/{}/items",
@@ -7783,10 +8846,10 @@
   {
     "method": "POST",
     "route": "/api/v1/RoadmapTemplate/{id}/submit",
-    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor",
+    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor",
     "controller": "RoadmapTemplateController.cs",
     "action": "Submit",
-    "controllerLine": 74,
+    "controllerLine": 73,
     "evidence": [
       {
         "key": "POST /api/v1/RoadmapTemplate/{}/submit",
@@ -7804,10 +8867,10 @@
   {
     "method": "POST",
     "route": "/api/v1/RoadmapTemplate/{id}/withdraw",
-    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor",
+    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor",
     "controller": "RoadmapTemplateController.cs",
     "action": "Withdraw",
-    "controllerLine": 83,
+    "controllerLine": 82,
     "evidence": [
       {
         "key": "POST /api/v1/RoadmapTemplate/{}/withdraw",
@@ -7825,10 +8888,10 @@
   {
     "method": "POST",
     "route": "/api/v1/RoadmapTemplate/{id}/clone",
-    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor",
+    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor",
     "controller": "RoadmapTemplateController.cs",
     "action": "Clone",
-    "controllerLine": 93,
+    "controllerLine": 92,
     "evidence": [
       {
         "key": "POST /api/v1/RoadmapTemplate/{}/clone",
@@ -7847,10 +8910,10 @@
   {
     "method": "POST",
     "route": "/api/v1/RoadmapTemplate/{id}/archive",
-    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor",
+    "authorization": "Permission = Permissions.Review.RoadmapTemplateView; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor; Permission = Permissions.Review.RoadmapTemplateAuthor",
     "controller": "RoadmapTemplateController.cs",
     "action": "Archive",
-    "controllerLine": 105,
+    "controllerLine": 104,
     "evidence": [
       {
         "key": "POST /api/v1/RoadmapTemplate/{}/archive",
@@ -7872,14 +8935,14 @@
     "authorization": "Permission = Permissions.Parent.StoryAuthor",
     "controller": "SafetyPolicyController.cs",
     "action": "SetSafetyPolicy",
-    "controllerLine": 25,
+    "controllerLine": 24,
     "evidence": [
       {
         "key": "PUT /api/v1/SafetyPolicy/{}",
         "service": "childProfileService",
         "operation": "setSafetyPolicy",
         "file": "app/services/childProfileService.ts",
-        "line": 100,
+        "line": 102,
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
           "app/features/safety/SafetyWorkspace.tsx"
@@ -7891,10 +8954,10 @@
   {
     "method": "POST",
     "route": "/api/v1/SafetyPolicy/{childProfileId}",
-    "authorization": "Permission = Permissions.Parent.StoryAuthor",
+    "authorization": "Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor",
     "controller": "SafetyPolicyController.cs",
     "action": "CreateSafetyPolicy",
-    "controllerLine": 41,
+    "controllerLine": 40,
     "evidence": [
       {
         "key": "POST /api/v1/SafetyPolicy/{}",
@@ -7912,17 +8975,17 @@
   {
     "method": "GET",
     "route": "/api/v1/SafetyPolicy/{childProfileId}",
-    "authorization": "Permission = Permissions.Parent.StoryAuthor",
+    "authorization": "Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor",
     "controller": "SafetyPolicyController.cs",
     "action": "GetSafetyPolicy",
-    "controllerLine": 57,
+    "controllerLine": 56,
     "evidence": [
       {
         "key": "GET /api/v1/SafetyPolicy/{}",
         "service": "childProfileService",
         "operation": "getSafetyPolicy",
         "file": "app/services/childProfileService.ts",
-        "line": 92,
+        "line": 94,
         "callers": [
           "app/features/children/ProfileTab.tsx",
           "app/features/kid/KidMode.tsx",
@@ -7936,17 +8999,17 @@
   {
     "method": "POST",
     "route": "/api/v1/SafetyPolicy/{childProfileId}/reconsent",
-    "authorization": "Permission = Permissions.Parent.StoryAuthor",
+    "authorization": "Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor",
     "controller": "SafetyPolicyController.cs",
     "action": "Reconsent",
-    "controllerLine": 67,
+    "controllerLine": 66,
     "evidence": [
       {
         "key": "POST /api/v1/SafetyPolicy/{}/reconsent",
         "service": "childProfileService",
         "operation": "reconsent",
         "file": "app/services/childProfileService.ts",
-        "line": 105,
+        "line": 107,
         "callers": [
           "app/features/safety/SafetyWorkspace.tsx"
         ]
@@ -7957,10 +9020,10 @@
   {
     "method": "GET",
     "route": "/api/v1/SafetyPolicy/{childProfileId}/age-preset",
-    "authorization": "Permission = Permissions.Parent.StoryAuthor",
+    "authorization": "Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor",
     "controller": "SafetyPolicyController.cs",
     "action": "GetAgePreset",
-    "controllerLine": 78,
+    "controllerLine": 77,
     "evidence": [
       {
         "key": "GET /api/v1/SafetyPolicy/{}/age-preset",
@@ -7978,17 +9041,17 @@
   {
     "method": "POST",
     "route": "/api/v1/SafetyPolicy/{childProfileId}/age-preset/apply",
-    "authorization": "Permission = Permissions.Parent.StoryAuthor",
+    "authorization": "Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor",
     "controller": "SafetyPolicyController.cs",
     "action": "ApplyAgePreset",
-    "controllerLine": 89,
+    "controllerLine": 88,
     "evidence": [
       {
         "key": "POST /api/v1/SafetyPolicy/{}/age-preset/apply",
         "service": "childProfileService",
         "operation": "applyAgePreset",
         "file": "app/services/childProfileService.ts",
-        "line": 110,
+        "line": 112,
         "callers": [
           "app/features/safety/SafetyWorkspace.tsx"
         ]
@@ -7999,10 +9062,10 @@
   {
     "method": "DELETE",
     "route": "/api/v1/SafetyPolicy/{childProfileId}",
-    "authorization": "Permission = Permissions.Parent.StoryAuthor",
+    "authorization": "Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor; Permission = Permissions.Parent.StoryAuthor",
     "controller": "SafetyPolicyController.cs",
     "action": "DeleteSafetyPolicy",
-    "controllerLine": 102,
+    "controllerLine": 101,
     "evidence": [
       {
         "key": "DELETE /api/v1/SafetyPolicy/{}",
@@ -8023,7 +9086,7 @@
     "authorization": "Permission = Permissions.Admin.StaffAccountManage",
     "controller": "StaffAccountController.cs",
     "action": "List",
-    "controllerLine": 29,
+    "controllerLine": 28,
     "evidence": [
       {
         "key": "GET /api/v1/StaffAccount",
@@ -8032,7 +9095,9 @@
         "file": "app/services/staffService.ts",
         "line": 52,
         "callers": [
-          "app/features/staff/AdminPeople.tsx"
+          "app/features/events/EventModeratorAssignment.tsx",
+          "app/features/staff/AdminPeople.tsx",
+          "app/features/staff/adminTodo.ts"
         ]
       },
       {
@@ -8042,7 +9107,9 @@
         "file": "app/services/staffService.ts",
         "line": 52,
         "callers": [
-          "app/features/staff/AdminPeople.tsx"
+          "app/features/events/EventModeratorAssignment.tsx",
+          "app/features/staff/AdminPeople.tsx",
+          "app/features/staff/adminTodo.ts"
         ]
       }
     ],
@@ -8054,7 +9121,7 @@
     "authorization": "Permission = Permissions.Admin.StaffAccountManage",
     "controller": "StaffAccountController.cs",
     "action": "Invite",
-    "controllerLine": 38,
+    "controllerLine": 37,
     "evidence": [
       {
         "key": "POST /api/v1/StaffAccount/invite",
@@ -8075,7 +9142,7 @@
     "authorization": "Permission = Permissions.Admin.StaffAccountManage",
     "controller": "StaffAccountController.cs",
     "action": "ResendInvite",
-    "controllerLine": 49,
+    "controllerLine": 48,
     "evidence": [
       {
         "key": "POST /api/v1/StaffAccount/{}/resend-invite",
@@ -8096,7 +9163,7 @@
     "authorization": "Permission = Permissions.Admin.StaffAccountManage",
     "controller": "StaffAccountController.cs",
     "action": "CancelInvite",
-    "controllerLine": 60,
+    "controllerLine": 59,
     "evidence": [
       {
         "key": "POST /api/v1/StaffAccount/{}/cancel-invite",
@@ -8117,7 +9184,7 @@
     "authorization": "Permission = Permissions.Admin.StaffAccountManage",
     "controller": "StaffAccountController.cs",
     "action": "Deactivate",
-    "controllerLine": 70,
+    "controllerLine": 69,
     "evidence": [
       {
         "key": "POST /api/v1/StaffAccount/{}/deactivate",
@@ -8138,7 +9205,7 @@
     "authorization": "Permission = Permissions.Admin.StaffAccountManage",
     "controller": "StaffAccountController.cs",
     "action": "Reactivate",
-    "controllerLine": 81,
+    "controllerLine": 80,
     "evidence": [
       {
         "key": "POST /api/v1/StaffAccount/{}/reactivate",
@@ -8159,7 +9226,7 @@
     "authorization": "Permission = Permissions.Shared.CommunityView",
     "controller": "StoryCommunityController.cs",
     "action": "GetStories",
-    "controllerLine": 28,
+    "controllerLine": 27,
     "evidence": [
       {
         "key": "GET /api/v1/Story/community",
@@ -8168,6 +9235,7 @@
         "file": "app/services/storyService.ts",
         "line": 38,
         "callers": [
+          "app/features/events/EventCuratedStoryPicker.tsx",
           "app/features/library/useCommunityStatShelves.ts",
           "app/features/library/useLibraryCatalog.ts",
           "app/features/library/useLibraryStories.ts",
@@ -8181,6 +9249,7 @@
         "file": "app/services/storyService.ts",
         "line": 38,
         "callers": [
+          "app/features/events/EventCuratedStoryPicker.tsx",
           "app/features/library/useCommunityStatShelves.ts",
           "app/features/library/useLibraryCatalog.ts",
           "app/features/library/useLibraryStories.ts",
@@ -8196,7 +9265,7 @@
     "authorization": "Permission = Permissions.Shared.CommunityView; Permission = Permissions.Creator.CommunityManage",
     "controller": "StoryCommunityController.cs",
     "action": "GetMyPublishedStories",
-    "controllerLine": 38,
+    "controllerLine": 37,
     "evidence": [
       {
         "key": "GET /api/v1/creator/stories/published",
@@ -8224,10 +9293,10 @@
   {
     "method": "GET",
     "route": "/api/v1/Story/community/{id}/media",
-    "authorization": "Permission = Permissions.Shared.CommunityView",
+    "authorization": "Permission = Permissions.Shared.CommunityView; Permission = Permissions.Creator.CommunityManage",
     "controller": "StoryCommunityController.cs",
     "action": "GetStoryMedia",
-    "controllerLine": 47,
+    "controllerLine": 46,
     "evidence": [
       {
         "key": "GET /api/v1/Story/community/{}/media",
@@ -8249,7 +9318,7 @@
     "authorization": "AllowAnonymous",
     "controller": "StoryController.cs",
     "action": "GetStories",
-    "controllerLine": 25,
+    "controllerLine": 24,
     "evidence": [
       {
         "key": "GET /api/v1/Story",
@@ -8260,6 +9329,8 @@
         "callers": [
           "app/context/WorkspaceDataContext.tsx",
           "app/features/created/CreatedStories.tsx",
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/ParentEventSubmission.tsx",
           "app/features/library/useLibraryCatalog.ts",
           "app/features/library/useLibraryStories.ts"
         ]
@@ -8273,6 +9344,8 @@
         "callers": [
           "app/context/WorkspaceDataContext.tsx",
           "app/features/created/CreatedStories.tsx",
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/ParentEventSubmission.tsx",
           "app/features/library/useLibraryCatalog.ts",
           "app/features/library/useLibraryStories.ts"
         ]
@@ -8286,7 +9359,7 @@
     "authorization": "AllowAnonymous",
     "controller": "StoryController.cs",
     "action": "GetStoryById",
-    "controllerLine": 38,
+    "controllerLine": 37,
     "evidence": [
       {
         "key": "GET /api/v1/Story/{}",
@@ -8307,10 +9380,10 @@
   {
     "method": "POST",
     "route": "/api/v1/Story",
-    "authorization": "Permission = Permissions.Parent.StoryAuthor",
+    "authorization": "AllowAnonymous",
     "controller": "StoryController.cs",
     "action": "CreateStory",
-    "controllerLine": 51,
+    "controllerLine": 50,
     "evidence": [
       {
         "key": "POST /api/v1/Story",
@@ -8326,10 +9399,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/Story/{id}",
-    "authorization": "Permission = Permissions.Parent.StoryAuthor",
+    "authorization": "AllowAnonymous",
     "controller": "StoryController.cs",
     "action": "UpdateStory",
-    "controllerLine": 65,
+    "controllerLine": 64,
     "evidence": [
       {
         "key": "PUT /api/v1/Story/{}",
@@ -8355,10 +9428,10 @@
   {
     "method": "DELETE",
     "route": "/api/v1/Story/{id}",
-    "authorization": "Permission = Permissions.Parent.StoryAuthor",
+    "authorization": "AllowAnonymous",
     "controller": "StoryController.cs",
     "action": "DeleteStory",
-    "controllerLine": 80,
+    "controllerLine": 79,
     "evidence": [
       {
         "key": "DELETE /api/v1/Story/{}",
@@ -8384,10 +9457,10 @@
   {
     "method": "PATCH",
     "route": "/api/v1/Story/{id}/publish",
-    "authorization": "Permission = Permissions.Parent.StoryAuthor",
+    "authorization": "AllowAnonymous",
     "controller": "StoryController.cs",
     "action": "PublishStory",
-    "controllerLine": 94,
+    "controllerLine": 93,
     "evidence": [
       {
         "key": "PATCH /api/v1/Story/{}/publish",
@@ -8406,7 +9479,7 @@
     "authorization": "Permission = Permissions.Shared.MediaGenerate",
     "controller": "StoryCoverController.cs",
     "action": "SetCover",
-    "controllerLine": 26,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "PUT /api/v1/stories/{}/cover",
@@ -8427,7 +9500,7 @@
     "authorization": "Permission = Permissions.Shared.StoryPackageConfirm",
     "controller": "StoryPackageConfirmationController.cs",
     "action": "Confirm",
-    "controllerLine": 22,
+    "controllerLine": 21,
     "evidence": [
       {
         "key": "POST /api/v1/stories/{}/review/confirm-package",
@@ -8667,7 +9740,7 @@
         "service": "childProfileService",
         "operation": "getTokenQuotaForChild",
         "file": "app/services/childProfileService.ts",
-        "line": 118,
+        "line": 129,
         "callers": [
           "app/features/studio/BriefForm.tsx"
         ]

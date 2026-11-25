@@ -116,4 +116,3 @@ export function historyChange(beforeState: string | null, afterState: string | n
   };
   return changedCodes(parse(beforeState), parse(afterState));
 }
-

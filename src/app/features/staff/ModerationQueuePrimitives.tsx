@@ -16,8 +16,11 @@ import {
   type ModerationSectionDef,
 } from './moderationConfig';
 import {
+  formatEventReviewCutoffVn,
+  formatEventSubmissionLabel,
   formatSubmittedAt,
   queueDueInfo,
+  queueEventSubmissions,
   queueHandlerName,
   queueSourceLabel,
   queueSubmitterLabel,
@@ -74,6 +77,14 @@ export function QueueItemRow({
   const workTitle = queueWorkTitle(item, typeLabel);
   const authorLine = queueSubmitterLabel(item);
   const sourceLabel = queueSourceLabel(item);
+  const eventSubs = queueEventSubmissions(item);
+  const eventCutoffs = eventSubs
+    .map(ev => {
+      const formatted = formatEventReviewCutoffVn(ev.reviewCutoffAt);
+      if (!formatted) return null;
+      return eventSubs.length > 1 ? `${ev.eventTitle}: ${formatted}` : formatted;
+    })
+    .filter((v): v is string => !!v);
   const mark = queueStateMark(item.itemType, item.status, !!due?.late);
   const statusLabel = moderationStatusLabel(item.itemType, item.status);
   const ownership = claimOwnershipBadge(item, me);
@@ -88,12 +99,27 @@ export function QueueItemRow({
         </span>
       </span>
       {authorLine && <span className="st-item-author">{authorLine}</span>}
-      {(sourceLabel || ownership || item.isResubmission) && (
+      {(sourceLabel || ownership || item.isResubmission || eventSubs.length > 0) && (
         <span className="mod-row-pills">
+          {eventSubs.map(ev => (
+            <span
+              key={ev.eventId}
+              className="pill ok"
+              title={formatEventReviewCutoffVn(ev.reviewCutoffAt) ?? undefined}
+            >
+              {formatEventSubmissionLabel(ev)}
+            </span>
+          ))}
           {sourceLabel && <span className="pill draft">{sourceLabel}</span>}
           {ownership && <span className={`pill ${ownership.tone}`}>{ownership.label}</span>}
           {item.isResubmission && <span className="pill wait">Gửi lại</span>}
         </span>
+      )}
+      {eventCutoffs.length > 0 && (
+        <small className="st-due">
+          <Clock className="ic" />
+          Hạn duyệt: {eventCutoffs.join(' · ')}
+        </small>
       )}
       <small className={`st-due${due?.late ? ' late' : ''}`}>
         <Clock className="ic" />
@@ -112,6 +138,7 @@ export function QueueSummaryCard({
   onClaim,
   claimLabel = 'Nhận và xử lý',
   summaryNotice,
+  userRole,
 }: {
   item: QueueItem;
   me?: number | null;
@@ -120,6 +147,7 @@ export function QueueSummaryCard({
   onClaim?: () => void;
   claimLabel?: string;
   summaryNotice?: string;
+  userRole?: string;
 }) {
   const pr = QUEUE_PRIORITY_META[item.priority];
   const due = queueDueInfo(item.slaDueAt, item.status);
@@ -127,6 +155,7 @@ export function QueueSummaryCard({
   const workTitle = queueWorkTitle(item, typeLabel);
   const authorLine = queueSubmitterLabel(item);
   const sourceLabel = queueSourceLabel(item);
+  const eventSubs = queueEventSubmissions(item);
   const statusLabel = moderationStatusLabel(item.itemType, item.status);
   const ownership = claimOwnershipBadge(item, me);
   const mark = queueStateMark(item.itemType, item.status, !!due?.late);
@@ -193,6 +222,28 @@ export function QueueSummaryCard({
           )}
         </div>
       </div>
+
+      {eventSubs.length > 0 && (
+        <div className="st-group">
+          <b className="st-group-title">Sự kiện liên quan ({eventSubs.length})</b>
+          <div className="mod-row-pills">
+            {eventSubs.map(ev => {
+              const cutoff = formatEventReviewCutoffVn(ev.reviewCutoffAt);
+              return (
+                <span key={ev.eventId} className="pill ok">
+                  {formatEventSubmissionLabel(ev)}
+                  {cutoff ? ` · Hạn duyệt: ${cutoff}` : ''}
+                </span>
+              );
+            })}
+          </div>
+          {userRole === 'Administrator' && (
+            <p className="sub">
+              Admin có thể xem bài dự thi để điều phối và bổ sung Moderator phụ trách trong phần quản lý sự kiện.
+            </p>
+          )}
+        </div>
+      )}
 
       {canClaim ? (
         <div className="row st-wrap">
@@ -417,6 +468,10 @@ export function ModerationWorkspaceShell({
   showPriorityFilter = true,
   onlyOverdue,
   onOnlyOverdueChange,
+  showEventSubmissionsFilter = false,
+  onlyMyEventSubmissions = false,
+  onOnlyMyEventSubmissionsChange,
+  eventSubmissionsFilterLabel = 'Bài dự thi của sự kiện tôi phụ trách',
   items,
   selectedId,
   onSelect,
@@ -444,6 +499,10 @@ export function ModerationWorkspaceShell({
   showPriorityFilter?: boolean;
   onlyOverdue: boolean;
   onOnlyOverdueChange: (v: boolean) => void;
+  showEventSubmissionsFilter?: boolean;
+  onlyMyEventSubmissions?: boolean;
+  onOnlyMyEventSubmissionsChange?: (v: boolean) => void;
+  eventSubmissionsFilterLabel?: string;
   items: QueueItem[];
   selectedId: number | null;
   onSelect: (id: number | null) => void;
@@ -558,6 +617,16 @@ export function ModerationWorkspaceShell({
           onClick={() => onOnlyOverdueChange(!onlyOverdue)}
         >
           Chỉ quá hạn
+        </button>
+      )}
+      {showEventSubmissionsFilter && onOnlyMyEventSubmissionsChange && (
+        <button
+          type="button"
+          className={`chip${onlyMyEventSubmissions ? ' on' : ''}`}
+          aria-pressed={onlyMyEventSubmissions}
+          onClick={() => onOnlyMyEventSubmissionsChange(!onlyMyEventSubmissions)}
+        >
+          {eventSubmissionsFilterLabel}
         </button>
       )}
     </div>

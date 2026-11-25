@@ -16,6 +16,7 @@ import LibraryFilterSidebar from "./LibraryFilterSidebar";
 import LibraryHeader from "./LibraryHeader";
 import LibraryRoadmapsView from "./LibraryRoadmapsView";
 import LibraryStoriesView from "./LibraryStoriesView";
+import EventHighlightBanner from "@/app/features/events/EventHighlightBanner";
 import { Preview, type PreviewStory } from "./StoryPreviewDialog";
 import { useLibraryCatalog } from "./useLibraryCatalog";
 import { useLibraryDiscovery } from "./useLibraryDiscovery";
@@ -141,7 +142,9 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
               />
 
               {tab === "stories" ? (
-                <LibraryStoriesView
+                <>
+                  <EventHighlightBanner role="Parent" onOpenEvents={() => go("events")} />
+                  <LibraryStoriesView
                   stories={stories}
                   sorted={discovery.sorted}
                   results={discovery.results}
@@ -177,6 +180,7 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
                     setFilterOpen(false);
                   }}
                 />
+                </>
               ) : (
                 <LibraryRoadmapsView
                   templates={templates}

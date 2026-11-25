@@ -8,6 +8,7 @@ const QUEUE = 'moderation.queue.process';
 /** Trang không có ở đây (tổng quan, tài khoản) không cần quyền riêng. Chỉ để ẩn menu; API vẫn tự kiểm quyền. */
 export const PAGE_REQUIREMENTS: Record<StaffRole, Record<string, PageRequirement>> = {
   Administrator: {
+    events: [['event.approve', 'event.operate']],
     queue: [QUEUE],
     published: ['moderation.published.view'],
     rubrics: ['rubric.manage'],
@@ -24,6 +25,7 @@ export const PAGE_REQUIREMENTS: Record<StaffRole, Record<string, PageRequirement
     quota: ['quota.manage'],
   },
   Moderator: {
+    events: [['event.manage', 'event.operate']],
     queue: [QUEUE, 'review.public_story'],
     published: ['moderation.published.view'],
     'removal-records': [QUEUE],
@@ -39,6 +41,8 @@ export const PAGE_REQUIREMENTS: Record<StaffRole, Record<string, PageRequirement
     stats: [QUEUE, 'moderation.statistics.view'],
   },
   ContentCreator: {
+    // Browsing published events only requires an authenticated session; actions are checked by the API.
+    events: [],
     library: ['creator.studio'],
     'create-ai': ['creator.studio'],
     'create-manual': ['creator.studio'],

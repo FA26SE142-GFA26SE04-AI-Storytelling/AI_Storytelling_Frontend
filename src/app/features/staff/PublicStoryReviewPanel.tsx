@@ -131,15 +131,18 @@ export default function PublicStoryReviewPanel({
   id,
   queueItem,
   onDecision,
+  onAccessRevoked,
 }: {
   id: number;
   queueItem?: QueueItem;
   onDecision: (outcome?: 'Approved' | 'ChangesRequested' | 'Rejected') => void;
+  onAccessRevoked?: (message: string) => void;
 }) {
   const { item, message, claimBlocked, busy, act, patch, refresh } = useReviewItem(
     'PublicStoryReview',
     id,
     () => onDecision(),
+    onAccessRevoked,
   );
   const riseRef = useRiseIn<HTMLDivElement>('.st-group', [id, item ? 1 : 0], { delay: 40, distance: 10 });
 
@@ -223,7 +226,10 @@ export default function PublicStoryReviewPanel({
       />
       {claimBlocked && (
         <div className="notice err row st-wrap" role="alert" data-inline-notice>
-          <span>Quyền giữ hồ sơ không còn hiệu lực hoặc dữ liệu đã thay đổi. Ghi chú chưa gửi vẫn được giữ nguyên; hãy tải lại danh sách để kiểm tra trạng thái mới.</span>
+          <span>
+            {message ? `${message} ` : ''}
+            Quyền giữ hồ sơ không còn hiệu lực hoặc phân công sự kiện đã thay đổi; bài cần được người có phân công nhận lại. Ghi chú chưa gửi vẫn được giữ nguyên; hãy tải lại danh sách để kiểm tra trạng thái mới.
+          </span>
           <button type="button" className="btn btn-s" onClick={refresh}><RefreshCw className="ic" />Tải lại quyền</button>
         </div>
       )}

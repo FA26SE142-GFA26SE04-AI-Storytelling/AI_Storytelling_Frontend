@@ -1,6 +1,6 @@
-import { Activity, BookOpen, FolderOpen, ChartColumn, CreditCard, GraduationCap, PencilLine, UserRound, Users, WandSparkles, type LucideIcon } from "lucide-react";
+import { Activity, BookOpen, FolderOpen, ChartColumn, CreditCard, GraduationCap, PencilLine, Trophy, UserRound, Users, WandSparkles, type LucideIcon } from "lucide-react";
 
-export type WorkspaceId = "children" | "studio" | "authoring" | "created" | "library" | "roadmap" | "report" | "account" | "account-payment" | "account-activity";
+export type WorkspaceId = "children" | "studio" | "authoring" | "created" | "library" | "roadmap" | "events" | "report" | "account" | "account-payment" | "account-activity";
 
 export type WorkspaceEntry = {
   id: WorkspaceId;
@@ -22,11 +22,12 @@ export type WorkspaceEntry = {
 
 export const WORKSPACES: WorkspaceEntry[] = [
   { id: "library", label: "Thư viện truyện", short: "Thư viện", icon: BookOpen },
-  // Hai cách tạo truyện là hai nút riêng, tên song song: Viết bằng AI (Studio) và Tự viết (Thủ công).
-  { id: "studio", label: "Viết truyện bằng AI", short: "Viết bằng AI", icon: WandSparkles, hint: "AI viết truyện từ ý tưởng của bạn, bạn duyệt từng bước", needs: "parent.story.author" },
-  { id: "authoring", label: "Tự viết truyện", short: "Tự viết", icon: PencilLine, hint: "Bạn tự viết truyện (có thể tải tệp lên), tự kiểm tra rồi giao cho bé", needs: "parent.story.author" },
+  // Hai cách tạo truyện nằm trong menu Tạo truyện.
+  { id: "studio", label: "Tạo truyện", under: "studio", menuLabel: "Viết bằng AI", icon: WandSparkles, hint: "AI viết truyện từ ý tưởng của bạn, bạn duyệt từng bước", needs: "parent.story.author" },
+  { id: "authoring", label: "Tự viết truyện", under: "studio", menuLabel: "Tự viết", icon: PencilLine, hint: "Bạn tự viết truyện (có thể tải tệp lên), tự kiểm tra rồi giao cho bé", needs: "parent.story.author" },
   { id: "created", label: "Truyện của tôi", icon: FolderOpen, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở", needs: "parent.story.author" },
   { id: "roadmap", label: "Học tập của bé", short: "Học tập", icon: GraduationCap, needs: "child.profile.manage" },
+  { id: "events", label: "Sự kiện", short: "Sự kiện", icon: Trophy, hint: "Tham gia sự kiện đọc truyện và nhận quà cho gia đình" },
   // Mở từ menu avatar: nhóm của bé (ít dùng hằng ngày), rồi nhóm tài khoản.
   { id: "children", label: "Hồ sơ bé", icon: Users, inMenu: "kids", needs: "child.profile.manage" },
   { id: "report", label: "Báo cáo", icon: ChartColumn, inMenu: "kids" },

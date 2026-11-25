@@ -214,4 +214,40 @@ describe('moderation queue lifecycle', () => {
     );
     expect(merged.map(i => i.id)).toEqual([2, 3, 1]);
   });
+
+  it('includes onlyMyEventSubmissions in queue queries for PublicStoryReview in both Open and single-status modes', () => {
+    expect(buildModerationQueueQuery({
+      itemType: 'PublicStoryReview', status: 'Pending', priority: '', onlyOverdue: false, onlyMyEventSubmissions: true, pageIndex: 1, pageSize: 10,
+    })).toMatchObject({ itemType: 'PublicStoryReview', status: 'Pending', onlyMyEventSubmissions: true });
+
+    expect(buildModerationQueueQuery({
+      itemType: 'ContentReport', status: 'Pending', priority: '', onlyOverdue: false, onlyMyEventSubmissions: true, pageIndex: 1, pageSize: 10,
+    })).not.toHaveProperty('onlyMyEventSubmissions');
+
+    let q = start();
+    q.setOnlyMyEventSubmissions(true);
+    renderHook();
+    q = renderHook();
+    expect(q.onlyMyEventSubmissions).toBe(true);
+    expect(host.queue.mock.calls.at(-1)?.[0]).toMatchObject({ status: 'Pending', onlyMyEventSubmissions: true });
+
+    q.setStatus('Open');
+    renderHook();
+    q = renderHook();
+    const lastTwo = host.queue.mock.calls.slice(-2).map(call => call[0]);
+    expect(lastTwo[0]).toMatchObject({ status: 'Claimed', onlyMyEventSubmissions: true });
+    expect(lastTwo[1]).toMatchObject({ status: 'Pending', onlyMyEventSubmissions: true });
+  });
+
+  it('reloads queue when claiming fails with 403 due to revoked event assignment', async () => {
+    const q = start();
+    const callsBefore = host.queue.mock.calls.length;
+    host.claim.mockResolvedValueOnce({ success: false, status: 403, message: 'Chưa được phân công ở tất cả các sự kiện.' });
+    const ok = await q.claimItem(505);
+    expect(ok).toBe(false);
+    renderHook();
+    const after = renderHook();
+    expect(after.actionNote).toEqual({ ok: false, text: 'Chưa được phân công ở tất cả các sự kiện.' });
+    expect(host.queue.mock.calls.length).toBeGreaterThan(callsBefore);
+  });
 });

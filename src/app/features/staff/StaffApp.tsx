@@ -5,7 +5,7 @@ import "@/app/styles/features/children/children.css";
 import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import {
   Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, KeyRound, LayoutDashboard, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
-  Shield, ShieldAlert, Sparkles, Star, Sun, ScrollText, UserRound, UserRoundCheck, Users, WalletCards, WandSparkles, type LucideIcon,
+  Shield, ShieldAlert, Sparkles, Star, Sun, ScrollText, Trophy, UserRound, UserRoundCheck, Users, WalletCards, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import { useAuth } from "@/app/context/AuthContext";
@@ -31,7 +31,7 @@ import RemovalRequestsWorkspace from "./RemovalRequestsWorkspace";
 import RubricWorkspace from "./RubricWorkspace";
 import AuthoringGuideManagement from "./AuthoringGuideManagement";
 import { CreatorCreateAi, CreatorCreateManual, type CreatorPageProps } from "./CreatorStories";
-import { CreatorLibrary } from "./CreatorLibrary";
+import CreatorCommunityLibrary from "./CreatorCommunityLibrary";
 import { CreatorMyStories } from "./CreatorMyStories";
 import { CreatorStatistics } from "./CreatorStatistics";
 import ModeratorStatistics from "./ModeratorStatistics";
@@ -43,6 +43,7 @@ import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
 import { AdminPayments, AdminPlans, AdminQuota } from "./AdminSystem";
 import { AdminBusinessReport } from "./AdminBusinessReport";
+import EventsWorkspace from "@/app/features/events/EventsWorkspace";
 import AdminOverview from "./AdminOverview";
 import AdminSidebar, { type SideGroup } from "./AdminSidebar";
 import { adminNavBadges, useAdminTodo } from "./adminTodo";
@@ -92,6 +93,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "payments", label: "Thanh toán", icon: Receipt, view: AdminPayments },
     { id: "plans", label: "Gói dịch vụ", icon: Package, view: AdminPlans },
     { id: "quota", label: "Lượt tạo truyện", icon: Coins, view: AdminQuota },
+    { id: "events", label: "Sự kiện & Quà", short: "Sự kiện", icon: Trophy, view: () => <EventsWorkspace /> },
     ...ACCOUNT_PAGES,
   ],
   Moderator: [
@@ -108,14 +110,16 @@ const PAGES: Record<StaffRole, PageDef[]> = {
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
     { id: "catalog", label: "Danh mục nội dung", short: "Danh mục", icon: ListChecks, view: AdminCatalog, hint: "Tạo, sửa, ẩn hoặc xoá danh mục nội dung dùng chung" },
     { id: "stats", label: "Thống kê", short: "Thống kê", icon: ChartColumn, view: ModeratorStatistics, hint: "Hàng đợi, SLA và quyết định của bạn" },
+    { id: "events", label: "Sự kiện & Quà", short: "Sự kiện", icon: Trophy, view: () => <EventsWorkspace />, hint: "Tổ chức sự kiện sáng tác, nhiệm vụ động và trao thưởng" },
     ...ACCOUNT_PAGES,
   ],
   ContentCreator: [
-    { id: "library", label: "Thư viện truyện mẫu", short: "Thư viện", icon: BookOpenText, view: CreatorLibrary },
+    { id: "library", label: "Thư viện cộng đồng", short: "Thư viện", icon: BookOpenText, view: CreatorCommunityLibrary, hint: "Khám phá các tác phẩm đã được duyệt trong cộng đồng Taletale" },
     { id: "create-ai", label: "Viết truyện bằng AI", menuLabel: "Viết bằng AI", short: "Viết bằng AI", icon: WandSparkles, view: CreatorCreateAi, hint: "AI viết truyện mẫu từ ý tưởng của bạn" },
     { id: "create-manual", label: "Tự viết truyện", menuLabel: "Tự viết", short: "Tự viết", icon: PencilLine, view: CreatorCreateManual, hint: "Bạn tự viết nội dung, lưu thành từng phiên bản" },
     { id: "my-stories", label: "Truyện của tôi", short: "Truyện của tôi", icon: FolderOpen, view: CreatorMyStories, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở" },
     { id: "stats", label: "Thống kê", short: "Thống kê", icon: ChartColumn, view: CreatorStatistics, hint: "Lượt đọc, thu nhập và nội dung truyện" },
+    { id: "events", label: "Sự kiện", short: "Sự kiện", icon: Trophy, view: () => <EventsWorkspace />, hint: "Tham gia sự kiện sáng tác và nhận thưởng" },
     ...CREATOR_ACCOUNT_PAGES,
   ],
 };
@@ -130,7 +134,7 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     "overview",
     { label: "Người dùng", icon: Users, items: ["staff", "creators", "permissions", "audit"] },
     { label: "Tài chính", icon: WalletCards, items: ["business", "payments", "plans", "quota"] },
-    { label: "Nội dung & kiểm duyệt", icon: BookOpenText, items: ["queue", "published", "rubrics", "authoring-guides", "templates", "wish-cards"] },
+    { label: "Nội dung & kiểm duyệt", icon: BookOpenText, items: ["queue", "published", "rubrics", "authoring-guides", "templates", "wish-cards", "events"] },
   ],
   Moderator: [
     "queue",
@@ -138,9 +142,10 @@ const NAV: Record<StaffRole, NavEntry[]> = {
     { label: "Xử lý an toàn", icon: ShieldAlert, items: ["gray-zone", "content-reports", "story-ratings", "removal-requests"] },
     { label: "Công cụ", icon: ListChecks, items: ["rubrics", "authoring-guides", "wish-cards", "catalog"] },
     "templates",
+    "events",
     "stats",
   ],
-  ContentCreator: ["library", "create-ai", "create-manual", "my-stories", "stats"],
+  ContentCreator: ["library", "create-ai", "create-manual", "my-stories", "events", "stats"],
 };
 
 const MODERATOR_QUEUE_NAV_MAP: Record<string, string> = {
