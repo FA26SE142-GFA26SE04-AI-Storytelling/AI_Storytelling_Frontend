@@ -12,6 +12,7 @@ vi.mock("@/app/context/WorkspaceDataContext", () => ({
 import { LibraryBookCard, LibrarySkeletonGrid } from "@/app/features/library/LibraryCards";
 import { LibraryFeaturedStory, LibraryGenreTiles } from "@/app/features/library/LibraryDiscoveryHighlights";
 import LibraryDetailDialog, { LibraryDetailShell } from "@/app/features/library/LibraryDetailDialog";
+import { StaffAccessProvider, toAccessMap } from "@/app/features/staff/staffAccess";
 import LibraryFilterPopover from "@/app/features/library/LibraryFilterPopover";
 import LibraryFilterSidebar from "@/app/features/library/LibraryFilterSidebar";
 import LibraryHeader from "@/app/features/library/LibraryHeader";
@@ -162,6 +163,17 @@ describe("Library UI components", () => {
     expect(html).toContain('aria-label="Thu gọn bộ lọc"');
     expect(html).not.toContain("Nguồn truyện");
     expect(html).not.toContain("Trạng thái");
+  });
+
+  it("LibraryDetailDialog hides actions the parent has no permission for", () => {
+    const html = renderToStaticMarkup(
+      <StaffAccessProvider value={toAccessMap([])}>
+        <LibraryDetailDialog story={makeStory({ creator: true })} go={() => {}} onKid={() => {}} onClose={() => {}} onPreview={() => {}}
+          onAddRoadmap={() => {}} onReport={() => {}} onRate={() => {}} rating={{ averageRating: 4.5, ratingCount: 12 }} />
+      </StaffAccessProvider>,
+    );
+    for (const label of ["Thêm vào lộ trình", "Cho bé đọc ngay", "Báo cáo nội dung", "Xem đánh giá của phụ huynh"]) expect(html).not.toContain(label);
+    expect(html).toContain("Xem trước như bé thấy");
   });
 
   it("LibraryDetailDialog switches actions cleanly for family drafts and moderation stories", () => {

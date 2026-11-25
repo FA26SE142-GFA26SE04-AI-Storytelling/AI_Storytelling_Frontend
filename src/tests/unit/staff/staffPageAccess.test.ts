@@ -1,3 +1,4 @@
+import { visibleWorkspaces } from '@/app/components/shell/nav';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -43,5 +44,20 @@ describe('coverage', () => {
   it.each(['Administrator', 'Moderator', 'ContentCreator'] as const)('%s: every work page declares its permission', (role) => {
     expect(pageIds(role).filter((id) => id !== 'overview' && !PAGE_REQUIREMENTS[role][id])).toEqual([]);
     expect(Object.keys(PAGE_REQUIREMENTS[role]).filter((id) => !pageIds(role).includes(id))).toEqual([]);
+  });
+});
+
+describe('trang phụ huynh theo quyền', () => {
+  const ids = (granted: string[]) => visibleWorkspaces((c) => granted.includes(c)).map((w) => w.id);
+
+  it('ẩn trang cần quyền, giữ thư viện, báo cáo và tài khoản', () => {
+    expect(ids([])).toEqual(['library', 'report', 'account', 'account-payment', 'account-activity']);
+  });
+
+  it('mỗi quyền chỉ mở đúng các trang của nó', () => {
+    expect(ids(['parent.story.author'])).toEqual(expect.arrayContaining(['studio', 'authoring', 'created']));
+    expect(ids(['parent.story.author'])).not.toContain('children');
+    expect(ids(['child.profile.manage'])).toEqual(expect.arrayContaining(['roadmap', 'children']));
+    expect(ids(['child.profile.manage'])).not.toContain('studio');
   });
 });

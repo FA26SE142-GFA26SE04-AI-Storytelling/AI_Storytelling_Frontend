@@ -13,6 +13,7 @@ import { useMediaPackage } from '@/app/features/story-workflow/useMediaPackage';
 import StudioScenePreview from './StudioScenePreview';
 import { mediaCanRetry, mediaIsGenerating } from '@/app/features/story-workflow/mediaPackage';
 import StudioCompletion from './StudioCompletion';
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import MediaIssues from './MediaIssues';
 import { audioBranchDisplay, mediaPackageDisplay } from '@/app/features/story-workflow/studioMediaState';
 
@@ -25,6 +26,7 @@ type Props = { storyId: number; media: ReturnType<typeof useMediaProgress> };
 export default function StudioMedia({ storyId, media }: Props) {
   const r = useStoryReview(storyId);
   const { bundle, error } = r;
+  const canMedia = useAccessLookup()("media.generate").state !== "Hidden";
   const [active, setActive] = useState(0);
   const [retryBusy,setRetryBusy]=useState(false);
   const [retryNote,setRetryNote]=useState('');
@@ -50,7 +52,7 @@ export default function StudioMedia({ storyId, media }: Props) {
   };
   const mp=useMediaPackage({storyId,versionId:m?.approvedStoryVersionId,onChanged:reload,source:preview.pack});
   // Truyện đã sẵn sàng (gói media đã xác nhận) thì không hiện nút tạo lại nữa: gói đã chốt, muốn đổi phải làm lại từ bước duyệt.
-  const sceneActions=preview.pack&&!m?.isConfirmed&&!m?.isReady?{busy:mp.busy,locked:mp.uncertain,replacements:preview.pack.replacements??[],regenerate:(k:'illustration'|'audio',id:number)=>void mp.regenerate(k,id),keepCurrent:(id:number)=>void mp.keepCurrent(id)}:undefined;
+  const sceneActions=canMedia&&preview.pack&&!m?.isConfirmed&&!m?.isReady?{busy:mp.busy,locked:mp.uncertain,replacements:preview.pack.replacements??[],regenerate:(k:'illustration'|'audio',id:number)=>void mp.regenerate(k,id),keepCurrent:(id:number)=>void mp.keepCurrent(id)}:undefined;
   const statusText=m ? (m.isReady ? "" : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi xác nhận để hoàn tất truyện." : mediaCanRetry(m) ? "" : "Đang tạo, bạn có thể rời màn hình này.") : media.error ?? "Đang kiểm tra…";
   // Tải sẵn tranh và giọng đọc của cảnh đang xem và cảnh kế để đổi cảnh không phải chờ.
   const warm=useRef<(HTMLImageElement|HTMLAudioElement)[]>([]);
@@ -73,7 +75,7 @@ export default function StudioMedia({ storyId, media }: Props) {
   return (
     <>
       <div className="center">
-        {m && mediaCanRetry(m) && <button className="btn btn-p studio-retry-corner" disabled={retryBusy} onClick={() => void retry()}><RefreshCw className="ic" />{retryBusy ? 'Đang gửi…' : 'Thử lại'}</button>}
+        {canMedia && m && mediaCanRetry(m) && <button className="btn btn-p studio-retry-corner" disabled={retryBusy} onClick={() => void retry()}><RefreshCw className="ic" />{retryBusy ? 'Đang gửi…' : 'Thử lại'}</button>}
         {bundle ? (
           <div className="board">
             <div className="artwrap">
@@ -94,6 +96,7 @@ export default function StudioMedia({ storyId, media }: Props) {
 
       <AsidePane title="Chuẩn bị cho bé" icon={Images} bodyRef={sideRef}>
           <div className="studio-actions">
+            {!canMedia&&<p className="notice warn" role="status" data-inline-notice>Quản trị viên đã tắt quyền sinh tranh và âm thanh của bạn.</p>}
             {statusText&&<p role="status">{statusText}</p>}
             {(media.timedOut||media.error)&&<div className="notice warn" role="status"><p>{media.timedOut?'Chưa nhận được kết quả cuối cùng. Việc tạo media có thể vẫn đang chạy.':media.error}</p><button className="btn btn-s" onClick={reload}>Tiếp tục theo dõi</button></div>}
             {retryNote&&<p className="notice" role="status">{retryNote}</p>}

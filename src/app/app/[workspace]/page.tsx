@@ -10,6 +10,7 @@ import ParentShell, { resolveWorkspaceId } from "@/app/components/shell/ParentSh
 import { WORKSPACES } from "@/app/components/shell/nav";
 import { appWorkspaceRoute, positiveStoryId, takesStoryId } from "@/app/lib/workspaceLocation";
 import { isStaffRole } from "@/app/types/auth";
+import { AccessReadyProvider, StaffAccessProvider, useMyAccess } from "@/app/features/staff/staffAccess";
 import { useClickRipple } from "@/app/lib/motion";
 
 function WorkspaceRouteInner() {
@@ -23,6 +24,8 @@ function WorkspaceRouteInner() {
   const isValidWorkspace = WORKSPACES.some((w) => w.id === rawWorkspace);
   const workspace = resolveWorkspaceId(rawWorkspace);
   const storyId = takesStoryId(workspace) ? positiveStoryId(searchParams.get("storyId")) : null;
+
+  const { map, ready } = useMyAccess(user && !isStaffRole(user.role) ? user.id : null, workspace);
 
   useEffect(() => {
     if (isLoading) return;
@@ -45,10 +48,14 @@ function WorkspaceRouteInner() {
   if (isStaffRole(user.role)) return <div className="splash">Đang chuyển khu vực nhân viên…</div>;
 
   return (
-    <WorkspaceDataProvider key={user.id}>
-      <ParentShell workspace={workspace} storyId={storyId} />
-      <ChildPickerHost />
-    </WorkspaceDataProvider>
+    <StaffAccessProvider value={map}>
+      <AccessReadyProvider value={ready}>
+        <WorkspaceDataProvider key={user.id}>
+          <ParentShell workspace={workspace} storyId={storyId} />
+          <ChildPickerHost />
+        </WorkspaceDataProvider>
+      </AccessReadyProvider>
+    </StaffAccessProvider>
   );
 }
 

@@ -8,6 +8,7 @@ import IconButton from '@/app/components/IconButton';
 import Pager from '@/app/components/Pager';
 import SafeImage from '@/app/components/SafeImage';
 import { showToast } from '@/app/lib/toast';
+import { useAccessLookup } from '@/app/features/staff/staffAccess';
 import { paymentService } from '@/app/services/paymentService';
 import type { CreatorQuotaDto, MyQuotaDto, PagedResult, PaymentStatus, PaymentTransactionDto, PlanType, SubscriptionPlanDto } from '@/app/types/backendContracts';
 
@@ -96,6 +97,7 @@ function PayDialog({ tx, onClose, onPaid }: { tx: PaymentTransactionDto; onClose
 
 /** Trang "Nâng cấp gói" (Luồng 2, F-03, F-05): gói đang dùng và lượt còn lại, các gói đang bán, lịch sử giao dịch. */
 export default function PaymentSection({ audience = 'parent' }: { audience?: 'parent' | 'creator' }) {
+  const canQuota = useAccessLookup()('quota.parent.view').state !== 'Hidden';
   const [quota, setQuota] = useState<MyQuotaDto | null>(null);
   const [creatorQuota, setCreatorQuota] = useState<CreatorQuotaDto | null>(null);
   const [creatorError, setCreatorError] = useState(false);
@@ -119,15 +121,15 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
         if (!p.success) showToast(p.message, 'err');
       });
     } else {
-      void Promise.all([paymentService.myQuota(c.signal), paymentService.plans(c.signal)]).then(([q, p]) => {
+      void Promise.all([canQuota ? paymentService.myQuota(c.signal) : null, paymentService.plans(c.signal)]).then(([q, p]) => {
         if (!alive) return;
-        setQuota(q.success ? q.data : null);
+        setQuota(q?.success ? q.data : null);
         setPlans(p.data ?? []);
         if (!p.success) showToast(p.message, 'err');
       });
     }
     return () => { alive = false; c.abort(); };
-  }, [rev, audience]);
+  }, [rev, audience, canQuota]);
   useEffect(() => {
     const c = new AbortController(); let alive = true;
     void paymentService.myTransactions(page, 10, c.signal).then((r) => { if (alive) setHistory(r.success ? r.data : null); });
@@ -157,7 +159,7 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
   return <section className="sec plan-page" style={{ gap: 24 }}>
     <h3 className="display" style={headStyle}>{audience === 'creator' ? 'Gói và lượt' : 'Nâng cấp gói'}</h3>
 
-    {audience === 'parent' && (
+    {audience === 'parent' && canQuota && (
       <div className="pay-current" aria-label="Gói của bạn">
         <div className="grow">
           <small>Gói của bạn</small>

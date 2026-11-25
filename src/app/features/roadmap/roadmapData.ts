@@ -30,7 +30,7 @@ function loadTemplateList() {
 }
 
 /** Danh sách lộ trình mẫu đã xuất bản (chỉ danh sách); chi tiết từng album tải riêng bằng useTemplateDetail. */
-export function useRoadmapTemplates() {
+export function useRoadmapTemplates(enabled = true) {
   const [templates, setTemplates] = useState<B.RoadmapLibraryItemDto[] | null>(() => listCache?.data ?? null);
   const [error, setError] = useState<string | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
@@ -44,12 +44,13 @@ export function useRoadmapTemplates() {
   }, []);
 
   useEffect(() => {
+    if (!enabled) return;
     if (reloadTick === 0 && listCache && Date.now() - listCache.at < 60_000) return;
     let alive = true;
     void loadTemplateList().then((r) => { if (alive) { setTemplates(r.data); setError(r.error); } });
     return () => { alive = false; };
-  }, [reloadTick]);
-  return { templates, error, reload };
+  }, [enabled, reloadTick]);
+  return { templates: enabled ? templates : null, error, reload };
 }
 
 const details = new Map<number, Promise<B.RoadmapLibraryDetailDto | null>>();

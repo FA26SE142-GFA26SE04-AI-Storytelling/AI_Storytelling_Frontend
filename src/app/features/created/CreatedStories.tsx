@@ -15,6 +15,7 @@ import { storyService } from "@/app/services/storyService";
 import { parentAuthoringService } from "@/app/services/parentAuthoringService";
 import { Preview } from "@/app/features/library/StoryPreview";
 import { Shelf, ShelfRow } from "@/app/features/library/Shelf";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import { showToast } from "@/app/lib/toast";
 import EditStoryDialog, { type StoryInfoEdit } from "./EditStoryDialog";
 import StoryHandoverButton from "@/app/features/kid/StoryHandoverButton";
@@ -36,6 +37,7 @@ const SOURCES = [{ id: "all", label: "Tất cả" }, { id: "ai", label: "Do AI t
 export default function CreatedStories({ go, onKid }: Pick<WorkspaceProps, "go" | "onKid">) {
   const { user } = useAuth();
   const { children: kids } = useWorkspaceData();
+  const canKids = useAccessLookup()("child.profile.manage").state !== "Hidden";
   const [ai, setAi] = useState<StoryCard[]>([]);
   const [manual, setManual] = useState<StoryCard[]>([]);
   const [loading, setLoading] = useState(true);
@@ -197,7 +199,7 @@ export default function CreatedStories({ go, onKid }: Pick<WorkspaceProps, "go" 
               {sel.raw.updatedAt && <><span>Cập nhật</span><b>{when(sel.raw.updatedAt)}</b></>}
               <span>Trạng thái</span><span className={`pill ${sel.tone}`} style={{ width: "fit-content" }}>{sel.statusLabel}</span>
             </div>
-            {groupOf(sel) === "done" && <StoryHandoverButton storyId={sel.id} title={sel.title || "truyện này"} onKid={onKid} />}
+            {canKids && groupOf(sel) === "done" && <StoryHandoverButton storyId={sel.id} title={sel.title || "truyện này"} onKid={onKid} />}
             {groupOf(sel) === "done" && <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>}
             {canEdit(sel) && <button className="btn btn-s btn-c" onClick={() => setEditing(true)}><SquarePen className="ic" />Sửa thông tin</button>}
             <button className="btn btn-p btn-c" onClick={() => open(sel)}>{sel.family ? <PencilLine className="ic" /> : <WandSparkles className="ic" />}{groupOf(sel) === "review" ? "Mở để duyệt" : "Mở để soạn tiếp"}</button>
