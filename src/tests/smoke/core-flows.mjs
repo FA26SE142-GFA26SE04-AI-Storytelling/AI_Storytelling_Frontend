@@ -87,6 +87,10 @@ async function shots(page, name, scope = 'body') {
 }
 
 /** API giả cho mọi trường hợp. Trả `undefined` thì rơi xuống 404 "chức năng không nằm trong smoke test". */
+/** Trạng thái giờ đọc backend trả cho app của bé (signal, /me). */
+const timeStatus = (state, patch = {}) => ({ state, endReason: null, endsAt: null, graceEndsAt: null, breakUntil: null, breakActivity: null, nextAllowedAt: null, bedtimeAt: null, screenMinutesUsed: null, screenMinutesLimit: null, message: null, ...patch });
+const inFuture = (ms) => new Date(Date.now() + ms).toISOString();
+
 /** Cấu hình thời gian & thói quen backend trả khi bé chưa lưu lần nào: gợi ý theo tuổi 6–8. */
 const suggestedSchedule = { childProfileId: 10, enabled: false, bedtimeWeekday: '20:30', bedtimeWeekend: '20:30', breakEnabled: true, breakAfterMinutes: 20, breakDurationMinutes: 5,
   breakRemindEyes: true, breakRemindWater: true, breakRemindMove: true, screenLimitEnabled: true, screenLimitWeekdayMinutes: 45, screenLimitWeekendMinutes: 90,
@@ -164,7 +168,7 @@ function api({ path, method, body, url, state }) {
     case path === '/ChildAccessCredential/10/handover-story': state.handover = body; return { childProfileId: 10, avatarId: 'frog', accessToken: 'child-fixture', expiresInSeconds: 3600, storyId: body.storyId };
     // Phía bé
     case path === '/ChildAccessCredential/easylogin/login': return { childProfileId: 10, avatarId: 'frog', accessToken: 'child-fixture', expiresInSeconds: 3600 };
-    case path === '/ChildAccessCredential/me': return { childProfileId: 10, nickname: 'Bé Sen', ageBand: 'Age_6_8', avatarId: 'frog', language: 'vi' };
+    case path === '/ChildAccessCredential/me': return { childProfileId: 10, nickname: 'Bé Sen', ageBand: 'Age_6_8', avatarId: 'frog', language: 'vi', readingTime: state.readingTime ?? null, habit: state.habit ?? null };
     case path === '/MyRoadmap': return { openStories: [{ stage: 2, storyId: 7, title: 'Ếch con hôm nay', coverImageUrl: null, note: 'Mẹ chọn cho con', expectedBy: null, isLocked: false }], upcoming: [{ order: 2, storyId: 9, title: 'Truyện tiếp theo', coverImageUrl: null, isLocked: true }], done: [{ stage: 1, storyId: 6, title: 'Truyện đã đọc', coverImageUrl: null, completedAt: now }], completedCount: 1, totalCount: 3, isFinished: false };
     case path === '/child/manual-stories': return [];
     case path === '/child/reading/stories': return { isLocked: false, unlockStoryId: null, message: null, items: [{ storyId: 7, title: story.title, coverImageUrl: null, description: null, source: 'roadmap' }], totalCount: 1, pageIndex: 1, pageSize: 20 };
@@ -188,7 +192,7 @@ function api({ path, method, body, url, state }) {
     case path === '/child/reading/sessions/31/reflection/emotions': state.emotions = body; return { sessionId: 31, emotions: body.emotions.map((code) => ({ code, label: code })), favoriteSceneId: null, noteText: null, hasNoteRecording: false, canRecord: true, message: null };
     case path === '/child/reading/sessions/31/reflection/favorite-scene': state.favorite = body; return { sessionId: 31, emotions: [], favoriteSceneId: body.sceneId, noteText: null, hasNoteRecording: false, canRecord: true, message: null };
     case path === '/child/reading/sessions/31/reflection/note': state.noteSent = true; return { sessionId: 31, emotions: [], favoriteSceneId: 2, noteText: 'x', hasNoteRecording: false, canRecord: true, message: 'Đã gửi cho bố mẹ' };
-    case path === '/child/reading/sessions/31/signal': return { shouldExit: false, returnTo: null, message: null, sessionStatus: 'Active' };
+    case path === '/child/reading/sessions/31/signal': return { shouldExit: false, returnTo: null, message: null, sessionStatus: 'Active', readingTime: state.signalTime ?? null };
     case path === '/child/reading/sessions/31/events': return null;
     // Moderator: lộ trình mẫu
     case path === '/RoadmapTemplate' && method === 'GET': return paged(state.rtCreated ? [{ id: 40, name: state.rtCreated.name, ageBand: '6-8', mainCategory: null, storyCount: state.rtItems?.length ?? 0, status: state.rtSubmitted ? 'PendingReview' : 'Draft', createdByUserId: 1, createdByName: null, isMine: true, submittedAt: null, publishedAt: null, openCloneId: null, needsUpdate: false, retiredStoryCount: 0 }] : []);
@@ -803,6 +807,46 @@ try {
     await page.getByRole('tab', { name: 'Chờ duyệt', selected: true }).waitFor();
     await page.locator('.rt-head').getByText('Đang chờ duyệt', { exact: true }).waitFor();
     assert(state.rtSubmitted, 'Phải gọi API gửi duyệt');
+  });
+
+  // Giờ ngủ / hết giờ: màn chặn phủ lên sảnh của bé, có đếm ngược và nút về với bố mẹ.
+  await smoke('KidTimeBlocked', 'Parent', async ({ page, state }) => {
+    state.readingTime = timeStatus('Bedtime', { nextAllowedAt: inFuture(2 * 3600_000 + 5 * 60_000) });
+    await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
+    const dialog = page.getByRole('alertdialog', { name: 'Đến giờ đi ngủ rồi' });
+    await dialog.waitFor();
+    await dialog.getByText('Chúc em ngủ ngon! Mai mình đọc tiếp nhé.', { exact: true }).waitFor();
+    assert.match(await dialog.getByRole('timer').innerText(), /2 giờ/, 'Phải đếm ngược tới lúc được đọc lại');
+    await dialog.getByRole('button', { name: 'Về với bố mẹ', exact: true }).waitFor();
+    await shots(page, 'KidTimeBlocked', '.kid-rest');
+  });
+
+  // Nghỉ mắt giữa lúc đang đọc: màn nghỉ phủ lên truyện, hết giờ nghỉ thì tự hỏi lại signal và mở lại truyện.
+  await smoke('KidBreakInReader', 'Parent', async ({ page, state }) => {
+    state.signalTime = timeStatus('Break', { breakUntil: inFuture(6000), breakActivity: 'Water' });
+    await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
+    const dialog = page.getByRole('alertdialog', { name: 'Nghỉ mắt một chút nhé' });
+    await dialog.waitFor();
+    await dialog.getByText('Em uống một ngụm nước nhé!', { exact: true }).waitFor();
+    state.signalTime = timeStatus('Allowed');
+    await dialog.waitFor({ state: 'detached', timeout: 20000 });
+  });
+
+  // Thói quen đọc: thẻ chuỗi ngày / tiến độ tuần, lời nhắc đến giờ (tự hẹn giờ trong app) và dải cảnh báo sắp hết giờ.
+  await smoke('KidHabit', 'Parent', async ({ page, state }) => {
+    state.readingTime = timeStatus('EndingSoon', { endReason: 'Window', endsAt: inFuture(4 * 60_000) });
+    state.habit = { enabled: true, streakDays: 2, daysReadThisWeek: 1, weeklyGoalDays: 3, goalMetThisWeek: false,
+      reminders: [{ at: inFuture(2000), message: 'Đến giờ đọc truyện rồi, bé vào đọc nhé!' }], quietPeriods: [] };
+    await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
+    const habit = page.getByRole('region', { name: 'Thói quen đọc của em' });
+    await habit.getByText('2 ngày', { exact: true }).waitFor();
+    await habit.getByText('1 / 3 ngày', { exact: true }).waitFor();
+    await page.getByText(/Sắp hết giờ đọc rồi, còn khoảng \d+ phút nhé!/).waitFor();
+    await page.getByText('Đến giờ đọc truyện rồi, bé vào đọc nhé!', { exact: true }).waitFor();
+    await shots(page, 'KidHabit', '.kid-habit');
+    await page.getByRole('button', { name: 'Đóng lời nhắc', exact: true }).click();
+    assert.equal(await page.getByText('Đến giờ đọc truyện rồi, bé vào đọc nhé!', { exact: true }).count(), 0, 'Đóng rồi thì lời nhắc biến mất');
   });
 
   // Tab "Thời gian & thói quen" của hồ sơ bé: hiện gợi ý theo tuổi khi chưa lưu, sửa rồi PUT đủ mọi trường, hiện tiến độ sau khi lưu.

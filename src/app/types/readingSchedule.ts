@@ -64,3 +64,33 @@ export interface SetReadingScheduleRequest {
   windows: { dayType: ScheduleDayType; startTime: string; endTime: string }[];
 }
 
+/** Phía bé: trạng thái "Thời gian & thói quen" backend trả trong `signal` và `/ChildAccessCredential/me`. */
+export type ReadingTimeState = 'Allowed' | 'EndingSoon' | 'Grace' | 'Outside' | 'Bedtime' | 'ScreenLimitReached' | 'Break';
+export type BreakActivity = 'Eyes' | 'Water' | 'Move';
+
+export interface ReadingTimeStatus {
+  state: ReadingTimeState;
+  /** Mốc kết thúc gần nhất (khi Allowed / EndingSoon / Grace). */
+  endReason: 'Window' | 'Bedtime' | 'ScreenLimit' | null;
+  /** Các mốc thời gian là UTC (ISO 8601). */
+  endsAt: string | null;
+  graceEndsAt: string | null;
+  breakUntil: string | null;
+  breakActivity: BreakActivity | null;
+  nextAllowedAt: string | null;
+  bedtimeAt: string | null;
+  screenMinutesUsed: number | null;
+  screenMinutesLimit: number | null;
+  message: string | null;
+}
+
+/** Khối thói quen đọc trong `/me`: tiến độ, lịch nhắc cho app đặt nhắc, giờ yên lặng (UTC). */
+export interface ChildHabit {
+  enabled: boolean;
+  streakDays: number;
+  daysReadThisWeek: number;
+  weeklyGoalDays: number | null;
+  goalMetThisWeek: boolean;
+  reminders: { at: string; message: string }[];
+  quietPeriods: { from: string; to: string }[];
+}

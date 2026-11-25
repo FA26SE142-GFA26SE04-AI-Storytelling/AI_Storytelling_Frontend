@@ -1,3 +1,4 @@
+import type { ReadingTimeStatus } from './readingSchedule';
 import type { ReadAloudPractice } from './kidReflection';
 export interface ChildStory { storyId:number; title:string; coverImageUrl:string|null; description:string|null; source:string }
 export interface ChildStoryPage { isLocked:boolean; unlockStoryId:number|null; message:string|null; items:ChildStory[]; totalCount:number; pageIndex:number; pageSize:number }
@@ -124,7 +125,7 @@ export interface ParentQuizQuestion { quizItemId:number; type:'MultipleChoice'|'
 export interface ParentQuizDetail { sessionId:number; storyId:number; title:string; totalQuestions:number; runs:ParentQuizRun[]; questions:ParentQuizQuestion[] }
 export interface ParentReadingOverview { from:string|null; to:string|null; completedSessions:number; distinctStoriesCompleted:number; unfinishedStories:number; totalTimeSpentSeconds:number; quizStoriesTaken:number; averageQuizBestPercent:number|null; feelingCounts:Record<'VeryLike'|'Like'|'Neutral'|'Dislike'|'None', number>; emotionCounts:Record<StoryEmotionCode, number>; expEarned:number; wordsCollected:number; readAloudGoodPercent:number|null; retellCount:number }
 export type ReadingFeedbackFilter = { status: 'Completed' | 'Unfinished'; range: '7d' | '30d' | 'all' };
-export interface ReadingSignal { shouldExit:boolean; returnTo:string|null; message:string|null; sessionStatus:string }
+export interface ReadingSignal { shouldExit:boolean; returnTo:string|null; message:string|null; sessionStatus:string; readingTime?:ReadingTimeStatus|null }
 export interface VocabularyDefinition { vocabularyId:number; term:string; definition:string; isCollected:boolean }
 export interface NotebookEntry { entryId:number; vocabularyId:number; term:string; definition:string; storyId:number; storyTitle:string; sceneIndex:number|null; collectedAt:string }
 export type ReadingEvent = 'PageCompleted'|'TtsStarted'|'TtsCompleted'|'LibrarySearched';

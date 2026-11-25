@@ -5,6 +5,11 @@ import { roadmapService } from '@/app/services/roadmapService';
 import { childManualService } from '@/app/services/childManualService';
 import { childAccessService } from '@/app/services/childAccessService';
 import { useKidSession } from './useKidSession';
+import { useChildStatus } from './useChildStatus';
+import { useReadingReminders } from './useReadingReminders';
+import KidHabitStrip from './KidHabitStrip';
+import { KidRestOverlay, KidTimeBanner } from './KidTimeLayer';
+import { isBlocking } from '@/app/lib/readingTime';
 import PondBackdrop from '@/app/components/brand/PondBackdrop';
 import Frog from '@/app/components/brand/Frog';
 import FamilyMediaPreview from '@/app/features/authoring/FamilyMediaPreview';
@@ -28,6 +33,9 @@ function Cover({ coverUrl, title, meta, disabled, onOpen, label }: { id: number;
 export default function ConnectedKidHome({ childId, onExit, openStoryId }: { childId: number; onExit: () => void; openStoryId?: number | null }) {
   const playRef = usePointerPlay<HTMLDivElement>();
   const ended = useKidSession();
+  // Giờ đọc / nghỉ mắt / giới hạn màn hình và thói quen đọc của bé, hỏi lại backend mỗi phút.
+  const { readingTime, habit, refresh: refreshStatus } = useChildStatus(childId);
+  const reminder = useReadingReminders(habit);
   const endedRef = usePop<HTMLElement>(ended, 0.9);
   const [roadmap, setRoadmap] = useState<B.MyRoadmapDto | null>(null);
   const [library, setLibrary] = useState<B.ParentFamilyConfirmationDto[]>([]);
@@ -39,6 +47,8 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
   const [revision] = useState(0);
   const [busy, setBusy] = useState(false);
   const [reading, setReading] = useState(false);
+  // Màn nghỉ / màn chặn đang phủ lên sảnh (không tính lúc đang đọc: khi đó ChildReader tự lo).
+  const resting = !ended && !reading && isBlocking(readingTime);
   const [pane, setPane] = useState<LibraryPane>('lobby');
   // Thư viện của bé đang tạm khóa: chỉ đọc được truyện đang mở (backend chặn mọi truyện khác bằng 403).
   const [lock, setLock] = useState<{ locked: boolean; unlockStoryId: number | null }>({ locked: false, unlockStoryId: null });
@@ -46,7 +56,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
   // HUD và sảnh dùng chung một lần gọi phần thưởng; tải lại khi bé đọc xong một truyện (có thể vừa nhận exp, huy hiệu).
   const [readsDone, setReadsDone] = useState(0);
   const wasReading = useRef(false);
-  useEffect(() => { if (wasReading.current && !reading) setReadsDone(n => n + 1); wasReading.current = reading; }, [reading]);
+  useEffect(() => { if (wasReading.current && !reading) { setReadsDone(n => n + 1); refreshStatus(); } wasReading.current = reading; }, [reading, refreshStatus]);
   const [disabledFeatures, setDisabledFeatures] = useState<ReadonlySet<string>>(() => disabledSet(null));
   const [featuresReady, setFeaturesReady] = useState(false);
   const rewards = useKidRewards(childId, revision + readsDone, !disabledFeatures.has(KID_FEATURE.rewards));
@@ -85,7 +95,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
     <KidFeaturesProvider disabled={disabledFeatures} ready={featuresReady}>
     <div ref={playRef} className={`kid${reading ? ' kid-focus' : ''}`} role="dialog" aria-label="Chế độ của bé">
       {!reading && <PondBackdrop rich playful />}
-      {!reading && <KidLeaves />}
+      {!reading && !resting && <KidLeaves />}
       {!reading && (
         <KidHud
           rewards={rewards}
@@ -107,6 +117,9 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
             </section>
           ) : (
             <>
+              {!reading && <KidTimeBanner status={readingTime} />}
+              {!reading && <KidHabitStrip habit={habit} reminder={reminder.message} onDismissReminder={reminder.dismiss} />}
+              {resting && isBlocking(readingTime) && <KidRestOverlay status={readingTime} onDone={refreshStatus} onExit={onExit} />}
               <ChildReadingLibrary
                 key={childId}
                 childId={childId}
@@ -117,6 +130,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
                 unlockTitle={titleOf(lock.unlockStoryId)}
                 onLockChange={setLock}
                 onReadingChange={setReading}
+                onTimeBlocked={refreshStatus}
                 lobby={
                   <KidLobby
                     roadmap={roadmap}

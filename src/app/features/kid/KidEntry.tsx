@@ -6,10 +6,11 @@ import { childAccessService } from "@/app/services/childAccessService";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import Frog from "@/app/components/brand/Frog";
 import KidApp from "./KidApp";
+import { blockedStateOf } from "@/app/lib/readingTime";
 
 type State =
   | { kind: "loading" }
-  | { kind: "error"; message: string }
+  | { kind: "error"; message: string; timeBlocked?: boolean }
   | { kind: "ready"; childId: number };
 
 /** Luồng 1 Bước 1.10 / Luồng 3 Bước 3.0 — bé vào bằng mã QR, mở phiên riêng của bé. */
@@ -23,7 +24,8 @@ export default function KidEntry({ code, onDone }: { code: string; onDone: () =>
     started.current = true;
     void (async () => {
       const login = await childAccessService.loginWithEasyLogin(code);
-      if (!login.success || !login.data) { setState({ kind: "error", message: login.message }); return; }
+      // Bố mẹ đặt giờ đọc: ngoài khung, giờ ngủ, hết phút màn hình hay đang nghỉ mắt thì backend trả 403 kèm mã READING_TIME_*.
+      if (!login.success || !login.data) { setState({ kind: "error", message: login.message, timeBlocked: blockedStateOf(login.errors) !== null }); return; }
       const session = childAccessService.saveSession(login.data, "easy_login");
       const me = await childAccessService.getSessionProfile(session.accessToken);
       setState(me.success && me.data
@@ -46,7 +48,7 @@ export default function KidEntry({ code, onDone }: { code: string; onDone: () =>
           {state.kind === "error" && (
             <>
               <Frog size={120} mood="think" />
-              <h2 className="display">Ôi, chưa vào được rồi!</h2>
+              <h2 className="display">{state.timeBlocked ? "Bây giờ chưa đọc được nhé" : "Ôi, chưa vào được rồi!"}</h2>
               <p className="sub" style={{ fontSize: "var(--fs-md)" }}>{state.message}</p>
               <button className="btn btn-p" onClick={exit}>Về trang đầu</button>
             </>
