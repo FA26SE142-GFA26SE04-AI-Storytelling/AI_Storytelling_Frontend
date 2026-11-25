@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useAuth } from "@/app/context/AuthContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import { storyService } from "@/app/services/storyService";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import type { ChildProfile } from "@/app/types/childProfile";
 import type { StoryDto } from "@/app/types/story";
 import { toCard, statusKey, type StoryCard } from "@/app/lib/storyView";
@@ -35,13 +36,17 @@ export function WorkspaceDataProvider({ children: node }: { children: React.Reac
   const [kidsLoading, setKidsLoading] = useState(true);
   const [stories, setStories] = useState<StoryCard[]>([]);
   const [storiesLoading, setStoriesLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [storyError, setError] = useState<string | null>(null);
+  const [kidsError, setKidsError] = useState<string | null>(null);
+  // Không có quyền hồ sơ bé thì API từ chối là đúng, không báo "Lỗi kết nối".
+  const noKids = useAccessLookup()("child.profile.manage").state === "Hidden";
+  const error = storyError ?? (noKids ? null : kidsError);
 
   const reloadChildren = useCallback(async () => {
     const res = await childProfileService.getMyChildProfiles();
     const list = (res.data ?? []).filter((c) => !/archived/i.test(c.status));
     setKids(list);
-    if (!res.success) setError(res.message);
+    setKidsError(res.success ? null : res.message);
     setKidsLoading(false);
   }, []);
 

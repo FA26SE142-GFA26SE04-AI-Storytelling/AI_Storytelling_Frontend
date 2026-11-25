@@ -77,6 +77,7 @@ const host = vi.hoisted(() => {
   };
 });
 
+vi.mock('@/app/features/staff/staffAccess', () => ({ useAccessLookup: () => () => ({ state: 'Allowed', reason: null }) }));
 vi.mock('react', async (importOriginal) => ({
   ...(await importOriginal<typeof import('react')>()),
   useState: host.useState,

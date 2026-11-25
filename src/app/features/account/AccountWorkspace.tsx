@@ -12,6 +12,7 @@ import { accountService } from "@/app/services/accountService";
 import type { LoginSession } from "@/app/types/supervision";
 import { showToast } from "@/app/lib/toast";
 import { fmtDateTime, passwordProblem } from "@/app/lib/guardian";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import ProfileSection from "./ProfileSection";
 import DeleteAccountSection from "./DeleteAccountSection";
 import ActivitySection from './ActivitySection';
@@ -28,6 +29,7 @@ export type AccountPage = "profile" | "payment" | "activity";
 export default function AccountWorkspace({ page, audience = 'parent' }: { page?: AccountPage; audience?: 'parent' | 'creator' }) {
   const show = (p: AccountPage) => !page || page === p;
   const { user, logout } = useAuth();
+  const canSelf = useAccessLookup()("account.self.manage").state !== "Hidden";
   const [pw, setPw] = useState({ current: "", next: "", confirm: "" });
   const [pwNote, setPwNote] = useState<Note>(null);
   const [pwBusy, setPwBusy] = useState(false);
@@ -128,7 +130,7 @@ export default function AccountWorkspace({ page, audience = 'parent' }: { page?:
               <button className="btn btn-no" style={{ width: "fit-content", marginTop: 8 }} onClick={() => void logoutAll()}><LogOut className="ic" />Đăng xuất tất cả</button>
             </section>
 
-            {user?.role === "User" && <DeleteAccountSection />}
+            {user?.role === "User" && canSelf && <DeleteAccountSection />}
             </>}
           </div>
         </div>

@@ -24,13 +24,14 @@ const PACK_CACHE = new Map<string, { pack: StoryMediaPackage; at: number }>();
 const PACK_TTL_MS = 5 * 60_000;
 
 /** Progress counts are independent of the authorized, signed media package. */
-export function useStudioMediaPreview(storyId:number, versionId:number|null, progress:MediaProgressDto|null) {
+export function useStudioMediaPreview(storyId:number, versionId:number|null, progress:MediaProgressDto|null, enabled=true) {
   const [result,setResult]=useState<{storyId:number;versionId:number|null;pack:StoryMediaPackage|null;error:string|null;loading:boolean}>({storyId,versionId,pack:null,error:null,loading:true});
   const [revision,setRevision]=useState(0);
   const force=useRef(false);
   const refresh=useCallback(()=>{force.current=true;setRevision(v=>v+1);},[]);
   const audioState=mediaBranchChanged(progress?.audio),imageState=mediaBranchChanged(progress?.images);
   useEffect(()=>{
+    if(!enabled){setResult({storyId,versionId,pack:null,error:null,loading:false});return;}
     const key=[storyId,versionId,progress?.packageRevision,progress?.readyIllustrations,progress?.readyAudio,progress?.isGenerated,progress?.isAwaitingConfirmation,progress?.isConfirmed,progress?.isReady,progress?.jobStatus,progress?.errorCode,audioState,imageState].join(':');
     const bypass=force.current; force.current=false;
     const hit=bypass?undefined:PACK_CACHE.get(key);
@@ -43,7 +44,7 @@ export function useStudioMediaPreview(storyId:number, versionId:number|null, pro
       setResult({storyId,versionId,...result,loading:false});
     });
     return()=>controller.abort();
-  },[storyId,versionId,revision,progress?.packageRevision,progress?.readyIllustrations,progress?.readyAudio,progress?.isGenerated,progress?.isAwaitingConfirmation,progress?.isConfirmed,progress?.isReady,progress?.jobStatus,progress?.errorCode,audioState,imageState]);
+  },[storyId,versionId,revision,progress?.packageRevision,progress?.readyIllustrations,progress?.readyAudio,progress?.isGenerated,progress?.isAwaitingConfirmation,progress?.isConfirmed,progress?.isReady,progress?.jobStatus,progress?.errorCode,audioState,imageState,enabled]);
   const matches=result.storyId===storyId&&result.versionId===versionId&&(!result.pack||progress?.packageRevision==null||result.pack.packageRevision===progress.packageRevision);
   return {...(matches?result:{pack:null,error:null,loading:true}),refresh};
 }

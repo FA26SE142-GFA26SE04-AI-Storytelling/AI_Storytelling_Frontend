@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Ban, BookOpen, Check, Sparkles, X } from "lucide-react";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import Dialog from "@/app/components/Dialog";
 import { showToast } from "@/app/lib/toast";
 import { parentWishService } from "@/app/services/storyWishService";
@@ -44,6 +45,7 @@ export default function WishItem({ wish, nickname, go, onChanged }: {
     return () => controller.abort();
   }, [wish.wishId]);
 
+  const canAuthor = useAccessLookup()("parent.story.author").state !== "Hidden";
   const run = async (fn: () => Promise<{ success: boolean; message: string }>) => {
     if (busy) return;
     setBusy(true);
@@ -93,7 +95,7 @@ export default function WishItem({ wish, nickname, go, onChanged }: {
       ) : <p className="wish-empty">{suggestions.emptyMessage ?? "Chưa có truyện phù hợp trong thư viện."}</p>)}
 
       <div className="wish-actions">
-        <button className="btn btn-gold" disabled={busy} onClick={createNew}><Sparkles className="ic" />Tạo truyện mới</button>
+        {canAuthor && <button className="btn btn-gold" disabled={busy} onClick={createNew}><Sparkles className="ic" />Tạo truyện mới</button>}
         <button className="btn btn-no" disabled={busy} onClick={() => setDeclining(true)}><Ban className="ic" />Từ chối</button>
       </div>
 
