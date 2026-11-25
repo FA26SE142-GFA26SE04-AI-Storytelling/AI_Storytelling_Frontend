@@ -19,6 +19,7 @@ import Dialog from "@/app/components/Dialog";
 import StoryHandoverButton from "@/app/features/kid/StoryHandoverButton";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import type { StoryCard } from "@/app/lib/storyView";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import { StarRating } from "@/app/components/StarRating";
 import "@/app/styles/components/StoryRatingDialog.css";
 import { canonicalAgeLabel, displayAuthorOf, SOURCE_LABEL, sourceOf, statusOf, topicOf } from "./libraryFilters";
@@ -190,11 +191,16 @@ export default function LibraryDetailDialog({
   rating,
 }: LibraryDetailDialogProps) {
   const storyStatus = statusOf(story);
+  const access = useAccessLookup();
+  const can = (code: string) => access(code).state !== "Hidden";
+  const canAuthor = can("parent.story.author");
+  const canKids = can("child.profile.manage");
+  const canRate = can("story.rating.write");
   return (
-    <LibraryDetailShell story={story} onClose={onClose} rating={rating} onRate={onRate}>
+    <LibraryDetailShell story={story} onClose={onClose} rating={rating} onRate={canRate ? onRate : undefined}>
       {/* Truyện tự soạn đi qua API riêng: kiểm tra, giao cho bé, thu hồi đều làm ở trang Tự soạn. */}
       {story.family ? (
-        <div className="lib-detail-primary">
+        canAuthor && <div className="lib-detail-primary">
           <button
             type="button"
             className="btn btn-p btn-c"
@@ -216,7 +222,7 @@ export default function LibraryDetailDialog({
             (story.fromAi &&
               ["draft", "generating", "outline", "review", "media", "moderation"].includes(storyStatus))) && (
             <div className="lib-detail-primary">
-              {storyStatus === "review" && (
+              {canAuthor && storyStatus === "review" && (
                 <button
                   type="button"
                   className="btn btn-p btn-c"
@@ -226,7 +232,7 @@ export default function LibraryDetailDialog({
                   Mở để duyệt
                 </button>
               )}
-              {story.fromAi &&
+              {canAuthor && story.fromAi &&
                 ["draft", "generating", "outline", "review", "media", "moderation"].includes(storyStatus) && (
                   <button
                     type="button"
@@ -237,10 +243,10 @@ export default function LibraryDetailDialog({
                     Tiếp tục trong Studio
                   </button>
                 )}
-              {storyStatus === "ready" && (
+              {canKids && storyStatus === "ready" && (
                 <StoryHandoverButton storyId={story.id} title={story.title} onKid={onKid} />
               )}
-              {storyStatus === "ready" && (
+              {canKids && storyStatus === "ready" && (
                 <button type="button" className="btn btn-p btn-c" onClick={onAddRoadmap}>
                   <Route className="ic" aria-hidden="true" />
                   Thêm vào lộ trình
@@ -254,16 +260,16 @@ export default function LibraryDetailDialog({
                 <Eye className="ic" aria-hidden="true" />
                 Xem trước như bé thấy
               </button>
-              {story.creator && (
+              {canRate && story.creator && (
                 <button type="button" className="btn btn-s" onClick={onRate}>
                   <Star className="ic" aria-hidden="true" />
                   Đánh giá
                 </button>
               )}
-              <button type="button" className="btn btn-g lib-report-btn" onClick={onReport}>
+              {can("content.report.submit") && <button type="button" className="btn btn-g lib-report-btn" onClick={onReport}>
                 <Flag className="ic" aria-hidden="true" />
                 Báo cáo nội dung
-              </button>
+              </button>}
             </div>
           )}
         </>

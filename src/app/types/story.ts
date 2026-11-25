@@ -23,6 +23,8 @@ export interface StoryDto {
   ratingCount?: number;
   /** `GET /Story/community`: phiên bản công khai có câu đố. Không có trường (API cũ) thì coi như không có. */
   hasQuiz?: boolean;
+  /** `GET /Story/community`: audio đọc có mốc thời gian từng chữ (bé được tô sáng chữ). Không có trường thì không hiện. */
+  hasWordHighlight?: boolean;
   createdAt: string;
   updatedAt?: string | null;
 }

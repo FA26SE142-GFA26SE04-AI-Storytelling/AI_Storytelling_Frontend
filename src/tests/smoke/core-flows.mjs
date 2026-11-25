@@ -104,7 +104,7 @@ function api({ path, method, body, url, state }) {
     case path.startsWith('/Auth/sessions/') && method === 'DELETE': state.revoked = Number(path.split('/').pop()); return null;
     case path === '/Notification/unread-count': return 0;
     case path === '/Notification': return [];
-    case path === '/ChildProfile/mine': return [sen, lan];
+    case path === '/ChildProfile/mine': return state.kids ?? [sen, lan];
     case path === '/ReadingSchedule/10' && method === 'GET': return state.readingSchedule ?? suggestedSchedule;
     case path === '/ReadingSchedule/10' && method === 'PUT': {
       const slots = { Weekday: 0, Weekend: 0 };
@@ -223,12 +223,12 @@ function api({ path, method, body, url, state }) {
 const browser = await chromium.launch({ headless: true, channel: process.env.PLAYWRIGHT_CHANNEL || 'msedge' });
 const results = [];
 
-async function smoke(label, role, run) {
+async function smoke(label, role, run, initial = {}) {
   if (process.env.SMOKE_CASES && !process.env.SMOKE_CASES.split(',').includes(label)) return;
   const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
   const page = await context.newPage();
   page.setDefaultTimeout(15000);
-  const state = { user: { id: 1, username: 'fixture', email: 'fixture@example.invalid', fullName: 'Người dùng kiểm thử', role, status: 'Active' } };
+  const state = { user: { id: 1, username: 'fixture', email: 'fixture@example.invalid', fullName: 'Người dùng kiểm thử', role, status: 'Active' }, ...initial };
   const requests = []; const errors = [];
   const jwt = `e30.${Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600, sub: '1', role })).toString('base64url')}.fixture`;
   await page.addInitScript(({ user, jwt }) => { localStorage.setItem('taletale_user_profile', JSON.stringify(user)); localStorage.setItem('taletale_access_token', jwt); localStorage.setItem('taletale_refresh_token', 'fixture-refresh'); }, { user: state.user, jwt });
@@ -361,6 +361,18 @@ try {
     assert.equal(state.handover?.storyId, 7, 'Phải giao máy kèm đúng truyện');
     assert(requests.some((r) => r.path === '/child/reading/sessions' && r.body?.storyId === 7), 'Trang của bé phải mở thẳng truyện đã chọn');
   });
+
+  await smoke('ParentNoKidGate', 'Parent', async ({ page }) => {
+    // Chưa có hồ sơ bé: bấm nút chỉ báo toast, không mở form chọn bé.
+    await page.goto(parent('#library'), { waitUntil: 'domcontentloaded' });
+    await page.locator('button.bk').filter({ hasText: story.title }).first().click();
+    for (const name of ['Thêm vào lộ trình', 'Cho bé đọc ngay']) {
+      await page.getByRole('button', { name, exact: true }).click();
+      await page.getByText('Bạn chưa có hồ sơ bé. Hãy thêm hồ sơ bé trước nhé.').last().waitFor();
+    }
+    assert.equal(await page.getByRole('dialog', { name: /Thêm vào lộ trình|Cho bé đọc/ }).count(), 0, 'Không được mở form khi chưa có bé');
+    await shots(page, 'ParentNoKidGate');
+  }, { kids: [] });
 
   await smoke('LearningOverview', 'Parent', async ({ page }) => {
     await page.goto(parent('#roadmap'), { waitUntil: 'domcontentloaded' });

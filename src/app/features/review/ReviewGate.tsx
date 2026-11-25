@@ -9,6 +9,7 @@ import { useStoryReview } from "@/app/features/story-workflow/useStoryReview";
 import { hasMissingLearning } from "@/app/features/story-workflow/storyReviewLearning";
 import { useRegisterApprove } from "@/app/features/story-workflow/approveSlot";
 import { countWords, normalizeSelection, type StorySelection } from "@/app/features/story-workflow/storySelection";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import Frog from "@/app/components/brand/Frog";
 import { statusBadge } from "@/app/lib/storyView";
 import { isReadingOnly } from "@/app/lib/storyRules";
@@ -60,6 +61,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
   const { bundle, busy, aiTask, error, validation, proposal } = r;
   const [tab, setTab] = useState<Tab>("story");
   const tabActions = useTabActions();
+  const canDecide = useAccessLookup()("story.review.approve").state !== "Hidden" || actor !== "parent";
   const [selection, setSelection] = useState<StorySelection | null>(null);
   const [editing, setEditing] = useState(false);
   const [dialog, setDialog] = useState<"learning" | null>(null);
@@ -69,6 +71,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
   const content = bundle?.story.content ?? "";
   // Lý do chưa duyệt được; tính trước khi return sớm vì hook đăng ký duyệt phải chạy ở mọi lần render.
   const approveBlock = !bundle ? "Đang tải bản thảo…"
+    : !canDecide ? "Quản trị viên đã tắt quyền duyệt truyện của bạn."
     : proposal ? "Hãy áp dụng hoặc bỏ đề xuất của AI trước khi duyệt."
     : editing ? "Hãy lưu hoặc huỷ bản sửa tay trước khi duyệt."
     : hasMissingLearning(bundle) ? "Còn thiếu học liệu cho bản thảo này."
@@ -211,7 +214,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
 
           <div className="sec">
             <div className="sec-h">Quyết định</div>
-            {actor==='parent'&&<AutoPublishAction key={storyId} storyId={storyId} disabled={busy||!!proposal||editing||!summary.canApprove} onApproved={onApproved}/>}
+            {actor==='parent'&&canDecide&&<AutoPublishAction key={storyId} storyId={storyId} disabled={busy||!!proposal||editing||!summary.canApprove} onApproved={onApproved}/>}
             {summary.canEdit && learning && <button className="btn btn-s btn-c" disabled={busy || !!proposal || editing} onClick={() => setDialog("learning")}><PencilLine className="ic" />Sửa học liệu</button>}
             {missing && <button className="btn btn-s btn-c" disabled={busy || !summary.canEdit || !!proposal} onClick={() => void r.generateMissingLearning()}><RefreshCw className="ic" />Tạo học liệu còn thiếu</button>}
             {!approveInBar && (

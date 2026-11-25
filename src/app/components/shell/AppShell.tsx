@@ -2,7 +2,8 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
-import { WORKSPACES, type WorkspaceId } from "./nav";
+import { visibleWorkspaces, type WorkspaceEntry, type WorkspaceId } from "./nav";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import AccountMenu from "./AccountMenu";
 import NavMenuButton from "./NavMenuButton";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
@@ -19,15 +20,12 @@ type Props = {
   children: React.ReactNode;
 };
 
-/** Nhóm trang trong menu avatar (khai báo trong nav.ts với inMenu): tài khoản rồi tới hồ sơ bé. */
-const MENU_GROUPS = [WORKSPACES.filter((w) => w.inMenu === "account"), WORKSPACES.filter((w) => w.inMenu === "kids")];
-
 /** Các nút điều hướng; dùng chung cho thanh ngang trên header (máy tính) và thanh tab ở đáy (điện thoại). */
-function NavButtons({ ws, onWs, reviewCount, upward }: { ws: WorkspaceId; onWs: (id: WorkspaceId) => void; reviewCount: number; upward?: boolean }) {
+function NavButtons({ pages, ws, onWs, reviewCount, upward }: { pages: WorkspaceEntry[]; ws: WorkspaceId; onWs: (id: WorkspaceId) => void; reviewCount: number; upward?: boolean }) {
   // Mục có `under` gom vào menu của nút cha; chỉ nút cha (id trùng `under`) hiện trên thanh.
-  return WORKSPACES.filter((w) => !w.inMenu && (!w.under || w.under === w.id)).map((entry) => {
+  return pages.filter((w) => !w.inMenu && (!w.under || w.under === w.id)).map((entry) => {
     const { id, label, icon: Icon, sep } = entry;
-    const group = WORKSPACES.filter((w) => w.under === id);
+    const group = pages.filter((w) => w.under === id);
     return (
       <div key={id} style={{ display: "contents" }}>
         {sep && <div className="sep" />}
@@ -47,6 +45,10 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
   const navRef = useRiseIn<HTMLElement>("button", [], { delay: 40, distance: 10 });
   const { theme, toggleTheme } = useTheme();
   const { reviewQueue, error } = useWorkspaceData();
+  const access = useAccessLookup();
+  const pages = visibleWorkspaces((code) => access(code).state !== "Hidden");
+  // Nhóm trang trong menu avatar (khai báo trong nav.ts với inMenu): tài khoản rồi tới hồ sơ bé.
+  const menuGroups = [pages.filter((w) => w.inMenu === "account"), pages.filter((w) => w.inMenu === "kids")];
 
   return (
     <div className="shell no-status top-nav">
@@ -59,7 +61,7 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
         </div>
 
         <nav ref={navRef} className="topnav" aria-label="Không gian làm việc">
-          <NavButtons ws={ws} onWs={onWs} reviewCount={reviewQueue.length} />
+          <NavButtons pages={pages} ws={ws} onWs={onWs} reviewCount={reviewQueue.length} />
         </nav>
         <div className="top-gap" />
 
@@ -68,14 +70,14 @@ export default function AppShell({ ws, onWs, onKid, children }: Props) {
         {error && <span className="top-note err" role="status" title={error}>Lỗi kết nối</span>}
         <button className="btn btn-g" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Giao diện sáng" : "Giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
         <NotificationBell onOpen={onWs} />
-        <KidButton onKid={onKid} />
-        <AccountMenu ws={ws} onWs={onWs} groups={MENU_GROUPS} />
+        {access("child.profile.manage").state !== "Hidden" && <KidButton onKid={onKid} />}
+        <AccountMenu ws={ws} onWs={onWs} groups={menuGroups} />
         </div>
       </header>
 
       {/* Điện thoại: header không đủ chỗ nên điều hướng nằm ở thanh tab dưới đáy. */}
       <nav className="rail rail-mobile" aria-label="Không gian làm việc">
-        <NavButtons ws={ws} onWs={onWs} reviewCount={reviewQueue.length} upward />
+        <NavButtons pages={pages} ws={ws} onWs={onWs} reviewCount={reviewQueue.length} upward />
       </nav>
 
       <main className="stage">{children}</main>

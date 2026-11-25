@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Flag, RotateCw } from "lucide-react";
 import Select from "@/app/components/Select";
+import { useAccess } from "@/app/features/staff/staffAccess";
 import Pager from "@/app/components/Pager";
 import { StarRating } from "@/app/components/StarRating";
 import { useRiseIn } from "@/app/lib/motion";
@@ -39,6 +40,7 @@ export default function RatingComments({
   onRetry: () => void;
   myRatingId: number | null;
 }) {
+  const canReport = useAccess("story.rating.report").state !== "Hidden";
   const [reportingId, setReportingId] = useState<number | null>(null);
   const listRef = useRiseIn<HTMLDivElement>(".srd-comment", [data]);
 
@@ -97,7 +99,7 @@ export default function RatingComments({
                   </span>
                 </div>
 
-                {mode === "parent" && item.ratingId !== myRatingId && (
+                {mode === "parent" && canReport && item.ratingId !== myRatingId && (
                   <button
                     type="button"
                     className="btn btn-g srd-report-flag"

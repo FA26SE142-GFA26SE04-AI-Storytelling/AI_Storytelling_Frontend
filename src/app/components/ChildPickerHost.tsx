@@ -5,21 +5,23 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
-import { subscribeChooseChild, type ChooseChildRequest } from "@/app/lib/chooseChild";
+import { ensureChild, subscribeChooseChild, type ChooseChildRequest } from "@/app/lib/chooseChild";
 import { avatarOf } from "@/app/lib/guardian";
 import { ageLabel } from "@/app/lib/storyView";
 
 /** Hiển thị hộp chọn bé cho chooseChild(). */
 export default function ChildPickerHost() {
-  const { children: kids } = useWorkspaceData();
+  const { children: kids, childrenLoading } = useWorkspaceData();
   const meId = useAuth().user?.id ?? -1;
   const [req, setReq] = useState<ChooseChildRequest | null>(null);
 
   useEffect(() => subscribeChooseChild((r) => {
+    // Không có bé phù hợp thì báo bằng toast, không mở hộp chọn rỗng.
+    if (!ensureChild(kids, childrenLoading, r.filter)) { r.resolve(null); return; }
     const options = kids.filter((k) => !r.filter || r.filter(k));
     if (options.length === 1) { r.resolve(options[0]); return; }
     setReq(r);
-  }), [kids]);
+  }), [kids, childrenLoading]);
 
   useEffect(() => {
     if (!req) return;
