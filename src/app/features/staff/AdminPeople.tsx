@@ -68,8 +68,7 @@ export function AdminStaff() {
 
       <div className="st-card st-scroll">
         <div className="row">
-          <h3 className="grow">Kiểm duyệt viên và quản trị viên</h3>
-          <div className="seg" role="radiogroup" aria-label="Lọc theo vai trò" style={{ maxWidth: 360 }}>
+          <div className="seg st-seg-nowrap" role="radiogroup" aria-label="Lọc theo vai trò" style={{ maxWidth: 440 }}>
             {ROLE_FILTERS.map((r) => (
               <button key={r.id} type="button" role="radio" aria-checked={filter === r.id} className={filter === r.id ? "on" : ""} onClick={() => setFilter(r.id)}>{r.label}</button>
             ))}
@@ -88,14 +87,14 @@ export function AdminStaff() {
                 <td data-label="Kích hoạt / hạn mời">{s.status === "invited" ? `Mời hết hạn ${fmtDay(s.createdAt)}` : fmtDay(s.createdAt)}</td>
                 <td data-label="" style={{ whiteSpace: "nowrap" }}>
                   {s.status === "invited" && <>
-                    <button className="btn btn-g" disabled={busy} onClick={() => void run(() => staffService.resendInvite(s.userId), "Đã gửi lại mã mời (mã cũ hết hiệu lực).")}>Gửi lại lời mời</button>
+                    <button className="btn btn-s" disabled={busy} onClick={() => void run(() => staffService.resendInvite(s.userId), "Đã gửi lại mã mời (mã cũ hết hiệu lực).")}>Gửi lại lời mời</button>
                     <button className="btn btn-no" disabled={busy} onClick={async () => {
                       if (!(await confirmDialog(`Huỷ lời mời gửi ${s.email}? Mã mời hết hiệu lực và có thể mời lại cùng email.`))) return;
                       void run(() => staffService.cancelInvite(s.userId), "Đã huỷ lời mời.");
                     }}>Huỷ lời mời</button>
                   </>}
-                  {s.status === "active" && s.userId !== me && <button className="btn btn-g" disabled={busy} onClick={() => { setDeactReason(""); setDeact(s); }}><UserX className="ic" />Vô hiệu hoá</button>}
-                  {s.status === "deactivated" && <button className="btn btn-g" disabled={busy} onClick={() => void run(() => staffService.reactivate(s.userId), "Đã kích hoạt lại.")}>Kích hoạt lại</button>}
+                  {s.status === "active" && s.userId !== me && <button className="btn btn-no" disabled={busy} onClick={() => { setDeactReason(""); setDeact(s); }}><UserX className="ic" />Vô hiệu hoá</button>}
+                  {s.status === "deactivated" && <button className="btn btn-ok" disabled={busy} onClick={() => void run(() => staffService.reactivate(s.userId), "Đã kích hoạt lại.")}>Kích hoạt lại</button>}
                 </td>
               </tr>
             ))}

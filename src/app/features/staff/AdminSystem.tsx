@@ -18,8 +18,8 @@ const PLAN_TYPE: Record<PlanType, string> = { Reading: "Gói Đọc", Creative: 
 const PAY_STATUS: Record<PaymentStatus, [string, string]> = {
   Pending: ["wait", "Chờ thanh toán"], Paid: ["ok", "Đã thanh toán"], Expired: ["draft", "Hết hạn"], MismatchAmount: ["flag", "Sai số tiền"],
 };
-const PayPill = ({ status }: { status: PaymentStatus }) => { const [tone, label] = PAY_STATUS[status] ?? ["draft", status]; return <span className={`pill ${tone}`}>{label}</span>; };
-const Payer = ({ t }: { t: AdminPaymentTransactionDto }) => <span className="pay-payer"><b>{t.payerName || `Tài khoản #${t.payerUserId}`}</b><small>{t.payerEmail}</small></span>;
+export const PayPill = ({ status }: { status: PaymentStatus }) => { const [tone, label] = PAY_STATUS[status] ?? ["draft", status]; return <span className={`pill ${tone}`}>{label}</span>; };
+export const Payer = ({ t }: { t: AdminPaymentTransactionDto }) => <span className="pay-payer"><b>{t.payerName || `Tài khoản #${t.payerUserId}`}</b><small>{t.payerEmail}</small></span>;
 
 /** Gói và lượt của một tài khoản: dùng chung cho trang lượt và popup điều chỉnh. */
 function QuotaSummary({ q }: { q: MyQuotaDto }) {
@@ -105,6 +105,19 @@ const STATUS_FILTER: { value: PaymentStatus | ""; label: string }[] = [
   { value: "Expired", label: "Hết hạn" }, { value: "Paid", label: "Đã thanh toán" },
 ];
 
+/** Xác nhận giao dịch của gói này làm được gì: chỉ Gói Đọc / Gói Sáng tạo mở gói tháng, loại khác chỉ cộng lượt. */
+export function planEffect(t: Pick<AdminPaymentTransactionDto, "planType" | "planName">): { confirm: string; done: string; note: string | null } {
+  switch (t.planType) {
+    case "Legacy":
+      return { confirm: `Gói ${t.planName} là gói cũ đã ngừng bán: chỉ cộng lượt tạo truyện AI, không mở gói tháng, cho`, done: "Đã xác nhận thanh toán. Gói cũ chỉ cộng lượt, không mở gói tháng.", note: "Gói cũ, chỉ cộng lượt" };
+    case "AddOn":
+    case "CreatorPack":
+      return { confirm: `Gói ${t.planName} chỉ cộng lượt, không mở gói tháng, cho`, done: "Đã xác nhận thanh toán và cộng lượt.", note: null };
+    default:
+      return { confirm: `Gói ${t.planName} sẽ được áp cho`, done: "Đã xác nhận thanh toán và áp gói.", note: null };
+  }
+}
+
 /** Tab Giao dịch: mọi giao dịch, lọc trạng thái, tìm theo mã / email / tên; xác nhận tay giao dịch chưa Paid. */
 function TransactionsTab() {
   const [status, setStatus] = useState<PaymentStatus | "">("");
@@ -118,8 +131,9 @@ function TransactionsTab() {
   const { note, setNote, busy, run } = useAction(load);
   useEffect(() => { void load().then((err) => { if (err) setNote({ ok: false, text: err }); }); }, [load, setNote]);
   const markPaid = async (t: AdminPaymentTransactionDto) => {
-    if (!(await confirmDialog(`Xác nhận đã nhận đủ ${money(t.amount)} cho giao dịch ${t.transactionCode}? Gói ${t.planName} sẽ được áp cho ${t.payerEmail || `tài khoản #${t.payerUserId}`}.${t.status === "Pending" && new Date(t.expiresAt).getTime() > Date.now() ? " Giao dịch chưa hết hạn, người dùng vẫn có thể đang chuyển khoản." : ""}`))) return;
-    void run(() => pay.markPaid(t.id), "Đã xác nhận thanh toán và áp gói.");
+    const effect = planEffect(t);
+    if (!(await confirmDialog(`Xác nhận đã nhận đủ ${money(t.amount)} cho giao dịch ${t.transactionCode}? ${effect.confirm} ${t.payerEmail || `tài khoản #${t.payerUserId}`}.${t.status === "Pending" && new Date(t.expiresAt).getTime() > Date.now() ? " Giao dịch chưa hết hạn, người dùng vẫn có thể đang chuyển khoản." : ""}`))) return;
+    void run(() => pay.markPaid(t.id), effect.done);
   };
   return <>
     <Notice note={note} />
@@ -135,7 +149,7 @@ function TransactionsTab() {
         <tbody>
           {list?.items.map((t) => (
             <tr key={t.id}><td data-label="Mã giao dịch"><code>{t.transactionCode}</code></td><td data-label="Người mua"><Payer t={t} /></td>
-              <td data-label="Gói">{t.planName}</td><td data-label="Số tiền">{money(t.amount)}</td>
+              <td data-label="Gói">{t.planName}{planEffect(t).note && <small className="pay-paid">{planEffect(t).note}</small>}</td><td data-label="Số tiền">{money(t.amount)}</td>
               <td data-label="Trạng thái"><PayPill status={t.status} />{t.paidAt && <small className="pay-paid">{fmt(t.paidAt)}</small>}</td><td data-label="Tạo lúc">{fmt(t.createdAt)}</td>
               <td data-label="">{t.status !== "Paid" && <button className="btn btn-s" disabled={busy} onClick={() => void markPaid(t)}><BadgeCheck className="ic" />Xác nhận đã trả</button>}</td></tr>
           ))}

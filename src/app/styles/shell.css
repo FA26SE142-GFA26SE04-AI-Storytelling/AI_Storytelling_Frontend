@@ -160,6 +160,10 @@
   .top .topnav button:not(.on) { padding: 0 11px; }
   .top.hdr-center .topnav { flex: 0 1 auto; min-width: 0; justify-content: safe center; }
 }
+/* 721–900px: thanh Staff không đủ chỗ cho tên nút đang chọn (768px cắt "Lộ trình mẫ"), nhường chỗ bằng cách ẩn chữ "Taletale" và nhãn vai trò (header phụ huynh cũng cắt ở 721px). */
+@media (min-width: 721px) and (max-width: 900px) {
+  .top b.display, .top-role { display: none; }
+}
 
 /* Header của phụ huynh (tên lớp hdr-*: tránh trùng tiện ích Tailwind như top-3 = "top: 12px"): một hàng flex; hai nhóm hai bên cùng co giãn từ 0 (flex: 1 1 0) nên rộng bằng nhau
    và thanh điều hướng ở giữa trang. Nhóm không co nhỏ hơn nội dung nên không đè lên nhau khi màn hẹp. */

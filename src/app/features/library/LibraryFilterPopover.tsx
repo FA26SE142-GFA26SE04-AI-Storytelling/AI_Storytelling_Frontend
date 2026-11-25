@@ -24,6 +24,8 @@ export type LibraryFilterPopoverProps = {
   source: string;
   activePopoverCount: number;
   extraFilters?: LibraryExtraFilterProps;
+  /** Chỉ có truyện cộng đồng đã công khai (Thư viện Creator): bỏ nhóm Nguồn và Trạng thái. */
+  community?: boolean;
   onStatusChange: (value: string) => void;
   onAgeChange: (value: string) => void;
   onSourceChange: (value: string) => void;
@@ -42,6 +44,7 @@ export default function LibraryFilterPopover({
   source,
   activePopoverCount,
   extraFilters,
+  community = false,
   onStatusChange,
   onAgeChange,
   onSourceChange,
@@ -78,8 +81,8 @@ export default function LibraryFilterPopover({
   const statusCounts = Object.fromEntries(
     STATUS_GROUPS.map((group) => [group.id, stories.filter((story) => statusOf(story) === group.id).length]),
   );
-  const availableStatuses = STATUS_GROUPS.filter((group) => statusCounts[group.id] > 0 || group.id === status);
-  const availableSources = (Object.entries(SOURCE_LABEL) as [StorySourceKey, string][])
+  const availableStatuses = community ? [] : STATUS_GROUPS.filter((group) => statusCounts[group.id] > 0 || group.id === status);
+  const availableSources = (community ? [] : (Object.entries(SOURCE_LABEL) as [StorySourceKey, string][]))
     .map(([id, label]) => ({ id, label, count: stories.filter((story) => sourceOf(story) === id).length }))
     .filter((entry) => entry.count > 0 || entry.id === source);
   const hasFilterGroups =

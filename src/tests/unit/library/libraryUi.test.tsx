@@ -10,8 +10,9 @@ vi.mock("@/app/context/WorkspaceDataContext", () => ({
 }));
 
 import { LibraryBookCard, LibrarySkeletonGrid } from "@/app/features/library/LibraryCards";
-import { LibraryFeaturedStory, LibraryGenreTiles } from "@/app/features/library/LibraryDiscoveryHighlights";
-import LibraryDetailDialog from "@/app/features/library/LibraryDetailDialog";
+import { heroStories, LibraryGenreTiles, LibraryHero } from "@/app/features/library/LibraryDiscoveryHighlights";
+import LibraryDetailDialog, { LibraryDetailShell } from "@/app/features/library/LibraryDetailDialog";
+import { StaffAccessProvider, toAccessMap } from "@/app/features/staff/staffAccess";
 import LibraryFilterPopover from "@/app/features/library/LibraryFilterPopover";
 import LibraryFilterSidebar from "@/app/features/library/LibraryFilterSidebar";
 import LibraryHeader from "@/app/features/library/LibraryHeader";
@@ -72,7 +73,26 @@ describe("Library UI components", () => {
     expect(rankedHtml).toContain("#1");
     expect(rankedHtml).toContain("below-pill");
     expect(rankedHtml).toContain("Ếch con khám phá");
-    expect(rankedHtml).toContain("1.250 tiếng");
+    expect(rankedHtml).toContain("1.250 chữ");
+
+    // Chân thẻ hiện tên tác giả thay cho nhãn nguồn "Của creator".
+    const authoredHtml = renderToStaticMarkup(
+      <LibraryBookCard story={makeStory({ creator: true, raw: { authorName: "Đặng Lê Anh Tuấn" } })} onPick={() => {}} />,
+    );
+    expect(authoredHtml).toContain('class="lib-card-author" title="Đặng Lê Anh Tuấn"');
+    expect(authoredHtml).not.toContain("Của creator");
+    // Icon câu đố chỉ hiện khi API báo hasQuiz = true; thiếu trường (API cũ) thì không hiện.
+    expect(authoredHtml).not.toContain("lib-card-quiz");
+    const quizHtml = renderToStaticMarkup(
+      <LibraryBookCard story={makeStory({ creator: true, raw: { hasQuiz: true } })} onPick={() => {}} />,
+    );
+    expect(quizHtml).toContain('aria-label="Có câu đố"');
+    expect(quizHtml).not.toContain("lib-card-highlight");
+    // Icon tô sáng chữ chỉ hiện khi API báo hasWordHighlight = true.
+    const highlightHtml = renderToStaticMarkup(
+      <LibraryBookCard story={makeStory({ creator: true, raw: { hasWordHighlight: true } })} onPick={() => {}} />,
+    );
+    expect(highlightHtml).toContain('aria-label="Có tô sáng chữ khi nghe"');
     expect(rankedHtml).toContain("166.67% 125%");
 
     const plainReadyHtml = renderToStaticMarkup(
@@ -100,6 +120,8 @@ describe("Library UI components", () => {
         onPreview={() => {}}
         onAddRoadmap={() => {}}
         onReport={() => {}}
+        onRate={() => {}}
+        rating={{ averageRating: 4.5, ratingCount: 12 }}
       />,
     );
 
@@ -113,6 +135,57 @@ describe("Library UI components", () => {
     expect(html).toContain("Thêm vào lộ trình");
     expect(html).toContain("Xem trước như bé thấy");
     expect(html).toContain("Báo cáo nội dung");
+    expect(html).toContain("4,5 · 12 đánh giá");
+    expect(html).toContain("Xem đánh giá của phụ huynh");
+  });
+
+  it("LibraryDetailShell (Thư viện Creator) shows custom actions and a read-only rating line", () => {
+    const html = renderToStaticMarkup(
+      <LibraryDetailShell story={makeStory({ creator: true, viewCount: 5, favoriteCount: 2 })} onClose={() => {}} rating={{ averageRating: 4, ratingCount: 3 }}>
+        <button type="button">Mở để soạn tiếp</button>
+      </LibraryDetailShell>,
+    );
+    expect(html).toContain("Mở để soạn tiếp");
+    expect(html).toContain("4,0 · 3 đánh giá");
+    expect(html).not.toContain("Xem đánh giá của phụ huynh");
+    expect(html).not.toContain("Cho bé đọc ngay");
+    expect(html).not.toContain("Báo cáo nội dung");
+  });
+
+  it("LibraryFilterSidebar community mode drops the single-value Source and Status groups", () => {
+    const html = renderToStaticMarkup(
+      <LibraryFilterSidebar
+        stories={[makeStory({ creator: true })]}
+        ages={[{ key: "6-8 tuổi", label: "6–8 tuổi", count: 1 }]}
+        topics={[["Khám phá", 1]]}
+        age="all"
+        genre="all"
+        source="all"
+        status="all"
+        extraFilters={{ durations: [], duration: "all", onDuration: () => {}, authors: [], author: "all", onAuthor: () => {} }}
+        community
+        onAge={() => {}}
+        onGenre={() => {}}
+        onSource={() => {}}
+        onStatus={() => {}}
+        onClear={() => {}}
+      />,
+    );
+    expect(html).toContain("Độ tuổi");
+    expect(html).toContain('aria-label="Thu gọn bộ lọc"');
+    expect(html).not.toContain("Nguồn truyện");
+    expect(html).not.toContain("Trạng thái");
+  });
+
+  it("LibraryDetailDialog hides actions the parent has no permission for", () => {
+    const html = renderToStaticMarkup(
+      <StaffAccessProvider value={toAccessMap([])}>
+        <LibraryDetailDialog story={makeStory({ creator: true })} go={() => {}} onKid={() => {}} onClose={() => {}} onPreview={() => {}}
+          onAddRoadmap={() => {}} onReport={() => {}} onRate={() => {}} rating={{ averageRating: 4.5, ratingCount: 12 }} />
+      </StaffAccessProvider>,
+    );
+    for (const label of ["Thêm vào lộ trình", "Cho bé đọc ngay", "Báo cáo nội dung", "Xem đánh giá của phụ huynh"]) expect(html).not.toContain(label);
+    expect(html).toContain("Xem trước như bé thấy");
   });
 
   it("LibraryDetailDialog switches actions cleanly for family drafts and moderation stories", () => {
@@ -124,10 +197,14 @@ describe("Library UI components", () => {
         onPreview={() => {}}
         onAddRoadmap={() => {}}
         onReport={() => {}}
+        onRate={() => {}}
+        rating={{ averageRating: 4.5, ratingCount: 12 }}
       />,
     );
     expect(familyHtml).toContain("Mở trong trang Thủ công");
     expect(familyHtml).not.toContain("Thêm vào lộ trình");
+    // Đánh giá chỉ dành cho truyện Creator trong thư viện cộng đồng.
+    expect(familyHtml).not.toContain("đánh giá");
 
     const modHtml = renderToStaticMarkup(
       <LibraryDetailDialog
@@ -137,6 +214,8 @@ describe("Library UI components", () => {
         onPreview={() => {}}
         onAddRoadmap={() => {}}
         onReport={() => {}}
+        onRate={() => {}}
+        rating={{ averageRating: 4.5, ratingCount: 12 }}
       />,
     );
     expect(modHtml).toContain("Đang chờ kiểm duyệt");
@@ -175,6 +254,8 @@ describe("Library UI components", () => {
         onPreview={() => {}}
         onAddRoadmap={() => {}}
         onReport={() => {}}
+        onRate={() => {}}
+        rating={{ averageRating: 4.5, ratingCount: 12 }}
       />,
     );
     expect(html).toContain("Tác giả cộng đồng");
@@ -245,6 +326,7 @@ describe("Library UI components", () => {
   it("LibraryStoriesView and LibraryRoadmapsView render inline retryable error panels and cross-tab search hint", () => {
     const storyErrHtml = renderToStaticMarkup(
       <LibraryStoriesView
+        authors={{ authors: [], author: "all", onAuthor: () => {} }}
         stories={[]}
         sorted={[]}
         results={[]}
@@ -255,7 +337,6 @@ describe("Library UI components", () => {
         genreF="all"
         topicEntries={[]}
         activeChips={[]}
-        viewedCards={[]}
         favoritedCards={[]}
         activeSpotlight="views"
         spotlightCards={[]}
@@ -266,7 +347,6 @@ describe("Library UI components", () => {
         go={() => {}}
         onGenreChange={() => {}}
         onSortChange={() => {}}
-        onSpotlightChange={() => {}}
         onClearFilters={() => {}}
         onRetry={() => {}}
         onPickStory={() => {}}
@@ -279,6 +359,7 @@ describe("Library UI components", () => {
 
     const noStoryWithRoadmapsHtml = renderToStaticMarkup(
       <LibraryStoriesView
+        authors={{ authors: [], author: "all", onAuthor: () => {} }}
         stories={[makeStory()]}
         sorted={[makeStory()]}
         results={[]}
@@ -289,7 +370,6 @@ describe("Library UI components", () => {
         genreF="all"
         topicEntries={[]}
         activeChips={[]}
-        viewedCards={[]}
         favoritedCards={[]}
         activeSpotlight="views"
         spotlightCards={[]}
@@ -300,7 +380,6 @@ describe("Library UI components", () => {
         go={() => {}}
         onGenreChange={() => {}}
         onSortChange={() => {}}
-        onSpotlightChange={() => {}}
         onClearFilters={() => {}}
         onRetry={() => {}}
         onPickStory={() => {}}
@@ -336,6 +415,7 @@ describe("Library UI components", () => {
 
     const viewsSpotlightHtml = renderToStaticMarkup(
       <LibraryStoriesView
+        authors={{ authors: [], author: "all", onAuthor: () => {} }}
         stories={[viewedPositive, viewedZero, viewedUndefined]}
         sorted={[viewedPositive, viewedZero, viewedUndefined]}
         results={[viewedPositive, viewedZero, viewedUndefined]}
@@ -346,7 +426,6 @@ describe("Library UI components", () => {
         genreF="all"
         topicEntries={[]}
         activeChips={[]}
-        viewedCards={[viewedPositive, viewedZero, viewedUndefined]}
         favoritedCards={[viewedZero]}
         activeSpotlight="views"
         spotlightCards={[viewedPositive, viewedZero, viewedUndefined]}
@@ -357,14 +436,14 @@ describe("Library UI components", () => {
         go={() => {}}
         onGenreChange={() => {}}
         onSortChange={() => {}}
-        onSpotlightChange={() => {}}
         onClearFilters={() => {}}
         onRetry={() => {}}
         onPickStory={() => {}}
         onJumpToRoadmaps={() => {}}
       />,
     );
-    expect(viewsSpotlightHtml).toContain("Nổi bật trong cộng đồng");
+    expect(viewsSpotlightHtml).toContain("Đọc nhiều nhất");
+    expect(viewsSpotlightHtml).not.toContain("lib-spot-tabs");
     expect(viewsSpotlightHtml).toContain("#1");
     expect(viewsSpotlightHtml).not.toContain("#2");
     expect(viewsSpotlightHtml).not.toContain("#3");
@@ -372,11 +451,8 @@ describe("Library UI components", () => {
 
     const favZeroHtml = renderToStaticMarkup(
       <LibrarySpotlightSection
-        viewedCards={[]}
-        favoritedCards={[viewedPositive]}
         activeSpotlight="favorites"
         spotlightCards={[viewedPositive]}
-        onSpotlightChange={() => {}}
         onSortChange={() => {}}
         onPickStory={() => {}}
       />,
@@ -387,11 +463,8 @@ describe("Library UI components", () => {
 
     const favPositiveHtml = renderToStaticMarkup(
       <LibrarySpotlightSection
-        viewedCards={[]}
-        favoritedCards={[viewedZero]}
         activeSpotlight="favorites"
         spotlightCards={[viewedZero]}
-        onSpotlightChange={() => {}}
         onSortChange={() => {}}
         onPickStory={() => {}}
       />,
@@ -401,11 +474,8 @@ describe("Library UI components", () => {
 
     const emptySpotlightHtml = renderToStaticMarkup(
       <LibrarySpotlightSection
-        viewedCards={[]}
-        favoritedCards={[]}
         activeSpotlight="views"
         spotlightCards={[]}
-        onSpotlightChange={() => {}}
         onSortChange={() => {}}
         onPickStory={() => {}}
       />,
@@ -430,7 +500,6 @@ describe("Library UI components", () => {
         templatesCount={3}
         query="sen"
         roadmapQuery=""
-        sort="recent"
         filterOpen={false}
         stories={[makeStory()]}
         ageOptions={[{ key: "6-8 tuổi", label: "6–8 tuổi", count: 1 }]}
@@ -443,7 +512,6 @@ describe("Library UI components", () => {
         onTabChange={() => {}}
         onQueryChange={() => {}}
         onRoadmapQueryChange={() => {}}
-        onSortChange={() => {}}
         onToggleFilter={() => {}}
         onCloseFilter={() => {}}
         onStatusChange={() => {}}
@@ -454,7 +522,7 @@ describe("Library UI components", () => {
     );
     expect(storiesHeaderHtml).toContain("Đang chọn truyện cho Bé Bông");
     expect(storiesHeaderHtml).toContain("Chặng mới");
-    expect(storiesHeaderHtml).toContain("Sắp xếp");
+    expect(storiesHeaderHtml).not.toContain("Sắp xếp");
     expect(storiesHeaderHtml).toContain("Bộ lọc");
     expect(storiesHeaderHtml).toContain("Xoá từ khóa tìm kiếm");
 
@@ -468,7 +536,6 @@ describe("Library UI components", () => {
         templatesCount={3}
         query=""
         roadmapQuery=""
-        sort="recent"
         filterOpen={false}
         stories={[]}
         ageOptions={[]}
@@ -481,7 +548,6 @@ describe("Library UI components", () => {
         onTabChange={() => {}}
         onQueryChange={() => {}}
         onRoadmapQueryChange={() => {}}
-        onSortChange={() => {}}
         onToggleFilter={() => {}}
         onCloseFilter={() => {}}
         onStatusChange={() => {}}
@@ -585,17 +651,21 @@ describe("Library UI components", () => {
     const iDuration = sidebarHtml.indexOf("Thời lượng");
     const iSource = sidebarHtml.indexOf("Nguồn truyện");
     const iStatus = sidebarHtml.indexOf("Trạng thái");
-    const iAuthors = sidebarHtml.indexOf("Tác giả nổi bật");
+    // Tác giả nổi bật không còn trong thanh lọc (đã chuyển ra cạnh Truyện nổi bật).
+    expect(sidebarHtml).not.toContain("Tác giả nổi bật");
+    // Mặc định chỉ hiện dải lọc; khung Bộ lọc có sẵn trong DOM nhưng ẩn tới khi mở.
+    expect(sidebarHtml).toContain('id="lib-filter-drawer"');
+    expect(sidebarHtml).toMatch(/id="lib-filter-drawer"[^>]*hidden/);
     expect(iAge).toBeGreaterThan(-1);
     expect(iAge).toBeLessThan(iTopic);
     expect(iTopic).toBeLessThan(iDuration);
     expect(iDuration).toBeLessThan(iSource);
     expect(iSource).toBeLessThan(iStatus);
-    expect(iStatus).toBeLessThan(iAuthors);
     expect(sidebarHtml).toContain("Xem thêm");
 
     const viewHtml = renderToStaticMarkup(
       <LibraryStoriesView
+        authors={{ authors: [{ key: "9", label: "Lê Thị Mai", count: 2 }], author: "all", onAuthor: () => {} }}
         stories={[story, story2]}
         sorted={[story, story2]}
         results={[story, story2]}
@@ -608,7 +678,6 @@ describe("Library UI components", () => {
         ageOptions={[{ key: "6-8 tuổi", label: "6–8 tuổi", count: 1 }]}
         topicEntries={[["Khám phá", 1], ["Tình bạn", 1]]}
         activeChips={[]}
-        viewedCards={[story]}
         favoritedCards={[story]}
         activeSpotlight="favorites"
         spotlightCards={[story]}
@@ -620,7 +689,6 @@ describe("Library UI components", () => {
         onGenreChange={() => {}}
         onAgeChange={() => {}}
         onSortChange={() => {}}
-        onSpotlightChange={() => {}}
         onClearFilters={() => {}}
         onRetry={() => {}}
         onPickStory={() => {}}
@@ -640,11 +708,22 @@ describe("Library UI components", () => {
     expect(viewHtml).toContain("Mới nhất");
     expect(viewHtml).toContain("Phổ biến");
     expect(viewHtml).toContain("6–8 tuổi");
+    // Banner truyện nổi bật rộng hết bề ngang, ngay dưới là hàng Tác giả nổi bật, rồi tới kệ nổi bật.
+    expect(viewHtml).toMatch(/lib-hero[\s\S]*Tác giả nổi bật[\s\S]*lib-spotlight-heading/);
+    expect(viewHtml).not.toContain("Truyện đã lưu");
 
-    const featuredHtml = renderToStaticMarkup(
-      <LibraryFeaturedStory story={story} onPickStory={() => {}} />,
+    const heroHtml = renderToStaticMarkup(
+      <LibraryHero stories={[story]} onPickStory={() => {}} />,
     );
-    expect(featuredHtml).toContain("7 phút");
+    expect(heroHtml).toContain("7 phút");
+  });
+
+  it("picks up to 5 hero stories with covers: ranked list first, then most favorited / viewed", () => {
+    const make = (id: number, fav: number, views: number, cover = true) =>
+      makeStory({ id, favoriteCount: fav, viewCount: views, raw: cover ? {} : { coverImageUrl: null } });
+    const ranked = [make(1, 0, 0), make(2, 9, 9, false)];
+    const rest = [make(1, 0, 0), make(3, 1, 5), make(4, 5, 0), make(5, 1, 9), make(6, 0, 0), make(7, 0, 1), make(8, 0, 0, false)];
+    expect(heroStories(ranked, rest).map((s) => s.id)).toEqual([1, 4, 5, 3, 7]);
   });
 
   it("removes the outer .pane border on LibraryWorkspace and shows Được yêu thích tuần này above Mới thêm gần đây without fake ranks", () => {
@@ -658,6 +737,7 @@ describe("Library UI components", () => {
     const zeroStatB = makeStory({ id: 32, title: "Truyện mẫu B", creator: true, viewCount: 0, favoriteCount: 0 });
     const zeroStatsViewHtml = renderToStaticMarkup(
       <LibraryStoriesView
+        authors={{ authors: [], author: "all", onAuthor: () => {} }}
         stories={[zeroStatA, zeroStatB]}
         sorted={[zeroStatA, zeroStatB]}
         results={[zeroStatA, zeroStatB]}
@@ -668,7 +748,6 @@ describe("Library UI components", () => {
         genreF="all"
         topicEntries={[["Khám phá", 2]]}
         activeChips={[]}
-        viewedCards={[]}
         favoritedCards={[]}
         activeSpotlight="views"
         spotlightCards={[]}
@@ -679,7 +758,6 @@ describe("Library UI components", () => {
         go={() => {}}
         onGenreChange={() => {}}
         onSortChange={() => {}}
-        onSpotlightChange={() => {}}
         onClearFilters={() => {}}
         onRetry={() => {}}
         onPickStory={() => {}}

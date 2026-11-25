@@ -442,6 +442,7 @@ export interface ChildProfileDto {
   'nickname': string;
   'avatarId': string;
   'ageBand': string;
+  'age': number | null;
   'language': string;
   'status': string;
   'createdAt': string;
@@ -593,6 +594,8 @@ export interface CreateChildProfileRequestDto {
   'nickname': string;
   'ageBand': AgeBandName;
   'language': string;
+  'age': number | null;
+  'avatarId': string | null;
 }
 
 export interface CreateContentCategoryRequestDto {
@@ -1799,6 +1802,7 @@ export interface SafetyPolicyDto {
   'id': number;
   'childProfileId': number;
   'maxStoryLength': number;
+  'storyLengthTarget'?: number | null;
   'requiredApprovalMode': string;
   'parentalGateEnabled': boolean;
   'consentRecorded': boolean;
@@ -1818,6 +1822,11 @@ export interface SafetyPolicyDto {
   'voiceConsentRequired': boolean;
   'consentOutdated': boolean;
   'effectiveVoiceAnswersEnabled': boolean;
+  'quizEnabled'?: boolean;
+  'notebookEnabled'?: boolean;
+  'libraryBrowseEnabled'?: boolean;
+  'reflectionEnabled'?: boolean;
+  'rewardsEnabled'?: boolean;
   'categories': (SafetyPolicyCategoryDto)[];
 }
 
@@ -1883,6 +1892,7 @@ export interface SetSafetyPolicyCategoryRequestDto {
 
 export interface SetSafetyPolicyRequestDto {
   'maxStoryLength': number;
+  'storyLengthTarget'?: number | null;
   'requiredApprovalMode': ApprovalModeName;
   'parentalGateEnabled': boolean;
   'consentRecorded': boolean;
@@ -1896,6 +1906,11 @@ export interface SetSafetyPolicyRequestDto {
   'childCreationMode': ChildCreationModeName;
   'voiceAnswersEnabled': boolean;
   'voiceConsentAccepted': boolean;
+  'quizEnabled'?: boolean | null;
+  'notebookEnabled'?: boolean | null;
+  'libraryBrowseEnabled'?: boolean | null;
+  'reflectionEnabled'?: boolean | null;
+  'rewardsEnabled'?: boolean | null;
   'applyAgePreset': boolean | null;
   'categories': (SetSafetyPolicyCategoryRequestDto)[];
 }
@@ -2201,6 +2216,7 @@ export interface UpdateChildProfileRequestDto {
   'ageBand': AgeBandName;
   'language': string;
   'avatarId': string | null;
+  'age': number | null;
 }
 
 export interface UpdateContentCategoryRequestDto {
@@ -2512,6 +2528,8 @@ export interface PublishedContentItemDto {
   'publishedAt': string | null;
   'storyCount': number | null;
   'needsUpdate': boolean;
+  'coverImageUrl': string | null;
+  'authorName': string | null;
 }
 
 export interface PublishedContentQueryDto {

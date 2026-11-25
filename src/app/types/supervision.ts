@@ -1,3 +1,4 @@
+import type { ChildHabit, ReadingTimeStatus } from '@/app/types/readingSchedule';
 /** Kiểu dữ liệu Luồng 1: quyền thao tác với hồ sơ bé, truy cập của bé, phiên đăng nhập. */
 
 /** Tên các thao tác với hồ sơ bé; hiện chỉ chủ hồ sơ làm được (xem useMyRole). */
@@ -43,6 +44,12 @@ export interface ChildSessionProfile {
   childProfileId: number;
   nickname: string;
   ageBand: string;
+  /** Mã chức năng bố mẹ đang tắt; thiếu (backend cũ) = không tắt gì. */
+  disabledFeatures?: string[];
+  /** Trạng thái giờ đọc / nghỉ mắt / giới hạn màn hình; thiếu (backend cũ) = không giới hạn. */
+  readingTime?: ReadingTimeStatus | null;
+  /** Thói quen đọc: tiến độ, lịch nhắc, giờ yên lặng. */
+  habit?: ChildHabit | null;
 }
 
 export interface LoginSession {

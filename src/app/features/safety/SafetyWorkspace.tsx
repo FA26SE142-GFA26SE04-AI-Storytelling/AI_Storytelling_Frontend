@@ -4,7 +4,7 @@ import { confirmDialog } from "@/app/lib/confirm";
 import "@/app/styles/features/safety/safety.css";
 import "@/app/styles/features/children/children.css";
 import { useCallback, useEffect, useState, useRef } from "react";
-import { Clock, FileCheck, Inbox, Target, ShieldCheck, Sparkles, Mic, Trash2 } from "lucide-react";
+import { Clock, FileCheck, Inbox, Target, ShieldCheck, Sparkles, Mic, Trash2, TriangleAlert } from "lucide-react";
 import Dialog from "@/app/components/Dialog";
 import IconButton from "@/app/components/IconButton";
 import { showToast } from "@/app/lib/toast";
@@ -13,10 +13,11 @@ import type { ApprovalMode, ContentCategory, PolicyRule, SafetyPolicy } from "@/
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import type { ChildProfile } from "@/app/types/childProfile";
 import { useRiseIn } from "@/app/lib/motion";
-import { fmtDate, presetBlocked } from "@/app/lib/guardian";
+import { LEVEL_MODE_STORY_CAP, MAX_STORY_LENGTH_RANGE, defaultReadingLevel, effectiveStoryLength, fmtDate, presetBlocked, storyLengthAdvice, storyLengthFor, storyLengthUpperBound } from "@/app/lib/guardian";
 import { CategoryRules, ConsentBlock, keptPolicyFields, normalizeRule, rulesToRequest } from "@/app/features/children/SafetyBlocks";
 import { useMyRole } from "@/app/features/children/useMyRole";
 import { profileLifecycleService } from '@/app/services/profileLifecycleService';
+import { CHILD_FEATURE_TOGGLES, readChildFeatures, type ChildFeatureFlags } from "./childFeatures";
 
 const MODES: { id: ApprovalMode; b: string; s: string }[] = [
   { id: "AlwaysManual", b: "Luôn cần duyệt", s: "Mọi truyện AI tạo đều vào hàng chờ. Khuyên dùng cho trẻ nhỏ." },
@@ -26,8 +27,8 @@ const NAV = [
   { id: "s-mode", label: "Chế độ duyệt", icon: Inbox },
   { id: "s-topic", label: "Chủ đề", icon: ShieldCheck },
   { id: "s-limit", label: "Giới hạn và quyền", icon: Clock },
-  { id: "s-feature", label: "Tính năng cho bé", icon: Sparkles },
   { id: "s-hold", label: "Mức đọc hiểu", icon: Target },
+  { id: "s-feature", label: "Tính năng cho bé", icon: Sparkles },
   { id: "s-consent", label: "Đồng ý của phụ huynh", icon: FileCheck },
 ];
 /** Điều khoản (e): Backend bắt Owner đồng ý khi bật giọng nói lần đầu. */
@@ -67,9 +68,13 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
   const [mode, setMode] = useState<ApprovalMode>("AlwaysManual");
   const [rules, setRules] = useState<Record<number, PolicyRule | undefined>>({});
   const [len, setLen] = useState(2000);
+  // Độ dài truyện: false = theo mức đọc (số tự đổi), true = phụ huynh tự chỉnh `len`.
+  const [lenCustom, setLenCustom] = useState(false);
+  const [level, setLevel] = useState(1);
   const [gate, setGate] = useState(true);
   const [wishes, setWishes] = useState(true);
   const [interactive, setInteractive] = useState(true);
+  const [features, setFeatures] = useState<ChildFeatureFlags>(() => readChildFeatures(null));
   const [consent, setConsent] = useState(false);
   const [threshold, setThreshold] = useState(70);
   const [safetyTh, setSafetyTh] = useState<number | null>(null);
@@ -90,15 +95,18 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
   const deny = () => { setDenied((n) => n + 1); setTimeout(() => setDenied(0), 3500); };
   const [saving, setSaving] = useState(false);
 
-  const apply = useCallback((pol: SafetyPolicy | null, active: ContentCategory[], ageBand: string) => {
+  const apply = useCallback((pol: SafetyPolicy | null, active: ContentCategory[], ageBand: string, lvl: number) => {
     baseline.current = null; lastTried.current = null;
     setPolicy(pol);
     if (pol) {
       setMode(pol.requiredApprovalMode === "AutoPublishOnThreshold" ? "AutoPublishOnThreshold" : "AlwaysManual");
-      setLen(pol.maxStoryLength);
+      const eff = effectiveStoryLength(ageBand, lvl, pol.storyLengthTarget, pol.maxStoryLength);
+      setLenCustom(eff.custom);
+      setLen(eff.value);
       setGate(pol.parentalGateEnabled);
       setWishes(pol.storyWishesEnabled ?? true);
       setInteractive(pol.allowInteractiveStories ?? true);
+      setFeatures(readChildFeatures(pol));
       // Điều khoản đổi phiên bản thì Owner phải đồng ý lại.
       setConsent(pol.consentRecorded && !pol.consentOutdated);
       setThreshold(Number(pol.comprehensionThresholdPercent ?? 70));
@@ -110,10 +118,12 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
     } else {
       // Chưa có (hoặc vừa xoá) cài đặt an toàn: hiện các giá trị mặc định.
       setMode("AlwaysManual");
-      setLen(2000);
+      setLenCustom(false);
+      setLen(storyLengthFor(ageBand, lvl).target);
       setGate(true);
       setWishes(true);
       setInteractive(true);
+      setFeatures(readChildFeatures(null));
       setThreshold(70);
       setSafetyTh(null);
       setReadTh(null);
@@ -132,17 +142,23 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
     let alive = true;
     setLoading(true);
     setNote(null);
-    void Promise.all([childProfileService.getContentCategories(), childProfileService.getSafetyPolicy(childId)]).then(([c, p]) => {
+    void Promise.all([
+      childProfileService.getContentCategories(),
+      childProfileService.getSafetyPolicy(childId),
+      childProfileService.getLearningProfile(childId),
+    ]).then(([c, p, lp]) => {
       if (!alive) return;
       const active = (c.data ?? []).filter((x) => x.isActive);
+      const lvl = lp.success && lp.data ? lp.data.readingLevel : defaultReadingLevel(childAge ?? "");
       setCats(active);
-      apply(p.success ? p.data : null, active, childAge ?? "");
+      setLevel(lvl);
+      apply(p.success ? p.data : null, active, childAge ?? "", lvl);
       setLoading(false);
     });
     return () => { alive = false; };
   }, [childId, childAge, apply]);
 
-  const settingsKey = JSON.stringify([mode, len, gate, wishes, interactive, threshold, safetyTh, readTh, voice, rules, consent]);
+  const settingsKey = JSON.stringify([mode, len, lenCustom, gate, wishes, interactive, features, threshold, safetyTh, readTh, voice, rules, consent]);
   useEffect(() => {
     if (loading || !canEdit || saving) return;
     if (baseline.current === null) { baseline.current = settingsKey; return; }
@@ -173,7 +189,10 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
     const savePolicy = policy ? childProfileService.setSafetyPolicy : profileLifecycleService.createSafety;
     const res = await savePolicy(child.id, {
       ...keptPolicyFields(policy),
-      maxStoryLength: len,
+      // Trần tự suy ra: theo mức đọc thì phủ độ dài mặc định lớn nhất (để sau này mức đọc tăng vẫn theo mức đọc),
+      // tự chỉnh thì 110% độ dài đã chọn; không bao giờ hạ trần đang lưu (backend cũng nâng như vậy).
+      maxStoryLength: Math.max(policy?.maxStoryLength ?? 0, lenCustom ? storyLengthUpperBound(len) : LEVEL_MODE_STORY_CAP),
+      storyLengthTarget: lenCustom ? len : null,
       requiredApprovalMode: mode,
       parentalGateEnabled: gate,
       consentRecorded: consent,
@@ -186,6 +205,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
       voiceConsentAccepted: voice && voiceAccepted,
       storyWishesEnabled: wishes,
       allowInteractiveStories: interactive,
+      ...features,
       // Danh sách chặn mặc định đã được điền sẵn ở giao diện, không để backend thêm lần nữa.
       applyAgePreset: false,
       categories: rulesToRequest(cats, rules),
@@ -193,7 +213,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
     setSaving(false);
     setNote({ ok: res.success, text: res.success ? "Đã lưu cài đặt an toàn." : res.message });
     if (res.success) {
-      if (res.data) apply(res.data, cats, child.ageBand);
+      if (res.data) apply(res.data, cats, child.ageBand, level);
       void reloadChildren();
     }
   };
@@ -201,6 +221,11 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
   useEffect(() => { saveRef.current = save; });
 
   if (!child) return <p className="sub">Chưa có hồ sơ bé.</p>;
+
+  const levelLen = storyLengthFor(child.ageBand, level);
+  const shownLen = lenCustom ? len : levelLen.target;
+  // Chỉ cảnh báo khi phụ huynh tự chỉnh dài hơn mức phù hợp; theo mức đọc thì không cần.
+  const lenAdvice = lenCustom ? storyLengthAdvice(child.ageBand, level, len) : null;
 
   const reapplyPreset = async () => {
     setSaving(true);
@@ -212,7 +237,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
     const res = await childProfileService.applyAgePreset(child.id);
     setSaving(false);
     setNote({ ok: res.success, text: res.success ? "Đã áp dụng danh sách chặn mặc định cho nhóm tuổi mới." : res.message });
-    if (res.success && res.data) apply(res.data, cats, child.ageBand);
+    if (res.success && res.data) apply(res.data, cats, child.ageBand, level);
   };
 
   // Backend không cho xoá khi hồ sơ bé đang hoạt động vì bé đang dùng các quy tắc này.
@@ -231,7 +256,7 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
         : "Chưa xoá được cài đặt an toàn. Vui lòng thử lại.", "err");
       return;
     }
-    apply(null, cats, child.ageBand);
+    apply(null, cats, child.ageBand, level);
     showToast(`Đã xoá cài đặt an toàn của ${child.nickname}.`, "ok");
     void reloadChildren();
   };
@@ -288,25 +313,85 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
             <section id="s-limit">
               <h2 className="display">Giới hạn và quyền</h2>
               <div className="field" style={{ margin: "10px 0 2px" }}>
-                <span className="lbl row" style={{ justifyContent: "space-between" }}>Độ dài tối đa của truyện <b style={{ color: "var(--text)" }}>{len.toLocaleString("vi-VN")} tiếng</b></span>
-                <input type="range" className="range" disabled={!canEdit} min={200} max={5000} step={100} value={len} onChange={(e) => setLen(+e.target.value)} aria-label="Độ dài tối đa" />
+                <span className="lbl row" style={{ justifyContent: "space-between" }}>
+                  <span id="story-len-label">Độ dài truyện</span>
+                  <b className="th-val-pill">khoảng {shownLen.toLocaleString("vi-VN")} từ</b>
+                </span>
+                <div className="seg" role="group" aria-labelledby="story-len-label">
+                  <button type="button" className={!lenCustom ? "on" : ""} aria-pressed={!lenCustom} disabled={!canEdit} onClick={() => setLenCustom(false)}>Theo mức đọc</button>
+                  <button type="button" className={lenCustom ? "on" : ""} aria-pressed={lenCustom} disabled={!canEdit} onClick={() => { setLen(shownLen); setLenCustom(true); }}>Tự chỉnh</button>
+                </div>
+                <input
+                  type="range"
+                  className="range th-range"
+                  disabled={!canEdit || !lenCustom}
+                  min={MAX_STORY_LENGTH_RANGE.min}
+                  max={MAX_STORY_LENGTH_RANGE.max}
+                  step={MAX_STORY_LENGTH_RANGE.step}
+                  value={shownLen}
+                  style={{ "--pct": `${((shownLen - MAX_STORY_LENGTH_RANGE.min) / (MAX_STORY_LENGTH_RANGE.max - MAX_STORY_LENGTH_RANGE.min)) * 100}%` } as React.CSSProperties}
+                  onChange={(e) => setLen(+e.target.value)}
+                  aria-label="Độ dài truyện"
+                />
+                <span className="th-range-bounds" aria-hidden>
+                  <small>{MAX_STORY_LENGTH_RANGE.min.toLocaleString("vi-VN")} từ</small>
+                  <small>{MAX_STORY_LENGTH_RANGE.max.toLocaleString("vi-VN")} từ</small>
+                </span>
+                <small className="sub" aria-live="polite">
+                  {lenCustom
+                    ? `Bạn đang tự chỉnh: AI viết khoảng ${Math.ceil(len * 0.9).toLocaleString("vi-VN")}–${Math.floor(len * 1.1).toLocaleString("vi-VN")} từ.`
+                    : `Theo mức đọc ${level}, tự đổi khi bạn đổi mức đọc ở tab Học tập. AI viết khoảng ${levelLen.min.toLocaleString("vi-VN")}–${levelLen.max.toLocaleString("vi-VN")} từ.`}
+                </small>
+                {lenCustom && lenAdvice && (
+                  <p className="notice warn" data-inline-notice role="status">
+                    <TriangleAlert className="ic" aria-hidden />
+                    <span>{lenAdvice.text}</span>
+                  </p>
+                )}
               </div>
               <Toggle strong on={gate} disabled={!canEdit} onChange={setGate} label="Hỏi mật khẩu khi bé thoát chế độ của bé" hint="Cổng xác nhận người lớn: bé muốn thoát ra phải nhập mật khẩu của bạn" />
             </section>
 
-            <section id="s-feature">
-              <h2 className="display">Tính năng cho bé</h2>
-              <Toggle on={wishes} disabled={!canEdit} onChange={setWishes} label="Bé ước một câu chuyện" hint="Bé chọn thẻ hình để gửi điều ước, bạn xem và quyết định" />
-              <Toggle on={interactive} disabled={!canEdit} onChange={setInteractive} label="Tương tác khi nghe truyện" hint="Trong lúc nghe, bé đoán tranh, điền chữ, sắp xếp sự kiện… để hiểu truyện hơn" />
-              <Toggle on={voice} disabled={!canEdit} onChange={(v) => { if (v && isOwner && !policy?.voiceConsentAt && !voiceAccepted) { setVoiceTick(false); setAskVoice(true); } else setVoice(v); }}
-                label="Cho bé trả lời bằng giọng nói" hint="Giọng bé đọc to, kể lại, gửi lời được lưu để bạn nghe lại" />
-            </section>
-
             <section id="s-hold">
               <h2 className="display">Mức đọc hiểu mục tiêu</h2>
-              <div className="field">
-                <span className="lbl row" style={{ justifyContent: "space-between" }}>Tỉ lệ bé cần hiểu đúng <b style={{ color: "var(--text)" }}>{threshold}%</b></span>
-                <input type="range" className="range" disabled={!canEdit} min={50} max={90} step={5} value={threshold} onChange={(e) => setThreshold(+e.target.value)} aria-label="Mức đọc hiểu mục tiêu" title="AI dựa vào mức này để chọn độ khó cho câu hỏi" />
+              <p className="sub">AI dựa vào mức này để chọn độ khó cho câu hỏi đọc hiểu sau mỗi truyện.</p>
+              <div className="field" style={{ marginTop: 12 }}>
+                <span className="lbl row" style={{ justifyContent: "space-between" }}>
+                  <span>Tỉ lệ bé cần hiểu đúng</span>
+                  <b className="th-val-pill">{threshold}%</b>
+                </span>
+                <input
+                  type="range"
+                  className="range th-range"
+                  disabled={!canEdit}
+                  min={50}
+                  max={90}
+                  step={5}
+                  value={threshold}
+                  style={{ "--pct": `${((threshold - 50) / (90 - 50)) * 100}%` } as React.CSSProperties}
+                  onChange={(e) => setThreshold(+e.target.value)}
+                  aria-label="Mức đọc hiểu mục tiêu"
+                  title="AI dựa vào mức này để chọn độ khó cho câu hỏi"
+                />
+                <span className="th-range-bounds" aria-hidden>
+                  <small>50%</small>
+                  <small>90%</small>
+                </span>
+              </div>
+            </section>
+
+            <section id="s-feature">
+              <h2 className="display">Tính năng cho bé</h2>
+              <div className="safety-feature-grid">
+                <Toggle on={wishes} disabled={!canEdit} onChange={setWishes} label="Bé ước một câu chuyện" hint="Bé chọn thẻ hình để gửi điều ước, bạn xem và quyết định" />
+                <Toggle on={interactive} disabled={!canEdit} onChange={setInteractive} label="Tương tác khi nghe truyện" hint="Trong lúc nghe, bé đoán tranh, điền chữ, sắp xếp sự kiện… để hiểu truyện hơn" />
+                <Toggle on={voice} disabled={!canEdit} onChange={(v) => { if (v && isOwner && !policy?.voiceConsentAt && !voiceAccepted) { setVoiceTick(false); setAskVoice(true); } else setVoice(v); }}
+                  label="Cho bé trả lời bằng giọng nói" hint="Giọng bé đọc to, kể lại, gửi lời được lưu để bạn nghe lại" />
+                {CHILD_FEATURE_TOGGLES.map((t) => (
+                  <Toggle key={t.field} on={features[t.field]} disabled={!canEdit} label={t.label}
+                    hint={!features[t.field] && t.warning ? t.warning : t.hint}
+                    onChange={(v) => setFeatures((f) => ({ ...f, [t.field]: v }))} />
+                ))}
               </div>
             </section>
 

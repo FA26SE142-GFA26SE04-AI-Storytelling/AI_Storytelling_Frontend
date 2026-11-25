@@ -7,7 +7,7 @@ import ActivitySection from '@/app/features/account/ActivitySection';
 import { Archive, Check, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ChildProfile } from "@/app/types/childProfile";
-import { AGE_BANDS, AVATARS, avatarOf } from "@/app/lib/guardian";
+import { AGE_BANDS, AVATARS, CHILD_AGES, ageBandOfAge, avatarOf } from "@/app/lib/guardian";
 
 type Checks = { learning: boolean; policy: boolean; consent: boolean; outdated: boolean };
 type Note = { ok: boolean; text: string } | null;
@@ -21,13 +21,15 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
   onTab: (tab: "learning" | "safety") => void;
 }) {
   const [nickname, setNickname] = useState(child.nickname);
-  const [ageBand, setAgeBand] = useState(child.ageBand);
+  // Hồ sơ tạo trước khi có tuổi cụ thể: chưa có tuổi, chọn tuổi là cập nhật luôn nhóm tuổi.
+  const [age, setAge] = useState<number | null>(child.age ?? null);
+  const ageBand = age !== null ? ageBandOfAge(age) : child.ageBand;
   const [avatar, setAvatar] = useState(avatarOf(child.avatarId).id);
   const [checks, setChecks] = useState<Checks | null>(null);
   const [busy, setBusy] = useState(false);
   const [note, setNote] = useState<Note>(null);
   const [hint, setHint] = useState<string | null>(null);
-  const dirty = nickname.trim() !== child.nickname || ageBand !== child.ageBand || avatar !== avatarOf(child.avatarId).id;
+  const dirty = nickname.trim() !== child.nickname || age !== (child.age ?? null) || avatar !== avatarOf(child.avatarId).id;
 
   useEffect(() => {
     let alive = true;
@@ -51,7 +53,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
     setBusy(true);
     setNote(null);
     setHint(null);
-    const r = await childProfileService.updateChildProfile(child.id, { nickname: nickname.trim(), ageBand, avatarId: avatar });
+    const r = await childProfileService.updateChildProfile(child.id, { nickname: nickname.trim(), ageBand, age, avatarId: avatar });
     setBusy(false);
     setNote({ ok: r.success, text: r.success ? "Đã lưu thông tin bé." : r.message || "Không lưu được." });
     if (!r.success) return;
@@ -88,7 +90,7 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
 
   const ready = checks && checks.learning && checks.policy && checks.consent;
   const rows = checks ? [
-    { ok: true, label: "Thông tin bé", hint: "Biệt danh và nhóm tuổi" },
+    { ok: true, label: "Thông tin bé", hint: "Biệt danh, tuổi và ảnh đại diện" },
     { ok: checks.learning, label: "Hồ sơ học tập", hint: "Mức đọc, chế độ đọc, chủ đề yêu thích", fix: () => onTab("learning") },
     { ok: checks.policy, label: "Cài đặt an toàn", hint: "Chủ đề được phép và bị chặn", fix: () => onTab("safety") },
     { ok: checks.consent, label: checks.outdated ? "Đồng ý lại điều khoản" : "Đồng ý của phụ huynh", hint: checks.outdated ? "Điều khoản đã đổi — cần đồng ý lại" : "Đọc và đồng ý điều khoản dữ liệu", fix: () => onTab("safety") },
@@ -99,10 +101,15 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
       <section className="sec" style={{ gap: 12, position: "relative" }}>
         <label className="field"><span className="lbl">Biệt danh</span>
           <input className="inp" maxLength={150} disabled={!isOwner} value={nickname} onChange={(e) => setNickname(e.target.value)} /></label>
-        <div className="field"><span className="lbl">Nhóm tuổi</span>
-          <div className="seg" style={{ maxWidth: 320 }}>
-            {AGE_BANDS.map((a) => <button key={a.id} type="button" disabled={!isOwner} className={ageBand === a.id ? "on" : ""} onClick={() => setAgeBand(a.id)}>{a.label}</button>)}
+        <div className="field"><span className="lbl">Tuổi</span>
+          <div className="seg" role="radiogroup" aria-label="Tuổi của bé" style={{ maxWidth: 420 }}>
+            {CHILD_AGES.map((n) => <button key={n} type="button" role="radio" aria-checked={age === n} disabled={!isOwner} className={age === n ? "on" : ""} onClick={() => setAge(n)}>{n} tuổi</button>)}
           </div>
+          <small className="sub">
+            {age === null
+              ? `Đang theo nhóm ${AGE_BANDS.find((a) => a.id === child.ageBand)?.label ?? child.ageBand}. Chọn tuổi cụ thể để cập nhật.`
+              : `Nhóm ${AGE_BANDS.find((a) => a.id === ageBand)?.label ?? ageBand}.`}
+          </small>
         </div>
         <div className="field"><span className="lbl">Ảnh đại diện</span>
           <div className="avatars" role="radiogroup" aria-label="Avatar của bé">

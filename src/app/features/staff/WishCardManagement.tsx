@@ -10,6 +10,7 @@ import type { ContentCategory } from '@/app/types/childProfile';
 import type { PagedResult } from '@/app/types/backendContracts';
 import type { ManagedWishCardGroup, WishCardDto } from '@/app/types/storyWish';
 import '@/app/styles/features/review/review-tools.css';
+import { AccessNotice, useAccess } from './staffAccess';
 import { Page } from './ui';
 import WishCardDialog, {
   EMPTY_WISH_FORM,
@@ -200,10 +201,13 @@ export default function WishCardManagement() {
     await loadList();
   };
 
+  const access = useAccess('wishcard.manage');
+  const locked = access.state === 'Blocked';
   const catName = (id: number | null) => (id == null ? '—' : cats.find(c => c.id === id)?.displayName ?? `#${id}`);
 
   return (
     <Page title="Thẻ ước" sub="Thẻ hình bé chọn khi ước một câu chuyện. Ẩn thẻ chỉ bỏ khỏi lựa chọn mới; điều ước và truyện đã gắn thẻ vẫn giữ nguyên.">
+      <AccessNotice access={access} />
       {note && <p className={`notice ${note.ok ? 'ok' : 'err'}`} role={note.ok ? 'status' : 'alert'} data-inline-notice>{note.text}</p>}
       {loadError && <p className="notice err" role="alert" data-inline-notice>{loadError}</p>}
 
@@ -223,7 +227,7 @@ export default function WishCardManagement() {
         <button type="button" className="btn btn-g" disabled={busy} onClick={() => void loadList()}>
           <RefreshCw className="ic" />Tải lại
         </button>
-        <IconButton icon={Plus} label="Thêm thẻ mới" className="btn btn-p" style={{ flex: 'none', minWidth: 44 }} disabled={busy} onClick={openCreate} />
+        <IconButton icon={Plus} label="Thêm thẻ mới" className="btn btn-p" style={{ flex: 'none', minWidth: 44 }} disabled={busy || locked} onClick={openCreate} />
       </div>
 
       <div className="st-card">
@@ -254,12 +258,12 @@ export default function WishCardManagement() {
                 <td data-label="Thao tác">
                   <div className="row">
                     <IconButton icon={FileText} label={`Xem thẻ ${c.label}`} disabled={busy} onClick={() => openExisting(c, 'view')} />
-                    <IconButton icon={Pencil} label={`Sửa thẻ ${c.label}`} disabled={busy} onClick={() => openExisting(c, 'edit')} />
+                    <IconButton icon={Pencil} label={`Sửa thẻ ${c.label}`} disabled={busy || locked} onClick={() => openExisting(c, 'edit')} />
                     <IconButton
                       icon={c.isActive ? EyeOff : Eye}
                       label={`${c.isActive ? 'Ẩn' : 'Hiện lại'} thẻ ${c.label}`}
                       className="btn btn-g"
-                      disabled={busy}
+                      disabled={busy || locked}
                       onClick={() => void toggleActive(c)}
                     />
                   </div>
@@ -285,6 +289,7 @@ export default function WishCardManagement() {
           groups={WISH_GROUPS}
           busy={busy}
           saveError={saveError}
+          canEdit={!locked}
           onFormChange={setForm}
           onSwitchToEdit={() => { setSaveError(''); setModal(prev => ({ ...prev, mode: 'edit' })); }}
           onReloadCard={() => { if (editing) fetchLatestCard(editing.id, null, true); }}

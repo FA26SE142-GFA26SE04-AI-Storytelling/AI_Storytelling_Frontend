@@ -1,9 +1,12 @@
 "use client";
 import { useTabActions } from "@/app/features/story-workflow/tabActions";
 
-import { useState } from "react";
-import { BookUp, Lightbulb, ShieldCheck, UserRoundPen } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Ban, BookUp, Check, ChevronDown, Heart, Lightbulb, ShieldBan, ShieldCheck, UserRoundPen, type LucideIcon } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
+import { childProfileService } from "@/app/services/childProfileService";
+import { groupCategories } from "@/app/lib/guardian";
+import type { ContentCategory } from "@/app/types/childProfile";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
 import type { UseAiGenerationCapacityResult } from "@/app/features/story-workflow/useAiGenerationCapacity";
 import AiCapacityBanner from "./AiCapacityBanner";
@@ -38,6 +41,83 @@ type Props = {
   onOpenStory: (storyId: number) => void;
   capacity?: UseAiGenerationCapacityResult;
 };
+
+/** Mã chủ đề (VD WAR_CONFLICT) khi chưa tải được danh mục: viết thường, bỏ gạch dưới. */
+const fallbackName = (code: string) => {
+  const words = code.toLowerCase().replace(/_/g, " ");
+  return words.charAt(0).toUpperCase() + words.slice(1);
+};
+
+/** Danh mục nội dung (đã cache, dùng chung với form hồ sơ học tập) để tra tên tiếng Việt và nhóm của mã chủ đề. */
+const NO_CATEGORIES: ContentCategory[] = [];
+
+function useCategories(): ContentCategory[] {
+  const [cats, setCats] = useState<ContentCategory[]>(NO_CATEGORIES);
+  useEffect(() => {
+    let alive = true;
+    void childProfileService.getContentCategoriesCached().then((list) => { if (alive) setCats(list); });
+    return () => { alive = false; };
+  }, []);
+  return cats;
+}
+
+/**
+ * Mã chủ đề chia theo nhóm danh mục (Thể loại, Giá trị và kỹ năng sống, Học tập, Cảnh báo an toàn); mỗi nhóm gập / mở được.
+ * Mã chưa có trong danh mục (hoặc chưa tải xong) nằm ở nhóm "Khác" với tên dự phòng.
+ */
+function TopicGroups({ codes, cats, icon: Icon, open }: { codes: string[]; cats: ContentCategory[]; icon: LucideIcon; open: boolean }) {
+  const items = codes.map((code) => {
+    const found = cats.find((c) => c.code.toUpperCase() === code.toUpperCase());
+    return { code, name: found?.displayName ?? fallbackName(code), group: found?.group };
+  });
+  return (
+    <div className="ctx-groups">
+      {groupCategories(items).map((g) => (
+        <details key={g.id} className="ctx-group" open={open}>
+          <summary>
+            <span className="grow">{g.label}</span>
+            <span className="ctx-count">{g.items.length}</span>
+            <ChevronDown className="ic ctx-chevron" aria-hidden />
+          </summary>
+          <div className="ctx-chips">
+            {g.items.map((i) => i.name).sort((a, b) => a.localeCompare(b, "vi")).map((n) => (
+              <span key={n} className="ctx-chip"><Icon className="ic" aria-hidden />{n}</span>
+            ))}
+          </div>
+        </details>
+      ))}
+    </div>
+  );
+}
+
+/** Sở thích, chủ đề được phép và bị chặn của bé, hiện ở cột phải khi tạo truyện. */
+function ChildTopicRules({ kidName, interests, allowed, blocked }: { kidName: string; interests: string[]; allowed: string[]; blocked: string[] }) {
+  const cats = useCategories();
+  return (
+    <>
+      {interests.length > 0 && (
+        <section className="ctx-block is-like" aria-label="Sở thích của bé">
+          <div className="ctx-head"><span className="ctx-ic" aria-hidden><Heart className="ic" /></span><b>Sở thích của bé</b></div>
+          <div className="ctx-chips">{interests.map((i) => <span key={i} className="ctx-chip"><Heart className="ic" aria-hidden />{i}</span>)}</div>
+        </section>
+      )}
+      {allowed.length > 0 && (
+        <section className="ctx-block is-allow" aria-label="Chỉ viết trong các chủ đề">
+          <div className="ctx-head"><span className="ctx-ic" aria-hidden><Check className="ic" /></span><b>Chỉ viết trong các chủ đề</b><span className="ctx-count">{allowed.length}</span></div>
+          <p className="ctx-note">Bấm vào từng nhóm để xem chủ đề.</p>
+          <TopicGroups codes={allowed} cats={cats} icon={Check} open={false} />
+        </section>
+      )}
+      {blocked.length > 0 && (
+        <section className="ctx-block is-block" aria-label="Chủ đề bị chặn">
+          <div className="ctx-head"><span className="ctx-ic" aria-hidden><ShieldBan className="ic" /></span><b>Chủ đề bị chặn</b><span className="ctx-count">{blocked.length}</span></div>
+          <p className="ctx-note">AI sẽ tránh các chủ đề này khi viết truyện cho {kidName}.</p>
+          <TopicGroups codes={blocked} cats={cats} icon={Ban} open />
+        </section>
+      )}
+    </>
+  );
+}
 
 type View = "brief" | "outline" | "status";
 const VIEW_ORDER: Record<View, number> = { brief: 0, status: 1, outline: 2 };
@@ -131,13 +211,17 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
           {flow.context ? (
             <>
               <div className="kv">
-                <div><small>Độ dài tối đa</small><b>{flow.context.maximumLength.toLocaleString("vi-VN")} tiếng</b></div>
+                <div><small>Độ dài tối đa</small><b>{flow.context.maximumLength.toLocaleString("vi-VN")} từ</b></div>
                 <div><small>Từ vựng</small><b>{flow.context.defaultVocabularyLevel.replace("level_", "Mức ")}</b></div>
                 <div><small>Chế độ duyệt</small><b>{/auto/i.test(flow.context.requiredApprovalMode) ? "Tự duyệt" : "Duyệt tay"}</b></div>
                 <div><small>Ngôn ngữ</small><b>Tiếng Việt</b></div>
               </div>
-              {flow.context.interests.length > 0 && <div className="sec"><div className="sec-h">Sở thích của bé</div><div className="chips">{flow.context.interests.map((i) => <span key={i} className="chip">{i}</span>)}</div></div>}
-              {flow.context.blockedCategoryCodes.length > 0 && <div className="sec"><div className="sec-h">Chủ đề bị chặn</div><div className="chips">{flow.context.blockedCategoryCodes.map((i) => <span key={i} className="chip block">{i}</span>)}</div></div>}
+              <ChildTopicRules
+                kidName={kidName}
+                interests={flow.context.interests}
+                allowed={flow.context.allowedCategoryCodes}
+                blocked={flow.context.blockedCategoryCodes}
+              />
             </>
           ) : errorCode ? <div role="status">
             {storyId !== null && <p className="sub">Truyện #{storyId}</p>}

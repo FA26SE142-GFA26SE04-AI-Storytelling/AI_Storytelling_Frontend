@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, ChevronDown, Clock, Crown, type LucideIcon } from "lucide-react";
+import { ChevronDown, Clock, Crown, type LucideIcon } from "lucide-react";
 
 type FilterOption = { key: string; label: string; count: number };
 
@@ -49,11 +49,11 @@ export function FilterGroup({ title, icon: Icon, options, value, onChange, defau
   );
 }
 
-export function LibraryTopAuthors({ authors, author, onAuthor }: Pick<LibraryExtraFilterProps, "authors" | "author" | "onAuthor">) {
-  const [expanded, setExpanded] = useState(false);
-  const visibleAuthors = expanded ? authors : authors.slice(0, 3);
+/** row: hàng ngang dưới banner Thư viện (tới 6 tác giả); không truyền thì là khối dọc 3 tác giả. */
+export function LibraryTopAuthors({ authors, author, onAuthor, row = false }: Pick<LibraryExtraFilterProps, "authors" | "author" | "onAuthor"> & { row?: boolean }) {
+  const visibleAuthors = authors.slice(0, row ? 6 : 3);
   return (
-    <section className="lib-top-authors" aria-label="Tác giả nổi bật">
+    <section className={`lib-top-authors${row ? " lib-top-authors-row" : ""}`} aria-label="Tác giả nổi bật">
       <h4 className="display"><Crown className="ic" aria-hidden="true" />Tác giả nổi bật</h4>
       {authors.length === 0 ? <p className="sub">Chưa có thông tin tác giả cộng đồng.</p> : (
         <ul>
@@ -66,11 +66,6 @@ export function LibraryTopAuthors({ authors, author, onAuthor }: Pick<LibraryExt
             </li>
           ))}
         </ul>
-      )}
-      {authors.length > 3 && (
-        <button type="button" className="lib-more-authors" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
-          {expanded ? "Thu gọn tác giả" : "Xem thêm tác giả"} <ArrowRight className="ic" aria-hidden="true" />
-        </button>
       )}
     </section>
   );

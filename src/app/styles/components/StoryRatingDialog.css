@@ -1,0 +1,284 @@
+/* StoryRatingDialog.css - Nhóm rating đánh giá truyện */
+
+.srd-summary {
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.srd-summary > :first-child {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.25rem;
+}
+
+.srd-avg {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--text);
+}
+
+.srd-avg-count {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.srd-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.srd-bar-row {
+  display: grid;
+  grid-template-columns: 48px 1fr 28px;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.srd-track {
+  background: var(--surface-2);
+  border-radius: 9999px;
+  height: 8px;
+  overflow: hidden;
+}
+
+/* Thanh ngang: không dùng useGrowBars (hook đó animate height cho cột dọc). */
+.srd-fill {
+  background: var(--gold);
+  height: 100%;
+  border-radius: 9999px;
+  transform-origin: left center;
+  animation: srd-grow .7s cubic-bezier(.34, 1.4, .64, 1) both;
+}
+.srd-bar-row:nth-child(2) .srd-fill { animation-delay: .07s; }
+.srd-bar-row:nth-child(3) .srd-fill { animation-delay: .14s; }
+.srd-bar-row:nth-child(4) .srd-fill { animation-delay: .21s; }
+.srd-bar-row:nth-child(5) .srd-fill { animation-delay: .28s; }
+@keyframes srd-grow { from { transform: scaleX(0); } }
+@media (prefers-reduced-motion: reduce) { .srd-fill { animation: none; } }
+
+.srd-block {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.srd-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 2rem 1rem;
+  color: var(--muted);
+  font-size: var(--fs-md);
+}
+
+.srd-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.25rem 0.625rem;
+  border-radius: 9999px;
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.srd-pill--ok {
+  background: color-mix(in srgb, var(--primary) 16%, transparent);
+  color: var(--primary-strong);
+  border: 1px solid color-mix(in srgb, var(--primary) 32%, transparent);
+}
+
+.srd-pill--wait {
+  background: color-mix(in srgb, var(--gold) 22%, transparent);
+  color: var(--gold-deep);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+}
+
+.srd-pill--no {
+  background: color-mix(in srgb, var(--danger) 16%, transparent);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 32%, transparent);
+}
+
+.srd-section-title {
+  margin: 0;
+  font-size: var(--fs-lg);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.srd-hint {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--muted);
+}
+
+.srd-my-rating {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.srd-my-status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.srd-pill-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.srd-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+
+.srd-counter {
+  text-align: right;
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.srd-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.srd-comment {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
+}
+
+.srd-comment-text {
+  margin: 0;
+  font-size: var(--fs-sm);
+  color: var(--text);
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.srd-skeleton {
+  height: 4.5rem;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.srd-comments {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.srd-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.srd-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.srd-comment-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.srd-comment-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.srd-comment-name {
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.srd-comment-date {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.srd-report-flag {
+  padding: 0.25rem;
+  min-height: auto;
+  border: none;
+  color: var(--muted);
+}
+
+.srd-report-stack {
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.srd-reasons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.srd-report-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin: 0;
+}
+
+.srd-reason {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: var(--fs-sm);
+  color: var(--text);
+}
+
+.srd-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.srd-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.25rem;
+}
+
+
+
+/* Dòng ★ điểm trung bình (Thư viện phụ huynh, Truyện của tôi): bấm để mở popup đánh giá. */
+.rating-line { display: inline-flex; align-items: center; gap: .5rem; width: fit-content; background: none; border: 0; cursor: pointer; color: var(--text); padding: .25rem 0; font-size: var(--fs-sm); }
+.rating-line:hover span { text-decoration: underline; }
+.rating-line:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 6px; }

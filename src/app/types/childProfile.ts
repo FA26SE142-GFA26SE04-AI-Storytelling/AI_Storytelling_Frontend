@@ -11,6 +11,8 @@ export interface ChildProfile {
   /** Avatar thuộc hồ sơ bé, backend gán mặc định khi tạo. */
   avatarId: string;
   ageBand: AgeBand | string;
+  /** Tuổi cụ thể 6–10, khớp nhóm tuổi; null với hồ sơ tạo trước khi có trường này. */
+  age?: number | null;
   language: string;
   status: string; // 'Draft' | 'Active' | 'Suspended' | 'Archived'
   createdAt: string;
@@ -24,6 +26,10 @@ export interface CreateChildProfileRequest {
   nickname: string;
   ageBand: AgeBand | string;
   language?: string;
+  /** Tuổi cụ thể 6–10, phải khớp nhóm tuổi. */
+  age?: number | null;
+  /** Ảnh đại diện; bỏ trống thì backend gán ảnh mặc định. */
+  avatarId?: string;
 }
 
 export interface UpdateChildProfileRequest {
@@ -31,6 +37,8 @@ export interface UpdateChildProfileRequest {
   ageBand: AgeBand | string;
   language?: string;
   avatarId?: string;
+  /** Không gửi: backend giữ tuổi đang lưu nếu còn khớp nhóm tuổi, không thì xoá. */
+  age?: number | null;
 }
 
 export type TopicRelation = 'FavoriteTopic' | 'PriorityFocusArea';
@@ -52,6 +60,8 @@ export type ApprovalMode = 'AlwaysManual' | 'AutoPublishOnThreshold';
 
 export interface SetSafetyPolicyRequest {
   maxStoryLength: number; // 100 to 20000
+  /** Độ dài truyện phụ huynh tự chỉnh (100–9000 từ); null/bỏ trống = theo mức đọc của bé. */
+  storyLengthTarget?: number | null;
   requiredApprovalMode: ApprovalMode;
   parentalGateEnabled: boolean;
   consentRecorded: boolean;
@@ -65,6 +75,12 @@ export interface SetSafetyPolicyRequest {
   childCreationMode?: string;
   voiceAnswersEnabled?: boolean;
   voiceConsentAccepted?: boolean;
+  /** Quyền của bé; bỏ trống = giữ nguyên giá trị đang lưu. */
+  quizEnabled?: boolean;
+  notebookEnabled?: boolean;
+  libraryBrowseEnabled?: boolean;
+  reflectionEnabled?: boolean;
+  rewardsEnabled?: boolean;
   /** Lần lưu đầu: có tự thêm danh sách chặn theo nhóm tuổi hay không. */
   applyAgePreset?: boolean;
   categories?: Array<{
@@ -92,10 +108,14 @@ export interface SafetyPolicyCategory {
   rule: string;
 }
 
+export type ContentCategoryGroup = 'Genre' | 'LifeValue' | 'Learning' | 'SafetyWarning';
+
 export interface ContentCategory {
   id: number;
   code: string;
   displayName: string;
+  /** Nhóm nhãn backend trả về (Genre, LifeValue, Learning, SafetyWarning). */
+  group?: ContentCategoryGroup;
   isActive: boolean;
   /** Nhóm tuổi mà danh mục này bị chặn mặc định khi tạo hồ sơ. */
   defaultBlockedAgeBands?: string[];
@@ -105,6 +125,8 @@ export interface SafetyPolicy {
   id: number;
   childProfileId: number;
   maxStoryLength: number;
+  /** Độ dài truyện phụ huynh tự chỉnh; null = theo mức đọc của bé. */
+  storyLengthTarget?: number | null;
   requiredApprovalMode: string;
   parentalGateEnabled: boolean;
   consentRecorded: boolean;
@@ -123,6 +145,12 @@ export interface SafetyPolicy {
   voiceAnswersEnabled?: boolean;
   /** Lúc phụ huynh đồng ý mục (e) về giọng nói; null = chưa đồng ý, bật lần đầu phải đồng ý. */
   voiceConsentAt?: string | null;
+  /** Quyền của bé; thiếu (backend cũ) = bật. */
+  quizEnabled?: boolean;
+  notebookEnabled?: boolean;
+  libraryBrowseEnabled?: boolean;
+  reflectionEnabled?: boolean;
+  rewardsEnabled?: boolean;
   categories: SafetyPolicyCategory[];
 }
 

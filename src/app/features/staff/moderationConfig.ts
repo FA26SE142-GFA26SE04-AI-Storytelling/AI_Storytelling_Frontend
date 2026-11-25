@@ -18,6 +18,7 @@ export const MODERATION_TYPE_LABELS: Record<QueueItemType, string> = {
   ContentReport: 'Báo cáo nội dung',
   PublicStoryRemoval: 'Yêu cầu gỡ truyện',
   RoadmapTemplateReview: 'Lộ trình mẫu',
+  StoryRating: 'Đánh giá truyện',
 };
 
 export const STATUS_LABELS_BY_TYPE: Record<QueueItemType, Partial<Record<QueueItemStatus, string>>> = {
@@ -70,6 +71,13 @@ export const STATUS_LABELS_BY_TYPE: Record<QueueItemType, Partial<Record<QueueIt
     Withdrawn: 'Đã rút',
     Closed: 'Đã đóng',
   },
+  StoryRating: {
+    Pending: 'Chờ tiếp nhận',
+    Claimed: 'Đang xử lý',
+    Approved: 'Đã giữ hiển thị',
+    Rejected: 'Đã ẩn đánh giá',
+    Closed: 'Hồ sơ đã đóng',
+  },
 };
 
 const FALLBACK_STATUS_LABELS: Record<string, string> = {
@@ -110,6 +118,13 @@ export const CONTENT_REPORT_SECTIONS: ModerationSectionDef[] = [
   { status: 'Dismissed', label: 'Đã bác báo cáo', group: 'results', hint: 'Báo cáo đã được bác, giữ nguyên nội dung.' },
   { status: 'Archived', label: 'Đã xử lý gỡ vi phạm', group: 'results', hint: 'Đã xử lý lưu trữ hoặc gỡ nội dung vi phạm từ báo cáo.' },
   { status: 'Closed', label: 'Hồ sơ đã đóng', group: 'results', hint: 'Hồ sơ báo cáo đã đóng.' },
+];
+
+export const STORY_RATING_SECTIONS: ModerationSectionDef[] = [
+  { status: 'Open', label: 'Cần xử lý', group: 'work', hint: 'Đánh giá truyện chờ tiếp nhận và hồ sơ đang được giữ xử lý.' },
+  { status: 'Approved', label: 'Đã giữ hiển thị', group: 'results', hint: 'Đánh giá đã được giữ và cho hiển thị.' },
+  { status: 'Rejected', label: 'Đã ẩn đánh giá', group: 'results', hint: 'Đánh giá đã bị ẩn; lý do đã gửi cho phụ huynh.' },
+  { status: 'Closed', label: 'Hồ sơ đã đóng', group: 'results', hint: 'Hồ sơ đánh giá đã đóng.' },
 ];
 
 export type RemovalRecordSourceDef = {

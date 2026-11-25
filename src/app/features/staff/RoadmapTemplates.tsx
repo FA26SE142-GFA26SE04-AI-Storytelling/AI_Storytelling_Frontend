@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { useAuth } from '@/app/context/AuthContext';
+import { useAccess } from './staffAccess';
 import { confirmDialog } from '@/app/lib/confirm';
 import RoadmapAuthoringWorkspace from './RoadmapAuthoringWorkspace';
 import RoadmapPublishedView from './RoadmapPublishedView';
@@ -18,8 +18,13 @@ const MODES: { id: RoadmapMode; label: string }[] = [
 
 /** Tài liệu 08 — Lộ trình mẫu: chia Soạn lộ trình, Duyệt lộ trình, Đang phát hành và Lưu trữ. */
 export default function RoadmapTemplates() {
-  const { user } = useAuth();
-  const [mode, setMode] = useState<RoadmapMode>('author');
+  const author = useAccess('template.roadmap.author');
+  const review = useAccess('review.roadmap');
+  const modes = MODES.filter(m => !(m.id === 'author' && author.state === 'Hidden') && !(m.id === 'review' && review.state === 'Hidden'));
+  const [picked, setMode] = useState<RoadmapMode | null>(null);
+  // Chưa chọn: người soạn được thì vào Soạn, người chỉ xem (Admin khi còn Moderator) thì vào khu đầu tiên khác Soạn.
+  const fallback = (author.state === 'Allowed' ? modes[0] : modes.find(m => m.id !== 'author') ?? modes[0]).id;
+  const mode = picked && modes.some(m => m.id === picked) ? picked : fallback;
   const [authorDirty, setAuthorDirty] = useState(false);
   const [pendingOpenDraftId, setPendingOpenDraftId] = useState<number | null>(null);
 
@@ -34,13 +39,12 @@ export default function RoadmapTemplates() {
     <div className="rt-wrap">
       <div className="rt-modebar">
         <div className="rt-modepills" role="group" aria-label="Phân khu lộ trình mẫu">
-          {MODES.filter(m => m.id !== 'review' || user?.role === 'Moderator').map(m => (
+          {modes.map(m => (
             <button key={m.id} type="button" aria-pressed={mode === m.id} className={mode === m.id ? 'on' : ''} onClick={() => void switchMode(m.id)}>
               {m.label}
             </button>
           ))}
         </div>
-        <span className="sub">Lộ trình mẫu công khai và kiểm duyệt sử dụng trực tiếp API hiện có.</span>
       </div>
       <div className="rt-stage">
         {mode === 'author' && (

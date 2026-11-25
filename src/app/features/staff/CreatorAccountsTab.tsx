@@ -83,9 +83,9 @@ export function CreatorAccountsTab() {
               <td data-label="Đã xuất bản">{c.publishedStoryCount}</td>
               <td data-label="Đăng nhập gần nhất">{fmt(c.lastLoginAt)}</td>
               <td data-label="" style={{ whiteSpace: "nowrap" }}>
-                <button className="btn btn-g" onClick={() => setTierOf(c)}><Award className="ic" />Cấp đối tác</button>
-                {c.status === "Active" && <button className="btn btn-g" disabled={busy} onClick={() => { setReason(""); setDeact(c); }}><UserX className="ic" />Vô hiệu hoá</button>}
-                {c.status === "Suspended" && <button className="btn btn-g" disabled={busy} onClick={() => void reactivate(c)}><RotateCcw className="ic" />Kích hoạt lại</button>}
+                <button className="btn btn-s" onClick={() => setTierOf(c)}><Award className="ic" />Cấp đối tác</button>
+                {c.status === "Active" && <button className="btn btn-no" disabled={busy} onClick={() => { setReason(""); setDeact(c); }}><UserX className="ic" />Vô hiệu hoá</button>}
+                {c.status === "Suspended" && <button className="btn btn-ok" disabled={busy} onClick={() => void reactivate(c)}><RotateCcw className="ic" />Kích hoạt lại</button>}
               </td>
             </tr>
           ))}

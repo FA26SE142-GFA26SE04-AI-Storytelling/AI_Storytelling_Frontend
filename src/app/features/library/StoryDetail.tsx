@@ -44,7 +44,7 @@ export default function StoryDetail({ story, onKid, onRoadmap, onReport, onPrevi
       <div className="lib-stats">
         {story.viewCount !== undefined && <span title="Lượt đọc"><Eye className="ic" />{n(story.viewCount)} lượt đọc</span>}
         {story.favoriteCount !== undefined && <span title="Lượt yêu thích"><Heart className="ic" />{n(story.favoriteCount)}</span>}
-        {story.words > 0 && <span title="Độ dài"><BookOpenText className="ic" />{n(story.words)} tiếng</span>}
+        {story.words > 0 && <span title="Độ dài"><BookOpenText className="ic" />{n(story.words)} chữ</span>}
       </div>
       {story.raw.description && <p className="lib-desc">{story.raw.description}</p>}
       {story.raw.moralLesson && (

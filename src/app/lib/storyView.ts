@@ -67,6 +67,15 @@ export const coverFor = (url?: string | null) => {
   return `${layout} url("${src}"), ${DEFAULT_COVER}`;
 };
 
+/** Bìa cho khung ngang (banner, thẻ thể loại, khung 16:9): bỏ vùng cắt 3:4 vì phóng vùng đó vào khung ngang làm méo ảnh; dùng cả tấm ảnh gốc. */
+export const uncroppedCover = (url?: string | null) => {
+  const { src } = splitCover(url);
+  // Bìa mẫu là ảnh đứng: phóng tràn khung ngang sẽ chỉ còn một mảng hoa sen, nên hiện trọn ảnh.
+  // Nền hai bên là đúng gradient "sky" trong default-cover.svg (màu của tệp ảnh, không theo theme) để không lộ mép.
+  if (!src) return 'center / contain no-repeat url("/default-cover.svg"), linear-gradient(#7fd3a6, #2fa866)';
+  return coverFor(src);
+};
+
 const STATUS: Record<string, [StoryTone, string]> = {
   published: ["ok", "Đã xuất bản"],
   ready: ["ok", "Sẵn sàng"],

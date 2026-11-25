@@ -10,7 +10,7 @@ import { SHOWN_GROUPS, statusOf } from "./libraryFilters";
  * Bộ nhớ đệm của thư viện trong phiên: mở lại trang thì hiện ngay truyện đã tải, rồi tải bản mới ở nền.
  * Gắn với người dùng để đăng nhập tài khoản khác không thấy dữ liệu cũ.
  */
-let pubCache: { userId: number; cards: StoryCard[]; at: number } | null = null;
+let pubCache: { userId: number; communityOnly: boolean; community: boolean; cards: StoryCard[]; at: number } | null = null;
 const PUB_FRESH_MS = 30_000;
 
 /** Xoá bộ nhớ đệm phiên của thư viện (dùng cho kiểm thử hoặc khi cần làm mới hoàn toàn). */
@@ -40,9 +40,11 @@ export async function loadAllPages<T extends StoryDto = StoryDto>(
 /**
  * Hook tải danh mục truyện thư viện phụ huynh (truyện gia đình + truyện cộng đồng đã xuất bản),
  * gộp thống kê lượt đọc/yêu thích và lưu bộ nhớ đệm ngắn theo từng tài khoản.
+ * `community`: false khi tài khoản không có quyền đọc thư viện cộng đồng.
+ * `communityOnly`: chỉ tải truyện cộng đồng (Thư viện của Content Creator, không có truyện gia đình).
  */
-export function useLibraryCatalog(userId: number | undefined) {
-  const initialCache = pubCache && pubCache.userId === userId ? pubCache : null;
+export function useLibraryCatalog(userId: number | undefined, { communityOnly = false, community: withCommunity = true }: { communityOnly?: boolean; community?: boolean } = {}) {
+  const initialCache = pubCache && pubCache.userId === userId && pubCache.communityOnly === communityOnly && pubCache.community === withCommunity ? pubCache : null;
   const [pub, setPub] = useState<StoryCard[]>(() => initialCache?.cards ?? []);
   const [storiesLoading, setStoriesLoading] = useState(!initialCache);
   const [error, setError] = useState<string | null>(null);
@@ -52,8 +54,12 @@ export function useLibraryCatalog(userId: number | undefined) {
     const reqId = ++reqIdRef.current;
     try {
       const [mine, community] = await Promise.all([
-        loadAllPages((pageIndex) => storyService.getStories({ pageIndex, pageSize: 100, isDescending: true })),
-        loadAllPages((pageIndex) => storyService.getCommunityStories({ pageIndex, pageSize: 100, isDescending: true })),
+        communityOnly
+          ? { items: [] as StoryDto[], message: null }
+          : loadAllPages((pageIndex) => storyService.getStories({ pageIndex, pageSize: 100, isDescending: true })),
+        withCommunity
+          ? loadAllPages((pageIndex) => storyService.getCommunityStories({ pageIndex, pageSize: 100, isDescending: true }))
+          : { items: [], message: null },
       ]);
       if (reqId !== reqIdRef.current) return;
       const ids = new Set(mine.items.map((s) => s.id));
@@ -67,7 +73,7 @@ export function useLibraryCatalog(userId: number | undefined) {
       });
       const message = mine.message || community.message || null;
       if (cards.length > 0 || !message) setPub(cards);
-      if (!message && userId !== undefined) pubCache = { userId, cards, at: Date.now() };
+      if (!message && userId !== undefined) pubCache = { userId, communityOnly, community: withCommunity, cards, at: Date.now() };
       setError(message);
     } catch (err: unknown) {
       if (reqId !== reqIdRef.current) return;
@@ -75,10 +81,10 @@ export function useLibraryCatalog(userId: number | undefined) {
     } finally {
       if (reqId === reqIdRef.current) setStoriesLoading(false);
     }
-  }, [userId]);
+  }, [userId, communityOnly, withCommunity]);
 
   useEffect(() => {
-    const currentCache = pubCache && pubCache.userId === userId ? pubCache : null;
+    const currentCache = pubCache && pubCache.userId === userId && pubCache.communityOnly === communityOnly && pubCache.community === withCommunity ? pubCache : null;
     if (currentCache && Date.now() - currentCache.at < PUB_FRESH_MS) {
       setPub(currentCache.cards);
       setError(null);
@@ -92,7 +98,7 @@ export function useLibraryCatalog(userId: number | undefined) {
     return () => {
       reqIdRef.current += 1;
     };
-  }, [userId, loadPublic]);
+  }, [userId, communityOnly, withCommunity, loadPublic]);
 
   const retryStories = useCallback(() => {
     setError(null);

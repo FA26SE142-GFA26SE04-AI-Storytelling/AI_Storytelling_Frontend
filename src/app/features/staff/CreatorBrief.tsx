@@ -129,12 +129,12 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
             )}
           </div>
           <div className="field">
-            <span className="lbl row" style={{ justifyContent: "space-between" }}><span id="cbrief-length">Độ dài</span><b style={{ color: "var(--text)" }}>khoảng {values.targetLength} tiếng</b></span>
+            <span className="lbl row" style={{ justifyContent: "space-between" }}><span id="cbrief-length">Độ dài</span><b style={{ color: "var(--text)" }}>khoảng {values.targetLength} từ</b></span>
             <div className="seg" role="group" aria-labelledby="cbrief-length">{LENGTHS.map(([k, label]) => (
               <button type="button" key={k} aria-pressed={preset === k} className={preset === k ? "on" : ""} onClick={() => onChange({ targetLength: presets[k] })}>{label}<small>{presets[k]}</small></button>
             ))}</div>
             <input type="range" className="range" min={MIN_TARGET_LENGTH} max={max} step={10} value={clampTargetLength(values.targetLength, max)} onChange={(e) => onChange({ targetLength: +e.target.value })} aria-label="Chỉnh độ dài chi tiết" />
-            <small className="hint">Tối đa {max} tiếng theo cấu hình của máy chủ.</small>
+            <small className="hint">Tối đa {max} từ theo cấu hình của máy chủ.</small>
           </div>
 
           {(context?.availableVocabularyLevels.length ?? 0) > 1 && (

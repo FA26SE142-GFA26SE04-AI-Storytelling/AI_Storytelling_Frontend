@@ -1,8 +1,12 @@
 "use client";
 
+import { useState } from "react";
+import StoryRatingDialog from "@/app/components/ratings/StoryRatingDialog";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import type { StoryCard } from "@/app/lib/storyView";
 import { showToast } from "@/app/lib/toast";
+import { ensureChild } from "@/app/lib/chooseChild";
+import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { roadmapTemplate } from "@/app/services/roadmapAdapters";
 import AddToRoadmapDialog from "@/app/features/roadmap/AddToRoadmapDialog";
 import TemplateDialog from "@/app/features/roadmap/TemplateDialog";
@@ -13,7 +17,9 @@ import LibraryDetailDialog from "./LibraryDetailDialog";
 import { ReportDialog } from "./ModerationDialogs";
 import { Preview } from "./StoryPreviewDialog";
 
-export type LibraryDialogKind = "preview" | "roadmap" | "report" | null;
+export type LibraryDialogKind = "preview" | "roadmap" | "report" | "rating" | null;
+
+type RatingStat = { averageRating: number | null; ratingCount: number };
 
 export type LibraryDialogsProps = {
   selectedStory: StoryCard | null;
@@ -51,17 +57,44 @@ export default function LibraryDialogs({
   onCloseAddingTpl,
   onCloseStoryRoadmap,
 }: LibraryDialogsProps) {
+  // Số sao trong danh sách truyện bị cache tới 1 phút ở backend: giữ số mới nhất sau khi phụ huynh gửi/xoá đánh giá.
+  const [ratingOverride, setRatingOverride] = useState<Record<number, RatingStat>>({});
+  const { children: kids, childrenLoading } = useWorkspaceData();
+  // Chưa có bé đang hoạt động thì không mở form thêm lộ trình (đã chọn sẵn bé thì xét riêng bé đó).
+  const canAddRoadmap = () => ensureChild(pickKid ? [pickKid] : kids, childrenLoading);
+  const rating: RatingStat | null = selectedStory
+    ? ratingOverride[selectedStory.id] ?? {
+        averageRating: selectedStory.raw.averageRating ?? null,
+        ratingCount: selectedStory.raw.ratingCount ?? 0,
+      }
+    : null;
   return (
     <>
-      {selectedStory && !dialog && (
+      {selectedStory && rating && !dialog && (
         <LibraryDetailDialog
           story={selectedStory}
           go={go}
           onKid={onKid}
           onClose={onCloseDetails}
           onPreview={() => onDialogChange("preview")}
-          onAddRoadmap={() => onDialogChange("roadmap")}
+          onAddRoadmap={() => { if (canAddRoadmap()) onDialogChange("roadmap"); }}
           onReport={() => onDialogChange("report")}
+          onRate={() => onDialogChange("rating")}
+          rating={rating}
+        />
+      )}
+      {selectedStory && dialog === "rating" && (
+        <StoryRatingDialog
+          storyId={selectedStory.id}
+          title={selectedStory.title}
+          mode="parent"
+          onClose={() => onDialogChange(null)}
+          onChanged={(summary) =>
+            setRatingOverride((prev) => ({
+              ...prev,
+              [selectedStory.id]: { averageRating: summary.averageRating, ratingCount: summary.ratingCount },
+            }))
+          }
         />
       )}
       {selectedStory && dialog === "preview" && (
@@ -72,6 +105,7 @@ export default function LibraryDialogs({
           item={openedTpl}
           onClose={onCloseOpenedTpl}
           onAdd={(detail) => {
+            if (!canAddRoadmap()) return;
             onCloseOpenedTpl();
             onStartAddingTpl(roadmapTemplate(detail));
           }}

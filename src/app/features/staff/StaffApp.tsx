@@ -2,10 +2,10 @@
 
 import "@/app/styles/features/staff/staff.css";
 import "@/app/styles/features/children/children.css";
-import { useEffect, useState, type ComponentType } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import {
-  Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
-  Shield, ShieldAlert, Sparkles, Sun, ScrollText, Trophy, UserRound, UserRoundCheck, Users, WandSparkles, type LucideIcon,
+  Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, KeyRound, LayoutDashboard, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
+  Shield, ShieldAlert, Sparkles, Star, Sun, ScrollText, Trophy, UserRound, UserRoundCheck, Users, WalletCards, WandSparkles, type LucideIcon,
 } from "lucide-react";
 import { useTheme } from "@/app/context/ThemeContext";
 import { useAuth } from "@/app/context/AuthContext";
@@ -21,6 +21,7 @@ import { defaultPeriod } from "@/app/lib/monthPeriods";
 import { moderationStatisticsService } from "@/app/services/moderationStatisticsService";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import ContentReportsWorkspace from "./ContentReportsWorkspace";
+import StoryRatingsWorkspace from "./StoryRatingsWorkspace";
 import CreatorStoryReviewWorkspace from "./CreatorStoryReviewWorkspace";
 import GrayZoneReviewWorkspace from "./GrayZoneReviewWorkspace";
 import RoadmapTemplates from "./RoadmapTemplates";
@@ -37,11 +38,22 @@ import ModeratorStatistics from "./ModeratorStatistics";
 import { AdminStaff } from "./AdminPeople";
 import { AdminCreators } from "./AdminCreators";
 import { AdminAuditLog } from "./AdminAuditLog";
+import AdminPermissions from "./AdminPermissions";
 import AdminCatalog from "./AdminCatalog";
 import WishCardManagement from "./WishCardManagement";
 import { AdminPayments, AdminPlans, AdminQuota } from "./AdminSystem";
 import { AdminBusinessReport } from "./AdminBusinessReport";
 import EventsWorkspace from "@/app/features/events/EventsWorkspace";
+import AdminOverview from "./AdminOverview";
+import AdminSidebar, { type SideGroup } from "./AdminSidebar";
+import { adminNavBadges, useAdminTodo } from "./adminTodo";
+import { canOpenPage, visibleNav } from "./staffPageAccess";
+import { AccessReadyProvider, accessOf, StaffAccessProvider, useMyAccess } from "./staffAccess";
+import { LeaveGuardProvider, type LeaveGuard } from "./leaveGuard";
+import { Page } from "./ui";
+import { ModerationQueue } from "./Moderation";
+// Trước đây chỉ ParentShell nạp file này nên ở điện thoại header nhân viên vẫn hiện thanh ngang (bị cắt) và không có thanh tab đáy.
+import "@/app/styles/mobile.css";
 
 /** Mọi trang nhân viên nhận go (chuyển trang, kèm id truyện cần mở) và target; trang không cần thì bỏ qua. */
 type PageDef = { id: string; label: string; icon: LucideIcon; view: ComponentType<CreatorPageProps>; hint?: string; menuLabel?: string; short?: string };
@@ -66,13 +78,15 @@ const CREATOR_ACCOUNT_PAGES: PageDef[] = [
 /** Luồng 5 — ba khu tách biệt theo vai trò; mỗi tài khoản đúng một vai trò (BR-5.7a). */
 const PAGES: Record<StaffRole, PageDef[]> = {
   Administrator: [
+    { id: "overview", label: "Tổng quan", icon: LayoutDashboard, view: AdminOverview, hint: "Việc cần xử lý và tình hình kinh doanh" },
+    { id: "queue", label: "Hàng đợi dự phòng", icon: Inbox, view: ModerationQueue, hint: "Nhận mục đã chuyển lên hoặc khi không còn kiểm duyệt viên" },
     { id: "published", label: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện và lộ trình mẫu đang công khai" },
     { id: "rubrics", label: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Xem lộ trình mẫu", icon: Route, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
-    { id: "catalog", label: "Danh mục nội dung", icon: ListChecks, view: AdminCatalog },
     { id: "staff", label: "Tài khoản vận hành", icon: Shield, view: AdminStaff },
+    { id: "permissions", label: "Phân quyền", icon: KeyRound, view: AdminPermissions, hint: "Xem và bật/tắt quyền của các role người lớn" },
     { id: "creators", label: "Nhà sáng tạo nội dung", icon: UserRoundCheck, view: AdminCreators },
     { id: "audit", label: "Nhật ký thao tác", icon: ScrollText, view: AdminAuditLog, hint: "Nhật ký thao tác nhạy cảm của toàn hệ thống" },
     { id: "business", label: "Báo cáo nghiệp vụ", icon: ChartColumn, view: AdminBusinessReport },
@@ -84,15 +98,17 @@ const PAGES: Record<StaffRole, PageDef[]> = {
   ],
   Moderator: [
     { id: "queue", label: "Duyệt truyện", menuLabel: "Duyệt truyện", short: "Duyệt truyện", icon: Inbox, view: CreatorStoryReviewWorkspace, hint: "Tiếp nhận và duyệt truyện nhà sáng tạo nộp công khai" },
-    { id: "published", label: "Thư viện cộng đồng", short: "Thư viện cộng đồng", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện nhà sáng tạo đang công khai" },
+    { id: "published", label: "Rà soát thư viện", short: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện nhà sáng tạo đang công khai" },
     { id: "removal-records", label: "Hồ sơ gỡ truyện", short: "Hồ sơ gỡ", icon: Archive, view: RemovalRecordsWorkspace, hint: "Theo dõi các hồ sơ gỡ truyện và vi phạm theo 2 nguồn độc lập" },
     { id: "gray-zone", label: "Kiểm tra vùng xám", short: "Vùng xám", icon: ShieldAlert, view: GrayZoneReviewWorkspace, hint: "Kiểm tra nội dung rơi vào vùng xám an toàn" },
     { id: "content-reports", label: "Báo cáo nội dung", short: "Báo cáo", icon: Flag, view: ContentReportsWorkspace, hint: "Tiếp nhận và xử lý báo cáo vi phạm nội dung" },
+    { id: "story-ratings", label: "Đánh giá truyện", short: "Đánh giá", icon: Star, view: StoryRatingsWorkspace, hint: "Xử lý đánh giá của phụ huynh bị báo cáo hoặc bị lọc tự động" },
     { id: "removal-requests", label: "Yêu cầu gỡ truyện", short: "Yêu cầu gỡ", icon: Archive, view: RemovalRequestsWorkspace, hint: "Xử lý yêu cầu gỡ truyện công khai từ nhà sáng tạo" },
     { id: "rubrics", label: "Tiêu chí vùng xám", short: "Tiêu chí vùng xám", icon: ListChecks, view: RubricWorkspace },
     { id: "authoring-guides", label: "Hướng dẫn sáng tác", short: "Hướng dẫn sáng tác", icon: BookOpenText, view: AuthoringGuideManagement },
     { id: "templates", label: "Lộ trình mẫu", icon: Route, view: RoadmapTemplates },
     { id: "wish-cards", label: "Thẻ ước", icon: Sparkles, view: WishCardManagement },
+    { id: "catalog", label: "Danh mục nội dung", short: "Danh mục", icon: ListChecks, view: AdminCatalog, hint: "Tạo, sửa, ẩn hoặc xoá danh mục nội dung dùng chung" },
     { id: "stats", label: "Thống kê", short: "Thống kê", icon: ChartColumn, view: ModeratorStatistics, hint: "Hàng đợi, SLA và quyết định của bạn" },
     { id: "events", label: "Sự kiện & Quà", short: "Sự kiện", icon: Trophy, view: () => <EventsWorkspace />, hint: "Tổ chức sự kiện sáng tác, nhiệm vụ động và trao thưởng" },
     ...ACCOUNT_PAGES,
@@ -109,21 +125,22 @@ const PAGES: Record<StaffRole, PageDef[]> = {
 };
 
 /**
- * Thanh điều hướng ngang của từng vai trò. Admin nhiều trang nên gom theo nhóm việc, mỗi nhóm một menu xổ xuống;
- * vai trò ít trang thì mở thẳng. Các trang tài khoản không nằm ở đây mà trong menu avatar.
+ * Điều hướng của từng vai trò. Moderator và Creator dùng thanh ngang trên header (nhóm thành menu xổ xuống).
+ * Admin trên máy tính dùng thanh bên trái (AdminSidebar): mỗi nhóm ở đây là một mục có tiêu đề;
+ * trên điện thoại vẫn là thanh tab đáy với menu xổ lên. Các trang tài khoản nằm trong menu avatar.
  */
 const NAV: Record<StaffRole, NavEntry[]> = {
   Administrator: [
-    { label: "Kiểm duyệt", icon: Inbox, items: ["published", "rubrics"] },
-    { label: "Nội dung", icon: BookOpenText, items: ["authoring-guides", "templates", "wish-cards", "catalog", "events"] },
-    { label: "Người dùng", icon: Users, items: ["staff", "creators", "audit"] },
-    { label: "Kinh doanh", icon: ChartColumn, items: ["business", "payments", "plans", "quota"] },
+    "overview",
+    { label: "Người dùng", icon: Users, items: ["staff", "creators", "permissions", "audit"] },
+    { label: "Tài chính", icon: WalletCards, items: ["business", "payments", "plans", "quota"] },
+    { label: "Nội dung & kiểm duyệt", icon: BookOpenText, items: ["queue", "published", "rubrics", "authoring-guides", "templates", "wish-cards", "events"] },
   ],
   Moderator: [
     "queue",
     { label: "Thư viện", icon: LibraryBig, items: ["published", "removal-records"] },
-    { label: "Xử lý an toàn", icon: ShieldAlert, items: ["gray-zone", "content-reports", "removal-requests"] },
-    { label: "Công cụ", icon: ListChecks, items: ["rubrics", "authoring-guides", "wish-cards"] },
+    { label: "Xử lý an toàn", icon: ShieldAlert, items: ["gray-zone", "content-reports", "story-ratings", "removal-requests"] },
+    { label: "Công cụ", icon: ListChecks, items: ["rubrics", "authoring-guides", "wish-cards", "catalog"] },
     "templates",
     "events",
     "stats",
@@ -135,14 +152,15 @@ const MODERATOR_QUEUE_NAV_MAP: Record<string, string> = {
   PublicStoryReview: "queue",
   GrayZoneStory: "gray-zone",
   ContentReport: "content-reports",
+  StoryRating: "story-ratings",
   PublicStoryRemoval: "removal-requests",
   RoadmapTemplateReview: "templates",
 };
 
-function StaffNav({ role, pageId, onPage, badges, upward }: { role: StaffRole; pageId: string; onPage: (id: string) => void; badges?: Record<string, number>; upward?: boolean }) {
+function StaffNav({ role, nav, pageId, onPage, badges, upward }: { role: StaffRole; nav: NavEntry[]; pageId: string; onPage: (id: string) => void; badges?: Record<string, number>; upward?: boolean }) {
   const pages = PAGES[role];
   const byId = (id: string) => pages.find((p) => p.id === id)!;
-  return NAV[role].map((entry) => {
+  return nav.map((entry) => {
     if (typeof entry === "string") {
       const { id, label, short, icon: Icon } = byId(entry);
       const count = badges?.[id] ?? 0;
@@ -156,6 +174,13 @@ function StaffNav({ role, pageId, onPage, badges, upward }: { role: StaffRole; p
     }
     return <NavMenuButton key={entry.label} entry={entry} items={entry.items.map(byId)} ws={pageId} onWs={onPage} badges={badges} upward={upward} />;
   });
+}
+
+/** Nhóm của thanh bên Admin, dựng từ NAV để menu máy tính và thanh tab điện thoại luôn cùng danh sách trang. */
+function sideGroups(role: StaffRole, nav: NavEntry[]): SideGroup[] {
+  const pages = PAGES[role];
+  const item = (id: string) => { const { label, icon } = pages.find((p) => p.id === id)!; return { id, label, icon }; };
+  return nav.map((entry) => (typeof entry === "string" ? { items: [item(entry)] } : { label: entry.label, items: entry.items.map(item) }));
 }
 
 export function defaultStaffSection(role: StaffRole): string {
@@ -230,7 +255,11 @@ function StaffAppInner({
     setPageId(initialSection);
     setTarget(initialTarget);
   }, [initialSection, initialTarget, pages]);
-  const go = (id: string, storyId: number | null = null) => {
+  const { map: granted, ready: accessReady } = useMyAccess(userId, pageId);
+  const leaveGuard = useRef<LeaveGuard | null>(null);
+  const registerGuard = useCallback((guard: LeaveGuard | null) => { leaveGuard.current = guard; }, []);
+  const go = async (id: string, storyId: number | null = null) => {
+    if (id !== pageId && leaveGuard.current && !(await leaveGuard.current())) return;
     setPageId(id);
     setTarget(storyId);
     setResumeId(null);
@@ -238,9 +267,10 @@ function StaffAppInner({
   };
   useEffect(() => { if (userId !== null) writeStaffWorkspace(userId, { pageId, target }); }, [userId, pageId, target]);
 
+  const canCount = accessReady && canOpenPage(role, "stats", granted);
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});
   useEffect(() => {
-    if (role !== "Moderator" || userId === null) return;
+    if (role !== "Moderator" || userId === null || !canCount) return;
     let alive = true;
     let ctrl: AbortController | null = null;
     const load = () => {
@@ -272,35 +302,93 @@ function StaffAppInner({
       window.removeEventListener("moderation-queue-changed", onRefresh);
       window.removeEventListener("focus", onRefresh);
     };
-  }, [role, userId, pageId]);
+  }, [role, userId, pageId, canCount]);
+
+  const isAdmin = role === "Administrator";
+  const adminTodo = useAdminTodo(isAdmin && userId !== null && accessReady, pageId, (code) => accessOf(granted, code).state !== "Hidden");
+  const badges = isAdmin ? adminNavBadges(adminTodo) : navBadges;
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        return localStorage.getItem("adm_sidebar_collapsed") === "1";
+      } catch {
+        return false;
+      }
+    }
+    return false;
+  });
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("adm_sidebar_collapsed", next ? "1" : "0");
+      } catch {}
+      return next;
+    });
+  };
 
   const page = pages.find((p) => p.id === pageId) ?? pages[0];
   const View = page.view;
+  const nav = useMemo(() => visibleNav(NAV[role], (id) => canOpenPage(role, id, granted)), [role, granted]);
+  const groups = useMemo(() => sideGroups(role, nav), [role, nav]);
+  const allowed = canOpenPage(role, page.id, granted);
 
   return (
-    <div className="shell no-status top-nav">
+    <div className={`shell no-status top-nav${isAdmin ? " adm-shell" : ""}${isAdmin && sidebarCollapsed ? " adm-shell-collapsed" : ""}`}>
       <PondBackdrop rich />
+      {isAdmin && (
+        <AdminSidebar
+          groups={groups}
+          pageId={pageId}
+          onPage={(id) => void go(id)}
+          badges={badges}
+          label={ROLE_LABEL[role]}
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={toggleSidebar}
+        />
+      )}
       <header className="top">
         <div className="logo" aria-label="Taletale"><Frog variant="face" size={46} /></div>
         <b className="display" style={{ fontSize: "var(--fs-lg)", fontWeight: 800 }}>Taletale</b>
         <span className="top-role">{ROLE_LABEL[role]}</span>
 
-        <nav ref={navRef} className="topnav" aria-label={ROLE_LABEL[role]}>
-          <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} badges={navBadges} />
-        </nav>
+        {isAdmin ? (
+          <div className="adm-top-title"><b>{page.label}</b>{page.hint && <small>{page.hint}</small>}</div>
+        ) : (
+          <nav ref={navRef} className="topnav" aria-label={ROLE_LABEL[role]}>
+            <StaffNav role={role} nav={nav} pageId={pageId} onPage={(id) => void go(id)} badges={badges} />
+          </nav>
+        )}
         <div className="top-gap" />
 
         <button className="btn btn-g" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Giao diện sáng" : "Giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
         <NotificationBell />
-        <AccountMenu ws={pageId} onWs={(id) => go(id)} groups={[role === "ContentCreator" ? CREATOR_ACCOUNT_PAGES : ACCOUNT_PAGES]} />
+        <AccountMenu ws={pageId} onWs={(id) => void go(id)} groups={[role === "ContentCreator" ? CREATOR_ACCOUNT_PAGES : ACCOUNT_PAGES]} />
       </header>
 
       {/* Điện thoại: header không đủ chỗ nên điều hướng nằm ở thanh tab dưới đáy. */}
       <nav className="rail rail-mobile" aria-label={ROLE_LABEL[role]}>
-        <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} badges={navBadges} upward />
+        <StaffNav role={role} nav={nav} pageId={pageId} onPage={(id) => void go(id)} badges={badges} upward />
       </nav>
 
-      <main className="stage"><View key={`${userId ?? "anon"}:${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} /></main>
+      <main className="stage">
+        {allowed ? (
+          <StaffAccessProvider value={granted}>
+            <AccessReadyProvider value={accessReady}><LeaveGuardProvider value={registerGuard}>
+            <View key={`${userId ?? "anon"}:${page.id}:${target ?? "new"}`} go={(id, storyId) => void go(id, storyId)} target={target} resumeId={resumeId} />
+            </LeaveGuardProvider></AccessReadyProvider>
+          </StaffAccessProvider>
+        ) : (
+          <Page title={page.label}>
+            <div className="st-card">
+              <h3>Bạn không có quyền dùng trang này</h3>
+              <p className="sub">Quản trị viên đã tắt quyền cần cho trang “{page.label}”. Hãy chọn mục khác trên menu hoặc liên hệ quản trị viên.</p>
+            </div>
+          </Page>
+        )}
+      </main>
     </div>
   );
 }

@@ -1,0 +1,17 @@
+.star-rating { display: inline-flex; align-items: center; gap: 2px; vertical-align: middle; }
+.star-cell { position: relative; display: inline-block; }
+.star-cell .star-empty { color: color-mix(in srgb, var(--gold-deep) 35%, transparent); }
+.star-cell .star-fill { position: absolute; inset: 0 auto 0 0; overflow: hidden; color: var(--gold-deep); }
+.star-cell .star-fill svg { fill: var(--gold); }
+
+.star-rating.is-input { gap: 4px; }
+.star-btn {
+  display: inline-grid; place-items: center; padding: 4px; border: 0; border-radius: 8px;
+  background: transparent; color: color-mix(in srgb, var(--gold-deep) 40%, transparent); cursor: pointer;
+  transition: transform .15s ease, color .15s ease;
+}
+.star-btn.on { color: var(--gold-deep); }
+.star-btn.on svg { fill: var(--gold); }
+.star-btn:hover { transform: scale(1.15); }
+.star-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+@media (prefers-reduced-motion: reduce) { .star-btn { transition: none; } .star-btn:hover { transform: none; } }

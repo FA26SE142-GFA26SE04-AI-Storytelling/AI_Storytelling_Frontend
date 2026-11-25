@@ -8,6 +8,7 @@ import IconButton from '@/app/components/IconButton';
 import Pager from '@/app/components/Pager';
 import SafeImage from '@/app/components/SafeImage';
 import { showToast } from '@/app/lib/toast';
+import { useAccessLookup } from '@/app/features/staff/staffAccess';
 import { paymentService } from '@/app/services/paymentService';
 import type { CreatorQuotaDto, MyQuotaDto, PagedResult, PaymentStatus, PaymentTransactionDto, PlanType, SubscriptionPlanDto } from '@/app/types/backendContracts';
 
@@ -30,11 +31,13 @@ const STATUS: Record<PaymentStatus, [string, string]> = {
 };
 
 /** Nút và câu xác nhận của một gói, tuỳ gói đang dùng. */
-function action(plan: SubscriptionPlanDto, quota: MyQuotaDto | null): { label: string; confirm: string } {
+function action(plan: SubscriptionPlanDto, quota: MyQuotaDto | null, quotaHidden = false): { label: string; confirm: string } {
   if (plan.planType === 'CreatorPack') return { label: 'Mua gói', confirm: `Mua ${plan.name} (${money(plan.priceVnd)}): thêm ${plan.aiCredits} lượt tạo truyện AI và ${plan.submitCredits ?? 0} lượt gửi duyệt, không hết hạn.` };
   const cur = quota?.plan;
   const price = money(plan.priceVnd);
   if (plan.planType === 'AddOn') return { label: 'Mua thêm lượt', confirm: `Mua ${plan.name} (${price}): thêm ${plan.aiCredits} lượt tạo truyện AI${cur ? `, hết hạn cùng gói ngày ${day(cur.endAt)}` : ''}.` };
+  // Không được xem gói hiện tại thì không biết là đăng ký mới hay gia hạn: không hứa ngày bắt đầu.
+  if (quotaHidden) return { label: 'Mua gói', confirm: `Mua ${plan.name} (${price}).` };
   if (!cur) return { label: 'Đăng ký', confirm: `Đăng ký ${plan.name} (${price}/tháng). Gói bắt đầu ngay khi thanh toán thành công.` };
   const end = day(quota?.nextPlan?.endAt ?? cur.endAt);
   if (cur.planType === plan.planType) return { label: 'Gia hạn', confirm: `Gia hạn ${plan.name} (${price}): chu kỳ mới bắt đầu sau ngày ${end}, lượt hiện tại giữ nguyên.` };
@@ -96,6 +99,7 @@ function PayDialog({ tx, onClose, onPaid }: { tx: PaymentTransactionDto; onClose
 
 /** Trang "Nâng cấp gói" (Luồng 2, F-03, F-05): gói đang dùng và lượt còn lại, các gói đang bán, lịch sử giao dịch. */
 export default function PaymentSection({ audience = 'parent' }: { audience?: 'parent' | 'creator' }) {
+  const canQuota = useAccessLookup()('quota.parent.view').state !== 'Hidden';
   const [quota, setQuota] = useState<MyQuotaDto | null>(null);
   const [creatorQuota, setCreatorQuota] = useState<CreatorQuotaDto | null>(null);
   const [creatorError, setCreatorError] = useState(false);
@@ -119,15 +123,15 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
         if (!p.success) showToast(p.message, 'err');
       });
     } else {
-      void Promise.all([paymentService.myQuota(c.signal), paymentService.plans(c.signal)]).then(([q, p]) => {
+      void Promise.all([canQuota ? paymentService.myQuota(c.signal) : null, paymentService.plans(c.signal)]).then(([q, p]) => {
         if (!alive) return;
-        setQuota(q.success ? q.data : null);
+        setQuota(q?.success ? q.data : null);
         setPlans(p.data ?? []);
         if (!p.success) showToast(p.message, 'err');
       });
     }
     return () => { alive = false; c.abort(); };
-  }, [rev, audience]);
+  }, [rev, audience, canQuota]);
   useEffect(() => {
     const c = new AbortController(); let alive = true;
     void paymentService.myTransactions(page, 10, c.signal).then((r) => { if (alive) setHistory(r.success ? r.data : null); });
@@ -136,7 +140,7 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
 
   const buy = async (plan: SubscriptionPlanDto) => {
     if (busy) return;
-    const a = action(plan, audience === 'creator' ? null : quota);
+    const a = action(plan, audience === 'creator' ? null : quota, audience === 'parent' && !canQuota);
     if (!await confirmDialog(a.confirm)) return;
     setBusy(true);
     const r = await paymentService.create(plan.id);
@@ -157,7 +161,7 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
   return <section className="sec plan-page" style={{ gap: 24 }}>
     <h3 className="display" style={headStyle}>{audience === 'creator' ? 'Gói và lượt' : 'Nâng cấp gói'}</h3>
 
-    {audience === 'parent' && (
+    {audience === 'parent' && canQuota && (
       <div className="pay-current" aria-label="Gói của bạn">
         <div className="grow">
           <small>Gói của bạn</small>
@@ -180,7 +184,7 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
       <div className="plan-grid">
         {plans?.map((plan) => {
           const Icon = PLAN_ICON[plan.planType] ?? Sparkles;
-          const a = action(plan, quota);
+          const a = action(plan, quota, !canQuota);
           return <article key={plan.id} className={`plan-card${plan.planType === featured ? ' featured' : ''}${plan.isPurchasable ? '' : ' locked'}`}>
             <div className="plan-head">
               <Icon className="plan-icon" aria-hidden />
@@ -203,7 +207,7 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
           <tbody>{history.items.map((t) => {
             const [tone, label] = STATUS[t.status] ?? ['draft', t.status];
             return <tr key={t.id}>
-              <td data-label="Gói">{t.planName}</td>
+              <td data-label="Gói">{t.planName}{t.planType === 'Legacy' && <small className="pay-paid">Gói cũ, chỉ cộng lượt</small>}</td>
               <td data-label="Số tiền">{money(t.amount)}</td>
               <td data-label="Mã giao dịch"><code>{t.transactionCode}</code></td>
               <td data-label="Tạo lúc">{time(t.createdAt)}</td>

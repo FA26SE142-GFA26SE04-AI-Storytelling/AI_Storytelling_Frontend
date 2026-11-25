@@ -43,7 +43,13 @@ button { cursor: pointer; border: 0; background: none; }
   transition: transform .12s, background .15s, box-shadow .15s, border-color .15s;
 }
 .btn:active { transform: scale(.97); }
-.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn:disabled, button:disabled.btn {
+  opacity: .85; cursor: not-allowed; box-shadow: none; transform: none;
+  border: 1.5px solid color-mix(in srgb, var(--line-2) 75%, transparent);
+  background: color-mix(in srgb, var(--surface-2) 85%, transparent);
+  color: var(--muted);
+}
+.btn:disabled:hover { transform: none; box-shadow: none; }
 .btn-c { justify-content: center; }
 
 /* Lớp vân lá nằm dưới chữ, lấy màu theo màu chữ của nút. */
@@ -53,25 +59,72 @@ button { cursor: pointer; border: 0; background: none; }
   -webkit-mask: var(--vein) center / 100% 100% no-repeat; mask: var(--vein) center / 100% 100% no-repeat;
 }
 .btn:hover::before { opacity: .17; }
-.btn:disabled::before { opacity: .05; }
+.btn:disabled::before { opacity: .04; }
 
 .btn-p { background: var(--primary-strong); color: #fff; border-radius: 18px 7px 18px 7px; box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--primary) 80%, transparent); }
 .btn-p:hover { background: color-mix(in srgb, var(--primary-strong) 85%, #000); }
+.btn-p:disabled {
+  background: color-mix(in srgb, var(--primary-strong) 25%, var(--surface-2));
+  border: 1.5px solid color-mix(in srgb, var(--primary) 45%, var(--line));
+  color: color-mix(in srgb, var(--primary-strong) 85%, var(--muted));
+  box-shadow: 0 2px 8px -3px color-mix(in srgb, var(--primary) 20%, transparent);
+}
 .btn-p::before { opacity: .15; }
 /* Nút nhấn vàng: chỉ dùng cho hành động "phép màu" tạo truyện bằng AI và lời mời bắt đầu, để vàng luôn là điểm nhấn hiếm. */
 .btn-gold { background: var(--gold); color: var(--on-gold); font-weight: 700; border-radius: 18px 7px 18px 7px; box-shadow: 0 4px 14px -6px color-mix(in srgb, var(--gold-deep) 85%, transparent); }
 .btn-gold:hover { background: color-mix(in srgb, var(--gold) 82%, var(--gold-deep)); box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--gold-deep) 90%, transparent); }
+.btn-gold:disabled {
+  background: color-mix(in srgb, var(--gold) 24%, var(--surface-2));
+  border: 1.5px solid color-mix(in srgb, var(--gold-deep) 40%, transparent);
+  color: color-mix(in srgb, var(--warn-ink) 80%, var(--muted));
+}
 .btn-gold::before { opacity: .12; }
 .btn-gold .ic { animation: gold-twinkle 2.8s ease-in-out infinite; }
 @keyframes gold-twinkle { 0%, 80%, 100% { transform: none; } 88% { transform: rotate(-14deg) scale(1.15); } }
 @media (prefers-reduced-motion: reduce) { .btn-gold .ic { animation: none; } }
-.btn-s { background: var(--surface-2); border: 1px solid var(--line-2); }
-.btn-s:hover { border-color: var(--primary); }
-.btn-g { color: var(--muted); }
-.btn-g:hover { color: var(--text); background: var(--surface); }
+.btn-s {
+  background: var(--surface-2); border: 1.5px solid var(--line-2); color: var(--ink-warm); font-weight: 700;
+  box-shadow: 0 1px 4px -1px color-mix(in srgb, var(--shadow) 18%, transparent);
+}
+.btn-s:hover {
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface-2)); border-color: var(--primary); transform: translateY(-1px);
+}
+.btn-s:disabled {
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  border: 1.5px solid color-mix(in srgb, var(--line-2) 75%, transparent);
+  color: var(--muted);
+}
+.btn-g {
+  background: color-mix(in srgb, var(--surface) 90%, var(--surface-2));
+  border: 1.5px solid color-mix(in srgb, var(--line-2) 65%, transparent);
+  color: var(--ink-warm); font-weight: 700;
+  box-shadow: 0 1px 4px -1px color-mix(in srgb, var(--shadow) 16%, transparent);
+}
+.btn-g:hover {
+  background: var(--surface-2); border-color: var(--primary); color: var(--primary-strong); transform: translateY(-1px);
+}
+.btn-g:disabled {
+  background: color-mix(in srgb, var(--surface) 55%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--line) 75%, transparent);
+  color: var(--faint);
+}
 .btn-g::before { display: none; }
-.btn-ok { background: color-mix(in srgb, var(--mint) 14%, transparent); color: var(--ok-ink); border: 1px solid color-mix(in srgb, var(--mint) 35%, transparent); }
-.btn-no { background: color-mix(in srgb, var(--danger) 10%, transparent); color: var(--danger); border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent); }
+.btn-ok {
+  background: color-mix(in srgb, var(--mint) 18%, var(--surface)); color: var(--ok-ink);
+  border: 1.5px solid color-mix(in srgb, var(--mint) 50%, transparent); font-weight: 700;
+  box-shadow: 0 1px 4px -1px color-mix(in srgb, var(--mint) 25%, transparent);
+}
+.btn-ok:hover {
+  background: color-mix(in srgb, var(--mint) 28%, var(--surface)); border-color: var(--mint); transform: translateY(-1px);
+}
+.btn-no {
+  background: color-mix(in srgb, var(--danger) 14%, var(--surface)); color: var(--danger);
+  border: 1.5px solid color-mix(in srgb, var(--danger) 50%, transparent); font-weight: 700;
+  box-shadow: 0 1px 4px -1px color-mix(in srgb, var(--danger) 25%, transparent);
+}
+.btn-no:hover {
+  background: color-mix(in srgb, var(--danger) 24%, var(--surface)); border-color: var(--danger); transform: translateY(-1px);
+}
 .btn-kid { background: linear-gradient(135deg, color-mix(in srgb, var(--gold) 20%, transparent), color-mix(in srgb, var(--primary) 16%, transparent)); border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent); color: var(--warn-ink); }
 .btn-kid:hover { border-color: var(--warn-ink); }
 .btn-s::before, .btn-kid::before { opacity: .07; }

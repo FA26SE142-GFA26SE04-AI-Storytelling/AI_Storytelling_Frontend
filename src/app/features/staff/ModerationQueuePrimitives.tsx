@@ -444,14 +444,9 @@ export function ModerationQueueFrame({
             {detail ?? (
               <div className="st-card st-empty mod-empty">
                 <Frog size={110} mood="think" />
-                <b className="display">Chọn một hồ sơ để xem</b>
-                <span className="sub">
-                  {items.length
-                    ? 'Bấm vào một hồ sơ bên trái để xem tóm tắt hoặc tác nghiệp.'
-                    : error
-                      ? 'Chưa tải được danh sách. Bấm Thử lại để tải lại.'
-                      : 'Hiện chưa có hồ sơ nào ở phân khu này.'}
-                </span>
+                <b className="display">
+                  {items.length ? 'Chọn một hồ sơ để xem' : error ? 'Chưa tải được danh sách' : 'Chưa có hồ sơ nào'}
+                </b>
               </div>
             )}
           </div>

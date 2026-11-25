@@ -1,4 +1,4 @@
-import type { ContentCategory, ReadingMode } from "@/app/types/childProfile";
+import type { ContentCategory, ContentCategoryGroup, ReadingMode } from "@/app/types/childProfile";
 
 /** Hằng số và quy tắc dùng chung cho Luồng 1 (khu quản lý của phụ huynh). */
 
@@ -14,6 +14,13 @@ export const AGE_BANDS = [
   { id: "Age_6_8", label: "6–8 tuổi", hint: "Đang học đọc, nghe là chính" },
   { id: "Age_9_10", label: "9–10 tuổi", hint: "Đã tự đọc được" },
 ] as const;
+
+/** Tuổi chọn được cho hồ sơ bé (backend ChildProfileService: 6–10, phải khớp nhóm tuổi). Không hỏi ngày sinh. */
+export const CHILD_AGES = [6, 7, 8, 9, 10] as const;
+/** Nhóm tuổi của một tuổi cụ thể: 6–8 hoặc 9–10. */
+export const ageBandOfAge = (age: number): "Age_6_8" | "Age_9_10" => (age <= 8 ? "Age_6_8" : "Age_9_10");
+/** Bé đang học lớp mấy: chỉ dùng để chọn sẵn mức đọc (lớp N → mức N), không lưu lên server. */
+export const SCHOOL_GRADES = [1, 2, 3, 4, 5] as const;
 
 /**
  * Thang mức đọc 1–5, mỗi mức tương đương một lớp (Luồng 2 mục 5.3b).
@@ -67,6 +74,62 @@ export const storyLengthFor = (ageBand?: string, level?: number) => {
   const target = isOlderAgeBand(ageBand) || (level ?? 0) >= OLDER_READING_LEVEL ? 1500 : 900;
   return { target, min: Math.ceil(target * 0.9), max: Math.floor(target * 1.1) };
 };
+/** Trần 110% của một độ dài, làm tròn lên. Phản chiếu backend StoryLengthRules.UpperBound; dùng số nguyên để tránh lệch số thực (900 * 1.1 = 990.0000000000001). */
+export const storyLengthUpperBound = (target: number) => Math.ceil((target * 11) / 10);
+/**
+ * Trần lưu khi độ dài truyện đang theo mức đọc (chưa tự chỉnh). 1500 là mặc định lớn nhất (bé 9–10 tuổi hoặc mức đọc 4–5),
+ * nên trần vẫn phủ được khi mức đọc hoặc nhóm tuổi tăng lên sau này và không bị coi là giới hạn cũ do phụ huynh đặt.
+ */
+export const LEVEL_MODE_STORY_CAP = storyLengthUpperBound(1500);
+/**
+ * Độ dài truyện hiển thị ở tab An toàn. Phản chiếu StoryLengthRules.ForGeneration ở backend:
+ * số phụ huynh tự chỉnh nếu có; chưa có thì theo mức đọc, trừ khi giới hạn cũ thấp hơn mặc định (phụ huynh đã đặt từ trước)
+ * thì coi giới hạn đó là số tự chỉnh.
+ */
+export const effectiveStoryLength = (
+  ageBand: string | undefined,
+  level: number,
+  storyLengthTarget: number | null | undefined,
+  maxStoryLength: number,
+): { value: number; custom: boolean } => {
+  if (typeof storyLengthTarget === "number" && storyLengthTarget > 0) return { value: storyLengthTarget, custom: true };
+  const byLevel = storyLengthFor(ageBand, level).target;
+  if (maxStoryLength > 0 && maxStoryLength < byLevel) return { value: maxStoryLength, custom: true };
+  return { value: byLevel, custom: false };
+};
+
+/** Ngưỡng cảnh báo so với độ dài mặc định theo mức đọc: trên 110% là "dài", trên 150% là "rất dài". */
+export const STORY_LENGTH_LONG_RATIO = 1.1;
+export const STORY_LENGTH_VERY_LONG_RATIO = 1.5;
+
+/**
+ * Cảnh báo khi phụ huynh tự chỉnh dài hơn mức phù hợp với tuổi và mức đọc của bé. Không chặn lưu; null = không cần cảnh báo.
+ * Truyện dài hơn thì bé khó tập trung, AI mất nhiều thời gian hơn để tạo và phụ huynh mất nhiều thời gian hơn để duyệt.
+ */
+export const storyLengthAdvice = (
+  ageBand: string | undefined,
+  level: number,
+  value: number,
+): { severity: "long" | "very-long"; text: string } | null => {
+  const recommended = storyLengthFor(ageBand, level).target;
+  const who = AGE_BANDS.find((a) => a.id === ageBand)?.label;
+  const forWho = who ? `bé ${who}` : "bé";
+  const about = recommended.toLocaleString("vi-VN");
+  if (value > recommended * STORY_LENGTH_VERY_LONG_RATIO) {
+    return {
+      severity: "very-long",
+      text: `Rất dài so với mức phù hợp với ${forWho} (khoảng ${about} từ). Bé dễ mất tập trung, AI sẽ mất lâu hơn đáng kể để tạo truyện và bạn cũng cần nhiều thời gian hơn để duyệt.`,
+    };
+  }
+  if (value > recommended * STORY_LENGTH_LONG_RATIO) {
+    return {
+      severity: "long",
+      text: `Dài hơn mức phù hợp với ${forWho} (khoảng ${about} từ). Bé có thể khó tập trung đọc hết, và AI cần nhiều thời gian hơn để tạo truyện.`,
+    };
+  }
+  return null;
+};
+
 /** Thanh kéo "Độ dài tối đa của truyện" (cài đặt an toàn MaxStoryLength), dùng chung cho form tạo bé và trang An toàn. */
 export const MAX_STORY_LENGTH_RANGE = { min: 200, max: 5000, step: 100 } as const;
 export const isMaxStoryLength = (n: unknown): n is number =>
@@ -131,6 +194,26 @@ export function presetBlocked(categories: ContentCategory[], ageBand: string): n
     const text = `${c.code} ${c.displayName}`;
     return SENSITIVE.test(text) || HORROR.test(text) || (ageBand === "Age_6_8" && MILD_FEAR.test(text));
   }).map((c) => c.id);
+}
+
+/** Nhóm danh mục nội dung (cột `group` backend trả về), theo thứ tự hiển thị. Nhãn trùng với màn quản lý danh mục của Moderator. */
+export const CATEGORY_GROUPS: { id: ContentCategoryGroup; label: string }[] = [
+  { id: "Genre", label: "Thể loại" },
+  { id: "LifeValue", label: "Giá trị và kỹ năng sống" },
+  { id: "Learning", label: "Học tập" },
+  { id: "SafetyWarning", label: "Cảnh báo an toàn" },
+];
+
+export type CategoryGroupId = ContentCategoryGroup | "Other";
+
+/** Chia danh mục theo nhóm, giữ thứ tự trong từng nhóm. Danh mục thiếu hoặc lạ nhóm vào "Khác" ở cuối; nhóm rỗng bị bỏ. */
+export function groupCategories<T extends { group?: string }>(cats: T[]): { id: CategoryGroupId; label: string; items: T[] }[] {
+  const known = new Set<string>(CATEGORY_GROUPS.map((g) => g.id));
+  const sections: { id: CategoryGroupId; label: string; items: T[] }[] = [
+    ...CATEGORY_GROUPS.map((g) => ({ ...g, items: cats.filter((c) => c.group === g.id) })),
+    { id: "Other", label: "Khác", items: cats.filter((c) => !c.group || !known.has(c.group)) },
+  ];
+  return sections.filter((s) => s.items.length > 0);
 }
 
 /** Bước 1.1 — mật khẩu ≥ 8 ký tự, có ít nhất 1 chữ và 1 số. */

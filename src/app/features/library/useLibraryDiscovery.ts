@@ -11,6 +11,7 @@ import {
   collectAgeOptions,
   collectDurationOptions,
   collectLibraryAuthors,
+  countActiveFilters,
   countPopoverFilters,
   filterAndSortStories,
   filterRoadmaps,
@@ -32,11 +33,12 @@ export type UseLibraryDiscoveryParams = {
   kids: ChildProfile[];
   pickKid: ChildProfile | null;
   tab: "stories" | "roadmaps";
+  /** false khi tài khoản không có quyền đọc thư viện cộng đồng. */
+  community?: boolean;
 };
 
 /** Trạng thái tìm kiếm, lọc, sắp xếp, đề xuất và bảng nổi bật cộng đồng cho Thư viện phụ huynh. */
-export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: UseLibraryDiscoveryParams) {
-  const [spotlightTab, setSpotlightTab] = useState<"views" | "favorites">("favorites");
+export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab, community = true }: UseLibraryDiscoveryParams) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [genreF, setGenreF] = useState("all");
@@ -91,10 +93,11 @@ export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: 
     [q, status, genreF, ageF, srcF, duration, author, sort],
   );
   const popoverCount = countPopoverFilters(filterState);
+  const activeCount = countActiveFilters(filterState);
   const focused = isFocusedCatalog(filterState);
   const results = useMemo(() => filterAndSortStories(sorted, filterState), [sorted, filterState]);
 
-  const { mostViewed, mostFavorited } = useCommunityStatShelves(tab === "stories" && !focused);
+  const { mostViewed, mostFavorited } = useCommunityStatShelves(community && tab === "stories" && !focused);
   const viewedCards = useMemo(
     () => mostViewed.map((s) => ({ ...toCard(s), creator: true, viewCount: s.viewCount, favoriteCount: s.favoriteCount })),
     [mostViewed],
@@ -104,7 +107,7 @@ export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: 
     [mostFavorited],
   );
   const activeSpotlight: "views" | "favorites" =
-    spotlightTab === "favorites" && favoritedCards.length > 0
+    favoritedCards.length > 0
       ? "favorites"
       : viewedCards.length > 0
         ? "views"
@@ -167,7 +170,6 @@ export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: 
     setSrcF,
     sort,
     setSort,
-    setSpotlightTab,
     roadmapQuery,
     setRoadmapQuery,
     roadmapAge,
@@ -179,6 +181,7 @@ export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: 
     topicEntries,
     ageOptions,
     popoverCount,
+    activeCount,
     focused,
     results,
     viewedCards,

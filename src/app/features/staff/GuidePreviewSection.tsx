@@ -18,6 +18,7 @@ export default function GuidePreviewSection({
   previewValid,
   dirty,
   disabled,
+  publishDisabled = false,
   onPurposeChange,
   onGroupChange,
   onPreviewPageChange,
@@ -34,6 +35,8 @@ export default function GuidePreviewSection({
   previewValid: boolean;
   dirty: boolean;
   disabled: boolean;
+  /** Tài khoản chỉ được xem: khoá riêng nút phát hành. */
+  publishDisabled?: boolean;
   onPurposeChange: (value: string) => void;
   onGroupChange: (value: string) => void;
   onPreviewPageChange: (page: number) => void;
@@ -109,7 +112,7 @@ export default function GuidePreviewSection({
       )}
 
       <div>
-        <button type="button" className="btn btn-ok" disabled={disabled || dirty || !previewValid} onClick={onPublish}>
+        <button type="button" className="btn btn-ok" disabled={disabled || publishDisabled || dirty || !previewValid} onClick={onPublish}>
           Phát hành bộ nháp
         </button>
       </div>

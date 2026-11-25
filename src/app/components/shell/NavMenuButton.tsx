@@ -63,12 +63,12 @@ export default function NavMenuButton<Id extends string>({ entry, items, ws, onW
       </button>
       {open && pos && createPortal(
         <div ref={menuRef} className="nav-menu" role="menu" aria-label={entry.label} style={{ left: pos.left, top: pos.top, bottom: pos.bottom }}>
-          {items.map(({ id, label, menuLabel, hint, icon: ItemIcon }) => {
+          {items.map(({ id, label, menuLabel, icon: ItemIcon }) => {
             const count = badges?.[id] ?? 0;
             return (
               <button key={id} role="menuitem" className={ws === id ? "on" : ""} aria-current={ws === id ? "page" : undefined} onClick={() => { setOpen(false); onWs(id); }}>
                 <span className="nav-menu-ic"><ItemIcon /></span>
-                <span className="grow"><b>{menuLabel ?? label}</b>{hint && <small>{hint}</small>}</span>
+                <span className="grow"><b>{menuLabel ?? label}</b></span>
                 {count > 0 && <span className="nav-menu-badge">{count > 99 ? "99+" : count}</span>}
               </button>
             );

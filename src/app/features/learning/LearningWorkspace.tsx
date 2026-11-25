@@ -13,6 +13,7 @@ import { useRiseIn } from "@/app/lib/motion";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import type { RoadmapItem } from "@/app/types/progress";
 import type { ChildProfile } from "@/app/types/childProfile";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import Frog from "@/app/components/brand/Frog";
 import { openChildCreate } from "@/app/features/children/childrenIntent";
 import { splitRoadmap, usePendingWishes } from "./learningData";
@@ -108,7 +109,7 @@ export default function LearningWorkspace({ go }: WorkspaceProps) {
 }
 
 /** Phần bên phải cho một bé: thanh tab và nội dung tab. Tách riêng để đổi bé thì tải lại điều ước của bé đó. */
-function LearningMain({ child, tab, setTab, bodyRef, roadmap, canEdit, onRoadmapChanged, go }: {
+function LearningMain({ child, tab: pickedTab, setTab, bodyRef, roadmap, canEdit, onRoadmapChanged, go }: {
   child: ChildProfile;
   tab: LearningTabId;
   setTab: (t: LearningTabId) => void;
@@ -118,12 +119,15 @@ function LearningMain({ child, tab, setTab, bodyRef, roadmap, canEdit, onRoadmap
   onRoadmapChanged: () => void;
   go: WorkspaceProps["go"];
 }) {
-  const wishes = usePendingWishes(child.id);
+  const canFeedback = useAccessLookup()("parent.feedback.manage").state !== "Hidden";
+  const tabs = TABS.filter((t) => canFeedback || (t.id !== "results" && t.id !== "wishes"));
+  const wishes = usePendingWishes(child.id, canFeedback);
+  const tab = tabs.some((t) => t.id === pickedTab) ? pickedTab : "overview";
   const wishCount = wishes.data?.length ?? null;
   return (
     <div className="pane children-main">
-      <div className="tabs children-tabs" role="tablist" aria-label={`Học tập của ${child.nickname}`} style={{ "--i": Math.max(0, TABS.findIndex((x) => x.id === tab)), "--n": TABS.length } as React.CSSProperties}>
-        {TABS.map((t) => (
+      <div className="tabs children-tabs" role="tablist" aria-label={`Học tập của ${child.nickname}`} style={{ "--i": Math.max(0, tabs.findIndex((x) => x.id === tab)), "--n": tabs.length } as React.CSSProperties}>
+        {tabs.map((t) => (
           <button key={t.id} role="tab" aria-selected={tab === t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>
             {t.label}
             {t.id === "wishes" && !!wishCount && <span className="lr-badge">{wishCount}</span>}

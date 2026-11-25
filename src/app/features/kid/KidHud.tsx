@@ -9,15 +9,16 @@ import { childRewardsService } from '@/app/services/childReadingService';
 import type { ChildRewards } from '@/app/types/childReading';
 import KidDock, { type DockTab } from './KidDock';
 import '@/app/styles/features/kid/kid-hud.css';
+import { KID_FEATURE, useKidFeature } from './kidFeatures';
 
 /** Phần thưởng của bé (cây tri thức, huy hiệu, streak). Gọi một lần ở trang cha rồi chia cho HUD và sảnh. */
-export function useKidRewards(childId: number, revision: number): ChildRewards | null {
+export function useKidRewards(childId: number, revision: number, enabled = true): ChildRewards | null {
   const [data, setData] = useState<ChildRewards | null>(null);
 
   useEffect(() => {
     const session = childAccessService.readSession();
     const token = session?.childProfileId === childId ? session.accessToken : '';
-    if (!token) return;
+    if (!token || !enabled) return;
 
     const controller = new AbortController();
     void childRewardsService.get(token, controller.signal).then((r) => {
@@ -26,9 +27,9 @@ export function useKidRewards(childId: number, revision: number): ChildRewards |
     });
 
     return () => controller.abort();
-  }, [childId, revision]);
+  }, [childId, revision, enabled]);
 
-  return data;
+  return enabled ? data : null;
 }
 
 export interface KidHudProps {
@@ -45,6 +46,7 @@ export interface KidHudProps {
  * (giọt nước, huy hiệu, streak) và nút khóa dành cho bố mẹ.
  */
 export default function KidHud({ rewards: data, pane, onPane, showDock, onExit, onRewards }: KidHudProps) {
+  const rewardsOn = useKidFeature(KID_FEATURE.rewards);
   const tree = data?.knowledgeTree;
   const earnedCount = data ? data.badges.filter((b) => b.earned).length : 0;
   const totalBadges = data ? data.badges.length : 0;
@@ -58,6 +60,7 @@ export default function KidHud({ rewards: data, pane, onPane, showDock, onExit, 
 
       {/* Góc phải: Các chip phần thưởng & Nút khóa dành cho bố mẹ */}
       <div className="kid-hud-right">
+        {rewardsOn && <>
         <button
           type="button"
           className="kid-hud-chip"
@@ -95,6 +98,7 @@ export default function KidHud({ rewards: data, pane, onPane, showDock, onExit, 
             <span>{streakDays}</span>
           </button>
         ) : null}
+        </>}
 
         {/* Đổi sáng / tối giống header phụ huynh (cùng hiệu ứng lan tròn), dùng lại kiểu nút khoá cho đồng bộ. */}
         <button

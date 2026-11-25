@@ -13,6 +13,7 @@ export default function GuideHistorySection({
   version,
   hasDraft,
   disabled,
+  createDisabled = false,
   onPageChange,
   onSelectVersion,
   onCreateDraftFrom,
@@ -22,6 +23,8 @@ export default function GuideHistorySection({
   version: GuideVersionDetail | null;
   hasDraft: boolean;
   disabled: boolean;
+  /** Tài khoản chỉ được xem: khoá riêng nút tạo nháp. */
+  createDisabled?: boolean;
   onPageChange: (nextPage: number) => void;
   onSelectVersion: (versionId: number) => void;
   onCreateDraftFrom: (versionId: number) => void;
@@ -57,7 +60,7 @@ export default function GuideHistorySection({
           ))}
           {!hasDraft && version.version.status === 'Published' && (
             <div>
-              <button type="button" className="btn btn-s" disabled={disabled} onClick={() => onCreateDraftFrom(version.version.versionId)}>
+              <button type="button" className="btn btn-s" disabled={disabled || createDisabled} onClick={() => onCreateDraftFrom(version.version.versionId)}>
                 Tạo nháp từ bản này
               </button>
             </div>

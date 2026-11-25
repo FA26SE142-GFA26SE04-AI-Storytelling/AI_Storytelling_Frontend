@@ -12,20 +12,23 @@ import { ageLabel } from "@/app/lib/storyView";
 import { useRiseIn } from "@/app/lib/motion";
 import CreateChildWizard from "./CreateChildWizard";
 import { clearChildIntent, markChildCreate, readChildDraft, wantsChildCreate } from "./childrenIntent";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import ProfileTab from "./ProfileTab";
 import LearningTab from "./LearningTab";
 import SafetyTab from "@/app/features/safety/SafetyWorkspace";
 import AccessTab from "./AccessTab";
+import TimeHabitsTab from "./TimeHabitsTab";
 import ReadingSlotsDialog from "./ReadingSlotsDialog";
 import { childProfileService } from "@/app/services/childProfileService";
 import { forgetArchived, listArchived, rememberArchived, type ArchivedChild } from "@/app/lib/archivedChildren";
 import type { ReadingSlotsDto } from "@/app/types/readingSlots";
 
-type Tab = "profile" | "learning" | "safety" | "access";
+type Tab = "profile" | "learning" | "safety" | "time" | "access";
 const TABS: { id: Tab; label: string }[] = [
   { id: "profile", label: "Hồ sơ" },
   { id: "learning", label: "Học tập" },
   { id: "safety", label: "An toàn" },
+  { id: "time", label: "Thời gian & thói quen" },
   { id: "access", label: "QR đăng nhập" },
 ];
 
@@ -62,7 +65,11 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
   // Mở từ nút "+ Thêm bé" ở màn khác, hoặc tải lại trang khi đang ở form tạo hồ sơ, thì vào thẳng form.
   const [mode, setMode] = useState<"view" | "create">(() => (wantsChildCreate() || !kids.length ? "create" : "view"));
   useEffect(() => { if (mode === "create") markChildCreate(); else clearChildIntent(); }, [mode]);
-  const [tab, setTab] = useState<Tab>("profile");
+  const [pickedTab, setTab] = useState<Tab>("profile");
+  // API chính sách an toàn của bé dùng quyền tạo truyện.
+  const canSafety = useAccessLookup()("parent.story.author").state !== "Hidden";
+  const tabs = TABS.filter((t) => canSafety || t.id !== "safety");
+  const tab = tabs.some((t) => t.id === pickedTab) ? pickedTab : "profile";
   const listRef = useRiseIn<HTMLDivElement>(".kid-item", [kids.length]);
   const meId = user?.id ?? -1;
   // Bé chọn ở đây chỉ để xem và sửa trong trang Hồ sơ bé, không đổi bé của các trang khác.
@@ -122,7 +129,7 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
                 <span className="grow kid-item-text">
                   <b title={k.nickname}>{k.nickname}</b>
                   <span className="kid-item-meta">
-                    <small>{ageLabel(k.ageBand)}</small>
+                    <small>{k.age ? `${k.age} tuổi` : ageLabel(k.ageBand)}</small>
                     {slot && !slot.canRead ? (
                       <span className="reading-slot-lock" title="Bé đang chỉ xem, chưa được đọc truyện theo gói hiện tại">
                         <Lock className="ic" />Chỉ xem
@@ -171,14 +178,15 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
         )}
         {mode === "view" && child && (
           <>
-            <div className="tabs children-tabs" style={{ "--i": Math.max(0, TABS.findIndex((x) => x.id === tab)), "--n": TABS.length } as React.CSSProperties}>
-              {TABS.map((t) => <button key={t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>{t.label}</button>)}
+            <div className="tabs children-tabs" style={{ "--i": Math.max(0, tabs.findIndex((x) => x.id === tab)), "--n": tabs.length } as React.CSSProperties}>
+              {tabs.map((t) => <button key={t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>{t.label}</button>)}
             </div>
             <div className="pb children-body">
               <div key={`${tab}:${child.id}`} className="tab-pane">
                   {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={isOwner} onChanged={() => void reloadChildren()} onArchived={() => { rememberArchived(meId, child); setArchived(listArchived(meId)); void reloadChildren(); }} onTab={setTab} />}
                   {tab === "learning" && <LearningTab key={child.id} child={child} canEdit={isOwner} onSaved={() => void reloadChildren()} />}
                   {tab === "safety" && <SafetyTab key={child.id} child={child} />}
+                  {tab === "time" && <TimeHabitsTab key={child.id} child={child} canEdit={isOwner} />}
                   {tab === "access" && <AccessTab key={child.id} child={child} />}
               </div>
             </div>

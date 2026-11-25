@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { childAccessService } from "@/app/services/childAccessService";
 import AppShell from "@/app/components/shell/AppShell";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
-import { WORKSPACES, type WorkspaceId, type WorkspaceProps } from "@/app/components/shell/nav";
+import { visibleWorkspaces, WORKSPACES, type WorkspaceId, type WorkspaceProps } from "@/app/components/shell/nav";
 import { appWorkspaceRoute, DEFAULT_WORKSPACE, takesStoryId } from "@/app/lib/workspaceLocation";
 import StudioWorkspace from "@/app/features/studio/StudioWorkspace";
 import AuthoringWorkspace from "@/app/features/authoring/AuthoringWorkspace";
@@ -18,6 +18,7 @@ import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import LearningWorkspace from "@/app/features/learning/LearningWorkspace";
 import EventsWorkspace from "@/app/features/events/EventsWorkspace";
 import { transitionWorkspace } from "@/app/lib/motion";
+import { useAccessLookup, useAccessReady } from "@/app/features/staff/staffAccess";
 import "@/app/styles/mobile.css";
 
 const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
@@ -57,6 +58,9 @@ export default function ParentShell({
 
   const closeKid = useCallback(() => setKid(null), []);
   const View = VIEWS[workspace];
+  const access = useAccessLookup();
+  const accessReady = useAccessReady();
+  const allowed = visibleWorkspaces((code) => access(code).state !== "Hidden").some((w) => w.id === workspace);
 
   const go = useCallback<WorkspaceProps["go"]>((id, target) => transitionWorkspace(() => {
     router.push(appWorkspaceRoute(id, takesStoryId(id) ? target?.storyId ?? null : null));
@@ -77,9 +81,16 @@ export default function ParentShell({
     <>
       <div inert={kidOpen} style={{ display: "contents" }}>
         <AppShell ws={workspace} onWs={go} onKid={(id) => openKid(id)}>
-          {childrenLoading
+          {childrenLoading || !accessReady
             ? <div className="splash">Đang tải hồ sơ bé…</div>
-            : <View key={takesStoryId(workspace) ? `${workspace}:${storyId ?? "new"}` : workspace} go={go} resumeStoryId={storyId} onKid={openKid} />}
+            : !allowed ? (
+              <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}>
+                <div className="pane"><div className="empty">
+                  <b className="display">Bạn không có quyền dùng trang này</b>
+                  <span>Quản trị viên đã tắt quyền cần cho trang này. Hãy chọn mục khác trên menu.</span>
+                </div></div>
+              </section>
+            ) : <View key={takesStoryId(workspace) ? `${workspace}:${storyId ?? "new"}` : workspace} go={go} resumeStoryId={storyId} onKid={openKid} />}
         </AppShell>
       </div>
       {kidPending && <div className="kid" role="dialog" aria-modal="true" aria-label="Chế độ của bé"><div className="splash">Đang mở…</div></div>}

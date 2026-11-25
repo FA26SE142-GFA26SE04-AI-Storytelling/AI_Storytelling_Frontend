@@ -1,5 +1,6 @@
 "use client";
 
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import { useEffect, useState } from "react";
 import { BookOpenCheck, Sparkles, WandSparkles } from "lucide-react";
 import Frog from "@/app/components/brand/Frog";
@@ -88,6 +89,7 @@ function WishMaking({ wish, go, onDone }: { wish: ParentWishDto; go: WorkspacePr
     return () => window.clearTimeout(id);
   }, [state.done, tick]);
 
+  const canAuthor = useAccessLookup()("parent.story.author").state !== "Hidden";
   const storyId = current.generatedStoryId ?? progress?.storyId ?? null;
   return (
     <div className="wish-row">
@@ -98,7 +100,7 @@ function WishMaking({ wish, go, onDone }: { wish: ParentWishDto; go: WorkspacePr
       </div>
       {progress?.fallbackMessage && state.tone === "flag" && <p className="notice warn">{progress.fallbackMessage}</p>}
       <div className="wish-actions">
-        {storyId != null && <button className="btn btn-p" onClick={() => go("studio", { storyId })}>
+        {canAuthor && storyId != null && <button className="btn btn-p" onClick={() => go("studio", { storyId })}>
           {state.tone === "flag" ? <WandSparkles className="ic" /> : <BookOpenCheck className="ic" />}Mở trong Studio
         </button>}
       </div>

@@ -201,7 +201,7 @@ export interface StaffAccountDto {
 }
 
 /** Loại mục và trạng thái trong hàng đợi kiểm duyệt của backend (`ModerationQueue`). */
-export type QueueItemType = 'PublicStoryRemoval' | 'PublicStoryReview' | 'GrayZoneStory' | 'ContentReport' | 'RoadmapTemplateReview' | 'CommunitySubmission';
+export type QueueItemType = 'PublicStoryRemoval' | 'PublicStoryReview' | 'GrayZoneStory' | 'ContentReport' | 'RoadmapTemplateReview' | 'CommunitySubmission' | 'StoryRating';
 export type QueueItemStatus = 'Pending' | 'Claimed' | 'Approved' | 'ChangesRequested' | 'Rejected' | 'Cleared' | 'Blocked' | 'Dismissed' | 'Archived' | 'Escalated' | 'Withdrawn' | 'Removed' | 'Closed';
 
 export interface QueueItem {
