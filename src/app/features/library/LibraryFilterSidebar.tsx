@@ -1,7 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { BookOpen, Clock, PanelLeftClose, PanelLeftOpen, Shapes, SlidersHorizontal, Tag, Users } from "lucide-react";
-import Frog from "@/app/components/brand/Frog";
-import Lotus from "@/app/components/brand/Lotus";
 import type { StoryCard } from "@/app/lib/storyView";
 import { FilterGroup, LibraryTopAuthors, type LibraryExtraFilterProps } from "./LibraryExtraFilters";
 import { SOURCE_LABEL, STATUS_GROUPS, sourceOf, statusOf, type AgeFilterOption } from "./libraryFilters";
@@ -12,7 +10,7 @@ const COLLAPSED_KEY = "lib_filter_collapsed";
  * Khung thanh lọc trái dùng chung (Thư viện phụ huynh, Creator, Moderator): tiêu đề "Bộ lọc", "Xóa tất cả" và nút thu gọn.
  * Khi thu gọn chỉ còn dải hẹp có nút mở và số bộ lọc đang bật; trạng thái nhớ theo trình duyệt.
  */
-export function FilterSidebarShell({ active, onClear, art, top, children }: { active: number; onClear: () => void; art: ReactNode; top?: ReactNode; children: ReactNode }) {
+export function FilterSidebarShell({ active, onClear, top, children }: { active: number; onClear: () => void; top?: ReactNode; children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   // Đọc sau khi mount để HTML render ở server và lần render đầu ở trình duyệt giống nhau.
   useEffect(() => {
@@ -39,7 +37,6 @@ export function FilterSidebarShell({ active, onClear, art, top, children }: { ac
 
   return (
     <aside className="lib-sidebar" aria-label="Bộ lọc thư viện">
-      <div className="lib-sidebar-art" aria-hidden="true">{art}</div>
       <div className="lib-sidebar-inner">
         {top}
         <div className="lib-sidebar-head">
@@ -81,11 +78,6 @@ export default function LibraryFilterSidebar({ stories, ages, topics, age, genre
     <FilterSidebarShell
       active={active}
       onClear={onClear}
-      art={<>
-        <Frog size={74} mood="happy" animated={false} />
-        <BookOpen className="lib-sidebar-book" />
-        <Lotus size={50} className="lib-sidebar-lotus" />
-      </>}
       top={<LibraryTopAuthors authors={extraFilters.authors} author={extraFilters.author} onAuthor={extraFilters.onAuthor} />}
     >
       <FilterGroup title="Độ tuổi" icon={Users} options={ages} value={age} onChange={onAge} />

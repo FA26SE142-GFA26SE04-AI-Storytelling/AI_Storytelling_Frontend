@@ -407,7 +407,6 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
           <FilterSidebarShell
             active={[ageBand, categoryId, days, label, author].filter(v => v !== 'all').length}
             onClear={clearFilters}
-            art={<Frog size={74} mood="happy" animated={false} />}
           >
               <div className="st-filter-nocount">
                 <FilterGroup title="Độ tuổi" icon={Users} options={AGE_OPTIONS} value={ageBand} onChange={pick(setAgeBand)} />
