@@ -260,26 +260,7 @@
 .lib-side-more .ic { width: 13px; height: 13px; transition: transform .15s ease-out; }
 .lib-side-more .ic.open { transform: rotate(180deg); }
 
-.lib-discovery-hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
-.lib-discovery-hero:has(.lib-top-authors) { grid-template-columns: minmax(0, 1fr) minmax(190px, 23%); }
-.lib-featured {
-  position: relative;
-  isolation: isolate;
-  display: grid;
-  grid-template-columns: minmax(0, 47%) minmax(0, 1fr);
-  min-height: 198px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: linear-gradient(110deg, var(--panel) 62%, color-mix(in srgb, var(--gold) 22%, var(--panel)));
-  box-shadow: 0 8px 20px -16px var(--shadow);
-}
-.lib-featured-art { position: relative; overflow: hidden; }
-.lib-featured-art span { position: absolute; inset: 0; }
-.lib-featured-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, transparent 76%, var(--panel)); }
-.lib-featured-copy { display: grid; align-content: center; justify-items: start; gap: 7px; padding: 14px 16px 14px 8px; min-width: 0; }
-.lib-featured-copy h3 { margin: 0; line-height: 1.15; font-size: var(--fs-xl); overflow-wrap: anywhere; }
-.lib-featured-copy p, .lib-card-synopsis {
+.lib-card-synopsis {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   overflow: hidden;
@@ -300,16 +281,8 @@
   font-size: var(--fs-xs);
   font-weight: 800;
 }
-.lib-featured-label {
-  position: absolute;
-  top: 12px;
-  left: 12px;
-  color: var(--on-gold);
-  background: var(--gold);
-}
+.lib-featured-label { color: var(--on-gold); background: var(--gold); }
 .lib-featured-label .ic, .lib-featured-meta .ic { width: 13px; height: 13px; }
-.lib-featured-copy .btn { margin-top: 3px; width: fit-content; }
-.lib-featured-lotus { position: absolute; bottom: 3px; right: 8px; opacity: .35; pointer-events: none; z-index: -1; }
 .lib-genre-label small { display: block; color: var(--muted); font-size: var(--fs-xs); }
 .lib-genre-grid button:hover { border-color: var(--primary); }
 
@@ -379,7 +352,6 @@
 @media (max-width: 700px) {
   .lib-community-layout .lib-head { align-items: flex-start; }
   .lib-header-pond { width: 55%; opacity: .25; }
-  .lib-discovery-hero:has(.lib-top-authors) { grid-template-columns: minmax(0, 1fr); }
   .lib-community-layout .shelf-row > .bk.lib-card-compact { flex-basis: min(250px, 78%); }
   .lib-genre-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lib-genre-grid.lib-genre-row {
@@ -390,12 +362,6 @@
   }
   .lib-genre-grid.lib-genre-row::-webkit-scrollbar { display: none; }
   .lib-genre-grid.lib-genre-row > button { flex: 0 0 min(220px, 68%); }
-}
-@media (max-width: 440px) {
-  .lib-featured { grid-template-columns: minmax(0, 1fr); }
-  .lib-featured-art { min-height: 150px; }
-  .lib-featured-art::after { background: linear-gradient(180deg, transparent 76%, var(--panel)); }
-  .lib-featured-copy { padding: 8px 12px 14px; }
 }
 
 /* Đầu trang: tiêu đề + bộ chuyển Truyện / Lộ trình mẫu dạng rãnh phẳng không viền */
@@ -1084,3 +1050,51 @@
 .lbk-line { height: 12px; border-radius: 6px; margin-top: 8px; width: 80%; }
 .lbk-line.short { width: 50%; margin-top: 4px; }
 .lbk-skel .lbk-cover, .lbk-line { animation: none; }
+
+/* Banner đầu Thư viện (LibraryHero): ảnh bìa phủ kín bề ngang, lớp ảnh (.lib-hero-bg) kéo lên từ mép trên khung chứa nên
+   hàng tab, ô tìm kiếm và chip chủ đề nằm trên ảnh với nền trong suốt (kính mờ). Không còn banner (đang tìm / lọc) thì về kiểu thường. */
+.lib-community-main:has(> .lib-hero) { isolation: isolate; padding-top: 14px; }
+.lib-community-main:has(> .lib-hero) > :is(.lib-pickbar, .lib-head, .lib-toolbar, .lib-topics) { margin-inline: 18px; }
+.lib-community-main:has(> .lib-hero) .lib-header-pond { display: none; }
+.lib-community-main:has(> .lib-hero) :is(.lib-search, .lib-switch, .lib-topic-pill:not(.on), .lib-drawer-btn, .lib-filter-btn) {
+  background: color-mix(in srgb, var(--panel) 76%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+}
+.lib-community-main:has(> .lib-hero) :is(.lib-search:focus-within, .lib-topic-pill:not(.on):hover) { background: color-mix(in srgb, var(--panel) 90%, transparent); }
+.lib-hero-bg { position: absolute; z-index: -1; top: 0; bottom: 0; left: 0; right: 0; overflow: hidden; border-radius: 22px; background: var(--scrim); box-shadow: 0 18px 36px -24px var(--shadow); }
+.lib-hero-bg span { position: absolute; inset: 0; opacity: 0; transition: opacity .8s ease; }
+.lib-hero-bg span.on { opacity: 1; }
+.lib-hero-bg::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--scrim) 40%, transparent), transparent 30%),
+    linear-gradient(90deg, color-mix(in srgb, var(--scrim) 80%, transparent), color-mix(in srgb, var(--scrim) 40%, transparent) 45%, transparent 72%),
+    linear-gradient(0deg, color-mix(in srgb, var(--scrim) 55%, transparent), transparent 45%);
+}
+.lib-hero { position: relative; display: grid; grid-template-columns: minmax(0, 600px) minmax(0, 1fr); align-items: end; gap: 16px 24px; min-height: clamp(220px, 22vw, 300px); padding: 12px 22px 22px; color: var(--on-scrim); }
+.lib-hero-copy { display: grid; justify-items: start; gap: 10px; min-width: 0; animation: lib-hero-in .5s ease-out; }
+.lib-hero-copy h3 { margin: 0; font-size: var(--fs-2xl); line-height: 1.15; color: var(--on-scrim); text-shadow: 0 2px 12px color-mix(in srgb, var(--scrim) 60%, transparent); overflow-wrap: anywhere; }
+.lib-hero-copy p { margin: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: var(--fs-sm); line-height: 1.5; color: color-mix(in srgb, var(--on-scrim) 88%, transparent); }
+.lib-hero .lib-featured-meta span { color: var(--on-scrim); background: color-mix(in srgb, var(--on-scrim) 18%, transparent); }
+.lib-hero-thumbs { justify-self: end; display: flex; gap: 8px; }
+.lib-hero-thumbs button { flex: none; width: 88px; aspect-ratio: 16 / 10; border-radius: 10px; border: 2px solid color-mix(in srgb, var(--on-scrim) 35%, transparent); opacity: .7; transition: transform .2s ease, opacity .2s ease, border-color .2s ease; }
+.lib-hero-thumbs button:hover { opacity: 1; }
+.lib-hero-thumbs button[aria-pressed="true"] { opacity: 1; border-color: var(--gold); transform: translateY(-4px); }
+@keyframes lib-hero-in { from { opacity: 0; transform: translateY(10px); } }
+@media (prefers-reduced-motion: reduce) { .lib-hero-copy { animation: none; } .lib-hero-bg span, .lib-hero-thumbs button { transition: none; } }
+@media (max-width: 760px) {
+  .lib-community-main:has(> .lib-hero) > :is(.lib-pickbar, .lib-head, .lib-toolbar, .lib-topics) { margin-inline: 12px; }
+  .lib-hero { grid-template-columns: minmax(0, 1fr); min-height: 230px; padding: 12px 14px 16px; }
+  .lib-hero-copy h3 { font-size: var(--fs-xl); }
+  .lib-hero-thumbs { justify-self: start; }
+  .lib-hero-thumbs button { width: 54px; }
+}
+
+/* "Tác giả nổi bật" dạng hàng ngang dưới banner */
+.lib-top-authors-row { align-self: stretch; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.lib-top-authors-row h4 { margin: 0; }
+.lib-top-authors-row ul { display: flex; flex-wrap: wrap; gap: 8px; }
+.lib-top-authors-row li button { width: auto; padding-right: 12px; }

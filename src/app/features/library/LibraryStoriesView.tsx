@@ -7,7 +7,7 @@ import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useRiseIn } from "@/app/lib/motion";
 import type { StoryCard } from "@/app/lib/storyView";
 import { LibraryBookCard, LibrarySkeletonGrid, ShelfRow } from "./LibraryCards";
-import { jumpToSection, LibraryFeaturedStory, LibraryGenreTiles } from "./LibraryDiscoveryHighlights";
+import { heroStories, jumpToSection, LibraryGenreTiles, LibraryHero } from "./LibraryDiscoveryHighlights";
 import { LibraryTopAuthors, type LibraryExtraFilterProps } from "./LibraryExtraFilters";
 import LibrarySpotlightSection from "./LibrarySpotlightSection";
 import LibraryStoriesFilterBar, { type ActiveFilterChip } from "./LibraryStoriesFilterBar";
@@ -34,7 +34,7 @@ export type LibraryStoriesViewProps = {
   recommended: StoryCard[];
   showRecommended: boolean;
   pickKidName: string | null;
-  /** "Tác giả nổi bật" cạnh Truyện nổi bật; bấm tên để lọc theo tác giả. */
+  /** Hàng "Tác giả nổi bật" ngay dưới banner; bấm tên để lọc theo tác giả. */
   authors: Pick<LibraryExtraFilterProps, "authors" | "author" | "onAuthor">;
   matchingRoadmapsCount: number;
   /** Bỏ trống khi có `emptyState` (chỉ dùng cho nút tạo truyện ở trạng thái trống mặc định của phụ huynh). */
@@ -84,9 +84,7 @@ export default function LibraryStoriesView({
 }: LibraryStoriesViewProps) {
   const gridItems = focused ? results : sorted;
   const newest = sorted.filter((story) => statusOf(story) === "ready");
-  const featured = favoritedCards.find((story) => (story.favoriteCount ?? 0) > 0 && statusOf(story) === "ready")
-    ?? newest.find((story) => story.creator)
-    ?? newest[0];
+  const hero = heroStories(favoritedCards.filter((story) => (story.favoriteCount ?? 0) > 0 && statusOf(story) === "ready"), newest);
   const fallbackSpotlight = [...newest].sort(
     (a, b) =>
       (b.favoriteCount ?? 0) - (a.favoriteCount ?? 0) ||
@@ -130,12 +128,8 @@ export default function LibraryStoriesView({
         </div>
       )}
 
-      {!focused && (featured || authors.authors.length > 0) && (
-        <div className="lib-discovery-hero">
-          {featured && <LibraryFeaturedStory story={featured} onPickStory={onPickStory} />}
-          <LibraryTopAuthors {...authors} />
-        </div>
-      )}
+      {!focused && hero.length > 0 && <LibraryHero stories={hero} onPickStory={onPickStory} />}
+      {!focused && authors.authors.length > 0 && <LibraryTopAuthors {...authors} row />}
 
       {storiesLoading && stories.length === 0 ? (
         <LibrarySkeletonGrid count={6} label="Đang tải danh sách truyện…" />

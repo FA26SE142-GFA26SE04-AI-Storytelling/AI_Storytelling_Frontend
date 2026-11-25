@@ -10,7 +10,7 @@ vi.mock("@/app/context/WorkspaceDataContext", () => ({
 }));
 
 import { LibraryBookCard, LibrarySkeletonGrid } from "@/app/features/library/LibraryCards";
-import { LibraryFeaturedStory, LibraryGenreTiles } from "@/app/features/library/LibraryDiscoveryHighlights";
+import { heroStories, LibraryGenreTiles, LibraryHero } from "@/app/features/library/LibraryDiscoveryHighlights";
 import LibraryDetailDialog, { LibraryDetailShell } from "@/app/features/library/LibraryDetailDialog";
 import { StaffAccessProvider, toAccessMap } from "@/app/features/staff/staffAccess";
 import LibraryFilterPopover from "@/app/features/library/LibraryFilterPopover";
@@ -702,14 +702,22 @@ describe("Library UI components", () => {
     expect(viewHtml).toContain("Mới nhất");
     expect(viewHtml).toContain("Phổ biến");
     expect(viewHtml).toContain("6–8 tuổi");
-    // Tác giả nổi bật thay chỗ 3 lối tắt cũ, nằm trong cụm Truyện nổi bật, trước kệ nổi bật.
-    expect(viewHtml).toMatch(/lib-discovery-hero[\s\S]*Tác giả nổi bật[\s\S]*lib-spotlight-heading/);
+    // Banner truyện nổi bật rộng hết bề ngang, ngay dưới là hàng Tác giả nổi bật, rồi tới kệ nổi bật.
+    expect(viewHtml).toMatch(/lib-hero[\s\S]*Tác giả nổi bật[\s\S]*lib-spotlight-heading/);
     expect(viewHtml).not.toContain("Truyện đã lưu");
 
-    const featuredHtml = renderToStaticMarkup(
-      <LibraryFeaturedStory story={story} onPickStory={() => {}} />,
+    const heroHtml = renderToStaticMarkup(
+      <LibraryHero stories={[story]} onPickStory={() => {}} />,
     );
-    expect(featuredHtml).toContain("7 phút");
+    expect(heroHtml).toContain("7 phút");
+  });
+
+  it("picks up to 5 hero stories with covers: ranked list first, then most favorited / viewed", () => {
+    const make = (id: number, fav: number, views: number, cover = true) =>
+      makeStory({ id, favoriteCount: fav, viewCount: views, raw: cover ? {} : { coverImageUrl: null } });
+    const ranked = [make(1, 0, 0), make(2, 9, 9, false)];
+    const rest = [make(1, 0, 0), make(3, 1, 5), make(4, 5, 0), make(5, 1, 9), make(6, 0, 0), make(7, 0, 1), make(8, 0, 0, false)];
+    expect(heroStories(ranked, rest).map((s) => s.id)).toEqual([1, 4, 5, 3, 7]);
   });
 
   it("removes the outer .pane border on LibraryWorkspace and shows Được yêu thích tuần này above Mới thêm gần đây without fake ranks", () => {

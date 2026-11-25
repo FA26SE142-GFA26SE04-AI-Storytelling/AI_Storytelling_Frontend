@@ -40,6 +40,9 @@
 
   /* Hiệu ứng */
   --shadow: #1f3a2d;
+  /* Lớp tối phủ trên ảnh (banner Thư viện) và chữ đặt trên lớp đó; giống nhau ở cả hai theme. */
+  --scrim: #0d1a13;
+  --on-scrim: #ffffff;
   --tooltip: #1f2f27;
   --water: radial-gradient(ellipse at 12% 0%, #d8f4e4 0, transparent 55%), radial-gradient(ellipse at 92% 100%, #d3eef6 0, transparent 50%), #eaf7ef;
   --kid-bg: linear-gradient(180deg, #c9ecff 0%, #f3fbd9 60%, #bdebcf 100%);
