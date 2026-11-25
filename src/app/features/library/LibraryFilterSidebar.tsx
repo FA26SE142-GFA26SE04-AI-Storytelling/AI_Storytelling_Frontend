@@ -21,6 +21,26 @@ export function FilterSidebarShell({ active, onClear, top, children }: { active:
     return !v;
   });
 
+  // Có khung phụ (Tác giả nổi bật): khung phụ vẫn hiện, khung Bộ lọc gập lại còn thanh tiêu đề.
+  if (collapsed && top) {
+    return (
+      <div className="lib-side-col">
+        {top}
+        <aside className="lib-sidebar lib-sidebar-folded" aria-label="Bộ lọc thư viện">
+          <div className="lib-sidebar-head">
+            <h3 className="display">
+              <SlidersHorizontal className="ic" aria-hidden="true" />Bộ lọc
+              {active > 0 && <span className="lib-side-rail-n lib-side-folded-n">{active}</span>}
+            </h3>
+            <button type="button" className="lib-side-toggle" onClick={toggle} title="Mở bộ lọc" aria-label={active > 0 ? `Mở bộ lọc, đang bật ${active} bộ lọc` : "Mở bộ lọc"} aria-expanded={false}>
+              <PanelLeftOpen aria-hidden="true" />
+            </button>
+          </div>
+        </aside>
+      </div>
+    );
+  }
+
   if (collapsed) {
     return (
       <aside className="lib-sidebar collapsed" aria-label="Bộ lọc thư viện">
