@@ -7,6 +7,7 @@ import { usePop } from '@/app/lib/motion';
 import { wishCardService } from '@/app/services/wishCardService';
 import type { StoryWishCardCoverageDto, WishCardDto, WishCardGroup, WishCardMatchDto } from '@/app/types/storyWish';
 import { groupLabel, WISH_GROUPS } from './WishCardManagement';
+import { AccessNotice, useAccess } from './staffAccess';
 
 const MATCH_GROUPS = WISH_GROUPS.filter(g => g.wish);
 
@@ -90,12 +91,15 @@ export default function StoryWishCards({ storyId, versionId }: { storyId: number
     }
   };
 
+  const access = useAccess('wishcard.manage');
+  const locked = busy || access.state === 'Blocked';
   const taken = new Set(matches?.map(m => m.wishCardId));
 
   return (
     <details className="st-card st-group st-wish" open>
       <summary><b>Thẻ ước của truyện</b></summary>
       <p className="sub">Khi bé ước các thẻ này, truyện có thể xuất hiện trong danh sách gợi ý cho bé và bố mẹ.</p>
+      <AccessNotice access={access} />
       {message && <p className={`notice ${message.ok ? 'ok' : 'err'}`} role="status" data-inline-notice>{message.text}</p>}
       {coverage && coverage.canBeSuggested === false && coverage.warning && (
         <div role="alert" className="st-coverage-warn" ref={warnRef}>
@@ -114,7 +118,7 @@ export default function StoryWishCards({ storyId, versionId }: { storyId: number
               label={`Gỡ thẻ ${m.label}`}
               className="btn btn-g"
               style={{ width: 22, height: 22 }}
-              disabled={busy}
+              disabled={locked}
               onClick={async () => {
                 if (!(await confirmDialog(`Gỡ thẻ ước “${m.label}” khỏi truyện?`))) return;
                 void act(() => wishCardService.removeFromStory(storyId, m.wishCardId));
@@ -128,7 +132,7 @@ export default function StoryWishCards({ storyId, versionId }: { storyId: number
           <button
             type="button"
             className="btn btn-s"
-            disabled={busy}
+            disabled={locked}
             title="AI đọc đúng phiên bản này để gợi ý thẻ phù hợp; bạn vẫn gỡ được thẻ không đúng"
             onClick={() => void act(async () => {
               const r = await wishCardService.aiMatch(storyId, versionId);
@@ -145,10 +149,10 @@ export default function StoryWishCards({ storyId, versionId }: { storyId: number
         </div>
       )}
       <div className="row st-inline">
-        <select className="inp" aria-label="Nhóm thẻ" value={group} disabled={busy} onChange={e => setGroup(e.target.value as WishCardGroup)}>
+        <select className="inp" aria-label="Nhóm thẻ" value={group} disabled={locked} onChange={e => setGroup(e.target.value as WishCardGroup)}>
           {MATCH_GROUPS.map(g => <option key={g.id} value={g.id}>{g.label}</option>)}
         </select>
-        <select className="inp" aria-label="Thẻ cần gắn" value={cardId} disabled={busy} onChange={e => setCardId(e.target.value)}>
+        <select className="inp" aria-label="Thẻ cần gắn" value={cardId} disabled={locked} onChange={e => setCardId(e.target.value)}>
           <option value="">Chọn thẻ…</option>
           {cards.filter(c => !taken.has(c.id)).map(c => (
             <option key={c.id} value={c.id}>{c.label}{c.ageBand ? ` (${c.ageBand} tuổi)` : ''}</option>
@@ -159,7 +163,7 @@ export default function StoryWishCards({ storyId, versionId }: { storyId: number
           label="Gắn thẻ cho truyện"
           className="btn btn-p"
           style={{ flex: 'none', minWidth: 44 }}
-          disabled={busy || !cardId}
+          disabled={locked || !cardId}
           onClick={() => void act(() => wishCardService.addToStory(storyId, Number(cardId)))}
         />
       </div>
