@@ -1791,6 +1791,7 @@ export interface SafetyPolicyDto {
   'requiredApprovalMode': string;
   'parentalGateEnabled': boolean;
   'consentRecorded': boolean;
+  'storyLengthTarget'?: number | null;
   'consentRecordedAt': string | null;
   'consentPolicyVersion': number;
   'consentedByUserId': number | null;
@@ -1880,6 +1881,7 @@ export interface SetSafetyPolicyRequestDto {
   'requiredApprovalMode': ApprovalModeName;
   'parentalGateEnabled': boolean;
   'consentRecorded': boolean;
+  'storyLengthTarget'?: number | null;
   'safetyScoreThreshold': number | null;
   'readabilityScoreThreshold': number | null;
   'comprehensionThresholdPercent': number;

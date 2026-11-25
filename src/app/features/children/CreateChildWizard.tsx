@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowLeft, ArrowRight, Check, ShieldCheck, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, ShieldCheck, TriangleAlert, X } from "lucide-react";
 import { confirmDialog } from "@/app/lib/confirm";
 import InfoTip from "@/app/components/InfoTip";
 import { useAuth } from "@/app/context/AuthContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ContentCategory, PolicyRule } from "@/app/types/childProfile";
-import { AGE_BANDS, MAX_STORY_LENGTH_RANGE, defaultReadingLevel, defaultReadingMode, presetBlocked, storyLengthFor } from "@/app/lib/guardian";
+import { AGE_BANDS, LEVEL_MODE_STORY_CAP, MAX_STORY_LENGTH_RANGE, defaultReadingLevel, defaultReadingMode, presetBlocked, storyLengthAdvice, storyLengthFor, storyLengthUpperBound } from "@/app/lib/guardian";
 import LearningForm, { learningFrom, learningRequest, type LearningValue } from "./LearningForm";
 import { CategoryRules, ConsentBlock, keptPolicyFields, rulesToRequest } from "./SafetyBlocks";
 import { readChildDraft, removeChildDraft, writeChildDraft } from "./childrenIntent";
@@ -27,10 +27,12 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
   const [cats, setCats] = useState<ContentCategory[]>([]);
   const [rules, setRules] = useState<Record<number, PolicyRule | undefined>>(draft?.rules ?? {});
   const [gate, setGate] = useState(draft?.gate ?? true);
-  // Độ dài tối đa: chưa kéo thì theo gợi ý của nhóm tuổi + mức đọc (đổi mức là đổi theo); kéo rồi thì giữ số phụ huynh chọn.
+  // Độ dài truyện: chưa kéo thì theo gợi ý của nhóm tuổi + mức đọc (đổi mức là đổi theo); kéo rồi thì giữ số phụ huynh chọn.
   const [customLen, setCustomLen] = useState<number | undefined>(draft?.maxLength);
   const suggestedLen = storyLengthFor(ageBand, learning.readingLevel).target;
   const maxLen = customLen ?? suggestedLen;
+  // Chỉ cảnh báo khi phụ huynh tự kéo dài hơn mức phù hợp với tuổi và mức đọc của bé.
+  const lenAdvice = customLen !== undefined ? storyLengthAdvice(ageBand, learning.readingLevel, maxLen) : null;
   const fmt = (n: number) => n.toLocaleString("vi-VN");
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -100,7 +102,8 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
       if (consent) {
         const sp = await childProfileService.setSafetyPolicy(id, {
           ...keptPolicyFields(null),
-          maxStoryLength: maxLen, requiredApprovalMode: "AlwaysManual", parentalGateEnabled: gate, consentRecorded: true,
+          // Trần tự suy ra: theo mức đọc (chưa tự chỉnh) thì phủ độ dài mặc định lớn nhất, tự chỉnh thì 110% số đã chọn.
+          maxStoryLength: customLen !== undefined ? storyLengthUpperBound(maxLen) : LEVEL_MODE_STORY_CAP, storyLengthTarget: customLen ?? null, requiredApprovalMode: "AlwaysManual", parentalGateEnabled: gate, consentRecorded: true,
           storyWishesEnabled: true, allowInteractiveStories: true, applyAgePreset: false, categories: rulesToRequest(cats, rules),
         });
         if (!sp.success) { setErr(sp.message || "Không lưu được cài đặt an toàn."); return; }
@@ -149,9 +152,9 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
               <CategoryRules cats={cats} rules={rules} onChange={setRules} />
             </div>
             <div className="field">
-              <span className="lbl row" style={{ justifyContent: "space-between" }}>Độ dài tối đa của truyện <b style={{ color: "var(--text)" }}>{fmt(maxLen)} từ</b></span>
+              <span className="lbl row" style={{ justifyContent: "space-between" }}>Độ dài truyện <b style={{ color: "var(--text)" }}>{fmt(maxLen)} từ</b></span>
               <input type="range" className="range" min={MAX_STORY_LENGTH_RANGE.min} max={MAX_STORY_LENGTH_RANGE.max} step={MAX_STORY_LENGTH_RANGE.step}
-                value={maxLen} onChange={(e) => setCustomLen(+e.target.value)} aria-label="Độ dài tối đa của truyện" />
+                value={maxLen} onChange={(e) => setCustomLen(+e.target.value)} aria-label="Độ dài truyện" />
               <span className="row" style={{ gap: 8, flexWrap: "wrap", color: "var(--muted)" }}>
                 <small>{customLen === undefined
                   ? `Theo mức đọc ${learning.readingLevel}: truyện khoảng ${fmt(suggestedLen)} từ. Kéo để chỉnh theo ý bạn.`
@@ -161,7 +164,10 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
                 )}
               </span>
               {maxLen < suggestedLen && (
-                <p className="notice warn" data-inline-notice>Thấp hơn gợi ý: truyện AI tạo cho bé sẽ ngắn hơn, không quá {fmt(maxLen)} từ.</p>
+                <p className="notice warn" data-inline-notice>Thấp hơn gợi ý: truyện AI tạo cho bé sẽ ngắn hơn, khoảng {fmt(maxLen)} từ.</p>
+              )}
+              {lenAdvice && (
+                <p className="notice warn" data-inline-notice role="status"><TriangleAlert className="ic" aria-hidden /><span>{lenAdvice.text}</span></p>
               )}
             </div>
             <div className="trow"><span>Cổng xác nhận người lớn<small>Hỏi mật khẩu của bạn trước khi rời chế độ của bé</small></span>
@@ -177,7 +183,7 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
               <div><small>Biệt danh</small><b>{nickname}</b></div>
               <div><small>Nhóm tuổi</small><b>{AGE_BANDS.find((a) => a.id === ageBand)?.label}</b></div>
               <div><small>Mức đọc</small><b>Mức {learning.readingLevel}</b></div>
-              <div><small>Độ dài tối đa</small><b>{fmt(maxLen)} từ</b></div>
+              <div><small>Độ dài truyện</small><b>{fmt(maxLen)} từ</b></div>
               <div><small>Chủ đề bị chặn</small><b>{Object.values(rules).filter((r) => r === "Blocked").length}</b></div>
             </div>
             {consent
