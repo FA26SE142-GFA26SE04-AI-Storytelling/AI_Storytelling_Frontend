@@ -146,6 +146,7 @@ describe("Library UI components", () => {
       />,
     );
     expect(html).toContain("Độ tuổi");
+    expect(html).toContain('aria-label="Thu gọn bộ lọc"');
     expect(html).not.toContain("Nguồn truyện");
     expect(html).not.toContain("Trạng thái");
   });

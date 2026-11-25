@@ -176,6 +176,28 @@
 .lib-sidebar-head h3 { margin: 0; font-size: var(--fs-lg); white-space: nowrap; }
 .lib-sidebar-head .ic, .lib-side-group summary .ic { color: var(--link); width: 15px; height: 15px; flex: none; }
 .lib-sidebar-head .lib-reset-btn { white-space: nowrap; padding-inline: 3px; }
+.lib-sidebar-actions { display: flex; align-items: center; gap: 2px; }
+
+/* Nút thu gọn / mở thanh lọc; khi thu gọn còn một dải hẹp có icon lọc và số bộ lọc đang bật. */
+.lib-community-layout { transition: grid-template-columns .3s cubic-bezier(.65, 0, .25, 1); }
+@media (min-width: 961px) {
+  .lib-community-layout:has(> .lib-sidebar.collapsed) { grid-template-columns: 52px minmax(0, 1fr); }
+}
+.lib-side-toggle, .lib-side-rail-filter {
+  position: relative; display: inline-grid; place-items: center; width: 32px; height: 32px; flex: none;
+  border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.lib-side-toggle:hover, .lib-side-rail-filter:hover { background: var(--surface); color: var(--primary); border-color: var(--line); }
+.lib-side-toggle:focus-visible, .lib-side-rail-filter:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.lib-side-toggle svg, .lib-side-rail-filter svg { width: 18px; height: 18px; }
+.lib-sidebar.collapsed { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 0; overflow: visible; }
+.lib-side-rail-filter { color: var(--link); }
+.lib-side-rail-n {
+  position: absolute; top: -5px; right: -6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px;
+  display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 800; background: var(--gold); color: var(--warn-ink);
+}
+@media (prefers-reduced-motion: reduce) { .lib-community-layout { transition: none; } }
 .lib-side-group { padding: 10px 0; border-top: 1px solid var(--line); margin-top: 6px; }
 .lib-side-group:last-child { padding-bottom: 0; }
 .lib-side-group summary { cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 800; list-style: none; }
