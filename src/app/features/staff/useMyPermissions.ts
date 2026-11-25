@@ -9,9 +9,17 @@ export function useMyPermissions(userId: number | null): ReadonlySet<string> | n
   useEffect(() => {
     if (userId === null) return;
     let alive = true;
+    let issued = 0;
+    let applied = 0;
     const load = () => {
+      const id = ++issued;
       accessControlService.mine().then(
-        (r) => { if (alive && r.success && r.data) setGranted(new Set(r.data)); },
+        (r) => {
+          // Bỏ phản hồi đến muộn của lần tải cũ để không đè kết quả mới hơn.
+          if (!alive || id < applied || !r.success || !r.data) return;
+          applied = id;
+          setGranted(new Set(r.data));
+        },
         () => { /* Lỗi mạng: giữ danh sách đang có, API vẫn tự kiểm quyền. */ },
       );
     };
