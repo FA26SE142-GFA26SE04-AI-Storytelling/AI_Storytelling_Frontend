@@ -28,7 +28,6 @@ export type LibraryStoriesViewProps = {
   ageOptions?: AgeFilterOption[];
   topicEntries: [string, number][];
   activeChips: ActiveFilterChip[];
-  viewedCards: StoryCard[];
   favoritedCards: StoryCard[];
   activeSpotlight: "views" | "favorites";
   spotlightCards: StoryCard[];
@@ -44,7 +43,6 @@ export type LibraryStoriesViewProps = {
   onGenreChange: (genre: string) => void;
   onAgeChange?: (age: string) => void;
   onSortChange: (sort: LibrarySort) => void;
-  onSpotlightChange: (tab: "views" | "favorites") => void;
   onClearFilters: () => void;
   onRetry: () => void;
   onPickStory: (storyId: number, button: HTMLButtonElement) => void;
@@ -65,7 +63,6 @@ export default function LibraryStoriesView({
   ageOptions,
   topicEntries,
   activeChips,
-  viewedCards,
   favoritedCards,
   activeSpotlight,
   spotlightCards,
@@ -79,7 +76,6 @@ export default function LibraryStoriesView({
   onGenreChange,
   onAgeChange,
   onSortChange,
-  onSpotlightChange,
   onClearFilters,
   onRetry,
   onPickStory,
@@ -217,11 +213,8 @@ export default function LibraryStoriesView({
       ) : (
         <>
           <LibrarySpotlightSection
-            viewedCards={viewedCards}
-            favoritedCards={favoritedCards}
             activeSpotlight={effectiveSpotlightTab}
             spotlightCards={effectiveSpotlightCards}
-            onSpotlightChange={onSpotlightChange}
             onSortChange={onSortChange}
             onPickStory={onPickStory}
           />

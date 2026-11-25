@@ -127,7 +127,6 @@
 .lib-community-main { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 .lib-community-layout .lib-head { position: relative; isolation: isolate; align-items: center; }
 .lib-community-layout .lib-search {
-  max-width: 760px;
   background: var(--panel);
   border-color: var(--line);
 }
@@ -238,6 +237,7 @@
   border: 1px solid color-mix(in srgb, var(--gold) 46%, var(--line));
   background: color-mix(in srgb, var(--gold) 14%, var(--panel));
 }
+.lib-sidebar-inner > .lib-top-authors:first-child { margin: 0 0 12px; }
 .lib-top-authors h4 { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: var(--fs-md); }
 .lib-top-authors h4 .ic { width: 16px; height: 16px; flex: none; color: var(--gold-deep); }
 .lib-top-authors ul { display: grid; gap: 4px; list-style: none; margin: 0; padding: 0; }
@@ -259,8 +259,6 @@
 .lib-author-initial { display: grid; place-items: center; flex: 0 0 25px; height: 25px; border-radius: 50%; background: var(--surface-2); color: var(--link); font-weight: 800; }
 .lib-top-authors li small { display: block; color: var(--muted); font-size: var(--fs-xs); }
 .lib-top-authors p { margin: 0; font-size: var(--fs-xs); }
-.lib-more-authors { display: flex; align-items: center; gap: 4px; margin: 6px auto 0; padding: 3px; color: var(--link); font-size: var(--fs-xs); font-weight: 800; }
-.lib-more-authors .ic { width: 13px; height: 13px; }
 .lib-side-more { display: inline-flex; align-items: center; gap: 4px; margin-top: 6px; padding: 3px 4px; color: var(--link); font-size: var(--fs-xs); font-weight: 800; }
 .lib-side-more .ic { width: 13px; height: 13px; transition: transform .15s ease-out; }
 .lib-side-more .ic.open { transform: rotate(180deg); }
@@ -496,7 +494,7 @@
   gap: 10px 12px;
 }
 .lib-search {
-  flex: 1 1 280px;
+  flex: 1 1 200px;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -534,20 +532,6 @@
   gap: 10px;
   flex: 0 0 auto;
 }
-.lib-sort { display: inline-flex; align-items: center; gap: 8px; }
-.lib-sort-lbl { font-size: var(--fs-sm); font-weight: 700; color: var(--muted); white-space: nowrap; }
-.lib-sort-sel { min-width: 168px; flex: 0 0 auto; }
-.lib-sort-sel .sel-btn {
-  min-height: 44px;
-  padding: 0 14px;
-  border-radius: 999px;
-  border-color: transparent;
-  background: var(--surface);
-  font-size: var(--fs-sm);
-  font-weight: 700;
-}
-.lib-sort-sel .sel-btn:hover { background: var(--surface-2); }
-.lib-sort-sel .sel-btn.open { border-color: var(--primary); background: var(--panel); }
 
 /* Nút & bảng lọc mở rộng dạng viên thuốc: neo theo .lib-toolbar để không bao giờ tràn mép trái ở màn vừa */
 .lib-filter { position: static; }
@@ -733,36 +717,6 @@
 }
 .lib-sec-ic { width: 20px; height: 20px; color: var(--link); }
 .lib-sec-meta { font-size: var(--fs-sm); color: var(--muted); }
-
-/* Nút chuyển Đọc nhiều / Yêu thích trong kệ Nổi bật */
-.lib-spot-tabs {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 3px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--panel) 65%, var(--surface-2));
-}
-.lib-spot-tabs button {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 32px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: var(--fs-xs);
-  font-weight: 700;
-  color: var(--muted);
-  transition: background .15s ease-out, color .15s ease-out;
-}
-.lib-spot-tabs button .ic { width: 14px; height: 14px; }
-.lib-spot-tabs button:hover:not(.on) { color: var(--text); }
-.lib-spot-tabs button.on {
-  background: var(--panel);
-  color: var(--text);
-  box-shadow: 0 3px 10px -4px color-mix(in srgb, var(--shadow) 32%, transparent);
-}
-.lib-spot-tabs button.on .ic { color: var(--gold-deep); }
 
 /* Lưới thẻ truyện & lộ trình */
 .lib-grid {
@@ -1092,15 +1046,11 @@
   .lib-search,
   .lib-topic-pill,
   .lib-pill,
-  .lib-spot-tabs button { transition: none; }
   .lib-skel-cover,
   .lib-skel-line { animation: none; }
 }
 
 /* Màn vừa & điện thoại */
-@media (max-width: 760px) {
-  .lib-toolbar-actions { width: 100%; justify-content: space-between; }
-}
 @media (max-width: 720px) {
   .lib-catalog .lib-scroll { overflow: visible; flex: none; padding: 16px 14px 28px; gap: 18px; }
   .lib-spotlight { padding: 16px 14px 18px; border-radius: 20px; }
@@ -1113,9 +1063,6 @@
   .lib-head { align-items: stretch; }
   .lib-switch { width: 100%; }
   .lib-switch button { flex: 1; justify-content: center; }
-  .lib-sort { flex: 1; min-width: 0; }
-  .lib-sort-lbl { display: none; }
-  .lib-sort-sel { flex: 1; min-width: 0; }
   .lib-filter-pop { left: 0; right: 0; width: auto; max-height: min(55dvh, 500px); overflow-y: auto; }
   .lib-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .lib-roadmap-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px 12px; }

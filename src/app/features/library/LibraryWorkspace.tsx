@@ -109,7 +109,6 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
                 templatesCount={templates !== null ? templates.length : null}
                 query={discovery.q}
                 roadmapQuery={discovery.roadmapQuery}
-                sort={discovery.sort}
                 filterOpen={filterOpen}
                 stories={stories}
                 ageOptions={discovery.ageOptions}
@@ -126,7 +125,6 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
                 }}
                 onQueryChange={discovery.setQ}
                 onRoadmapQueryChange={discovery.setRoadmapQuery}
-                onSortChange={discovery.setSort}
                 onToggleFilter={() => setFilterOpen((v) => !v)}
                 onCloseFilter={closeFilter}
                 onStatusChange={discovery.setStatus}
@@ -149,7 +147,6 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
                   ageOptions={discovery.ageOptions}
                   topicEntries={discovery.topicEntries}
                   activeChips={discovery.activeChips}
-                  viewedCards={discovery.viewedCards}
                   favoritedCards={discovery.favoritedCards}
                   activeSpotlight={discovery.activeSpotlight}
                   spotlightCards={discovery.spotlightCards}
@@ -171,7 +168,6 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
                   onGenreChange={discovery.setGenreF}
                   onAgeChange={discovery.setAgeF}
                   onSortChange={discovery.setSort}
-                  onSpotlightChange={discovery.setSpotlightTab}
                   onClearFilters={discovery.clearStoryFilters}
                   onRetry={retryStories}
                   onPickStory={pickStory}

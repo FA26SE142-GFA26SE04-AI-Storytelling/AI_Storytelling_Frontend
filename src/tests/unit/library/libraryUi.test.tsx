@@ -299,7 +299,6 @@ describe("Library UI components", () => {
         genreF="all"
         topicEntries={[]}
         activeChips={[]}
-        viewedCards={[]}
         favoritedCards={[]}
         activeSpotlight="views"
         spotlightCards={[]}
@@ -310,7 +309,6 @@ describe("Library UI components", () => {
         go={() => {}}
         onGenreChange={() => {}}
         onSortChange={() => {}}
-        onSpotlightChange={() => {}}
         onClearFilters={() => {}}
         onRetry={() => {}}
         onPickStory={() => {}}
@@ -333,7 +331,6 @@ describe("Library UI components", () => {
         genreF="all"
         topicEntries={[]}
         activeChips={[]}
-        viewedCards={[]}
         favoritedCards={[]}
         activeSpotlight="views"
         spotlightCards={[]}
@@ -344,7 +341,6 @@ describe("Library UI components", () => {
         go={() => {}}
         onGenreChange={() => {}}
         onSortChange={() => {}}
-        onSpotlightChange={() => {}}
         onClearFilters={() => {}}
         onRetry={() => {}}
         onPickStory={() => {}}
@@ -390,7 +386,6 @@ describe("Library UI components", () => {
         genreF="all"
         topicEntries={[]}
         activeChips={[]}
-        viewedCards={[viewedPositive, viewedZero, viewedUndefined]}
         favoritedCards={[viewedZero]}
         activeSpotlight="views"
         spotlightCards={[viewedPositive, viewedZero, viewedUndefined]}
@@ -401,14 +396,14 @@ describe("Library UI components", () => {
         go={() => {}}
         onGenreChange={() => {}}
         onSortChange={() => {}}
-        onSpotlightChange={() => {}}
         onClearFilters={() => {}}
         onRetry={() => {}}
         onPickStory={() => {}}
         onJumpToRoadmaps={() => {}}
       />,
     );
-    expect(viewsSpotlightHtml).toContain("Nổi bật trong cộng đồng");
+    expect(viewsSpotlightHtml).toContain("Đọc nhiều nhất");
+    expect(viewsSpotlightHtml).not.toContain("lib-spot-tabs");
     expect(viewsSpotlightHtml).toContain("#1");
     expect(viewsSpotlightHtml).not.toContain("#2");
     expect(viewsSpotlightHtml).not.toContain("#3");
@@ -416,11 +411,8 @@ describe("Library UI components", () => {
 
     const favZeroHtml = renderToStaticMarkup(
       <LibrarySpotlightSection
-        viewedCards={[]}
-        favoritedCards={[viewedPositive]}
         activeSpotlight="favorites"
         spotlightCards={[viewedPositive]}
-        onSpotlightChange={() => {}}
         onSortChange={() => {}}
         onPickStory={() => {}}
       />,
@@ -431,11 +423,8 @@ describe("Library UI components", () => {
 
     const favPositiveHtml = renderToStaticMarkup(
       <LibrarySpotlightSection
-        viewedCards={[]}
-        favoritedCards={[viewedZero]}
         activeSpotlight="favorites"
         spotlightCards={[viewedZero]}
-        onSpotlightChange={() => {}}
         onSortChange={() => {}}
         onPickStory={() => {}}
       />,
@@ -445,11 +434,8 @@ describe("Library UI components", () => {
 
     const emptySpotlightHtml = renderToStaticMarkup(
       <LibrarySpotlightSection
-        viewedCards={[]}
-        favoritedCards={[]}
         activeSpotlight="views"
         spotlightCards={[]}
-        onSpotlightChange={() => {}}
         onSortChange={() => {}}
         onPickStory={() => {}}
       />,
@@ -474,7 +460,6 @@ describe("Library UI components", () => {
         templatesCount={3}
         query="sen"
         roadmapQuery=""
-        sort="recent"
         filterOpen={false}
         stories={[makeStory()]}
         ageOptions={[{ key: "6-8 tuổi", label: "6–8 tuổi", count: 1 }]}
@@ -487,7 +472,6 @@ describe("Library UI components", () => {
         onTabChange={() => {}}
         onQueryChange={() => {}}
         onRoadmapQueryChange={() => {}}
-        onSortChange={() => {}}
         onToggleFilter={() => {}}
         onCloseFilter={() => {}}
         onStatusChange={() => {}}
@@ -498,7 +482,7 @@ describe("Library UI components", () => {
     );
     expect(storiesHeaderHtml).toContain("Đang chọn truyện cho Bé Bông");
     expect(storiesHeaderHtml).toContain("Chặng mới");
-    expect(storiesHeaderHtml).toContain("Sắp xếp");
+    expect(storiesHeaderHtml).not.toContain("Sắp xếp");
     expect(storiesHeaderHtml).toContain("Bộ lọc");
     expect(storiesHeaderHtml).toContain("Xoá từ khóa tìm kiếm");
 
@@ -512,7 +496,6 @@ describe("Library UI components", () => {
         templatesCount={3}
         query=""
         roadmapQuery=""
-        sort="recent"
         filterOpen={false}
         stories={[]}
         ageOptions={[]}
@@ -525,7 +508,6 @@ describe("Library UI components", () => {
         onTabChange={() => {}}
         onQueryChange={() => {}}
         onRoadmapQueryChange={() => {}}
-        onSortChange={() => {}}
         onToggleFilter={() => {}}
         onCloseFilter={() => {}}
         onStatusChange={() => {}}
@@ -630,12 +612,13 @@ describe("Library UI components", () => {
     const iSource = sidebarHtml.indexOf("Nguồn truyện");
     const iStatus = sidebarHtml.indexOf("Trạng thái");
     const iAuthors = sidebarHtml.indexOf("Tác giả nổi bật");
-    expect(iAge).toBeGreaterThan(-1);
+    // Tác giả nổi bật nằm trên cùng, trước các nhóm lọc.
+    expect(iAuthors).toBeGreaterThan(-1);
+    expect(iAuthors).toBeLessThan(iAge);
     expect(iAge).toBeLessThan(iTopic);
     expect(iTopic).toBeLessThan(iDuration);
     expect(iDuration).toBeLessThan(iSource);
     expect(iSource).toBeLessThan(iStatus);
-    expect(iStatus).toBeLessThan(iAuthors);
     expect(sidebarHtml).toContain("Xem thêm");
 
     const viewHtml = renderToStaticMarkup(
@@ -652,7 +635,6 @@ describe("Library UI components", () => {
         ageOptions={[{ key: "6-8 tuổi", label: "6–8 tuổi", count: 1 }]}
         topicEntries={[["Khám phá", 1], ["Tình bạn", 1]]}
         activeChips={[]}
-        viewedCards={[story]}
         favoritedCards={[story]}
         activeSpotlight="favorites"
         spotlightCards={[story]}
@@ -664,7 +646,6 @@ describe("Library UI components", () => {
         onGenreChange={() => {}}
         onAgeChange={() => {}}
         onSortChange={() => {}}
-        onSpotlightChange={() => {}}
         onClearFilters={() => {}}
         onRetry={() => {}}
         onPickStory={() => {}}
@@ -712,7 +693,6 @@ describe("Library UI components", () => {
         genreF="all"
         topicEntries={[["Khám phá", 2]]}
         activeChips={[]}
-        viewedCards={[]}
         favoritedCards={[]}
         activeSpotlight="views"
         spotlightCards={[]}
@@ -723,7 +703,6 @@ describe("Library UI components", () => {
         go={() => {}}
         onGenreChange={() => {}}
         onSortChange={() => {}}
-        onSpotlightChange={() => {}}
         onClearFilters={() => {}}
         onRetry={() => {}}
         onPickStory={() => {}}

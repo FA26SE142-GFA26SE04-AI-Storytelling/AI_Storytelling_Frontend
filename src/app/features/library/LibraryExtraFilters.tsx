@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, ChevronDown, Clock, Crown, type LucideIcon } from "lucide-react";
+import { ChevronDown, Clock, Crown, type LucideIcon } from "lucide-react";
 
 type FilterOption = { key: string; label: string; count: number };
 
@@ -50,8 +50,7 @@ export function FilterGroup({ title, icon: Icon, options, value, onChange, defau
 }
 
 export function LibraryTopAuthors({ authors, author, onAuthor }: Pick<LibraryExtraFilterProps, "authors" | "author" | "onAuthor">) {
-  const [expanded, setExpanded] = useState(false);
-  const visibleAuthors = expanded ? authors : authors.slice(0, 3);
+  const visibleAuthors = authors.slice(0, 3);
   return (
     <section className="lib-top-authors" aria-label="Tác giả nổi bật">
       <h4 className="display"><Crown className="ic" aria-hidden="true" />Tác giả nổi bật</h4>
@@ -66,11 +65,6 @@ export function LibraryTopAuthors({ authors, author, onAuthor }: Pick<LibraryExt
             </li>
           ))}
         </ul>
-      )}
-      {authors.length > 3 && (
-        <button type="button" className="lib-more-authors" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
-          {expanded ? "Thu gọn tác giả" : "Xem thêm tác giả"} <ArrowRight className="ic" aria-hidden="true" />
-        </button>
       )}
     </section>
   );

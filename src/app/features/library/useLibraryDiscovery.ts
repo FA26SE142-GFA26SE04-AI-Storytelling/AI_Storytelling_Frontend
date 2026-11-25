@@ -36,7 +36,6 @@ export type UseLibraryDiscoveryParams = {
 
 /** Trạng thái tìm kiếm, lọc, sắp xếp, đề xuất và bảng nổi bật cộng đồng cho Thư viện phụ huynh. */
 export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: UseLibraryDiscoveryParams) {
-  const [spotlightTab, setSpotlightTab] = useState<"views" | "favorites">("favorites");
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [genreF, setGenreF] = useState("all");
@@ -104,7 +103,7 @@ export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: 
     [mostFavorited],
   );
   const activeSpotlight: "views" | "favorites" =
-    spotlightTab === "favorites" && favoritedCards.length > 0
+    favoritedCards.length > 0
       ? "favorites"
       : viewedCards.length > 0
         ? "views"
@@ -167,7 +166,6 @@ export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: 
     setSrcF,
     sort,
     setSort,
-    setSpotlightTab,
     roadmapQuery,
     setRoadmapQuery,
     roadmapAge,

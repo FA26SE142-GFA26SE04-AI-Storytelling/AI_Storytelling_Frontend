@@ -12,7 +12,7 @@ const COLLAPSED_KEY = "lib_filter_collapsed";
  * Khung thanh lọc trái dùng chung (Thư viện phụ huynh, Creator, Moderator): tiêu đề "Bộ lọc", "Xóa tất cả" và nút thu gọn.
  * Khi thu gọn chỉ còn dải hẹp có nút mở và số bộ lọc đang bật; trạng thái nhớ theo trình duyệt.
  */
-export function FilterSidebarShell({ active, onClear, art, children }: { active: number; onClear: () => void; art: ReactNode; children: ReactNode }) {
+export function FilterSidebarShell({ active, onClear, art, top, children }: { active: number; onClear: () => void; art: ReactNode; top?: ReactNode; children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   // Đọc sau khi mount để HTML render ở server và lần render đầu ở trình duyệt giống nhau.
   useEffect(() => {
@@ -41,6 +41,7 @@ export function FilterSidebarShell({ active, onClear, art, children }: { active:
     <aside className="lib-sidebar" aria-label="Bộ lọc thư viện">
       <div className="lib-sidebar-art" aria-hidden="true">{art}</div>
       <div className="lib-sidebar-inner">
+        {top}
         <div className="lib-sidebar-head">
           <h3 className="display"><SlidersHorizontal className="ic" aria-hidden="true" />Bộ lọc</h3>
           <span className="lib-sidebar-actions">
@@ -85,13 +86,13 @@ export default function LibraryFilterSidebar({ stories, ages, topics, age, genre
         <BookOpen className="lib-sidebar-book" />
         <Lotus size={50} className="lib-sidebar-lotus" />
       </>}
+      top={<LibraryTopAuthors authors={extraFilters.authors} author={extraFilters.author} onAuthor={extraFilters.onAuthor} />}
     >
       <FilterGroup title="Độ tuổi" icon={Users} options={ages} value={age} onChange={onAge} />
       <FilterGroup title="Chủ đề" icon={Shapes} options={topics.map(([key, count]) => ({ key, label: key, count }))} value={genre} onChange={onGenre} limit={6} />
       <FilterGroup title="Thời lượng" icon={Clock} options={extraFilters.durations} value={extraFilters.duration} onChange={extraFilters.onDuration} />
       {!community && <FilterGroup title="Nguồn truyện" icon={BookOpen} options={sources.filter(({ key, count }) => count > 0 || key === source)} value={source} onChange={onSource} defaultOpen={source !== "all"} />}
       {!community && <FilterGroup title="Trạng thái" icon={Tag} options={statuses.filter(({ key, count }) => count > 0 || key === status)} value={status} onChange={onStatus} defaultOpen={status !== "all"} />}
-      <LibraryTopAuthors authors={extraFilters.authors} author={extraFilters.author} onAuthor={extraFilters.onAuthor} />
     </FilterSidebarShell>
   );
 }

@@ -77,7 +77,6 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                 templatesCount={null}
                 query={d.q}
                 roadmapQuery=""
-                sort={d.sort}
                 filterOpen={filterOpen}
                 stories={stories}
                 ageOptions={d.ageOptions}
@@ -91,7 +90,6 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                 onTabChange={noop}
                 onQueryChange={d.setQ}
                 onRoadmapQueryChange={noop}
-                onSortChange={d.setSort}
                 onToggleFilter={() => setFilterOpen((v) => !v)}
                 onCloseFilter={closeFilter}
                 onStatusChange={d.setStatus}
@@ -112,7 +110,6 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                 ageOptions={d.ageOptions}
                 topicEntries={d.topicEntries}
                 activeChips={d.activeChips}
-                viewedCards={d.viewedCards}
                 favoritedCards={d.favoritedCards}
                 activeSpotlight={d.activeSpotlight}
                 spotlightCards={d.spotlightCards}
@@ -134,7 +131,6 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                 onGenreChange={d.setGenreF}
                 onAgeChange={d.setAgeF}
                 onSortChange={d.setSort}
-                onSpotlightChange={d.setSpotlightTab}
                 onClearFilters={d.clearStoryFilters}
                 onRetry={retryStories}
                 onPickStory={pickStory}
