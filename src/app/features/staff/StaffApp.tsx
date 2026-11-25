@@ -2,7 +2,7 @@
 
 import "@/app/styles/features/staff/staff.css";
 import "@/app/styles/features/children/children.css";
-import { useEffect, useState, type ComponentType } from "react";
+import { useEffect, useMemo, useState, type ComponentType } from "react";
 import {
   Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, KeyRound, LayoutDashboard, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
   Shield, ShieldAlert, Sparkles, Star, Sun, ScrollText, UserRound, UserRoundCheck, Users, WalletCards, WandSparkles, type LucideIcon,
@@ -46,6 +46,9 @@ import { AdminBusinessReport } from "./AdminBusinessReport";
 import AdminOverview from "./AdminOverview";
 import AdminSidebar, { type SideGroup } from "./AdminSidebar";
 import { adminNavBadges, useAdminTodo } from "./adminTodo";
+import { canOpenPage, visibleNav } from "./staffPageAccess";
+import { useMyPermissions } from "./useMyPermissions";
+import { Page } from "./ui";
 // Trước đây chỉ ParentShell nạp file này nên ở điện thoại header nhân viên vẫn hiện thanh ngang (bị cắt) và không có thanh tab đáy.
 import "@/app/styles/mobile.css";
 
@@ -90,7 +93,7 @@ const PAGES: Record<StaffRole, PageDef[]> = {
   ],
   Moderator: [
     { id: "queue", label: "Duyệt truyện", menuLabel: "Duyệt truyện", short: "Duyệt truyện", icon: Inbox, view: CreatorStoryReviewWorkspace, hint: "Tiếp nhận và duyệt truyện nhà sáng tạo nộp công khai" },
-    { id: "published", label: "Thư viện cộng đồng", short: "Thư viện cộng đồng", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện nhà sáng tạo đang công khai" },
+    { id: "published", label: "Rà soát thư viện", short: "Rà soát thư viện", icon: LibraryBig, view: PublishedReviewWorkspace, hint: "Truyện nhà sáng tạo đang công khai" },
     { id: "removal-records", label: "Hồ sơ gỡ truyện", short: "Hồ sơ gỡ", icon: Archive, view: RemovalRecordsWorkspace, hint: "Theo dõi các hồ sơ gỡ truyện và vi phạm theo 2 nguồn độc lập" },
     { id: "gray-zone", label: "Kiểm tra vùng xám", short: "Vùng xám", icon: ShieldAlert, view: GrayZoneReviewWorkspace, hint: "Kiểm tra nội dung rơi vào vùng xám an toàn" },
     { id: "content-reports", label: "Báo cáo nội dung", short: "Báo cáo", icon: Flag, view: ContentReportsWorkspace, hint: "Tiếp nhận và xử lý báo cáo vi phạm nội dung" },
@@ -146,10 +149,10 @@ const MODERATOR_QUEUE_NAV_MAP: Record<string, string> = {
   RoadmapTemplateReview: "templates",
 };
 
-function StaffNav({ role, pageId, onPage, badges, upward }: { role: StaffRole; pageId: string; onPage: (id: string) => void; badges?: Record<string, number>; upward?: boolean }) {
+function StaffNav({ role, nav, pageId, onPage, badges, upward }: { role: StaffRole; nav: NavEntry[]; pageId: string; onPage: (id: string) => void; badges?: Record<string, number>; upward?: boolean }) {
   const pages = PAGES[role];
   const byId = (id: string) => pages.find((p) => p.id === id)!;
-  return NAV[role].map((entry) => {
+  return nav.map((entry) => {
     if (typeof entry === "string") {
       const { id, label, short, icon: Icon } = byId(entry);
       const count = badges?.[id] ?? 0;
@@ -166,10 +169,10 @@ function StaffNav({ role, pageId, onPage, badges, upward }: { role: StaffRole; p
 }
 
 /** Nhóm của thanh bên Admin, dựng từ NAV để menu máy tính và thanh tab điện thoại luôn cùng danh sách trang. */
-function sideGroups(role: StaffRole): SideGroup[] {
+function sideGroups(role: StaffRole, nav: NavEntry[]): SideGroup[] {
   const pages = PAGES[role];
   const item = (id: string) => { const { label, icon } = pages.find((p) => p.id === id)!; return { id, label, icon }; };
-  return NAV[role].map((entry) => (typeof entry === "string" ? { items: [item(entry)] } : { label: entry.label, items: entry.items.map(item) }));
+  return nav.map((entry) => (typeof entry === "string" ? { items: [item(entry)] } : { label: entry.label, items: entry.items.map(item) }));
 }
 
 export function defaultStaffSection(role: StaffRole): string {
@@ -315,13 +318,17 @@ function StaffAppInner({
 
   const page = pages.find((p) => p.id === pageId) ?? pages[0];
   const View = page.view;
+  const granted = useMyPermissions(userId);
+  const nav = useMemo(() => visibleNav(NAV[role], (id) => canOpenPage(role, id, granted)), [role, granted]);
+  const groups = useMemo(() => sideGroups(role, nav), [role, nav]);
+  const allowed = canOpenPage(role, page.id, granted);
 
   return (
     <div className={`shell no-status top-nav${isAdmin ? " adm-shell" : ""}${isAdmin && sidebarCollapsed ? " adm-shell-collapsed" : ""}`}>
       <PondBackdrop rich />
       {isAdmin && (
         <AdminSidebar
-          groups={sideGroups(role)}
+          groups={groups}
           pageId={pageId}
           onPage={(id) => go(id)}
           badges={badges}
@@ -339,7 +346,7 @@ function StaffAppInner({
           <div className="adm-top-title"><b>{page.label}</b>{page.hint && <small>{page.hint}</small>}</div>
         ) : (
           <nav ref={navRef} className="topnav" aria-label={ROLE_LABEL[role]}>
-            <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} badges={badges} />
+            <StaffNav role={role} nav={nav} pageId={pageId} onPage={(id) => go(id)} badges={badges} />
           </nav>
         )}
         <div className="top-gap" />
@@ -351,10 +358,21 @@ function StaffAppInner({
 
       {/* Điện thoại: header không đủ chỗ nên điều hướng nằm ở thanh tab dưới đáy. */}
       <nav className="rail rail-mobile" aria-label={ROLE_LABEL[role]}>
-        <StaffNav role={role} pageId={pageId} onPage={(id) => go(id)} badges={badges} upward />
+        <StaffNav role={role} nav={nav} pageId={pageId} onPage={(id) => go(id)} badges={badges} upward />
       </nav>
 
-      <main className="stage"><View key={`${userId ?? "anon"}:${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} /></main>
+      <main className="stage">
+        {allowed ? (
+          <View key={`${userId ?? "anon"}:${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} />
+        ) : (
+          <Page title={page.label}>
+            <div className="st-card">
+              <h3>Bạn không có quyền dùng trang này</h3>
+              <p className="sub">Quản trị viên đã tắt quyền cần cho trang “{page.label}”. Hãy chọn mục khác trên menu hoặc liên hệ quản trị viên.</p>
+            </div>
+          </Page>
+        )}
+      </main>
     </div>
   );
 }

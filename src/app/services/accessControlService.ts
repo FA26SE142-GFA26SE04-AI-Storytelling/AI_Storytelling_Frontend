@@ -3,6 +3,8 @@ import { apiRequest } from './apiClient';
 
 /** Administrator: danh mục quyền và quyền của role nhân viên. */
 export const accessControlService = {
+  /** Quyền của chính tài khoản đang đăng nhập (mọi vai trò người lớn), để ẩn menu. */
+  mine: () => apiRequest<string[]>('/Auth/me/permissions', 'Không tải được quyền của tài khoản.'),
   permissions: () => apiRequest<PermissionDto[]>('/admin/permissions', 'Không tải được danh mục quyền.'),
   roles: () => apiRequest<RoleDto[]>('/admin/roles', 'Không tải được danh sách role.'),
   rolePermissions: (code: string) =>

@@ -1,5 +1,6 @@
 /* Trang Phân quyền: ma trận quyền × role và trang chỉnh quyền từng role. */
 .perm-head { display: flex; align-items: center; gap: 10px; }
+.perm-error { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .perm-head .seg { width: 260px; max-width: 100%; }
 .perm-head .seg button { padding: 6px 10px; font-size: var(--fs-sm); }
 
@@ -8,16 +9,23 @@
 .perm-name code { font-size: var(--fs-xs); font-weight: 400; color: var(--faint); overflow-wrap: anywhere; }
 
 /* Ma trận */
-.perm-matrix { min-width: 760px; }
-.perm-matrix th.perm-name { width: 34%; font-size: var(--fs-sm); color: var(--text); white-space: normal; }
+/* Bảng cố định: cột Việc rộng, các cột role chia đều. Ô tên quyền là <th> thật, nội dung flex nằm trong <div>. */
+.perm-matrix { min-width: 820px; table-layout: fixed; }
+.perm-matrix .perm-task-col { width: 32%; }
+.perm-matrix th.perm-task { font-size: var(--fs-sm); color: var(--text); white-space: normal; }
+.perm-matrix .perm-name code { overflow-wrap: normal; word-break: break-word; }
 .perm-matrix th.perm-role { text-align: center; white-space: normal; vertical-align: bottom; }
 .perm-role-btn { font: inherit; font-weight: 800; color: var(--link); text-decoration: underline dotted; text-underline-offset: 3px; }
 .perm-role-btn:hover { color: var(--primary-strong); }
 .perm-section th { padding-top: 14px; font-size: var(--fs-xs); font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; background: none; }
-.perm-cell { text-align: center; vertical-align: middle; position: relative; }
-.perm-cell.on .ic { color: var(--primary-strong); }
+.perm-matrix tr:last-child th.perm-task { border-bottom: 0; }
+/* Tên khu vực đứng yên khi bảng cuộn ngang. */
+.perm-section span { position: sticky; left: 10px; }
+.perm-matrix td.perm-cell { text-align: center; vertical-align: middle; }
+.perm-cell .ic { display: inline-block; vertical-align: middle; }
+.perm-cell.on .ic { color: var(--primary); }
 .perm-cell.off .ic { color: var(--faint); }
-.perm-cell.na { background: color-mix(in srgb, var(--surface-2) 45%, transparent); }
+.perm-cell.na { background: color-mix(in srgb, var(--surface-2) 25%, transparent); }
 .perm-conds { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; margin-top: 4px; }
 
 .perm-dot { display: inline-block; width: 8px; height: 8px; border-radius: 999px; background: var(--gold-deep); margin-left: 4px; vertical-align: middle; }
@@ -37,6 +45,11 @@
 .perm-cond-legend dd { margin: 0; color: var(--muted); }
 
 /* Chỉnh role */
+.perm-savebar {
+  position: sticky; bottom: 0; z-index: 2; flex: none; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px;
+  padding: 10px 14px; border: 1px solid var(--gold-deep); border-radius: 18px; background: var(--panel);
+  box-shadow: 0 6px 20px color-mix(in srgb, var(--shadow) 25%, transparent); font-size: var(--fs-sm);
+}
 .perm-tools { margin-bottom: 0; flex-wrap: wrap; }
 .perm-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
 .perm-list li { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 4px; border-bottom: 1px solid var(--line); }
@@ -54,7 +67,17 @@
 .perm-removed { color: var(--danger); }
 
 @media (max-width: 720px) {
+  /* Điện thoại: khung ngoài (.ws) mới là nơi cuộn; bỏ khung cuộn trong để thanh Lưu dính theo màn hình. */
+  .st-body:has(> .perm-savebar) { overflow: visible; }
+  .perm-savebar b { flex: 1 0 100%; }
+  .perm-savebar .grow { display: none; }
+  .perm-savebar .btn { flex: 1; justify-content: center; }
   .perm-list li { flex-direction: column; align-items: stretch; gap: 6px; }
   .perm-meta { justify-content: flex-start; max-width: none; padding-left: 26px; }
   .perm-cond-legend { grid-template-columns: 1fr; }
+  /* Cuộn ngang trên điện thoại: giữ cột tên việc để biết đang xem dòng nào. */
+  .perm-matrix { min-width: 700px; }
+  .perm-matrix .perm-task-col { width: 150px; }
+  .perm-matrix thead th:first-child, .perm-matrix th.perm-task { position: sticky; left: 0; z-index: 1; background: var(--surface); }
+  .perm-matrix .perm-name code { display: none; }
 }

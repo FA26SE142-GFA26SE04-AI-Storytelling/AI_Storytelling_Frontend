@@ -256,7 +256,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
   const publishedDate = formatDay(roadmap?.publishedAt ?? selectedItem?.publishedAt ?? null);
 
   return (
-    <Page title={isModerator ? 'Thư viện cộng đồng' : 'Rà soát thư viện'}>
+    <Page title="Rà soát thư viện">
       {inDetail ? (
         <>
           <div className="row">

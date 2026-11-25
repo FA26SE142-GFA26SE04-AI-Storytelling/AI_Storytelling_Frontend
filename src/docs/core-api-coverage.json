@@ -501,6 +501,27 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
+    "method": "GET",
+    "route": "/api/v1/Auth/me/permissions",
+    "authorization": "AllowAnonymous",
+    "controller": "AuthController.cs",
+    "action": "GetMyPermissions",
+    "controllerLine": 195,
+    "evidence": [
+      {
+        "key": "GET /api/v1/Auth/me/permissions",
+        "service": "accessControlService",
+        "operation": "mine",
+        "file": "app/services/accessControlService.ts",
+        "line": 7,
+        "callers": [
+          "app/features/staff/useMyPermissions.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
     "method": "PUT",
     "route": "/api/v1/Auth/me",
     "authorization": "Authenticated",

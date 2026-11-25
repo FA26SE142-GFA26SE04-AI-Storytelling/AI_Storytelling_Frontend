@@ -7,6 +7,8 @@ import { describe, expect, it } from 'vitest';
 const read = (file: string) => readFileSync(path.resolve(process.cwd(), file), 'utf8');
 const editor = read('app/features/staff/RolePermissionEditor.tsx');
 const matrix = read('app/features/staff/PermissionMatrixView.tsx');
+const page = read('app/features/staff/AdminPermissions.tsx');
+const permCss = read('app/styles/features/staff/permissions.css');
 const css = read('app/styles/features/staff/staff.css');
 
 describe('AdminPermissions layout', () => {
@@ -23,5 +25,14 @@ describe('AdminPermissions layout', () => {
 
   it('lets only the wide matrix scroll sideways, never vertically', () => {
     expect(css).toMatch(/\.st-scroll\s*\{\s*overflow-x:\s*auto;\s*\}/);
+  });
+
+  // Nút Lưu ở đầu trang bị cuộn khuất: bỏ tick ở cuối danh sách mà không thấy Lưu (25/11/2026).
+  it('keeps Save in a sticky bar and asks before unsaved changes are dropped', () => {
+    expect(editor).toMatch(/\{dirty && \(\s*<div className="perm-savebar"/);
+    expect(permCss).toMatch(/\.perm-savebar\s*\{\s*position:\s*sticky;\s*bottom:\s*0/);
+    expect(permCss).toContain('.st-body:has(> .perm-savebar) { overflow: visible; }');
+    expect(editor).toMatch(/dirty && !\(await confirmDiscard/);
+    expect(page).toMatch(/dirty\.current && !\(await confirmDiscard/);
   });
 });

@@ -43,7 +43,7 @@ export default function CreatorStoryReviewWorkspace({ go }: { go?: (pageId: stri
       <span>Đã duyệt và công khai truyện lên thư viện cộng đồng.</span>
       {go && (
         <button type="button" className="btn btn-s" onClick={() => go('published')}>
-          <LibraryBig className="ic" />Mở Thư viện cộng đồng
+          <LibraryBig className="ic" />Mở Rà soát thư viện
         </button>
       )}
     </div>
