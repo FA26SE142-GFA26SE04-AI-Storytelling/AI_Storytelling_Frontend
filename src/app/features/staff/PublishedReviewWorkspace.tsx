@@ -10,10 +10,8 @@ import Dialog from '@/app/components/Dialog';
 import IconButton from '@/app/components/IconButton';
 import { showToast } from '@/app/lib/toast';
 import { coverFor } from '@/app/lib/storyView';
-import { storyService } from '@/app/services/storyService';
 import { staffService } from '@/app/services/staffService';
 import type { ContentCategory } from '@/app/types/childProfile';
-import { loadAllPages } from '@/app/features/library/useLibraryCatalog';
 import { FilterGroup } from '@/app/features/library/LibraryExtraFilters';
 import { FilterDrawerButton, FilterSidebarShell } from '@/app/features/library/LibraryFilterSidebar';
 import '@/app/styles/features/library/library.css';
@@ -63,7 +61,6 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
   const [label, setLabel] = useState('all');
   const [author, setAuthor] = useState('all');
   const [categories, setCategories] = useState<ContentCategory[]>([]);
-  const [community, setCommunity] = useState(new Map<number, { coverImageUrl: string | null; authorName: string | null }>());
   const [list, setList] = useState<B.PublishedContentItemDto[] | null>(null);
   const [selectedItem, setSelectedItem] = useState<B.PublishedContentItemDto | null>(null);
   const [story, setStory] = useState<B.PublishedStoryContentDto | null>(null);
@@ -122,12 +119,8 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
     };
   }, [source, ageBand, categoryId, days, user?.id, retry]);
 
-  // Bìa và tác giả chỉ có ở API thư viện cộng đồng; lỗi thì giữ bìa mặc định, không chặn trang.
   useEffect(() => {
     let alive = true;
-    void loadAllPages(pageIndex => storyService.getCommunityStories({ pageIndex, pageSize: 100, isDescending: true })).then(({ items }) => {
-      if (alive) setCommunity(new Map(items.map(s => [s.id, { coverImageUrl: s.coverImageUrl, authorName: s.authorName?.trim() || null }])));
-    });
     void staffService.categories().then(r => {
       if (alive && r.success && r.data) setCategories(r.data);
     });
@@ -235,7 +228,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
         { id: 'RoadmapTemplate', label: 'Lộ trình mẫu công khai' },
       ] as const);
 
-  const authorOf = (i: B.PublishedContentItemDto) => (i.source === 'PublicLibrary' && community.get(i.id)?.authorName) || null;
+  const authorOf = (i: B.PublishedContentItemDto) => (i.source === 'PublicLibrary' && i.authorName?.trim()) || null;
   const hasLabel = (i: B.PublishedContentItemDto) => label === 'all' || i.labels.some(l => l.displayName === label);
   const hasAuthor = (i: B.PublishedContentItemDto) => author === 'all' || authorOf(i) === author;
   const shown = list?.filter(i => hasLabel(i) && hasAuthor(i)) ?? null;
@@ -443,7 +436,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
               <div className="created-grid">
                 {paged.map(i => {
                   const pub = formatDay(i.publishedAt);
-                  const cover = i.source === 'PublicLibrary' ? community.get(i.id)?.coverImageUrl : null;
+                  const cover = i.source === 'PublicLibrary' ? i.coverImageUrl : null;
                   return (
                     <button className="bk" key={`${i.source}:${i.id}`} disabled={busy} onClick={() => setSummary(i)} aria-label={`Xem tóm tắt ${i.title}`}>
                       <span className="bk-cover" style={{ background: coverFor(cover) }}>
@@ -488,7 +481,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
 
       {summary && (() => {
         const pub = formatDay(summary.publishedAt);
-        const cover = summary.source === 'PublicLibrary' ? community.get(summary.id)?.coverImageUrl : null;
+        const cover = summary.source === 'PublicLibrary' ? summary.coverImageUrl : null;
         const by = authorOf(summary);
         return (
           <Dialog title={summary.title} className="st-pub-dlg" onClose={() => setSummary(null)}>

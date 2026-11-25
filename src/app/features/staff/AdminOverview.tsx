@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { BarChart3, ChevronRight, Coins, MailWarning, ReceiptText, TrendingUp, TriangleAlert, UserRoundCheck, Users, Wallet, type LucideIcon } from "lucide-react";
 import type { AdminPaymentTransactionDto, RevenueStatisticsDto, UserAccountStatisticsDto } from "@/app/types/backendContracts";
 import type { AdminCreatorStatistics } from "@/app/types/creatorAdmin";
-import { defaultPeriod, lastMonths, PRESET_LABEL } from "@/app/lib/monthPeriods";
+import { defaultPeriod, lastMonths, PRESET_LABEL, type MonthPeriod } from "@/app/lib/monthPeriods";
 import { staffService } from "@/app/services/staffService";
 import { adminPaymentService } from "@/app/services/paymentService";
 import { creatorAdminService } from "@/app/services/creatorAdminService";
@@ -16,7 +16,8 @@ import { count, money, shortMoney } from "@/app/components/stats/statFormat";
 import { useRiseIn } from "@/app/lib/motion";
 import type { CreatorPageProps } from "./CreatorStories";
 import { Payer, PayPill } from "./AdminSystem";
-import { useAdminTodo, type AdminTodo } from "./adminTodo";
+import { TODO_PERMISSION, useAdminTodo, type AdminTodo } from "./adminTodo";
+import { useAccessLookup, useAccessReady } from "./staffAccess";
 import { Page, fmt } from "./ui";
 import "@/app/styles/features/staff/AdminDashboard.css";
 
@@ -39,7 +40,14 @@ export default function AdminOverview({ go }: CreatorPageProps) {
   const [period] = useState(() => defaultPeriod());
   const [months] = useState(() => lastMonths(6));
   const [chartType, setChartType] = useState<"area" | "bar">("area");
-  const todo = useAdminTodo(true, null);
+  const lookup = useAccessLookup();
+  const ready = useAccessReady();
+  const can = (code: string) => lookup(code).state !== "Hidden";
+  // Thiếu quyền thì ẩn phần đó và không gọi API của nó.
+  const canReport = can("report.business.view");
+  const canPay = can("payment.manage");
+  const todos = TODOS.filter((t) => can(TODO_PERMISSION[t.key]));
+  const todo = useAdminTodo(ready, null, can);
   const [stats, setStats] = useState<Stats | null>(null);
   const [recent, setRecent] = useState<AdminPaymentTransactionDto[] | null | undefined>(undefined);
 
@@ -47,19 +55,18 @@ export default function AdminOverview({ go }: CreatorPageProps) {
   const animRef = useRiseIn<HTMLDivElement>(".ce-stat, .adm-card", [], { delay: 40, distance: 14 });
 
   useEffect(() => {
+    if (!ready) return;
     let alive = true;
     const ctrl = new AbortController();
     const data = <T,>(p: Promise<{ success: boolean; data: T | null }>) => p.then((r) => (r.success ? r.data : null), () => null);
-    void Promise.all([
+    if (canReport) void Promise.all([
       data(staffService.revenueStats(period.start, period.end, ctrl.signal)),
       data(staffService.accountStats(period.start, period.end, ctrl.signal)),
       data(creatorAdminService.creatorStats(period.start, period.end, ctrl.signal)),
     ]).then(([revenue, accounts, creators]) => { if (alive) setStats({ revenue, accounts, creators }); });
-    void data(adminPaymentService.transactions({ pageIndex: 1, pageSize: 5 })).then((r) => { if (alive) setRecent(r ? r.items : null); });
+    if (canPay) void data(adminPaymentService.transactions({ pageIndex: 1, pageSize: 5 })).then((r) => { if (alive) setRecent(r ? r.items : null); });
     return () => { alive = false; ctrl.abort(); };
-  }, [period.start, period.end]);
-
-  const monthly = useMonthlyStats(months, (s, e, sig) => staffService.revenueStats(s, e, sig), (d) => d.totalRevenueVnd, []);
+  }, [period.start, period.end, ready, canReport, canPay]);
 
   const pick = <T,>(get: (s: Stats) => T | null) => (stats === null ? undefined : get(stats));
   const revenue = pick((s) => s.revenue);
@@ -68,7 +75,7 @@ export default function AdminOverview({ go }: CreatorPageProps) {
   const payIssues = todo === null ? undefined
     : todo.mismatchedPayments === null && todo.openReconciliations === null ? null
     : (todo.mismatchedPayments ?? 0) + (todo.openReconciliations ?? 0);
-  const todoTotal = todo === null ? null : TODOS.reduce((n, t) => n + (todo[t.key] ?? 0), 0);
+  const todoTotal = todo === null ? null : todos.reduce((n, t) => n + (todo[t.key] ?? 0), 0);
 
   return (
     <Page title="Tổng quan">
@@ -80,6 +87,7 @@ export default function AdminOverview({ go }: CreatorPageProps) {
         </div>
 
         <div className="ce-stats adm-kpis">
+          {canReport && <>
           <StatCard
             icon={Coins}
             tone="gold"
@@ -99,15 +107,79 @@ export default function AdminOverview({ go }: CreatorPageProps) {
             value={show(creators === undefined ? undefined : creators?.activeCreators ?? null)}
             sub={creators ? `${count(creators.partnerCreators)} Creator đối tác` : undefined}
           />
+          </>}
+          {canPay && (
           <StatCard
             icon={TriangleAlert}
             label="Giao dịch cần xử lý"
             value={show(payIssues)}
             sub={todo ? `${show(todo.mismatchedPayments)} sai số tiền · ${show(todo.openReconciliations)} chờ áp gói` : undefined}
           />
+          )}
         </div>
 
         <div className="adm-row">
+          {canReport && ready && <RevenueChart months={months} chartType={chartType} setChartType={setChartType} />}
+
+          <section className="adm-card adm-todo" aria-labelledby="adm-todo-h">
+            <div className="adm-card-h">
+              <h2 id="adm-todo-h" className="display">Việc cần xử lý</h2>
+              <span className="adm-card-meta">{todoTotal === null ? "…" : `${count(todoTotal)} việc`}</span>
+            </div>
+            {todos.length === 0 && <p className="empty-line">Không có việc nào thuộc quyền của bạn.</p>}
+            {todos.map(({ key, label, hint, page, tone, icon: Icon }) => {
+              const n = todo === null ? undefined : todo[key];
+              return (
+                <button key={key} type="button" className={`adm-todo-item${n === 0 ? " done" : ""}`} onClick={() => go(page)}>
+                  <span className={`adm-todo-ic ${tone}`}><Icon aria-hidden /></span>
+                  <span className="adm-todo-txt"><b>{label}</b><small>{hint}</small></span>
+                  <span className={`adm-todo-n ${tone}`}>{show(n)}</span>
+                  <ChevronRight className="adm-todo-go" aria-hidden />
+                </button>
+              );
+            })}
+          </section>
+        </div>
+
+        {canPay && (
+        <section className="adm-card adm-tx-card" aria-labelledby="adm-tx-h">
+          <div className="adm-card-h">
+            <h2 id="adm-tx-h" className="display">Giao dịch gần đây</h2>
+            <button type="button" className="btn btn-s" onClick={() => go("payments")}>Xem tất cả</button>
+          </div>
+          {recent === undefined ? <p className="sub">Đang tải…</p>
+            : recent === null ? <p className="empty-line">Không tải được danh sách giao dịch.</p>
+            : recent.length === 0 ? <p className="empty-line">Chưa có giao dịch nào.</p>
+            : (
+              <div className="st-scroll">
+                <table className="st-table stack-table adm-table">
+                  <thead><tr><th>Mã giao dịch</th><th>Người mua</th><th>Gói</th><th className="num">Số tiền</th><th>Tạo lúc</th><th>Trạng thái</th></tr></thead>
+                  <tbody>
+                    {recent.map((t) => (
+                      <tr key={t.id}>
+                        <td data-label="Mã giao dịch"><b>{t.transactionCode}</b></td>
+                        <td data-label="Người mua"><Payer t={t} /></td>
+                        <td data-label="Gói">{t.planName}</td>
+                        <td data-label="Số tiền" className="num">{money(t.amount)}</td>
+                        <td data-label="Tạo lúc">{fmt(t.createdAt)}</td>
+                        <td data-label="Trạng thái"><PayPill status={t.status} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+        </section>
+        )}
+      </div>
+    </Page>
+  );
+}
+
+/** Tách riêng để chỉ tải doanh thu khi tài khoản có quyền xem báo cáo. */
+function RevenueChart({ months, chartType, setChartType }: { months: MonthPeriod[]; chartType: "area" | "bar"; setChartType: (t: "area" | "bar") => void }) {
+  const monthly = useMonthlyStats(months, (s, e, sig) => staffService.revenueStats(s, e, sig), (d) => d.totalRevenueVnd, []);
+  return (
           <section className="adm-card adm-chart" aria-label="Doanh thu 6 tháng gần nhất">
             <div className="adm-card-h">
               <h2 className="display">Doanh thu 6 tháng gần nhất</h2>
@@ -154,55 +226,5 @@ export default function AdminOverview({ go }: CreatorPageProps) {
               />
             )}
           </section>
-
-          <section className="adm-card adm-todo" aria-labelledby="adm-todo-h">
-            <div className="adm-card-h">
-              <h2 id="adm-todo-h" className="display">Việc cần xử lý</h2>
-              <span className="adm-card-meta">{todoTotal === null ? "…" : `${count(todoTotal)} việc`}</span>
-            </div>
-            {TODOS.map(({ key, label, hint, page, tone, icon: Icon }) => {
-              const n = todo === null ? undefined : todo[key];
-              return (
-                <button key={key} type="button" className={`adm-todo-item${n === 0 ? " done" : ""}`} onClick={() => go(page)}>
-                  <span className={`adm-todo-ic ${tone}`}><Icon aria-hidden /></span>
-                  <span className="adm-todo-txt"><b>{label}</b><small>{hint}</small></span>
-                  <span className={`adm-todo-n ${tone}`}>{show(n)}</span>
-                  <ChevronRight className="adm-todo-go" aria-hidden />
-                </button>
-              );
-            })}
-          </section>
-        </div>
-
-        <section className="adm-card adm-tx-card" aria-labelledby="adm-tx-h">
-          <div className="adm-card-h">
-            <h2 id="adm-tx-h" className="display">Giao dịch gần đây</h2>
-            <button type="button" className="btn btn-s" onClick={() => go("payments")}>Xem tất cả</button>
-          </div>
-          {recent === undefined ? <p className="sub">Đang tải…</p>
-            : recent === null ? <p className="empty-line">Không tải được danh sách giao dịch.</p>
-            : recent.length === 0 ? <p className="empty-line">Chưa có giao dịch nào.</p>
-            : (
-              <div className="st-scroll">
-                <table className="st-table stack-table adm-table">
-                  <thead><tr><th>Mã giao dịch</th><th>Người mua</th><th>Gói</th><th className="num">Số tiền</th><th>Tạo lúc</th><th>Trạng thái</th></tr></thead>
-                  <tbody>
-                    {recent.map((t) => (
-                      <tr key={t.id}>
-                        <td data-label="Mã giao dịch"><b>{t.transactionCode}</b></td>
-                        <td data-label="Người mua"><Payer t={t} /></td>
-                        <td data-label="Gói">{t.planName}</td>
-                        <td data-label="Số tiền" className="num">{money(t.amount)}</td>
-                        <td data-label="Tạo lúc">{fmt(t.createdAt)}</td>
-                        <td data-label="Trạng thái"><PayPill status={t.status} /></td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-        </section>
-      </div>
-    </Page>
   );
 }

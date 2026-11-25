@@ -48,6 +48,17 @@ describe('adminTodo', () => {
     expect(todo.pendingApplications).toBe(4);
   });
 
+  it('does not call endpoints the account has no permission for', async () => {
+    const todo = await loadAdminTodo(1000, (code) => code === 'payment.manage');
+    expect(todo).toEqual({ pendingApplications: null, mismatchedPayments: 2, openReconciliations: 5, payoutsDue: null, pendingInvites: null });
+    expect(api.applications).not.toHaveBeenCalled();
+    expect(api.payoutsDue).not.toHaveBeenCalled();
+    expect(api.staff).not.toHaveBeenCalled();
+    // Đổi quyền thì tải lại ngay, không dùng lại lượt gọi cũ.
+    await loadAdminTodo(1500);
+    expect(api.staff).toHaveBeenCalledTimes(1);
+  });
+
   it('shares one round of calls between sidebar and overview', async () => {
     await Promise.all([loadAdminTodo(1000), loadAdminTodo(2000)]);
     expect(api.applications).toHaveBeenCalledTimes(1);

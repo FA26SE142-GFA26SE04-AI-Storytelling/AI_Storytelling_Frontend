@@ -25,6 +25,11 @@ export const accessOf = (map: AccessMap, code: string): Access => (map ? map.get
 const StaffAccessContext = createContext<AccessMap>(null);
 export const StaffAccessProvider = StaffAccessContext.Provider;
 
+/** false trong lúc chờ lần tải quyền đầu tiên: chưa nên gọi API theo quyền. */
+const AccessReadyContext = createContext(true);
+export const AccessReadyProvider = AccessReadyContext.Provider;
+export const useAccessReady = () => useContext(AccessReadyContext);
+
 /** Tra quyền theo mã, dùng khi một màn cần nhiều quyền. */
 export function useAccessLookup(): (code: string) => Access {
   const map = useContext(StaffAccessContext);
@@ -34,8 +39,9 @@ export function useAccessLookup(): (code: string) => Access {
 export const useAccess = (code: string): Access => accessOf(useContext(StaffAccessContext), code);
 
 /** Quyền của tài khoản đang đăng nhập; tải lại khi đổi trang hoặc quay lại cửa sổ. */
-export function useMyAccess(userId: number | null, refreshKey: unknown): AccessMap {
+export function useMyAccess(userId: number | null, refreshKey: unknown): { map: AccessMap; ready: boolean } {
   const [map, setMap] = useState<AccessMap>(null);
+  const [ready, setReady] = useState(false);
   useEffect(() => {
     if (userId === null) return;
     let alive = true;
@@ -46,18 +52,19 @@ export function useMyAccess(userId: number | null, refreshKey: unknown): AccessM
       accessControlService.mine().then(
         (r) => {
           // Bỏ phản hồi đến muộn của lần tải cũ để không đè kết quả mới hơn.
+          if (alive) setReady(true);
           if (!alive || id < applied || !r.success || !r.data) return;
           applied = id;
           setMap(toAccessMap(r.data));
         },
-        () => { /* Lỗi mạng: giữ danh sách đang có, API vẫn tự kiểm quyền. */ },
+        () => { if (alive) setReady(true); /* Lỗi mạng: giữ danh sách đang có, API vẫn tự kiểm quyền. */ },
       );
     };
     load();
     window.addEventListener("focus", load);
     return () => { alive = false; window.removeEventListener("focus", load); };
   }, [userId, refreshKey]);
-  return map;
+  return { map, ready };
 }
 
 /** Nêu lý do khi quyền đang bị khoá hoặc giới hạn. */
