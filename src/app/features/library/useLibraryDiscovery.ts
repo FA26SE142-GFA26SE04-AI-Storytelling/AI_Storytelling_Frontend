@@ -11,6 +11,7 @@ import {
   collectAgeOptions,
   collectDurationOptions,
   collectLibraryAuthors,
+  countActiveFilters,
   countPopoverFilters,
   filterAndSortStories,
   filterRoadmaps,
@@ -90,6 +91,7 @@ export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: 
     [q, status, genreF, ageF, srcF, duration, author, sort],
   );
   const popoverCount = countPopoverFilters(filterState);
+  const activeCount = countActiveFilters(filterState);
   const focused = isFocusedCatalog(filterState);
   const results = useMemo(() => filterAndSortStories(sorted, filterState), [sorted, filterState]);
 
@@ -177,6 +179,7 @@ export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: 
     topicEntries,
     ageOptions,
     popoverCount,
+    activeCount,
     focused,
     results,
     viewedCards,

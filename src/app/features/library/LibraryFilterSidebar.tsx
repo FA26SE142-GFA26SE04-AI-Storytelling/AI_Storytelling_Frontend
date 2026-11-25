@@ -4,33 +4,44 @@ import type { StoryCard } from "@/app/lib/storyView";
 import { FilterGroup, type LibraryExtraFilterProps } from "./LibraryExtraFilters";
 import { SOURCE_LABEL, STATUS_GROUPS, sourceOf, statusOf, type AgeFilterOption } from "./libraryFilters";
 
+// Mỗi trang chỉ có một khung Bộ lọc: nút mở (nằm ở thanh tìm kiếm) báo mở qua sự kiện, khỏi truyền trạng thái qua nhiều tầng.
+const OPEN_EVENT = "lib-filter-drawer:open";
+
+/** Nút mở khung Bộ lọc, đặt đầu hàng tìm kiếm (kiểu nút menu của YouTube); hiện số bộ lọc đang bật. */
+export function FilterDrawerButton({ active }: { active: number }) {
+  return (
+    <button type="button" className="lib-drawer-btn" onClick={() => document.dispatchEvent(new Event(OPEN_EVENT))}
+      title="Mở bộ lọc" aria-label={active > 0 ? `Mở bộ lọc, đang bật ${active} bộ lọc` : "Mở bộ lọc"} aria-controls="lib-filter-drawer">
+      <PanelLeftOpen aria-hidden="true" />
+      {active > 0 && <span className="lib-side-rail-n">{active}</span>}
+    </button>
+  );
+}
+
 /**
- * Thanh lọc trái dùng chung (Thư viện phụ huynh, Creator, Moderator), kiểu menu YouTube:
- * luôn là dải hẹp có nút mở và số bộ lọc đang bật; mở ra thì khung Bộ lọc nổi đè lên trang kèm lớp phủ,
- * bấm ra ngoài / Esc / nút thu để đóng. Khung Bộ lọc luôn có trong DOM (ẩn bằng `hidden`) để giữ trạng thái nhóm lọc.
+ * Khung Bộ lọc dùng chung (Thư viện phụ huynh, Creator, Moderator): mở bằng `FilterDrawerButton`, nổi đè lên trang kèm lớp phủ,
+ * bấm ra ngoài / Esc / nút thu để đóng; không chiếm cột nên trang không bị hở. Luôn có trong DOM (ẩn bằng `hidden`) để giữ trạng thái nhóm lọc.
  */
-export function FilterSidebarShell({ active, onClear, children }: { active: number; onClear: () => void; children: ReactNode }) {
+export function FilterSidebarShell({ onClear, children }: { onClear: () => void; children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const openBtn = useRef<HTMLButtonElement>(null);
+  const returnFocus = useRef<HTMLElement | null>(null);
   const closeBtn = useRef<HTMLButtonElement>(null);
-  const close = () => { setOpen(false); openBtn.current?.focus({ preventScroll: true }); };
+  const close = () => { setOpen(false); returnFocus.current?.focus({ preventScroll: true }); };
+  useEffect(() => {
+    const onOpen = () => { returnFocus.current = document.activeElement as HTMLElement | null; setOpen(true); };
+    document.addEventListener(OPEN_EVENT, onOpen);
+    return () => document.removeEventListener(OPEN_EVENT, onOpen);
+  }, []);
   useEffect(() => {
     if (!open) return;
     closeBtn.current?.focus({ preventScroll: true });
-    const key = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); openBtn.current?.focus({ preventScroll: true }); } };
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); returnFocus.current?.focus({ preventScroll: true }); } };
     document.addEventListener("keydown", key);
     return () => document.removeEventListener("keydown", key);
   }, [open]);
-  const openLabel = active > 0 ? `Mở bộ lọc, đang bật ${active} bộ lọc` : "Mở bộ lọc";
 
   return (
-    <div className="lib-side-rail-wrap">
-      <div className="lib-sidebar collapsed">
-        <button ref={openBtn} type="button" className="lib-side-rail-filter" onClick={() => setOpen(true)} title="Mở bộ lọc" aria-label={openLabel} aria-expanded={open} aria-controls="lib-filter-drawer">
-          <PanelLeftOpen aria-hidden="true" />
-          {active > 0 && <span className="lib-side-rail-n">{active}</span>}
-        </button>
-      </div>
+    <>
       {open && <div className="lib-drawer-backdrop" aria-hidden="true" onClick={close} />}
       <aside id="lib-filter-drawer" className="lib-sidebar lib-drawer" aria-label="Bộ lọc thư viện" hidden={!open}>
         <div className="lib-sidebar-inner">
@@ -46,7 +57,7 @@ export function FilterSidebarShell({ active, onClear, children }: { active: numb
           {children}
         </div>
       </aside>
-    </div>
+    </>
   );
 }
 
@@ -69,10 +80,8 @@ export default function LibraryFilterSidebar({ stories, ages, topics, age, genre
 }) {
   const sources = Object.entries(SOURCE_LABEL).map(([key, label]) => ({ key, label, count: stories.filter((story) => sourceOf(story) === key).length }));
   const statuses = STATUS_GROUPS.map(({ id, label }) => ({ key: id, label, count: stories.filter((story) => statusOf(story) === id).length }));
-  const active = [age, genre, extraFilters.duration, extraFilters.author, ...(community ? [] : [source, status])].filter((v) => v !== "all").length;
   return (
     <FilterSidebarShell
-      active={active}
       onClear={onClear}
     >
       <FilterGroup title="Độ tuổi" icon={Users} options={ages} value={age} onChange={onAge} />

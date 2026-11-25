@@ -540,13 +540,10 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 .st-pub-cover { display: block; width: 132px; aspect-ratio: 3 / 4; margin: 0 auto; border-radius: 16px; border: 2px solid var(--line); animation: st-pub-pop .25s ease-out; }
 .st-pub-dlg .st-label-pills { justify-content: center; }
 .st-pub-dlg-actions { justify-content: flex-end; gap: 10px; }
+/* Nút mở Bộ lọc đứng sát nhóm tab nguồn ở bên trái, nút thao tác vẫn ở bên phải. */
+.st-pub-layout .created-bar > .created-pills { margin-right: auto; }
 @keyframes st-pub-pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .st-pub-cover { animation: none; } }
-@media (max-width: 960px) {
-  /* Rà soát thư viện (Moderator) không có nút "Bộ lọc" trên thanh tìm kiếm: giữ dải lọc thành một hàng trên đầu. */
-  .st-pub-layout .lib-side-rail-wrap { display: block; }
-  .st-pub-layout .lib-sidebar.collapsed { flex-direction: row; justify-content: flex-start; padding: 6px 10px; }
-}
 
 /* Nhóm nút lọc ngắn: chữ trong nút không xuống dòng. */
 .st-seg-nowrap button { white-space: nowrap; padding: 6px 12px; }

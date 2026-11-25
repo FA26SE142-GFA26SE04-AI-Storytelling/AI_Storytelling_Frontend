@@ -15,7 +15,7 @@ import { staffService } from '@/app/services/staffService';
 import type { ContentCategory } from '@/app/types/childProfile';
 import { loadAllPages } from '@/app/features/library/useLibraryCatalog';
 import { FilterGroup } from '@/app/features/library/LibraryExtraFilters';
-import { FilterSidebarShell } from '@/app/features/library/LibraryFilterSidebar';
+import { FilterDrawerButton, FilterSidebarShell } from '@/app/features/library/LibraryFilterSidebar';
 import '@/app/styles/features/library/library.css';
 import '@/app/styles/features/created/created.css';
 import { Page } from './ui';
@@ -407,10 +407,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
         </>
       ) : (
         <div className="lib-community-layout st-pub-layout">
-          <FilterSidebarShell
-            active={[ageBand, categoryId, days, label, author].filter(v => v !== 'all').length}
-            onClear={clearFilters}
-          >
+          <FilterSidebarShell onClear={clearFilters}>
               <div className="st-filter-nocount">
                 <FilterGroup title="Độ tuổi" icon={Users} options={AGE_OPTIONS} value={ageBand} onChange={pick(setAgeBand)} />
                 <FilterGroup title="Danh mục" icon={Shapes} options={categories.map(c => ({ key: String(c.id), label: c.displayName, count: 1 }))} value={categoryId} onChange={pick(setCategoryId)} limit={6} />
@@ -422,6 +419,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
 
           <div className="created lib-community-main">
             <div className="created-bar">
+              <FilterDrawerButton active={[ageBand, categoryId, days, label, author].filter(v => v !== 'all').length} />
               <div className="created-pills" role="tablist" aria-label="Nguồn nội dung">
                 {SOURCES.map(s => (
                   <button

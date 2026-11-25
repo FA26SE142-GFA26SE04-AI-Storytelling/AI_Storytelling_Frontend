@@ -84,6 +84,7 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                 age={d.ageF}
                 source={d.srcF}
                 popoverCount={d.popoverCount}
+                filterCount={d.activeCount}
                 extraFilters={d.extraFilters}
                 onBackToLearning={noop}
                 onDismissPickKid={noop}

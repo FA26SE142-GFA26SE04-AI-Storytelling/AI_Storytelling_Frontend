@@ -119,8 +119,9 @@
 /* Bố cục khám phá truyện theo chủ đề đầm sen */
 .lib-community-layout {
   display: grid;
-  /* Cột trái là dải lọc 52px; khung Bộ lọc mở ra thì nổi đè lên trang (không đẩy nội dung). */
-  grid-template-columns: 52px minmax(0, 1fr);
+  /* Một cột: khung Bộ lọc không chiếm chỗ, mở ra thì nổi đè lên trang từ góc trên trái. */
+  position: relative;
+  grid-template-columns: minmax(0, 1fr);
   align-items: start;
   gap: clamp(18px, 2.2vw, 32px);
   min-width: 0;
@@ -162,29 +163,34 @@
 .lib-sidebar-head .lib-reset-btn { white-space: nowrap; padding-inline: 3px; }
 .lib-sidebar-actions { display: flex; align-items: center; gap: 2px; }
 
-/* Dải lọc dính khi cuộn; khung Bộ lọc mở ra nổi đè lên trang kèm lớp phủ mờ (kiểu menu YouTube). */
-.lib-side-rail-wrap { position: sticky; top: 0; z-index: 30; }
+/* Khung Bộ lọc mở ra nổi đè lên trang kèm lớp phủ mờ (kiểu menu YouTube). */
 .lib-drawer {
-  position: absolute; top: 0; left: 0; z-index: 2; width: 252px;
+  position: absolute; top: 0; left: 0; z-index: 31; width: 252px;
   max-height: calc(100dvh - 124px); overflow: auto;
   box-shadow: 0 24px 48px -20px color-mix(in srgb, var(--shadow) 80%, transparent);
   animation: lib-drawer-in .22s cubic-bezier(.2, .8, .2, 1);
 }
-.lib-drawer-backdrop { position: fixed; inset: 0; z-index: 1; background: color-mix(in srgb, var(--text) 28%, transparent); animation: lib-fade-in .2s ease-out; }
+.lib-drawer-backdrop { position: fixed; inset: 0; z-index: 30; background: color-mix(in srgb, var(--text) 28%, transparent); animation: lib-fade-in .2s ease-out; }
 .lib-drawer[hidden] { display: none; }
 @keyframes lib-drawer-in { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
 @keyframes lib-fade-in { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .lib-drawer, .lib-drawer-backdrop { animation: none; } }
-.lib-side-toggle, .lib-side-rail-filter {
+.lib-side-toggle {
   position: relative; display: inline-grid; place-items: center; width: 32px; height: 32px; flex: none;
   border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer;
   transition: background .18s, color .18s, border-color .18s;
 }
-.lib-side-toggle:hover, .lib-side-rail-filter:hover { background: var(--surface); color: var(--primary); border-color: var(--line); }
-.lib-side-toggle:focus-visible, .lib-side-rail-filter:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
-.lib-side-toggle svg, .lib-side-rail-filter svg { width: 18px; height: 18px; }
-.lib-sidebar.collapsed { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 10px 0; overflow: visible; }
-.lib-side-rail-filter { color: var(--link); }
+.lib-side-toggle:hover { background: var(--surface); color: var(--primary); border-color: var(--line); }
+.lib-side-toggle:focus-visible, .lib-drawer-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.lib-side-toggle svg { width: 18px; height: 18px; }
+/* Nút mở Bộ lọc đầu hàng tìm kiếm: tròn, cao bằng ô tìm kiếm. */
+.lib-drawer-btn {
+  position: relative; display: inline-grid; place-items: center; width: 46px; height: 46px; flex: none; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--panel); color: var(--link); cursor: pointer;
+  box-shadow: 0 6px 16px -14px var(--shadow); transition: border-color .18s, color .18s, transform .18s;
+}
+.lib-drawer-btn:hover { border-color: var(--primary); color: var(--primary); transform: scale(1.04); }
+.lib-drawer-btn svg { width: 19px; height: 19px; }
 .lib-side-rail-n {
   position: absolute; top: -5px; right: -6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px;
   display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 800; background: var(--gold); color: var(--warn-ink);
@@ -367,8 +373,8 @@
   .lib-community-layout .shelf-row > .bk.lib-card-compact { flex-basis: calc((100% - 20px) / 3); }
 }
 @media (max-width: 960px) {
-  .lib-community-layout { grid-template-columns: minmax(0, 1fr); }
-  .lib-side-rail-wrap { display: none; }
+  /* Màn hẹp: phụ huynh / Creator dùng nút "Bộ lọc" dạng bảng nổi sẵn có trên thanh tìm kiếm. */
+  .lib-toolbar .lib-drawer-btn { display: none; }
 }
 @media (max-width: 700px) {
   .lib-community-layout .lib-head { align-items: flex-start; }
