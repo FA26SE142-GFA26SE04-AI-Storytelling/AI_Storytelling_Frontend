@@ -60,6 +60,8 @@ export interface SetSafetyPolicyRequest {
   comprehensionThresholdPercent?: number;
   comprehensionWindowSize?: number;
   storyWishesEnabled?: boolean;
+  /** Độ dài truyện phụ huynh tự chỉnh (100–9000 từ); null/bỏ trống = theo mức đọc của bé. */
+  storyLengthTarget?: number | null;
   allowInteractiveStories?: boolean;
   childCreationEnabled?: boolean;
   childCreationMode?: string;
@@ -123,6 +125,8 @@ export interface SafetyPolicy {
   /** Điều khoản đã đổi phiên bản: Owner phải đồng ý lại. */
   consentOutdated?: boolean;
   safetyScoreThreshold?: number | null;
+  /** Độ dài truyện phụ huynh tự chỉnh; null = theo mức đọc của bé. */
+  storyLengthTarget?: number | null;
   readabilityScoreThreshold?: number | null;
   comprehensionThresholdPercent?: number;
   comprehensionWindowSize?: number;
