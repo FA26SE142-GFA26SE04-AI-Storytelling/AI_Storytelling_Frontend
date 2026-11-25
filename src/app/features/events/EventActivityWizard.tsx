@@ -433,7 +433,7 @@ export default function EventActivityWizard({
         <div className="sec" style={{ gap: 12 }}>
           <div className="ev-field">
             <label htmlFor="ev-act-title" className="ev-field-label">Tên sự kiện</label>
-            <input id="ev-act-title" className="inp" value={title} onChange={(e) => setTitle(e.target.value)}
+            <input id="ev-act-title" className="inp" maxLength={200} value={title} onChange={(e) => setTitle(e.target.value)}
               placeholder="VD: Ngày hội Sáng tác & Bình chọn Mùa Thu" />
           </div>
           <div className="ev-field">
