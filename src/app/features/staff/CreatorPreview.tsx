@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo } from "react";
-import { Preview } from "@/app/features/library/LibraryWorkspace";
+import { Preview } from "@/app/features/library/StoryPreview";
 import { creatorService } from "@/app/services/creatorService";
 import { coverFor } from "@/app/lib/storyView";
 import type { CreatorDraft } from "@/app/types/creator";

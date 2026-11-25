@@ -38,9 +38,9 @@ const TEXT: Record<string, string> = {
   payment_confirmed: "Thanh toán thành công, gói đã được áp",
   event_award_approved: "Bạn đã trúng giải sự kiện",
   subscription_expiring: "Gói của bạn sắp hết hạn, hãy gia hạn để không gián đoạn",
-  creator_application_approved: "Đơn Creator đã được duyệt",
-  creator_application_rejected: "Đơn Creator bị từ chối",
-  creator_tier_changed: "Cấp Creator của bạn vừa thay đổi",
+  creator_application_approved: "Đơn nhà sáng tạo đã được duyệt",
+  creator_application_rejected: "Đơn nhà sáng tạo bị từ chối",
+  creator_tier_changed: "Cấp nhà sáng tạo của bạn vừa thay đổi",
   creator_payout_paid: "Bạn vừa được chi trả thu nhập",
   creator_payout_cancelled: "Một lần chi trả đã bị huỷ, số dư được cộng lại",
   story_credit_released: "Lượt AI giữ cho một truyện bỏ dở đã được trả lại",
@@ -53,10 +53,10 @@ const quoted = (value: unknown) => (typeof value === "string" && value.trim() ? 
 function detailedText(key: string, p: Record<string, unknown>): string | null {
   switch (key) {
     case "creator_tier_changed":
-      if (p.tier === "Partner") return "Chúc mừng! Bạn đã lên Creator đối tác";
-      if (p.reason === "revoked_by_admin") return "Administrator đã thu hồi cấp Creator đối tác của bạn";
-      if (p.reason === "story_removed_for_violation") return "Bạn mất cấp Creator đối tác vì có truyện bị gỡ do vi phạm";
-      return "Bạn đã về cấp Creator thường vì chưa đạt tiêu chí đối tác 2 tháng liên tiếp";
+      if (p.tier === "Partner") return "Chúc mừng! Bạn đã lên nhà sáng tạo đối tác";
+      if (p.reason === "revoked_by_admin") return "Quản trị viên đã thu hồi cấp nhà sáng tạo đối tác của bạn";
+      if (p.reason === "story_removed_for_violation") return "Bạn mất cấp nhà sáng tạo đối tác vì có truyện bị gỡ do vi phạm";
+      return "Bạn đã về cấp nhà sáng tạo thường vì chưa đạt tiêu chí đối tác 2 tháng liên tiếp";
     case "creator_payout_paid":
       return p.amountVnd != null ? `Bạn vừa được chi trả ${vnd(p.amountVnd)}` : null;
     case "creator_payout_cancelled":

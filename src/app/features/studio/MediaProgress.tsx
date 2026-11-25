@@ -11,7 +11,7 @@ import '@/app/styles/features/studio/workflow.css';
 /** Trạng thái job media của backend là chuỗi tiếng Anh; dịch các giá trị đã biết. */
 const JOB: Record<string, string> = {
   Pending: 'Đang xếp hàng', Processing: 'AI đang tạo tranh và giọng đọc', Completed: 'Đã tạo xong', Failed: 'Tạo media bị lỗi',
-  Cancelled: 'Đã huỷ', WaitingForModeration: 'Đang chờ Moderator xem vùng xám',
+  Cancelled: 'Đã huỷ', WaitingForModeration: 'Đang chờ kiểm duyệt viên xem vùng xám',
 };
 
 /** Lý do lỗi media theo mã backend; mã lạ hiện nguyên để báo quản trị viên. */

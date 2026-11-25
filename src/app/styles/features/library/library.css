@@ -1108,3 +1108,28 @@
   .lib-detail-aside-meta { align-items: center; }
   .lib-detail-stats { justify-content: center; }
 }
+
+/* Shared book cover styles from main. */
+.lbk { display: flex; flex-direction: column; gap: 4px; min-width: 0; text-align: left; border-radius: 16px; }
+.lbk-cover { box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--shadow) 70%, transparent); transition: transform .2s, box-shadow .2s; }
+.lbk:hover .lbk-cover { transform: translateY(-3px); box-shadow: 0 0 0 2px var(--gold), 0 14px 28px -14px color-mix(in srgb, var(--gold-deep) 60%, transparent); }
+.lbk.on .lbk-cover { box-shadow: 0 0 0 3px var(--primary), 0 12px 26px -14px color-mix(in srgb, var(--primary) 70%, transparent); }
+.lbk:focus-visible { outline: none; }
+.lbk:focus-visible .lbk-cover { box-shadow: 0 0 0 3px var(--primary); }
+.lbk-title { margin-top: 6px; font-size: var(--fs-md); font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lbk-meta { font-size: var(--fs-sm); color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lbk-badge { position: absolute; top: 10px; left: 10px; z-index: 2; padding: 2px 9px; border-radius: 8px; font-size: var(--fs-xs); font-weight: 800; box-shadow: 0 2px 8px -2px color-mix(in srgb, var(--shadow) 50%, transparent); }
+.lbk-badge.new { background: var(--gold); color: var(--on-gold); }
+.lbk-badge.prep { background: var(--panel); color: var(--warn-ink); border: 1px solid color-mix(in srgb, var(--gold) 70%, var(--panel)); }
+.lbk-rank { position: absolute; left: 8px; bottom: -8px; z-index: 2; font-size: calc(var(--fs-2xl) * 2.4); font-weight: 900; line-height: 1; color: var(--on-primary); text-shadow: 0 3px 10px color-mix(in srgb, var(--shadow) 70%, transparent); }
+.lbk-cover:has(.lbk-rank) .bkc-name { left: 56px; text-align: left; }
+.bkc { position: relative; display: block; aspect-ratio: 3 / 4; border-radius: 16px; overflow: hidden; background: var(--surface-2); }
+.bkc-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+.bkc-img.crop { inset: auto; max-width: none; object-fit: fill; }
+.bkc-default .bkc-img { filter: hue-rotate(var(--bkc-hue, 0deg)) saturate(.9); }
+.bkc-default::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 40%, color-mix(in srgb, var(--shadow) 55%, transparent)); }
+.bkc-name { position: absolute; left: 10px; right: 10px; bottom: 16px; z-index: 1; color: var(--on-primary); font-size: var(--fs-xl); font-weight: 800; line-height: 1.1; text-align: center; text-shadow: 0 2px 8px color-mix(in srgb, var(--shadow) 60%, transparent); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.lbk-skel .lbk-cover, .lbk-line { background: linear-gradient(100deg, var(--surface) 30%, var(--surface-2) 50%, var(--surface) 70%); background-size: 200% 100%; animation: lib-shimmer 1.3s ease-in-out infinite; }
+.lbk-line { height: 12px; border-radius: 6px; margin-top: 8px; width: 80%; }
+.lbk-line.short { width: 50%; margin-top: 4px; }
+.lbk-skel .lbk-cover, .lbk-line { animation: none; }

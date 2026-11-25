@@ -4,7 +4,7 @@ import "@/app/styles/features/library/library.css";
 import "@/app/styles/features/created/created.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Eye, Info, PencilLine, RefreshCw, Search, Undo2, WandSparkles, X } from "lucide-react";
-import { Shelf, ShelfRow } from "@/app/features/library/LibraryWorkspace";
+import { Shelf, ShelfRow } from "@/app/features/library/Shelf";
 import CreatorPreview from "./CreatorPreview";
 import RemovalRequestDialog from "./RemovalRequestDialog";
 import { REVIEW } from "./CreatorPublication";

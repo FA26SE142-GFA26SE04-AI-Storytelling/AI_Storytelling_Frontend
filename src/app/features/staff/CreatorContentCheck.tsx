@@ -10,7 +10,7 @@ import type * as B from '@/app/types/backendContracts';
 /** Ba mức kết quả kiểm tra nội dung của backend: Safe, GrayZone, HardBlock. */
 const ZONE: Record<string, { tone: 'ok' | 'warn' | 'err'; title: string; advice: string }> = {
   Safe: { tone: 'ok', title: 'An toàn', advice: 'Nội dung qua kiểm tra. Bạn có thể chốt nội dung.' },
-  GrayZone: { tone: 'warn', title: 'Vùng xám', advice: 'Có chỗ có thể gây tranh cãi với nhóm tuổi này. Truyện được chuyển cho Moderator xem trước; hãy chờ quyết định hoặc sửa nội dung rồi kiểm tra lại.' },
+  GrayZone: { tone: 'warn', title: 'Vùng xám', advice: 'Có chỗ có thể gây tranh cãi với nhóm tuổi này. Truyện được chuyển cho kiểm duyệt viên xem trước; hãy chờ quyết định hoặc sửa nội dung rồi kiểm tra lại.' },
   HardBlock: { tone: 'err', title: 'Bị chặn', advice: 'Nội dung vi phạm nghiêm trọng với nhóm tuổi này. Quay lại bước 1, sửa và lưu bản mới rồi kiểm tra lại.' },
 };
 
@@ -101,7 +101,7 @@ export default function CreatorContentCheck({ draft, disabled, missing, onWorkin
             <h4><span className="pa-num">1</span>Tự kiểm tra nội dung</h4>
             <p className="sub">AI đánh giá truyện theo nhóm tuổi: An toàn, Vùng xám hoặc Bị chặn.</p>
             {/* Lời khuyên hiện một lần dạng toast; kết quả giữ lại thành nhãn cạnh nút. */}
-            {result && meta && <p className={`notice ${meta.tone}`} role={meta.tone === 'err' ? 'alert' : 'status'}>Kết quả: {meta.title}. {result.status === 'GrayZone' && !result.waitingForModeration ? 'Nội dung ở vùng xám nhưng không còn chờ Moderator. Nếu sửa nội dung, hãy kiểm tra lại.' : meta.advice}</p>}
+            {result && meta && <p className={`notice ${meta.tone}`} role={meta.tone === 'err' ? 'alert' : 'status'}>Kết quả: {meta.title}. {result.status === 'GrayZone' && !result.waitingForModeration ? 'Nội dung ở vùng xám nhưng không còn chờ kiểm duyệt viên. Nếu sửa nội dung, hãy kiểm tra lại.' : meta.advice}</p>}
             <div className="pa-actions">
               <button className="btn btn-s" disabled={busy || disabled || !versionId} onClick={() => void check()}><ShieldCheck className="ic" />{busy && !pending ? 'Đang kiểm tra…' : result ? 'Kiểm tra lại' : 'Kiểm tra'}</button>
               {result && meta && <span className={`pill ${meta.tone === 'ok' ? 'ok' : meta.tone === 'warn' ? 'wait' : 'flag'}`}>Kết quả: {meta.title}</span>}

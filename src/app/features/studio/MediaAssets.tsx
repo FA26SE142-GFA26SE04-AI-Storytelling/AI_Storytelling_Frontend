@@ -100,7 +100,7 @@ export default function MediaAssets({ storyId, versionId, onChanged, disabled = 
     <input ref={fileRef} type="file" hidden aria-label="Chọn tệp media" onChange={(e) => { onFile(e.target.files?.[0]); e.target.value = ''; }} />
     {upload && <Dialog title={`Tải lên: ${upload.name}`} onClose={() => setUpload(null)}>
       <div className="st-form">
-        <p className="notice">Tệp <b>{upload.file.name}</b> được kiểm tra an toàn{upload.kind === 'image' ? ' và độ khớp với nội dung cảnh' : ''} trước khi dùng. Moderator sẽ nghe lại mọi giọng đọc bạn tải lên.</p>
+        <p className="notice">Tệp <b>{upload.file.name}</b> được kiểm tra an toàn{upload.kind === 'image' ? ' và độ khớp với nội dung cảnh' : ''} trước khi dùng. Kiểm duyệt viên sẽ nghe lại mọi giọng đọc bạn tải lên.</p>
         <label className="field"><span className="lbl">Nguồn của tệp</span><input className="inp" maxLength={2000} value={decl.sourceDeclaration} onChange={(e) => setDecl({ ...decl, sourceDeclaration: e.target.value })} /></label>
         <label className="field"><span className="lbl">Cam kết quyền sử dụng</span><input className="inp" maxLength={2000} value={decl.rightsDeclaration} onChange={(e) => setDecl({ ...decl, rightsDeclaration: e.target.value })} /></label>
         <div className="row"><button className="btn btn-g" onClick={() => setUpload(null)}>Huỷ</button><span className="grow" />

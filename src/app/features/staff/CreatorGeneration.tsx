@@ -30,12 +30,8 @@ import StageProgress from '@/app/features/studio/StageProgress';
 import CreatorBrief from './CreatorBrief';
 import CreatorMedia from './CreatorMedia';
 import { creatorPublicationState } from './creatorPublicationState';
+import { generationFailureMessage } from '@/app/features/story-workflow/storyGenerationFlow';
 const continueMedia = mediaKeepPolling;
-/** Lỗi AI hay gặp, giải thích bằng tiếng Việt; mã lạ thì hiện nguyên mã. */
-const FAILURE_VI: Record<string, string> = {
-  CONTENT_GENERATION_TIMEOUT: 'AI viết truyện quá thời gian chờ (mã CONTENT_GENERATION_TIMEOUT). Bấm Thử lại để viết lại.',
-  AI_TIMEOUT: 'AI phản hồi quá chậm (mã AI_TIMEOUT). Bấm Thử lại.',
-};
 
 /** Ý tưởng đã nhập, giữ lại khi quay về form (sửa ý tưởng); null = form trống. */
 type Seed = { topic: string; lesson: string; genre: string; charactersText: string; setting: string; outputMode: string; generationMode: GenerationMode; quizQuestionCount: number } | null;
@@ -154,7 +150,7 @@ function CreatorGenerationRun({ initialId, eventId, seed, onReset, onOpenStory, 
     {flow.timedOut && <p className="notice" role="status">Đã dừng theo dõi tự động. Kiểm tra trạng thái trước khi gửi lệnh khác.</p>}
     {flow.input && flow.input.inputStatus !== 'input_accepted' && <><p>{flow.input.fallbackMessage ?? 'Đang kiểm tra ý tưởng…'}</p>{flow.input.canRetry && submitted && <button className="btn btn-s" disabled={flow.busy} onClick={() => void flow.retry(submitted!)}>Kiểm tra lại</button>}</>}
     {flow.failure && <div className="notice err" role="alert" style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-start' }}>
-      <span>{FAILURE_VI[flow.failure.code] ?? `Máy chủ xác nhận bước xử lý thất bại (${flow.failure.code}).`}</span>
+      <span title={`Mã lỗi: ${flow.failure.code}`}>{generationFailureMessage(flow.failure.code)}</span>
       {canRetry && <button type="button" className="btn btn-s" disabled={flow.busy} onClick={() => void retryFailed()}>{flow.busy ? 'Đang gửi yêu cầu…' : 'Thử lại'}</button>}
     </div>}
     {flow.stage === 'stopped' && <p className="notice" role="status">Luồng đã dừng theo trạng thái backend; không tự tạo lệnh thử lại.</p>}

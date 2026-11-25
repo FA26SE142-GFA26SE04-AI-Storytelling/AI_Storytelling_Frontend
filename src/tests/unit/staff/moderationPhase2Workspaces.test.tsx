@@ -209,8 +209,8 @@ describe('Moderator Phase 2 workspaces (specs 04-06 & 12)', () => {
       <GrayZoneReviewPanel id={301} queueItem={grayZoneClaimedOther} onDecision={() => {}} />,
     );
     expect(panelHtml).toContain('Ngữ cảnh nguồn');
-    expect(panelHtml).toContain('Evidence AI');
-    expect(panelHtml).toContain('Nhận định Moderator');
+    expect(panelHtml).toContain('Bằng chứng từ AI');
+    expect(panelHtml).toContain('Nhận định kiểm duyệt viên');
     expect(panelHtml).toContain('Quyết định');
     expect(panelHtml).toContain('KHÔNG tự động xuất bản truyện lên thư viện cộng đồng');
     expect(panelHtml).toContain('Gói hồ sơ không có mục evidence AI chi tiết');
