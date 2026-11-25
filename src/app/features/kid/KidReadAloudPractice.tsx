@@ -12,6 +12,11 @@ import { Caption } from './ChildReaderCaption';
 import { useRecorder } from './useRecorder';
 
 const play = (el: HTMLAudioElement | null) => { if (el) { el.currentTime = 0; void el.play().catch(() => {}); } };
+/**
+ * Lời khen soạn sẵn của bài (praiseFeedback + tiếng) chỉ khen sự cố gắng và mời đọc lại, không theo kết quả chấm:
+ * đọc đúng hết thì không hiện / không phát, chỉ còn lời chấm của Backend ("Em đọc hay quá!").
+ */
+export const needsRetry = (r: ReadAloudResult) => r.goodCount < r.totalCount;
 
 /**
  * Trang cuối của màn đọc: bé nghe câu mẫu rồi đọc to, kết quả tô màu từng chữ như đọc theo đoạn.
@@ -44,7 +49,10 @@ export default function KidReadAloudPractice({ practice, disabled, onRecord, chi
     if (!want || rec.state !== 'ready' || !blob || sent.current === blob) return;
     sent.current = blob;
     void sendRef.current(practice.interactionId, blob).then(r => {
-      if (r.success && r.data) { setResult(r.data); showToast(r.data.message || 'Em đọc hay quá!', 'ok'); play(praiseRef.current); }
+      if (r.success && r.data) {
+        setResult(r.data); showToast(r.data.message || 'Em đọc hay quá!', 'ok');
+        if (needsRetry(r.data)) play(praiseRef.current);
+      }
       else showToast(r.message || 'Em thử đọc lại nhé.', 'err');
     }).finally(() => setWant(false));
   }, [want, rec.state, rec.blob, practice.interactionId]);
@@ -73,7 +81,7 @@ export default function KidReadAloudPractice({ practice, disabled, onRecord, chi
           aria-label={recording ? 'Dừng đọc' : scoring ? 'Đang chấm điểm' : 'Đọc to'}><Mic aria-hidden="true" />{recording ? 'Dừng' : scoring ? 'Đang chấm' : 'Đọc to'}</button>
         {result && <button type="button" className="kid-btn3d is-sky kid-btn-icon" aria-label="Đọc lại" title="Đọc lại" disabled={disabled || scoring} onClick={retry}><RotateCcw aria-hidden="true" /></button>}
       </div>
-      {result && practice.praiseFeedback && <p className="kid-practice-praise"><Sparkles aria-hidden="true" />{practice.praiseFeedback}</p>}
+      {result && needsRetry(result) && practice.praiseFeedback && <p className="kid-practice-praise"><Sparkles aria-hidden="true" />{practice.praiseFeedback}</p>}
       {sample.src && <audio ref={sampleRef} src={sample.src} preload="auto" hidden />}
       {praise.src && <audio ref={praiseRef} src={praise.src} preload="auto" hidden />}
     </section>
