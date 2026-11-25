@@ -22,7 +22,7 @@ export const CONDITION_LABELS: Record<string, string> = {
   AdminFallback: 'Dự phòng',
   NoActiveModerator: 'Khi hết KDV',
   OwnChildProfile: 'Của mình',
-  OwnCreatorStory: 'Của mình',
+  OwnCreatorStory: 'Truyện của mình',
   PlanLimits: 'Theo gói',
   DelegatedApproval: 'Cần ủy quyền',
   ParentalGate: 'Parental Gate',
