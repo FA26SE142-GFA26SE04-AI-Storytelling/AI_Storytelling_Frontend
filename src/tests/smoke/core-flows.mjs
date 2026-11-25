@@ -826,7 +826,7 @@ try {
     state.signalTime = timeStatus('Break', { breakUntil: inFuture(6000), breakActivity: 'Water' });
     await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
-    const dialog = page.getByRole('alertdialog', { name: 'Nghỉ mắt một chút nhé' });
+    const dialog = page.getByRole('alertdialog', { name: 'Nghỉ một chút nhé' });
     await dialog.waitFor();
     await dialog.getByText('Em uống một ngụm nước nhé!', { exact: true }).waitFor();
     state.signalTime = timeStatus('Allowed');
