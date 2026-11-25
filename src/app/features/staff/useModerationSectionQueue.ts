@@ -12,6 +12,7 @@ export function buildModerationQueueQuery(opts: {
   status: QueueItemStatus;
   priority: QueuePriorityFilter;
   onlyOverdue: boolean;
+  onlyMyEventSubmissions?: boolean;
   pageIndex: number;
   pageSize: number;
 }): QueueQuery {
@@ -21,6 +22,8 @@ export function buildModerationQueueQuery(opts: {
     ...(opts.priority ? { priority: opts.priority } : {}),
     ...(opts.onlyOverdue && (opts.status === 'Pending' || opts.status === 'Claimed')
       ? { onlyOverdue: true } : {}),
+    ...(opts.onlyMyEventSubmissions && opts.itemType === 'PublicStoryReview'
+      ? { onlyMyEventSubmissions: true } : {}),
     pageIndex: opts.pageIndex,
     pageSize: opts.pageSize,
   };
@@ -60,6 +63,7 @@ export function useModerationSectionQueue({
   const [status, setStatusState] = useState<ModerationQueueStatusFilter>(initialStatus);
   const [priority, setPriorityState] = useState<QueuePriorityFilter>('');
   const [onlyOverdue, setOnlyOverdueState] = useState(false);
+  const [onlyMyEventSubmissions, setOnlyMyEventSubmissionsState] = useState(false);
   const [pageIndex, setPageIndex] = useState(1);
   const [items, setItems] = useState<QueueItem[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -99,6 +103,7 @@ export function useModerationSectionQueue({
         status: 'Claimed',
         priority,
         onlyOverdue,
+        onlyMyEventSubmissions,
         pageIndex: 1,
         pageSize: fetchSize,
       });
@@ -107,6 +112,7 @@ export function useModerationSectionQueue({
         status: 'Pending',
         priority,
         onlyOverdue,
+        onlyMyEventSubmissions,
         pageIndex: 1,
         pageSize: fetchSize,
       });
@@ -150,6 +156,7 @@ export function useModerationSectionQueue({
         status,
         priority,
         onlyOverdue,
+        onlyMyEventSubmissions,
         pageIndex,
         pageSize,
       });
@@ -187,7 +194,7 @@ export function useModerationSectionQueue({
       activeClaim.current = null;
       controller.abort();
     };
-  }, [itemType, status, priority, onlyOverdue, pageIndex, pageSize, revision, user?.id]);
+  }, [itemType, status, priority, onlyOverdue, onlyMyEventSubmissions, pageIndex, pageSize, revision, user?.id]);
 
   const setStatus = useCallback((next: ModerationQueueStatusFilter) => {
     pendingSelectId.current = null;
@@ -215,6 +222,14 @@ export function useModerationSectionQueue({
     setOnlyOverdueState(next);
   }, []);
 
+  const setOnlyMyEventSubmissions = useCallback((next: boolean) => {
+    pendingSelectId.current = null;
+    pendingFocusClaim.current = false;
+    setSelectedId(null);
+    setPageIndex(1);
+    setOnlyMyEventSubmissionsState(next);
+  }, []);
+
   const reload = useCallback(() => {
     pendingSelectId.current = null;
     pendingFocusClaim.current = false;
@@ -234,7 +249,7 @@ export function useModerationSectionQueue({
       if (scope.current !== run) return false;
       if (!r.success) {
         setActionNote({ ok: false, text: r.message || 'Chưa nhận được mục này.' });
-        if (r.status === 409) setRevision(n => n + 1);
+        if (r.status === 403 || r.status === 409) setRevision(n => n + 1);
         return false;
       }
       pendingSelectId.current = itemId;
@@ -267,6 +282,8 @@ export function useModerationSectionQueue({
     setPriority,
     onlyOverdue,
     setOnlyOverdue,
+    onlyMyEventSubmissions,
+    setOnlyMyEventSubmissions,
     pageIndex,
     setPageIndex,
     items,

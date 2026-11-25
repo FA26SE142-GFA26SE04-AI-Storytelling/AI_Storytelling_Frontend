@@ -1,5 +1,5 @@
 'use client';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 import Frog from '@/app/components/brand/Frog';
 import Select from '@/app/components/Select';
@@ -36,6 +36,7 @@ export function DetailCard({
       item={item}
       me={me}
       myName={myName}
+      userRole={userRole}
       busy={busy}
       onClaim={item.status === 'Pending' && !cannotClaim ? onClaim : undefined}
     />
@@ -79,10 +80,12 @@ export default function ConnectedModerationQueue({
   const visibleTypes = allowedTypes && allowedTypes.length > 0 ? allowedTypes : ALL_TYPES;
   const [status, setStatus] = useState<QueueItemStatus>('Pending');
   const [kind, setKind] = useState<QueueItemType | ''>(allowedTypes?.length ? allowedTypes[0] : '');
+  const [onlyMyEventSubmissions, setOnlyMyEventSubmissions] = useState(false);
   const [pageIndex, setPageIndex] = useState(1);
   const [items, setItems] = useState<QueueItem[]>([]);
   const [selected, setSelected] = useState<number | null>(null);
   const [error, setError] = useState('');
+  const [accessNotice, setAccessNotice] = useState('');
   const [hasNext, setHasNext] = useState(false);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
@@ -94,6 +97,15 @@ export default function ConnectedModerationQueue({
     setRevision(n => n + 1);
   }, []);
   const { note, busy, run } = useAction(reload);
+  const keepAccessNoticeRef = useRef(false);
+
+  useEffect(() => {
+    if (keepAccessNoticeRef.current) {
+      keepAccessNoticeRef.current = false;
+      return;
+    }
+    setAccessNotice('');
+  }, [status, kind, onlyMyEventSubmissions, pageIndex, selected]);
 
   useEffect(() => {
     let alive = true;
@@ -106,8 +118,15 @@ export default function ConnectedModerationQueue({
     setTotalCount(0);
     setTotalPages(0);
     const effectiveType = kind || (allowedTypes?.length === 1 ? allowedTypes[0] : undefined);
+    const applyEventFilter = onlyMyEventSubmissions && (!effectiveType || effectiveType === 'PublicStoryReview');
     void staffService.queue(
-      { status, itemType: effectiveType, pageIndex, pageSize: 6 },
+      {
+        status,
+        itemType: effectiveType,
+        ...(applyEventFilter ? { onlyMyEventSubmissions: true } : {}),
+        pageIndex,
+        pageSize: 6,
+      },
       controller.signal,
     ).then(r => {
       if (!alive) return;
@@ -125,7 +144,7 @@ export default function ConnectedModerationQueue({
       alive = false;
       controller.abort();
     };
-  }, [status, kind, pageIndex, revision, user?.id, allowedTypes]);
+  }, [status, kind, onlyMyEventSubmissions, pageIndex, revision, user?.id, allowedTypes]);
 
   const listRef = useRiseIn<HTMLDivElement>('.st-item', [items], { delay: 40, distance: 10 });
   const current = items.find(i => i.id === selected);
@@ -150,6 +169,7 @@ export default function ConnectedModerationQueue({
         </div>
       )}
       <Notice note={note} />
+      {accessNotice && <div className="notice err" role="alert">{accessNotice}</div>}
       {error && <div className="notice err" role="alert">{error}</div>}
       <div className="st-filters">
         <Select<QueueItemType | ''>
@@ -164,9 +184,19 @@ export default function ConnectedModerationQueue({
           options={ALL_STATUSES.map(s => ({ value: s, label: moderationStatusLabel(activeType, s) }))}
           onChange={v => { setStatus(v); setPageIndex(1); }}
         />
-        <button type="button" className="btn btn-g" aria-label="Tải lại" onClick={reload}>
+        <button type="button" className="btn btn-g" aria-label="Tải lại" onClick={() => { setAccessNotice(''); reload(); }}>
           <RefreshCw className="ic" />
         </button>
+        {visibleTypes.includes('PublicStoryReview') && (!kind || kind === 'PublicStoryReview') && (
+          <button
+            type="button"
+            className={`chip${onlyMyEventSubmissions ? ' on' : ''}`}
+            aria-pressed={onlyMyEventSubmissions}
+            onClick={() => { setOnlyMyEventSubmissions(v => !v); setPageIndex(1); }}
+          >
+            {user?.role === 'Administrator' ? 'Bài dự thi sự kiện' : 'Bài dự thi của sự kiện tôi phụ trách'}
+          </button>
+        )}
         {visibleTypes.includes('PublicStoryReview') && (
           <button
             type="button"
@@ -214,6 +244,11 @@ export default function ConnectedModerationQueue({
               id={current.id}
               queueItem={current}
               onDecision={reload}
+              onAccessRevoked={msg => {
+                keepAccessNoticeRef.current = true;
+                setAccessNotice(`${msg} Hàng đợi đã được tải lại; bài cần được người có phân công nhận lại.`);
+                reload();
+              }}
             />
           ) : (
             <DetailCard

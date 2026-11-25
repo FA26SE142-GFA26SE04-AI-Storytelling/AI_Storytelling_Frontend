@@ -344,4 +344,71 @@ describe('EditorialReviewSplit rail mode', () => {
     expect(html).toContain('<p>R</p>');
     expect(html).not.toContain('mod-peek-badge');
   });
+
+  it('renders event submission filter chip in ModerationWorkspaceShell and access-revoked message in PublicStoryReviewPanel', () => {
+    const shellHtml = renderToStaticMarkup(
+      <ModerationWorkspaceShell
+        title="Duyệt truyện Creator"
+        description="Mô tả"
+        sections={PUBLIC_STORY_SECTIONS}
+        status="Open"
+        onStatusChange={() => {}}
+        priority=""
+        onPriorityChange={() => {}}
+        onlyOverdue={false}
+        onOnlyOverdueChange={() => {}}
+        showEventSubmissionsFilter
+        onlyMyEventSubmissions
+        onOnlyMyEventSubmissionsChange={() => {}}
+        items={[]}
+        selectedId={null}
+        onSelect={() => {}}
+        currentUserId={5}
+        loading={false}
+        error=""
+        actionNote={null}
+        totalCount={0}
+        pageIndex={1}
+        totalPages={1}
+        hasNextPage={false}
+        onPageChange={() => {}}
+        onReload={() => {}}
+        detail={null}
+      />,
+    );
+    expect(shellHtml).toContain('Bài dự thi của sự kiện tôi phụ trách');
+    expect(shellHtml).toContain('aria-pressed="true"');
+
+    mockReviewItem.claimBlocked = true;
+    mockReviewItem.message = 'Bạn chưa được phân công phụ trách sự kiện "Lễ hội Truyện".';
+    mockReviewItem.item = {
+      kind: 'PublicStoryReview',
+      data: {
+        itemId: 55,
+        storyId: 10,
+        storyVersionId: 20,
+        versionNo: 1,
+        isResubmission: false,
+        proposedLabels: [],
+        story: { title: 'Truyện', description: null, genre: null, ageBand: '6-8', readingLevel: 1, vocabularyLevel: null, language: 'vi', moralLesson: null, coverImageUrl: null, labels: [] },
+        version: { title: 'Truyện', outlineOpening: null, outlineDevelopment: null, outlineEnding: null, content: 'Nội dung', lesson: null },
+        scenes: [],
+        vocabulary: [],
+        quizzes: [],
+        flags: [],
+        allFlagsResolved: true,
+        progress: { totalScenes: 0, missingSceneIds: [], audioHeardCount: 0, missingWarningSegmentIds: [], needsAtLeastOneAudio: false, requiredViewsComplete: true },
+        checklist: { safety: null, ageFit: null, education: null, language: null, copyright: null, image: null, audio: null, interaction: null },
+        approveBlockers: [],
+        canApprove: false,
+        previousModeratorName: null,
+        reviewHistory: [],
+        eventSubmissions: [{ eventId: 1, eventTitle: 'Lễ hội Truyện', reviewCutoffAt: '2026-11-26T16:59:00Z', eventSubmissionId: 9 }],
+      },
+    };
+    const panelHtml = renderToStaticMarkup(<PublicStoryReviewPanel id={55} onDecision={() => {}} />);
+    expect(panelHtml).toContain('Bạn chưa được phân công phụ trách sự kiện');
+    expect(panelHtml).toContain('bài cần được người có phân công nhận lại');
+    expect(panelHtml).toContain('Bài dự thi · Lễ hội Truyện');
+  });
 });

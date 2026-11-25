@@ -6,6 +6,7 @@ import type { PublicReviewPackageDto } from '@/app/types/backendContracts';
 import type { QueueItem } from '@/app/types/staff';
 import type { ReviewPackage } from '@/app/services/moderationService';
 import {
+  formatEventReviewCutoffVn,
   formatSubmittedAt,
   queueSubmitterLabel,
   queueWorkTitle,
@@ -250,5 +251,60 @@ describe('Moderation queue work title & submitter display', () => {
     expect(css).toMatch(/\.st-item-title[\s\S]*overflow-wrap:\s*anywhere/);
     expect(css).toMatch(/\.st-item-author[\s\S]*overflow-wrap:\s*anywhere/);
     expect(css).toMatch(/\.st-detail-title[\s\S]*overflow-wrap:\s*anywhere/);
+  });
+
+  it('renders Bài dự thi · Tên sự kiện labels and Vietnam timezone review cutoffs across queue row, summary card, and review header', () => {
+    const cutoff1 = '2026-11-26T16:59:00Z';
+    const cutoff2 = '2026-11-28T01:30:00Z';
+    expect(formatEventReviewCutoffVn(cutoff1)).toBe('23:59 26/11/2026 (giờ VN)');
+    expect(formatEventReviewCutoffVn(cutoff2)).toBe('08:30 28/11/2026 (giờ VN)');
+
+    const multiEventItem: QueueItem = {
+      ...baseQueueItem,
+      eventSubmissions: [
+        { eventId: 10, eventTitle: 'Lễ hội Mùa Thu', reviewCutoffAt: cutoff1, eventSubmissionId: 101 },
+        { eventId: 20, eventTitle: 'Đọc Truyện Cuối Tuần', reviewCutoffAt: cutoff2, eventSubmissionId: 202 },
+      ],
+    };
+
+    const rowHtml = renderToStaticMarkup(
+      <QueueItemRow item={multiEventItem} selected={false} me={11} onSelect={() => {}} />,
+    );
+    expect(rowHtml).toContain('Bài dự thi · Lễ hội Mùa Thu');
+    expect(rowHtml).toContain('Bài dự thi · Đọc Truyện Cuối Tuần');
+    expect(rowHtml).toContain('23:59 26/11/2026 (giờ VN)');
+    expect(rowHtml).toContain('08:30 28/11/2026 (giờ VN)');
+
+    const adminDetailHtml = renderToStaticMarkup(
+      <DetailCard item={multiEventItem} me={1} userRole="Administrator" busy={false} />,
+    );
+    expect(adminDetailHtml).toContain('Sự kiện liên quan (2)');
+    expect(adminDetailHtml).toContain('Bài dự thi · Lễ hội Mùa Thu');
+    expect(adminDetailHtml).toContain('Bài dự thi · Đọc Truyện Cuối Tuần');
+    expect(adminDetailHtml).toContain('điều phối và bổ sung Moderator phụ trách');
+
+    const pkgWithEvents: ReviewPackage = {
+      kind: 'PublicStoryReview',
+      data: {
+        ...basePublicPackage,
+        eventSubmissions: multiEventItem.eventSubmissions,
+      },
+    };
+    const headerHtml = renderToStaticMarkup(
+      <ReviewPanelHeader item={pkgWithEvents} queueItem={multiEventItem} message="" />,
+    );
+    expect(headerHtml).toContain('Bài dự thi · Lễ hội Mùa Thu');
+    expect(headerHtml).toContain('Bài dự thi · Đọc Truyện Cuối Tuần');
+    expect(headerHtml).toContain('Hạn duyệt: 23:59 26/11/2026 (giờ VN)');
+  });
+
+  it('clears accessNotice when switching filters, page, or selected item', () => {
+    const src = readFileSync(
+      path.resolve(process.cwd(), 'app/features/staff/ConnectedModerationQueue.tsx'),
+      'utf8',
+    );
+    expect(src).toMatch(
+      /useEffect\(\(\)\s*=>\s*\{[\s\S]*?setAccessNotice\(''\);\s*\},\s*\[status,\s*kind,\s*onlyMyEventSubmissions,\s*pageIndex,\s*selected\]\)/,
+    );
   });
 });

@@ -1,6 +1,46 @@
 import type { ReviewPackage } from '@/app/services/moderationService';
+import type { ModerationItemEventSubmissionDto } from '@/app/types/backendContracts';
 import type { QueueItem } from '@/app/types/staff';
 import { OPEN_MODERATION_STATUSES } from './moderationConfig';
+
+const VN_CUTOFF_FORMAT = new Intl.DateTimeFormat('vi-VN', {
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+  hourCycle: 'h23',
+  timeZone: 'Asia/Ho_Chi_Minh',
+});
+
+/** Định dạng hạn duyệt bài dự thi theo giờ Việt Nam (Asia/Ho_Chi_Minh). */
+export function formatEventReviewCutoffVn(iso?: string | null): string | null {
+  const raw = iso?.trim();
+  if (!raw) return null;
+  const date = new Date(raw);
+  if (Number.isNaN(date.getTime())) return null;
+  return `${VN_CUTOFF_FORMAT.format(date)} (giờ VN)`;
+}
+
+export function queueEventSubmissions(
+  item?: Pick<QueueItem, 'eventSubmissions'> | null,
+): ModerationItemEventSubmissionDto[] {
+  return item?.eventSubmissions ?? [];
+}
+
+export function reviewPackageEventSubmissions(
+  item: ReviewPackage,
+  queueItem?: Pick<QueueItem, 'eventSubmissions'>,
+): ModerationItemEventSubmissionDto[] {
+  if (item.kind === 'PublicStoryReview' && item.data.eventSubmissions?.length) {
+    return item.data.eventSubmissions;
+  }
+  return queueItem?.eventSubmissions ?? [];
+}
+
+export function formatEventSubmissionLabel(ev: Pick<ModerationItemEventSubmissionDto, 'eventTitle'>): string {
+  return `Bài dự thi · ${ev.eventTitle}`;
+}
 
 const MISSING_AUTHOR = 'Chưa có thông tin tác giả';
 

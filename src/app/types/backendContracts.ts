@@ -1002,6 +1002,13 @@ export interface MediaGenerationProgress extends MediaPackageState {
   'scenesWithoutValidBeats': (number)[] | null;
 }
 
+export interface ModerationItemEventSubmissionDto {
+  'eventId': number;
+  'eventTitle': string;
+  'reviewCutoffAt': string | null;
+  'eventSubmissionId': number;
+}
+
 export interface ModerationItemDetailDto {
   'id': number;
   'itemType': string;
@@ -1022,6 +1029,7 @@ export interface ModerationItemDetailDto {
   'claimedAt': string | null;
   'claimExpiresAt': string | null;
   'createdAt': string;
+  'eventSubmissions'?: (ModerationItemEventSubmissionDto)[];
   'rowVersion': number;
   'flags': string | null;
   'checklist': string | null;
@@ -1050,6 +1058,7 @@ export interface ModerationItemSummaryDto {
   'claimedAt': string | null;
   'claimExpiresAt': string | null;
   'createdAt': string;
+  'eventSubmissions'?: (ModerationItemEventSubmissionDto)[];
 }
 
 export type ModerationItemType = 1 | 2 | 3 | 4 | 5 | 6;
@@ -1061,6 +1070,7 @@ export interface ModerationQueueQueryDto {
   'status': ModerationItemStatus | null;
   'priority': ModerationPriority | null;
   'onlyOverdue': boolean;
+  'onlyMyEventSubmissions'?: boolean;
   'pageIndex': number;
   'pageSize': number;
 }
@@ -1438,6 +1448,7 @@ export interface PublicReviewPackageDto {
   'safetyScan'?: PublicReviewSafetyScanDto | null;
   'previousModeratorName': string | null;
   'reviewHistory': (PublicReviewHistoryEntryDto)[];
+  'eventSubmissions'?: (ModerationItemEventSubmissionDto)[];
 }
 
 export interface PublicReviewSafetyScanDto {
@@ -2011,6 +2022,7 @@ export interface SubmitAIStoryInputRequestDto {
 }
 
 export interface SubmitCreatorAIStoryInputRequestDto {
+  'eventId'?: number | null;
   'generationMode'?: string;
   'quizQuestionCount'?: number | null;
   'topic': string;

@@ -4,7 +4,12 @@ import { useAuth } from '@/app/context/AuthContext';
 import { moderationService, type ReviewKind, type ReviewPackage } from '@/app/services/moderationService';
 import type { ApiResponse } from '@/app/types/auth';
 
-export function useReviewItem(kind: ReviewKind, id: number, onDecision: () => void) {
+export function useReviewItem(
+  kind: ReviewKind,
+  id: number,
+  onDecision: () => void,
+  onAccessRevoked?: (message: string) => void,
+) {
   const { user } = useAuth();
   const [item, setItem] = useState<ReviewPackage | null>(null);
   const [message, setMessage] = useState('');
@@ -15,6 +20,11 @@ export function useReviewItem(kind: ReviewKind, id: number, onDecision: () => vo
   const scope = useRef(Symbol());
   const locked = useRef(false);
   const shownKey = useRef('');
+  const onAccessRevokedRef = useRef(onAccessRevoked);
+
+  useEffect(() => {
+    onAccessRevokedRef.current = onAccessRevoked;
+  }, [onAccessRevoked]);
 
   useEffect(() => {
     const run = Symbol();
@@ -38,9 +48,16 @@ export function useReviewItem(kind: ReviewKind, id: number, onDecision: () => vo
         setErrorStatus(null);
         setClaimBlocked(false);
       } else {
-        setMessage(r.message);
+        const text = r.message || 'Không mở được gói kiểm duyệt.';
+        setMessage(text);
         setErrorStatus(r.status ?? null);
-        if (r.status === 403 || r.status === 409) setClaimBlocked(true);
+        if (r.status === 403 || r.status === 409) {
+          setClaimBlocked(true);
+          if (r.status === 403) {
+            if (typeof window !== 'undefined') window.dispatchEvent(new Event('moderation-queue-changed'));
+            onAccessRevokedRef.current?.(text);
+          }
+        }
       }
     });
     return () => {
@@ -59,7 +76,8 @@ export function useReviewItem(kind: ReviewKind, id: number, onDecision: () => vo
     if (scope.current !== run) return false;
     locked.current = false;
     setBusy(false);
-    setMessage(r.message || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.'));
+    const text = r.message || (r.success ? 'Đã ghi nhận.' : 'Thao tác chưa hoàn tất.');
+    setMessage(text);
     if (r.success) {
       setErrorStatus(null);
       if (typeof window !== 'undefined') window.dispatchEvent(new Event('moderation-queue-changed'));
@@ -69,7 +87,13 @@ export function useReviewItem(kind: ReviewKind, id: number, onDecision: () => vo
       setErrorStatus(r.status ?? null);
       if (r.status === 403 || r.status === 409) {
         setClaimBlocked(true);
-        setRevision(v => v + 1);
+        if (r.status === 403) {
+          if (typeof window !== 'undefined') window.dispatchEvent(new Event('moderation-queue-changed'));
+          if (onAccessRevokedRef.current) onAccessRevokedRef.current(text);
+          else setRevision(v => v + 1);
+        } else {
+          setRevision(v => v + 1);
+        }
       }
     }
     return r.success;

@@ -23,12 +23,21 @@ export default function CreatorStoryReviewWorkspace({ go }: { go?: (pageId: stri
         setOutcomeBanner(outcome ?? null);
         q.reload();
       }}
+      onAccessRevoked={msg => {
+        setOutcomeBanner(null);
+        q.setActionNote({
+          ok: false,
+          text: `${msg} Hàng đợi đã được tải lại; bài cần được người có phân công nhận lại.`,
+        });
+        q.reload();
+      }}
     />
   ) : (
     <QueueSummaryCard
       item={current}
       me={q.user?.id}
       myName={q.user?.fullName || q.user?.username}
+      userRole={q.user?.role}
       busy={q.claiming}
       claimLabel="Nhận và xử lý"
       onClaim={current.status === 'Pending' ? () => {
@@ -72,6 +81,10 @@ export default function CreatorStoryReviewWorkspace({ go }: { go?: (pageId: stri
       showPriorityFilter={false}
       onlyOverdue={q.onlyOverdue}
       onOnlyOverdueChange={q.setOnlyOverdue}
+      showEventSubmissionsFilter
+      onlyMyEventSubmissions={q.onlyMyEventSubmissions}
+      onOnlyMyEventSubmissionsChange={q.setOnlyMyEventSubmissions}
+      eventSubmissionsFilterLabel={q.user?.role === 'Administrator' ? 'Bài dự thi sự kiện' : 'Bài dự thi của sự kiện tôi phụ trách'}
       items={q.items}
       selectedId={q.selectedId}
       onSelect={q.setSelectedId}
