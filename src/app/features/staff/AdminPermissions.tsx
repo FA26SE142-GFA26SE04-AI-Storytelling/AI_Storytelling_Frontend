@@ -1,12 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import "@/app/styles/features/staff/permissions.css";
 import { accessControlService as api } from "@/app/services/accessControlService";
 import type { PermissionDto, RoleDto, RolePermissionsDto } from "@/app/types/accessControl";
 import PermissionMatrixView from "./PermissionMatrixView";
-import RolePermissionEditor from "./RolePermissionEditor";
+import RolePermissionEditor, { confirmDiscard } from "./RolePermissionEditor";
 import { Page, type Note } from "./ui";
 
 type Tab = "matrix" | "edit";
@@ -40,6 +40,12 @@ export default function AdminPermissions() {
 
   useEffect(() => { void load(); }, [load]);
 
+  const dirty = useRef(false);
+  const onDirtyChange = useCallback((value: boolean) => { dirty.current = value; }, []);
+  const showMatrix = async () => {
+    if (dirty.current && !(await confirmDiscard(roles.find((r) => r.code === roleCode)?.name ?? roleCode))) return;
+    setTab("matrix");
+  };
   const openRole = (code: string) => { setRoleCode(code); setTab("edit"); };
   const saved = (data: RolePermissionsDto) => setByRole((prev) => ({ ...prev, [data.roleCode]: data }));
 
@@ -54,7 +60,7 @@ export default function AdminPermissions() {
       <div className="st-card perm-card">
         <div className="perm-head">
           <div className="seg" role="tablist" aria-label="Chế độ xem phân quyền">
-            <button type="button" role="tab" aria-selected={tab === "matrix"} className={tab === "matrix" ? "on" : ""} onClick={() => setTab("matrix")}>Ma trận</button>
+            <button type="button" role="tab" aria-selected={tab === "matrix"} className={tab === "matrix" ? "on" : ""} onClick={() => void showMatrix()}>Ma trận</button>
             <button type="button" role="tab" aria-selected={tab === "edit"} className={tab === "edit" ? "on" : ""} onClick={() => setTab("edit")}>Chỉnh role</button>
           </div>
         </div>
@@ -69,7 +75,7 @@ export default function AdminPermissions() {
         <PermissionMatrixView catalog={catalog} roles={roles} byRole={byRole} onOpenRole={openRole} />
       ) : (
         <RolePermissionEditor catalog={catalog} roles={roles} roleCode={roleCode} data={byRole[roleCode]}
-          onRoleChange={setRoleCode} onSaved={saved} />
+          onRoleChange={setRoleCode} onSaved={saved} onDirtyChange={onDirtyChange} />
       )}
     </Page>
   );
