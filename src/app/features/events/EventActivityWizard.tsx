@@ -438,7 +438,7 @@ export default function EventActivityWizard({
           </div>
           <div className="ev-field">
             <label htmlFor="ev-act-desc" className="ev-field-label">Mô tả mục tiêu &amp; thể lệ tóm tắt</label>
-            <textarea id="ev-act-desc" className="inp" rows={2} value={description}
+            <textarea id="ev-act-desc" className="inp" rows={2} maxLength={4000} value={description}
               onChange={(e) => setDescription(e.target.value)} placeholder="Mô tả sự kiện..." />
           </div>
           <div className="ev-grid-2">

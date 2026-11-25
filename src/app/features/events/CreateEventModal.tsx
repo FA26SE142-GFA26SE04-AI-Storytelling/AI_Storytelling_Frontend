@@ -367,6 +367,7 @@ export default function CreateEventModal({ open, initialDetail, onClose, onCreat
             className="inp"
             rows={2}
             placeholder="Nhập mô tả mục tiêu, thể lệ tóm tắt hoặc chủ đề sự kiện"
+            maxLength={4000}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
