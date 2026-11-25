@@ -1065,6 +1065,10 @@
 .lib-hero-bg { position: absolute; z-index: -1; top: 0; bottom: 0; left: 0; right: 0; overflow: hidden; border-radius: 22px; background: var(--scrim); box-shadow: 0 18px 36px -24px var(--shadow); }
 .lib-hero-bg span { position: absolute; inset: 0; opacity: 0; transition: opacity .8s ease; }
 .lib-hero-bg span.on { opacity: 1; }
+/* Trọn ảnh bìa canh phải (không cắt, không phóng); phía sau là chính ảnh đó làm mờ để phủ kín banner. */
+.lib-hero-bg span > i { position: absolute; inset: 0; }
+.lib-hero-fill { filter: blur(24px) brightness(.8); transform: scale(1.15); }
+.lib-hero-bg span > .lib-hero-art { left: auto; width: auto; max-width: 100%; aspect-ratio: 16 / 10; background: no-repeat right center / contain; -webkit-mask-image: linear-gradient(90deg, transparent, black 18%); mask-image: linear-gradient(90deg, transparent, black 18%); }
 .lib-hero-bg::after {
   content: "";
   position: absolute;
@@ -1079,7 +1083,9 @@
 .lib-hero-copy h3 { margin: 0; font-size: var(--fs-2xl); line-height: 1.15; color: var(--on-scrim); text-shadow: 0 2px 12px color-mix(in srgb, var(--scrim) 60%, transparent); overflow-wrap: anywhere; }
 .lib-hero-copy p { margin: 0; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; font-size: var(--fs-sm); line-height: 1.5; color: color-mix(in srgb, var(--on-scrim) 88%, transparent); }
 .lib-hero .lib-featured-meta span { color: var(--on-scrim); background: color-mix(in srgb, var(--on-scrim) 18%, transparent); }
-.lib-hero-thumbs { justify-self: end; display: flex; gap: 8px; }
+.lib-hero-thumbs { justify-self: end; display: flex; align-items: center; gap: 8px; }
+.lib-hero-thumbs .lib-hero-play { display: grid; place-items: center; width: 40px; height: 40px; aspect-ratio: auto; border-radius: 50%; opacity: 1; color: var(--on-scrim); background: color-mix(in srgb, var(--scrim) 45%, transparent); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
+.lib-hero-thumbs .lib-hero-play:hover { background: color-mix(in srgb, var(--scrim) 65%, transparent); }
 .lib-hero-thumbs button { flex: none; width: 88px; aspect-ratio: 16 / 10; border-radius: 10px; border: 2px solid color-mix(in srgb, var(--on-scrim) 35%, transparent); opacity: .7; transition: transform .2s ease, opacity .2s ease, border-color .2s ease; }
 .lib-hero-thumbs button:hover { opacity: 1; }
 .lib-hero-thumbs button[aria-pressed="true"] { opacity: 1; border-color: var(--gold); transform: translateY(-4px); }

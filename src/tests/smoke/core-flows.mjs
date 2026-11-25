@@ -356,8 +356,10 @@ try {
     await page.goto(parent('#library'), { waitUntil: 'domcontentloaded' });
     const hero = page.getByRole('region', { name: 'Truyện nổi bật' });
     await hero.getByRole('heading', { name: 'Truyện thứ hai' }).waitFor();
-    const thumbs = hero.getByRole('group', { name: 'Chọn truyện nổi bật' }).getByRole('button');
+    const thumbs = hero.getByRole('group', { name: 'Chọn truyện nổi bật' }).getByRole('button', { name: /^Truyện \d/ });
     assert.equal(await thumbs.count(), 3, 'Chỉ các truyện có ảnh bìa mới lên banner');
+    // Tự sang truyện kế sau 5 giây (kể cả khi máy bật giảm chuyển động).
+    await hero.getByRole('heading', { name: 'Khu vườn nhỏ' }).waitFor({ timeout: 8000 });
     await page.getByRole('region', { name: 'Tác giả nổi bật' }).getByRole('button', { name: /Hoa Sen Nhỏ/ }).waitFor();
     const search = page.locator('.lib-search-inp');
     // Lớp ảnh được đo lại khi các hàng phía trên ổn định chiều cao: chờ tới khi nó phủ lên ô tìm kiếm.
@@ -368,8 +370,13 @@ try {
     }, null, { timeout: 5000 }).catch(() => { throw new Error('Ô tìm kiếm phải nằm trên ảnh banner'); });
     await shots(page, 'ParentLibraryHero', '.lib-community-main');
     await page.setViewportSize({ width: 1440, height: 1000 });
+    // Tạm dừng thì đứng yên ở truyện đang chọn.
+    await hero.getByRole('button', { name: 'Tạm dừng tự chuyển truyện' }).click();
     await thumbs.nth(1).click();
     await hero.getByRole('heading', { name: 'Khu vườn nhỏ' }).waitFor();
+    await page.waitForTimeout(6000);
+    assert.equal(await hero.getByRole('heading', { name: 'Khu vườn nhỏ' }).count(), 1, 'Đã tạm dừng thì không tự chuyển');
+    await hero.getByRole('button', { name: 'Tiếp tục tự chuyển truyện' }).waitFor();
     await page.getByRole('button', { name: 'Chuyển sang giao diện tối' }).click();
     await page.locator('html[data-theme="dark"]').waitFor();
     await page.waitForTimeout(400);

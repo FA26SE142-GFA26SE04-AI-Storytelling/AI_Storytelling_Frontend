@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { ArrowRight, BookOpen, ChevronRight, ChevronUp, Clock, Layers3, Star, Tags } from "lucide-react";
-import { prefersReducedMotion } from "@/app/lib/motion";
-import { coverFor, uncroppedCover, type StoryCard } from "@/app/lib/storyView";
+import { ArrowRight, BookOpen, ChevronRight, ChevronUp, Clock, Layers3, Pause, Play, Star, Tags } from "lucide-react";
+import { splitCover, uncroppedCover, type StoryCard } from "@/app/lib/storyView";
 import { canonicalAgeLabel, estimatedReadingMinutes, topicOf } from "./libraryFilters";
 
 const GENRE_ROW_LIMIT = 4;
@@ -35,7 +34,7 @@ export function heroStories(ranked: StoryCard[], rest: StoryCard[]): StoryCard[]
 }
 
 /**
- * Banner đầu Thư viện: ảnh bìa phủ kín bề ngang, tự đổi truyện mỗi 5 giây (dừng khi rê chuột / focus, tắt khi giảm chuyển động),
+ * Banner đầu Thư viện: ảnh bìa trải hết bề ngang, tự đổi truyện mỗi 5 giây (nút tạm dừng ở đầu hàng ảnh nhỏ),
  * ảnh nhỏ góc dưới để chọn truyện. Lớp ảnh kéo lên phủ cả hàng tìm kiếm và chip chủ đề phía trên (các nút đó nằm trên ảnh, nền trong suốt):
  * khối banner nằm trong luồng trang sau các nút nên ô tìm kiếm không bị dựng lại khi banner ẩn / hiện.
  */
@@ -65,29 +64,28 @@ export function LibraryHero({ stories, onPickStory }: {
     return () => observer.disconnect();
   }, []);
 
+  // Tự sang truyện kế mỗi 5 giây; đổi truyện (tự động hay bấm chọn) thì đếm lại từ đầu. Chỉ dừng khi bấm nút tạm dừng.
   useEffect(() => {
-    if (paused || count < 2 || prefersReducedMotion()) return;
-    const timer = window.setInterval(() => setIndex((i) => (i + 1) % count), HERO_INTERVAL_MS);
-    return () => window.clearInterval(timer);
-  }, [paused, count]);
+    if (paused || count < 2) return;
+    const timer = window.setTimeout(() => setIndex((active + 1) % count), HERO_INTERVAL_MS);
+    return () => window.clearTimeout(timer);
+  }, [paused, count, active]);
 
   if (!story) return null;
   const minutes = estimatedReadingMinutes(story);
   return (
-    <section
-      ref={ref}
-      className="lib-hero"
-      aria-roledescription="carousel"
-      aria-label="Truyện nổi bật"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setPaused(false); }}
-    >
+    <section ref={ref} className="lib-hero" aria-roledescription="carousel" aria-label="Truyện nổi bật">
+      {/* Hiện trọn ảnh bìa (không áp vùng cắt 3:4, không phóng): ảnh canh phải, nền là chính ảnh đó làm mờ phủ kín banner. */}
       <div className="lib-hero-bg" aria-hidden="true" style={{ top: -lift }}>
-        {stories.map((item, i) => (
-          <span key={item.id} className={i === active ? "on" : undefined} style={{ background: coverFor(item.raw.coverImageUrl) }} />
-        ))}
+        {stories.map((item, i) => {
+          const src = splitCover(item.raw.coverImageUrl).src;
+          return (
+            <span key={item.id} className={i === active ? "on" : undefined}>
+              <i className="lib-hero-fill" style={{ background: uncroppedCover(src) }} />
+              <i className="lib-hero-art" style={{ backgroundImage: `url("${src}")` }} />
+            </span>
+          );
+        })}
       </div>
       <div key={story.id} className="lib-hero-copy" aria-live={paused ? "polite" : "off"}>
         <span className="lib-featured-label"><Star className="ic" aria-hidden="true" />Truyện nổi bật</span>
@@ -104,9 +102,13 @@ export function LibraryHero({ stories, onPickStory }: {
       </div>
       {count > 1 && (
         <div className="lib-hero-thumbs" role="group" aria-label="Chọn truyện nổi bật">
+          <button type="button" className="lib-hero-play" aria-label={paused ? "Tiếp tục tự chuyển truyện" : "Tạm dừng tự chuyển truyện"}
+            title={paused ? "Tiếp tục tự chuyển" : "Tạm dừng"} onClick={() => setPaused((p) => !p)}>
+            {paused ? <Play className="ic" aria-hidden="true" /> : <Pause className="ic" aria-hidden="true" />}
+          </button>
           {stories.map((item, i) => (
             <button key={item.id} type="button" aria-pressed={i === active} aria-label={`Truyện ${i + 1}: ${item.title}`} title={item.title}
-              style={{ background: coverFor(item.raw.coverImageUrl) }} onClick={() => setIndex(i)} />
+              style={{ background: uncroppedCover(item.raw.coverImageUrl) }} onClick={() => setIndex(i)} />
           ))}
         </div>
       )}
