@@ -9,7 +9,7 @@
 .kid-library-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .kid-library-heading h2 { font-size: var(--fs-2xl); margin: 8px 0 0; }
 .kid-overline { font-size: var(--fs-xs); font-weight: 800; letter-spacing: 1.6px; color: var(--muted); }
-.kid-library-tabs,.kid-word-list,.kid-reading-options,.kid-story-extras { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.kid-library-tabs,.kid-reading-options,.kid-story-extras { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
 .kid-story-shelf { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(280px,100%),1fr)); gap: 16px; }
 .kid-story-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; padding: 24px; background: var(--surface); border-radius: 24px; }
 .kid-story-tile p { color: var(--muted); margin: 8px 0; }
@@ -52,9 +52,7 @@
 .kid-story-extras { justify-content: center; }
 .kid-reading-options { padding: 18px; background: var(--surface); border-radius: 20px; margin-block: 18px; }
 .kid-reading-options label { display: grid; gap: 6px; }
-.kid-word-panel { max-width: 760px; margin: 22px auto; background: var(--surface); border: 3px solid var(--mint); border-radius: 24px; box-shadow: 0 6px 0 color-mix(in srgb, var(--text) 12%, transparent); padding: 24px; display: grid; gap: 18px; }
-.kid-word-panel h2, .kid-word-panel h3, .kid-reading-note h2, .kid-reading-note h3 { margin: -24px -24px 8px; padding: 10px 16px; border-radius: 21px 21px 0 0; background: var(--mint); color: var(--on-primary); }
-.kid-word-panel p { font-size: var(--fs-xl); line-height: 1.6; }
+.kid-reading-note h2, .kid-reading-note h3 { margin: -24px -24px 8px; padding: 10px 16px; border-radius: 21px 21px 0 0; background: var(--mint); color: var(--on-primary); }
 .kid-story-finish { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; margin: 28px 0 0; }
 .kid-story-finish p { max-width: 620px; font-size: var(--fs-xl); }
 .kid-soft-note { color: var(--muted); text-align: center; display: flex; justify-content: center; gap: 8px; padding: 16px; }
@@ -238,15 +236,6 @@
 /* Nút Yêu thích: chỉ một chữ, trái tim đặc khi đã chọn. */
 .kid-story-extras .kid-soft-button[aria-pressed="true"] svg { fill: currentColor; }
 
-/* Bảng từ mới: bỏ tiêu đề thừa, chữ quan trọng (từ và nghĩa) đậm và to. */
-.kid-word-panel { gap: 16px; }
-.kid-word-list .kid-btn3d { font-size: var(--fs-xl); }
-.kid-word-panel h3 { font-size: clamp(26px, 3vw, 34px); font-weight: 800; color: var(--primary-strong); }
-.kid-word-panel p { margin: 6px 0 14px; font-size: clamp(20px, 2.2vw, 24px); font-weight: 700; line-height: 1.5; }
-.kid-word-panel > .kid-btn3d { justify-self: start; }
-
-.kid-word-panel p { color: var(--text); }
-
 /* Truyện chưa có tranh: giữ một khung trống để chỗ đặt tranh luôn cố định. */
 .kid-story-picture.empty { display: grid; place-items: center; height: clamp(180px, 34vh, 360px); border: 3px dashed var(--line-2); background: var(--surface); color: var(--faint); }
 .kid-story-picture.empty svg { width: 64px; height: 64px; opacity: .5; }
@@ -322,7 +311,7 @@
 .kid-theater { height: 100dvh; min-height: 0; overflow: hidden; }
 .kid-story-row, .kid-story-row > .kid-story-stage, .kid-story-stage { min-height: 0; }
 .kid-story-caption { overflow-y: auto; }
-.kid-theater > .kid-word-panel, .kid-theater > .kid-reading-options { flex: none; max-height: 32dvh; overflow-y: auto; }
+.kid-theater > .kid-reading-options { flex: none; max-height: 32dvh; overflow-y: auto; }
 
 /* Khung tranh cao hơn: tranh chiếm 3/4, lời kể 1/4. */
 .kid-story-stage { grid-template-rows: minmax(0, 3fr) minmax(0, 1fr); gap: 10px; }
@@ -566,7 +555,6 @@
 .kid-reader-side .kid-scene-count { min-width: 64px; text-align: center; font-weight: 700; }
 .kid-reader-side .kid-bar-actions { display: inline-flex; flex-wrap: wrap; gap: 8px; }
 .kid-reader-side .kid-story-navigation .kid-btn3d.is-gold { margin-left: auto; }
-.kid-reader-side .kid-word-panel { flex: none; max-height: 30dvh; overflow-y: auto; }
 @media (max-width: 900px) {
   .kid-theater .kid-reader { grid-template-columns: minmax(0, 1fr); overflow-y: auto; align-items: start; align-content: start; }
   .kid-reader .kid-story-picture { aspect-ratio: 16 / 10; }
@@ -760,7 +748,6 @@
 .kid-pic-layer img { width: 100%; height: 100%; object-fit: contain; display: block; }
 @media (prefers-reduced-motion: reduce) { .kid-pic-layer { transition: none; transform: none; } }
 
-
 /* Đoạn thuộc tranh đang hiện: highlight như bút dạ quang (nền vàng bo tròn); đổi tranh thì nền hiện dần vào. */
 .kid-pic-part { background: color-mix(in srgb, var(--gold) 70%, transparent); color: var(--on-gold); border-radius: 6px; padding: 1px 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; animation: kid-part-in .5s ease both; }
 @keyframes kid-part-in { from { background: transparent; } }
@@ -823,3 +810,16 @@
   .kid-finish-dialog .kid-ask-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kid-after-nav .kid-btn3d.kid-after-lib { width: 48px; min-width: 48px; padding: 0; justify-content: center; }
 }
+
+/* Từ mới trong chữ truyện: gạch chân chấm vàng + sao nhỏ; rê chuột/chạm hiện ô giải thích (KidVocabWord). */
+.kid-vocab { all: unset; position: relative; cursor: help; text-decoration: underline dotted var(--gold-deep); text-decoration-thickness: 3px; text-underline-offset: 6px; border-radius: 6px; transition: background-color .15s ease; }
+.kid-vocab::after { content: "✦"; position: absolute; top: -.55em; right: -.45em; font-size: .5em; color: var(--gold-deep); pointer-events: none; }
+.kid-vocab:hover, .kid-vocab:focus-visible, .kid-vocab[aria-expanded="true"] { background: color-mix(in srgb, var(--gold) 30%, transparent); }
+.kid-vocab:focus-visible { outline: 3px solid var(--gold-deep); outline-offset: 2px; }
+.kid-vocab-pop { position: fixed; z-index: 260; /* trên khu bé (.kid 100), dưới popup câu đố (300) */ display: grid; gap: 10px; padding: 16px 18px; background: var(--paper); color: var(--text); border: 3px solid var(--gold); border-radius: 20px; box-shadow: 0 6px 0 color-mix(in srgb, var(--gold-deep) 35%, transparent), 0 12px 28px color-mix(in srgb, var(--text) 18%, transparent); animation: kid-vocab-in .18s ease-out; }
+.kid-vocab-term { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-display); font-size: var(--fs-xl); font-weight: 800; color: var(--primary-strong); }
+.kid-vocab-term svg { width: 22px; height: 22px; color: var(--gold-deep); flex-shrink: 0; }
+.kid-vocab-def { font-size: var(--fs-lg); font-weight: 700; line-height: 1.5; }
+.kid-vocab-save { justify-self: end; }
+@keyframes kid-vocab-in { from { opacity: 0; transform: translateY(6px) scale(.96); } }
+@media (prefers-reduced-motion: reduce) { .kid-vocab-pop { animation: none; } }

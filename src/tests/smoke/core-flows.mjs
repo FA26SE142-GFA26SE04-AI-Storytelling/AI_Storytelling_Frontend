@@ -175,7 +175,9 @@ function api({ path, method, body, url, state }) {
     case path === '/child/notebook': return [];
     case path === '/child/reading/sessions' && method === 'POST': state.reading = body; return { sessionId: 31, storyId: body.storyId, resumed: false, lastPage: 1, lastReadingMode: 'ListenFirst', isBookmarked: false, isFavorited: false };
     // Cảnh đầu có 3 tranh (mỗi tranh một đoạn chữ); ảnh là SVG nhúng để không cần tải từ ngoài.
-    case path === '/child/reading/sessions/31/content': return { sessionId: 31, storyId: 7, title: story.title, lesson: null, listenOnly: false, vocabulary: [],
+    case path === '/child/reading/sessions/31/vocabulary/5': return { vocabularyId: 5, term: 'vườn', definition: 'Khoảng đất trồng rau, hoa hoặc cây quanh nhà.', isCollected: !!state.collected };
+    case path === '/child/notebook/sessions/31/words' && method === 'POST': state.collected = body; return { vocabularyId: body.vocabularyId, term: 'vườn', definition: 'Khoảng đất trồng rau, hoa hoặc cây quanh nhà.' };
+    case path === '/child/reading/sessions/31/content': return { sessionId: 31, storyId: 7, title: story.title, lesson: null, listenOnly: false, vocabulary: state.vocab ?? [],
       readAloudPractice: state.withPractice ? { interactionId: 9, text: part2, audioUrl: silentWav(1), praiseFeedback: null, praiseAudioUrl: null } : null,
       scenes: [{ sceneId: 1, sceneIndex: 0, text: 'Thỏ ra vườn. Thỏ thấy cà rốt. Thỏ chia cho bạn.', illustrationUrl: pictureUrl('#7cc'), interaction: null, attemptedInSession: false,
         illustrations: [{ beatOrder: 1, startOffset: 0, endOffset: 12, url: pictureUrl('#7cc') }, { beatOrder: 2, startOffset: 13, endOffset: 29, url: pictureUrl('#fc7') }, { beatOrder: 3, startOffset: 30, endOffset: 48, url: pictureUrl('#c7f') }],
@@ -595,6 +597,31 @@ try {
     assert.equal(await bold.count(), 1, 'Chỉ in đậm đoạn của tranh đang hiện');
     assert.equal(await dots.nth(1).getAttribute('aria-pressed'), 'true');
   });
+
+  await smoke('KidVocabInline', 'Parent', async ({ page, state }) => {
+    // Từ mới gạch chân ngay trong chữ truyện (không còn nút "Từ mới"); rê chuột hiện nghĩa và nút Lưu.
+    await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
+    const word = page.locator('.kid-story-caption .kid-vocab', { hasText: 'vườn' });
+    await word.waitFor();
+    assert.equal(await page.getByRole('button', { name: 'Từ mới', exact: true }).count(), 0, 'Đã bỏ nút Từ mới');
+    await shots(page, 'KidVocabInline', '.kid-story-caption');
+    for (const width of [1440, 375]) {
+      await page.setViewportSize({ width, height: 1000 });
+      await word.scrollIntoViewIfNeeded();
+      await word.hover();
+      await page.getByRole('tooltip').getByText('Khoảng đất trồng rau, hoa hoặc cây quanh nhà.').waitFor();
+      await page.screenshot({ path: new URL(`KidVocabInline-pop-${width}.png`, output).pathname.replace(/^\/(\w:)/, '$1') });
+      await page.mouse.move(5, 5);
+    }
+    const pop = page.getByRole('tooltip');
+    await word.hover();
+    await pop.getByRole('button', { name: 'Lưu', exact: true }).click();
+    await pop.getByRole('button', { name: 'Đã lưu', exact: true }).waitFor();
+    assert.deepEqual(state.collected, { vocabularyId: 5 });
+    await page.mouse.move(5, 5);
+    await pop.waitFor({ state: 'detached' });
+  }, { vocab: [{ id: 5, term: 'vườn' }] });
 
   await smoke('KidPicturesFollowNarration', 'Parent', async ({ page }) => {
     await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
