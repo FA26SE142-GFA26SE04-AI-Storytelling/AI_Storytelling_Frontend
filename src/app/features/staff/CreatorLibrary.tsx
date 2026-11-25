@@ -2,83 +2,47 @@
 
 import "@/app/styles/features/library/library.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, Eye, Info, PencilLine, Search, SlidersHorizontal, WandSparkles, X } from "lucide-react";
-import CreatorPreview from "./CreatorPreview";
-import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
-import { Shelf, ShelfRow } from "@/app/features/library/Shelf";
+import { ChevronRight, PencilLine, RefreshCw, Search, Sparkles, WandSparkles, X } from "lucide-react";
+import Select from "@/app/components/Select";
+import Frog from "@/app/components/brand/Frog";
+import { LibrarySkeletonGrid, ShelfRow } from "@/app/features/library/LibraryCards";
+import { jumpToSection } from "@/app/features/library/LibraryDiscoveryHighlights";
+import LibraryStoriesFilterBar, { type ActiveFilterChip } from "@/app/features/library/LibraryStoriesFilterBar";
+import { useRiseIn } from "@/app/lib/motion";
 import { creatorService } from "@/app/services/creatorService";
 import { creatorPublicationService } from "@/app/services/creatorPublicationService";
 import type { CreatorDraft } from "@/app/types/creator";
-import { coverFor } from "@/app/lib/storyView";
-import { Notice, fmt } from "./ui";
+import CreatorPreview from "./CreatorPreview";
+import CreatorLibraryCard from "./CreatorLibraryCard";
+import CreatorLibraryDetail from "./CreatorLibraryDetail";
+import { CreatorFilterPopover, CreatorLibrarySidebar } from "./CreatorLibrarySidebar";
+import {
+  ageText, CREATOR_SORT_OPTIONS, EMPTY_FILTERS, facets, filterCreatorStories, isAi, isFiltering, SHELVES, shelfOf, SOURCE, sortCreatorStories, topicFacets,
+  type CreatorLibraryFilterState, type CreatorLibrarySort,
+} from "./creatorLibraryFilters";
+import { Notice } from "./ui";
 import type { CreatorPageProps } from "./CreatorStories";
 
-const AGE: Record<string, string> = { "6-8": "6–8 tuổi", "9-10": "9–10 tuổi" };
-const MODE: Record<string, string> = { reading: "Đọc", listening: "Nghe", combined: "Đọc và nghe" };
-const SOURCE: Record<string, string> = { ai: "Do AI tạo", manual: "Thủ công" };
-const SOURCE_PILLS = [{ id: "all", label: "Tất cả" }, ...Object.entries(SOURCE).map(([id, label]) => ({ id, label }))];
+export { SHELVES, shelfOf };
 
-const isAi = (s: CreatorDraft) => s.source?.toLowerCase() === "ai";
-const sourceOf = (s: CreatorDraft) => (isAi(s) ? "ai" : "manual");
-const statusKey = (s: CreatorDraft) => (s.status ?? "draft").toLowerCase().replace(/[^a-z]/g, "");
-
-/** Kệ theo trạng thái; mỗi truyện chỉ nằm ở đúng một kệ. */
-export const SHELVES: { id: string; title: string; sub: string; keys: string[] }[] = [
-  { id: "draft", title: "Đang soạn", sub: "Bản nháp chưa gửi duyệt", keys: ["draft"] },
-  { id: "review", title: "Đang duyệt & chuẩn bị", sub: "Chờ kiểm duyệt viên duyệt hoặc đang tạo tranh và giọng đọc",
-    keys: ["inputaccepted", "generating", "outlinereview", "moderationreview", "contentreview", "approved", "mediaprocessing", "mediareview"] },
-  { id: "ready", title: "Sẵn sàng", sub: "Đã hoàn tất nội dung và media", keys: ["ready", "published"] },
-];
-export const shelfOf = (s: CreatorDraft) => SHELVES.find((g) => g.keys.includes(statusKey(s)))?.id ?? "draft";
-const NEW_DAYS = 3;
-const isNew = (s: CreatorDraft) => Date.now() - new Date(s.createdAt).getTime() < NEW_DAYS * 86_400_000;
-
-/** Thẻ truyện bìa đứng, giống Thư viện của phụ huynh: bấm để xem chi tiết ở khung bên phải. */
-function BookCard({ story, rank, on, onPick, published }: { story: CreatorDraft; rank?: number; on: boolean; onPick: () => void; published: boolean }) {
-  const name = story.title || "Truyện chưa đặt tên";
-  // "Sẵn sàng" chỉ nghĩa là creator đã chốt nội dung và media; chỉ khi Moderator duyệt công khai mới là truyện đã xuất bản.
-  const ready = shelfOf(story) === "ready" && published;
-  const label = `${SHELVES.find((g) => g.id === shelfOf(story))?.title}${shelfOf(story) === "ready" && !published ? " · chưa công khai" : ""}`;
-  return (
-    <button className={`bk${on ? " on" : ""}`} onClick={onPick} aria-pressed={on}>
-      <span className="bk-cover" style={{ background: coverFor(story.coverImageUrl) }}>
-        {!ready ? <span className="pill draft bk-badge">{label}</span> : isNew(story) && <span className="bk-badge bk-new">Mới</span>}
-        <span className="bk-name display">{name}</span>
-        {rank !== undefined && <span className="bk-rank display" aria-hidden>{rank}</span>}
-      </span>
-      <span className="bk-title">{name}</span>
-      <span className="bk-meta">{story.genre || "Khác"} · {AGE[story.ageBand] ?? story.ageBand}</span>
-    </button>
-  );
-}
-
-/** Trang "Thư viện" của Content Creator: bố cục giống Thư viện của phụ huynh (tìm kiếm, bộ lọc, kệ cuộn ngang, khung Chi tiết). */
+/** Trang "Thư viện" của Content Creator: cùng bố cục Thư viện phụ huynh (thanh lọc trái, tìm kiếm/sắp xếp, lưới thẻ, popup chi tiết). */
 export function CreatorLibrary({ go }: CreatorPageProps) {
   const [list, setList] = useState<CreatorDraft[] | null>(null);
+  const [failed, setFailed] = useState(false);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
-  const [q, setQ] = useState("");
-  const [status, setStatus] = useState("all");
-  const [age, setAge] = useState("all");
-  const [src, setSrc] = useState("all");
-  const [genre, setGenre] = useState("all");
-  const [source, setSource] = useState("all");
-  const [topic, setTopic] = useState<string | null>(null);
-  const [expanded, setExpanded] = useState<{ title: string; items: CreatorDraft[] } | null>(null);
+  const [filters, setFilters] = useState<CreatorLibraryFilterState>(EMPTY_FILTERS);
   const [selected, setSelected] = useState<number | null>(null);
   const [reading, setReading] = useState(false);
-  const [asideCollapsed, setAsideCollapsed] = useState(true);
-  const toggleAside = useCallback(() => setAsideCollapsed((v) => !v), []);
-  const aside = useMemo(() => ({ collapsed: asideCollapsed, toggle: toggleAside }), [asideCollapsed, toggleAside]);
-  const [filterOpen, setFilterOpen] = useState(false);
-  const filterRef = useRef<HTMLDivElement>(null);
+  const returnFocus = useRef<HTMLButtonElement | null>(null);
 
   // Danh sách truyện của creator không có cờ "đã công khai" (Ready cả khi chưa gửi duyệt), nên hỏi trạng thái phát hành của từng truyện Ready.
   const [published, setPublished] = useState<Record<number, boolean>>({});
   const load = useCallback(async () => {
+    setList(null);
     const r = await creatorService.list();
     const items = r.ok ? r.data?.items ?? [] : [];
-    setList(items);
-    setNote(r.ok ? null : { ok: false, text: r.message });
+    setNote(r.ok ? null : { ok: false, text: r.message || "Không tải được thư viện truyện. Vui lòng thử lại." });
+    setFailed(!r.ok);
     const ids = items.filter((s) => shelfOf(s) === "ready").map((s) => s.storyId);
     const next: Record<number, boolean> = {};
     for (let i = 0; i < ids.length; i += 6) {
@@ -88,148 +52,146 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
       }));
     }
     setPublished(next);
+    setList(items);
   }, []);
-  // Truyện Ready nhưng chưa được Moderator duyệt công khai (hoặc chưa biết) thì không hiện ở các kệ thư viện, chỉ ở kệ "Chưa công khai".
-  const libShelf = useCallback((s: CreatorDraft) => (shelfOf(s) === "ready" && !published[s.storyId] ? "unpublished" : shelfOf(s)), [published]);
   useEffect(() => { void load(); }, [load]);
-  useEffect(() => {
-    if (!filterOpen) return;
-    const down = (e: MouseEvent) => { if (!filterRef.current?.contains(e.target as Node)) setFilterOpen(false); };
-    const key = (e: KeyboardEvent) => { if (e.key === "Escape") setFilterOpen(false); };
-    document.addEventListener("mousedown", down); document.addEventListener("keydown", key);
-    return () => { document.removeEventListener("mousedown", down); document.removeEventListener("keydown", key); };
-  }, [filterOpen]);
 
   // Thư viện chỉ hiện truyện đã được Moderator duyệt công khai.
-  const sorted = useMemo(() => (list ?? []).filter((s) => published[s.storyId]).sort((a, b) => new Date(b.updatedAt ?? b.createdAt).getTime() - new Date(a.updatedAt ?? a.createdAt).getTime()), [list, published]);
-  const activeCount = [status, genre, age, src].filter((v) => v !== "all").length;
-  const topics = useMemo(() => [...new Set(sorted.filter((s) => !["draft", "review", "unpublished"].includes(libShelf(s))).map((s) => s.genre || "Khác"))], [sorted, libShelf]);
-  const activeTopic = topic && topics.includes(topic) ? topic : topics[0] ?? null;
-  const released = sorted.filter((s) => libShelf(s) === "ready");
-  const latest = released.slice(0, 10);
-  // Truyện đang soạn hoặc chưa công khai tách riêng; các kệ còn lại chỉ gồm truyện đã được Moderator duyệt công khai (hoặc đã lưu trữ).
-  const rest = sorted;
-  const byTopic = rest.filter((s) => (s.genre || "Khác") === activeTopic);
-  const bySource = rest.filter((s) => source === "all" || sourceOf(s) === source);
-  const searching = q.trim() !== "" || activeCount > 0;
-  const results = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return sorted.filter((s) => (status === "all" || shelfOf(s) === status) && (genre === "all" || (s.genre || "Khác") === genre) && (age === "all" || s.ageBand === age) && (src === "all" || sourceOf(s) === src) && (s.title || "").toLowerCase().includes(needle));
-  }, [sorted, q, status, genre, age, src]);
+  const all = useMemo(() => (list ?? []).filter((s) => published[s.storyId]), [list, published]);
+  const newest = useMemo(() => sortCreatorStories(all, "updated").slice(0, 4), [all]);
+  const results = useMemo(() => filterCreatorStories(all, filters), [all, filters]);
+  const focused = isFiltering(filters);
+  const change = useCallback((patch: Partial<CreatorLibraryFilterState>) => setFilters((f) => ({ ...f, ...patch })), []);
+  const clear = useCallback(() => setFilters((f) => ({ ...EMPTY_FILTERS, sort: f.sort })), []);
+  const activeCount = [filters.age, filters.genre, filters.source, filters.status].filter((v) => v !== "all").length;
 
-  const sel = sorted.find((s) => s.storyId === selected) ?? null;
-  const pick = (id: number) => { setSelected(id); if (asideCollapsed) setAsideCollapsed(false); };
-  const card = (s: CreatorDraft, rank?: number) => <BookCard key={s.storyId} story={s} rank={rank} on={sel?.storyId === s.storyId} onPick={() => pick(s.storyId)} published={!!published[s.storyId]} />;
-  const open = (s: CreatorDraft) => go(isAi(s) ? "create-ai" : "create-manual", s.storyId);
-  const shelfLabel = (s: CreatorDraft) => `${SHELVES.find((g) => g.id === shelfOf(s))?.title ?? ""}${libShelf(s) === "unpublished" ? " · chưa công khai" : ""}`;
+  const chips: ActiveFilterChip[] = [
+    filters.query.trim() && { id: "q", label: `Từ khóa: “${filters.query.trim()}”`, remove: () => change({ query: "" }) },
+    filters.genre !== "all" && { id: "genre", label: `Chủ đề: ${filters.genre}`, remove: () => change({ genre: "all" }) },
+    filters.age !== "all" && { id: "age", label: `Độ tuổi: ${ageText(filters.age)}`, remove: () => change({ age: "all" }) },
+    filters.source !== "all" && { id: "source", label: `Nguồn: ${SOURCE[filters.source]}`, remove: () => change({ source: "all" }) },
+    filters.status !== "all" && { id: "status", label: `Trạng thái: ${SHELVES.find((g) => g.id === filters.status)?.title}`, remove: () => change({ status: "all" }) },
+  ].filter((c): c is ActiveFilterChip => !!c);
+
+  const gridRef = useRiseIn<HTMLDivElement>(".bk", [focused, results.map((s) => s.storyId).join(",")], { delay: results.length > 24 ? 4 : 18, distance: 10 });
+
+  const sel = all.find((s) => s.storyId === selected) ?? null;
+  const pick = (id: number, button: HTMLButtonElement) => { returnFocus.current = button; setSelected(id); };
+  const closeDetail = () => {
+    setSelected(null);
+    if (returnFocus.current?.isConnected) returnFocus.current.focus({ preventScroll: true });
+  };
+  const card = (s: CreatorDraft, compact = false) => <CreatorLibraryCard key={s.storyId} story={s} compact={compact} onPick={(btn) => pick(s.storyId, btn)} />;
+  const grid = (items: CreatorDraft[]) => <div ref={gridRef} className="lib-grid">{items.map((s) => card(s))}</div>;
+  const filterProps = { stories: all, filters, onChange: change, onClear: clear };
 
   return (
-    <AsideContext.Provider value={aside}>
-      <section className="ws dock lib" data-aside={asideCollapsed ? "collapsed" : undefined}>
-        <div className="pane">
-          <div className="lib-scroll">
-            <Notice note={note} />
-            <div className="lbar">
-              <div className="lsearch">
-                <label className="row grow" style={{ gap: 6, color: "var(--muted)" }}>
-                  <Search className="ic" />
-                  <input className="inp" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm theo tên truyện" style={{ border: 0, background: "none" }} aria-label="Tìm theo tên truyện" />
-                </label>
-                <div className="lfilter" ref={filterRef}>
-                  <button className={`btn btn-s lfilter-btn${activeCount > 0 ? " on" : ""}`} aria-haspopup="dialog" aria-expanded={filterOpen} onClick={() => setFilterOpen((v) => !v)}>
-                    <SlidersHorizontal className="ic" />Bộ lọc{activeCount > 0 && <span className="lfilter-n">{activeCount}</span>}
-                  </button>
-                  {filterOpen && (
-                    <div className="lfilter-pop" role="dialog" aria-label="Lọc truyện mẫu">
-                      <label>Trạng thái
-                        <select className={`inp${status !== "all" ? " on" : ""}`} aria-label="Lọc theo trạng thái" value={status} onChange={(e) => setStatus(e.target.value)}>
-                          <option value="all">Mọi trạng thái</option>
-                          {SHELVES.map((g) => <option key={g.id} value={g.id}>{g.title} ({sorted.filter((s) => shelfOf(s) === g.id).length})</option>)}
-                        </select>
-                      </label>
-                      <label>Thể loại
-                        <select className={`inp${genre !== "all" ? " on" : ""}`} aria-label="Lọc theo thể loại" value={genre} onChange={(e) => setGenre(e.target.value)}>
-                          <option value="all">Mọi thể loại</option>
-                          {topics.map((t) => <option key={t} value={t}>{t} ({sorted.filter((s) => (s.genre || "Khác") === t).length})</option>)}
-                        </select>
-                      </label>
-                      <label>Độ tuổi
-                        <select className={`inp${age !== "all" ? " on" : ""}`} aria-label="Lọc theo nhóm tuổi" value={age} onChange={(e) => setAge(e.target.value)}>
-                          <option value="all">Mọi độ tuổi</option>
-                          {Object.entries(AGE).map(([k, v]) => <option key={k} value={k}>{v} ({sorted.filter((s) => s.ageBand === k).length})</option>)}
-                        </select>
-                      </label>
-                      <label>Nguồn
-                        <select className={`inp${src !== "all" ? " on" : ""}`} aria-label="Lọc theo cách tạo" value={src} onChange={(e) => setSrc(e.target.value)}>
-                          <option value="all">Mọi cách tạo</option>
-                          {Object.entries(SOURCE).map(([k, v]) => <option key={k} value={k}>{v} ({sorted.filter((s) => sourceOf(s) === k).length})</option>)}
-                        </select>
-                      </label>
-                      {activeCount > 0 && <button className="btn btn-g" onClick={() => { setStatus("all"); setGenre("all"); setAge("all"); setSrc("all"); }}><X className="ic" />Xoá lọc</button>}
-                    </div>
+    <section className="ws dock lib lib-catalog">
+      <div className="pane">
+        <div className="lib-scroll">
+          <Notice note={note} />
+          <div className="lib-community-layout">
+            <CreatorLibrarySidebar {...filterProps} />
+            <div className="lib-community-main">
+              <div className="lib-toolbar">
+                <div className="lib-search">
+                  <Search className="ic lib-search-ic" aria-hidden="true" />
+                  <input className="lib-search-inp" type="search" value={filters.query} onChange={(e) => change({ query: e.target.value })} placeholder="Tìm truyện, chủ đề…" aria-label="Tìm theo tên truyện" />
+                  {filters.query && (
+                    <button type="button" className="btn btn-g icon-only lib-search-clear" aria-label="Xoá từ khóa tìm kiếm" onClick={() => change({ query: "" })}><X className="ic" aria-hidden="true" /></button>
                   )}
                 </div>
-              </div>
-            </div>
-
-            {list === null ? <p className="sub lib-empty">Đang tải truyện…</p>
-              : list.length === 0 ? (
-                <div className="lib-empty">
-                  <b className="display">Chưa có truyện mẫu nào</b>
-                  <span className="sub">Bắt đầu bằng AI từ một ý tưởng, hoặc tự viết theo cách thủ công.</span>
-                  <div className="row"><button className="btn btn-gold" onClick={() => go("create-ai")}><WandSparkles className="ic" />Dùng AI tạo truyện</button><button className="btn btn-s" onClick={() => go("create-manual")}>Viết thủ công</button></div>
+                <div className="lib-toolbar-actions">
+                  <div className="lib-sort">
+                    <span className="lib-sort-lbl">Sắp xếp</span>
+                    <Select<CreatorLibrarySort> className="lib-sort-sel" ariaLabel="Sắp xếp truyện" value={filters.sort} options={CREATOR_SORT_OPTIONS} onChange={(sort) => change({ sort })} portal />
+                  </div>
+                  <CreatorFilterPopover {...filterProps} activeCount={activeCount} />
                 </div>
-              ) : searching ? (
-                <Shelf title="Kết quả" sub={`${results.length} truyện`} items={results.map((s) => ({ id: s.storyId }))}>
-                  {results.length > 0 ? <div className="shelf-grid">{results.map((s) => card(s))}</div> : <p className="sub">Không tìm thấy truyện phù hợp.</p>}
-                </Shelf>
-              ) : expanded ? (
-                <Shelf title={expanded.title} sub={`${expanded.items.length} truyện`} items={expanded.items.map((s) => ({ id: s.storyId }))}>
-                  <button className="shelf-back" onClick={() => setExpanded(null)}><ChevronLeft className="ic" />Quay lại thư viện</button>
-                  <div className="shelf-grid">{expanded.items.map((s) => card(s))}</div>
-                </Shelf>
+              </div>
+
+              <LibraryStoriesFilterBar
+                totalStories={all.length}
+                resultsCount={results.length}
+                storiesLoading={list === null}
+                focused={focused}
+                genreF={filters.genre}
+                ageF={filters.age}
+                ageOptions={facets(all, (s) => s.ageBand, ageText)}
+                topicEntries={topicFacets(all).map(({ key, count }) => [key, count] as [string, number])}
+                activeChips={chips}
+                onGenreChange={(genre) => change({ genre })}
+                onAgeChange={(age) => change({ age })}
+                onClearFilters={clear}
+              />
+
+              {list === null ? (
+                <LibrarySkeletonGrid count={6} label="Đang tải danh sách truyện…" />
+              ) : failed && all.length === 0 ? (
+                <div className="lib-empty-panel lib-error-panel">
+                  <Frog size={84} mood="think" />
+                  <h3 className="display">Không tải được thư viện truyện</h3>
+                  <p>Kiểm tra kết nối mạng rồi thử lại.</p>
+                  <button type="button" className="btn btn-p" onClick={() => void load()}><RefreshCw className="ic" aria-hidden="true" />Thử lại</button>
+                </div>
+              ) : all.length === 0 ? (
+                <div className="lib-empty-panel">
+                  <Frog size={96} mood="idle" />
+                  <h3 className="display">Chưa có truyện nào được công khai</h3>
+                  <p>Truyện sẽ hiện ở đây sau khi kiểm duyệt viên duyệt công khai.</p>
+                  <div className="row lib-empty-actions">
+                    <button type="button" className="btn btn-gold" onClick={() => go("create-ai")}><WandSparkles className="ic" aria-hidden="true" />Dùng AI tạo truyện</button>
+                    <button type="button" className="btn btn-s" onClick={() => go("create-manual")}><PencilLine className="ic" aria-hidden="true" />Viết thủ công</button>
+                  </div>
+                </div>
+              ) : focused ? (
+                results.length > 0 ? (
+                  <section className="lib-section" aria-labelledby="creator-lib-results">
+                    <div className="lib-sec-head">
+                      <h3 id="creator-lib-results" className="display" tabIndex={-1}>Kết quả</h3>
+                      <span className="lib-sec-meta lib-num">{results.length} truyện</span>
+                    </div>
+                    {grid(results)}
+                  </section>
+                ) : (
+                  <div className="lib-empty-panel">
+                    <Frog size={88} mood="think" />
+                    <h3 className="display">Không tìm thấy truyện phù hợp</h3>
+                    <p>Thử đổi từ khóa tìm kiếm hoặc bỏ bớt bộ lọc đang áp dụng.</p>
+                    <div className="row lib-empty-actions">
+                      <button type="button" className="btn btn-s" onClick={clear}><X className="ic" aria-hidden="true" />Xoá bộ lọc</button>
+                    </div>
+                  </div>
+                )
               ) : (
                 <>
-                  {latest.length > 0 && (
-                    <Shelf title="Mới nhất" items={latest.map((s) => ({ id: s.storyId }))} onAll={released.length > latest.length ? () => setExpanded({ title: "Mới nhất", items: released }) : undefined}>
-                      <ShelfRow>{latest.map((s, i) => card(s, i + 1))}</ShelfRow>
-                    </Shelf>
-                  )}
-                  {topics.length > 0 && (
-                    <Shelf title="Theo chủ đề" items={byTopic.map((s) => ({ id: s.storyId }))} pills={topics.map((t) => ({ id: t, label: t }))} pill={activeTopic ?? undefined} onPill={setTopic} onAll={() => setExpanded({ title: `Chủ đề: ${activeTopic}`, items: byTopic })}>
-                      <ShelfRow>{byTopic.map((s) => card(s))}</ShelfRow>
-                    </Shelf>
-                  )}
-                  <Shelf title="Tất cả truyện" items={bySource.map((s) => ({ id: s.storyId }))} pills={SOURCE_PILLS} pill={source} onPill={setSource}>
-                    {bySource.length > 0 ? <div className="shelf-grid">{bySource.map((s) => card(s))}</div> : <p className="sub">Chưa có truyện nào trong nhóm này.</p>}
-                  </Shelf>
+                  <section className="lib-section" aria-labelledby="creator-lib-recent">
+                    <div className="lib-sec-head">
+                      <h3 id="creator-lib-recent" className="display" tabIndex={-1}><Sparkles className="ic lib-sec-ic lib-recent-icon" aria-hidden="true" />Mới nhất</h3>
+                      <button type="button" className="shelf-all" onClick={() => jumpToSection("creator-lib-all")}>Xem tất cả<ChevronRight className="ic" aria-hidden="true" /></button>
+                    </div>
+                    <ShelfRow>{newest.map((s) => card(s, true))}</ShelfRow>
+                  </section>
+                  <section className="lib-section" aria-labelledby="creator-lib-all">
+                    <div className="lib-sec-head">
+                      <div className="lib-sec-title-group">
+                        <h3 id="creator-lib-all" className="display" tabIndex={-1}>Tất cả truyện</h3>
+                        <span className="lib-sec-meta lib-num" role="status">{results.length} truyện</span>
+                      </div>
+                    </div>
+                    {grid(results)}
+                  </section>
                 </>
               )}
+            </div>
           </div>
         </div>
+      </div>
 
-        <AsidePane title="Chi tiết" icon={Info}>
-          {sel ? (
-            <>
-              <div className="cover cover-portrait" style={{ background: coverFor(sel.coverImageUrl) }} />
-              <h3 className="display" style={{ fontSize: "var(--fs-xl)", margin: 0, lineHeight: 1.2 }}>{sel.title || "Truyện chưa đặt tên"}</h3>
-              {sel.description && <p className="sub">{sel.description}</p>}
-              <div className="meta">
-                <span>Cách tạo</span><b>{SOURCE[sourceOf(sel)]}</b>
-                <span>Độ tuổi</span><b>{AGE[sel.ageBand] ?? sel.ageBand}</b>
-                <span>Thể loại</span><b>{sel.genre || "Khác"}</b>
-                <span>Chế độ</span><b>{MODE[sel.experienceMode] ?? sel.experienceMode}</b>
-                <span>Phiên bản</span><b>{sel.lastVersionNo ? `V${sel.lastVersionNo}` : "Chưa lưu"}</b>
-                <span>Cập nhật</span><b>{fmt(sel.updatedAt ?? sel.createdAt)}</b>
-                <span>Trạng thái</span><span className="pill draft" style={{ width: "fit-content" }}>{shelfLabel(sel)}</span>
-              </div>
-              <button className="btn btn-s btn-c" onClick={() => setReading(true)}><Eye className="ic" />Đọc thử như bé thấy</button>
-              <button className="btn btn-p btn-c" onClick={() => open(sel)}>{isAi(sel) ? <WandSparkles className="ic" /> : <PencilLine className="ic" />}Mở để soạn tiếp</button>
-            </>
-          ) : <p className="sub">Chọn một truyện để xem chi tiết.</p>}
-        </AsidePane>
-        {sel && reading && <CreatorPreview story={sel} onClose={() => setReading(false)} />}
-      </section>
-    </AsideContext.Provider>
+      {sel && !reading && (
+        <CreatorLibraryDetail story={sel} onClose={closeDetail} onPreview={() => setReading(true)} onOpen={() => go(isAi(sel) ? "create-ai" : "create-manual", sel.storyId)} />
+      )}
+      {sel && reading && <CreatorPreview story={sel} onClose={() => setReading(false)} />}
+    </section>
   );
 }
