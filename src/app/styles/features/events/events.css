@@ -596,7 +596,7 @@
 .ev-event-view .ic { width: 16px; height: 16px; }
 .ev-event-view:hover { text-decoration: underline; text-underline-offset: 4px; }
 .ev-event-view:focus-visible, .ev-event-filters button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
-.ev-events-table .ev-events-empty { padding: 48px 14px; text-align: center; color: var(--muted); }
+.ev-events-empty { margin: 0; padding: 48px 14px; text-align: center; color: var(--muted); }
 .ev-event-list-count { margin: 0; padding-left: 14px; color: var(--muted); font-size: var(--fs-xs); }
 .ev-detail-view > main.pane { background: var(--panel); border-color: var(--line); }
 .ev-detail-view > main.pane > .pb { padding: 0 0 28px; }

@@ -83,7 +83,9 @@ export default function EventListView({ events, loading, participations = [], on
       {loading ? <p className="sub" role="status">Đang tải danh sách sự kiện…</p> : (
         <>
           {failed && <p className="sub" role="status">Một số sự kiện chưa tải được thời gian hoặc số truyện. Bạn vẫn có thể mở chi tiết.</p>}
-          <div className="ev-events-table-scroll">
+          {filtered.length === 0 ? (
+            <p className="ev-events-empty">{published.length ? "Không tìm thấy sự kiện phù hợp." : "Chưa có sự kiện nào được công bố."}</p>
+          ) : <div className="ev-events-table-scroll">
             <table className="ev-events-table">
               <caption className="sr-only">Danh sách sự kiện Taletale</caption>
               <thead><tr><th scope="col">Sự kiện</th><th scope="col">Nhóm tuổi</th><th scope="col">Thời gian</th><th scope="col">Trạng thái</th><th scope="col">Truyện</th><th scope="col">Ngân sách</th><th scope="col"><span className="sr-only">Xem chi tiết</span></th></tr></thead>
@@ -126,10 +128,9 @@ export default function EventListView({ events, loading, participations = [], on
                     </tr>
                   );
                 })}
-                {filtered.length === 0 && <tr><td colSpan={7} className="ev-events-empty">{published.length ? "Không tìm thấy sự kiện phù hợp." : "Chưa có sự kiện nào được công bố."}</td></tr>}
               </tbody>
             </table>
-          </div>
+          </div>}
           <p className="ev-event-list-count" role="status">Hiển thị {filtered.length ? `1 – ${filtered.length}` : "0"} trên {published.length} sự kiện</p>
         </>
       )}

@@ -218,6 +218,12 @@ describe("Events UI components", () => {
     expect(options.map((c) => c.id)).toEqual([1, 9]);
   });
 
+  it("shows the empty message without the wide table", () => {
+    const html = renderToStaticMarkup(<EventListView events={[]} loading={false} onSelect={() => {}} />);
+    expect(html).toContain("Chưa có sự kiện nào được công bố.");
+    expect(html).not.toContain("<table");
+  });
+
   it("EventModeratorPanel, EventCreatorView, CreateEventModal (Create & Edit) and events.css are complete", () => {
     expect(typeof EventsWorkspace).toBe("function");
     const modHtml = renderToStaticMarkup(
