@@ -6,6 +6,7 @@ import { avatarOf } from "@/app/lib/guardian";
 import type { StoryCard } from "@/app/lib/storyView";
 import type { ChildProfile } from "@/app/types/childProfile";
 import LibraryFilterPopover from "./LibraryFilterPopover";
+import { FilterDrawerButton } from "./LibraryFilterSidebar";
 import type { LibraryExtraFilterProps } from "./LibraryExtraFilters";
 import type { AgeFilterOption } from "./libraryFilters";
 
@@ -25,6 +26,8 @@ export type LibraryHeaderProps = {
   age: string;
   source: string;
   popoverCount: number;
+  /** Số bộ lọc đang bật, hiện trên nút mở khung Bộ lọc đầu hàng tìm kiếm. */
+  filterCount: number;
   extraFilters?: LibraryExtraFilterProps;
   /** Thư viện Creator: chỉ có truyện cộng đồng, không có tab Lộ trình mẫu và nhóm lọc Nguồn/Trạng thái. */
   community?: boolean;
@@ -58,6 +61,7 @@ export default function LibraryHeader({
   age,
   source,
   popoverCount,
+  filterCount,
   extraFilters,
   community = false,
   onBackToLearning,
@@ -135,6 +139,7 @@ export default function LibraryHeader({
       </header>}
 
       <div className="lib-toolbar">
+        {tab === "stories" && <FilterDrawerButton active={filterCount} />}
         <div className="lib-search">
           <Search className="ic lib-search-ic" aria-hidden="true" />
           <input

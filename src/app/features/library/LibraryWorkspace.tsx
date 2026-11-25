@@ -116,6 +116,7 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
                 age={discovery.ageF}
                 source={discovery.srcF}
                 popoverCount={discovery.popoverCount}
+                filterCount={discovery.activeCount}
                 extraFilters={discovery.extraFilters}
                 onBackToLearning={() => pickKid && backToLearning(go, pickKid.id)}
                 onDismissPickKid={() => setLibPick(null)}

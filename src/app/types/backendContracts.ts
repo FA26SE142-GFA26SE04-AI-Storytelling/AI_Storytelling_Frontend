@@ -2510,6 +2510,8 @@ export interface PublishedContentItemDto {
   'publishedAt': string | null;
   'storyCount': number | null;
   'needsUpdate': boolean;
+  'coverImageUrl': string | null;
+  'authorName': string | null;
 }
 
 export interface PublishedContentQueryDto {

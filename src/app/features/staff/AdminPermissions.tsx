@@ -5,6 +5,7 @@ import { RefreshCw } from "lucide-react";
 import "@/app/styles/features/staff/permissions.css";
 import { accessControlService as api } from "@/app/services/accessControlService";
 import type { PermissionDto, RoleDto, RolePermissionsDto } from "@/app/types/accessControl";
+import { useLeaveGuard } from "./leaveGuard";
 import PermissionMatrixView from "./PermissionMatrixView";
 import RolePermissionEditor, { confirmDiscard } from "./RolePermissionEditor";
 import { Page, type Note } from "./ui";
@@ -42,9 +43,11 @@ export default function AdminPermissions() {
 
   const dirty = useRef(false);
   const onDirtyChange = useCallback((value: boolean) => { dirty.current = value; }, []);
+  const roleName = roles.find((r) => r.code === roleCode)?.name ?? roleCode;
+  const mayLeave = useCallback(async () => !dirty.current || (await confirmDiscard(roleName)), [roleName]);
+  useLeaveGuard(mayLeave);
   const showMatrix = async () => {
-    if (dirty.current && !(await confirmDiscard(roles.find((r) => r.code === roleCode)?.name ?? roleCode))) return;
-    setTab("matrix");
+    if (await mayLeave()) setTab("matrix");
   };
   const openRole = (code: string) => { setRoleCode(code); setTab("edit"); };
   const saved = (data: RolePermissionsDto) => setByRole((prev) => ({ ...prev, [data.roleCode]: data }));
