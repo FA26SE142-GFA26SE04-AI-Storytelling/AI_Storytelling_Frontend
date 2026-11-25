@@ -177,7 +177,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
         <fieldset className="brief-group">
           <legend className="display">Tuỳ chọn truyện</legend>
           <div className="field">
-            <span className="lbl row" style={{ justifyContent: "space-between" }}><span id="brief-length">Độ dài <InfoTip text={`${context.recommendedTargetLength ? `Mức vừa theo đề xuất máy chủ: ${presets.medium} tiếng` : `Ngắn / Vừa / Dài theo mức đọc ${context.readingLevel} của bé`}; tối đa ${max} tiếng theo cài đặt an toàn.`} /></span><b style={{ color: "var(--text)" }}>khoảng {values.targetLength} tiếng</b></span>
+            <span className="lbl row" style={{ justifyContent: "space-between" }}><span id="brief-length">Độ dài <InfoTip text={`${context.recommendedTargetLength ? `Mức vừa theo đề xuất máy chủ: ${presets.medium} từ` : `Ngắn / Vừa / Dài theo mức đọc ${context.readingLevel} của bé`}; tối đa ${max} từ theo cài đặt an toàn.`} /></span><b style={{ color: "var(--text)" }}>khoảng {values.targetLength} từ</b></span>
             <div className="seg" role="group" aria-labelledby="brief-length">{LENGTHS.map(([k, label]) => (
               <button type="button" key={k} disabled={locked} aria-pressed={preset === k} className={preset === k ? "on" : ""} onClick={() => updateValues({ targetLength: presets[k] })}>{label}<small>{presets[k]}</small></button>
             ))}</div>

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { passwordProblem, presetBlocked } from '@/app/lib/guardian';
+import { groupCategories, passwordProblem, presetBlocked } from '@/app/lib/guardian';
 import { normalizeRule } from '@/app/features/children/SafetyBlocks';
 import type { ContentCategory } from '@/app/types/childProfile';
 
@@ -34,6 +34,26 @@ describe('presetBlocked', () => {
 
   it('không chặn danh mục thông thường', () => {
     expect(presetBlocked([cat(1, 'ANIMALS', 'Động vật'), cat(6, 'FAMILY', 'Gia đình')], 'Age_6_8')).toEqual([]);
+  });
+});
+
+describe('groupCategories', () => {
+  const g = (id: number, group?: string): ContentCategory => ({ ...cat(id, `C${id}`, `Chủ đề ${id}`), group: group as ContentCategory['group'] });
+
+  it('chia theo nhóm backend trả về, đúng thứ tự nhóm và giữ thứ tự trong nhóm', () => {
+    const out = groupCategories([g(1, 'SafetyWarning'), g(2, 'Genre'), g(3, 'Learning'), g(4, 'Genre'), g(5, 'LifeValue')]);
+    expect(out.map((s) => s.id)).toEqual(['Genre', 'LifeValue', 'Learning', 'SafetyWarning']);
+    expect(out[0].items.map((c) => c.id)).toEqual([2, 4]);
+  });
+
+  it('bỏ nhóm rỗng và gom danh mục thiếu hoặc lạ nhóm vào "Khác" ở cuối', () => {
+    const out = groupCategories([g(1), g(2, 'Genre'), g(3, 'Unknown')]);
+    expect(out.map((s) => s.id)).toEqual(['Genre', 'Other']);
+    expect(out[1].items.map((c) => c.id)).toEqual([1, 3]);
+  });
+
+  it('không có danh mục thì không có nhóm nào', () => {
+    expect(groupCategories([])).toEqual([]);
   });
 });
 
