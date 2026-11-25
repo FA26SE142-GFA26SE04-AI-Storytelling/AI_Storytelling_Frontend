@@ -17,10 +17,16 @@ type Props = {
   data: RolePermissionsDto | undefined;
   onRoleChange: (code: string) => void;
   onSaved: (data: RolePermissionsDto) => void;
+  /** Báo trang cha biết còn thay đổi chưa lưu để hỏi lại trước khi đổi tab. */
+  onDirtyChange?: (dirty: boolean) => void;
 };
 
+/** Hỏi trước khi bỏ thay đổi quyền chưa lưu. */
+export const confirmDiscard = (roleName: string) =>
+  confirmDialog(`Bỏ thay đổi chưa lưu? Các quyền của ${roleName} bạn vừa đổi chưa được lưu và sẽ mất.`);
+
 /** Chỉnh quyền một role: chỉ quyền role được bật/tắt, đánh dấu khác mặc định, về mặc định, lịch sử thay đổi. */
-export default function RolePermissionEditor({ catalog, roles, roleCode, data, onRoleChange, onSaved }: Props) {
+export default function RolePermissionEditor({ catalog, roles, roleCode, data, onRoleChange, onSaved, onDirtyChange }: Props) {
   const saved = useMemo(() => [...(data?.permissionCodes ?? [])].sort(), [data]);
   const [draft, setDraft] = useState<string[]>(saved);
   const [historyKey, setHistoryKey] = useState(0);
@@ -35,6 +41,18 @@ export default function RolePermissionEditor({ catalog, roles, roleCode, data, o
   const roleName = role?.name ?? roleCode;
   const diff = changedCodes(saved, draft);
   const dirty = diff.added.length + diff.removed.length > 0;
+  const changes = diff.added.length + diff.removed.length;
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+    if (!dirty) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => { window.removeEventListener("beforeunload", warn); onDirtyChange?.(false); };
+  }, [dirty, onDirtyChange]);
+  const changeRole = async (code: string) => {
+    if (code === roleCode || (dirty && !(await confirmDiscard(roleName)))) return;
+    onRoleChange(code);
+  };
   const atDefault = changedCodes([...defaults], draft);
   const isDefault = atDefault.added.length + atDefault.removed.length === 0;
   const toggle = (code: string, on: boolean) => setDraft((d) => (on ? [...d, code] : d.filter((c) => c !== code)).sort());
@@ -56,15 +74,13 @@ export default function RolePermissionEditor({ catalog, roles, roleCode, data, o
       <div className="st-card perm-card">
         <div className="st-filters perm-tools">
           <Select ariaLabel="Chọn role" value={roleCode} disabled={busy || roles.length === 0} portal
-            options={roles.map((r) => ({ value: r.code, label: r.name }))} onChange={(v) => onRoleChange(v)} />
+            options={roles.map((r) => ({ value: r.code, label: r.name }))} onChange={(v) => void changeRole(v)} />
           <span className="grow" />
           {!isDefault && (
             <button className="btn btn-g" disabled={busy} onClick={() => setDraft([...defaults].sort())}>
               <RotateCcw className="ic" />Về mặc định
             </button>
           )}
-          {dirty && <button className="btn btn-g" disabled={busy} onClick={() => setDraft(saved)}><Undo2 className="ic" />Hoàn tác</button>}
-          {dirty && <button className="btn btn-p" disabled={busy} onClick={() => void save()}><Save className="ic" />Lưu thay đổi</button>}
         </div>
         {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
         <p className="sub">
@@ -100,6 +116,15 @@ export default function RolePermissionEditor({ catalog, roles, roleCode, data, o
         </div>
       ))}
       {role?.id !== undefined && <PermissionHistory key={`${role.id}-${historyKey}`} roleId={role.id} names={names} />}
+      {/* Danh sách dài: nút Lưu phải luôn trong tầm mắt, nếu không người dùng tưởng bỏ tick là đã lưu. */}
+      {dirty && (
+        <div className="perm-savebar" role="region" aria-label="Thay đổi chưa lưu">
+          <b role="status">{changes} thay đổi chưa lưu</b>
+          <span className="grow" />
+          <button className="btn btn-g" disabled={busy} onClick={() => setDraft(saved)}><Undo2 className="ic" />Hoàn tác</button>
+          <button className="btn btn-p" disabled={busy} onClick={() => void save()}><Save className="ic" />Lưu thay đổi</button>
+        </div>
+      )}
     </>
   );
 }
