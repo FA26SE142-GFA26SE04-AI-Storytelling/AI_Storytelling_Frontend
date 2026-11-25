@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, ListChecks } from "lucide-react";
+import { ChevronLeft, ChevronRight, Highlighter, ListChecks } from "lucide-react";
 import { StoryStatsBadge } from "@/app/components/StoryStatsBadge";
 import { useRiseIn } from "@/app/lib/motion";
 import type { StoryCard } from "@/app/lib/storyView";
@@ -152,8 +152,13 @@ export function LibraryBookCard({
           </span>
           <span className="lib-card-age">{canonicalAgeLabel(story.ageBand)}</span>
           {story.raw.hasQuiz === true && (
-            <span className="lib-card-quiz" title="Có câu đố sau khi đọc" aria-label="Có câu đố">
+            <span className="lib-card-mark lib-card-quiz" title="Có câu đố sau khi đọc" aria-label="Có câu đố">
               <ListChecks aria-hidden="true" />
+            </span>
+          )}
+          {story.raw.hasWordHighlight === true && (
+            <span className="lib-card-mark lib-card-highlight" title="Tô sáng từng chữ khi nghe đọc" aria-label="Có tô sáng chữ khi nghe">
+              <Highlighter aria-hidden="true" />
             </span>
           )}
         </span>

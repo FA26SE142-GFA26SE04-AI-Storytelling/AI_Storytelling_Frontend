@@ -80,6 +80,12 @@ describe("Library UI components", () => {
       <LibraryBookCard story={makeStory({ creator: true, raw: { hasQuiz: true } })} onPick={() => {}} />,
     );
     expect(quizHtml).toContain('aria-label="Có câu đố"');
+    expect(quizHtml).not.toContain("lib-card-highlight");
+    // Icon tô sáng chữ chỉ hiện khi API báo hasWordHighlight = true.
+    const highlightHtml = renderToStaticMarkup(
+      <LibraryBookCard story={makeStory({ creator: true, raw: { hasWordHighlight: true } })} onPick={() => {}} />,
+    );
+    expect(highlightHtml).toContain('aria-label="Có tô sáng chữ khi nghe"');
     expect(rankedHtml).toContain("166.67% 125%");
 
     const plainReadyHtml = renderToStaticMarkup(
