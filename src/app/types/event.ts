@@ -509,7 +509,7 @@ export const PARTICIPATION_STATUS_LABEL: Record<EventParticipationStatus, string
 
 export const SUBMISSION_STATUS_LABEL: Record<string, string> = {
   Draft: "Bản nháp",
-  PendingReview: "Chờ duyệt F-10",
+  PendingReview: "Chờ duyệt",
   ChangesRequested: "Cần chỉnh sửa",
   Approved: "Đã duyệt hợp lệ",
   Rejected: "Từ chối",
