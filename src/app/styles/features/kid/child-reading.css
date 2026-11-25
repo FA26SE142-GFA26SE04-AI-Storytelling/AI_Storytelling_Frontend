@@ -512,12 +512,15 @@
 .kid-reflection audio { max-width: 100%; }
 @media (prefers-reduced-motion: reduce) { .kid-reflection-dots li { transition: none; } }
 /* Trang luyện đọc to: thẻ tiêu đề vàng thay chỗ tranh, câu trích chữ to trong ngoặc kép ở cột chữ. */
-.kid-practice-card { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; width: 100%; padding: 24px 18px; border: 3px solid var(--gold-deep); border-radius: 28px; background: color-mix(in srgb, var(--gold) 16%, var(--surface)); text-align: center; }
-.kid-practice-card h2 { margin: 0; font-size: var(--fs-2xl); }
+/* Trang luyện đọc to: một cột, câu cần đọc nằm giữa; ếch + tiêu đề ở trên, nút ở dưới, thanh trang ở đáy. */
+.kid-theater .kid-practice { flex: 1; min-height: 0; width: 100%; max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; }
+.kid-practice-card { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: clamp(18px, 3vh, 32px); width: 100%; padding: clamp(20px, 4vh, 44px) clamp(18px, 4vw, 56px); border: 3px solid var(--gold-deep); border-radius: 28px; background: color-mix(in srgb, var(--gold) 16%, var(--surface)); text-align: center; }
+.kid-practice-card h2 { margin: 0; font-size: var(--fs-xl); }
 .kid-practice-praise { margin: 0; display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 999px; background: color-mix(in srgb, var(--primary) 14%, var(--surface)); font-size: var(--fs-md); font-weight: 800; animation: kid-sent-pop .35s cubic-bezier(.2, 1.4, .4, 1) both; }
 .kid-practice-praise svg { width: 20px; height: 20px; flex: none; color: var(--gold-deep); }
-.kid-practice-quote { margin: auto 0; padding: 0; }
-.kid-reader-side .kid-story-caption .kid-practice-quote p { margin: 0; }
+.kid-practice-head { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.kid-practice-quote { margin: 0; padding: 0; max-width: 900px; }
+.kid-practice-quote p { margin: 0; white-space: pre-wrap; font-family: var(--font-display); font-size: clamp(24px, 3vw, 40px); font-weight: 700; line-height: 1.55; text-align: center; }
 .kid-practice-quote p::before { content: '“'; color: var(--gold-deep); }
 .kid-practice-quote p::after { content: '”'; color: var(--gold-deep); }
 @media (prefers-reduced-motion: reduce) { .kid-practice-praise { animation: none; } }
@@ -557,6 +560,8 @@
 .kid-reader-side .kid-story-navigation .kid-btn3d.is-gold { margin-left: auto; }
 @media (max-width: 900px) {
   .kid-theater .kid-reader { grid-template-columns: minmax(0, 1fr); overflow-y: auto; align-items: start; align-content: start; }
+  .kid-practice-card { flex: none; }
+  .kid-practice-quote p { font-size: clamp(26px, 7vw, 34px); }
   .kid-reader .kid-story-picture { aspect-ratio: 16 / 10; }
   .kid-reader-side .kid-story-caption { overflow: visible; }
   .kid-reader-side .kid-story-caption p { font-size: clamp(20px, 5vw, 28px); }

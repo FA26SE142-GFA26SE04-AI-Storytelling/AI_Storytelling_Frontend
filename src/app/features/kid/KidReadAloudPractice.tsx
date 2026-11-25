@@ -58,29 +58,26 @@ export default function KidReadAloudPractice({ practice, disabled, onRecord, chi
   };
   const retry = () => { setResult(null); rec.reset(); };
 
-  return <div className="kid-reader kid-practice" ref={swap}>
-    <div className="kid-reader-visual">
-      <section className="kid-practice-card" aria-labelledby="kid-practice-title">
-        <Frog mood={result ? 'happy' : 'idle'} size={104} />
+  return <div className="kid-practice" ref={swap}>
+    <section className="kid-practice-card" aria-labelledby="kid-practice-title">
+      <div className="kid-practice-head">
+        <Frog mood={result ? 'happy' : 'idle'} size={72} />
         <h2 id="kid-practice-title" className="display">Luyện đọc to</h2>
-        <div className="kid-actions">
-          {sample.src && <button type="button" className="kid-btn3d is-sky" disabled={recording || scoring} onClick={() => play(sampleRef.current)}><Volume2 aria-hidden="true" />Nghe mẫu</button>}
-          <button type="button" className={`kid-btn3d is-gold kid-read-aloud-btn${recording ? ' kid-read-aloud-btn--recording' : scoring ? ' kid-read-aloud-btn--busy' : ''}`} disabled={disabled || scoring} onClick={mic}
-            aria-label={recording ? 'Dừng đọc' : scoring ? 'Đang chấm điểm' : 'Đọc to'}><Mic aria-hidden="true" />{recording ? 'Dừng' : scoring ? 'Đang chấm' : 'Đọc to'}</button>
-          {result && <button type="button" className="kid-btn3d is-sky kid-btn-icon" aria-label="Đọc lại" title="Đọc lại" disabled={disabled || scoring} onClick={retry}><RotateCcw aria-hidden="true" /></button>}
-        </div>
-        {result && practice.praiseFeedback && <p className="kid-practice-praise"><Sparkles aria-hidden="true" />{practice.praiseFeedback}</p>}
-        {sample.src && <audio ref={sampleRef} src={sample.src} preload="auto" hidden />}
-        {praise.src && <audio ref={praiseRef} src={praise.src} preload="auto" hidden />}
-      </section>
-    </div>
-    <div className="kid-reader-side">
-      <div className="kid-story-caption">
-        <blockquote className="kid-practice-quote" aria-label="Câu em luyện đọc">
-          <Caption text={practice.text} part={null} result={result} segment={null} segmentStart={0} />
-        </blockquote>
       </div>
-      {children}
-    </div>
+      <blockquote className="kid-practice-quote" aria-label="Câu em luyện đọc">
+        <Caption text={practice.text} part={null} result={result} segment={null} segmentStart={0} />
+      </blockquote>
+      <div className="kid-actions">
+        {sample.src && <button type="button" className="kid-btn3d is-sky" disabled={recording || scoring} onClick={() => play(sampleRef.current)}><Volume2 aria-hidden="true" />Nghe mẫu</button>}
+        <button type="button" className={`kid-btn3d is-gold kid-read-aloud-btn${recording ? ' kid-read-aloud-btn--recording' : scoring ? ' kid-read-aloud-btn--busy' : ''}`} disabled={disabled || scoring} onClick={mic}
+          aria-label={recording ? 'Dừng đọc' : scoring ? 'Đang chấm điểm' : 'Đọc to'}><Mic aria-hidden="true" />{recording ? 'Dừng' : scoring ? 'Đang chấm' : 'Đọc to'}</button>
+        {result && <button type="button" className="kid-btn3d is-sky kid-btn-icon" aria-label="Đọc lại" title="Đọc lại" disabled={disabled || scoring} onClick={retry}><RotateCcw aria-hidden="true" /></button>}
+      </div>
+      {result && practice.praiseFeedback && <p className="kid-practice-praise"><Sparkles aria-hidden="true" />{practice.praiseFeedback}</p>}
+      {sample.src && <audio ref={sampleRef} src={sample.src} preload="auto" hidden />}
+      {praise.src && <audio ref={praiseRef} src={praise.src} preload="auto" hidden />}
+    </section>
+    {/* Dùng lại kiểu thanh trang của màn đọc (.kid-reader-side .kid-story-navigation). */}
+    <div className="kid-reader-side">{children}</div>
   </div>;
 }
