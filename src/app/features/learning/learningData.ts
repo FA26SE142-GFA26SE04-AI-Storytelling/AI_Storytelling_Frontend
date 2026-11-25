@@ -78,12 +78,14 @@ export function useReadingFeedback(
   page: number,
   pageSize: number,
   filter: ReadingFeedbackFilter = { status: "Completed", range: "all" },
+  enabled = true,
 ): Paged<PagedReadingFeedback> & { loading: boolean } {
   const [data, setData] = useState<PagedReadingFeedback | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [tick, setTick] = useState(0);
   useEffect(() => {
+    if (!enabled) return;
     const controller = new AbortController();
     setLoading(true);
     const { from, to } = rangeToUtc(filter.range);
@@ -94,7 +96,7 @@ export function useReadingFeedback(
       setError(r.success ? "" : r.message);
     });
     return () => controller.abort();
-  }, [childId, page, pageSize, filter.status, filter.range, tick]);
+  }, [childId, page, pageSize, filter.status, filter.range, enabled, tick]);
   return { data, error, loading, reload: useCallback(() => setTick((t) => t + 1), []) };
 }
 
@@ -117,11 +119,12 @@ export function useReadingOverview(childId: number, range: ReadingFeedbackFilter
 }
 
 /** Phần bé kể lại cuối truyện (GET /ParentStorySummary). */
-export function useStorySummaries(childId: number, page: number, pageSize: number): Paged<PagedParentSummaries> {
+export function useStorySummaries(childId: number, page: number, pageSize: number, enabled = true): Paged<PagedParentSummaries> {
   const [data, setData] = useState<PagedParentSummaries | null>(null);
   const [error, setError] = useState("");
   const [tick, setTick] = useState(0);
   useEffect(() => {
+    if (!enabled) return;
     const controller = new AbortController();
     void parentStorySummaryService.list(childId, page, pageSize, controller.signal).then((r) => {
       if (controller.signal.aborted) return;
@@ -129,17 +132,18 @@ export function useStorySummaries(childId: number, page: number, pageSize: numbe
       setError(r.success ? "" : r.message);
     });
     return () => controller.abort();
-  }, [childId, page, pageSize, tick]);
+  }, [childId, page, pageSize, enabled, tick]);
   return { data, error, reload: useCallback(() => setTick((t) => t + 1), []) };
 }
 
 /** data: điều ước đang chờ bố mẹ xử lý; making: điều ước bố mẹ đã chọn "Tạo truyện mới" và truyện đang được tạo. */
-export function usePendingWishes(childId: number): Paged<ParentWishDto[]> & { making: ParentWishDto[] } {
+export function usePendingWishes(childId: number, enabled = true): Paged<ParentWishDto[]> & { making: ParentWishDto[] } {
   const [data, setData] = useState<ParentWishDto[] | null>(null);
   const [making, setMaking] = useState<ParentWishDto[]>([]);
   const [error, setError] = useState("");
   const [tick, setTick] = useState(0);
   useEffect(() => {
+    if (!enabled) return;
     const controller = new AbortController();
     void parentWishService.list(childId, controller.signal).then((r) => {
       if (controller.signal.aborted) return;
@@ -148,6 +152,6 @@ export function usePendingWishes(childId: number): Paged<ParentWishDto[]> & { ma
       setError(r.success ? "" : r.message);
     });
     return () => controller.abort();
-  }, [childId, tick]);
+  }, [childId, enabled, tick]);
   return { data, making, error, reload: useCallback(() => setTick((t) => t + 1), []) };
 }

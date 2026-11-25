@@ -31,6 +31,8 @@ export type LibraryHeaderProps = {
   extraFilters?: LibraryExtraFilterProps;
   /** Thư viện Creator: chỉ có truyện cộng đồng, không có tab Lộ trình mẫu và nhóm lọc Nguồn/Trạng thái. */
   community?: boolean;
+  /** Có tab "Lộ trình mẫu" (cần quyền hồ sơ bé). */
+  roadmaps?: boolean;
   onBackToLearning: () => void;
   onDismissPickKid: () => void;
   onTabChange: (tab: "stories" | "roadmaps") => void;
@@ -64,6 +66,7 @@ export default function LibraryHeader({
   filterCount,
   extraFilters,
   community = false,
+  roadmaps = true,
   onBackToLearning,
   onDismissPickKid,
   onTabChange,
@@ -124,7 +127,7 @@ export default function LibraryHeader({
             <span>Truyện</span>
             {!storiesLoading && <span className="lib-switch-n lib-num">{storiesCount}</span>}
           </button>
-          <button
+          {roadmaps && <button
             type="button"
             role="tab"
             aria-selected={tab === "roadmaps"}
@@ -134,7 +137,7 @@ export default function LibraryHeader({
             <Route className="ic" aria-hidden="true" />
             <span>Lộ trình mẫu</span>
             {templatesCount !== null && <span className="lib-switch-n lib-num">{templatesCount}</span>}
-          </button>
+          </button>}
         </div>
       </header>}
 

@@ -7,6 +7,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { backToLearning, takeLibraryPick, type LibraryPick } from "@/app/features/learning/learningIntent";
 import { useRoadmapTemplates } from "@/app/features/roadmap/roadmapData";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import type * as B from "@/app/types/backendContracts";
 import type { RoadmapTemplate } from "@/app/types/progress";
 import { Shelf, ShelfRow } from "./LibraryCards";
@@ -24,7 +25,10 @@ export { Preview, type PreviewStory, Shelf, ShelfRow };
 export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go" | "onKid">) {
   const { user } = useAuth();
   const { children: kids } = useWorkspaceData();
-  const { stories, storiesLoading, error, retryStories } = useLibraryCatalog(user?.id);
+  const access = useAccessLookup();
+  const canCommunity = access("community.view").state !== "Hidden";
+  const canRoadmaps = access("child.profile.manage").state !== "Hidden";
+  const { stories, storiesLoading, error, retryStories } = useLibraryCatalog(user?.id, { community: canCommunity });
 
   const [libPick, setLibPick] = useState<LibraryPick | null>(null);
   useEffect(() => {
@@ -45,11 +49,12 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
     [go, pickKid],
   );
 
-  const [tab, setTab] = useState<"stories" | "roadmaps">("stories");
+  const [pickedTab, setTab] = useState<"stories" | "roadmaps">("stories");
+  const tab = canRoadmaps ? pickedTab : "stories";
   const [filterOpen, setFilterOpen] = useState(false);
   const closeFilter = useCallback(() => setFilterOpen(false), []);
 
-  const { templates, error: roadmapError, reload: reloadRoadmaps } = useRoadmapTemplates();
+  const { templates, error: roadmapError, reload: reloadRoadmaps } = useRoadmapTemplates(canRoadmaps);
   const [openedTpl, setOpenedTpl] = useState<B.RoadmapLibraryItemDto | null>(null);
   const [addingTpl, setAddingTpl] = useState<RoadmapTemplate | null>(null);
 
@@ -69,7 +74,7 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
     setSelected(storyId);
   }, []);
 
-  const discovery = useLibraryDiscovery({ stories, templates, kids, pickKid, tab });
+  const discovery = useLibraryDiscovery({ stories, templates, kids, pickKid, tab, community: canCommunity });
 
   const sel =
     stories.find((s) => s.id === selected) ??
@@ -104,6 +109,7 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
                 pickKid={pickKid}
                 pickStage={pickStage}
                 tab={tab}
+                roadmaps={canRoadmaps}
                 storiesCount={stories.length}
                 storiesLoading={storiesLoading}
                 templatesCount={templates !== null ? templates.length : null}

@@ -33,10 +33,12 @@ export type UseLibraryDiscoveryParams = {
   kids: ChildProfile[];
   pickKid: ChildProfile | null;
   tab: "stories" | "roadmaps";
+  /** false khi tài khoản không có quyền đọc thư viện cộng đồng. */
+  community?: boolean;
 };
 
 /** Trạng thái tìm kiếm, lọc, sắp xếp, đề xuất và bảng nổi bật cộng đồng cho Thư viện phụ huynh. */
-export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: UseLibraryDiscoveryParams) {
+export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab, community = true }: UseLibraryDiscoveryParams) {
   const [q, setQ] = useState("");
   const [status, setStatus] = useState("all");
   const [genreF, setGenreF] = useState("all");
@@ -95,7 +97,7 @@ export function useLibraryDiscovery({ stories, templates, kids, pickKid, tab }: 
   const focused = isFocusedCatalog(filterState);
   const results = useMemo(() => filterAndSortStories(sorted, filterState), [sorted, filterState]);
 
-  const { mostViewed, mostFavorited } = useCommunityStatShelves(tab === "stories" && !focused);
+  const { mostViewed, mostFavorited } = useCommunityStatShelves(community && tab === "stories" && !focused);
   const viewedCards = useMemo(
     () => mostViewed.map((s) => ({ ...toCard(s), creator: true, viewCount: s.viewCount, favoriteCount: s.favoriteCount })),
     [mostViewed],

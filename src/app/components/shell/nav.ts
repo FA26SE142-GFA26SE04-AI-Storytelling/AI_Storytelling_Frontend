@@ -16,22 +16,27 @@ export type WorkspaceEntry = {
   /** Tên và mô tả ngắn khi hiện trong menu xổ xuống. */
   menuLabel?: string;
   hint?: string;
+  /** Quyền cần để mở trang; thiếu thì ẩn khỏi menu. Trang không khai báo thì ai cũng mở được. */
+  needs?: string;
 };
 
 export const WORKSPACES: WorkspaceEntry[] = [
   { id: "library", label: "Thư viện truyện", short: "Thư viện", icon: BookOpen },
   // Hai cách tạo truyện là hai nút riêng, tên song song: Viết bằng AI (Studio) và Tự viết (Thủ công).
-  { id: "studio", label: "Viết truyện bằng AI", short: "Viết bằng AI", icon: WandSparkles, hint: "AI viết truyện từ ý tưởng của bạn, bạn duyệt từng bước" },
-  { id: "authoring", label: "Tự viết truyện", short: "Tự viết", icon: PencilLine, hint: "Bạn tự viết truyện (có thể tải tệp lên), tự kiểm tra rồi giao cho bé" },
-  { id: "created", label: "Truyện của tôi", icon: FolderOpen, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở" },
-  { id: "roadmap", label: "Học tập của bé", short: "Học tập", icon: GraduationCap },
+  { id: "studio", label: "Viết truyện bằng AI", short: "Viết bằng AI", icon: WandSparkles, hint: "AI viết truyện từ ý tưởng của bạn, bạn duyệt từng bước", needs: "parent.story.author" },
+  { id: "authoring", label: "Tự viết truyện", short: "Tự viết", icon: PencilLine, hint: "Bạn tự viết truyện (có thể tải tệp lên), tự kiểm tra rồi giao cho bé", needs: "parent.story.author" },
+  { id: "created", label: "Truyện của tôi", icon: FolderOpen, hint: "Mọi truyện bạn đã tạo, kể cả bản nháp đang soạn dở", needs: "parent.story.author" },
+  { id: "roadmap", label: "Học tập của bé", short: "Học tập", icon: GraduationCap, needs: "child.profile.manage" },
   // Mở từ menu avatar: nhóm của bé (ít dùng hằng ngày), rồi nhóm tài khoản.
-  { id: "children", label: "Hồ sơ bé", icon: Users, inMenu: "kids" },
+  { id: "children", label: "Hồ sơ bé", icon: Users, inMenu: "kids", needs: "child.profile.manage" },
   { id: "report", label: "Báo cáo", icon: ChartColumn, inMenu: "kids" },
   { id: "account", label: "Thông tin cá nhân", icon: UserRound, inMenu: "account" },
   { id: "account-payment", label: "Nâng cấp gói", icon: CreditCard, inMenu: "account" },
   { id: "account-activity", label: "Lịch sử hoạt động", icon: Activity, inMenu: "account" },
 ];
+
+/** Trang phụ huynh mở được với quyền đang có; chỉ để ẩn menu, API vẫn tự kiểm quyền. */
+export const visibleWorkspaces = (can: (permission: string) => boolean) => WORKSPACES.filter((w) => !w.needs || can(w.needs));
 
 /** Props chung mà mọi không gian làm việc nhận được từ page.tsx. */
 export type WorkspaceProps = {

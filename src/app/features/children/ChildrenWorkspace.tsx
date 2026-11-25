@@ -12,6 +12,7 @@ import { ageLabel } from "@/app/lib/storyView";
 import { useRiseIn } from "@/app/lib/motion";
 import CreateChildWizard from "./CreateChildWizard";
 import { clearChildIntent, markChildCreate, readChildDraft, wantsChildCreate } from "./childrenIntent";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import ProfileTab from "./ProfileTab";
 import LearningTab from "./LearningTab";
 import SafetyTab from "@/app/features/safety/SafetyWorkspace";
@@ -64,7 +65,11 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
   // Mở từ nút "+ Thêm bé" ở màn khác, hoặc tải lại trang khi đang ở form tạo hồ sơ, thì vào thẳng form.
   const [mode, setMode] = useState<"view" | "create">(() => (wantsChildCreate() || !kids.length ? "create" : "view"));
   useEffect(() => { if (mode === "create") markChildCreate(); else clearChildIntent(); }, [mode]);
-  const [tab, setTab] = useState<Tab>("profile");
+  const [pickedTab, setTab] = useState<Tab>("profile");
+  // API chính sách an toàn của bé dùng quyền tạo truyện.
+  const canSafety = useAccessLookup()("parent.story.author").state !== "Hidden";
+  const tabs = TABS.filter((t) => canSafety || t.id !== "safety");
+  const tab = tabs.some((t) => t.id === pickedTab) ? pickedTab : "profile";
   const listRef = useRiseIn<HTMLDivElement>(".kid-item", [kids.length]);
   const meId = user?.id ?? -1;
   // Bé chọn ở đây chỉ để xem và sửa trong trang Hồ sơ bé, không đổi bé của các trang khác.
@@ -173,8 +178,8 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
         )}
         {mode === "view" && child && (
           <>
-            <div className="tabs children-tabs" style={{ "--i": Math.max(0, TABS.findIndex((x) => x.id === tab)), "--n": TABS.length } as React.CSSProperties}>
-              {TABS.map((t) => <button key={t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>{t.label}</button>)}
+            <div className="tabs children-tabs" style={{ "--i": Math.max(0, tabs.findIndex((x) => x.id === tab)), "--n": tabs.length } as React.CSSProperties}>
+              {tabs.map((t) => <button key={t.id} className={tab === t.id ? "on" : ""} onClick={() => setTab(t.id)}>{t.label}</button>)}
             </div>
             <div className="pb children-body">
               <div key={`${tab}:${child.id}`} className="tab-pane">

@@ -27,8 +27,8 @@ const NAV = [
   { id: "s-mode", label: "Chế độ duyệt", icon: Inbox },
   { id: "s-topic", label: "Chủ đề", icon: ShieldCheck },
   { id: "s-limit", label: "Giới hạn và quyền", icon: Clock },
-  { id: "s-feature", label: "Tính năng cho bé", icon: Sparkles },
   { id: "s-hold", label: "Mức đọc hiểu", icon: Target },
+  { id: "s-feature", label: "Tính năng cho bé", icon: Sparkles },
   { id: "s-consent", label: "Đồng ý của phụ huynh", icon: FileCheck },
 ];
 /** Điều khoản (e): Backend bắt Owner đồng ý khi bật giọng nói lần đầu. */
@@ -293,30 +293,70 @@ export default function SafetyWorkspace({ child }: { child: ChildProfile | null 
             <section id="s-limit">
               <h2 className="display">Giới hạn và quyền</h2>
               <div className="field" style={{ margin: "10px 0 2px" }}>
-                <span className="lbl row" style={{ justifyContent: "space-between" }}>Độ dài tối đa của truyện <b style={{ color: "var(--text)" }}>{len.toLocaleString("vi-VN")} tiếng</b></span>
-                <input type="range" className="range" disabled={!canEdit} min={200} max={5000} step={100} value={len} onChange={(e) => setLen(+e.target.value)} aria-label="Độ dài tối đa" />
+                <span className="lbl row" style={{ justifyContent: "space-between" }}>
+                  <span>Độ dài tối đa của truyện</span>
+                  <b className="th-val-pill">{len.toLocaleString("vi-VN")} từ</b>
+                </span>
+                <input
+                  type="range"
+                  className="range th-range"
+                  disabled={!canEdit}
+                  min={200}
+                  max={5000}
+                  step={100}
+                  value={len}
+                  style={{ "--pct": `${((len - 200) / (5000 - 200)) * 100}%` } as React.CSSProperties}
+                  onChange={(e) => setLen(+e.target.value)}
+                  aria-label="Độ dài tối đa"
+                />
+                <span className="th-range-bounds" aria-hidden>
+                  <small>200 từ</small>
+                  <small>5.000 từ</small>
+                </span>
               </div>
               <Toggle strong on={gate} disabled={!canEdit} onChange={setGate} label="Hỏi mật khẩu khi bé thoát chế độ của bé" hint="Cổng xác nhận người lớn: bé muốn thoát ra phải nhập mật khẩu của bạn" />
             </section>
 
-            <section id="s-feature">
-              <h2 className="display">Tính năng cho bé</h2>
-              <Toggle on={wishes} disabled={!canEdit} onChange={setWishes} label="Bé ước một câu chuyện" hint="Bé chọn thẻ hình để gửi điều ước, bạn xem và quyết định" />
-              <Toggle on={interactive} disabled={!canEdit} onChange={setInteractive} label="Tương tác khi nghe truyện" hint="Trong lúc nghe, bé đoán tranh, điền chữ, sắp xếp sự kiện… để hiểu truyện hơn" />
-              <Toggle on={voice} disabled={!canEdit} onChange={(v) => { if (v && isOwner && !policy?.voiceConsentAt && !voiceAccepted) { setVoiceTick(false); setAskVoice(true); } else setVoice(v); }}
-                label="Cho bé trả lời bằng giọng nói" hint="Giọng bé đọc to, kể lại, gửi lời được lưu để bạn nghe lại" />
-              {CHILD_FEATURE_TOGGLES.map((t) => (
-                <Toggle key={t.field} on={features[t.field]} disabled={!canEdit} label={t.label}
-                  hint={!features[t.field] && t.warning ? t.warning : t.hint}
-                  onChange={(v) => setFeatures((f) => ({ ...f, [t.field]: v }))} />
-              ))}
-            </section>
-
             <section id="s-hold">
               <h2 className="display">Mức đọc hiểu mục tiêu</h2>
-              <div className="field">
-                <span className="lbl row" style={{ justifyContent: "space-between" }}>Tỉ lệ bé cần hiểu đúng <b style={{ color: "var(--text)" }}>{threshold}%</b></span>
-                <input type="range" className="range" disabled={!canEdit} min={50} max={90} step={5} value={threshold} onChange={(e) => setThreshold(+e.target.value)} aria-label="Mức đọc hiểu mục tiêu" title="AI dựa vào mức này để chọn độ khó cho câu hỏi" />
+              <p className="sub">AI dựa vào mức này để chọn độ khó cho câu hỏi đọc hiểu sau mỗi truyện.</p>
+              <div className="field" style={{ marginTop: 12 }}>
+                <span className="lbl row" style={{ justifyContent: "space-between" }}>
+                  <span>Tỉ lệ bé cần hiểu đúng</span>
+                  <b className="th-val-pill">{threshold}%</b>
+                </span>
+                <input
+                  type="range"
+                  className="range th-range"
+                  disabled={!canEdit}
+                  min={50}
+                  max={90}
+                  step={5}
+                  value={threshold}
+                  style={{ "--pct": `${((threshold - 50) / (90 - 50)) * 100}%` } as React.CSSProperties}
+                  onChange={(e) => setThreshold(+e.target.value)}
+                  aria-label="Mức đọc hiểu mục tiêu"
+                  title="AI dựa vào mức này để chọn độ khó cho câu hỏi"
+                />
+                <span className="th-range-bounds" aria-hidden>
+                  <small>50%</small>
+                  <small>90%</small>
+                </span>
+              </div>
+            </section>
+
+            <section id="s-feature">
+              <h2 className="display">Tính năng cho bé</h2>
+              <div className="safety-feature-grid">
+                <Toggle on={wishes} disabled={!canEdit} onChange={setWishes} label="Bé ước một câu chuyện" hint="Bé chọn thẻ hình để gửi điều ước, bạn xem và quyết định" />
+                <Toggle on={interactive} disabled={!canEdit} onChange={setInteractive} label="Tương tác khi nghe truyện" hint="Trong lúc nghe, bé đoán tranh, điền chữ, sắp xếp sự kiện… để hiểu truyện hơn" />
+                <Toggle on={voice} disabled={!canEdit} onChange={(v) => { if (v && isOwner && !policy?.voiceConsentAt && !voiceAccepted) { setVoiceTick(false); setAskVoice(true); } else setVoice(v); }}
+                  label="Cho bé trả lời bằng giọng nói" hint="Giọng bé đọc to, kể lại, gửi lời được lưu để bạn nghe lại" />
+                {CHILD_FEATURE_TOGGLES.map((t) => (
+                  <Toggle key={t.field} on={features[t.field]} disabled={!canEdit} label={t.label}
+                    hint={!features[t.field] && t.warning ? t.warning : t.hint}
+                    onChange={(v) => setFeatures((f) => ({ ...f, [t.field]: v }))} />
+                ))}
               </div>
             </section>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import PasswordInput from "@/app/components/PasswordInput";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import { useState, type FormEvent } from "react";
 import { Mail, Save, X } from "lucide-react";
 import { showToast } from "@/app/lib/toast";
@@ -21,7 +22,8 @@ export default function ProfileSection() {
   const [eNote, setENote] = useState<Note>(null);
   const [emailOpen, setEmailOpen] = useState(false);
   const closeEmail = () => { setEmailOpen(false); setEmail({ password: "", next: "", otp: "", sent: false }); setENote(null); };
-  const isParent = user?.role === "User";
+  const canSelf = useAccessLookup()("account.self.manage").state !== "Hidden";
+  const isParent = user?.role === "User" && canSelf;
   const dirty = fullName.trim() !== (user?.fullName ?? "") || avatarUrl.trim() !== (user?.avatarUrl ?? "");
 
   const saveProfile = async (e: FormEvent) => {

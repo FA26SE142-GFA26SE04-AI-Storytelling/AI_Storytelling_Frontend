@@ -5,6 +5,7 @@ import Frog from "@/app/components/brand/Frog";
 import { fmtDate } from "@/app/lib/guardian";
 import type { ChildProfile } from "@/app/types/childProfile";
 import type { RoadmapItem } from "@/app/types/progress";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import { useStoryCovers } from "@/app/features/roadmap/roadmapData";
 import { shortDate, splitRoadmap, useReadingFeedback, useStorySummaries } from "./learningData";
 import { feelingPill, quizPill } from "./resultPills";
@@ -18,8 +19,9 @@ export default function OverviewTab({ child, items, wishCount, onTab }: {
   onTab: (t: LearningTabId) => void;
 }) {
   const { done, open, opens, queued, total } = splitRoadmap(items);
-  const feedback = useReadingFeedback(child.id, 1, 3);
-  const summaries = useStorySummaries(child.id, 1, 1);
+  const canFeedback = useAccessLookup()("parent.feedback.manage").state !== "Hidden";
+  const feedback = useReadingFeedback(child.id, 1, 3, undefined, canFeedback);
+  const summaries = useStorySummaries(child.id, 1, 1, canFeedback);
   const next = queued.slice(0, 3);
   const cover = useStoryCovers([...(open ? [open] : []), ...next].map((i) => i.storyId));
   const percent = total ? Math.round((done.length / total) * 100) : 0;
@@ -34,7 +36,7 @@ export default function OverviewTab({ child, items, wishCount, onTab }: {
   return (
     <>
       <div className="lr-tiles">
-        {tiles.map((t) => (
+        {tiles.filter((t) => canFeedback || t.id === "roadmap").map((t) => (
           <button key={t.label} className={`lr-tile${t.alert ? " alert" : ""}`} onClick={() => onTab(t.id)}>
             <t.icon className="ic" aria-hidden />
             <b className="display">{t.value}</b>
@@ -83,7 +85,7 @@ export default function OverviewTab({ child, items, wishCount, onTab }: {
         )}
       </section>
 
-      <section className="lr-card">
+      {canFeedback && <section className="lr-card">
         <div className="lr-card-h">
           <h3 className="display">Mới đọc xong</h3>
           {!!feedback.data?.items.length && <button className="btn btn-g" onClick={() => onTab("results")}>Xem tất cả<ChevronRight className="ic" /></button>}
@@ -104,7 +106,7 @@ export default function OverviewTab({ child, items, wishCount, onTab }: {
               ))}
             </ul>
           )}
-      </section>
+      </section>}
     </>
   );
 }

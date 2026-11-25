@@ -1,4 +1,4 @@
-import type { ContentCategory, ReadingMode } from "@/app/types/childProfile";
+import type { ContentCategory, ContentCategoryGroup, ReadingMode } from "@/app/types/childProfile";
 
 /** Hằng số và quy tắc dùng chung cho Luồng 1 (khu quản lý của phụ huynh). */
 
@@ -131,6 +131,26 @@ export function presetBlocked(categories: ContentCategory[], ageBand: string): n
     const text = `${c.code} ${c.displayName}`;
     return SENSITIVE.test(text) || HORROR.test(text) || (ageBand === "Age_6_8" && MILD_FEAR.test(text));
   }).map((c) => c.id);
+}
+
+/** Nhóm danh mục nội dung (cột `group` backend trả về), theo thứ tự hiển thị. Nhãn trùng với màn quản lý danh mục của Moderator. */
+export const CATEGORY_GROUPS: { id: ContentCategoryGroup; label: string }[] = [
+  { id: "Genre", label: "Thể loại" },
+  { id: "LifeValue", label: "Giá trị và kỹ năng sống" },
+  { id: "Learning", label: "Học tập" },
+  { id: "SafetyWarning", label: "Cảnh báo an toàn" },
+];
+
+export type CategoryGroupId = ContentCategoryGroup | "Other";
+
+/** Chia danh mục theo nhóm, giữ thứ tự trong từng nhóm. Danh mục thiếu hoặc lạ nhóm vào "Khác" ở cuối; nhóm rỗng bị bỏ. */
+export function groupCategories<T extends { group?: string }>(cats: T[]): { id: CategoryGroupId; label: string; items: T[] }[] {
+  const known = new Set<string>(CATEGORY_GROUPS.map((g) => g.id));
+  const sections: { id: CategoryGroupId; label: string; items: T[] }[] = [
+    ...CATEGORY_GROUPS.map((g) => ({ ...g, items: cats.filter((c) => c.group === g.id) })),
+    { id: "Other", label: "Khác", items: cats.filter((c) => !c.group || !known.has(c.group)) },
+  ];
+  return sections.filter((s) => s.items.length > 0);
 }
 
 /** Bước 1.1 — mật khẩu ≥ 8 ký tự, có ít nhất 1 chữ và 1 số. */

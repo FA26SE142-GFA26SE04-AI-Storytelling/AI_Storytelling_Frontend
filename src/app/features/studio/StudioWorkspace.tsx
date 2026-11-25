@@ -12,6 +12,7 @@ import type { WorkspaceId, WorkspaceProps } from "@/app/components/shell/nav";
 import { workspaceLocation } from '@/app/lib/workspaceLocation';
 import StudioPlan from "./StudioPlan";
 import StudioMedia from "./StudioMedia";
+import { useAccessLookup } from "@/app/features/staff/staffAccess";
 import ReviewGate from "@/app/features/review/ReviewGate";
 import StudioSteps from "./StudioSteps";
 import StudioControls from "./StudioControls";
@@ -50,6 +51,7 @@ type PipelineProps = {
 function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onNew, onChangeKid, go, resumeStoryId, onOpenStory }: PipelineProps) {
   const { children: kids, reload } = useWorkspaceData();
   const child = kids.find((k) => k.id === childId) ?? null;
+  const canMedia = useAccessLookup()("media.generate").state !== "Hidden";
   const [approved, setApproved] = useState(false);
   // Nút duyệt nằm trên thanh tiến trình; màn duyệt truyện đăng ký hành động duyệt của nó vào đây.
   const [approve, setApprove] = useState<ApproveAction | null>(null);
@@ -57,7 +59,7 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
   useEffect(() => {
     if (p.storyId) window.history.replaceState(null,'',workspaceLocation(window.location.href,'studio',p.storyId));
   }, [p.storyId]);
-  const media = useMediaProgress(p.stage === "media" ? p.storyId : null);
+  const media = useMediaProgress(canMedia && p.stage === "media" ? p.storyId : null);
   const capacityState = useAiGenerationCapacity(true, `${p.stage}:${p.storyId ?? "new"}:${p.flow.concurrencyLimitReached}`);
   const section = sectionOf(p.stage, p.storyId);
   // Chỉ phần thân (các khung mới vào) hiện dần khi đổi bố cục; thanh tiến trình đứng yên nên không nháy.
