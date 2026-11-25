@@ -1,13 +1,14 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { ChevronRight, PencilLine, RefreshCw, Route, Sparkles, WandSparkles, X } from "lucide-react";
 import Frog from "@/app/components/brand/Frog";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useRiseIn } from "@/app/lib/motion";
 import type { StoryCard } from "@/app/lib/storyView";
 import { LibraryBookCard, LibrarySkeletonGrid, ShelfRow } from "./LibraryCards";
-import { jumpToSection, LibraryGenreTiles } from "./LibraryDiscoveryHighlights";
-import LibraryQuickTopics, { type LibraryTopicAudience } from "./LibraryQuickTopics";
+import { jumpToSection, LibraryFeaturedStory, LibraryGenreTiles } from "./LibraryDiscoveryHighlights";
+import { LibraryTopAuthors, type LibraryExtraFilterProps } from "./LibraryExtraFilters";
 import LibrarySpotlightSection from "./LibrarySpotlightSection";
 import LibraryStoriesFilterBar, { type ActiveFilterChip } from "./LibraryStoriesFilterBar";
 import { rankForStory, statusOf, type AgeFilterOption, type LibrarySort } from "./libraryFilters";
@@ -27,20 +28,22 @@ export type LibraryStoriesViewProps = {
   ageOptions?: AgeFilterOption[];
   topicEntries: [string, number][];
   activeChips: ActiveFilterChip[];
-  viewedCards: StoryCard[];
   favoritedCards: StoryCard[];
   activeSpotlight: "views" | "favorites";
   spotlightCards: StoryCard[];
   recommended: StoryCard[];
   showRecommended: boolean;
   pickKidName: string | null;
-  topicAudience?: LibraryTopicAudience;
+  /** "Tác giả nổi bật" cạnh Truyện nổi bật; bấm tên để lọc theo tác giả. */
+  authors: Pick<LibraryExtraFilterProps, "authors" | "author" | "onAuthor">;
   matchingRoadmapsCount: number;
-  go: WorkspaceProps["go"];
+  /** Bỏ trống khi có `emptyState` (chỉ dùng cho nút tạo truyện ở trạng thái trống mặc định của phụ huynh). */
+  go?: WorkspaceProps["go"];
+  /** Trạng thái thư viện trống riêng (Thư viện Creator); không truyền thì dùng lời mời tạo truyện của phụ huynh. */
+  emptyState?: ReactNode;
   onGenreChange: (genre: string) => void;
   onAgeChange?: (age: string) => void;
   onSortChange: (sort: LibrarySort) => void;
-  onSpotlightChange: (tab: "views" | "favorites") => void;
   onClearFilters: () => void;
   onRetry: () => void;
   onPickStory: (storyId: number, button: HTMLButtonElement) => void;
@@ -61,20 +64,19 @@ export default function LibraryStoriesView({
   ageOptions,
   topicEntries,
   activeChips,
-  viewedCards,
   favoritedCards,
   activeSpotlight,
   spotlightCards,
   recommended,
   showRecommended,
   pickKidName,
-  topicAudience,
+  authors,
   matchingRoadmapsCount,
   go,
+  emptyState,
   onGenreChange,
   onAgeChange,
   onSortChange,
-  onSpotlightChange,
   onClearFilters,
   onRetry,
   onPickStory,
@@ -128,14 +130,11 @@ export default function LibraryStoriesView({
         </div>
       )}
 
-      {!focused && topicAudience && (
-        <LibraryQuickTopics
-          featured={featured}
-          stories={newest}
-          hasSpotlight={effectiveSpotlightCards.length > 0 && stories.length > 0}
-          audience={topicAudience}
-          onPickStory={onPickStory}
-        />
+      {!focused && (featured || authors.authors.length > 0) && (
+        <div className="lib-discovery-hero">
+          {featured && <LibraryFeaturedStory story={featured} onPickStory={onPickStory} />}
+          <LibraryTopAuthors {...authors} />
+        </div>
       )}
 
       {storiesLoading && stories.length === 0 ? (
@@ -151,16 +150,16 @@ export default function LibraryStoriesView({
           </button>
         </div>
       ) : stories.length === 0 ? (
-        <div className="lib-empty-panel">
+        emptyState ?? <div className="lib-empty-panel">
           <Frog size={96} mood="idle" />
           <h3 className="display">Thư viện chưa có truyện nào</h3>
           <p>Bắt đầu tạo truyện mới bằng AI hoặc tự viết câu chuyện riêng cho gia đình bạn.</p>
           <div className="row lib-empty-actions">
-            <button type="button" className="btn btn-gold" onClick={() => go("studio")}>
+            <button type="button" className="btn btn-gold" onClick={() => go?.("studio")}>
               <WandSparkles className="ic" aria-hidden="true" />
               Dùng AI tạo truyện
             </button>
-            <button type="button" className="btn btn-s" onClick={() => go("authoring")}>
+            <button type="button" className="btn btn-s" onClick={() => go?.("authoring")}>
               <PencilLine className="ic" aria-hidden="true" />
               Viết thủ công
             </button>
@@ -212,11 +211,8 @@ export default function LibraryStoriesView({
       ) : (
         <>
           <LibrarySpotlightSection
-            viewedCards={viewedCards}
-            favoritedCards={favoritedCards}
             activeSpotlight={effectiveSpotlightTab}
             spotlightCards={effectiveSpotlightCards}
-            onSpotlightChange={onSpotlightChange}
             onSortChange={onSortChange}
             onPickStory={onPickStory}
           />

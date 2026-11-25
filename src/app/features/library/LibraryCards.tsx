@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, ListChecks } from "lucide-react";
 import { StoryStatsBadge } from "@/app/components/StoryStatsBadge";
 import { useRiseIn } from "@/app/lib/motion";
 import type { StoryCard } from "@/app/lib/storyView";
@@ -116,7 +116,8 @@ export function LibraryBookCard({
   const showNew = ready && rank === undefined && isNewStory(story);
   const hasLeftBadge = !ready || rank !== undefined || showNew;
   const hasStats = story.viewCount !== undefined || story.favoriteCount !== undefined;
-  const sourceLabel = SOURCE_LABEL[sourceOf(story)];
+  // Tên tác giả từ API; truyện không có tên (truyện gia đình) thì hiện nguồn truyện.
+  const author = story.raw.authorName?.trim() || SOURCE_LABEL[sourceOf(story)];
 
   return (
     <button
@@ -150,18 +151,23 @@ export function LibraryBookCard({
             ·
           </span>
           <span className="lib-card-age">{canonicalAgeLabel(story.ageBand)}</span>
+          {story.raw.hasQuiz === true && (
+            <span className="lib-card-quiz" title="Có câu đố sau khi đọc" aria-label="Có câu đố">
+              <ListChecks aria-hidden="true" />
+            </span>
+          )}
         </span>
         {compact && story.raw.description?.trim() && <span className="lib-card-synopsis">{story.raw.description}</span>}
         {compact && hasStats ? (
           <StoryStatsBadge viewCount={story.viewCount} favoriteCount={story.favoriteCount} />
         ) : <span className="lib-card-foot">
-          <span>{sourceLabel}</span>
+          <span className="lib-card-author" title={author}>{author}</span>
           {story.words > 0 && (
             <>
               <span className="lib-card-dot" aria-hidden="true">
                 ·
               </span>
-              <span className="lib-num">{story.words.toLocaleString("vi-VN")} tiếng</span>
+              <span className="lib-num lib-card-words">{story.words.toLocaleString("vi-VN")} chữ</span>
             </>
           )}
         </span>}

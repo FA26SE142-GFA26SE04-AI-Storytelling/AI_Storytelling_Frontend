@@ -5,7 +5,7 @@ import { moderationService as service } from '@/app/services/moderationService';
 import { useAuth } from '@/app/context/AuthContext';
 import Frog from '@/app/components/brand/Frog';
 import Select from '@/app/components/Select';
-import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Eye, Flag, PenLine, RefreshCw, Send, Shapes, SlidersHorizontal, Tag, Users } from 'lucide-react';
+import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Eye, Flag, PenLine, RefreshCw, Send, Shapes, Tag, Users } from 'lucide-react';
 import Dialog from '@/app/components/Dialog';
 import IconButton from '@/app/components/IconButton';
 import { showToast } from '@/app/lib/toast';
@@ -15,10 +15,12 @@ import { staffService } from '@/app/services/staffService';
 import type { ContentCategory } from '@/app/types/childProfile';
 import { loadAllPages } from '@/app/features/library/useLibraryCatalog';
 import { FilterGroup } from '@/app/features/library/LibraryExtraFilters';
+import { FilterSidebarShell } from '@/app/features/library/LibraryFilterSidebar';
 import '@/app/styles/features/library/library.css';
 import '@/app/styles/features/created/created.css';
 import { Page } from './ui';
 import StoryWishCards from './StoryWishCards';
+import { useAccess } from './staffAccess';
 import LearningMaterials from './LearningMaterials';
 import ReviewPicture, { ZoomLightbox } from './ReviewPicture';
 
@@ -215,7 +217,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
     if (r.success && r.data) {
       setReportOpen(false);
       setCreatedReportId(r.data.reportId);
-      const nextLabel = user?.role === 'Administrator' ? 'Hàng đợi quản trị' : 'Báo cáo nội dung';
+      const nextLabel = user?.role === 'Administrator' ? 'Hàng đợi dự phòng' : 'Báo cáo nội dung';
       showToast(`Đã tạo báo cáo #${r.data.reportId}. Mở ${nextLabel} để nhận xử lý.`, 'ok');
     } else {
       handleUnavailable(r.status, r.message);
@@ -224,6 +226,8 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
 
   const inDetail = !!story || !!roadmap;
   const isModerator = user?.role === 'Moderator';
+  const canReport = useAccess('moderation.published.review').state !== 'Hidden';
+  const canSeeWishCards = useAccess('wishcard.manage').state !== 'Hidden';
   const SOURCES = isModerator
     ? ([{ id: 'PublicLibrary', label: 'Truyện nhà sáng tạo đang công khai' }] as const)
     : ([
@@ -354,11 +358,11 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
                   </details>
                 </div>
 
-                {(user?.role === 'Moderator' || user?.role === 'Administrator') && (
+                {canSeeWishCards && (
                   <StoryWishCards key={story.story.storyId} storyId={story.story.storyId} versionId={story.version?.versionId} />
                 )}
 
-                {user?.role === 'Moderator' && (
+                {canReport && isModerator && (
                   <div className="st-group">
                     <b className="st-group-title">Báo cáo nội dung</b>
                     <div className="row">
@@ -403,15 +407,10 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
         </>
       ) : (
         <div className="lib-community-layout st-pub-layout">
-          <aside className="lib-sidebar" aria-label="Bộ lọc thư viện">
-            <div className="lib-sidebar-art" aria-hidden="true">
-              <Frog size={74} mood="happy" animated={false} />
-            </div>
-            <div className="lib-sidebar-inner">
-              <div className="lib-sidebar-head">
-                <h3 className="display"><SlidersHorizontal className="ic" aria-hidden="true" />Bộ lọc</h3>
-                <button type="button" className="lib-reset-btn" onClick={clearFilters}>Xóa tất cả</button>
-              </div>
+          <FilterSidebarShell
+            active={[ageBand, categoryId, days, label, author].filter(v => v !== 'all').length}
+            onClear={clearFilters}
+          >
               <div className="st-filter-nocount">
                 <FilterGroup title="Độ tuổi" icon={Users} options={AGE_OPTIONS} value={ageBand} onChange={pick(setAgeBand)} />
                 <FilterGroup title="Danh mục" icon={Shapes} options={categories.map(c => ({ key: String(c.id), label: c.displayName, count: 1 }))} value={categoryId} onChange={pick(setCategoryId)} limit={6} />
@@ -419,8 +418,7 @@ export default function PublishedReviewWorkspace({ go }: { go?: (pageId: string)
               </div>
               <FilterGroup title="Nhãn" icon={Tag} options={labelOptions} value={label} onChange={pick(setLabel)} limit={6} />
               <FilterGroup title="Tác giả" icon={PenLine} options={authorOptions} value={author} onChange={pick(setAuthor)} limit={6} />
-            </div>
-          </aside>
+          </FilterSidebarShell>
 
           <div className="created lib-community-main">
             <div className="created-bar">

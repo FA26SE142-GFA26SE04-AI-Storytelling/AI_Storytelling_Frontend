@@ -543,8 +543,9 @@ button.st-pic { text-align: left; font: inherit; cursor: zoom-in; }
 @keyframes st-pub-pop { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .st-pub-cover { animation: none; } }
 @media (max-width: 960px) {
-  .st-pub-layout .lib-sidebar { display: block; position: static; max-height: none; }
-  .st-pub-layout .lib-sidebar-art { display: none; }
+  /* Rà soát thư viện (Moderator) không có nút "Bộ lọc" trên thanh tìm kiếm: giữ dải lọc thành một hàng trên đầu. */
+  .st-pub-layout .lib-side-rail-wrap { display: block; }
+  .st-pub-layout .lib-sidebar.collapsed { flex-direction: row; justify-content: flex-start; padding: 6px 10px; }
 }
 
 /* Nhóm nút lọc ngắn: chữ trong nút không xuống dòng. */

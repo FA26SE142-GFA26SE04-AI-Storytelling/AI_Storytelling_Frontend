@@ -9,6 +9,7 @@ import { useAuth } from '@/app/context/AuthContext';
 import { moderationService } from '@/app/services/moderationService';
 import { roadmapTemplateService } from '@/app/services/roadmapTemplateService';
 import type * as B from '@/app/types/backendContracts';
+import { useAccess } from './staffAccess';
 import { Page, fmt } from './ui';
 
 const AGE_LABELS: Record<string, string> = { '6-8': '6–8 tuổi', '9-10': '9–10 tuổi' };
@@ -22,7 +23,7 @@ export default function RoadmapPublishedView({
   onCloneToDraft?: (roadmapId: number) => void;
 }) {
   const { user } = useAuth();
-  const isModerator = user?.role === 'Moderator';
+  const canAuthor = useAccess('template.roadmap.author').state === 'Allowed';
   const [ageBand, setAgeBand] = useState('');
   const [pages, setPages] = useState({ published: 1, archived: 1 });
   const page = pages[mode];
@@ -238,7 +239,7 @@ export default function RoadmapPublishedView({
                 ))}
               </div>
             </div>
-            {isModerator && (
+            {canAuthor && (
               <div className="row st-wrap">
                 <button type="button" className="btn btn-s" disabled={busy} onClick={() => void cloneRoadmap(pubDetail.roadmapId)}>
                   <Copy className="ic" />Nhân bản để sửa

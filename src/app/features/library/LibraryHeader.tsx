@@ -1,14 +1,13 @@
 "use client";
 
 import { ArrowLeft, BookOpen, Route, Search, X } from "lucide-react";
-import Select from "@/app/components/Select";
 import Lotus from "@/app/components/brand/Lotus";
 import { avatarOf } from "@/app/lib/guardian";
 import type { StoryCard } from "@/app/lib/storyView";
 import type { ChildProfile } from "@/app/types/childProfile";
 import LibraryFilterPopover from "./LibraryFilterPopover";
 import type { LibraryExtraFilterProps } from "./LibraryExtraFilters";
-import { SORT_OPTIONS, type AgeFilterOption, type LibrarySort } from "./libraryFilters";
+import type { AgeFilterOption } from "./libraryFilters";
 
 export type LibraryHeaderProps = {
   pickKid: ChildProfile | null;
@@ -19,7 +18,6 @@ export type LibraryHeaderProps = {
   templatesCount: number | null;
   query: string;
   roadmapQuery: string;
-  sort: LibrarySort;
   filterOpen: boolean;
   stories: StoryCard[];
   ageOptions: AgeFilterOption[];
@@ -28,12 +26,13 @@ export type LibraryHeaderProps = {
   source: string;
   popoverCount: number;
   extraFilters?: LibraryExtraFilterProps;
+  /** Thư viện Creator: chỉ có truyện cộng đồng, không có tab Lộ trình mẫu và nhóm lọc Nguồn/Trạng thái. */
+  community?: boolean;
   onBackToLearning: () => void;
   onDismissPickKid: () => void;
   onTabChange: (tab: "stories" | "roadmaps") => void;
   onQueryChange: (value: string) => void;
   onRoadmapQueryChange: (value: string) => void;
-  onSortChange: (value: LibrarySort) => void;
   onToggleFilter: () => void;
   onCloseFilter: () => void;
   onStatusChange: (value: string) => void;
@@ -52,7 +51,6 @@ export default function LibraryHeader({
   templatesCount,
   query,
   roadmapQuery,
-  sort,
   filterOpen,
   stories,
   ageOptions,
@@ -61,12 +59,12 @@ export default function LibraryHeader({
   source,
   popoverCount,
   extraFilters,
+  community = false,
   onBackToLearning,
   onDismissPickKid,
   onTabChange,
   onQueryChange,
   onRoadmapQueryChange,
-  onSortChange,
   onToggleFilter,
   onCloseFilter,
   onStatusChange,
@@ -103,7 +101,7 @@ export default function LibraryHeader({
         </div>
       )}
 
-      <header className="lib-head">
+      {!community && <header className="lib-head">
         {tab === "stories" && (
           <div className="lib-header-pond" aria-hidden="true">
             <Lotus className="lib-pond-lotus-small" size={54} />
@@ -134,7 +132,7 @@ export default function LibraryHeader({
             {templatesCount !== null && <span className="lib-switch-n lib-num">{templatesCount}</span>}
           </button>
         </div>
-      </header>
+      </header>}
 
       <div className="lib-toolbar">
         <div className="lib-search">
@@ -161,17 +159,6 @@ export default function LibraryHeader({
 
         {tab === "stories" && (
           <div className="lib-toolbar-actions">
-            <div className="lib-sort">
-              <span className="lib-sort-lbl">Sắp xếp</span>
-              <Select<LibrarySort>
-                className="lib-sort-sel"
-                ariaLabel="Sắp xếp truyện"
-                value={sort}
-                options={SORT_OPTIONS}
-                onChange={onSortChange}
-                portal
-              />
-            </div>
             <LibraryFilterPopover
               open={filterOpen}
               onToggle={onToggleFilter}
@@ -183,6 +170,7 @@ export default function LibraryHeader({
               source={source}
               activePopoverCount={popoverCount}
               extraFilters={extraFilters}
+              community={community}
               onStatusChange={onStatusChange}
               onAgeChange={onAgeChange}
               onSourceChange={onSourceChange}

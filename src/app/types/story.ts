@@ -21,6 +21,8 @@ export interface StoryDto {
   /** Trung bình đánh giá đang hiện (truyện Creator); null khi chưa có. */
   averageRating?: number | null;
   ratingCount?: number;
+  /** `GET /Story/community`: phiên bản công khai có câu đố. Không có trường (API cũ) thì coi như không có. */
+  hasQuiz?: boolean;
   createdAt: string;
   updatedAt?: string | null;
 }

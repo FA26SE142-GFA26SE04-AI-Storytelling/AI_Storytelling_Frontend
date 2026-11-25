@@ -14,6 +14,7 @@ import { confirmDialog } from '@/app/lib/confirm';
 import { readingLevelInfo } from '@/app/lib/guardian';
 import { ArrowDown, ArrowUp, Archive, Check, ChevronLeft, ChevronRight, CircleAlert, Copy, Plus, RefreshCw, Save, Send, Trash2, Undo2, X } from 'lucide-react';
 import RoadmapStoryPicker from './RoadmapStoryPicker';
+import { AccessNotice, useAccess } from './staffAccess';
 import { Page, fmt } from './ui';
 
 const blank = (): B.SaveRoadmapRequestDto => ({ name: '', description: null, ageBand: '6-8', mainCategoryId: 0, readingLevelMin: 1, readingLevelMax: 3, defaultDaysPerStory: 3 });
@@ -43,7 +44,8 @@ export default function RoadmapAuthoringWorkspace({
   onDirtyChange: (dirty: boolean) => void;
 }) {
   const { user } = useAuth();
-  const moderator = user?.role === 'Moderator';
+  const access = useAccess('template.roadmap.author');
+  const moderator = access.state === 'Allowed';
   const [group, setGroup] = useState<B.RoadmapListGroupName>('Drafts');
   const [page, setPage] = useState(1);
   const [list, setList] = useState<B.PagedResult<B.RoadmapListItemDto> | null>(null);
@@ -142,6 +144,7 @@ export default function RoadmapAuthoringWorkspace({
 
   return <Page fit title="Soạn lộ trình mẫu">
     {note && <div className="notice" role="status">{note}</div>}
+    <AccessNotice access={access} />
     <div className="st-split fill rt">
       <div className="st-list rt-side">
         {moderator && <button className="btn btn-p" disabled={busy || uncertainCreate} onClick={() => void startNew()}><Plus className="ic" />Tạo lộ trình mới</button>}
@@ -172,7 +175,7 @@ export default function RoadmapAuthoringWorkspace({
           {detail && <span className={`pill ${statusOf(detail.status)[1]}`}>{statusOf(detail.status)[0]}</span>}
           {detail && !detail.isMine && <span className="pill draft">Của {detail.createdByName ?? 'Kiểm duyệt viên khác'}</span>}
         </header>
-        {detail && !writable && <p className="notice">{!moderator ? 'Bạn đang xem lộ trình (chỉ kiểm duyệt viên được sửa).' : !detail.isMine ? 'Lộ trình của kiểm duyệt viên khác: bạn chỉ xem được.' : detail.status === 'PendingReview' ? 'Đang chờ duyệt nên chưa sửa được. Muốn sửa, hãy rút yêu cầu duyệt.' : detail.status === 'Published' ? 'Đang công khai nên không sửa trực tiếp được. Muốn sửa, hãy nhân bản.' : 'Lộ trình này không còn sửa được.'}</p>}
+        {detail && !writable && <p className="notice">{!moderator ? 'Bạn đang xem lộ trình, chưa sửa được.' : !detail.isMine ? 'Lộ trình của kiểm duyệt viên khác: bạn chỉ xem được.' : detail.status === 'PendingReview' ? 'Đang chờ duyệt nên chưa sửa được. Muốn sửa, hãy rút yêu cầu duyệt.' : detail.status === 'Published' ? 'Đang công khai nên không sửa trực tiếp được. Muốn sửa, hãy nhân bản.' : 'Lộ trình này không còn sửa được.'}</p>}
         <fieldset className="rt-body" disabled={!writable || busy}>
           <section className="rt-step">
             <h4><span className="rt-num">1</span>Thông tin chung</h4>
