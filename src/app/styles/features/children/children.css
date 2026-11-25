@@ -290,3 +290,17 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
   border: 1px solid var(--line);
   border-radius: 12px;
 }
+
+/* Thời gian & thói quen của bé: các nhóm cấu hình xếp dọc, mỗi nhóm một thẻ. */
+.th-card { display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); }
+.th-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; }
+.th-windows { gap: 8px; }
+.th-win-row { gap: 8px; flex-wrap: wrap; }
+.th-win-row .inp { width: auto; min-width: 128px; }
+.th-time .inp { width: auto; min-width: 130px; }
+.th-goal { flex-wrap: wrap; }
+.th-goal button { flex: 1 1 auto; white-space: nowrap; }
+.time-habits .trow.strong { margin-top: 0; }
+@media (max-width: 720px) {
+  .th-pair { grid-template-columns: 1fr; }
+}

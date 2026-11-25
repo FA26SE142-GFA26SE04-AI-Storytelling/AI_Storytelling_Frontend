@@ -15,6 +15,7 @@ import {useRecorder} from './useRecorder';
 import KidReadAloudPractice from './KidReadAloudPractice';
 import {showToast} from '@/app/lib/toast';
 import { KID_FEATURE, useKidFeature } from './kidFeatures';
+import { KidRestOverlay, KidTimeBanner } from './KidTimeLayer';
 
 /**
  * Khi bé đọc xong: cảm nhận, kể lại và câu đố hiện trong cửa sổ nổi đè lên trang đọc (không tính là một trang).
@@ -90,7 +91,9 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
   const found=scenes.findIndex(s=>s.sceneIndex+1===r.page);
   // Số trang không khớp cảnh nào (ví dụ vị trí đọc cũ) thì hiện cảnh đầu, không để màn hình trống.
   const index=found>=0?found:0,scene=scenes[index];
-  const disabled=r.busy||r.blocked||r.done;
+  /** Đang nghỉ mắt: màn nghỉ phủ lên và mọi thao tác đọc tạm khoá cho tới hết giờ nghỉ. */
+  const onBreak=r.timeStatus?.state==='Break';
+  const disabled=r.busy||r.blocked||r.done||onBreak;
   const scenePicsList=scenes.map(s=>scenePictures(s));
   const totalPages=scenePicsList.reduce((sum,p)=>sum+p.length,0);
   let priorPics=0;
@@ -273,6 +276,8 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
 
   if(!c)return null;
   return <article className="kid-theater" aria-label="Sân khấu kể chuyện">
+    <KidTimeBanner status={r.timeStatus}/>
+    {onBreak&&r.timeStatus&&<KidRestOverlay status={r.timeStatus} onDone={r.recheckTime}/>}
     {/* Không còn công tắc Tự đọc / Nghe đọc: cách đọc tự ghi theo việc bé bấm loa (onListen của KidNarrator). */}
     <header className="kid-theater-top"><button className="kid-btn3d is-sky" disabled={r.busy} onClick={()=>void r.leave()}><ArrowLeft aria-hidden="true"/>Về danh sách đọc</button><button type="button" className="kid-btn3d is-sky" aria-pressed={r.listenOnly} title="Chỉ nghe truyện, không dừng lại để chơi" disabled={disabled} onClick={()=>void r.flag('listenOnly')}><Headphones aria-hidden="true"/>Chỉ nghe</button></header>
     {!scene&&<section className="kid-reader-empty" role="status"><Frog mood="think" size={96}/><h2 className="display">Truyện này chưa có nội dung để đọc</h2><p>Em chọn truyện khác nhé!</p></section>}

@@ -5,6 +5,8 @@ import type * as D from '@/app/types/childReading';
 import type { ApiResponse } from '@/app/types/auth';
 import { confirmDialog } from '@/app/lib/confirm';
 import { isAuthedMediaUrl } from '@/app/lib/useAuthedMediaUrl';
+import { blockedStateOf } from '@/app/lib/readingTime';
+import type { ReadingTimeStatus } from '@/app/types/readingSchedule';
 
 /**
  * Bộ nhớ tạm đường dẫn tranh/giọng đọc theo cảnh (sống đến khi tải lại trang). Mỗi lần mở truyện backend vẫn cấp phiên đọc mới
@@ -25,7 +27,8 @@ function reuseMedia(content: D.ReadingContent): D.ReadingContent {
   }) };
 }
 
-export function useChildReader(token:string, onLibrary:()=>void) {
+/** onTimeBlocked: gọi khi backend chặn mở truyện vì giờ đọc (READING_TIME_*), để trang của bé hỏi lại trạng thái ngay. */
+export function useChildReader(token:string, onLibrary:()=>void, onTimeBlocked?:()=>void) {
   const [session,setSession] = useState<D.ReadingStarted|null>(null);
   const [content,setContent] = useState<D.ReadingContent|null>(null);
   const [page,setPage] = useState(1);
@@ -36,13 +39,17 @@ export function useChildReader(token:string, onLibrary:()=>void) {
   const [done,setDone] = useState(false);
   const [completed,setCompleted] = useState<D.ReadingCompleted|null>(null);
   const [note,setNote] = useState('');
+  /** Trạng thái giờ đọc mới nhất từ signal (nghỉ mắt, sắp hết giờ…); null khi chưa có hoặc đã rời truyện. */
+  const [timeStatus,setTimeStatus] = useState<ReadingTimeStatus|null>(null);
+  /** Tăng lên để hỏi lại signal ngay (ví dụ vừa hết giờ nghỉ mắt). */
+  const [nudge,setNudge] = useState(0);
   /** Tương tác bé đã trả lời trong phiên này (backend cũng đánh dấu attemptedInSession khi mở lại). */
   const [attempted,setAttempted] = useState<number[]>([]);
   const scope = useRef(0), lock = useRef(false);
   /** Mã của thao tác đang giữ khóa; thao tác cũ xong muộn (phiên đã đổi) chỉ được nhả khóa nếu chưa có thao tác mới giữ. */
   const ticket = useRef(0);
   const activeSeconds=useRef(0);
-  const close = () => { scope.current++; ticket.current++; lock.current=false; setBusy(false); setContent(null); setSession(null); setDefinition(null); onLibrary(); };
+  const close = () => { scope.current++; ticket.current++; lock.current=false; setBusy(false); setContent(null); setSession(null); setDefinition(null); setTimeStatus(null); onLibrary(); };
   /** Thoát khi chưa đọc xong thì hỏi lại; tiến độ vẫn được lưu. */
   const leave = async () => { if (!done && !completed && !await confirmDialog('Em muốn thoát truyện?')) return; close(); };
   // Đổi phiên bé hoặc gỡ màn: bỏ kết quả đang chờ và nhả khóa. React (dev) gỡ rồi gắn lại màn ngay lúc mở,
@@ -62,13 +69,14 @@ export function useChildReader(token:string, onLibrary:()=>void) {
       const r = await api.signal(token,session.sessionId,controller.signal); running=false;
       if (controller.signal.aborted) return;
       if (r.success && r.data?.shouldExit || r.status===401 || r.status===403 || r.status===404) {
-        scope.current++; ticket.current++; lock.current=false; setBusy(false); setContent(null); setSession(null); setDefinition(null);
+        scope.current++; ticket.current++; lock.current=false; setBusy(false); setContent(null); setSession(null); setDefinition(null); setTimeStatus(null);
         setNote(r.data?.message || r.message || 'Truyện này đang nghỉ một chút, mình đọc truyện khác nhé!'); onLibrary();
       } else if (!r.success) setNote(r.message);
+      else setTimeStatus(r.data?.readingTime ?? null);
     };
     void check(); const timer=setInterval(() => void check(),8000);
     return () => { controller.abort(); clearInterval(timer); };
-  },[token,session,onLibrary]);
+  },[token,session,onLibrary,nudge]);
   const execute = async <T,>(call:()=>Promise<ApiResponse<T>>, apply:(data:T)=>void) => {
     if (lock.current || blocked) return false;
     lock.current=true; setBusy(true); setNote(''); const run=scope.current; const mine=++ticket.current;
@@ -95,7 +103,9 @@ export function useChildReader(token:string, onLibrary:()=>void) {
     const started=await api.start(token,target);
     if (run!==scope.current) { release(); return; }
     if (!started.success || !started.data || target.storyId != null && started.data.storyId!==target.storyId) {
-      lock.current=false; setBusy(false); setNote(started.message || 'Không mở được truyện.'); return;
+      lock.current=false; setBusy(false); setNote(started.message || 'Không mở được truyện.');
+      if (blockedStateOf(started.errors)) onTimeBlocked?.();
+      return;
     }
     const loaded=await api.content(token,started.data.sessionId);
     if (run!==scope.current) { release(); return; }
@@ -164,5 +174,6 @@ export function useChildReader(token:string, onLibrary:()=>void) {
     if (!session) return { success:false, status:401, message:'Phiên của bé đã hết hạn.', data:null };
     return api.readAloudPractice(token, session.sessionId, interactionId, audio);
   };
-  return {token,session,content,page,mode,definition,busy,blocked,done,completed,note,listenOnly,open,close,leave,save,complete,flag,pending,attempt,lookup,collect,event,readAloud,readAloudPractice};
+  const recheckTime = () => setNudge(n=>n+1);
+  return {token,session,content,page,mode,timeStatus:session?timeStatus:null,recheckTime,definition,busy,blocked,done,completed,note,listenOnly,open,close,leave,save,complete,flag,pending,attempt,lookup,collect,event,readAloud,readAloudPractice};
 }
