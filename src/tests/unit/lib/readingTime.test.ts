@@ -52,7 +52,7 @@ describe('secondsUntil / formatCountdown', () => {
 describe('restCopy', () => {
   it('break counts down to breakUntil and names the activity', () => {
     const c = restCopy(status('Break', { breakUntil: '2026-11-24T12:05:00Z', breakActivity: 'Water' }));
-    expect(c.title).toBe('Nghỉ mắt một chút nhé');
+    expect(c.title).toBe('Nghỉ một chút nhé');
     expect(c.hint).toBe('Em uống một ngụm nước nhé!');
     expect(c.until).toBe('2026-11-24T12:05:00Z');
   });

@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { scheduleFrom, scheduleRequest, sectionOfError, type ScheduleValue } from '@/app/features/children/readingScheduleForm';
+import {
+  changedGroups, groupsText, saveLabel, scheduleFrom, scheduleRequest, sectionOfError, type ScheduleValue,
+} from '@/app/features/children/readingScheduleForm';
 import type { ReadingSchedule } from '@/app/types/readingSchedule';
 
 const dto: ReadingSchedule = {
@@ -64,6 +66,43 @@ describe('scheduleRequest', () => {
     const body = scheduleRequest(v);
     expect(body.bedtimeWeekday).toBeNull();
     expect(body.readingReminderWeekday).toBeNull();
+  });
+});
+
+describe('changedGroups', () => {
+  const saved = scheduleFrom(dto);
+
+  it('reports nothing when the form equals the saved value', () => {
+    expect(changedGroups(scheduleFrom(dto), saved)).toEqual([]);
+  });
+
+  it('reports only the limits group for any limit field, including window rows and a nested toggle', () => {
+    expect(changedGroups({ ...saved, enabled: false }, saved)).toEqual(['limits']);
+    expect(changedGroups({ ...saved, breakRemindEyes: false }, saved)).toEqual(['limits']);
+    expect(changedGroups({ ...saved, weekday: [{ start: '18:00', end: '21:00' }] }, saved)).toEqual(['limits']);
+  });
+
+  it('reports only the habit group for toggle, reminders and goal', () => {
+    expect(changedGroups({ ...saved, habitEnabled: false }, saved)).toEqual(['habit']);
+    expect(changedGroups({ ...saved, readingReminderWeekday: '19:30' }, saved)).toEqual(['habit']);
+    expect(changedGroups({ ...saved, weeklyGoalDays: null }, saved)).toEqual(['habit']);
+  });
+
+  it('reports both groups, limits first, when both changed', () => {
+    expect(changedGroups({ ...saved, enabled: false, weeklyGoalDays: 5 }, saved)).toEqual(['limits', 'habit']);
+  });
+});
+
+describe('save wording', () => {
+  it('names the group being saved, and keeps the tab name when both are', () => {
+    expect(saveLabel(['limits'])).toBe('Lưu giới hạn thời gian');
+    expect(saveLabel(['habit'])).toBe('Lưu thói quen đọc');
+    expect(saveLabel(['limits', 'habit'])).toBe('Lưu thời gian & thói quen');
+  });
+
+  it('joins group names for hints and toasts', () => {
+    expect(groupsText(['habit'])).toBe('thói quen đọc');
+    expect(groupsText(['limits', 'habit'])).toBe('giới hạn thời gian và thói quen đọc');
   });
 });
 

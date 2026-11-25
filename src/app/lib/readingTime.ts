@@ -44,7 +44,7 @@ export const minutesOf = (seconds: number): number => Math.max(1, Math.ceil(seco
 const BREAK_HINT: Record<BreakActivity, string> = {
   Eyes: 'Nhìn ra xa một chút cho mắt nghỉ nhé!',
   Water: 'Em uống một ngụm nước nhé!',
-  Move: 'Em đứng dậy vươn vai, nhảy nhẹ vài cái nhé!',
+  Move: 'Em đứng dậy vươn vai, đi lại vài bước nhé!',
 };
 
 export type RestCopy = { title: string; hint: string; mood: 'idle' | 'happy' | 'think'; label: string; until: string | null };
@@ -53,7 +53,7 @@ export type RestCopy = { title: string; hint: string; mood: 'idle' | 'happy' | '
 export function restCopy(status: ReadingTimeStatus): RestCopy {
   switch (status.state) {
     case 'Break':
-      return { title: 'Nghỉ mắt một chút nhé', hint: BREAK_HINT[status.breakActivity ?? 'Eyes'], mood: 'idle', label: 'Em đọc tiếp được sau', until: status.breakUntil };
+      return { title: 'Nghỉ một chút nhé', hint: BREAK_HINT[status.breakActivity ?? 'Eyes'], mood: 'idle', label: 'Em đọc tiếp được sau', until: status.breakUntil };
     case 'Bedtime':
       return { title: 'Đến giờ đi ngủ rồi', hint: 'Chúc em ngủ ngon! Mai mình đọc tiếp nhé.', mood: 'idle', label: 'Em đọc tiếp được sau', until: status.nextAllowedAt };
     case 'ScreenLimitReached':

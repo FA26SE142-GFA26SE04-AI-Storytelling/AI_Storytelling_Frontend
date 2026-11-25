@@ -63,6 +63,32 @@ export const scheduleFrom = (dto: ReadingSchedule): ScheduleValue => ({
   weeklyGoalDays: dto.weeklyGoalDays,
 });
 
+/** Hai nhóm trên form: giới hạn thời gian (khung giờ, giờ ngủ, màn hình, nghỉ) và thói quen đọc (nhắc, mục tiêu). */
+export type ScheduleGroup = "limits" | "habit";
+export const ALL_GROUPS: readonly ScheduleGroup[] = ["limits", "habit"];
+
+const HABIT_FIELDS: readonly string[] = ["habitEnabled", "readingReminderWeekday", "readingReminderWeekend", "weeklyGoalDays"];
+
+/** Nhóm nào đã khác giá trị đã lưu (thứ tự: giới hạn trước, thói quen sau). Rỗng khi chưa sửa gì. */
+export function changedGroups(current: ScheduleValue, saved: ScheduleValue): ScheduleGroup[] {
+  const groups = new Set<ScheduleGroup>();
+  for (const key of Object.keys(current) as (keyof ScheduleValue)[]) {
+    if (JSON.stringify(current[key]) !== JSON.stringify(saved[key])) {
+      groups.add(HABIT_FIELDS.includes(key) ? "habit" : "limits");
+    }
+  }
+  return ALL_GROUPS.filter((group) => groups.has(group));
+}
+
+const GROUP_NAME: Record<ScheduleGroup, string> = { limits: "giới hạn thời gian", habit: "thói quen đọc" };
+
+/** Tên các nhóm dùng trong câu: "giới hạn thời gian", "thói quen đọc" hoặc cả hai nối bằng "và". */
+export const groupsText = (groups: readonly ScheduleGroup[]): string => groups.map((group) => GROUP_NAME[group]).join(" và ");
+
+/** Nhãn nút lưu: gọi đúng nhóm đang lưu; đủ cả hai thì dùng tên tab. */
+export const saveLabel = (groups: readonly ScheduleGroup[]): string =>
+  groups.length >= ALL_GROUPS.length ? "Lưu thời gian & thói quen" : `Lưu ${groupsText(groups)}`;
+
 const orNull = (time: string): string | null => (time.trim() === "" ? null : time.trim());
 
 const windowsOf = (ranges: TimeRange[], dayType: ScheduleDayType) =>
