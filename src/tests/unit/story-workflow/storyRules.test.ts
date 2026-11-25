@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { copyrightHits, detectPii, lengthChoiceOf, lengthTarget, revisionInstruction, vocabularyLevelFor } from '@/app/lib/storyRules';
+import { copyrightHits, detectPii, genreGroupsFor, lengthChoiceOf, lengthTarget, revisionInstruction, vocabularyLevelFor } from '@/app/lib/storyRules';
 import { buildCreativeInput, createDefaultFormValues } from '@/app/features/story-workflow/aiStoryInputFlowUtils';
 import type { AIStoryInputContextDto } from '@/app/types/aiStory';
 
@@ -72,5 +72,30 @@ describe('form yêu cầu', () => {
 
   it('mặc định độ dài "vừa" theo mức đọc', () => {
     expect(createDefaultFormValues(context).targetLength).toBe(550);
+  });
+});
+
+describe('genreGroupsFor', () => {
+  const cat = (id: number, code: string, displayName: string, group: 'Genre' | 'LifeValue' | 'Learning' | 'SafetyWarning', isActive = true) =>
+    ({ id, code, displayName, group, isActive });
+  const cats = [
+    cat(1, 'ANIMALS', 'Động vật', 'Genre'), cat(2, 'ADVENTURE', 'Phiêu lưu', 'Genre'),
+    cat(3, 'KINDNESS', 'Lòng tốt - Sẻ chia', 'LifeValue'), cat(4, 'SCIENCE', 'Khoa học', 'Learning'),
+    cat(5, 'BULLYING', 'Bắt nạt', 'SafetyWarning'), cat(6, 'OLD', 'Đã tắt', 'Genre', false),
+  ];
+
+  it('lists every usable category by group, without safety warnings, blocked or inactive ones', () => {
+    expect(genreGroupsFor(cats, [], ['ADVENTURE'])).toEqual([
+      { id: 'Genre', label: 'Thể loại', names: ['Động vật'] },
+      { id: 'LifeValue', label: 'Giá trị và kỹ năng sống', names: ['Lòng tốt - Sẻ chia'] },
+      { id: 'Learning', label: 'Học tập', names: ['Khoa học'] },
+    ]);
+  });
+
+  it('keeps only the allowed list when the parent limits topics (codes compared case-insensitively)', () => {
+    expect(genreGroupsFor(cats, ['animals', 'SCIENCE', 'BULLYING'], [])).toEqual([
+      { id: 'Genre', label: 'Thể loại', names: ['Động vật'] },
+      { id: 'Learning', label: 'Học tập', names: ['Khoa học'] },
+    ]);
   });
 });

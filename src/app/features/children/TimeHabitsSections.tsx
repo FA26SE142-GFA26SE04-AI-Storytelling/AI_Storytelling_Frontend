@@ -173,6 +173,8 @@ export default function TimeHabitsSections({ value, onChange, disabled, habit, s
 
   return (
     <div className="th-root">
+      {/* Ba nhóm bọc trong .th-col: ở tab là display: contents (xếp dọc như cũ), ở form tạo bé thành 3 cột. */}
+      <div className="th-col">
       {/* Nhóm "Giới hạn thời gian đọc": công tắc tổng + khung giờ + giờ đi ngủ */}
       <div className={`th-master${value.enabled ? " on" : ""}`}>
         <span className="th-master-ic" aria-hidden><ShieldCheck className="ic" /></span>
@@ -223,8 +225,10 @@ export default function TimeHabitsSections({ value, onChange, disabled, habit, s
           </div>
         </Card>
       </div>
+      </div>
 
       {/* Hai phần có công tắc riêng, không phụ thuộc "Giới hạn thời gian đọc" */}
+      <div className="th-col">
       <div className="th-divider">
         <span>Màn hình &amp; nghỉ giữa giờ</span>
       </div>
@@ -301,7 +305,9 @@ export default function TimeHabitsSections({ value, onChange, disabled, habit, s
           </div>
         </Card>
       </div>
+      </div>
 
+      <div className="th-col">
       <div className="th-divider">
         <span>Thói quen đọc</span>
       </div>
@@ -394,6 +400,7 @@ export default function TimeHabitsSections({ value, onChange, disabled, habit, s
           )}
         </div>
       </Card>
+      </div>
     </div>
   );
 }

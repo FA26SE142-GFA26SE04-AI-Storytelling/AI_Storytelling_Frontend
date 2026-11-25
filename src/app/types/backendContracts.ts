@@ -442,6 +442,7 @@ export interface ChildProfileDto {
   'nickname': string;
   'avatarId': string;
   'ageBand': string;
+  'age': number | null;
   'language': string;
   'status': string;
   'createdAt': string;
@@ -593,6 +594,8 @@ export interface CreateChildProfileRequestDto {
   'nickname': string;
   'ageBand': AgeBandName;
   'language': string;
+  'age': number | null;
+  'avatarId': string | null;
 }
 
 export interface CreateContentCategoryRequestDto {
@@ -1788,10 +1791,10 @@ export interface SafetyPolicyDto {
   'id': number;
   'childProfileId': number;
   'maxStoryLength': number;
+  'storyLengthTarget'?: number | null;
   'requiredApprovalMode': string;
   'parentalGateEnabled': boolean;
   'consentRecorded': boolean;
-  'storyLengthTarget'?: number | null;
   'consentRecordedAt': string | null;
   'consentPolicyVersion': number;
   'consentedByUserId': number | null;
@@ -1878,10 +1881,10 @@ export interface SetSafetyPolicyCategoryRequestDto {
 
 export interface SetSafetyPolicyRequestDto {
   'maxStoryLength': number;
+  'storyLengthTarget'?: number | null;
   'requiredApprovalMode': ApprovalModeName;
   'parentalGateEnabled': boolean;
   'consentRecorded': boolean;
-  'storyLengthTarget'?: number | null;
   'safetyScoreThreshold': number | null;
   'readabilityScoreThreshold': number | null;
   'comprehensionThresholdPercent': number;
@@ -2201,6 +2204,7 @@ export interface UpdateChildProfileRequestDto {
   'ageBand': AgeBandName;
   'language': string;
   'avatarId': string | null;
+  'age': number | null;
 }
 
 export interface UpdateContentCategoryRequestDto {

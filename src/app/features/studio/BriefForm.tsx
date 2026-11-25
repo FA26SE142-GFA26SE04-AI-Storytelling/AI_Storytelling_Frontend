@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { CircleAlert, Lock, ShieldAlert, Sparkles } from "lucide-react";
+import { Check, ChevronDown, CircleAlert, Lock, Search, ShieldAlert, Sparkles, X } from "lucide-react";
 import InfoTip from "@/app/components/InfoTip";
 import GenerationOptions from "./GenerationOptions";
 import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/useAIStoryInputFlow";
 import { childProfileService } from "@/app/services/childProfileService";
-import type { TokenQuotaStatus } from "@/app/types/childProfile";
-import { copyrightHits, GENRES } from "@/app/lib/storyRules";
+import type { ContentCategory, TokenQuotaStatus } from "@/app/types/childProfile";
+import { copyrightHits, genreGroupsFor, GENRES } from "@/app/lib/storyRules";
 import { readingLevelInfo } from "@/app/lib/guardian";
 import { STUDIO_PREFILL_KEY } from "@/app/features/learning/WishItem";
 import { parentWishService } from "@/app/services/storyWishService";
@@ -30,6 +30,147 @@ const TONE_HINT = {
 } as const;
 
 type TextKey = "charactersText" | "setting" | "lesson";
+type GenreGroupItem = { id: string; label: string; names: string[] };
+
+/** Bộ chọn thể loại/chủ đề gọn nhẹ thay thế dropdown native dài: hỗ trợ lọc theo nhóm và tìm nhanh. */
+function GenrePicker({
+  id, value, groups, fallbackGenres, disabled, onChange,
+}: {
+  id: string;
+  value: string;
+  groups: GenreGroupItem[];
+  fallbackGenres: readonly string[];
+  disabled?: boolean;
+  onChange: (next: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [tab, setTab] = useState<string>(groups[0]?.id ?? "all");
+  const [query, setQuery] = useState("");
+  const wrapRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const effectiveGroups: GenreGroupItem[] = groups.length > 0
+    ? groups
+    : [{ id: "all", label: "Thể loại", names: [...fallbackGenres] }];
+  const activeGroup = effectiveGroups.find((g) => g.id === tab) ?? effectiveGroups[0];
+  const q = query.trim().toLowerCase();
+  const visibleNames = q
+    ? effectiveGroups.flatMap((g) => g.names).filter((n, i, a) => a.indexOf(n) === i && n.toLowerCase().includes(q))
+    : activeGroup?.names ?? [];
+
+  const pick = (next: string) => {
+    onChange(next);
+    setOpen(false);
+    setQuery("");
+  };
+
+  return (
+    <div ref={wrapRef} className="genre-picker">
+      <div className="genre-trigger-row">
+        <button
+          id={id}
+          type="button"
+          className={`inp genre-trigger${open ? " open" : ""}`}
+          disabled={disabled}
+          aria-expanded={open}
+          aria-haspopup="listbox"
+          onClick={() => setOpen((o) => !o)}
+        >
+          <span className={value ? "genre-val" : "genre-ph"}>
+            {value || "Để AI chọn"}
+          </span>
+          <ChevronDown className="ic genre-chev" aria-hidden />
+        </button>
+        {value && !disabled && (
+          <button type="button" className="btn btn-g icon-only" aria-label="Bỏ chọn thể loại" title="Để AI chọn" onClick={() => pick("")}>
+            <X className="ic" />
+          </button>
+        )}
+      </div>
+
+      {open && !disabled && (
+        <div className="genre-pop" role="listbox" aria-label="Chọn thể loại hoặc chủ đề">
+          <div className="genre-pop-top">
+            <button type="button" className={`chip${value === "" ? " on" : ""}`} onClick={() => pick("")}>
+              <Sparkles className="ic" aria-hidden />
+              Để AI chọn
+            </button>
+            <div className="genre-search">
+              <Search className="ic" aria-hidden />
+              <input
+                type="text"
+                className="genre-search-inp"
+                placeholder="Tìm nhanh…"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                autoFocus
+              />
+              {query && (
+                <button type="button" aria-label="Xoá tìm kiếm" onClick={() => setQuery("")}><X size={13} /></button>
+              )}
+            </div>
+          </div>
+
+          {!q && effectiveGroups.length > 1 && (
+            <div className="genre-tabs" role="tablist">
+              {effectiveGroups.map((g) => (
+                <button
+                  key={g.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={g.id === activeGroup?.id}
+                  className={`genre-tab${g.id === activeGroup?.id ? " on" : ""}`}
+                  onClick={() => setTab(g.id)}
+                >
+                  <span>{g.label}</span>
+                  <small>{g.names.length}</small>
+                </button>
+              ))}
+            </div>
+          )}
+
+          <div className="genre-chips">
+            {visibleNames.length === 0 ? (
+              <p className="sub" style={{ margin: "4px 2px" }}>Không tìm thấy chủ đề phù hợp.</p>
+            ) : (
+              visibleNames.map((n) => {
+                const selected = value === n;
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    role="option"
+                    aria-selected={selected}
+                    className={`chip genre-chip${selected ? " on" : ""}`}
+                    onClick={() => pick(n)}
+                  >
+                    {selected && <Check size={12} aria-hidden />}
+                    {n}
+                  </button>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 /**
  * Form ý tưởng một cột, cuộn từ trên xuống: hai trường bắt buộc → chi tiết không bắt buộc → tuỳ chọn truyện → nút "Viết dàn ý".
@@ -43,6 +184,16 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
     if (!context) return;
     void childProfileService.getTokenQuotaForChild(context.childProfileId).then((r) => setQuota(r.success ? r.data : null));
   }, [context]);
+
+  // Thể loại theo các chủ đề bé được phép (Cài đặt an toàn), chia nhóm; chưa tải được danh mục thì dùng danh sách dự phòng.
+  const [cats, setCats] = useState<ContentCategory[]>([]);
+  useEffect(() => {
+    let alive = true;
+    void childProfileService.getContentCategoriesCached().then((list) => { if (alive) setCats(list); });
+    return () => { alive = false; };
+  }, []);
+  const genreGroups = context && cats.length > 0 ? genreGroupsFor(cats, context.allowedCategoryCodes, context.blockedCategoryCodes) : [];
+  const genreNames = genreGroups.length > 0 ? genreGroups.flatMap((g) => g.names) : GENRES;
 
   // Phụ huynh chọn "Tạo truyện mới" cho điều ước của bé (Luồng 2 mục 3.5): điền sẵn từ các thẻ bé đã chọn.
   // Nguồn điền sẵn: điều ước của bé (Luồng 2 mục 3.5), gợi ý chủ đề của Luồng 6 Nhánh B,
@@ -158,12 +309,15 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
           <fieldset className="brief-group">
             <legend className="display">Thêm chi tiết <span className="pill draft">Không bắt buộc</span> <InfoTip text="Để trống thì AI tự nghĩ." /></legend>
             <div className="field">
-              <label className="lbl" htmlFor="brief-genre">Thể loại</label>
-              <select id="brief-genre" name="genre" className="inp" disabled={locked} value={values.genre} onChange={(e) => updateValues({ genre: e.target.value })}>
-                <option value="">Để AI chọn</option>
-                {GENRES.map((g) => <option key={g} value={g}>{g}</option>)}
-                {!!values.genre && !GENRES.includes(values.genre) && <option value={values.genre}>{values.genre}</option>}
-              </select>
+              <label className="lbl" htmlFor="brief-genre">Thể loại hoặc chủ đề {genreGroups.length > 0 && <InfoTip text={`Chỉ gồm ${genreNames.length} chủ đề ${context?.childNickname ?? "bé"} được phép trong Cài đặt an toàn, chia theo nhóm.`} />}</label>
+              <GenrePicker
+                id="brief-genre"
+                value={values.genre}
+                groups={genreGroups}
+                fallbackGenres={GENRES}
+                disabled={locked}
+                onChange={(genre) => updateValues({ genre })}
+              />
             </div>
             {text("charactersText", "Nhân vật", "Ví dụ: Sóc Bông, Thỏ Trắng (cách nhau bằng dấu phẩy)")}
             {text("setting", "Bối cảnh", "Ví dụ: Khu rừng tre ven hồ sen…")}

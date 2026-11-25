@@ -1,6 +1,7 @@
-import { AGE_BANDS, isMaxStoryLength } from "@/app/lib/guardian";
+import { AGE_BANDS, AVATARS, CHILD_AGES, SCHOOL_GRADES, ageBandOfAge, isMaxStoryLength } from "@/app/lib/guardian";
 import type { PolicyRule } from "@/app/types/childProfile";
 import type { LearningValue } from "./LearningForm";
+import type { ScheduleValue } from "./readingScheduleForm";
 
 /**
  * Mở màn "Hồ sơ bé" thẳng vào form "Thêm bé" từ màn khác (VD nút "+ Thêm bé" ở Tổng quan).
@@ -44,7 +45,19 @@ export type ChildDraft = {
   maxLength?: number;
   /** Hồ sơ đã tạo ở lần bấm Hoàn tất trước nhưng bước sau lỗi; dùng lại để không tạo trùng. */
   createdId: number | null;
+  /** Form "Thời gian & thói quen" (gợi ý theo tuổi, có thể đã chỉnh); không có thì tải lại gợi ý. */
+  time?: TimeDraft;
+  /** Phụ huynh chọn "Bỏ qua, cài sau" ở bước Thời gian & thói quen. */
+  skipTime?: boolean;
+  /** Tuổi cụ thể 6–10 (nhóm tuổi suy ra từ đây). */
+  age?: number;
+  /** Lớp bé đang học 1–5, chỉ dùng để chọn sẵn mức đọc. */
+  grade?: number;
+  avatarId?: string;
 };
+
+/** Giá trị bước Thời gian & thói quen: gợi ý tải theo nhóm tuổi nào, phụ huynh đã chỉnh chưa. */
+export type TimeDraft = { ageBand: string; value: ScheduleValue; edited: boolean };
 
 const DRAFT_VERSION = 1;
 const DRAFT_PREFIX = "taletale-child-draft:";
@@ -69,6 +82,17 @@ function validRules(v: unknown): Record<number, PolicyRule | undefined> | null {
   return out;
 }
 
+// Kiểm sơ bộ: backend vẫn kiểm đầy đủ khi lưu; hỏng thì tải lại gợi ý thay vì bỏ cả bản nháp.
+function validTime(v: unknown): TimeDraft | undefined {
+  if (!v || typeof v !== "object") return undefined;
+  const t = v as Record<string, unknown>;
+  const value = t.value as Record<string, unknown> | null;
+  if (typeof t.ageBand !== "string" || !AGE_BANDS.some((a) => a.id === t.ageBand) || typeof t.edited !== "boolean"
+    || !value || typeof value !== "object" || typeof value.enabled !== "boolean"
+    || !Array.isArray(value.weekday) || !Array.isArray(value.weekend)) return undefined;
+  return { ageBand: t.ageBand, value: value as ScheduleValue, edited: t.edited };
+}
+
 export function readChildDraft(userId: number, maxStep: number): ChildDraft | null {
   try {
     const raw = sessionStorage.getItem(childDraftKey(userId));
@@ -84,7 +108,13 @@ export function readChildDraft(userId: number, maxStep: number): ChildDraft | nu
       || !(createdId === null || (typeof createdId === "number" && Number.isSafeInteger(createdId) && createdId > 0))) return null;
     // Độ dài hỏng thì quay về gợi ý theo mức đọc thay vì bỏ cả bản nháp.
     const maxLength = isMaxStoryLength(d.maxLength) ? d.maxLength : undefined;
-    return { step: d.step, nickname: d.nickname, ageBand: d.ageBand, learning: d.learning, rules, gate: d.gate, maxLength, createdId };
+    const time = validTime(d.time);
+    const skipTime = typeof d.skipTime === "boolean" ? d.skipTime : undefined;
+    // Tuổi chỉ giữ khi còn khớp nhóm tuổi; lớp / ảnh hỏng thì bỏ trường đó, không bỏ cả bản nháp.
+    const age = (CHILD_AGES as readonly unknown[]).includes(d.age) && ageBandOfAge(d.age as number) === d.ageBand ? d.age as number : undefined;
+    const grade = (SCHOOL_GRADES as readonly unknown[]).includes(d.grade) ? d.grade as number : undefined;
+    const avatarId = AVATARS.some((a) => a.id === d.avatarId) ? d.avatarId as string : undefined;
+    return { step: d.step, nickname: d.nickname, ageBand: d.ageBand, learning: d.learning, rules, gate: d.gate, maxLength, createdId, time, skipTime, age, grade, avatarId };
   } catch {
     return null;
   }
@@ -92,8 +122,8 @@ export function readChildDraft(userId: number, maxStep: number): ChildDraft | nu
 
 export function writeChildDraft(userId: number, draft: ChildDraft) {
   // Chọn từng trường để không vô tình lưu thêm dữ liệu khác (như ô "Đồng ý").
-  const { step, nickname, ageBand, learning, rules, gate, maxLength, createdId } = draft;
-  const data = { v: DRAFT_VERSION, step, nickname, ageBand, learning, rules, gate, maxLength, createdId };
+  const { step, nickname, ageBand, learning, rules, gate, maxLength, createdId, time, skipTime, age, grade, avatarId } = draft;
+  const data = { v: DRAFT_VERSION, step, nickname, ageBand, learning, rules, gate, maxLength, createdId, time, skipTime, age, grade, avatarId };
   try { sessionStorage.setItem(childDraftKey(userId), JSON.stringify(data)); } catch { /* lưu trữ bị chặn: form vẫn dùng được */ }
 }
 

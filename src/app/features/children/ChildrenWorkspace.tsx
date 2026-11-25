@@ -124,7 +124,7 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
                 <span className="grow kid-item-text">
                   <b title={k.nickname}>{k.nickname}</b>
                   <span className="kid-item-meta">
-                    <small>{ageLabel(k.ageBand)}</small>
+                    <small>{k.age ? `${k.age} tuổi` : ageLabel(k.ageBand)}</small>
                     {slot && !slot.canRead ? (
                       <span className="reading-slot-lock" title="Bé đang chỉ xem, chưa được đọc truyện theo gói hiện tại">
                         <Lock className="ic" />Chỉ xem

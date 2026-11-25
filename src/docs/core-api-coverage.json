@@ -6840,7 +6840,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ReadingScheduleController.cs",
     "action": "GetReadingSchedule",
-    "controllerLine": 24,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "GET /api/v1/ReadingSchedule/{}",
@@ -6856,20 +6856,42 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
+    "method": "GET",
+    "route": "/api/v1/ReadingSchedule/suggestion",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "controller": "ReadingScheduleController.cs",
+    "action": "GetSuggestion",
+    "controllerLine": 35,
+    "evidence": [
+      {
+        "key": "GET /api/v1/ReadingSchedule/suggestion",
+        "service": "readingScheduleService",
+        "operation": "suggest",
+        "file": "app/services/readingScheduleService.ts",
+        "line": 14,
+        "callers": [
+          "app/features/children/CreateChildWizard.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
     "method": "PUT",
     "route": "/api/v1/ReadingSchedule/{childProfileId}",
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ReadingScheduleController.cs",
     "action": "SetReadingSchedule",
-    "controllerLine": 34,
+    "controllerLine": 44,
     "evidence": [
       {
         "key": "PUT /api/v1/ReadingSchedule/{}",
         "service": "readingScheduleService",
         "operation": "set",
         "file": "app/services/readingScheduleService.ts",
-        "line": 14,
+        "line": 19,
         "callers": [
+          "app/features/children/CreateChildWizard.tsx",
           "app/features/children/TimeHabitsTab.tsx"
         ]
       }
