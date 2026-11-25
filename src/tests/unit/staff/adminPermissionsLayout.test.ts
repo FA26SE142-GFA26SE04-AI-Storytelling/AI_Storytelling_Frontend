@@ -33,6 +33,7 @@ describe('AdminPermissions layout', () => {
     expect(permCss).toMatch(/\.perm-savebar\s*\{\s*position:\s*sticky;\s*bottom:\s*0/);
     expect(permCss).toContain('.st-body:has(> .perm-savebar) { overflow: visible; }');
     expect(editor).toMatch(/dirty && !\(await confirmDiscard/);
-    expect(page).toMatch(/dirty\.current && !\(await confirmDiscard/);
+    expect(page).toMatch(/!dirty\.current \|\| \(await confirmDiscard/);
+    expect(page).toContain('useLeaveGuard(mayLeave)');
   });
 });

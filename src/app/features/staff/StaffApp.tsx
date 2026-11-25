@@ -2,7 +2,7 @@
 
 import "@/app/styles/features/staff/staff.css";
 import "@/app/styles/features/children/children.css";
-import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ComponentType } from "react";
 import {
   Activity, Archive, BookOpenText, ChartColumn, Coins, CreditCard, Flag, FolderOpen, Package, Inbox, KeyRound, LayoutDashboard, LibraryBig, ListChecks, Moon, PencilLine, Receipt, Route,
   Shield, ShieldAlert, Sparkles, Star, Sun, ScrollText, UserRound, UserRoundCheck, Users, WalletCards, WandSparkles, type LucideIcon,
@@ -47,7 +47,8 @@ import AdminOverview from "./AdminOverview";
 import AdminSidebar, { type SideGroup } from "./AdminSidebar";
 import { adminNavBadges, useAdminTodo } from "./adminTodo";
 import { canOpenPage, visibleNav } from "./staffPageAccess";
-import { StaffAccessProvider, useMyAccess } from "./staffAccess";
+import { AccessReadyProvider, accessOf, StaffAccessProvider, useMyAccess } from "./staffAccess";
+import { LeaveGuardProvider, type LeaveGuard } from "./leaveGuard";
 import { Page } from "./ui";
 import { ModerationQueue } from "./Moderation";
 // Trước đây chỉ ParentShell nạp file này nên ở điện thoại header nhân viên vẫn hiện thanh ngang (bị cắt) và không có thanh tab đáy.
@@ -249,7 +250,11 @@ function StaffAppInner({
     setPageId(initialSection);
     setTarget(initialTarget);
   }, [initialSection, initialTarget, pages]);
-  const go = (id: string, storyId: number | null = null) => {
+  const { map: granted, ready: accessReady } = useMyAccess(userId, pageId);
+  const leaveGuard = useRef<LeaveGuard | null>(null);
+  const registerGuard = useCallback((guard: LeaveGuard | null) => { leaveGuard.current = guard; }, []);
+  const go = async (id: string, storyId: number | null = null) => {
+    if (id !== pageId && leaveGuard.current && !(await leaveGuard.current())) return;
     setPageId(id);
     setTarget(storyId);
     setResumeId(null);
@@ -257,9 +262,10 @@ function StaffAppInner({
   };
   useEffect(() => { if (userId !== null) writeStaffWorkspace(userId, { pageId, target }); }, [userId, pageId, target]);
 
+  const canCount = accessReady && canOpenPage(role, "stats", granted);
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});
   useEffect(() => {
-    if (role !== "Moderator" || userId === null) return;
+    if (role !== "Moderator" || userId === null || !canCount) return;
     let alive = true;
     let ctrl: AbortController | null = null;
     const load = () => {
@@ -291,10 +297,10 @@ function StaffAppInner({
       window.removeEventListener("moderation-queue-changed", onRefresh);
       window.removeEventListener("focus", onRefresh);
     };
-  }, [role, userId, pageId]);
+  }, [role, userId, pageId, canCount]);
 
   const isAdmin = role === "Administrator";
-  const adminTodo = useAdminTodo(isAdmin && userId !== null, pageId);
+  const adminTodo = useAdminTodo(isAdmin && userId !== null && accessReady, pageId, (code) => accessOf(granted, code).state !== "Hidden");
   const badges = isAdmin ? adminNavBadges(adminTodo) : navBadges;
 
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
@@ -320,7 +326,6 @@ function StaffAppInner({
 
   const page = pages.find((p) => p.id === pageId) ?? pages[0];
   const View = page.view;
-  const granted = useMyAccess(userId, pageId);
   const nav = useMemo(() => visibleNav(NAV[role], (id) => canOpenPage(role, id, granted)), [role, granted]);
   const groups = useMemo(() => sideGroups(role, nav), [role, nav]);
   const allowed = canOpenPage(role, page.id, granted);
@@ -332,7 +337,7 @@ function StaffAppInner({
         <AdminSidebar
           groups={groups}
           pageId={pageId}
-          onPage={(id) => go(id)}
+          onPage={(id) => void go(id)}
           badges={badges}
           label={ROLE_LABEL[role]}
           collapsed={sidebarCollapsed}
@@ -348,25 +353,27 @@ function StaffAppInner({
           <div className="adm-top-title"><b>{page.label}</b>{page.hint && <small>{page.hint}</small>}</div>
         ) : (
           <nav ref={navRef} className="topnav" aria-label={ROLE_LABEL[role]}>
-            <StaffNav role={role} nav={nav} pageId={pageId} onPage={(id) => go(id)} badges={badges} />
+            <StaffNav role={role} nav={nav} pageId={pageId} onPage={(id) => void go(id)} badges={badges} />
           </nav>
         )}
         <div className="top-gap" />
 
         <button className="btn btn-g" onClick={(e) => { const r = e.currentTarget.getBoundingClientRect(); circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme); }} aria-label={theme === "dark" ? "Chuyển sang giao diện sáng" : "Chuyển sang giao diện tối"} title={theme === "dark" ? "Giao diện sáng" : "Giao diện tối"}>{theme === "dark" ? <Sun className="ic" /> : <Moon className="ic" />}</button>
         <NotificationBell />
-        <AccountMenu ws={pageId} onWs={(id) => go(id)} groups={[role === "ContentCreator" ? CREATOR_ACCOUNT_PAGES : ACCOUNT_PAGES]} />
+        <AccountMenu ws={pageId} onWs={(id) => void go(id)} groups={[role === "ContentCreator" ? CREATOR_ACCOUNT_PAGES : ACCOUNT_PAGES]} />
       </header>
 
       {/* Điện thoại: header không đủ chỗ nên điều hướng nằm ở thanh tab dưới đáy. */}
       <nav className="rail rail-mobile" aria-label={ROLE_LABEL[role]}>
-        <StaffNav role={role} nav={nav} pageId={pageId} onPage={(id) => go(id)} badges={badges} upward />
+        <StaffNav role={role} nav={nav} pageId={pageId} onPage={(id) => void go(id)} badges={badges} upward />
       </nav>
 
       <main className="stage">
         {allowed ? (
           <StaffAccessProvider value={granted}>
-            <View key={`${userId ?? "anon"}:${page.id}:${target ?? "new"}`} go={go} target={target} resumeId={resumeId} />
+            <AccessReadyProvider value={accessReady}><LeaveGuardProvider value={registerGuard}>
+            <View key={`${userId ?? "anon"}:${page.id}:${target ?? "new"}`} go={(id, storyId) => void go(id, storyId)} target={target} resumeId={resumeId} />
+            </LeaveGuardProvider></AccessReadyProvider>
           </StaffAccessProvider>
         ) : (
           <Page title={page.label}>
