@@ -207,7 +207,7 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
           <tbody>{history.items.map((t) => {
             const [tone, label] = STATUS[t.status] ?? ['draft', t.status];
             return <tr key={t.id}>
-              <td data-label="Gói">{t.planName}</td>
+              <td data-label="Gói">{t.planName}{t.planType === 'Legacy' && <small className="pay-paid">Gói cũ, chỉ cộng lượt</small>}</td>
               <td data-label="Số tiền">{money(t.amount)}</td>
               <td data-label="Mã giao dịch"><code>{t.transactionCode}</code></td>
               <td data-label="Tạo lúc">{time(t.createdAt)}</td>
