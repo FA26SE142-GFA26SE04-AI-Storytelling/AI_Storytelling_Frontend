@@ -59,6 +59,28 @@ describe('child create wizard draft', () => {
     expect(readChildDraft(1, 3)).toEqual(draft);
     expect(readChildDraft(1, 3)?.maxLength).toBeUndefined();
   });
+  it('keeps the time & habits form and the skip choice, and reloads the suggestion when the form is corrupted', () => {
+    const value = {
+      enabled: true, weekday: [{ start: '18:00', end: '20:00' }], weekend: [], bedtimeWeekday: '20:30', bedtimeWeekend: '',
+      breakEnabled: true, breakAfterMinutes: 20, breakDurationMinutes: 5, breakRemindEyes: true, breakRemindWater: true, breakRemindMove: true,
+      screenLimitEnabled: true, screenLimitWeekdayMinutes: 45, screenLimitWeekendMinutes: 90,
+      habitEnabled: false, readingReminderWeekday: '19:00', readingReminderWeekend: '09:00', weeklyGoalDays: 3,
+    };
+    const time = { ageBand: 'Age_6_8', value, edited: true };
+    writeChildDraft(1, { ...draft, step: 4, time, skipTime: false });
+    expect(readChildDraft(1, 4)).toEqual({ ...draft, step: 4, time, skipTime: false });
+    writeChildDraft(1, { ...draft, skipTime: true });
+    expect(readChildDraft(1, 4)?.skipTime).toBe(true);
+    sessionStorage.setItem(childDraftKey(1), JSON.stringify({ v: 1, ...draft, time: { ageBand: 'Age_6_8', value: { enabled: 'x' }, edited: true } }));
+    expect(readChildDraft(1, 4)).toEqual(draft);
+  });
+  it('keeps age, grade and avatar, and drops each one alone when it is invalid', () => {
+    // draft.ageBand là Age_9_10: tuổi 9 khớp, tuổi 7 không khớp nên bị bỏ.
+    writeChildDraft(1, { ...draft, age: 9, grade: 4, avatarId: 'avatar-fox' });
+    expect(readChildDraft(1, 3)).toEqual({ ...draft, age: 9, grade: 4, avatarId: 'avatar-fox' });
+    writeChildDraft(1, { ...draft, age: 7, grade: 9, avatarId: 'avatar-dragon' });
+    expect(readChildDraft(1, 3)).toEqual(draft);
+  });
   it('drops unknown category rules instead of failing the whole draft', () => {
     sessionStorage.setItem(childDraftKey(1), JSON.stringify({ v: 1, ...draft, rules: { 4: 'Blocked', x: 'Blocked', 5: 'Maybe' } }));
     expect(readChildDraft(1, 3)?.rules).toEqual({ 4: 'Blocked' });

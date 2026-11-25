@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LEVEL_MODE_STORY_CAP, effectiveStoryLength, groupCategories, passwordProblem, presetBlocked, storyLengthAdvice, storyLengthUpperBound } from '@/app/lib/guardian';
 import { normalizeRule } from '@/app/features/children/SafetyBlocks';
+import { CHILD_AGES, SCHOOL_GRADES, ageBandOfAge } from '@/app/lib/guardian';
 import type { ContentCategory } from '@/app/types/childProfile';
 
 const cat = (id: number, code: string, displayName: string): ContentCategory => ({ id, code, displayName, isActive: true });
@@ -145,5 +146,15 @@ describe('storyLengthAdvice', () => {
     expect(storyLengthAdvice('Age_9_10', 3, 1500)).toBeNull();
     expect(storyLengthAdvice('Age_9_10', 3, 1700)?.severity).toBe('long');
     expect(storyLengthAdvice('Age_9_10', 3, 2300)?.severity).toBe('very-long');
+  });
+});
+
+describe('child age and school grade', () => {
+  it('maps every selectable age to the backend age band (6–8, 9–10)', () => {
+    expect(CHILD_AGES).toEqual([6, 7, 8, 9, 10]);
+    expect(CHILD_AGES.map(ageBandOfAge)).toEqual(['Age_6_8', 'Age_6_8', 'Age_6_8', 'Age_9_10', 'Age_9_10']);
+  });
+  it('offers grades 1–5, one per reading level', () => {
+    expect(SCHOOL_GRADES).toEqual([1, 2, 3, 4, 5]);
   });
 });

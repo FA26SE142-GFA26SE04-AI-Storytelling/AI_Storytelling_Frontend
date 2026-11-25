@@ -1,9 +1,24 @@
 import type { StoryOutputMode, VocabularyLevel } from "@/app/types/aiStory";
+import type { ContentCategory } from "@/app/types/childProfile";
+import { groupCategories, type CategoryGroupId } from "@/app/lib/guardian";
 
 /** Quy tắc dùng chung cho Luồng 2 (sinh truyện, nhập truyện, duyệt). */
 
-/** Luồng 2 mục 3.1 — mỗi thể loại gắn một khung truyện trong Prompt Catalog. */
+/** Luồng 2 mục 3.1 — danh sách thể loại dự phòng khi chưa tải được danh mục chủ đề. */
 export const GENRES = ["Cổ tích", "Phiêu lưu", "Động vật", "Khoa học vui", "Đời sống hằng ngày", "Ngụ ngôn"];
+
+/**
+ * Thể loại chọn được khi viết truyện cho một bé, chia theo nhóm danh mục: danh mục đang bật, không bị chặn,
+ * và nằm trong danh sách cho phép nếu phụ huynh có giới hạn. Bỏ nhóm "Cảnh báo an toàn" (không phải thể loại truyện).
+ */
+export function genreGroupsFor(cats: ContentCategory[], allowedCodes: string[], blockedCodes: string[]): { id: CategoryGroupId; label: string; names: string[] }[] {
+  const upper = (code: string) => code.toUpperCase();
+  const allowed = new Set(allowedCodes.map(upper));
+  const blocked = new Set(blockedCodes.map(upper));
+  const usable = cats.filter((c) => c.isActive && c.group !== "SafetyWarning" && !blocked.has(upper(c.code))
+    && (allowed.size === 0 || allowed.has(upper(c.code))));
+  return groupCategories(usable).map((g) => ({ id: g.id, label: g.label, names: g.items.map((c) => c.displayName) }));
+}
 
 
 /** Chế độ đầu ra của truyện (Studio và Nhập truyện có sẵn). */
