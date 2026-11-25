@@ -9,8 +9,9 @@ vi.mock("@/app/context/AuthContext", () => ({
 
 import CreateEventModal, { eventCategoryOptions } from "@/app/features/events/CreateEventModal";
 import type { ContentCategory } from "@/app/types/childProfile";
-import EventActivityParticipantView from "@/app/features/events/EventActivityParticipantView";
+import EventActivityParticipantView, { submittableStories } from "@/app/features/events/EventActivityParticipantView";
 import EventActivityWizard, { normalizeAwardSources } from "@/app/features/events/EventActivityWizard";
+import { awardValueText } from "@/app/features/events/EventDetailInfoCard";
 import EventAwardsTable from "@/app/features/events/EventAwardsTable";
 import EventRewardPlanField from "@/app/features/events/EventRewardPlanField";
 import EventConfigurationSummary from "@/app/features/events/EventConfigurationSummary";
@@ -216,6 +217,21 @@ describe("Events UI components", () => {
       category(1, "Genre"), category(2, "Genre", false), category(7, "SafetyWarning"), category(9, "LifeValue"),
     ]);
     expect(options.map((c) => c.id)).toEqual([1, 9]);
+  });
+
+  it("hides the value of awards without money or credits", () => {
+    expect(awardValueText({ unitValueVnd: 0, creditGrantAmount: 0 })).toBe("");
+    expect(awardValueText({ unitValueVnd: 0, creditGrantAmount: 3 })).toBe("3 lượt AI / suất");
+    expect(awardValueText({ unitValueVnd: 500000, creditGrantAmount: 0 })).toBe("500.000 đ / suất");
+  });
+
+  it("offers only stories that can still be submitted", () => {
+    const submission = (storyId: number, status: string, lockedStoryVersionId: number | null = null) =>
+      ({ id: storyId, eventId: 1, storyId, currentStoryVersionId: 1, status, lockedStoryVersionId });
+    const stories = [1, 2, 3, 4, 5].map((id) => ({ id }));
+    expect(submittableStories(stories, [
+      submission(1, "PendingReview"), submission(2, "Approved"), submission(3, "ChangesRequested"), submission(4, "Rejected", 9),
+    ])).toEqual([{ id: 3 }, { id: 5 }]);
   });
 
   it("shows the empty message without the wide table", () => {

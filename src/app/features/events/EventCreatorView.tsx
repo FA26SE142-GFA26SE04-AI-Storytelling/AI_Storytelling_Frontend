@@ -151,7 +151,7 @@ export default function EventCreatorView({
     if (!res.success) showToast(res.message || "Không nộp được truyện dự thi.", "err");
     else {
       setSubmission(res.data ?? null);
-      showToast("Đã nộp truyện dự thi và chuyển qua kiểm duyệt F-10.", "ok");
+      showToast("Đã nộp truyện dự thi và chuyển sang kiểm duyệt.", "ok");
       onRefresh();
     }
   };
@@ -297,7 +297,7 @@ export default function EventCreatorView({
                 Bài dự thi #{submission.id} · Truyện #{submission.storyId} (Phiên bản #{submission.currentStoryVersionId})
               </b>
               <span className="sub">
-                Kiểm duyệt F-10: {SUBMISSION_STATUS_LABEL[submission.status] ?? submission.status} · Độ tương đồng kiểm tra:{" "}
+                Kiểm duyệt: {SUBMISSION_STATUS_LABEL[submission.status] ?? submission.status} · Độ tương đồng kiểm tra:{" "}
                 {Math.round((submission.similarityScore ?? 0) * 100)}% · Thời gian nộp:{" "}
                 {submission.submittedAt ? formatVnDateTime(submission.submittedAt) : "Vừa xong"}
                 {submission.lockedStoryVersionId ? ` · Đã khóa bản #${submission.lockedStoryVersionId}` : ""}

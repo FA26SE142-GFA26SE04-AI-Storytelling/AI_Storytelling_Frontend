@@ -73,7 +73,7 @@ export default function CreatorGoalAndStoryCard({
     { label: "Đăng ký tham gia nhánh Creator", done: true },
     { label: "Chuẩn bị truyện dự thi (chọn truyện hiện có hoặc tạo truyện AI mới)", done: eligibleCount > 0 || Boolean(submission) },
     { label: "Nộp truyện dự thi trước hạn chót", done: Boolean(submission) },
-    { label: "Đạt kiểm duyệt an toàn F-10 & độ trùng lặp hợp lệ", done: submission?.status === "Approved" },
+    { label: "Đạt kiểm duyệt an toàn & độ trùng lặp hợp lệ", done: submission?.status === "Approved" },
     {
       label: "Được chấm điểm & xác minh đủ điều kiện xét giải",
       done: participation.status === "Verified" || (submission?.evaluationCount ?? 0) > 0,
