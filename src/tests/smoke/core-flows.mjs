@@ -87,6 +87,12 @@ async function shots(page, name, scope = 'body') {
 }
 
 /** API giả cho mọi trường hợp. Trả `undefined` thì rơi xuống 404 "chức năng không nằm trong smoke test". */
+/** Cấu hình thời gian & thói quen backend trả khi bé chưa lưu lần nào: gợi ý theo tuổi 6–8. */
+const suggestedSchedule = { childProfileId: 10, enabled: false, bedtimeWeekday: '20:30', bedtimeWeekend: '20:30', breakEnabled: true, breakAfterMinutes: 20, breakDurationMinutes: 5,
+  breakRemindEyes: true, breakRemindWater: true, breakRemindMove: true, screenLimitEnabled: true, screenLimitWeekdayMinutes: 45, screenLimitWeekendMinutes: 90,
+  habitEnabled: false, readingReminderWeekday: '19:00', readingReminderWeekend: '09:00', weeklyGoalDays: 3, habit: null, isSuggested: true,
+  windows: [{ dayType: 'Weekday', slot: 1, startTime: '18:00', endTime: '20:00' }, { dayType: 'Weekend', slot: 1, startTime: '08:00', endTime: '11:00' }, { dayType: 'Weekend', slot: 2, startTime: '15:00', endTime: '20:00' }] };
+
 function api({ path, method, body, url, state }) {
   switch (true) {
     case path === '/Auth/me': return state.user;
@@ -95,6 +101,13 @@ function api({ path, method, body, url, state }) {
     case path === '/Notification/unread-count': return 0;
     case path === '/Notification': return [];
     case path === '/ChildProfile/mine': return [sen, lan];
+    case path === '/ReadingSchedule/10' && method === 'GET': return state.readingSchedule ?? suggestedSchedule;
+    case path === '/ReadingSchedule/10' && method === 'PUT': {
+      const slots = { Weekday: 0, Weekend: 0 };
+      state.readingSchedule = { ...body, childProfileId: 10, isSuggested: false, habit: { streakDays: 2, daysReadThisWeek: 1, goalMetThisWeek: false },
+        windows: body.windows.map((w) => ({ ...w, slot: ++slots[w.dayType] })) };
+      return state.readingSchedule;
+    }
     case path.startsWith('/SafetyPolicy/'): return { childProfileId: 10, maxStoryLength: 2000, parentalGateEnabled: false, categories: [] };
     case path.startsWith('/LearningProfile/'): return { childProfileId: 10, readingLevel: 2, readingMode: 'ReadFirst', topics: state.libraryDiscovery && path === '/LearningProfile/10' ? [{ topic: 'Kham pha', relation: 'FavoriteTopic' }] : [] };
     case path === '/ContentCategory': return [{ id: 1, code: 'nature', displayName: 'Thiên nhiên', isActive: true }];
@@ -790,6 +803,30 @@ try {
     await page.getByRole('tab', { name: 'Chờ duyệt', selected: true }).waitFor();
     await page.locator('.rt-head').getByText('Đang chờ duyệt', { exact: true }).waitFor();
     assert(state.rtSubmitted, 'Phải gọi API gửi duyệt');
+  });
+
+  // Tab "Thời gian & thói quen" của hồ sơ bé: hiện gợi ý theo tuổi khi chưa lưu, sửa rồi PUT đủ mọi trường, hiện tiến độ sau khi lưu.
+  await smoke('ParentTimeHabits', 'Parent', async ({ page, state, requests }) => {
+    await page.goto(parent('#children'), { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Thời gian & thói quen', exact: true }).click();
+    await page.getByText('Đây là gợi ý theo độ tuổi của Bé Sen', { exact: false }).waitFor();
+    assert.equal(await page.locator('.th-win-row').count(), 3, 'Gợi ý có 3 khung giờ: 1 ngày thường, 2 cuối tuần');
+    await page.getByRole('switch', { name: 'Bật thói quen đọc', exact: true }).click();
+    await page.getByRole('radio', { name: '4 ngày', exact: true }).click();
+    await page.getByRole('button', { name: 'Lưu thời gian & thói quen', exact: true }).click();
+    await page.getByRole('button', { name: 'Đã lưu', exact: true }).waitFor();
+    const put = requests.find((r) => r.path === '/ReadingSchedule/10' && r.method === 'PUT');
+    assert(put, 'Phải gọi PUT /ReadingSchedule/10');
+    assert.equal(put.body.habitEnabled, true);
+    assert.equal(put.body.weeklyGoalDays, 4);
+    assert.equal(put.body.readingReminderWeekday, '19:00', 'PUT phải gửi đủ giờ nhắc đã điền sẵn');
+    assert.equal(put.body.windows.length, 3);
+    assert.equal(state.readingSchedule.habit.daysReadThisWeek, 1);
+    await page.getByText('Chuỗi ngày đọc', { exact: true }).waitFor();
+    await page.getByText('1 / 4 ngày', { exact: true }).waitFor();
+    await page.getByText('Còn 3 ngày nữa', { exact: true }).waitFor();
+    assert.equal(await page.getByText('Đây là gợi ý theo độ tuổi', { exact: false }).count(), 0, 'Đã lưu thì hết banner gợi ý');
+    await shots(page, 'ParentTimeHabits', '.time-habits');
   });
 
   await writeFile(new URL('results.json', output), JSON.stringify(results, null, 2));

@@ -6815,6 +6815,48 @@
   },
   {
     "method": "GET",
+    "route": "/api/v1/ReadingSchedule/{childProfileId}",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "controller": "ReadingScheduleController.cs",
+    "action": "GetReadingSchedule",
+    "controllerLine": 24,
+    "evidence": [
+      {
+        "key": "GET /api/v1/ReadingSchedule/{}",
+        "service": "readingScheduleService",
+        "operation": "get",
+        "file": "app/services/readingScheduleService.ts",
+        "line": 9,
+        "callers": [
+          "app/features/children/TimeHabitsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/ReadingSchedule/{childProfileId}",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
+    "controller": "ReadingScheduleController.cs",
+    "action": "SetReadingSchedule",
+    "controllerLine": 34,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/ReadingSchedule/{}",
+        "service": "readingScheduleService",
+        "operation": "set",
+        "file": "app/services/readingScheduleService.ts",
+        "line": 14,
+        "callers": [
+          "app/features/children/TimeHabitsTab.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
     "route": "/api/v1/stories/{storyId}/review",
     "authorization": "Authenticated",
     "controller": "ReviewController.cs",

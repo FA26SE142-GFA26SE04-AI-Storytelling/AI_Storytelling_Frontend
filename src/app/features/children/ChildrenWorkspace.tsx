@@ -16,16 +16,18 @@ import ProfileTab from "./ProfileTab";
 import LearningTab from "./LearningTab";
 import SafetyTab from "@/app/features/safety/SafetyWorkspace";
 import AccessTab from "./AccessTab";
+import TimeHabitsTab from "./TimeHabitsTab";
 import ReadingSlotsDialog from "./ReadingSlotsDialog";
 import { childProfileService } from "@/app/services/childProfileService";
 import { forgetArchived, listArchived, rememberArchived, type ArchivedChild } from "@/app/lib/archivedChildren";
 import type { ReadingSlotsDto } from "@/app/types/readingSlots";
 
-type Tab = "profile" | "learning" | "safety" | "access";
+type Tab = "profile" | "learning" | "safety" | "time" | "access";
 const TABS: { id: Tab; label: string }[] = [
   { id: "profile", label: "Hồ sơ" },
   { id: "learning", label: "Học tập" },
   { id: "safety", label: "An toàn" },
+  { id: "time", label: "Thời gian & thói quen" },
   { id: "access", label: "QR đăng nhập" },
 ];
 
@@ -179,6 +181,7 @@ export default function ChildrenWorkspace(_props: WorkspaceProps) {
                   {tab === "profile" && <ProfileTab key={child.id} child={child} isOwner={isOwner} onChanged={() => void reloadChildren()} onArchived={() => { rememberArchived(meId, child); setArchived(listArchived(meId)); void reloadChildren(); }} onTab={setTab} />}
                   {tab === "learning" && <LearningTab key={child.id} child={child} canEdit={isOwner} onSaved={() => void reloadChildren()} />}
                   {tab === "safety" && <SafetyTab key={child.id} child={child} />}
+                  {tab === "time" && <TimeHabitsTab key={child.id} child={child} canEdit={isOwner} />}
                   {tab === "access" && <AccessTab key={child.id} child={child} />}
               </div>
             </div>
