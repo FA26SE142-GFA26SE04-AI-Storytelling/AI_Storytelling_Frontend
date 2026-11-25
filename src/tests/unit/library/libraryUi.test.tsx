@@ -11,7 +11,7 @@ vi.mock("@/app/context/WorkspaceDataContext", () => ({
 
 import { LibraryBookCard, LibrarySkeletonGrid } from "@/app/features/library/LibraryCards";
 import { LibraryFeaturedStory, LibraryGenreTiles } from "@/app/features/library/LibraryDiscoveryHighlights";
-import LibraryDetailDialog from "@/app/features/library/LibraryDetailDialog";
+import LibraryDetailDialog, { LibraryDetailShell } from "@/app/features/library/LibraryDetailDialog";
 import LibraryFilterPopover from "@/app/features/library/LibraryFilterPopover";
 import LibraryFilterSidebar from "@/app/features/library/LibraryFilterSidebar";
 import LibraryHeader from "@/app/features/library/LibraryHeader";
@@ -111,6 +111,43 @@ describe("Library UI components", () => {
     expect(html).toContain("Báo cáo nội dung");
     expect(html).toContain("4,5 · 12 đánh giá");
     expect(html).toContain("Xem đánh giá của phụ huynh");
+  });
+
+  it("LibraryDetailShell (Thư viện Creator) shows custom actions and a read-only rating line", () => {
+    const html = renderToStaticMarkup(
+      <LibraryDetailShell story={makeStory({ creator: true, viewCount: 5, favoriteCount: 2 })} onClose={() => {}} rating={{ averageRating: 4, ratingCount: 3 }}>
+        <button type="button">Mở để soạn tiếp</button>
+      </LibraryDetailShell>,
+    );
+    expect(html).toContain("Mở để soạn tiếp");
+    expect(html).toContain("4,0 · 3 đánh giá");
+    expect(html).not.toContain("Xem đánh giá của phụ huynh");
+    expect(html).not.toContain("Cho bé đọc ngay");
+    expect(html).not.toContain("Báo cáo nội dung");
+  });
+
+  it("LibraryFilterSidebar community mode drops the single-value Source and Status groups", () => {
+    const html = renderToStaticMarkup(
+      <LibraryFilterSidebar
+        stories={[makeStory({ creator: true })]}
+        ages={[{ key: "6-8 tuổi", label: "6–8 tuổi", count: 1 }]}
+        topics={[["Khám phá", 1]]}
+        age="all"
+        genre="all"
+        source="all"
+        status="all"
+        extraFilters={{ durations: [], duration: "all", onDuration: () => {}, authors: [], author: "all", onAuthor: () => {} }}
+        community
+        onAge={() => {}}
+        onGenre={() => {}}
+        onSource={() => {}}
+        onStatus={() => {}}
+        onClear={() => {}}
+      />,
+    );
+    expect(html).toContain("Độ tuổi");
+    expect(html).not.toContain("Nguồn truyện");
+    expect(html).not.toContain("Trạng thái");
   });
 
   it("LibraryDetailDialog switches actions cleanly for family drafts and moderation stories", () => {

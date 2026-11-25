@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import {
   BookOpen,
   Eye,
@@ -36,22 +36,37 @@ export type LibraryDetailDialogProps = {
   rating: { averageRating: number | null; ratingCount: number };
 };
 
-/** Hộp chi tiết truyện của Thư viện phụ huynh: bìa đứng 3:4, tóm tắt & bài học trên nền giấy, hàng thao tác rõ thứ bậc. */
-export default function LibraryDetailDialog({
+/**
+ * Khung hộp chi tiết truyện dùng chung (Thư viện phụ huynh và Thư viện Creator): bìa, thống kê, thẻ thông tin, tóm tắt & bài học.
+ * `children` là hàng thao tác riêng của từng vai trò; không có `onRate` thì dòng đánh giá chỉ để xem.
+ */
+export function LibraryDetailShell({
   story,
-  go,
-  onKid,
   onClose,
-  onPreview,
-  onAddRoadmap,
-  onReport,
-  onRate,
   rating,
-}: LibraryDetailDialogProps) {
+  onRate,
+  children,
+}: {
+  story: StoryCard;
+  onClose: () => void;
+  rating: { averageRating: number | null; ratingCount: number };
+  onRate?: () => void;
+  children: ReactNode;
+}) {
   const detailRef = useRef<HTMLDivElement>(null);
-  const storyStatus = statusOf(story);
   const hasViews = typeof story.viewCount === "number" && !Number.isNaN(story.viewCount);
   const hasFavorites = typeof story.favoriteCount === "number" && !Number.isNaN(story.favoriteCount);
+  const ratingSummary =
+    rating.ratingCount > 0 && rating.averageRating != null ? (
+      <>
+        <StarRating value={rating.averageRating} size={16} />
+        <span className="lib-num">
+          {rating.averageRating.toLocaleString("vi-VN", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} · {rating.ratingCount} đánh giá
+        </span>
+      </>
+    ) : (
+      <span>Chưa có đánh giá</span>
+    );
 
   useEffect(() => {
     const modal = detailRef.current?.closest('[role="dialog"]');
@@ -105,20 +120,13 @@ export default function LibraryDetailDialog({
                 )}
               </div>
             )}
-            {story.creator && (
+            {story.creator && (onRate ? (
               <button type="button" className="rating-line" onClick={onRate} aria-label="Xem đánh giá của phụ huynh">
-                {rating.ratingCount > 0 && rating.averageRating != null ? (
-                  <>
-                    <StarRating value={rating.averageRating} size={16} />
-                    <span className="lib-num">
-                      {rating.averageRating.toLocaleString("vi-VN", { minimumFractionDigits: 1, maximumFractionDigits: 1 })} · {rating.ratingCount} đánh giá
-                    </span>
-                  </>
-                ) : (
-                  <span>Chưa có đánh giá</span>
-                )}
+                {ratingSummary}
               </button>
-            )}
+            ) : (
+              <span className="rating-line">{ratingSummary}</span>
+            ))}
           </div>
         </div>
 
@@ -162,86 +170,104 @@ export default function LibraryDetailDialog({
             </div>
           )}
 
-          <div className="lib-detail-actions">
-            {/* Truyện tự soạn đi qua API riêng: kiểm tra, giao cho bé, thu hồi đều làm ở trang Tự soạn. */}
-            {story.family ? (
-              <div className="lib-detail-primary">
-                <button
-                  type="button"
-                  className="btn btn-p btn-c"
-                  onClick={() => go("authoring", { storyId: story.id })}
-                >
-                  <PencilLine className="ic" aria-hidden="true" />
-                  Mở trong trang Thủ công
-                </button>
-              </div>
-            ) : (
-              <>
-                {storyStatus === "moderation" && (
-                  <span className="pill wait lib-state" title="Kiểm duyệt viên thường xem trong 24 giờ">
-                    Đang chờ kiểm duyệt
-                  </span>
-                )}
-                {(storyStatus === "ready" ||
-                  storyStatus === "review" ||
-                  (story.fromAi &&
-                    ["draft", "generating", "outline", "review", "media", "moderation"].includes(storyStatus))) && (
-                  <div className="lib-detail-primary">
-                    {storyStatus === "review" && (
-                      <button
-                        type="button"
-                        className="btn btn-p btn-c"
-                        onClick={() => go(story.fromAi ? "studio" : "authoring", { storyId: story.id })}
-                      >
-                        <WandSparkles className="ic" aria-hidden="true" />
-                        Mở để duyệt
-                      </button>
-                    )}
-                    {story.fromAi &&
-                      ["draft", "generating", "outline", "review", "media", "moderation"].includes(storyStatus) && (
-                        <button
-                          type="button"
-                          className="btn btn-p btn-c"
-                          onClick={() => go("studio", { storyId: story.id })}
-                        >
-                          <WandSparkles className="ic" aria-hidden="true" />
-                          Tiếp tục trong Studio
-                        </button>
-                      )}
-                    {storyStatus === "ready" && (
-                      <StoryHandoverButton storyId={story.id} title={story.title} onKid={onKid} />
-                    )}
-                    {storyStatus === "ready" && (
-                      <button type="button" className="btn btn-p btn-c" onClick={onAddRoadmap}>
-                        <Route className="ic" aria-hidden="true" />
-                        Thêm vào lộ trình
-                      </button>
-                    )}
-                  </div>
-                )}
-                {storyStatus === "ready" && (
-                  <div className="lib-detail-secondary">
-                    <button type="button" className="btn btn-s" onClick={onPreview}>
-                      <Eye className="ic" aria-hidden="true" />
-                      Xem trước như bé thấy
-                    </button>
-                    {story.creator && (
-                      <button type="button" className="btn btn-s" onClick={onRate}>
-                        <Star className="ic" aria-hidden="true" />
-                        Đánh giá
-                      </button>
-                    )}
-                    <button type="button" className="btn btn-g lib-report-btn" onClick={onReport}>
-                      <Flag className="ic" aria-hidden="true" />
-                      Báo cáo nội dung
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+          <div className="lib-detail-actions">{children}</div>
         </div>
       </div>
     </Dialog>
+  );
+}
+
+/** Hộp chi tiết truyện của Thư viện phụ huynh: bìa đứng 3:4, tóm tắt & bài học trên nền giấy, hàng thao tác rõ thứ bậc. */
+export default function LibraryDetailDialog({
+  story,
+  go,
+  onKid,
+  onClose,
+  onPreview,
+  onAddRoadmap,
+  onReport,
+  onRate,
+  rating,
+}: LibraryDetailDialogProps) {
+  const storyStatus = statusOf(story);
+  return (
+    <LibraryDetailShell story={story} onClose={onClose} rating={rating} onRate={onRate}>
+      {/* Truyện tự soạn đi qua API riêng: kiểm tra, giao cho bé, thu hồi đều làm ở trang Tự soạn. */}
+      {story.family ? (
+        <div className="lib-detail-primary">
+          <button
+            type="button"
+            className="btn btn-p btn-c"
+            onClick={() => go("authoring", { storyId: story.id })}
+          >
+            <PencilLine className="ic" aria-hidden="true" />
+            Mở trong trang Thủ công
+          </button>
+        </div>
+      ) : (
+        <>
+          {storyStatus === "moderation" && (
+            <span className="pill wait lib-state" title="Kiểm duyệt viên thường xem trong 24 giờ">
+              Đang chờ kiểm duyệt
+            </span>
+          )}
+          {(storyStatus === "ready" ||
+            storyStatus === "review" ||
+            (story.fromAi &&
+              ["draft", "generating", "outline", "review", "media", "moderation"].includes(storyStatus))) && (
+            <div className="lib-detail-primary">
+              {storyStatus === "review" && (
+                <button
+                  type="button"
+                  className="btn btn-p btn-c"
+                  onClick={() => go(story.fromAi ? "studio" : "authoring", { storyId: story.id })}
+                >
+                  <WandSparkles className="ic" aria-hidden="true" />
+                  Mở để duyệt
+                </button>
+              )}
+              {story.fromAi &&
+                ["draft", "generating", "outline", "review", "media", "moderation"].includes(storyStatus) && (
+                  <button
+                    type="button"
+                    className="btn btn-p btn-c"
+                    onClick={() => go("studio", { storyId: story.id })}
+                  >
+                    <WandSparkles className="ic" aria-hidden="true" />
+                    Tiếp tục trong Studio
+                  </button>
+                )}
+              {storyStatus === "ready" && (
+                <StoryHandoverButton storyId={story.id} title={story.title} onKid={onKid} />
+              )}
+              {storyStatus === "ready" && (
+                <button type="button" className="btn btn-p btn-c" onClick={onAddRoadmap}>
+                  <Route className="ic" aria-hidden="true" />
+                  Thêm vào lộ trình
+                </button>
+              )}
+            </div>
+          )}
+          {storyStatus === "ready" && (
+            <div className="lib-detail-secondary">
+              <button type="button" className="btn btn-s" onClick={onPreview}>
+                <Eye className="ic" aria-hidden="true" />
+                Xem trước như bé thấy
+              </button>
+              {story.creator && (
+                <button type="button" className="btn btn-s" onClick={onRate}>
+                  <Star className="ic" aria-hidden="true" />
+                  Đánh giá
+                </button>
+              )}
+              <button type="button" className="btn btn-g lib-report-btn" onClick={onReport}>
+                <Flag className="ic" aria-hidden="true" />
+                Báo cáo nội dung
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </LibraryDetailShell>
   );
 }

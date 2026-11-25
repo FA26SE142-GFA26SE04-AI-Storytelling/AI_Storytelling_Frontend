@@ -254,6 +254,31 @@ describe("useLibraryCatalog & loadAllPages", () => {
     });
   });
 
+  it("communityOnly (Thư viện Creator) loads only GET /Story/community and keeps its own cache", async () => {
+    const getMineSpy = vi.spyOn(storyService, "getStories");
+    const getCommSpy = vi.spyOn(storyService, "getCommunityStories").mockResolvedValue({
+      success: true,
+      data: { items: [makeCommunityDto({ id: 5, viewCount: 9 })], totalCount: 1, pageIndex: 1, pageSize: 100, totalPages: 1, hasPreviousPage: false, hasNextPage: false },
+    });
+
+    const hook = renderHook((uid: number | undefined) => useLibraryCatalog(uid, { communityOnly: true }), 42);
+    await vi.waitFor(() => {
+      expect(hook.result.current.storiesLoading).toBe(false);
+    });
+    expect(getMineSpy).not.toHaveBeenCalled();
+    expect(hook.result.current.stories.map((s) => [s.id, s.creator, s.viewCount])).toEqual([[5, true, 9]]);
+
+    // Bộ nhớ đệm của Thư viện Creator không dùng chung với thư viện phụ huynh của cùng tài khoản.
+    hook.unmount();
+    host.reset();
+    getMineSpy.mockResolvedValue({ success: true, data: { items: [], totalCount: 0, pageIndex: 1, pageSize: 100, totalPages: 0, hasPreviousPage: false, hasNextPage: false } });
+    renderHook((uid: number | undefined) => useLibraryCatalog(uid), 42);
+    await vi.waitFor(() => {
+      expect(getMineSpy).toHaveBeenCalledTimes(1);
+      expect(getCommSpy).toHaveBeenCalledTimes(2);
+    });
+  });
+
   it("handles rejected requests cleanly and supports retryStories", async () => {
     vi.spyOn(storyService, "getStories").mockRejectedValueOnce(new Error("Mất kết nối mạng"));
     vi.spyOn(storyService, "getCommunityStories").mockResolvedValueOnce({

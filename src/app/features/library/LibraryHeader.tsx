@@ -28,6 +28,8 @@ export type LibraryHeaderProps = {
   source: string;
   popoverCount: number;
   extraFilters?: LibraryExtraFilterProps;
+  /** Thư viện Creator: chỉ có truyện cộng đồng, không có tab Lộ trình mẫu và nhóm lọc Nguồn/Trạng thái. */
+  community?: boolean;
   onBackToLearning: () => void;
   onDismissPickKid: () => void;
   onTabChange: (tab: "stories" | "roadmaps") => void;
@@ -61,6 +63,7 @@ export default function LibraryHeader({
   source,
   popoverCount,
   extraFilters,
+  community = false,
   onBackToLearning,
   onDismissPickKid,
   onTabChange,
@@ -103,7 +106,7 @@ export default function LibraryHeader({
         </div>
       )}
 
-      <header className="lib-head">
+      {!community && <header className="lib-head">
         {tab === "stories" && (
           <div className="lib-header-pond" aria-hidden="true">
             <Lotus className="lib-pond-lotus-small" size={54} />
@@ -134,7 +137,7 @@ export default function LibraryHeader({
             {templatesCount !== null && <span className="lib-switch-n lib-num">{templatesCount}</span>}
           </button>
         </div>
-      </header>
+      </header>}
 
       <div className="lib-toolbar">
         <div className="lib-search">
@@ -183,6 +186,7 @@ export default function LibraryHeader({
               source={source}
               activePopoverCount={popoverCount}
               extraFilters={extraFilters}
+              community={community}
               onStatusChange={onStatusChange}
               onAgeChange={onAgeChange}
               onSourceChange={onSourceChange}

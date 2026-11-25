@@ -5,7 +5,7 @@ import type { StoryCard } from "@/app/lib/storyView";
 import { FilterGroup, LibraryTopAuthors, type LibraryExtraFilterProps } from "./LibraryExtraFilters";
 import { SOURCE_LABEL, STATUS_GROUPS, sourceOf, statusOf, type AgeFilterOption } from "./libraryFilters";
 
-export default function LibraryFilterSidebar({ stories, ages, topics, age, genre, source, status, extraFilters, onAge, onGenre, onSource, onStatus, onClear }: {
+export default function LibraryFilterSidebar({ stories, ages, topics, age, genre, source, status, extraFilters, community = false, onAge, onGenre, onSource, onStatus, onClear }: {
   stories: StoryCard[];
   ages: AgeFilterOption[];
   topics: [string, number][];
@@ -14,6 +14,8 @@ export default function LibraryFilterSidebar({ stories, ages, topics, age, genre
   source: string;
   status: string;
   extraFilters: LibraryExtraFilterProps;
+  /** Chỉ có truyện cộng đồng đã công khai (Thư viện Creator): bỏ nhóm Nguồn và Trạng thái vì luôn chỉ có một giá trị. */
+  community?: boolean;
   onAge: (value: string) => void;
   onGenre: (value: string) => void;
   onSource: (value: string) => void;
@@ -37,8 +39,8 @@ export default function LibraryFilterSidebar({ stories, ages, topics, age, genre
         <FilterGroup title="Độ tuổi" icon={Users} options={ages} value={age} onChange={onAge} />
         <FilterGroup title="Chủ đề" icon={Shapes} options={topics.map(([key, count]) => ({ key, label: key, count }))} value={genre} onChange={onGenre} limit={6} />
         <FilterGroup title="Thời lượng" icon={Clock} options={extraFilters.durations} value={extraFilters.duration} onChange={extraFilters.onDuration} />
-        <FilterGroup title="Nguồn truyện" icon={BookOpen} options={sources.filter(({ key, count }) => count > 0 || key === source)} value={source} onChange={onSource} defaultOpen={source !== "all"} />
-        <FilterGroup title="Trạng thái" icon={Tag} options={statuses.filter(({ key, count }) => count > 0 || key === status)} value={status} onChange={onStatus} defaultOpen={status !== "all"} />
+        {!community && <FilterGroup title="Nguồn truyện" icon={BookOpen} options={sources.filter(({ key, count }) => count > 0 || key === source)} value={source} onChange={onSource} defaultOpen={source !== "all"} />}
+        {!community && <FilterGroup title="Trạng thái" icon={Tag} options={statuses.filter(({ key, count }) => count > 0 || key === status)} value={status} onChange={onStatus} defaultOpen={status !== "all"} />}
         <LibraryTopAuthors authors={extraFilters.authors} author={extraFilters.author} onAuthor={extraFilters.onAuthor} />
       </div>
     </aside>

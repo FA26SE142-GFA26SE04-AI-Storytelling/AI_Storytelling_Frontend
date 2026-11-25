@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { ChevronRight, PencilLine, RefreshCw, Route, Sparkles, WandSparkles, X } from "lucide-react";
 import Frog from "@/app/components/brand/Frog";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
@@ -36,7 +37,10 @@ export type LibraryStoriesViewProps = {
   pickKidName: string | null;
   topicAudience?: LibraryTopicAudience;
   matchingRoadmapsCount: number;
-  go: WorkspaceProps["go"];
+  /** Bỏ trống khi có `emptyState` (chỉ dùng cho nút tạo truyện ở trạng thái trống mặc định của phụ huynh). */
+  go?: WorkspaceProps["go"];
+  /** Trạng thái thư viện trống riêng (Thư viện Creator); không truyền thì dùng lời mời tạo truyện của phụ huynh. */
+  emptyState?: ReactNode;
   onGenreChange: (genre: string) => void;
   onAgeChange?: (age: string) => void;
   onSortChange: (sort: LibrarySort) => void;
@@ -71,6 +75,7 @@ export default function LibraryStoriesView({
   topicAudience,
   matchingRoadmapsCount,
   go,
+  emptyState,
   onGenreChange,
   onAgeChange,
   onSortChange,
@@ -151,16 +156,16 @@ export default function LibraryStoriesView({
           </button>
         </div>
       ) : stories.length === 0 ? (
-        <div className="lib-empty-panel">
+        emptyState ?? <div className="lib-empty-panel">
           <Frog size={96} mood="idle" />
           <h3 className="display">Thư viện chưa có truyện nào</h3>
           <p>Bắt đầu tạo truyện mới bằng AI hoặc tự viết câu chuyện riêng cho gia đình bạn.</p>
           <div className="row lib-empty-actions">
-            <button type="button" className="btn btn-gold" onClick={() => go("studio")}>
+            <button type="button" className="btn btn-gold" onClick={() => go?.("studio")}>
               <WandSparkles className="ic" aria-hidden="true" />
               Dùng AI tạo truyện
             </button>
-            <button type="button" className="btn btn-s" onClick={() => go("authoring")}>
+            <button type="button" className="btn btn-s" onClick={() => go?.("authoring")}>
               <PencilLine className="ic" aria-hidden="true" />
               Viết thủ công
             </button>

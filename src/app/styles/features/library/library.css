@@ -950,7 +950,6 @@
 }
 .lib-detail-aside-meta { display: flex; flex-direction: column; gap: 8px; }
 .lib-detail-status { width: fit-content; }
-.lib-detail-meta { font-size: var(--fs-sm); gap: 8px 16px; }
 .lib-detail-stats { display: flex; flex-wrap: wrap; gap: 8px; }
 .lib-detail-stat {
   display: inline-flex;
