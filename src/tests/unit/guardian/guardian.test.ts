@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { groupCategories, passwordProblem, presetBlocked } from '@/app/lib/guardian';
+import { LEVEL_MODE_STORY_CAP, effectiveStoryLength, groupCategories, passwordProblem, presetBlocked, storyLengthAdvice, storyLengthUpperBound } from '@/app/lib/guardian';
 import { normalizeRule } from '@/app/features/children/SafetyBlocks';
 import type { ContentCategory } from '@/app/types/childProfile';
 
@@ -76,5 +76,74 @@ describe('normalizeRule', () => {
   it('coi mức Hạn chế cũ là Chặn', () => {
     expect(normalizeRule('Restricted')).toBe('Blocked');
     expect(normalizeRule('Allowed')).toBe('Allowed');
+  });
+});
+
+describe('effectiveStoryLength', () => {
+  it('theo mức đọc khi chưa tự chỉnh: 900 cho bé 6–8 tuổi mức 1–3, 1500 cho mức 4–5 hoặc 9–10 tuổi', () => {
+    expect(effectiveStoryLength('Age_6_8', 2, null, 2000)).toEqual({ value: 900, custom: false });
+    expect(effectiveStoryLength('Age_6_8', 4, undefined, 2000)).toEqual({ value: 1500, custom: false });
+    expect(effectiveStoryLength('Age_9_10', 1, null, 2000)).toEqual({ value: 1500, custom: false });
+  });
+
+  it('ưu tiên số phụ huynh tự chỉnh', () => {
+    expect(effectiveStoryLength('Age_6_8', 2, 1200, 1320)).toEqual({ value: 1200, custom: true });
+  });
+
+  it('giới hạn cũ thấp hơn mặc định được coi là tự chỉnh bằng đúng giới hạn đó (khớp backend StoryLengthRules)', () => {
+    expect(effectiveStoryLength('Age_6_8', 2, null, 700)).toEqual({ value: 700, custom: true });
+  });
+
+  it('trần bằng hoặc cao hơn mặc định thì vẫn là theo mức đọc', () => {
+    expect(effectiveStoryLength('Age_6_8', 2, null, 900)).toEqual({ value: 900, custom: false });
+  });
+
+  it('trần lưu ở chế độ theo mức đọc không bao giờ bị coi là giới hạn cũ, kể cả khi mức đọc hoặc nhóm tuổi tăng lên', () => {
+    expect(effectiveStoryLength('Age_6_8', 4, null, LEVEL_MODE_STORY_CAP)).toEqual({ value: 1500, custom: false });
+    expect(effectiveStoryLength('Age_6_8', 2, null, LEVEL_MODE_STORY_CAP)).toEqual({ value: 900, custom: false });
+    expect(effectiveStoryLength('Age_9_10', 3, null, LEVEL_MODE_STORY_CAP)).toEqual({ value: 1500, custom: false });
+  });
+});
+
+describe('storyLengthUpperBound', () => {
+  it('110% làm tròn lên bằng số nguyên, khớp backend (không lệch do số thực)', () => {
+    expect(storyLengthUpperBound(900)).toBe(990);
+    expect(storyLengthUpperBound(1500)).toBe(1650);
+    expect(storyLengthUpperBound(1200)).toBe(1320);
+    expect(storyLengthUpperBound(101)).toBe(112);
+  });
+});
+
+describe('LEVEL_MODE_STORY_CAP', () => {
+  it('phủ độ dài mặc định lớn nhất (1500 từ)', () => {
+    expect(LEVEL_MODE_STORY_CAP).toBe(1650);
+  });
+});
+
+describe('storyLengthAdvice', () => {
+  it('không cảnh báo khi bằng, ngắn hơn hoặc dài không quá 110% mức mặc định', () => {
+    expect(storyLengthAdvice('Age_6_8', 2, 600)).toBeNull();
+    expect(storyLengthAdvice('Age_6_8', 2, 900)).toBeNull();
+    expect(storyLengthAdvice('Age_6_8', 2, 990)).toBeNull();
+  });
+
+  it('cảnh báo dài hơn mức phù hợp, nêu nhóm tuổi của bé và việc tạo truyện lâu hơn', () => {
+    const advice = storyLengthAdvice('Age_6_8', 2, 1200);
+    expect(advice?.severity).toBe('long');
+    expect(advice?.text).toContain('6–8 tuổi');
+    expect(advice?.text).toMatch(/thời gian/);
+  });
+
+  it('cảnh báo rất dài khi vượt 150% mức mặc định', () => {
+    const advice = storyLengthAdvice('Age_6_8', 2, 1400);
+    expect(advice?.severity).toBe('very-long');
+    expect(advice?.text).toMatch(/Rất dài/);
+    expect(advice?.text).toMatch(/duyệt/);
+  });
+
+  it('so với mức mặc định của bé 9–10 tuổi (1500), không phải 900', () => {
+    expect(storyLengthAdvice('Age_9_10', 3, 1500)).toBeNull();
+    expect(storyLengthAdvice('Age_9_10', 3, 1700)?.severity).toBe('long');
+    expect(storyLengthAdvice('Age_9_10', 3, 2300)?.severity).toBe('very-long');
   });
 });

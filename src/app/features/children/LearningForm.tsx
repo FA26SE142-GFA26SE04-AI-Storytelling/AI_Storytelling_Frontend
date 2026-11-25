@@ -65,6 +65,7 @@ function LevelInfo({ level, ageBand }: { level: number; ageBand?: string }) {
         <div><dt>Câu dài tối đa</dt><dd>trung bình {info.maxWords} từ/câu</dd></div>
         <div><dt>Câu thường dài</dt><dd>khoảng {info.typicalWords} từ</dd></div>
         <div><dt>Cả truyện</dt><dd>khoảng {fmt(story.target)} từ ({fmt(story.min)}–{fmt(story.max)}){basis}</dd></div>
+      <p className="sub">Đây là độ dài mặc định theo mức đọc. Bạn chỉnh lại được ở phần An toàn.</p>
       </dl>
       <p className="level-sample">Ví dụ: “{info.sample}” <small>({countWords(info.sample)} từ)</small></p>
       {above && (
