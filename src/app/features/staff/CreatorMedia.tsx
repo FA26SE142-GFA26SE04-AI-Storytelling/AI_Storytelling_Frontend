@@ -17,7 +17,7 @@ import type { MediaProgressDto } from "@/app/types/aiStory";
 type Props = {
   storyId: number;
   versionId: number | null;
-  media: { data: MediaProgressDto | null; error: string | null; refresh: () => void };
+  media: { data: MediaProgressDto | null; error: string | null; timedOut?: boolean; refresh: () => void };
   /** Đang bị khóa chỉnh sửa (đã gửi duyệt / đã xuất bản). */
   locked: boolean;
   busy: boolean;
@@ -104,6 +104,11 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
       <AsidePane title="Chuẩn bị media" icon={Images} bodyRef={sideRef}>
         <div className="studio-actions">
           {statusText && <p role="status">{statusText}</p>}
+          {/* Mất kết nối khi theo dõi: trạng thái trên màn hình có thể đã cũ, cho người dùng chủ động lấy lại. */}
+          {(media.timedOut || (media.error && m)) && <div className="notice warn" data-inline-notice role="status">
+            <p>{media.timedOut ? "Chưa nhận được kết quả cuối cùng. Việc tạo media có thể vẫn đang chạy." : media.error}</p>
+            <button className="btn btn-s" onClick={reload}><RefreshCw className="ic" />Tiếp tục theo dõi</button>
+          </div>}
           {mp.note && <p className="notice" role="status">{mp.note}</p>}
           {mp.uncertain && <p className="notice warn" role="status">Chưa rõ kết quả thao tác. Hãy tải lại ảnh và giọng đọc rồi mới thử lại.</p>}
           <div className="studio-completion">
@@ -123,7 +128,10 @@ export default function CreatorMedia({ storyId, versionId, media, locked, busy, 
             {step(!!m?.isGenerated, "Giọng đọc", m ? `${m.readyAudio} đoạn` : "…", Volume2)}
             {step(!!m?.isConfirmed, m?.isConfirmed ? "Đã xác nhận gói media" : "Chờ xác nhận gói media", "", Check)}
           </div>
-          <MediaIssues progress={m} pack={preview.pack} onSelectScene={(id, i) => {
+          <MediaIssues progress={m} pack={preview.pack} retry={m && !m.isConfirmed && !m.isReady ? {
+            run: onRetry, disabled: busy || locked,
+            blockedReason: mediaCanRetry(m) ? null : "Có thể thử lại sau khi hệ thống tạo xong các mục còn lại.",
+          } : undefined} onSelectScene={(id, i) => {
             const position = scenes.findIndex((s) => s.sceneId === id);
             if (position >= 0) setActive(position);
             else if (i >= 0 && i < scenes.length) setActive(i);

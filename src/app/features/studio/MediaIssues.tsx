@@ -1,6 +1,17 @@
 'use client';
+import { RefreshCw } from 'lucide-react';
 import type { MediaGenerationIssue, MediaProgressDto, StoryMediaPackage } from '@/app/types/aiStory';
-import { friendlyMediaDetails, mediaIssueLabel, mediaIssueMessage, mediaIssueReason, mediaIssuesOf } from '@/app/features/story-workflow/mediaIssues';
+import { friendlyMediaDetails, mediaIssueLabel, mediaIssueMessage, mediaIssueReason, mediaIssuesOf, mediaItemStopped } from '@/app/features/story-workflow/mediaIssues';
+
+/**
+ * Thử lại các mục đã dừng. Backend chỉ cho tạo lại (regenerate) mục đã Ready; mục hỏng phải qua POST retry,
+ * và retry chỉ nhận khi job gói media đã Failed. `blockedReason`: lý do chưa cho bấm; null thì bấm được.
+ */
+export type MediaIssueRetry = {
+  run: () => void;
+  disabled: boolean;
+  blockedReason: string | null;
+};
 
 const isWaiting = (issue: MediaGenerationIssue) => ['Pending', 'Processing'].includes(issue.status);
 const timeOf = (value: string | null | undefined) => {
@@ -8,8 +19,9 @@ const timeOf = (value: string | null | undefined) => {
   return date && Number.isFinite(date.getTime()) ? date : null;
 };
 
-export default function MediaIssues({ progress, pack, onSelectScene }: {
+export default function MediaIssues({ progress, pack, onSelectScene, retry }: {
   progress: MediaProgressDto | null; pack?: StoryMediaPackage | null; onSelectScene?: (sceneId: number, sceneIndex: number) => void;
+  retry?: MediaIssueRetry;
 }) {
   const issues = mediaIssuesOf(progress, pack ?? null);
   if (!issues.length && !progress?.errorCode) return null;
@@ -50,6 +62,14 @@ export default function MediaIssues({ progress, pack, onSelectScene }: {
           <p>{group.message}</p>
           <div className="media-chips">{group.items.map(pick)}</div>
           {retryAt && <small>Thử lại từ {retryAt.toLocaleTimeString('vi-VN')}.</small>}
+          {retry && group.items.some(issue => mediaItemStopped(issue.status)) && <>
+            <div className="media-chips">
+              <button className="btn btn-s" disabled={retry.disabled || !!retry.blockedReason} onClick={retry.run}>
+                <RefreshCw className="ic" aria-hidden />{group.items.every(issue => issue.type === 'Illustration') ? 'Vẽ lại tranh lỗi' : 'Thử lại mục lỗi'}
+              </button>
+            </div>
+            {retry.blockedReason && <small>{retry.blockedReason}</small>}
+          </>}
           <details><summary>Xem thêm thông tin</summary>
             <small>{friendlyMediaDetails(group.items)}</small></details>
         </li>;

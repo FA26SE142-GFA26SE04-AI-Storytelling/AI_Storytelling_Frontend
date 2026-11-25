@@ -15,12 +15,24 @@ export function startPolling<T>(current: PollingResult<T>, scope: number | null)
   return current.scope === scope ? { ...current, error: null, timedOut: false } : { scope, data: null, error: null, timedOut: false };
 }
 
+/**
+ * Lịch hỏi tiếp sau một lần trả lời. Hết `timeoutMs` mà vẫn đang chờ: không có `slowPollMs` thì dừng (timedOut),
+ * có thì hỏi thưa lại mỗi `slowPollMs` — việc tạo media có thể kéo dài hàng giờ khi dịch vụ AI giới hạn lượt,
+ * dừng hẳn sẽ để màn hình kẹt ở trạng thái "đang tạo" dù backend đã xong hoặc đã lỗi.
+ */
+export function nextPollDelay(waiting: boolean, elapsedMs: number, timeoutMs: number, slowPollMs?: number): { timedOut: boolean; delay: number | null } {
+  if (!waiting) return { timedOut: false, delay: null };
+  if (elapsedMs < timeoutMs) return { timedOut: false, delay: 1800 };
+  return slowPollMs ? { timedOut: false, delay: slowPollMs } : { timedOut: true, delay: null };
+}
+
 /** One in-flight request per run; replacing a run invalidates even non-abortable responses. */
 export function useStoryProgressPolling<T>(
   scope: number | null,
   load: (id: number, signal: AbortSignal) => Promise<ApiResponse<T>>,
   shouldContinue: (data: T) => boolean,
   timeoutMs = 180_000,
+  slowPollMs?: number,
 ) {
   const [result, setResult] = useState<PollingResult<T>>({
     scope, data: null, error: null, timedOut: false,
@@ -49,7 +61,7 @@ export function useStoryProgressPolling<T>(
       if (!alive) return;
       if (!response.success || response.data === null || response.data === undefined) {
         const retryable=transientPollingFailure(response.status);
-        const timedOut=retryable && Date.now()-started>=timeoutMs;
+        const timedOut=retryable && !slowPollMs && Date.now()-started>=timeoutMs;
         setResult(current => ({ ...current, timedOut, error: retryable
           ? 'Chưa lấy được cập nhật từ máy chủ. Đây chưa phải kết quả tạo truyện; hệ thống sẽ kiểm tra lại.'
           : response.message || 'Không thể kiểm tra trạng thái.' }));
@@ -57,14 +69,13 @@ export function useStoryProgressPolling<T>(
         return;
       }
       failures=0;
-      const waiting = shouldContinue(response.data);
-      const timedOut = waiting && Date.now() - started >= timeoutMs;
-      setResult({ scope, data: response.data, error: null, timedOut });
-      if (waiting && !timedOut) timer = setTimeout(() => void poll(), 1800);
+      const next = nextPollDelay(shouldContinue(response.data), Date.now() - started, timeoutMs, slowPollMs);
+      setResult({ scope, data: response.data, error: null, timedOut: next.timedOut });
+      if (next.delay !== null) timer = setTimeout(() => void poll(), next.delay);
     };
     void poll();
     return () => { cancel(); if (cancelRef.current === cancel) cancelRef.current = null; };
-  }, [scope, load, shouldContinue, timeoutMs, run]);
+  }, [scope, load, shouldContinue, timeoutMs, slowPollMs, run]);
 
   const current = result.scope === scope ? result : { data: null, error: null, timedOut: false };
   return { ...current, refresh };

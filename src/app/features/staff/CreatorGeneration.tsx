@@ -99,7 +99,7 @@ function CreatorGenerationRun({ initialId, seed, onReset, onOpenStory, onBuyCred
     void creatorService.get(flow.id).then(r => { if (alive && r.ok && r.data) { setAgeBand(r.data.ageBand === 'Age_9_10' || r.data.ageBand === '9-10' ? '9-10' : '6-8'); setSavedStatus(r.data.status ?? ''); setSavedVersion(r.data.selectedVersionId); } });
     return () => { alive = false; };
   }, [flow.id, flow.stage, refresh]);
-  const media = useStoryProgressPolling(flow.stage === 'media' ? flow.id : null, api.getMediaProgress, continueMedia, 600_000);
+  const media = useStoryProgressPolling(flow.stage === 'media' ? flow.id : null, api.getMediaProgress, continueMedia, 600_000, 15_000);
   const refreshFlow = flow.refresh;
   const refreshState = useCallback(() => { refreshFlow(); setRefresh(v => v + 1); }, [refreshFlow]);
   const creative = (): B.AIStoryCreativeInputDto => {

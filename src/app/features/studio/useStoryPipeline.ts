@@ -98,5 +98,5 @@ export function useStoryPipeline(userId: number, childId: number | null, approve
 
 const mediaContinue = mediaKeepPolling;
 export function useMediaProgress(storyId: number | null) {
-  return useStoryProgressPolling<MediaProgressDto>(storyId, api.getMediaProgress, mediaContinue, 600_000);
+  return useStoryProgressPolling<MediaProgressDto>(storyId, api.getMediaProgress, mediaContinue, 600_000, 15_000);
 }
