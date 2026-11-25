@@ -846,6 +846,12 @@
 /* Tên tác giả dài thì cắt "...", số chữ luôn hiện đủ. */
 .lib-card-author { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lib-card-words { flex: none; white-space: nowrap; }
+/* Dấu "có câu đố" cuối dòng chủ đề · tuổi: ô tròn vàng nhỏ. */
+.lib-card-quiz {
+  flex: none; display: inline-grid; place-items: center; width: 20px; height: 20px; margin-left: auto; border-radius: 50%;
+  background: color-mix(in srgb, var(--gold) 28%, var(--panel)); color: var(--gold-deep);
+}
+.lib-card-quiz svg { width: 13px; height: 13px; }
 
 /* Khung xương tải trước */
 .lib-skel-card {

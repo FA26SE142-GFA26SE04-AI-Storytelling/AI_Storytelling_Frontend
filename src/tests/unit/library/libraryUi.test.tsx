@@ -74,6 +74,12 @@ describe("Library UI components", () => {
     );
     expect(authoredHtml).toContain('class="lib-card-author" title="Đặng Lê Anh Tuấn"');
     expect(authoredHtml).not.toContain("Của creator");
+    // Icon câu đố chỉ hiện khi API báo hasQuiz = true; thiếu trường (API cũ) thì không hiện.
+    expect(authoredHtml).not.toContain("lib-card-quiz");
+    const quizHtml = renderToStaticMarkup(
+      <LibraryBookCard story={makeStory({ creator: true, raw: { hasQuiz: true } })} onPick={() => {}} />,
+    );
+    expect(quizHtml).toContain('aria-label="Có câu đố"');
     expect(rankedHtml).toContain("166.67% 125%");
 
     const plainReadyHtml = renderToStaticMarkup(
