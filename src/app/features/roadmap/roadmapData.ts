@@ -45,7 +45,10 @@ export function useRoadmapTemplates(enabled = true) {
 
   useEffect(() => {
     if (!enabled) return;
-    if (reloadTick === 0 && listCache && Date.now() - listCache.at < 60_000) return;
+    if (reloadTick === 0 && listCache && Date.now() - listCache.at < 60_000) {
+      setTemplates(listCache.data);
+      return;
+    }
     let alive = true;
     void loadTemplateList().then((r) => { if (alive) { setTemplates(r.data); setError(r.error); } });
     return () => { alive = false; };

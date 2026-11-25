@@ -35,7 +35,7 @@ export default function StudioMedia({ storyId, media }: Props) {
   const m = media.data;
   const display=mediaPackageDisplay(m);
   const audio=audioBranchDisplay(m);
-  const preview=useStudioMediaPreview(storyId,bundle?.summary.storyVersionId??m?.approvedStoryVersionId??null,m);
+  const preview=useStudioMediaPreview(storyId,bundle?.summary.storyVersionId??m?.approvedStoryVersionId??null,m,canMedia);
   const mediaScenes=useMemo(()=>preview.pack?.scenes.slice().sort((a,b)=>a.sceneIndex-b.sceneIndex)??[],[preview.pack]);
   const scenes=useMemo(()=>mediaScenes.length?mediaScenes.map(s=>s.text??''):(bundle?splitScenes(bundle.story.content):[]),[mediaScenes,bundle]);
   const sceneIndex=Math.min(active,Math.max(0,scenes.length-1));
@@ -53,7 +53,7 @@ export default function StudioMedia({ storyId, media }: Props) {
   const mp=useMediaPackage({storyId,versionId:m?.approvedStoryVersionId,onChanged:reload,source:preview.pack});
   // Truyện đã sẵn sàng (gói media đã xác nhận) thì không hiện nút tạo lại nữa: gói đã chốt, muốn đổi phải làm lại từ bước duyệt.
   const sceneActions=canMedia&&preview.pack&&!m?.isConfirmed&&!m?.isReady?{busy:mp.busy,locked:mp.uncertain,replacements:preview.pack.replacements??[],regenerate:(k:'illustration'|'audio',id:number)=>void mp.regenerate(k,id),keepCurrent:(id:number)=>void mp.keepCurrent(id)}:undefined;
-  const statusText=m ? (m.isReady ? "" : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi xác nhận để hoàn tất truyện." : mediaCanRetry(m) ? "" : "Đang tạo, bạn có thể rời màn hình này.") : media.error ?? "Đang kiểm tra…";
+  const statusText=!canMedia ? "" : m ? (m.isReady ? "" : m.isAwaitingConfirmation ? "Xem tranh, nghe giọng đọc rồi xác nhận để hoàn tất truyện." : mediaCanRetry(m) ? "" : "Đang tạo, bạn có thể rời màn hình này.") : media.error ?? "Đang kiểm tra…";
   // Tải sẵn tranh và giọng đọc của cảnh đang xem và cảnh kế để đổi cảnh không phải chờ.
   const warm=useRef<(HTMLImageElement|HTMLAudioElement)[]>([]);
   useEffect(()=>{

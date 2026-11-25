@@ -31,11 +31,13 @@ const STATUS: Record<PaymentStatus, [string, string]> = {
 };
 
 /** Nút và câu xác nhận của một gói, tuỳ gói đang dùng. */
-function action(plan: SubscriptionPlanDto, quota: MyQuotaDto | null): { label: string; confirm: string } {
+function action(plan: SubscriptionPlanDto, quota: MyQuotaDto | null, quotaHidden = false): { label: string; confirm: string } {
   if (plan.planType === 'CreatorPack') return { label: 'Mua gói', confirm: `Mua ${plan.name} (${money(plan.priceVnd)}): thêm ${plan.aiCredits} lượt tạo truyện AI và ${plan.submitCredits ?? 0} lượt gửi duyệt, không hết hạn.` };
   const cur = quota?.plan;
   const price = money(plan.priceVnd);
   if (plan.planType === 'AddOn') return { label: 'Mua thêm lượt', confirm: `Mua ${plan.name} (${price}): thêm ${plan.aiCredits} lượt tạo truyện AI${cur ? `, hết hạn cùng gói ngày ${day(cur.endAt)}` : ''}.` };
+  // Không được xem gói hiện tại thì không biết là đăng ký mới hay gia hạn: không hứa ngày bắt đầu.
+  if (quotaHidden) return { label: 'Mua gói', confirm: `Mua ${plan.name} (${price}).` };
   if (!cur) return { label: 'Đăng ký', confirm: `Đăng ký ${plan.name} (${price}/tháng). Gói bắt đầu ngay khi thanh toán thành công.` };
   const end = day(quota?.nextPlan?.endAt ?? cur.endAt);
   if (cur.planType === plan.planType) return { label: 'Gia hạn', confirm: `Gia hạn ${plan.name} (${price}): chu kỳ mới bắt đầu sau ngày ${end}, lượt hiện tại giữ nguyên.` };
@@ -138,7 +140,7 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
 
   const buy = async (plan: SubscriptionPlanDto) => {
     if (busy) return;
-    const a = action(plan, audience === 'creator' ? null : quota);
+    const a = action(plan, audience === 'creator' ? null : quota, audience === 'parent' && !canQuota);
     if (!await confirmDialog(a.confirm)) return;
     setBusy(true);
     const r = await paymentService.create(plan.id);
@@ -182,7 +184,7 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
       <div className="plan-grid">
         {plans?.map((plan) => {
           const Icon = PLAN_ICON[plan.planType] ?? Sparkles;
-          const a = action(plan, quota);
+          const a = action(plan, quota, !canQuota);
           return <article key={plan.id} className={`plan-card${plan.planType === featured ? ' featured' : ''}${plan.isPurchasable ? '' : ' locked'}`}>
             <div className="plan-head">
               <Icon className="plan-icon" aria-hidden />
