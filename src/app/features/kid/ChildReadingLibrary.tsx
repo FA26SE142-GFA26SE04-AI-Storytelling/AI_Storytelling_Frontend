@@ -40,6 +40,7 @@ export default function ChildReadingLibrary({
   onLockChange,
   onPaneChange,
   onReadingChange,
+  onTimeBlocked,
 }: {
   childId: number;
   pane?: LibraryPane;
@@ -52,12 +53,14 @@ export default function ChildReadingLibrary({
   onLockChange?: (lock: { locked: boolean; unlockStoryId: number | null }) => void;
   onPaneChange?: (pane: LibraryPane) => void;
   onReadingChange?: (active: boolean) => void;
+  /** Backend chặn mở truyện vì giờ đọc (nghỉ mắt, giờ ngủ, hết phút, ngoài khung): trang cha hỏi lại trạng thái ngay. */
+  onTimeBlocked?: () => void;
 }) {
   const session = childAccessService.readSession();
   const token = session?.childProfileId === childId ? session.accessToken : '';
   const [revision, setRevision] = useState(0);
   const refresh = useCallback(() => setRevision((v) => v + 1), []);
-  const reader = useChildReader(token, refresh);
+  const reader = useChildReader(token, refresh, onTimeBlocked);
   const reading = !!reader.content;
 
   // Hướng trượt theo thứ tự khu: sang phải thì trượt vào từ phải, về trái thì từ trái.
