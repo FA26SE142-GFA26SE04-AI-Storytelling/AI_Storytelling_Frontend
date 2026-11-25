@@ -1,10 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Plus, TriangleAlert, X } from "lucide-react";
 import type { ContentCategory, LearningProfile, ReadingMode, SetLearningProfileRequest } from "@/app/types/childProfile";
 import { childProfileService } from "@/app/services/childProfileService";
-import { AGE_BANDS, READING_LEVELS, READING_MODES, countWords, defaultReadingLevel, defaultReadingMode, levelAboveAge, storyLengthFor } from "@/app/lib/guardian";
+import { AGE_BANDS, READING_LEVELS, READING_MODES, countWords, defaultReadingLevel, defaultReadingMode, groupCategories, levelAboveAge, storyLengthFor, type CategoryGroupId } from "@/app/lib/guardian";
+import { GroupIcon } from "./SafetyBlocks";
 
 export type LearningValue = { readingLevel: number; readingMode: ReadingMode; comprehensionGoal: string; favorites: string[]; focus: string[] };
 
@@ -14,12 +15,19 @@ const isMode = (m?: string | null): m is ReadingMode => READING_MODES.some((x) =
 let categoryCache: Promise<ContentCategory[]> | null = null;
 const loadCategories = () => (categoryCache ??= childProfileService.getContentCategories().then((r) => (r.success ? r.data ?? [] : [])).catch(() => []).then((list) => { if (list.length === 0) categoryCache = null; return list; }));
 
-/** Gợi ý chủ đề: danh mục đang bật và không bị chặn mặc định cho nhóm tuổi của bé. Backend lỗi thì không có gợi ý, phụ huynh vẫn tự nhập được. */
-function useTopicSuggestions(ageBand?: string): string[] {
+/** `hidden`: số danh mục của nhóm bị ẩn vì chặn mặc định cho nhóm tuổi của bé (vẫn hiện đủ ở tab An toàn). */
+type TopicGroup = { id: CategoryGroupId; label: string; topics: string[]; hidden: number };
+
+/** Gợi ý chủ đề theo nhóm: danh mục đang bật và không bị chặn mặc định cho nhóm tuổi của bé. Backend lỗi thì không có gợi ý, phụ huynh vẫn tự nhập được. */
+function useTopicSuggestions(ageBand?: string): TopicGroup[] {
   const [cats, setCats] = useState<ContentCategory[] | null>(null);
   useEffect(() => { let alive = true; void loadCategories().then((c) => { if (alive) setCats(c); }); return () => { alive = false; }; }, []);
   if (!cats) return [];
-  return cats.filter((c) => c.isActive && !(ageBand && c.defaultBlockedAgeBands?.includes(ageBand))).map((c) => c.displayName);
+  const blocked = (c: ContentCategory) => !!ageBand && !!c.defaultBlockedAgeBands?.includes(ageBand);
+  return groupCategories(cats.filter((c) => c.isActive)).map((g) => {
+    const usable = g.items.filter((c) => !blocked(c));
+    return { id: g.id, label: g.label, topics: usable.map((c) => c.displayName), hidden: g.items.length - usable.length };
+  });
 }
 
 /** Hồ sơ học tập đang lưu, hoặc giá trị mặc định theo nhóm tuổi khi bé chưa có hồ sơ học tập. */
@@ -72,8 +80,10 @@ function LevelInfo({ level, ageBand }: { level: number; ageBand?: string }) {
 /** Bước 1.3 — mức đọc, chế độ đọc, mục tiêu đọc hiểu, chủ đề yêu thích, lĩnh vực ưu tiên. */
 export default function LearningForm({ value, onChange, disabled, ageBand }: { value: LearningValue; onChange: (v: LearningValue) => void; disabled?: boolean; ageBand?: string }) {
   const suggestions = useTopicSuggestions(ageBand);
+  const uid = useId();
   const [topic, setTopic] = useState("");
   const [skill, setSkill] = useState("");
+  const [activeGroup, setActiveGroup] = useState<CategoryGroupId | null>(null);
   const set = (patch: Partial<LearningValue>) => onChange({ ...value, ...patch });
   // Chip bị xoá thu nhỏ trước (160ms) rồi mới bỏ khỏi danh sách.
   const [leaving, setLeaving] = useState<string[]>([]);
@@ -140,22 +150,73 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
       <div className="learn-col">
 
       <div className="field">
-        <span className="lbl">Chủ đề bé yêu thích</span>
-        <div className="chips">
-          {value.favorites.map((t) => (
-            <span key={t} className={chipClass("favorites", t)}>{t}{!disabled && <button type="button" aria-label={`Bỏ ${t}`} onClick={() => removeChip("favorites", t)}><X size={12} /></button>}</span>
-          ))}
+        <div className="topic-head-row">
+          <span className="lbl">Chủ đề bé yêu thích</span>
+          {value.favorites.length > 0 && <span className="pill ok">Đã chọn {value.favorites.length}</span>}
+        </div>
+        <div className="topic-selected-box">
+          {value.favorites.length === 0 ? (
+            <p className="sub">Chưa chọn chủ đề nào — nhập bên dưới hoặc bấm chọn nhanh từ gợi ý.</p>
+          ) : (
+            <div className="chips">
+              {value.favorites.map((t) => (
+                <span key={t} className={chipClass("favorites", t)}>{t}{!disabled && <button type="button" aria-label={`Bỏ ${t}`} onClick={() => removeChip("favorites", t)}><X size={12} /></button>}</span>
+              ))}
+            </div>
+          )}
         </div>
         {!disabled && (
           <>
             <div className="row">
-              <input className="inp" value={topic} maxLength={150} onChange={(e) => setTopic(e.target.value)} placeholder="Thêm chủ đề"
+              <input className="inp" value={topic} maxLength={150} onChange={(e) => setTopic(e.target.value)} placeholder="Thêm chủ đề tuỳ chỉnh…"
                 onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTopic(topic); } }} />
               <button type="button" className="btn btn-s" disabled={!topic.trim()} onClick={() => addTopic(topic)}><Plus className="ic" />Thêm</button>
             </div>
-            <div className="chips">
-              {suggestions.filter((t) => !value.favorites.includes(t)).map((t) => <button type="button" key={t} className="chip" onClick={() => addTopic(t)}>+ {t}</button>)}
-            </div>
+            {suggestions.length > 0 && (() => {
+              const visibleGroups = suggestions.filter((g) => g.topics.some((t) => !value.favorites.includes(t)));
+              if (visibleGroups.length === 0) return null;
+              const current = visibleGroups.find((g) => g.id === activeGroup) ?? visibleGroups[0];
+              const left = current.topics.filter((t) => !value.favorites.includes(t));
+              const titleId = `${uid}-${current.id}`;
+              return (
+                <div className="topic-picker" role="group" aria-labelledby={titleId}>
+                  <div className="topic-tabs" role="tablist" aria-label="Nhóm chủ đề gợi ý">
+                    {visibleGroups.map((g) => {
+                      const picked = g.topics.filter((t) => value.favorites.includes(t)).length;
+                      const isOn = g.id === current.id;
+                      return (
+                        <button
+                          key={g.id}
+                          type="button"
+                          role="tab"
+                          aria-selected={isOn}
+                          className={`topic-tab${isOn ? " on" : ""}`}
+                          onClick={() => setActiveGroup(g.id)}
+                        >
+                          <GroupIcon id={g.id} />
+                          <span>{g.label}</span>
+                          <small>{picked > 0 ? `${picked}/${g.topics.length}` : g.topics.length}</small>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="topic-picker-body" id={titleId}>
+                    <div className="chips">
+                      {left.map((t) => (
+                        <button type="button" key={t} className="chip topic-suggest-chip" aria-label={`Thêm chủ đề ${t}`} onClick={() => addTopic(t)}>
+                          <Plus size={12} aria-hidden />{t}
+                        </button>
+                      ))}
+                    </div>
+                    {current.hidden > 0 && (
+                      <p className="topic-group-note">
+                        Đã ẩn {current.hidden} chủ đề chặn mặc định cho {AGE_BANDS.find((a) => a.id === ageBand)?.label ? `bé ${AGE_BANDS.find((a) => a.id === ageBand)?.label}` : "nhóm tuổi này"}. Danh sách đầy đủ nằm ở tab An toàn.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </>
         )}
       </div>

@@ -131,7 +131,7 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
           {flow.context ? (
             <>
               <div className="kv">
-                <div><small>Độ dài tối đa</small><b>{flow.context.maximumLength.toLocaleString("vi-VN")} tiếng</b></div>
+                <div><small>Độ dài tối đa</small><b>{flow.context.maximumLength.toLocaleString("vi-VN")} từ</b></div>
                 <div><small>Từ vựng</small><b>{flow.context.defaultVocabularyLevel.replace("level_", "Mức ")}</b></div>
                 <div><small>Chế độ duyệt</small><b>{/auto/i.test(flow.context.requiredApprovalMode) ? "Tự duyệt" : "Duyệt tay"}</b></div>
                 <div><small>Ngôn ngữ</small><b>Tiếng Việt</b></div>

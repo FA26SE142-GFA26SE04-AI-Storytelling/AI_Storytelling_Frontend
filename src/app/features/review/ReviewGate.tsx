@@ -138,7 +138,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
                 <span className={`pill ${tone}`}>{statusLabel}</span>
                 <span className="pill ai">Do AI tạo</span>
                 {!learning && <span className="pill draft">Chỉ đọc/nghe</span>}
-                <span className="row" style={{ marginLeft: "auto", gap: 6 }}><span className="pill draft">Bản #{summary.storyVersionId}</span><span className="pill draft">{countWords(content)} tiếng</span></span>
+                <span className="row" style={{ marginLeft: "auto", gap: 6 }}><span className="pill draft">Bản #{summary.storyVersionId}</span><span className="pill draft">{countWords(content)} từ</span></span>
               </div>
               {editing ? (
                 <StoryEditor key={story.versionId} story={story} actor={actor} assistanceRevisionToken={summary.assistanceRevisionToken} busy={busy} onCancel={() => setEditing(false)}
@@ -174,7 +174,7 @@ export default function ReviewGate({ storyId, ageBand, onApproved, actor = 'pare
           <div className="sec">
             <div className="sec-h">Gói duyệt</div>
             <button className="ck ck-link" onClick={() => setTab("story")}>
-              <span className="st ok"><BookOpenText /></span>Truyện<small>{countWords(content)} tiếng{summary.readabilityFkgl !== null && ` · FKGL ${summary.readabilityFkgl.toFixed(1)}`}</small>
+              <span className="st ok"><BookOpenText /></span>Truyện<small>{countWords(content)} từ{summary.readabilityFkgl !== null && ` · FKGL ${summary.readabilityFkgl.toFixed(1)}`}</small>
             </button>
             {!learning && <span className="pill draft" style={{ width: "fit-content" }}>Chỉ đọc/nghe: không có học liệu hoặc tương tác lúc nghe</span>}
             {artifacts.map((k) => (
