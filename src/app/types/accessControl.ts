@@ -8,6 +8,13 @@ export interface PermissionDto {
   scope?: string;
 }
 
+/** Quyền của tài khoản đang đăng nhập (`GET Auth/me/access`). */
+export interface PermissionAccessDto {
+  code: string;
+  state: string;
+  reason: string | null;
+}
+
 export interface RoleDto {
   /** Id role, khớp `entityId` của audit log `RolePermissionsUpdated`. Backend cũ chưa trả. */
   id?: number;

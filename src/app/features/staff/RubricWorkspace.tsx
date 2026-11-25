@@ -10,6 +10,7 @@ import Frog from '@/app/components/brand/Frog';
 import { confirmDialog } from '@/app/lib/confirm';
 import RubricEvaluationHistory, { type TrialInput, type ValidationResult } from './RubricEvaluationHistory';
 import RubricExamplesEditor from './RubricExamplesEditor';
+import { AccessNotice, useAccess } from './staffAccess';
 import { Page, fmt } from './ui';
 import '@/app/styles/features/staff/rubric-workspace.css';
 
@@ -131,13 +132,16 @@ export default function RubricWorkspace() {
     }
   };
 
-  const writable = !current || current.status === 'Draft';
+  const access = useAccess('rubric.manage');
+  const locked = access.state === 'Blocked';
+  const writable = !locked && (!current || current.status === 'Draft');
   const updateCriterion = (index: number, patch: Partial<B.RubricCriterion>) =>
     setDefinition(d => d ? { ...d, criteria: d.criteria.map((c, i) => (i === index ? { ...c, ...patch } : c)) } : d);
 
   return (
     <Page fit title="Tiêu chí vùng xám">
       {note && <div className={`notice ${conflictBlocked ? 'err' : ''}`} role={conflictBlocked ? 'alert' : 'status'} data-inline-notice>{note}</div>}
+      <AccessNotice access={access} />
       <div className="st-split fill">
         <aside className="st-list" aria-label="Danh sách bộ tiêu chí">
           <div className="rb-pills" role="group" aria-label="Lọc theo trạng thái">
@@ -151,7 +155,7 @@ export default function RubricWorkspace() {
             <button type="button" className="btn btn-s" disabled={busy} onClick={() => void guardUnsaved().then(async ok => { if (!ok) return; const r = await act(() => service.active(), activeIdRef.current); if (r?.success && r.data) void open(r.data.id, true); })}>
               <Eye className="ic" />Bộ đang dùng
             </button>
-            <IconButton icon={FilePlus2} label="Tạo bản nháp" className="btn btn-p" disabled={busy} onClick={() => void startNewDraft()} />
+            <IconButton icon={FilePlus2} label="Tạo bản nháp" className="btn btn-p" disabled={busy || locked} onClick={() => void startNewDraft()} />
           </div>
           {catalog?.items.map(r => (
             <button type="button" className={`st-item${current?.id === r.id ? ' on' : ''}`} key={r.id} disabled={busy} onClick={() => void open(r.id)}>
@@ -179,10 +183,10 @@ export default function RubricWorkspace() {
                 {current && <span className="pill draft">Revision {current.revision}</span>}
               </div>
               {current && <span className="rb-hash">Mã nội dung: {current.contentHash}{current.activatedAt ? ` · Kích hoạt: ${fmt(current.activatedAt)}` : ''}</span>}
-              {!writable && <p className="notice" role="status" data-inline-notice>Phiên bản Đang áp dụng / Ngừng áp dụng chỉ cho phép đọc. Muốn chỉnh sửa, đổi Phiên bản và Tên bộ rồi bấm Nhân bản.</p>}
+              {!writable && !locked && <p className="notice" role="status" data-inline-notice>Phiên bản Đang áp dụng / Ngừng áp dụng chỉ cho phép đọc. Muốn chỉnh sửa, đổi Phiên bản và Tên bộ rồi bấm Nhân bản.</p>}
               {conflictBlocked && <p className="notice err" role="alert" data-inline-notice>Phát hiện xung đột revision (409). Nội dung chưa lưu vẫn được giữ; hãy bấm Tải lại để đồng bộ revision mới nhất.</p>}
-              <label className="field">Phiên bản (đặt tên mới khi nhân bản)<input className="inp" disabled={busy} maxLength={50} value={versionNo} onChange={e => setVersionNo(e.target.value)} /></label>
-              <label className="field">Tên bộ tiêu chí<input className="inp" disabled={busy} maxLength={200} value={name} onChange={e => setName(e.target.value)} /></label>
+              <label className="field">Phiên bản (đặt tên mới khi nhân bản)<input className="inp" disabled={busy || locked} maxLength={50} value={versionNo} onChange={e => setVersionNo(e.target.value)} /></label>
+              <label className="field">Tên bộ tiêu chí<input className="inp" disabled={busy || locked} maxLength={200} value={name} onChange={e => setName(e.target.value)} /></label>
               <fieldset disabled={busy || conflictBlocked || !writable} style={{ border: 0, padding: 0 }}>
                 <label className="field">Mục đích áp dụng<textarea className="inp" maxLength={2000} value={definition.purpose} onChange={e => setDefinition({ ...definition, purpose: e.target.value })} /></label>
               </fieldset>
@@ -224,21 +228,19 @@ export default function RubricWorkspace() {
                   <b className="st-group-title">Thao tác phiên bản</b>
                   <div className="row st-wrap">
                     <button type="button" className="btn btn-s" disabled={busy} onClick={() => void open(current.id)}><RefreshCw className="ic" />Tải lại / Đồng bộ</button>
-                    <button type="button" className="btn btn-s" disabled={busy} onClick={() => void act(() => service.clone(current.id, { versionNo, name }), current.id).then(r => { if (r?.success && r.data) select(r.data); })}><Copy className="ic" />Nhân bản</button>
+                    <button type="button" className="btn btn-s" disabled={busy || locked} onClick={() => void act(() => service.clone(current.id, { versionNo, name }), current.id).then(r => { if (r?.success && r.data) select(r.data); })}><Copy className="ic" />Nhân bản</button>
                     {current.status === 'Draft' && (
-                      <button type="button" className="btn btn-no" disabled={busy || conflictBlocked} onClick={async () => { if (!(await confirmDialog('Xóa bản nháp tiêu chí? Thao tác này không hoàn tác được.'))) return; void act(() => service.remove(current.id, current.revision), current.id).then(r => { if (r?.success) setRevision(v => v + 1); }); }}>
+                      <button type="button" className="btn btn-no" disabled={busy || conflictBlocked || locked} onClick={async () => { if (!(await confirmDialog('Xóa bản nháp tiêu chí? Thao tác này không hoàn tác được.'))) return; void act(() => service.remove(current.id, current.revision), current.id).then(r => { if (r?.success) setRevision(v => v + 1); }); }}>
                         <Trash2 className="ic" />Xóa bản nháp
                       </button>
                     )}
-                    {user?.role === 'Administrator' && current.status === 'Draft' && (
+                    {/* Luồng 5: cả Moderator và Administrator đều kích hoạt được, kể cả khi Admin đang ở chế độ chỉ xem. */}
+                    {current.status === 'Draft' && (
                       <button type="button" className="btn btn-ok" disabled={busy || conflictBlocked || dirty} onClick={async () => { if (!(await confirmDialog('Kích hoạt bộ tiêu chí này? Bộ đang áp dụng sẽ bị thay thế.'))) return; void act(() => service.activate(current.id, current.revision), current.id).then(r => { if (r?.success && r.data) select(r.data); }); }}>
                         <Power className="ic" />Kích hoạt
                       </button>
                     )}
                   </div>
-                  {user?.role === 'Moderator' && current.status === 'Draft' && (
-                    <span className="sub">Quyền Kích hoạt chỉ dành cho quản trị viên; kiểm duyệt viên chịu trách nhiệm soạn thảo, kiểm tra định nghĩa và chạy thử.</span>
-                  )}
                 </div>
 
                 <RubricEvaluationHistory

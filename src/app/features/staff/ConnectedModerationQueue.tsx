@@ -11,6 +11,7 @@ import type { QueueItem, QueueItemStatus, QueueItemType } from '@/app/types/staf
 import { MODERATION_TYPE_LABELS, moderationStatusLabel } from './moderationConfig';
 import { QueueItemRow, QueueSummaryCard } from './ModerationQueuePrimitives';
 import ReviewPanel from './ReviewPanel';
+import { AccessNotice, useAccess, useAccessLookup } from './staffAccess';
 import { Notice, Page, useAction } from './ui';
 
 export { QueueItemRow };
@@ -53,6 +54,16 @@ const ALL_TYPES: QueueItemType[] = [
   'StoryRating',
 ];
 
+/** Quyền cần để nhận từng loại mục (backend: ModerationQueuePolicy.ClaimPermission). */
+const CLAIM_PERMISSION: Partial<Record<QueueItemType, string>> = {
+  PublicStoryReview: 'review.public_story',
+  GrayZoneStory: 'review.gray_zone',
+  ContentReport: 'moderation.report.review',
+  PublicStoryRemoval: 'review.creator_publication',
+  RoadmapTemplateReview: 'review.roadmap',
+  StoryRating: 'moderation.rating.moderate',
+};
+
 const ALL_STATUSES: QueueItemStatus[] = [
   'Pending',
   'Claimed',
@@ -77,7 +88,12 @@ export default function ConnectedModerationQueue({
   title?: string;
 }) {
   const { user } = useAuth();
-  const visibleTypes = (allowedTypes && allowedTypes.length > 0 ? allowedTypes : ALL_TYPES).filter(t => !(user?.role === 'Administrator' && t === 'StoryRating'));
+  const queueAccess = useAccess('moderation.queue.process');
+  const lookup = useAccessLookup();
+  const mayClaim = (type: string) =>
+    !(user?.role === 'Administrator' && (type === 'ContentReport' || type === 'StoryRating'))
+    && lookup(CLAIM_PERMISSION[type as QueueItemType] ?? 'moderation.queue.process').state !== 'Hidden';
+  const visibleTypes = (allowedTypes && allowedTypes.length > 0 ? allowedTypes : ALL_TYPES).filter(mayClaim);
   const [status, setStatus] = useState<QueueItemStatus>('Pending');
   const [kind, setKind] = useState<QueueItemType | ''>(allowedTypes?.length ? allowedTypes[0] : '');
   const [pageIndex, setPageIndex] = useState(1);
@@ -136,8 +152,7 @@ export default function ConnectedModerationQueue({
     visibleTypes.includes(current.itemType as QueueItemType) &&
     current.status === 'Claimed' &&
     current.claimedByUserId === user?.id;
-  const canClaim =
-    !(user?.role === 'Administrator' && (current?.itemType === 'ContentReport' || current?.itemType === 'StoryRating'));
+  const canClaim = !!current && mayClaim(current.itemType);
 
   const typeOptions: { value: QueueItemType | ''; label: string }[] = allowedTypes?.length
     ? visibleTypes.map(k => ({ value: k, label: MODERATION_TYPE_LABELS[k] }))
@@ -146,6 +161,7 @@ export default function ConnectedModerationQueue({
   return (
     <Page fit title={title}>
       <Notice note={note} />
+      <AccessNotice access={queueAccess} />
       {error && <div className="notice err" role="alert">{error}</div>}
       <div className="st-filters">
         <Select<QueueItemType | ''>

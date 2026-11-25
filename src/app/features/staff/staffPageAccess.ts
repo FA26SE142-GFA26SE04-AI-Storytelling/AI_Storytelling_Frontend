@@ -8,6 +8,7 @@ const QUEUE = 'moderation.queue.process';
 /** Trang không có ở đây (tổng quan, tài khoản) không cần quyền riêng. Chỉ để ẩn menu; API vẫn tự kiểm quyền. */
 export const PAGE_REQUIREMENTS: Record<StaffRole, Record<string, PageRequirement>> = {
   Administrator: {
+    queue: [QUEUE],
     published: ['moderation.published.view'],
     rubrics: ['rubric.manage'],
     'authoring-guides': ['guide.manage'],
@@ -15,7 +16,7 @@ export const PAGE_REQUIREMENTS: Record<StaffRole, Record<string, PageRequirement
     'wish-cards': ['wishcard.manage'],
     staff: ['staff.account.manage'],
     permissions: ['permission.manage'],
-    creators: [['creator.account.manage', 'creator.application.review', 'creator.tier.manage', 'creator.payout.manage']],
+    creators: [['creator.account.manage', 'creator.application.review', 'creator.payout.manage']],
     audit: ['audit.view'],
     business: ['report.business.view'],
     payments: ['payment.manage'],
@@ -47,7 +48,7 @@ export const PAGE_REQUIREMENTS: Record<StaffRole, Record<string, PageRequirement
 };
 
 /** `granted` null: chưa tải được quyền (hoặc backend cũ) thì hiện đủ, để API tự chặn. */
-export function canOpenPage(role: StaffRole, pageId: string, granted: ReadonlySet<string> | null): boolean {
+export function canOpenPage(role: StaffRole, pageId: string, granted: { has(code: string): boolean } | null): boolean {
   if (!granted) return true;
   return (PAGE_REQUIREMENTS[role][pageId] ?? []).every((need) =>
     typeof need === 'string' ? granted.has(need) : need.some((code) => granted.has(code)));
