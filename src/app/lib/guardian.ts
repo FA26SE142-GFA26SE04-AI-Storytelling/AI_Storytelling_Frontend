@@ -15,6 +15,13 @@ export const AGE_BANDS = [
   { id: "Age_9_10", label: "9–10 tuổi", hint: "Đã tự đọc được" },
 ] as const;
 
+/** Tuổi chọn được cho hồ sơ bé (backend ChildProfileService: 6–10, phải khớp nhóm tuổi). Không hỏi ngày sinh. */
+export const CHILD_AGES = [6, 7, 8, 9, 10] as const;
+/** Nhóm tuổi của một tuổi cụ thể: 6–8 hoặc 9–10. */
+export const ageBandOfAge = (age: number): "Age_6_8" | "Age_9_10" => (age <= 8 ? "Age_6_8" : "Age_9_10");
+/** Bé đang học lớp mấy: chỉ dùng để chọn sẵn mức đọc (lớp N → mức N), không lưu lên server. */
+export const SCHOOL_GRADES = [1, 2, 3, 4, 5] as const;
+
 /**
  * Thang mức đọc 1–5, mỗi mức tương đương một lớp (Luồng 2 mục 5.3b).
  * maxWords/typicalWords khớp ngưỡng backend khi AI viết truyện tiếng Việt (ContentReadabilityLimits):
@@ -67,13 +74,6 @@ export const storyLengthFor = (ageBand?: string, level?: number) => {
   const target = isOlderAgeBand(ageBand) || (level ?? 0) >= OLDER_READING_LEVEL ? 1500 : 900;
   return { target, min: Math.ceil(target * 0.9), max: Math.floor(target * 1.1) };
 };
-/** Thanh kéo "Độ dài tối đa của truyện" (cài đặt an toàn MaxStoryLength), dùng chung cho form tạo bé và trang An toàn. */
-export const MAX_STORY_LENGTH_RANGE = { min: 200, max: 5000, step: 100 } as const;
-export const isMaxStoryLength = (n: unknown): n is number =>
-  typeof n === "number" && Number.isInteger(n) && n >= MAX_STORY_LENGTH_RANGE.min && n <= MAX_STORY_LENGTH_RANGE.max;
-
-/** Đếm từ như backend: mỗi tiếng cách nhau bởi khoảng trắng là một từ. */
-export const countWords = (text: string) => text.match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu)?.length ?? 0;
 /** Trần 110% của một độ dài, làm tròn lên. Phản chiếu backend StoryLengthRules.UpperBound; dùng số nguyên để tránh lệch số thực (900 * 1.1 = 990.0000000000001). */
 export const storyLengthUpperBound = (target: number) => Math.ceil((target * 11) / 10);
 /**
@@ -130,6 +130,13 @@ export const storyLengthAdvice = (
   return null;
 };
 
+/** Thanh kéo "Độ dài tối đa của truyện" (cài đặt an toàn MaxStoryLength), dùng chung cho form tạo bé và trang An toàn. */
+export const MAX_STORY_LENGTH_RANGE = { min: 200, max: 5000, step: 100 } as const;
+export const isMaxStoryLength = (n: unknown): n is number =>
+  typeof n === "number" && Number.isInteger(n) && n >= MAX_STORY_LENGTH_RANGE.min && n <= MAX_STORY_LENGTH_RANGE.max;
+
+/** Đếm từ như backend: mỗi tiếng cách nhau bởi khoảng trắng là một từ. */
+export const countWords = (text: string) => text.match(/[\p{L}\p{N}]+(?:['’-][\p{L}\p{N}]+)*/gu)?.length ?? 0;
 
 /** Bước 1.3 — chế độ đọc: 6–8 tuổi mặc định nghe là chính, 9–10 tuổi tự đọc. */
 export const READING_MODES: { id: ReadingMode; label: string; hint: string }[] = [

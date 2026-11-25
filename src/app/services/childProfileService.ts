@@ -14,6 +14,8 @@ import type {
 } from '@/app/types/childProfile';
 import { apiRequest } from './apiClient';
 
+let categoryCache: Promise<ContentCategory[]> | null = null;
+
 /** Luồng 1 Bước 1.2–1.4, 1.8, Mục 7: hồ sơ bé, hồ sơ học tập, cài đặt an toàn và vòng đời hồ sơ. */
 export const childProfileService = {
   /** Mọi hồ sơ mình đang giám sát (Owner hoặc Additional Supervisor), trừ hồ sơ đã lưu trữ. */
@@ -112,6 +114,15 @@ export const childProfileService = {
 
   getContentCategories(signal?: AbortSignal): Promise<ApiResponse<ContentCategory[]>> {
     return apiRequest('/ContentCategory', 'Không tải được danh mục nội dung.', { signal });
+  },
+
+  /** Danh mục dùng chung cho các màn chỉ đọc (gợi ý chủ đề, tên chủ đề bị chặn): tải một lần; lỗi hoặc rỗng thì lần sau tải lại. */
+  getContentCategoriesCached(): Promise<ContentCategory[]> {
+    categoryCache ??= childProfileService.getContentCategories()
+      .then((r) => (r.success ? r.data ?? [] : []))
+      .catch(() => [] as ContentCategory[])
+      .then((list) => { if (list.length === 0) categoryCache = null; return list; });
+    return categoryCache;
   },
 
   getTokenQuotaForChild(childProfileId: number): Promise<ApiResponse<TokenQuotaStatus>> {

@@ -12,8 +12,7 @@ export type LearningValue = { readingLevel: number; readingMode: ReadingMode; co
 const isMode = (m?: string | null): m is ReadingMode => READING_MODES.some((x) => x.id === m);
 
 // Danh mục nội dung lấy từ backend, dùng chung cho mọi form để khỏi tải lại.
-let categoryCache: Promise<ContentCategory[]> | null = null;
-const loadCategories = () => (categoryCache ??= childProfileService.getContentCategories().then((r) => (r.success ? r.data ?? [] : [])).catch(() => []).then((list) => { if (list.length === 0) categoryCache = null; return list; }));
+const loadCategories = () => childProfileService.getContentCategoriesCached();
 
 /** `hidden`: số danh mục của nhóm bị ẩn vì chặn mặc định cho nhóm tuổi của bé (vẫn hiện đủ ở tab An toàn). */
 type TopicGroup = { id: CategoryGroupId; label: string; topics: string[]; hidden: number };
@@ -65,8 +64,8 @@ function LevelInfo({ level, ageBand }: { level: number; ageBand?: string }) {
         <div><dt>Câu dài tối đa</dt><dd>trung bình {info.maxWords} từ/câu</dd></div>
         <div><dt>Câu thường dài</dt><dd>khoảng {info.typicalWords} từ</dd></div>
         <div><dt>Cả truyện</dt><dd>khoảng {fmt(story.target)} từ ({fmt(story.min)}–{fmt(story.max)}){basis}</dd></div>
-      <p className="sub">Đây là độ dài mặc định theo mức đọc. Bạn chỉnh lại được ở phần An toàn.</p>
       </dl>
+      <p className="sub">Đây là độ dài mặc định theo mức đọc. Bạn chỉnh lại được ở phần An toàn.</p>
       <p className="level-sample">Ví dụ: “{info.sample}” <small>({countWords(info.sample)} từ)</small></p>
       {above && (
         <p className="notice warn" data-inline-notice>

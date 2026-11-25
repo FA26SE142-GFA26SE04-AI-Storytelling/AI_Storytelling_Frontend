@@ -38,6 +38,15 @@ describe('readingScheduleService contracts', () => {
     expect(new Headers(options.headers).get('Authorization')).toBe('Bearer adult');
   });
 
+  it('GET /ReadingSchedule/suggestion?ageBand= for a child that has no profile yet', async () => {
+    await readingScheduleService.suggest('Age_9_10');
+
+    const [url, options] = fetcher.mock.calls[0];
+    expect(url.endsWith('/ReadingSchedule/suggestion?ageBand=Age_9_10')).toBe(true);
+    expect(options.method).toBe('GET');
+    expect(new Headers(options.headers).get('Authorization')).toBe('Bearer adult');
+  });
+
   it('PUT /ReadingSchedule/{childProfileId} sends the whole configuration unchanged', async () => {
     await readingScheduleService.set(7, request);
 

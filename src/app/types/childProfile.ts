@@ -11,6 +11,8 @@ export interface ChildProfile {
   /** Avatar thuộc hồ sơ bé, backend gán mặc định khi tạo. */
   avatarId: string;
   ageBand: AgeBand | string;
+  /** Tuổi cụ thể 6–10, khớp nhóm tuổi; null với hồ sơ tạo trước khi có trường này. */
+  age?: number | null;
   language: string;
   status: string; // 'Draft' | 'Active' | 'Suspended' | 'Archived'
   createdAt: string;
@@ -24,6 +26,10 @@ export interface CreateChildProfileRequest {
   nickname: string;
   ageBand: AgeBand | string;
   language?: string;
+  /** Tuổi cụ thể 6–10, phải khớp nhóm tuổi. */
+  age?: number | null;
+  /** Ảnh đại diện; bỏ trống thì backend gán ảnh mặc định. */
+  avatarId?: string;
 }
 
 export interface UpdateChildProfileRequest {
@@ -31,6 +37,8 @@ export interface UpdateChildProfileRequest {
   ageBand: AgeBand | string;
   language?: string;
   avatarId?: string;
+  /** Không gửi: backend giữ tuổi đang lưu nếu còn khớp nhóm tuổi, không thì xoá. */
+  age?: number | null;
 }
 
 export type TopicRelation = 'FavoriteTopic' | 'PriorityFocusArea';
@@ -52,6 +60,8 @@ export type ApprovalMode = 'AlwaysManual' | 'AutoPublishOnThreshold';
 
 export interface SetSafetyPolicyRequest {
   maxStoryLength: number; // 100 to 20000
+  /** Độ dài truyện phụ huynh tự chỉnh (100–9000 từ); null/bỏ trống = theo mức đọc của bé. */
+  storyLengthTarget?: number | null;
   requiredApprovalMode: ApprovalMode;
   parentalGateEnabled: boolean;
   consentRecorded: boolean;
@@ -60,8 +70,6 @@ export interface SetSafetyPolicyRequest {
   comprehensionThresholdPercent?: number;
   comprehensionWindowSize?: number;
   storyWishesEnabled?: boolean;
-  /** Độ dài truyện phụ huynh tự chỉnh (100–9000 từ); null/bỏ trống = theo mức đọc của bé. */
-  storyLengthTarget?: number | null;
   allowInteractiveStories?: boolean;
   childCreationEnabled?: boolean;
   childCreationMode?: string;
@@ -117,6 +125,8 @@ export interface SafetyPolicy {
   id: number;
   childProfileId: number;
   maxStoryLength: number;
+  /** Độ dài truyện phụ huynh tự chỉnh; null = theo mức đọc của bé. */
+  storyLengthTarget?: number | null;
   requiredApprovalMode: string;
   parentalGateEnabled: boolean;
   consentRecorded: boolean;
@@ -125,8 +135,6 @@ export interface SafetyPolicy {
   /** Điều khoản đã đổi phiên bản: Owner phải đồng ý lại. */
   consentOutdated?: boolean;
   safetyScoreThreshold?: number | null;
-  /** Độ dài truyện phụ huynh tự chỉnh; null = theo mức đọc của bé. */
-  storyLengthTarget?: number | null;
   readabilityScoreThreshold?: number | null;
   comprehensionThresholdPercent?: number;
   comprehensionWindowSize?: number;

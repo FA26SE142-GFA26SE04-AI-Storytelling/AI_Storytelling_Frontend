@@ -46,6 +46,25 @@ describe('provider access failure UI', () => {
     expect(retry).toHaveBeenCalledTimes(1);
   });
 
+  it('shows the child topic rules as readable names with counts instead of raw category codes', () => {
+    const context = {
+      maximumLength: 1430, defaultVocabularyLevel: 'level_2', requiredApprovalMode: 'AlwaysManual',
+      interests: ['Cổ tích - Kỳ ảo'], allowedCategoryCodes: [], blockedCategoryCodes: ['WAR_CONFLICT', 'BULLYING'],
+    };
+    const html = renderToStaticMarkup(<StudioPlan
+      flow={{ context, values: null, errorMessage: null } as unknown as UseAIStoryInputFlowResult}
+      stage="brief" storyId={null} snapshot={null} errorCode={null}
+      timedOut={false} statusError={null} refresh={() => {}} onOutlineApproved={() => {}}
+      kidName="Bé An" childId={1} onOpenStory={() => {}} />);
+    // Chưa tải danh mục (SSR không chạy effect): dùng tên dự phòng, không hiện mã in hoa.
+    expect(html).not.toContain('WAR_CONFLICT');
+    expect(html).toContain('Bullying');
+    expect(html).toContain('War conflict');
+    expect(html).toContain('AI sẽ tránh các chủ đề này khi viết truyện cho Bé An.');
+    expect(html).toContain('class="ctx-count">2<');
+    expect(html).not.toContain('Chỉ viết trong các chủ đề');
+  });
+
   it('shows a terminal sidebar state instead of endless resume text', () => {
     const html = renderToStaticMarkup(<StudioPlan
       flow={{ context: null, values: null, errorMessage: null } as UseAIStoryInputFlowResult}
