@@ -9,7 +9,21 @@ import { X } from "lucide-react";
  * Luôn vẽ ở `document.body`: khung cha có `backdrop-filter` / `transform` (nền trong suốt, hiệu ứng) làm
  * `position: fixed` bị giới hạn trong khung đó, popup sẽ bị khuất nếu vẽ tại chỗ.
  */
-export default function Dialog({ title, onClose, children, wide, className }: { title: string; onClose: () => void; children: ReactNode; wide?: boolean; className?: string }) {
+export default function Dialog({
+  title,
+  onClose,
+  children,
+  wide,
+  className,
+  closeOnBackdrop = true,
+}: {
+  title: string;
+  onClose: () => void;
+  children: ReactNode;
+  wide?: boolean;
+  className?: string;
+  closeOnBackdrop?: boolean;
+}) {
   const backdropRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef(onClose);
   useEffect(() => {
@@ -31,7 +45,16 @@ export default function Dialog({ title, onClose, children, wide, className }: { 
   }, []);
 
   const node = (
-    <div ref={backdropRef} className="dlg-backdrop" role="dialog" aria-modal="true" aria-label={title} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div
+      ref={backdropRef}
+      className="dlg-backdrop"
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+      onClick={(e) => {
+        if (closeOnBackdrop && e.target === e.currentTarget) onClose();
+      }}
+    >
       <div className={`dlg${wide ? " wide" : ""}${className ? ` ${className}` : ""}`}>
         <div className="row">
           <b className="display grow" style={{ fontSize: "var(--fs-lg)" }}>{title}</b>

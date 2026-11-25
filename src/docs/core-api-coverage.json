@@ -2463,6 +2463,8 @@
         "callers": [
           "app/features/children/CreateChildWizard.tsx",
           "app/features/children/LearningForm.tsx",
+          "app/features/events/CreateEventModal.tsx",
+          "app/features/events/EventTaskFilterEditor.tsx",
           "app/features/safety/SafetyWorkspace.tsx",
           "app/features/story-workflow/useCreatorPublicationLabels.ts"
         ]
@@ -3169,6 +3171,8 @@
         "file": "app/services/creatorService.ts",
         "line": 37,
         "callers": [
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventCreatorView.tsx",
           "app/features/staff/CreatorLibrary.tsx",
           "app/features/staff/CreatorMyStories.tsx"
         ]
@@ -3191,6 +3195,7 @@
         "file": "app/services/creatorService.ts",
         "line": 39,
         "callers": [
+          "app/features/events/CreatorGoalAndStoryCard.tsx",
           "app/features/staff/CreatorEditor.tsx",
           "app/features/staff/CreatorGeneration.tsx",
           "app/features/staff/CreatorPreview.tsx",
@@ -3257,6 +3262,7 @@
         "file": "app/services/creatorService.ts",
         "line": 51,
         "callers": [
+          "app/features/events/CreatorGoalAndStoryCard.tsx",
           "app/features/staff/CreatorEditor.tsx",
           "app/features/staff/CreatorPreview.tsx"
         ]
@@ -3774,6 +3780,1051 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
+    "method": "GET",
+    "route": "/api/v1/events",
+    "authorization": "Authenticated",
+    "controller": "EventsController.cs",
+    "action": "List",
+    "controllerLine": 27,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events",
+        "service": "eventService",
+        "operation": "list",
+        "file": "app/services/eventService.ts",
+        "line": 108,
+        "callers": [
+          "app/features/events/EventHighlightBanner.tsx",
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/reward-plans",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "ListRewardPlans",
+    "controllerLine": 36,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/reward-plans",
+        "service": "eventService",
+        "operation": "rewardPlans",
+        "file": "app/services/eventService.ts",
+        "line": 104,
+        "callers": [
+          "app/features/events/EventRewardPlanField.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated",
+    "controller": "EventsController.cs",
+    "action": "Detail",
+    "controllerLine": 41,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}",
+        "service": "eventService",
+        "operation": "detail",
+        "file": "app/services/eventService.ts",
+        "line": 112,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx",
+          "app/features/events/useEventListDetails.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}/lead-moderator",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "UpdateLeadModerator",
+    "controllerLine": 53,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}/lead-moderator",
+        "service": "eventService",
+        "operation": "updateLeadModerator",
+        "file": "app/services/eventService.ts",
+        "line": 116,
+        "callers": [
+          "app/features/events/EventModeratorAssignment.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/clone-to-activity-draft",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "CloneToActivityDraft",
+    "controllerLine": 60,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/clone-to-activity-draft",
+        "service": "eventService",
+        "operation": "cloneToActivityDraft",
+        "file": "app/services/eventService.ts",
+        "line": 140,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "Create",
+    "controllerLine": 66,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events",
+        "service": "eventService",
+        "operation": "create",
+        "file": "app/services/eventService.ts",
+        "line": 122,
+        "callers": [
+          "app/features/events/CreateEventModal.tsx",
+          "app/features/events/EventActivityWizard.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "Update",
+    "controllerLine": 71,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}",
+        "service": "eventService",
+        "operation": "update",
+        "file": "app/services/eventService.ts",
+        "line": 129,
+        "callers": [
+          "app/features/events/CreateEventModal.tsx",
+          "app/features/events/EventActivityWizard.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "DELETE",
+    "route": "/api/v1/events/{eventId}",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "DeleteDraft",
+    "controllerLine": 76,
+    "evidence": [
+      {
+        "key": "DELETE /api/v1/events/{}",
+        "service": "eventService",
+        "operation": "deleteDraft",
+        "file": "app/services/eventService.ts",
+        "line": 136,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}/rules-section",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "UpdateRulesSection",
+    "controllerLine": 81,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}/rules-section",
+        "service": "eventService",
+        "operation": "updateRulesSection",
+        "file": "app/services/eventService.ts",
+        "line": 157,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}/schedule-section",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "UpdateScheduleSection",
+    "controllerLine": 86,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}/schedule-section",
+        "service": "eventService",
+        "operation": "updateScheduleSection",
+        "file": "app/services/eventService.ts",
+        "line": 176,
+        "callers": []
+      }
+    ],
+    "disposition": "SERVICE_ONLY"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}/tasks-section",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "UpdateTasksSection",
+    "controllerLine": 91,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}/tasks-section",
+        "service": "eventService",
+        "operation": "updateTasksSection",
+        "file": "app/services/eventService.ts",
+        "line": 191,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "PUT",
+    "route": "/api/v1/events/{eventId}/awards-section",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "UpdateAwardsSection",
+    "controllerLine": 96,
+    "evidence": [
+      {
+        "key": "PUT /api/v1/events/{}/awards-section",
+        "service": "eventService",
+        "operation": "updateAwardsSection",
+        "file": "app/services/eventService.ts",
+        "line": 205,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/rules",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "UpsertRules",
+    "controllerLine": 101,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/rules",
+        "service": "eventService",
+        "operation": "upsertRules",
+        "file": "app/services/eventService.ts",
+        "line": 222,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/submit-approval",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "SubmitApproval",
+    "controllerLine": 106,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/submit-approval",
+        "service": "eventService",
+        "operation": "submitApproval",
+        "file": "app/services/eventService.ts",
+        "line": 229,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/approve",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "Approve",
+    "controllerLine": 111,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/approve",
+        "service": "eventService",
+        "operation": "approve",
+        "file": "app/services/eventService.ts",
+        "line": 233,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/publish",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "Publish",
+    "controllerLine": 116,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/publish",
+        "service": "eventService",
+        "operation": "publish",
+        "file": "app/services/eventService.ts",
+        "line": 240,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/task-filter-stories",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "ListTaskFilterStories",
+    "controllerLine": 121,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/task-filter-stories",
+        "service": "eventService",
+        "operation": "taskFilterStories",
+        "file": "app/services/eventService.ts",
+        "line": 100,
+        "callers": [
+          "app/features/events/EventTaskFilterEditor.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/seed-stories",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "SeedStories",
+    "controllerLine": 130,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/seed-stories",
+        "service": "eventService",
+        "operation": "seedStories",
+        "file": "app/services/eventService.ts",
+        "line": 244,
+        "callers": [
+          "app/features/events/EventCuratedStoryPicker.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/summary",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "Summary",
+    "controllerLine": 135,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/summary",
+        "service": "eventService",
+        "operation": "summary",
+        "file": "app/services/eventService.ts",
+        "line": 251,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/close",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "Close",
+    "controllerLine": 143,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/close",
+        "service": "eventService",
+        "operation": "close",
+        "file": "app/services/eventService.ts",
+        "line": 255,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/register",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "Register",
+    "controllerLine": 148,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/register",
+        "service": "eventService",
+        "operation": "register",
+        "file": "app/services/eventService.ts",
+        "line": 265,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventCreatorView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/creator-submit",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "CreatorSubmit",
+    "controllerLine": 153,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/creator-submit",
+        "service": "eventService",
+        "operation": "creatorSubmit",
+        "file": "app/services/eventService.ts",
+        "line": 299,
+        "callers": [
+          "app/features/events/EventCreatorView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/parent-submit",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"",
+    "controller": "EventsController.cs",
+    "action": "ParentSubmit",
+    "controllerLine": 158,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/parent-submit",
+        "service": "eventService",
+        "operation": "parentSubmit",
+        "file": "app/services/eventService.ts",
+        "line": 287,
+        "callers": [
+          "app/features/events/ParentEventSubmission.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/activities/submission/submit",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "SubmitActivityStory",
+    "controllerLine": 163,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/activities/submission/submit",
+        "service": "eventService",
+        "operation": "submitActivityStory",
+        "file": "app/services/eventService.ts",
+        "line": 276,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/my-submissions",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "MySubmissions",
+    "controllerLine": 168,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/my-submissions",
+        "service": "eventService",
+        "operation": "mySubmissions",
+        "file": "app/services/eventService.ts",
+        "line": 283,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/submissions/{submissionId}/review-parent",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "ReviewParent",
+    "controllerLine": 173,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/submissions/{}/review-parent",
+        "service": "eventService",
+        "operation": "reviewParentSubmission",
+        "file": "app/services/eventService.ts",
+        "line": 293,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/submissions",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "ListSubmissions",
+    "controllerLine": 178,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/submissions",
+        "service": "eventService",
+        "operation": "listSubmissions",
+        "file": "app/services/eventService.ts",
+        "line": 306,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/my-submission",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "MySubmission",
+    "controllerLine": 186,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/my-submission",
+        "service": "eventService",
+        "operation": "mySubmission",
+        "file": "app/services/eventService.ts",
+        "line": 310,
+        "callers": [
+          "app/features/events/EventCreatorView.tsx",
+          "app/features/events/ParentEventSubmission.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/my-participation",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "MyParticipation",
+    "controllerLine": 191,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/my-participation",
+        "service": "eventService",
+        "operation": "myParticipation",
+        "file": "app/services/eventService.ts",
+        "line": 314,
+        "callers": [
+          "app/features/events/EventCreatorView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/my-participations",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "MyParticipations",
+    "controllerLine": 197,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/my-participations",
+        "service": "eventService",
+        "operation": "myParticipations",
+        "file": "app/services/eventService.ts",
+        "line": 318,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/mission-dashboard",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "MissionDashboard",
+    "controllerLine": 202,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/mission-dashboard",
+        "service": "eventService",
+        "operation": "missionDashboard",
+        "file": "app/services/eventService.ts",
+        "line": 322,
+        "callers": [
+          "app/features/events/CreatorEventBallot.tsx",
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/votes",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "CastVote",
+    "controllerLine": 207,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/votes",
+        "service": "eventService",
+        "operation": "castVote",
+        "file": "app/services/eventService.ts",
+        "line": 329,
+        "callers": [
+          "app/features/events/CreatorEventBallot.tsx",
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/votes",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "ListVotes",
+    "controllerLine": 212,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/votes",
+        "service": "eventService",
+        "operation": "listVotes",
+        "file": "app/services/eventService.ts",
+        "line": 336,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/votes/{voteId}/disqualify",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "DisqualifyVote",
+    "controllerLine": 220,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/votes/{}/disqualify",
+        "service": "eventService",
+        "operation": "disqualifyVote",
+        "file": "app/services/eventService.ts",
+        "line": 340,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/leaderboard",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated",
+    "controller": "EventsController.cs",
+    "action": "Leaderboard",
+    "controllerLine": 225,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/leaderboard",
+        "service": "eventService",
+        "operation": "leaderboard",
+        "file": "app/services/eventService.ts",
+        "line": 347,
+        "callers": [
+          "app/features/events/CreatorEventBallot.tsx",
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventCreatorView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/tasks/{taskDefinitionId}/complete",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"",
+    "controller": "EventsController.cs",
+    "action": "CompleteTask",
+    "controllerLine": 235,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/tasks/{}/complete",
+        "service": "eventService",
+        "operation": "completeTask",
+        "file": "app/services/eventService.ts",
+        "line": 355,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/verify",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "Verify",
+    "controllerLine": 240,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/verify",
+        "service": "eventService",
+        "operation": "verify",
+        "file": "app/services/eventService.ts",
+        "line": 362,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/appeals",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "CreateAppeal",
+    "controllerLine": 245,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/appeals",
+        "service": "eventService",
+        "operation": "createAppeal",
+        "file": "app/services/eventService.ts",
+        "line": 366,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventCreatorView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/appeals",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "ListAppeals",
+    "controllerLine": 250,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/appeals",
+        "service": "eventService",
+        "operation": "listAppeals",
+        "file": "app/services/eventService.ts",
+        "line": 373,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/appeals/{appealId}/decide",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "DecideAppeal",
+    "controllerLine": 258,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/appeals/{}/decide",
+        "service": "eventService",
+        "operation": "decideAppeal",
+        "file": "app/services/eventService.ts",
+        "line": 377,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/submissions/{submissionId}/evaluate",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "EvaluateSubmission",
+    "controllerLine": 263,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/submissions/{}/evaluate",
+        "service": "eventService",
+        "operation": "evaluateSubmission",
+        "file": "app/services/eventService.ts",
+        "line": 387,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/awards/propose",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"",
+    "controller": "EventsController.cs",
+    "action": "ProposeAwards",
+    "controllerLine": 271,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/awards/propose",
+        "service": "eventService",
+        "operation": "proposeAwards",
+        "file": "app/services/eventService.ts",
+        "line": 394,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/awards/approve",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "ApproveAwards",
+    "controllerLine": 276,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/awards/approve",
+        "service": "eventService",
+        "operation": "approveAwards",
+        "file": "app/services/eventService.ts",
+        "line": 398,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/my-rewards",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"User,ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "MyRewards",
+    "controllerLine": 281,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/my-rewards",
+        "service": "eventService",
+        "operation": "myRewards",
+        "file": "app/services/eventService.ts",
+        "line": 402,
+        "callers": [
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/awards/{awardId}/claim",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"",
+    "controller": "EventsController.cs",
+    "action": "ClaimReward",
+    "controllerLine": 286,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/awards/{}/claim",
+        "service": "eventService",
+        "operation": "claimReward",
+        "file": "app/services/eventService.ts",
+        "line": 412,
+        "callers": [
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/EventCreatorView.tsx",
+          "app/features/events/EventMissionView.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/awards/process-expired",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "ProcessExpired",
+    "controllerLine": 291,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/awards/process-expired",
+        "service": "eventService",
+        "operation": "processExpired",
+        "file": "app/services/eventService.ts",
+        "line": 419,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/awards/{awardId}/recipient",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "RewardRecipient",
+    "controllerLine": 296,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/awards/{}/recipient",
+        "service": "eventService",
+        "operation": "rewardRecipient",
+        "file": "app/services/eventService.ts",
+        "line": 423,
+        "callers": [
+          "app/features/events/EventAwardsTable.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/{eventId}/awards/notify",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "NotifyAwardWinners",
+    "controllerLine": 302,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/{}/awards/notify",
+        "service": "eventService",
+        "operation": "resendAwardNotifications",
+        "file": "app/services/eventService.ts",
+        "line": 427,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/events/awards/{awardId}/fulfill",
+    "authorization": "Authenticated; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"User,ContentCreator\"; Roles = \"ContentCreator\"; Roles = \"User\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Authenticated; Roles = \"User\"; Roles = \"Moderator,Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator\"; Roles = \"Administrator\"; Roles = \"User,ContentCreator\"; Roles = \"User,ContentCreator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"; Roles = \"Moderator,Administrator\"",
+    "controller": "EventsController.cs",
+    "action": "Fulfill",
+    "controllerLine": 307,
+    "evidence": [
+      {
+        "key": "POST /api/v1/events/awards/{}/fulfill",
+        "service": "eventService",
+        "operation": "fulfillReward",
+        "file": "app/services/eventService.ts",
+        "line": 434,
+        "callers": [
+          "app/features/events/EventModeratorPanel.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
     "method": "POST",
     "route": "/api/v1/stories/import",
     "authorization": "Roles = \"User\"",
@@ -4042,7 +5093,8 @@
         "line": 75,
         "callers": [
           "app/features/children/LearningTab.tsx",
-          "app/features/children/ProfileTab.tsx"
+          "app/features/children/ProfileTab.tsx",
+          "app/features/library/LibraryQuickTopics.tsx"
         ]
       }
     ],
@@ -4110,7 +5162,7 @@
         "line": 171,
         "callers": [
           "app/features/created/CoverPickerDialog.tsx",
-          "app/features/library/LibraryWorkspace.tsx",
+          "app/features/library/usePreviewPages.ts",
           "app/features/story-workflow/useMediaPackage.ts",
           "app/features/story-workflow/useStudioMediaPreview.ts"
         ]
@@ -5115,7 +6167,9 @@
         "line": 7,
         "callers": [
           "app/features/authoring/useParentAuthoring.ts",
-          "app/features/created/CreatedStories.tsx"
+          "app/features/created/CreatedStories.tsx",
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/ParentEventSubmission.tsx"
         ]
       }
     ],
@@ -5140,7 +6194,7 @@
           "app/features/authoring/ParentAuthoringWorkspace.tsx",
           "app/features/authoring/useParentAuthoring.ts",
           "app/features/created/CreatedStories.tsx",
-          "app/features/library/LibraryWorkspace.tsx"
+          "app/features/library/usePreviewPages.ts"
         ]
       }
     ],
@@ -5247,7 +6301,7 @@
         "callers": [
           "app/features/authoring/ParentAuthoringWorkspace.tsx",
           "app/features/authoring/useParentAuthoring.ts",
-          "app/features/library/LibraryWorkspace.tsx"
+          "app/features/library/usePreviewPages.ts"
         ]
       }
     ],
@@ -7846,6 +8900,7 @@
         "file": "app/services/staffService.ts",
         "line": 49,
         "callers": [
+          "app/features/events/EventModeratorAssignment.tsx",
           "app/features/staff/AdminPeople.tsx"
         ]
       },
@@ -7856,6 +8911,7 @@
         "file": "app/services/staffService.ts",
         "line": 49,
         "callers": [
+          "app/features/events/EventModeratorAssignment.tsx",
           "app/features/staff/AdminPeople.tsx"
         ]
       }
@@ -7982,9 +9038,11 @@
         "file": "app/services/storyService.ts",
         "line": 38,
         "callers": [
-          "app/features/library/LibraryWorkspace.tsx",
+          "app/features/events/EventCuratedStoryPicker.tsx",
           "app/features/library/useCommunityStatShelves.ts",
-          "app/features/roadmap/roadmapData.ts"
+          "app/features/library/useLibraryCatalog.ts",
+          "app/features/roadmap/roadmapData.ts",
+          "app/features/staff/CreatorCommunityLibrary.tsx"
         ]
       },
       {
@@ -7994,9 +9052,11 @@
         "file": "app/services/storyService.ts",
         "line": 38,
         "callers": [
-          "app/features/library/LibraryWorkspace.tsx",
+          "app/features/events/EventCuratedStoryPicker.tsx",
           "app/features/library/useCommunityStatShelves.ts",
-          "app/features/roadmap/roadmapData.ts"
+          "app/features/library/useLibraryCatalog.ts",
+          "app/features/roadmap/roadmapData.ts",
+          "app/features/staff/CreatorCommunityLibrary.tsx"
         ]
       }
     ],
@@ -8048,7 +9108,7 @@
         "file": "app/services/storyService.ts",
         "line": 54,
         "callers": [
-          "app/features/library/LibraryWorkspace.tsx"
+          "app/features/library/usePreviewPages.ts"
         ]
       }
     ],
@@ -8071,7 +9131,9 @@
         "callers": [
           "app/context/WorkspaceDataContext.tsx",
           "app/features/created/CreatedStories.tsx",
-          "app/features/library/LibraryWorkspace.tsx"
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/ParentEventSubmission.tsx",
+          "app/features/library/useLibraryCatalog.ts"
         ]
       },
       {
@@ -8083,7 +9145,9 @@
         "callers": [
           "app/context/WorkspaceDataContext.tsx",
           "app/features/created/CreatedStories.tsx",
-          "app/features/library/LibraryWorkspace.tsx"
+          "app/features/events/EventActivityParticipantView.tsx",
+          "app/features/events/ParentEventSubmission.tsx",
+          "app/features/library/useLibraryCatalog.ts"
         ]
       }
     ],
@@ -8104,7 +9168,7 @@
         "file": "app/services/storyService.ts",
         "line": 58,
         "callers": [
-          "app/features/library/LibraryWorkspace.tsx",
+          "app/features/library/usePreviewPages.ts",
           "app/features/roadmap/roadmapData.ts",
           "app/features/story-workflow/resumeStory.ts"
         ]

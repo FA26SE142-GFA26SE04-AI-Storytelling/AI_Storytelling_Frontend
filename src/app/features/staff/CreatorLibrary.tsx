@@ -4,6 +4,7 @@ import "@/app/styles/features/library/library.css";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, Eye, Info, PencilLine, Search, SlidersHorizontal, WandSparkles, X } from "lucide-react";
 import CreatorPreview from "./CreatorPreview";
+import EventHighlightBanner from "@/app/features/events/EventHighlightBanner";
 import AsidePane, { AsideContext } from "@/app/components/shell/AsidePane";
 import { Shelf, ShelfRow } from "@/app/features/library/LibraryWorkspace";
 import { creatorService } from "@/app/services/creatorService";
@@ -129,6 +130,7 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
         <div className="pane">
           <div className="lib-scroll">
             <Notice note={note} />
+            <EventHighlightBanner role="ContentCreator" onOpenEvents={() => go("events")} />
             <div className="lbar">
               <div className="lsearch">
                 <label className="row grow" style={{ gap: 6, color: "var(--muted)" }}>

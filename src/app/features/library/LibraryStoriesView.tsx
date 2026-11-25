@@ -15,6 +15,7 @@ import { rankForStory, statusOf, type AgeFilterOption, type LibrarySort } from "
 export type { ActiveFilterChip };
 
 export type LibraryStoriesViewProps = {
+  audience?: "parent" | "creator";
   stories: StoryCard[];
   sorted: StoryCard[];
   results: StoryCard[];
@@ -49,6 +50,7 @@ export type LibraryStoriesViewProps = {
 
 /** Nội dung tab "Truyện" của Thư viện phụ huynh: dải chủ đề, bộ lọc đang bật, kệ nổi bật, đề xuất và lưới toàn bộ truyện. */
 export default function LibraryStoriesView({
+  audience = "parent",
   stories,
   sorted,
   results,
@@ -154,7 +156,7 @@ export default function LibraryStoriesView({
         <div className="lib-empty-panel">
           <Frog size={96} mood="idle" />
           <h3 className="display">Thư viện chưa có truyện nào</h3>
-          <p>Bắt đầu tạo truyện mới bằng AI hoặc tự viết câu chuyện riêng cho gia đình bạn.</p>
+          <p>{audience === "creator" ? "Khám phá các tác phẩm được duyệt tại đây. Bạn có thể bắt đầu sáng tác và gửi tác phẩm của mình tới cộng đồng." : "Bắt đầu tạo truyện mới bằng AI hoặc tự viết câu chuyện riêng cho gia đình bạn."}</p>
           <div className="row lib-empty-actions">
             <button type="button" className="btn btn-gold" onClick={() => go("studio")}>
               <WandSparkles className="ic" aria-hidden="true" />

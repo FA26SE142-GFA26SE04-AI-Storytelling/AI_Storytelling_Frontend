@@ -36,6 +36,7 @@ const TEXT: Record<string, string> = {
   creator_content_flagged: "Nội dung bạn tạo vừa bị gắn cờ",
   moderation_sla_warning: "Có mục kiểm duyệt sắp quá hạn xử lý",
   payment_confirmed: "Thanh toán thành công, gói đã được áp",
+  event_award_approved: "Bạn đã trúng giải sự kiện",
   subscription_expiring: "Gói của bạn sắp hết hạn, hãy gia hạn để không gián đoạn",
   creator_application_approved: "Đơn Creator đã được duyệt",
   creator_application_rejected: "Đơn Creator bị từ chối",

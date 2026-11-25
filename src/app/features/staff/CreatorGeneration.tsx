@@ -44,7 +44,7 @@ type Seed = { topic: string; lesson: string; genre: string; charactersText: stri
  * Vỏ ngoài: "bỏ truyện / quay lại sửa ý tưởng" dựng lại toàn bộ luồng bằng key mới, nên mọi trạng thái cũ (dàn ý, tiến trình) sạch hẳn.
  * Content Creator không có API huỷ truyện, nên đây chỉ là làm mới form; bản nháp vẫn nằm trong Thư viện.
  */
-export default function CreatorGeneration({ initialId = null, onBuyCredits }: { initialId?: number | null; onBack: () => void; onBuyCredits?: () => void }) {
+export default function CreatorGeneration({ initialId = null, eventId = null, onBuyCredits }: { initialId?: number | null; eventId?: number | null; onBack: () => void; onBuyCredits?: () => void }) {
   const [run, setRun] = useState(0);
   const [seed, setSeed] = useState<Seed>(null);
   const [activeStoryId, setActiveStoryId] = useState<number | null>(initialId);
@@ -52,6 +52,7 @@ export default function CreatorGeneration({ initialId = null, onBuyCredits }: { 
     <CreatorGenerationRun
       key={run}
       initialId={activeStoryId}
+      eventId={eventId}
       seed={seed}
       onReset={(next) => { setSeed(next); setActiveStoryId(null); setRun((n) => n + 1); }}
       onOpenStory={(storyId) => { setSeed(null); setActiveStoryId(storyId); setRun((n) => n + 1); }}
@@ -59,7 +60,7 @@ export default function CreatorGeneration({ initialId = null, onBuyCredits }: { 
     />
   );
 }
-function CreatorGenerationRun({ initialId, seed, onReset, onOpenStory, onBuyCredits }: { initialId: number | null; seed: Seed; onReset: (seed: Seed) => void; onOpenStory: (storyId: number) => void; onBuyCredits?: () => void }) {
+function CreatorGenerationRun({ initialId, eventId, seed, onReset, onOpenStory, onBuyCredits }: { initialId: number | null; eventId: number | null; seed: Seed; onReset: (seed: Seed) => void; onOpenStory: (storyId: number) => void; onBuyCredits?: () => void }) {
   const flow = useCreatorGeneration(initialId);
   const capacityState = useAiGenerationCapacity(true, `${flow.stage}:${flow.id ?? 'new'}:${flow.concurrencyLimitReached}`);
   // Nhớ truyện AI đang soạn để tải lại trang vẫn mở lại đúng truyện (truyện mới bắt đầu thì xóa).
@@ -113,6 +114,7 @@ function CreatorGenerationRun({ initialId, seed, onReset, onOpenStory, onBuyCred
       ...creative(), ageBand, readingLevel, outputMode,
       ...generationOptions(outputMode, generationMode, quizQuestionCount),
       existingStoryId: null, idempotencyKey: `creator-${crypto.randomUUID()}`,
+      ...(eventId ? { eventId } : {}),
     };
     // Tải lại số lượt sau khi Backend nhận yêu cầu (đã trừ lượt), không phải ngay lúc bấm.
     setSubmitted(body); void Promise.resolve(flow.submit(body)).finally(notifyCreatorQuotaChanged);
@@ -186,6 +188,7 @@ function CreatorGenerationRun({ initialId, seed, onReset, onOpenStory, onBuyCred
       )}
       {!reviewing && !mediaStage && <div className="pane"><div className="plan-stage"><div className="plan-scroll">
         {flow.id === null && <>
+          {eventId && <p className="sub">Đang sáng tác cho sự kiện #{eventId}. Lượt tài trợ được backend kiểm tra theo đăng ký và thời hạn sự kiện.</p>}
           <AiCapacityBanner
             capacity={capacityState.capacity}
             loading={capacityState.loading}

@@ -10,6 +10,7 @@ export type ApiOptions = {
   token?: string;
   session?: 'adult' | 'child' | 'anonymous';
   signal?: AbortSignal;
+  cache?: RequestCache;
   /** Only opt in where the controller deliberately returns no JSON. */
   emptyResponse?: boolean;
 };
@@ -22,7 +23,7 @@ export async function apiRequest<T>(path: string, fallback: string, opts: ApiOpt
   if (opts.session === 'child' && !opts.token) {
     return { success: false, status: 401, message: 'Phiên của bé đã hết hạn.', data: null };
   }
-  const init: RequestInit = { method: opts.method ?? 'GET', signal: opts.signal };
+  const init: RequestInit = { method: opts.method ?? 'GET', signal: opts.signal, cache: opts.cache };
   if (opts.form) init.body = opts.form;
   else if (opts.body !== undefined) init.body = JSON.stringify(opts.body);
   try {
