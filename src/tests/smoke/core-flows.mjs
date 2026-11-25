@@ -194,6 +194,7 @@ function api({ path, method, body, url, state }) {
     case path === '/child/reading/sessions/31/reflection/emotions': state.emotions = body; return { sessionId: 31, emotions: body.emotions.map((code) => ({ code, label: code })), favoriteSceneId: null, noteText: null, hasNoteRecording: false, canRecord: true, message: null };
     case path === '/child/reading/sessions/31/reflection/favorite-scene': state.favorite = body; return { sessionId: 31, emotions: [], favoriteSceneId: body.sceneId, noteText: null, hasNoteRecording: false, canRecord: true, message: null };
     case path === '/child/reading/sessions/31/reflection/note': state.noteSent = true; return { sessionId: 31, emotions: [], favoriteSceneId: 2, noteText: 'x', hasNoteRecording: false, canRecord: true, message: 'Đã gửi cho bố mẹ' };
+    case path === '/child/quiz/sessions/31' && !!state.noQuiz: return { sessionId: 31, totalQuestions: 0, bestPercent: null, questions: [] };
     case path === '/child/reading/sessions/31/signal': return { shouldExit: false, returnTo: null, message: null, sessionStatus: 'Active', readingTime: state.signalTime ?? null };
     case path === '/child/reading/sessions/31/events': return null;
     // Moderator: lộ trình mẫu
@@ -636,6 +637,25 @@ try {
     await page.locator('.kid-pic-layer.on').nth(0).and(layers.nth(2)).waitFor({ timeout: 6000 });
     await page.locator('.kid-pic-part', { hasText: part2 }).waitFor({ timeout: 5000 });
   });
+
+  await smoke('KidAfterNoQuiz', 'Parent', async ({ page }) => {
+    // Truyện không có câu đố: popup sau khi đọc chỉ còn 6 trang, không có trang "Câu đố về truyện".
+    await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
+    const finish = page.getByRole('button', { name: 'Em đã đọc xong', exact: true });
+    for (let i = 0; i < 10 && !(await finish.isVisible()); i++) {
+      await page.getByRole('button', { name: 'Trang sau', exact: true }).click(); await page.waitForTimeout(600);
+    }
+    await finish.click();
+    await page.getByRole('button', { name: 'Xác nhận', exact: true }).click();
+    const popup = page.getByRole('dialog', { name: 'Em đã đọc xong' });
+    await popup.getByRole('list', { name: 'Bước 1 trên 6' }).waitFor();
+    for (let i = 0; i < 5; i++) await popup.getByRole('button', { name: 'Phần sau', exact: true }).click();
+    await popup.getByRole('list', { name: 'Bước 6 trên 6' }).waitFor();
+    assert(await popup.getByRole('button', { name: 'Phần sau', exact: true }).isDisabled(), 'Trang thắc mắc là trang cuối');
+    assert.equal(await popup.getByRole('button', { name: /Làm câu đố/ }).count(), 0, 'Không có nút làm câu đố');
+    await shots(page, 'KidAfterNoQuiz', '.kid-finish-dialog');
+  }, { noQuiz: true });
 
   await smoke('KidSummaryQuestions', 'Parent', async ({ page, state, requests }) => {
     state.multiScene = true;

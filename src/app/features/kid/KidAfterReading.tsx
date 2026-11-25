@@ -2,7 +2,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight, Library, Puzzle, X } from 'lucide-react';
 import { useSwap } from '@/app/lib/motion';
-import { childRewardsService } from '@/app/services/childReadingService';
+import { childQuizService, childRewardsService } from '@/app/services/childReadingService';
 import type { ChildBadge, ReadingCompleted, ReadingScene } from '@/app/types/childReading';
 import KidQuiz from './KidQuiz';
 import KidReflection from './KidReflection';
@@ -66,6 +66,19 @@ export default function KidAfterReading({ token, completed, scenes = [], onLibra
 
   const newBadges = badgeCodes.map(code => badges.find(b => b.code === code)?.name ?? code);
 
+  // Truyện không có câu đố (API trả danh sách câu rỗng) thì bỏ trang câu đố ở cuối.
+  const [hasQuiz, setHasQuiz] = useState(true);
+  useEffect(() => {
+    if (!quizOn) return;
+    const controller = new AbortController();
+    void childQuizService.get(token, completed.sessionId, controller.signal).then(r => {
+      if (controller.signal.aborted || !r.success || !r.data || r.data.questions.length) return;
+      setHasQuiz(false); setPage(p => Math.min(p, PAGES - 2));
+    });
+    return () => controller.abort();
+  }, [quizOn, token, completed.sessionId]);
+  const pages = hasQuiz ? PAGES : PAGES - 1;
+
   return <div className="kid-finish-card kid-after-card">
     {(exp > 0 || newBadges.length > 0 || completed.roadmapStepCompleted) && <div className="kid-after-intro">
       {(exp > 0 || newBadges.length > 0) && <p className="kid-reward-line display" role="status">
@@ -94,21 +107,21 @@ export default function KidAfterReading({ token, completed, scenes = [], onLibra
       <div hidden={page !== 5}>
         <KidSummary part="questions" token={token} sessionId={completed.sessionId} scenes={scenes} />
       </div>
-      <div hidden={page !== 6}>
+      {hasQuiz && <div hidden={page !== 6}>
         <h3 className="display">{TITLES[6]}</h3>
         {quizOn ? <button type="button" className="kid-btn3d is-gold kid-quiz-open" onClick={() => setQuiz(true)}><Puzzle aria-hidden="true" />Làm câu đố về truyện</button> : <p className="kid-after-off">{FEATURE_OFF_MESSAGE}</p>}
-      </div>
+      </div>}
     </div>
     <nav className="kid-story-navigation kid-after-nav" aria-label="Trang sau khi đọc">
       <button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Phần trước" title="Phần trước" disabled={page === 0} onClick={() => userGo(page - 1)}><ChevronLeft aria-hidden="true" /></button>
-      <ol className="kid-reflection-dots" aria-label={`Bước ${page + 1} trên ${PAGES}`}>
-        {Array.from({ length: PAGES }, (_, i) => (
+      <ol className="kid-reflection-dots" aria-label={`Bước ${page + 1} trên ${pages}`}>
+        {Array.from({ length: pages }, (_, i) => (
           <li key={i} className={i === page ? 'on' : i < page ? 'past' : ''} aria-current={i === page ? 'step' : undefined}>
             <span className="sr-only">{TITLES[i]}</span>
           </li>
         ))}
       </ol>
-      <button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Phần sau" title="Phần sau" disabled={page === PAGES - 1} onClick={() => userGo(page + 1)}><ChevronRight aria-hidden="true" /></button>
+      <button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Phần sau" title="Phần sau" disabled={page === pages - 1} onClick={() => userGo(page + 1)}><ChevronRight aria-hidden="true" /></button>
       {onLibrary && <button type="button" className="kid-btn3d is-gold kid-after-lib" aria-label="Về thư viện" title="Về thư viện" onClick={onLibrary}><Library aria-hidden="true" /><span className="kid-after-lib-text">Về thư viện</span></button>}
     </nav>
     {quiz && quizOn && <QuizPopup onClose={() => setQuiz(false)}>
