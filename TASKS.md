@@ -113,6 +113,7 @@ Backend đợt 1 của Tuấn (10/11, PR #127, hướng dẫn `docs/PARENT_PLANS
 
 - [x] Thêm truyện vào lộ trình (Đọc tiếp theo / Cuối lộ trình), đổi thứ tự, gỡ một bước, làm trống; chặn khi hồ sơ không Active.
 - [x] Thư viện lộ trình mẫu: xem, xem trước, sao chép cho bé.
+- [x] Kiểm tra trước khi mở form cần chọn bé (25/11, `ensureChild` trong [chooseChild.ts](src/app/lib/chooseChild.ts)): chưa có hồ sơ bé hoặc không bé nào đang hoạt động thì chỉ báo toast, không mở popup. Áp dụng cho "Thêm vào lộ trình" (truyện và lộ trình mẫu ở Thư viện), "Cho bé đọc ngay", hộp chọn bé dùng chung (`chooseChild`, ví dụ Studio "Tạo truyện cho bé nào?"). Mobile: "Lộ trình" và "Đọc ngay" ở màn xem trước truyện. Smoke `ParentNoKidGate`.
 - [x] Trang "Học tập của bé": Tổng quan, Lộ trình, Kết quả đọc (phản hồi đọc, câu bé trả lời, bản ghi âm kể lại, chỗ bé còn thắc mắc, xoá bản kể lại), Điều ước.
 - [x] Kết quả đọc mở rộng (16/11, BE PR #151): lọc Đã/Chưa đọc xong và 7 ngày/30 ngày/Tất cả; ô tổng quan (`GET /ParentReadingFeedback/{id}/overview`); mỗi lần đọc có thời gian, số trang, lần đọc lại, EXP, chế độ đọc, đọc to, từ mới, bản kể lại; popup chi tiết câu đố (`GET .../sessions/{sessionId}/quiz`) ([ResultsTab.tsx](src/app/features/learning/ResultsTab.tsx)).
 - [x] Kết quả đọc gộp theo truyện (17/11): các lần đọc cùng một truyện (trong trang đang xem) gộp thành một thẻ lần mới nhất, nút "Xem N lần đọc trước" mở các lần cũ; số ở tiêu đề là số lần đọc.

@@ -6,6 +6,7 @@ import Dialog from "@/app/components/Dialog";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { childAccessService } from "@/app/services/childAccessService";
 import { avatarOf } from "@/app/lib/guardian";
+import { ensureChild } from "@/app/lib/chooseChild";
 import { showToast } from "@/app/lib/toast";
 import type { StoryHandoverOptions } from "@/app/types/supervision";
 
@@ -15,10 +16,11 @@ import type { StoryHandoverOptions } from "@/app/types/supervision";
  */
 export default function StoryHandoverButton({ storyId, title, onKid }: { storyId: number; title: string; onKid?: (childId: number, storyId: number) => void }) {
   const [open, setOpen] = useState(false);
+  const { children: kids, childrenLoading } = useWorkspaceData();
   if (!onKid) return null;
   return (
     <>
-      <button className="btn btn-gold btn-c" onClick={() => setOpen(true)}><BookOpen className="ic" />Cho bé đọc ngay</button>
+      <button className="btn btn-gold btn-c" onClick={() => { if (ensureChild(kids, childrenLoading)) setOpen(true); }}><BookOpen className="ic" />Cho bé đọc ngay</button>
       {open && <HandoverDialog storyId={storyId} title={title} onClose={() => setOpen(false)} onPick={(childId) => { setOpen(false); onKid(childId, storyId); }} />}
     </>
   );
