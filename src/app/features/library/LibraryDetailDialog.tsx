@@ -144,7 +144,7 @@ export function LibraryDetailShell({
             {story.words > 0 && (
               <span className="lib-tag lib-num">
                 <BookOpen className="ic" aria-hidden="true" />
-                {story.words.toLocaleString("vi-VN")} tiếng
+                {story.words.toLocaleString("vi-VN")} chữ
               </span>
             )}
           </div>

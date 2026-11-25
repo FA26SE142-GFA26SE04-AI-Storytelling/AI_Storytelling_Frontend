@@ -838,11 +838,14 @@
   padding-top: 4px;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 5px;
+  min-width: 0;
   font-size: var(--fs-xs);
   color: var(--faint);
 }
+/* Tên tác giả dài thì cắt "...", số chữ luôn hiện đủ. */
+.lib-card-author { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-card-words { flex: none; white-space: nowrap; }
 
 /* Khung xương tải trước */
 .lib-skel-card {

@@ -66,7 +66,14 @@ describe("Library UI components", () => {
     expect(rankedHtml).toContain("#1");
     expect(rankedHtml).toContain("below-pill");
     expect(rankedHtml).toContain("Ếch con khám phá");
-    expect(rankedHtml).toContain("1.250 tiếng");
+    expect(rankedHtml).toContain("1.250 chữ");
+
+    // Chân thẻ hiện tên tác giả thay cho nhãn nguồn "Của creator".
+    const authoredHtml = renderToStaticMarkup(
+      <LibraryBookCard story={makeStory({ creator: true, raw: { authorName: "Đặng Lê Anh Tuấn" } })} onPick={() => {}} />,
+    );
+    expect(authoredHtml).toContain('class="lib-card-author" title="Đặng Lê Anh Tuấn"');
+    expect(authoredHtml).not.toContain("Của creator");
     expect(rankedHtml).toContain("166.67% 125%");
 
     const plainReadyHtml = renderToStaticMarkup(
