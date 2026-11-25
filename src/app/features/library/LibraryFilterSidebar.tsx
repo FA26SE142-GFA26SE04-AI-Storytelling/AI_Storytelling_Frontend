@@ -1,78 +1,53 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { BookOpen, Clock, PanelLeftClose, PanelLeftOpen, Shapes, SlidersHorizontal, Tag, Users } from "lucide-react";
 import type { StoryCard } from "@/app/lib/storyView";
-import { FilterGroup, LibraryTopAuthors, type LibraryExtraFilterProps } from "./LibraryExtraFilters";
+import { FilterGroup, type LibraryExtraFilterProps } from "./LibraryExtraFilters";
 import { SOURCE_LABEL, STATUS_GROUPS, sourceOf, statusOf, type AgeFilterOption } from "./libraryFilters";
 
-const COLLAPSED_KEY = "lib_filter_collapsed";
-
 /**
- * Khung thanh lọc trái dùng chung (Thư viện phụ huynh, Creator, Moderator): tiêu đề "Bộ lọc", "Xóa tất cả" và nút thu gọn.
- * Khi thu gọn chỉ còn dải hẹp có nút mở và số bộ lọc đang bật; trạng thái nhớ theo trình duyệt.
+ * Thanh lọc trái dùng chung (Thư viện phụ huynh, Creator, Moderator), kiểu menu YouTube:
+ * luôn là dải hẹp có nút mở và số bộ lọc đang bật; mở ra thì khung Bộ lọc nổi đè lên trang kèm lớp phủ,
+ * bấm ra ngoài / Esc / nút thu để đóng. Khung Bộ lọc luôn có trong DOM (ẩn bằng `hidden`) để giữ trạng thái nhóm lọc.
  */
-export function FilterSidebarShell({ active, onClear, top, children }: { active: number; onClear: () => void; top?: ReactNode; children: ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
-  // Đọc sau khi mount để HTML render ở server và lần render đầu ở trình duyệt giống nhau.
+export function FilterSidebarShell({ active, onClear, children }: { active: number; onClear: () => void; children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const openBtn = useRef<HTMLButtonElement>(null);
+  const closeBtn = useRef<HTMLButtonElement>(null);
+  const close = () => { setOpen(false); openBtn.current?.focus({ preventScroll: true }); };
   useEffect(() => {
-    try { setCollapsed(localStorage.getItem(COLLAPSED_KEY) === "1"); } catch { /* bộ nhớ trình duyệt bị chặn */ }
-  }, []);
-  const toggle = () => setCollapsed((v) => {
-    try { localStorage.setItem(COLLAPSED_KEY, v ? "0" : "1"); } catch { /* bộ nhớ trình duyệt bị chặn */ }
-    return !v;
-  });
+    if (!open) return;
+    closeBtn.current?.focus({ preventScroll: true });
+    const key = (e: KeyboardEvent) => { if (e.key === "Escape") { setOpen(false); openBtn.current?.focus({ preventScroll: true }); } };
+    document.addEventListener("keydown", key);
+    return () => document.removeEventListener("keydown", key);
+  }, [open]);
+  const openLabel = active > 0 ? `Mở bộ lọc, đang bật ${active} bộ lọc` : "Mở bộ lọc";
 
-  // Có khung phụ (Tác giả nổi bật): khung phụ vẫn hiện, khung Bộ lọc gập lại còn thanh tiêu đề.
-  if (collapsed && top) {
-    return (
-      <div className="lib-side-col">
-        {top}
-        <aside className="lib-sidebar lib-sidebar-folded" aria-label="Bộ lọc thư viện">
-          <div className="lib-sidebar-head">
-            <h3 className="display">
-              <SlidersHorizontal className="ic" aria-hidden="true" />Bộ lọc
-              {active > 0 && <span className="lib-side-rail-n lib-side-folded-n">{active}</span>}
-            </h3>
-            <button type="button" className="lib-side-toggle" onClick={toggle} title="Mở bộ lọc" aria-label={active > 0 ? `Mở bộ lọc, đang bật ${active} bộ lọc` : "Mở bộ lọc"} aria-expanded={false}>
-              <PanelLeftOpen aria-hidden="true" />
-            </button>
-          </div>
-        </aside>
-      </div>
-    );
-  }
-
-  if (collapsed) {
-    return (
-      <aside className="lib-sidebar collapsed" aria-label="Bộ lọc thư viện">
-        <button type="button" className="lib-side-toggle" onClick={toggle} title="Mở bộ lọc" aria-label="Mở bộ lọc" aria-expanded={false}>
+  return (
+    <div className="lib-side-rail-wrap">
+      <div className="lib-sidebar collapsed">
+        <button ref={openBtn} type="button" className="lib-side-rail-filter" onClick={() => setOpen(true)} title="Mở bộ lọc" aria-label={openLabel} aria-expanded={open} aria-controls="lib-filter-drawer">
           <PanelLeftOpen aria-hidden="true" />
-        </button>
-        <button type="button" className="lib-side-rail-filter" onClick={toggle} title="Mở bộ lọc" aria-label={active > 0 ? `Mở bộ lọc, đang bật ${active} bộ lọc` : "Mở bộ lọc"}>
-          <SlidersHorizontal aria-hidden="true" />
           {active > 0 && <span className="lib-side-rail-n">{active}</span>}
         </button>
-      </aside>
-    );
-  }
-
-  const sidebar = (
-    <aside className="lib-sidebar" aria-label="Bộ lọc thư viện">
-      <div className="lib-sidebar-inner">
-        <div className="lib-sidebar-head">
-          <h3 className="display"><SlidersHorizontal className="ic" aria-hidden="true" />Bộ lọc</h3>
-          <span className="lib-sidebar-actions">
-            <button type="button" className="lib-reset-btn" onClick={onClear}>Xóa tất cả</button>
-            <button type="button" className="lib-side-toggle" onClick={toggle} title="Thu gọn bộ lọc" aria-label="Thu gọn bộ lọc" aria-expanded>
-              <PanelLeftClose aria-hidden="true" />
-            </button>
-          </span>
-        </div>
-        {children}
       </div>
-    </aside>
+      {open && <div className="lib-drawer-backdrop" aria-hidden="true" onClick={close} />}
+      <aside id="lib-filter-drawer" className="lib-sidebar lib-drawer" aria-label="Bộ lọc thư viện" hidden={!open}>
+        <div className="lib-sidebar-inner">
+          <div className="lib-sidebar-head">
+            <h3 className="display"><SlidersHorizontal className="ic" aria-hidden="true" />Bộ lọc</h3>
+            <span className="lib-sidebar-actions">
+              <button type="button" className="lib-reset-btn" onClick={onClear}>Xóa tất cả</button>
+              <button ref={closeBtn} type="button" className="lib-side-toggle" onClick={close} title="Thu gọn bộ lọc" aria-label="Thu gọn bộ lọc">
+                <PanelLeftClose aria-hidden="true" />
+              </button>
+            </span>
+          </div>
+          {children}
+        </div>
+      </aside>
+    </div>
   );
-  // Phần phụ (vd "Tác giả nổi bật") là khung riêng phía trên khung Bộ lọc, cùng một cột.
-  return top ? <div className="lib-side-col">{top}{sidebar}</div> : sidebar;
 }
 
 export default function LibraryFilterSidebar({ stories, ages, topics, age, genre, source, status, extraFilters, community = false, onAge, onGenre, onSource, onStatus, onClear }: {
@@ -99,7 +74,6 @@ export default function LibraryFilterSidebar({ stories, ages, topics, age, genre
     <FilterSidebarShell
       active={active}
       onClear={onClear}
-      top={<LibraryTopAuthors authors={extraFilters.authors} author={extraFilters.author} onAuthor={extraFilters.onAuthor} />}
     >
       <FilterGroup title="Độ tuổi" icon={Users} options={ages} value={age} onChange={onAge} />
       <FilterGroup title="Chủ đề" icon={Shapes} options={topics.map(([key, count]) => ({ key, label: key, count }))} value={genre} onChange={onGenre} limit={6} />

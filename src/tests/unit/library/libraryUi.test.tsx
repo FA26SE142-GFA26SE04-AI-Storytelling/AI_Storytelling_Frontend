@@ -302,6 +302,7 @@ describe("Library UI components", () => {
   it("LibraryStoriesView and LibraryRoadmapsView render inline retryable error panels and cross-tab search hint", () => {
     const storyErrHtml = renderToStaticMarkup(
       <LibraryStoriesView
+        authors={{ authors: [], author: "all", onAuthor: () => {} }}
         stories={[]}
         sorted={[]}
         results={[]}
@@ -334,6 +335,7 @@ describe("Library UI components", () => {
 
     const noStoryWithRoadmapsHtml = renderToStaticMarkup(
       <LibraryStoriesView
+        authors={{ authors: [], author: "all", onAuthor: () => {} }}
         stories={[makeStory()]}
         sorted={[makeStory()]}
         results={[]}
@@ -389,6 +391,7 @@ describe("Library UI components", () => {
 
     const viewsSpotlightHtml = renderToStaticMarkup(
       <LibraryStoriesView
+        authors={{ authors: [], author: "all", onAuthor: () => {} }}
         stories={[viewedPositive, viewedZero, viewedUndefined]}
         sorted={[viewedPositive, viewedZero, viewedUndefined]}
         results={[viewedPositive, viewedZero, viewedUndefined]}
@@ -624,12 +627,12 @@ describe("Library UI components", () => {
     const iDuration = sidebarHtml.indexOf("Thời lượng");
     const iSource = sidebarHtml.indexOf("Nguồn truyện");
     const iStatus = sidebarHtml.indexOf("Trạng thái");
-    const iAuthors = sidebarHtml.indexOf("Tác giả nổi bật");
-    // Tác giả nổi bật nằm trên cùng, trước các nhóm lọc.
-    expect(iAuthors).toBeGreaterThan(-1);
-    expect(iAuthors).toBeLessThan(iAge);
-    // Tác giả nổi bật là khung riêng, nằm ngoài khung Bộ lọc (<aside>).
-    expect(iAuthors).toBeLessThan(sidebarHtml.indexOf("<aside"));
+    // Tác giả nổi bật không còn trong thanh lọc (đã chuyển ra cạnh Truyện nổi bật).
+    expect(sidebarHtml).not.toContain("Tác giả nổi bật");
+    // Mặc định chỉ hiện dải lọc; khung Bộ lọc có sẵn trong DOM nhưng ẩn tới khi mở.
+    expect(sidebarHtml).toContain('id="lib-filter-drawer"');
+    expect(sidebarHtml).toMatch(/id="lib-filter-drawer"[^>]*hidden/);
+    expect(iAge).toBeGreaterThan(-1);
     expect(iAge).toBeLessThan(iTopic);
     expect(iTopic).toBeLessThan(iDuration);
     expect(iDuration).toBeLessThan(iSource);
@@ -638,6 +641,7 @@ describe("Library UI components", () => {
 
     const viewHtml = renderToStaticMarkup(
       <LibraryStoriesView
+        authors={{ authors: [{ key: "9", label: "Lê Thị Mai", count: 2 }], author: "all", onAuthor: () => {} }}
         stories={[story, story2]}
         sorted={[story, story2]}
         results={[story, story2]}
@@ -680,6 +684,9 @@ describe("Library UI components", () => {
     expect(viewHtml).toContain("Mới nhất");
     expect(viewHtml).toContain("Phổ biến");
     expect(viewHtml).toContain("6–8 tuổi");
+    // Tác giả nổi bật thay chỗ 3 lối tắt cũ, nằm trong cụm Truyện nổi bật, trước kệ nổi bật.
+    expect(viewHtml).toMatch(/lib-discovery-hero[\s\S]*Tác giả nổi bật[\s\S]*lib-spotlight-heading/);
+    expect(viewHtml).not.toContain("Truyện đã lưu");
 
     const featuredHtml = renderToStaticMarkup(
       <LibraryFeaturedStory story={story} onPickStory={() => {}} />,
@@ -698,6 +705,7 @@ describe("Library UI components", () => {
     const zeroStatB = makeStory({ id: 32, title: "Truyện mẫu B", creator: true, viewCount: 0, favoriteCount: 0 });
     const zeroStatsViewHtml = renderToStaticMarkup(
       <LibraryStoriesView
+        authors={{ authors: [], author: "all", onAuthor: () => {} }}
         stories={[zeroStatA, zeroStatB]}
         sorted={[zeroStatA, zeroStatB]}
         results={[zeroStatA, zeroStatB]}

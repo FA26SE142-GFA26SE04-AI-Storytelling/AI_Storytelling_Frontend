@@ -119,8 +119,8 @@
 /* Bố cục khám phá truyện theo chủ đề đầm sen */
 .lib-community-layout {
   display: grid;
-  /* Tối thiểu 196px để "Bộ lọc" + "Xóa tất cả" + nút thu gọn vừa một hàng. */
-  grid-template-columns: clamp(196px, 15vw, 218px) minmax(0, 1fr);
+  /* Cột trái là dải lọc 52px; khung Bộ lọc mở ra thì nổi đè lên trang (không đẩy nội dung). */
+  grid-template-columns: 52px minmax(0, 1fr);
   align-items: start;
   gap: clamp(18px, 2.2vw, 32px);
   min-width: 0;
@@ -149,10 +149,6 @@
 .lib-pond-lotus-large { bottom: 21%; right: 6%; }
 
 .lib-sidebar {
-  position: sticky;
-  top: 0;
-  max-height: calc(100dvh - 124px);
-  overflow: auto;
   border-radius: 16px;
   border: 1px solid var(--line);
   background: var(--panel);
@@ -166,11 +162,19 @@
 .lib-sidebar-head .lib-reset-btn { white-space: nowrap; padding-inline: 3px; }
 .lib-sidebar-actions { display: flex; align-items: center; gap: 2px; }
 
-/* Nút thu gọn / mở thanh lọc; khi thu gọn còn một dải hẹp có icon lọc và số bộ lọc đang bật. */
-.lib-community-layout { transition: grid-template-columns .3s cubic-bezier(.65, 0, .25, 1); }
-@media (min-width: 961px) {
-  .lib-community-layout:has(> .lib-sidebar.collapsed) { grid-template-columns: 52px minmax(0, 1fr); }
+/* Dải lọc dính khi cuộn; khung Bộ lọc mở ra nổi đè lên trang kèm lớp phủ mờ (kiểu menu YouTube). */
+.lib-side-rail-wrap { position: sticky; top: 0; z-index: 30; }
+.lib-drawer {
+  position: absolute; top: 0; left: 0; z-index: 2; width: 252px;
+  max-height: calc(100dvh - 124px); overflow: auto;
+  box-shadow: 0 24px 48px -20px color-mix(in srgb, var(--shadow) 80%, transparent);
+  animation: lib-drawer-in .22s cubic-bezier(.2, .8, .2, 1);
 }
+.lib-drawer-backdrop { position: fixed; inset: 0; z-index: 1; background: color-mix(in srgb, var(--text) 28%, transparent); animation: lib-fade-in .2s ease-out; }
+.lib-drawer[hidden] { display: none; }
+@keyframes lib-drawer-in { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
+@keyframes lib-fade-in { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .lib-drawer, .lib-drawer-backdrop { animation: none; } }
 .lib-side-toggle, .lib-side-rail-filter {
   position: relative; display: inline-grid; place-items: center; width: 32px; height: 32px; flex: none;
   border-radius: 10px; border: 1px solid transparent; background: transparent; color: var(--muted); cursor: pointer;
@@ -185,7 +189,6 @@
   position: absolute; top: -5px; right: -6px; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px;
   display: grid; place-items: center; font-size: var(--fs-xs); font-weight: 800; background: var(--gold); color: var(--warn-ink);
 }
-@media (prefers-reduced-motion: reduce) { .lib-community-layout { transition: none; } }
 .lib-side-group { padding: 10px 0; border-top: 1px solid var(--line); margin-top: 6px; }
 .lib-side-group:last-child { padding-bottom: 0; }
 .lib-side-group summary { cursor: pointer; display: flex; align-items: center; gap: 6px; font-size: var(--fs-sm); font-weight: 800; list-style: none; }
@@ -220,19 +223,12 @@
 .lib-side-group button:disabled { color: var(--muted); background: transparent; }
 
 .lib-top-authors {
-  margin-top: 8px;
-  padding: 8px;
+  align-self: start;
+  padding: 10px;
   border-radius: 12px;
   border: 1px solid color-mix(in srgb, var(--gold) 46%, var(--line));
   background: color-mix(in srgb, var(--gold) 14%, var(--panel));
 }
-/* Cột trái gồm khung "Tác giả nổi bật" và khung Bộ lọc; cả cột dính khi cuộn, khung Bộ lọc tự cuộn bên trong. */
-.lib-side-col { position: sticky; top: 0; display: flex; flex-direction: column; gap: 12px; min-width: 0; max-height: calc(100dvh - 124px); }
-.lib-side-col > .lib-top-authors { margin: 0; flex: none; box-shadow: 0 8px 20px -17px var(--shadow); }
-.lib-side-col > .lib-sidebar { position: static; min-height: 0; max-height: none; }
-/* Bộ lọc gập (khi có khung tác giả): chỉ còn thanh tiêu đề. */
-.lib-sidebar-folded { padding: 10px 12px; overflow: visible; }
-.lib-side-folded-n { position: static; margin-left: 2px; }
 .lib-top-authors h4 { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: var(--fs-md); }
 .lib-top-authors h4 .ic { width: 16px; height: 16px; flex: none; color: var(--gold-deep); }
 .lib-top-authors ul { display: grid; gap: 4px; list-style: none; margin: 0; padding: 0; }
@@ -259,7 +255,7 @@
 .lib-side-more .ic.open { transform: rotate(180deg); }
 
 .lib-discovery-hero { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
-.lib-discovery-hero:has(.lib-discovery-shortcuts) { grid-template-columns: minmax(0, 1fr) minmax(175px, 23%); }
+.lib-discovery-hero:has(.lib-top-authors) { grid-template-columns: minmax(0, 1fr) minmax(190px, 23%); }
 .lib-featured {
   position: relative;
   isolation: isolate;
@@ -308,35 +304,8 @@
 .lib-featured-label .ic, .lib-featured-meta .ic { width: 13px; height: 13px; }
 .lib-featured-copy .btn { margin-top: 3px; width: fit-content; }
 .lib-featured-lotus { position: absolute; bottom: 3px; right: 8px; opacity: .35; pointer-events: none; z-index: -1; }
-.lib-discovery-shortcuts { display: grid; gap: 8px; align-content: start; }
-.lib-discovery-shortcuts button, .lib-saved-shortcut {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 8px;
-  min-height: 55px;
-  padding: 8px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  text-align: left;
-  background: var(--panel);
-  font-size: var(--fs-sm);
-}
-.lib-saved-shortcut { grid-template-columns: auto minmax(0, 1fr); }
-.lib-discovery-shortcuts small, .lib-genre-label small { display: block; color: var(--muted); font-size: var(--fs-xs); }
-.lib-shortcut-icon { display: grid; place-items: center; width: 31px; height: 31px; border-radius: 50%; color: var(--link); background: var(--surface-2); }
-.lib-shortcut-icon .ic, .lib-discovery-shortcuts button > .ic { width: 16px; height: 16px; }
-.lib-shortcut-icon.lib-shortcut-gold { color: var(--on-gold); background: var(--gold); }
-.lib-discovery-shortcuts button:hover, .lib-genre-grid button:hover { border-color: var(--primary); }
-.lib-child-topics:not([hidden]) {
-  display: grid;
-  gap: 10px;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--panel);
-}
-.lib-child-topics p { margin: 0; }
+.lib-genre-label small { display: block; color: var(--muted); font-size: var(--fs-xs); }
+.lib-genre-grid button:hover { border-color: var(--primary); }
 
 .lib-community-layout .lib-section, .lib-community-layout .lib-spotlight { gap: 9px; }
 .lib-community-layout .lib-spotlight { padding: 0; border: 0; background: none; box-shadow: none; }
@@ -399,13 +368,12 @@
 }
 @media (max-width: 960px) {
   .lib-community-layout { grid-template-columns: minmax(0, 1fr); }
-  .lib-sidebar, .lib-side-col { display: none; }
+  .lib-side-rail-wrap { display: none; }
 }
 @media (max-width: 700px) {
   .lib-community-layout .lib-head { align-items: flex-start; }
   .lib-header-pond { width: 55%; opacity: .25; }
-  .lib-discovery-hero:has(.lib-discovery-shortcuts) { grid-template-columns: minmax(0, 1fr); }
-  .lib-discovery-shortcuts { grid-template-columns: repeat(auto-fit, minmax(min(100%, 142px), 1fr)); }
+  .lib-discovery-hero:has(.lib-top-authors) { grid-template-columns: minmax(0, 1fr); }
   .lib-community-layout .shelf-row > .bk.lib-card-compact { flex-basis: min(250px, 78%); }
   .lib-genre-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .lib-genre-grid.lib-genre-row {

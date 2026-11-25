@@ -98,6 +98,7 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                 onClearPopover={d.clearPopoverFilters}
               />
               <LibraryStoriesView
+                authors={d.extraFilters}
                 stories={stories}
                 sorted={d.sorted}
                 results={d.results}

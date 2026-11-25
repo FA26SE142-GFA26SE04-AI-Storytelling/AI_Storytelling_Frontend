@@ -7,8 +7,8 @@ import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useRiseIn } from "@/app/lib/motion";
 import type { StoryCard } from "@/app/lib/storyView";
 import { LibraryBookCard, LibrarySkeletonGrid, ShelfRow } from "./LibraryCards";
-import { jumpToSection, LibraryGenreTiles } from "./LibraryDiscoveryHighlights";
-import LibraryQuickTopics, { type LibraryTopicAudience } from "./LibraryQuickTopics";
+import { jumpToSection, LibraryFeaturedStory, LibraryGenreTiles } from "./LibraryDiscoveryHighlights";
+import { LibraryTopAuthors, type LibraryExtraFilterProps } from "./LibraryExtraFilters";
 import LibrarySpotlightSection from "./LibrarySpotlightSection";
 import LibraryStoriesFilterBar, { type ActiveFilterChip } from "./LibraryStoriesFilterBar";
 import { rankForStory, statusOf, type AgeFilterOption, type LibrarySort } from "./libraryFilters";
@@ -34,7 +34,8 @@ export type LibraryStoriesViewProps = {
   recommended: StoryCard[];
   showRecommended: boolean;
   pickKidName: string | null;
-  topicAudience?: LibraryTopicAudience;
+  /** "Tác giả nổi bật" cạnh Truyện nổi bật; bấm tên để lọc theo tác giả. */
+  authors: Pick<LibraryExtraFilterProps, "authors" | "author" | "onAuthor">;
   matchingRoadmapsCount: number;
   /** Bỏ trống khi có `emptyState` (chỉ dùng cho nút tạo truyện ở trạng thái trống mặc định của phụ huynh). */
   go?: WorkspaceProps["go"];
@@ -69,7 +70,7 @@ export default function LibraryStoriesView({
   recommended,
   showRecommended,
   pickKidName,
-  topicAudience,
+  authors,
   matchingRoadmapsCount,
   go,
   emptyState,
@@ -129,14 +130,11 @@ export default function LibraryStoriesView({
         </div>
       )}
 
-      {!focused && topicAudience && (
-        <LibraryQuickTopics
-          featured={featured}
-          stories={newest}
-          hasSpotlight={effectiveSpotlightCards.length > 0 && stories.length > 0}
-          audience={topicAudience}
-          onPickStory={onPickStory}
-        />
+      {!focused && (featured || authors.authors.length > 0) && (
+        <div className="lib-discovery-hero">
+          {featured && <LibraryFeaturedStory story={featured} onPickStory={onPickStory} />}
+          <LibraryTopAuthors {...authors} />
+        </div>
       )}
 
       {storiesLoading && stories.length === 0 ? (
