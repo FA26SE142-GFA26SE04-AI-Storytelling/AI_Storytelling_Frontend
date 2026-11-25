@@ -74,6 +74,10 @@ const defaultAwards = (): AwardDraft[] => [
 ];
 
 /** Hộp thoại khởi tạo hoặc chỉnh sửa bản nháp sự kiện (Flow 01): Thông tin chung, 2 Track và Cơ cấu giải thưởng động. */
+/** Chủ đề chọn được cho sự kiện; nhóm "Cảnh báo an toàn" không phải chủ đề cho trẻ và bị API từ chối. */
+export const eventCategoryOptions = (categories: ContentCategory[]) =>
+  categories.filter((c) => c.isActive && c.group !== "SafetyWarning");
+
 export default function CreateEventModal({ open, initialDetail, onClose, onCreated }: CreateEventModalProps) {
   const isEditing = Boolean(initialDetail);
   const creatorTrack = initialDetail?.tracks.find((t) => t.trackType === "Creator");
@@ -114,10 +118,9 @@ export default function CreateEventModal({ open, initialDetail, onClose, onCreat
     let active = true;
     void childProfileService.getContentCategories().then((res) => {
       if (!active || !res.success || !res.data) return;
-      const actives = res.data.filter((c) => c.isActive);
-      const list = actives.length > 0 ? actives : res.data;
+      const list = eventCategoryOptions(res.data);
       setCategories(list);
-      if (!initialDetail && list[0]) {
+      if (list[0] && !list.some((c) => c.id === initialDetail?.mainCategoryId)) {
         setCategoryIdInput(String(list[0].id));
       }
     });

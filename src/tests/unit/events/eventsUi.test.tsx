@@ -7,7 +7,8 @@ vi.mock("@/app/context/AuthContext", () => ({
   useAuth: () => ({ user: { id: 1, role: "User" } }),
 }));
 
-import CreateEventModal from "@/app/features/events/CreateEventModal";
+import CreateEventModal, { eventCategoryOptions } from "@/app/features/events/CreateEventModal";
+import type { ContentCategory } from "@/app/types/childProfile";
 import EventActivityParticipantView from "@/app/features/events/EventActivityParticipantView";
 import EventActivityWizard, { normalizeAwardSources } from "@/app/features/events/EventActivityWizard";
 import EventAwardsTable from "@/app/features/events/EventAwardsTable";
@@ -206,6 +207,15 @@ describe("Events UI components", () => {
     expect(html).toContain("Nhận thưởng");
     expect(html).not.toContain("Giải sự kiện khác");
     expect(html).toContain("Đọc truyện");
+  });
+
+  it("offers only active categories outside the safety warning group as event topics", () => {
+    const category = (id: number, group: ContentCategory["group"], isActive = true) =>
+      ({ id, group, isActive, code: `C${id}`, displayName: `C${id}` }) as ContentCategory;
+    const options = eventCategoryOptions([
+      category(1, "Genre"), category(2, "Genre", false), category(7, "SafetyWarning"), category(9, "LifeValue"),
+    ]);
+    expect(options.map((c) => c.id)).toEqual([1, 9]);
   });
 
   it("EventModeratorPanel, EventCreatorView, CreateEventModal (Create & Edit) and events.css are complete", () => {

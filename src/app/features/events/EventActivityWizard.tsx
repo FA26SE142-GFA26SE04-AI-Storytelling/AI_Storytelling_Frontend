@@ -215,10 +215,10 @@ export default function EventActivityWizard({
     allowedAudiencesForSource(source, subAudience);
 
   useEffect(() => {
-    if (!isEditing && categories.length > 0 && !categories.some((c) => String(c.id) === categoryId)) {
+    if (categories.length > 0 && !categories.some((c) => String(c.id) === categoryId)) {
       setCategoryId(String(categories[0].id));
     }
-  }, [isEditing, categories, categoryId]);
+  }, [categories, categoryId]);
 
   useEffect(() => {
     const sources = allowedSourcesFor(subEnabled, voteEnabled, readEnabled);
