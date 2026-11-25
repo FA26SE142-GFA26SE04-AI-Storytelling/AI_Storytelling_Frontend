@@ -862,6 +862,17 @@ try {
     await card.getByRole('heading', { name: 'Em kể lại cho bố mẹ nghe nhé' }).waitFor();
     await card.getByRole('list', { name: 'Bước 5 trên 7' }).waitFor();
     assert(state.noteSent, 'Phải gửi lời của bé');
+    // Quay lại trang lời nhắn: thấy đã gửi và lời đã gửi, không còn nút gửi tới khi bé sửa chữ (khi đó nút thành "Gửi lại").
+    await card.getByRole('button', { name: 'Phần trước', exact: true }).click();
+    await card.getByRole('status').filter({ hasText: 'Đã gửi cho bố mẹ' }).waitFor();
+    assert.equal(await card.getByRole('textbox', { name: 'Điều em thích ở tranh này' }).inputValue(), 'x');
+    assert.equal(await card.getByRole('button', { name: /Gửi bố mẹ|Gửi lại/ }).count(), 0, 'Đã gửi thì ẩn nút gửi');
+    await card.getByRole('textbox', { name: 'Điều em thích ở tranh này' }).fill('x thêm');
+    await card.getByRole('button', { name: 'Gửi lại' }).waitFor();
+    await shots(page, 'KidReflection-note-sent', '.kid-finish-dialog');
+    await card.getByRole('textbox', { name: 'Điều em thích ở tranh này' }).fill('x');
+    await card.getByRole('button', { name: 'Phần sau', exact: true }).click();
+    await card.getByRole('heading', { name: 'Em kể lại cho bố mẹ nghe nhé' }).waitFor();
     const note = requests.find((r) => r.path.endsWith('/reflection/note'))?.raw ?? '';
     assert(/name="Text"\r?\n\r?\nCon thích thỏ về nhà/.test(note), 'Lời bé gửi dạng multipart Text');
     await shots(page, 'KidReflection-done', '.kid-finish-dialog');

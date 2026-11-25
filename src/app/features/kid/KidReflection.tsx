@@ -8,7 +8,7 @@ import { childReadingService, childReflectionService as api } from '@/app/servic
 import { SUMMARY_MAX_BYTES, type ReadingFeeling, type ReadingScene, type StoryEmotionCode } from '@/app/types/childReading';
 import { REFLECTION_MAX_EMOTIONS, REFLECTION_NOTE_MAX_CHARS, type ChildStoryReflection } from '@/app/types/kidReflection';
 import KidSceneGrid from './KidSceneGrid';
-import { clock, micToast } from './KidSummary';
+import { clock, micToast, Sent } from './KidSummary';
 import { scenePictures } from './scenePictures';
 import { useRecorder } from './useRecorder';
 
@@ -50,7 +50,7 @@ export default function KidReflection({ token, sessionId, scenes, step, onNext, 
       if (controller.signal.aborted) return;
       setLoaded(true);
       if (!r.success || !r.data) { showToast(r.message, 'err'); return; }
-      setData(r.data); setEmotions(r.data.emotions.map(e => e.code)); setSceneId(r.data.favoriteSceneId);
+      setData(r.data); setEmotions(r.data.emotions.map(e => e.code)); setSceneId(r.data.favoriteSceneId); setText(r.data.noteText ?? '');
       onResume(resume(r.data));
     });
     return () => controller.abort();
@@ -65,15 +65,18 @@ export default function KidReflection({ token, sessionId, scenes, step, onNext, 
   const picked = tiles.find(t => t.key === pickKey) ?? tiles.find(t => t.sceneId === sceneId) ?? null;
   const recording = rec.state === 'recording' || rec.state === 'converting';
   const canRecord = !!data?.canRecord;
+  // Đã gửi lời cho bố mẹ (quay lại trang này vẫn thấy): nút gửi chỉ hiện khi bé sửa chữ hoặc ghi âm mới, và thành "Gửi lại".
+  const noteSent = !!(data?.noteText || data?.hasNoteRecording);
+  const noteChanged = text.trim() !== (data?.noteText ?? '').trim() || (canRecord && !!rec.blob);
 
   /** Gửi một bước; thành công thì nhớ kết quả và sang bước sau, lỗi hiện toast lời của Backend. */
-  const send = async (call: () => ReturnType<typeof api.get>, next: () => void) => {
+  const send = async (call: () => ReturnType<typeof api.get>, next: (saved: ChildStoryReflection) => void) => {
     if (busy) return false;
     setBusy(true);
     const r = await call();
     setBusy(false);
     if (!r.success || !r.data) { showToast(r.message, 'err'); return r.status ?? 0; }
-    setData(r.data); next();
+    setData(r.data); next(r.data);
     return true;
   };
   /** Mức thích lưu ở phiên đọc (PUT feeling); chọn xong tự sang bước cảm xúc. */
@@ -104,7 +107,7 @@ export default function KidReflection({ token, sessionId, scenes, step, onNext, 
   const sendNote = async () => {
     const result = await send(
       () => api.note(token, sessionId, { text, audio: canRecord ? rec.blob : null }),
-      () => { rec.reset(); showToast('Đã gửi cho bố mẹ', 'ok'); onNext(); }
+      (saved) => { rec.reset(); setText(saved.noteText ?? ''); showToast('Đã gửi cho bố mẹ', 'ok'); onNext(); }
     );
     // 409: cảnh vừa bị đổi ở nơi khác, mời bé chọn lại cảnh.
     if (result === 409) onGoto(2);
@@ -148,9 +151,10 @@ export default function KidReflection({ token, sessionId, scenes, step, onNext, 
           </>}
         </div>}
         <textarea className="inp kid-reflection-text" aria-label="Điều em thích ở tranh này" placeholder="Em viết vài chữ nhé…" rows={2} maxLength={REFLECTION_NOTE_MAX_CHARS} value={text} onChange={e => setText(e.target.value)} />
-        <div className="kid-actions">
-          <button type="button" className="kid-btn3d is-gold" disabled={busy || recording || (!text.trim() && !(canRecord && rec.blob))} onClick={() => void sendNote()}><Send aria-hidden="true" />Gửi bố mẹ</button>
-        </div>
+        {noteSent && !noteChanged && <Sent text={data?.hasNoteRecording ? 'Đã gửi lời kể cho bố mẹ' : 'Đã gửi cho bố mẹ'} />}
+        {(!noteSent || noteChanged) && <div className="kid-actions">
+          <button type="button" className="kid-btn3d is-gold" disabled={busy || recording || (!text.trim() && !(canRecord && rec.blob))} onClick={() => void sendNote()}><Send aria-hidden="true" />{noteSent ? 'Gửi lại' : 'Gửi bố mẹ'}</button>
+        </div>}
       </>)}
     </div>
   </section>;
