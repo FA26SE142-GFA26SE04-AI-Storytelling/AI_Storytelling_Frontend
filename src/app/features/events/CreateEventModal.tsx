@@ -352,6 +352,7 @@ export default function CreateEventModal({ open, initialDetail, onClose, onCreat
             id="ev-create-title"
             className="inp"
             placeholder="VD: Lễ hội Sáng tạo Truyện kể"
+            maxLength={200}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
