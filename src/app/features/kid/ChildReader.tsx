@@ -123,8 +123,10 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
   // segmentStarts trả theo thứ tự segmentOrder, nên tìm vị trí trong danh sách đã sắp xếp.
   const currentSegmentIndex=scene&&currentSegment?(scene.segments??[]).slice().sort((a,b)=>a.segmentOrder-b.segmentOrder).findIndex(s=>s.segmentId===currentSegment.segmentId):0;
 
+  // Phụ đề chỉ dùng được khi truyện có mốc thời gian từng chữ; không có thì nút mờ và không tự bật.
+  const storyTimed=scenes.some(s=>s.segments?.some(seg=>!!seg.wordTimingsJson?.trim()));
   // Derived: effective caption mode
-  const captionMode=captionOn&&canCaption&&!!scene&&!onPractice&&aloudState==='idle'&&!aloudResult&&!r.done;
+  const captionMode=storyTimed&&captionOn&&canCaption&&!!scene&&!onPractice&&aloudState==='idle'&&!aloudResult&&!r.done;
 
   // Viewport detection + localStorage preference
   useEffect(()=>{
@@ -353,7 +355,9 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
     <KidTimeBanner status={r.timeStatus}/>
     {onBreak&&r.timeStatus&&<KidRestOverlay status={r.timeStatus} onDone={r.recheckTime}/>}
     {/* Không còn công tắc Tự đọc / Nghe đọc: cách đọc tự ghi theo việc bé bấm loa (onListen của KidNarrator). */}
-    <header className="kid-theater-top"><button className="kid-btn3d is-sky" disabled={r.busy} onClick={()=>void r.leave()}><ArrowLeft aria-hidden="true"/>Về danh sách đọc</button>{canCaption&&!r.done&&<button type="button" className="kid-btn3d is-sky" aria-pressed={captionMode} title={captionOn?'Xem cả trang tranh':'Chỉ hiện chữ phụ đề ở đáy'} onClick={()=>setCaption(!captionOn)}>{captionOn?<BookOpen aria-hidden="true"/>:<Captions aria-hidden="true"/>}{captionOn?'Cả trang':'Phụ đề'}</button>}<button type="button" className="kid-btn3d is-sky" aria-pressed={r.listenOnly} title="Chỉ nghe truyện, không dừng lại để chơi" disabled={disabled} onClick={()=>void r.flag('listenOnly')}><Headphones aria-hidden="true"/>Chỉ nghe</button></header>
+    <header className="kid-theater-top"><button className="kid-btn3d is-sky" disabled={r.busy} onClick={()=>void r.leave()}><ArrowLeft aria-hidden="true"/>Về danh sách đọc</button>{canCaption&&!r.done&&(storyTimed
+            ?<button type="button" className="kid-btn3d is-sky" aria-pressed={captionMode} title={captionOn?'Xem cả trang tranh':'Chỉ hiện chữ phụ đề ở đáy'} onClick={()=>setCaption(!captionOn)}>{captionOn?<BookOpen aria-hidden="true"/>:<Captions aria-hidden="true"/>}{captionOn?'Cả trang':'Phụ đề'}</button>
+            :<button type="button" className="kid-btn3d is-sky is-disabled" aria-disabled="true" title="Truyện này chưa có chữ chạy theo giọng đọc" onClick={()=>showToast('Truyện này chưa có chữ chạy theo giọng đọc nên chưa xem phụ đề được.','info')}><Captions aria-hidden="true"/>Phụ đề</button>)}<button type="button" className="kid-btn3d is-sky" aria-pressed={r.listenOnly} title="Chỉ nghe truyện, không dừng lại để chơi" disabled={disabled} onClick={()=>void r.flag('listenOnly')}><Headphones aria-hidden="true"/>Chỉ nghe</button></header>
     {!scene&&<section className="kid-reader-empty" role="status"><Frog mood="think" size={96}/><h2 className="display">Truyện này chưa có nội dung để đọc</h2><p>Em chọn truyện khác nhé!</p></section>}
     {scene&&onPractice&&practice&&<KidReadAloudPractice key={c.sessionId} practice={practice} disabled={disabled} onRecord={r.readAloudPractice}>
       <nav className="kid-story-navigation" aria-label="Tiến độ truyện"><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang trước" title="Trang trước" disabled={disabled} onClick={()=>setPracticeSession(null)}><ChevronLeft aria-hidden="true"/></button><span className="kid-scene-count">Trang {currentPage}/{pageCount}</span><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang sau" title="Trang sau" disabled><ChevronRight aria-hidden="true"/></button>{!r.done&&<button className="kid-btn3d is-gold" disabled={disabled} onClick={()=>void r.complete()}><Check aria-hidden="true"/>Em đã đọc xong</button>}</nav>
