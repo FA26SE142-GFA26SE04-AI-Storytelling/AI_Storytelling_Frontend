@@ -140,3 +140,6 @@ export function splitScenes(content: string): string[] {
 
 export const AGE_LABEL: Record<string, string> = { Age_6_8: "6–8 tuổi", Age_9_10: "9–10 tuổi" };
 export const ageLabel = (band: string) => AGE_LABEL[band] ?? band.replace(/^Age_/, "").replace(/[_-]/, "–") + " tuổi";
+/** Tuổi của bé kèm nhóm tuổi, ví dụ "7 tuổi · Nhóm 6–8 tuổi"; bé chưa chọn tuổi cụ thể thì chỉ ghi nhóm. */
+export const childAgeLabel = (child: { age?: number | null; ageBand: string }) =>
+  child.age ? `${child.age} tuổi · Nhóm ${ageLabel(child.ageBand)}` : `Nhóm ${ageLabel(child.ageBand)}`;

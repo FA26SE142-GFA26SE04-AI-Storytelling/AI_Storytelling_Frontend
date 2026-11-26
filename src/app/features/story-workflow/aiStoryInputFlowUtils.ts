@@ -42,6 +42,49 @@ export const DEFAULT_TARGET_LENGTH = 800;
 export const FREE_TEXT_MAX = 200;
 export const MIN_TARGET_LENGTH = 100;
 
+/** Các ô của form ý tưởng có kiểm tra độ dài, theo thứ tự hiển thị trên form. */
+export type BriefField = 'topic' | 'lesson' | 'genre' | 'setting';
+export const BRIEF_FIELDS: readonly BriefField[] = ['topic', 'lesson', 'genre', 'setting'];
+
+/** Độ dài tối đa từng ô, khớp AIStoryCreativeInputDto ở backend. */
+export const BRIEF_LIMITS: Record<BriefField, number> = { topic: 200, lesson: 500, genre: 50, setting: 300 };
+const BRIEF_REQUIRED: Partial<Record<BriefField, string>> = { topic: 'Hãy nhập ý tưởng câu chuyện.', lesson: 'Hãy nhập bài học muốn gửi tới con.' };
+const BRIEF_MIN = 2;
+
+/**
+ * Lỗi của từng ô (tính sau khi bỏ khoảng trắng hai đầu, như lúc gửi). Quá dài thì báo ngay;
+ * ô bắt buộc trống hoặc quá ngắn chỉ báo khi `submitted` (đã bấm gửi), để không bắt lỗi lúc phụ huynh chưa kịp gõ.
+ */
+export function briefFieldErrors(
+  values: Pick<AIStoryInputFormValues, BriefField>,
+  submitted: boolean,
+): Partial<Record<BriefField, string>> {
+  const errors: Partial<Record<BriefField, string>> = {};
+  for (const key of BRIEF_FIELDS) {
+    const length = values[key].trim().length;
+    const required = BRIEF_REQUIRED[key];
+    if (length > BRIEF_LIMITS[key]) errors[key] = `Tối đa ${BRIEF_LIMITS[key]} ký tự (đang có ${length}).`;
+    else if (submitted && required && length === 0) errors[key] = required;
+    else if (submitted && required && length < BRIEF_MIN) errors[key] = `Cần ít nhất ${BRIEF_MIN} ký tự.`;
+  }
+  return errors;
+}
+
+// Lỗi backend bắt đầu bằng nhãn tiếng Việt của DTO ("Ý tưởng câu chuyện từ 2…") hoặc tên trường ("Topic: tối đa…").
+const BRIEF_MESSAGE_PREFIXES: [BriefField, string[]][] = [
+  ['topic', ['ý tưởng câu chuyện', 'topic:']],
+  ['lesson', ['bài học', 'lesson:']],
+  ['genre', ['thể loại', 'genre:']],
+  ['setting', ['bối cảnh', 'setting:']],
+];
+
+/** Ô mà một thông báo lỗi từ server nói tới; null nếu không gắn được với ô nào. */
+export function briefFieldOfMessage(message: string | null | undefined): BriefField | null {
+  const text = message?.trim().toLowerCase();
+  if (!text) return null;
+  return BRIEF_MESSAGE_PREFIXES.find(([, prefixes]) => prefixes.some((p) => text.startsWith(p)))?.[0] ?? null;
+}
+
 export type LengthPreset = 'short' | 'medium' | 'long';
 
 export function clampTargetLength(value: number, maximumLength: number): number {

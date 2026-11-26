@@ -4,7 +4,7 @@ import { avatarOf } from "@/app/lib/guardian";
 import { useEffect, useRef, useState } from "react";
 import { Eye } from "lucide-react";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
-import { ageLabel } from "@/app/lib/storyView";
+import { childAgeLabel } from "@/app/lib/storyView";
 
 /** Nút "Vào trang bé": một bé thì mở luôn, nhiều bé thì chọn bé trước rồi mới mở chế độ đọc. */
 export default function KidButton({ onKid }: { onKid: (childId: number) => void }) {
@@ -34,7 +34,7 @@ export default function KidButton({ onKid }: { onKid: (childId: number) => void 
           {kids.map((k) => (
             <button key={k.id} role="menuitem" onClick={() => pick(k.id)}>
               <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
-              <span className="grow">{k.nickname}<small>{ageLabel(k.ageBand)}</small></span>
+              <span className="grow">{k.nickname}<small>{childAgeLabel(k)}</small></span>
             </button>
           ))}
         </div>
