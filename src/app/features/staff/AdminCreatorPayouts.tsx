@@ -13,7 +13,7 @@ const todayVn = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0,
 
 /**
  * Chi trả cho Creator (5h): hệ thống không chuyển tiền. Admin chuyển khoản đúng bằng số dư bằng ứng dụng ngân hàng, rồi đánh
- * dấu Đã chi kèm mã giao dịch và ngày chuyển. Danh sách chỉ gồm Creator đang hoạt động, có số dư từ 200.000 đ và đã nhập
+ * dấu Đã chi kèm mã giao dịch và ngày chuyển. Danh sách chỉ gồm Creator đang hoạt động, có số dư lớn hơn 0 và đã nhập
  * thông tin nhận tiền. Số tiền là số trước thuế.
  */
 export function AdminCreatorPayouts() {
@@ -42,7 +42,7 @@ export function AdminCreatorPayouts() {
         <h3 className="grow">Danh sách chi</h3>
         {rows.length > 0 && <span className="sub">{rows.length} nhà sáng tạo · tổng {formatVnd(total)}</span>}
       </div>
-      <p className="sub">Thu nhập của tháng trước được cộng vào số dư từ ngày 8 hằng tháng. Số dư dưới 200.000 đ được cộng dồn sang kỳ sau.</p>
+      <p className="sub">Thu nhập của tháng trước được cộng vào số dư từ ngày 8 hằng tháng. Không có mức chi tối thiểu: mọi số dư lớn hơn 0 đều được chi.</p>
 
       {paying && <Dialog title={`Đã chi cho ${paying.fullName}`} onClose={() => setPaying(null)}>
         <div className="kv">

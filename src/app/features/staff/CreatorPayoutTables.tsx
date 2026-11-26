@@ -16,7 +16,6 @@ export function CreatorPayoutTables({ data, renderPayoutAction }: {
     <>
       <div className="kv">
         <div><small>Số dư hiện tại (trước thuế)</small><b>{formatVnd(data.balanceVnd)}</b></div>
-        <div><small>Mức chi tối thiểu</small><b>{formatVnd(data.minimumPayoutVnd)}</b></div>
       </div>
 
       <h4 className="sec-h">Lịch sử nhận tiền</h4>
