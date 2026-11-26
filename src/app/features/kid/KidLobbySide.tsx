@@ -8,6 +8,7 @@ import { coverFor } from "@/app/lib/storyView";
 import { showToast } from "@/app/lib/toast";
 import { childAccessService } from "@/app/services/childAccessService";
 import { childNotebookService } from "@/app/services/childReadingService";
+import { useMouseDragScroll } from "./useMouseDragScroll";
 import { FEATURE_OFF_MESSAGE, isFeatureDisabledError, KID_FEATURE, useKidFeature, useKidFeaturesReady } from "./kidFeatures";
 
 /** Số từ hiện trong khung, còn lại xem trong Sổ tay. */
@@ -28,6 +29,7 @@ export default function KidLobbySide({
   onNotebook: () => void;
 }) {
   const [active, setActive] = useState(0);
+  const dragScroll = useMouseDragScroll();
   const [words, setWords] = useState<NotebookEntry[] | null>(null);
   const count = familyStories.length;
   const notebookOn = useKidFeature(KID_FEATURE.notebook);
@@ -52,7 +54,8 @@ export default function KidLobbySide({
         <section className="kl-panel kl-family" aria-labelledby="kl-family-h">
           <h2 id="kl-family-h" className="kl-ribbon display"><Home aria-hidden="true" />Truyện gia đình</h2>
           <div
-            className="kl-family-strip"
+            className="kl-family-strip kid-drag-scroll"
+            {...dragScroll}
             onScroll={(e) => {
               const el = e.currentTarget;
               const max = el.scrollWidth - el.clientWidth;

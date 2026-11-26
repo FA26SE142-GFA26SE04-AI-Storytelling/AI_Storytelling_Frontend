@@ -3,6 +3,7 @@ import type { LucideIcon } from "lucide-react";
 import { ChevronRight } from "lucide-react";
 import "@/app/styles/features/kid/kid-lobby.css";
 import "@/app/styles/features/kid/kid-shelves.css";
+import { useMouseDragScroll } from "./useMouseDragScroll";
 
 interface KidShelfProps {
   title: string;
@@ -29,6 +30,7 @@ export default function KidShelf({
   loadingMore,
   hasMore,
 }: KidShelfProps) {
+  const dragScroll = useMouseDragScroll();
   return (
     <section className={`kl-panel kid-shelf tone-${tone}`}>
       <div className="kl-head kid-shelf-head">
@@ -49,7 +51,7 @@ export default function KidShelf({
         </span>
         {action && <div className="kid-shelf-action">{action}</div>}
       </div>
-      <div className="kid-shelf-row">
+      <div className="kid-shelf-row kid-drag-scroll" {...dragScroll}>
         {children}
         {onMore && hasMore !== false && (
           <div className="kid-shelf-more">

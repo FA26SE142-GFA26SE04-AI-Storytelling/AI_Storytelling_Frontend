@@ -61,6 +61,9 @@
   box-shadow: 0 3px 0 var(--gold-deep);
 }
 .kl-ribbon svg { width: 20px; height: 20px; flex: none; }
+/* Hàng cuộn ngang kéo được bằng chuột (useMouseDragScroll); đang kéo thì tắt hít để hàng đi theo tay. */
+@media (pointer: fine) { .kid-drag-scroll { cursor: grab; } }
+.kid-drag-scroll.is-dragging { cursor: grabbing; scroll-snap-type: none; user-select: none; }
 .kl-family-strip {
   display: flex; gap: 12px; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; padding-bottom: 4px;
 }

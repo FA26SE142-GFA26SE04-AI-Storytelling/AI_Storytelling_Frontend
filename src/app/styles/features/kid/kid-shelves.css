@@ -46,8 +46,7 @@
 }
 .kid-shelf-row::-webkit-scrollbar {
   display: none;
-}
-.kid-shelf-row > * {
+}.kid-shelf-row > * {
   flex: none;
   scroll-snap-align: start;
   min-width: 150px;
