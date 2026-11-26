@@ -41,6 +41,7 @@ export default function ChildReadingLibrary({
   onPaneChange,
   onReadingChange,
   onTimeBlocked,
+  onExit,
 }: {
   childId: number;
   pane?: LibraryPane;
@@ -55,6 +56,8 @@ export default function ChildReadingLibrary({
   onReadingChange?: (active: boolean) => void;
   /** Backend chặn mở truyện vì giờ đọc (nghỉ mắt, giờ ngủ, hết phút, ngoài khung): trang cha hỏi lại trạng thái ngay. */
   onTimeBlocked?: () => void;
+  /** Về với bố mẹ (qua cổng phụ huynh) từ màn nghỉ lúc đang đọc. */
+  onExit?: () => void;
 }) {
   const session = childAccessService.readSession();
   const token = session?.childProfileId === childId ? session.accessToken : '';
@@ -146,7 +149,7 @@ export default function ChildReadingLibrary({
   const notebookRef = useRiseIn<HTMLDivElement>('.kl-panel', [pane, loading], { delay: 70 });
 
   if (!token) return <p className="notice">Phiên của bé đã hết hạn. Em nhờ bố mẹ mở lại nhé.</p>;
-  if (reader.content) return <ChildReader reader={reader} />;
+  if (reader.content) return <ChildReader reader={reader} onExit={onExit} />;
 
   return (
     <section

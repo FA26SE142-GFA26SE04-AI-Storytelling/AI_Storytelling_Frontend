@@ -132,6 +132,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
                 onLockChange={setLock}
                 onReadingChange={setReading}
                 onTimeBlocked={refreshStatus}
+                onExit={onExit}
                 lobby={
                   <KidLobby
                     roadmap={roadmap}
