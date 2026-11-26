@@ -63,6 +63,26 @@ export function restCopy(status: ReadingTimeStatus): RestCopy {
   }
 }
 
+/**
+ * Chip đồng hồ trên thanh của bé: mốc kết thúc gần nhất mà backend tính (`endsAt` + `endReason`).
+ * Hết phút màn hình → "Còn N phút"; khung giờ / giờ ngủ → "Đọc đến HH:mm" (giờ máy); đang đọc nốt → "Đọc nốt m:ss".
+ * `warn` khi còn ≤ 5 phút (EndingSoon) hoặc đang đọc nốt. Không đặt giới hạn nào hoặc đang bị chặn (đã có màn chặn) thì null.
+ */
+export function timeChip(status: ReadingTimeStatus | null | undefined, nowMs: number): { text: string; warn: boolean } | null {
+  if (!status) return null;
+  if (status.state === 'Grace') {
+    const left = secondsUntil(status.graceEndsAt, nowMs);
+    return left === null ? null : { text: `Đọc nốt ${formatCountdown(left)}`, warn: true };
+  }
+  if (status.state !== 'Allowed' && status.state !== 'EndingSoon') return null;
+  const warn = status.state === 'EndingSoon';
+  const left = secondsUntil(status.endsAt, nowMs);
+  if (left === null) return null;
+  if (status.endReason === 'ScreenLimit') return { text: `Còn ${minutesOf(left)} phút`, warn };
+  const at = new Date(Date.parse(status.endsAt!));
+  return { text: `Đọc đến ${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`, warn };
+}
+
 /** Dòng cảnh báo khi sắp hết giờ (EndingSoon) hoặc đang gia hạn (Grace); các trạng thái khác thì null. */
 export function warnLine(status: ReadingTimeStatus | null | undefined, nowMs: number): string | null {
   if (!status) return null;

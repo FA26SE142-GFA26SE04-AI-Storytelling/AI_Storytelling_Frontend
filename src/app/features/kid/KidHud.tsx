@@ -1,9 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Award, Droplets, Flame, Lock, Moon, Sun } from 'lucide-react';
+import { AlarmClock, Award, Droplets, Flame, Lock, Moon, Sun } from 'lucide-react';
 import { useTheme } from '@/app/context/ThemeContext';
 import { circleReveal } from '@/app/lib/motion';
+import { timeChip } from '@/app/lib/readingTime';
+import type { ReadingTimeStatus } from '@/app/types/readingSchedule';
+import { useNow } from './useChildStatus';
 import { childAccessService } from '@/app/services/childAccessService';
 import { childRewardsService } from '@/app/services/childReadingService';
 import type { ChildRewards } from '@/app/types/childReading';
@@ -39,13 +42,28 @@ export interface KidHudProps {
   showDock: boolean;
   onExit: () => void;
   onRewards: () => void;
+  /** Trạng thái giờ đọc từ `/me`: hiện chip đồng hồ (còn bao lâu / đọc đến mấy giờ). */
+  readingTime?: ReadingTimeStatus | null;
+}
+
+/** Chip đồng hồ cho bé biết còn bao lâu; đổi màu cam khi còn ≤ 5 phút. Không đặt giới hạn thì không hiện. */
+function KidTimeChip({ status }: { status: ReadingTimeStatus | null }) {
+  const now = useNow(!!status, status?.state === 'Grace' ? 1000 : 15_000);
+  const chip = timeChip(status, now);
+  if (!chip) return null;
+  return (
+    <span className={`kid-hud-chip kid-hud-time${chip.warn ? ' is-warn' : ''}`} role="timer" aria-label={`Thời gian đọc: ${chip.text}`}>
+      <span className="kid-hud-chip-ic kid-hud-chip-clock"><AlarmClock size={20} aria-hidden="true" /></span>
+      <span>{chip.text}</span>
+    </span>
+  );
 }
 
 /**
  * Thanh trên cùng của bé (HUD): bên trái là dock 5 khu, bên phải là các chip phần thưởng
  * (giọt nước, huy hiệu, streak) và nút khóa dành cho bố mẹ.
  */
-export default function KidHud({ rewards: data, pane, onPane, showDock, onExit, onRewards }: KidHudProps) {
+export default function KidHud({ rewards: data, pane, onPane, showDock, onExit, onRewards, readingTime = null }: KidHudProps) {
   const rewardsOn = useKidFeature(KID_FEATURE.rewards);
   const tree = data?.knowledgeTree;
   const earnedCount = data ? data.badges.filter((b) => b.earned).length : 0;
@@ -60,6 +78,7 @@ export default function KidHud({ rewards: data, pane, onPane, showDock, onExit, 
 
       {/* Góc phải: Các chip phần thưởng & Nút khóa dành cho bố mẹ */}
       <div className="kid-hud-right">
+        <KidTimeChip status={readingTime} />
         {rewardsOn && <>
         <button
           type="button"
