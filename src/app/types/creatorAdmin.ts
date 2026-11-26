@@ -74,7 +74,6 @@ export interface CreatorPayoutOverview {
   username: string;
   fullName: string;
   balanceVnd: number;
-  minimumPayoutVnd: number;
   hasPayoutAccount: boolean;
   reminder: string | null;
   payoutAccount: CreatorPayoutAccount | null;

@@ -13,7 +13,7 @@ const EMPTY: PayoutAccountInput = { bankName: '', accountNumber: '', accountHold
 
 /**
  * Nhận tiền (Luồng 5, 5h): Creator nhập thông tin nhận tiền, xem số dư (trước thuế) và lịch sử các lần Admin chuyển khoản.
- * Thu nhập của tháng trước được cộng vào số dư từ ngày 8; số dư từ 200.000 đ thì được chi.
+ * Thu nhập của tháng trước được cộng vào số dư từ ngày 8; mọi số dư lớn hơn 0 đều được chi.
  */
 export function CreatorPayoutsTab() {
   const [data, setData] = useState<CreatorPayoutOverview | null>(null);
