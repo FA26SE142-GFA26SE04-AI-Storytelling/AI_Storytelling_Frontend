@@ -76,6 +76,8 @@ export interface CreatorPayoutOverview {
   balanceVnd: number;
   /** Số dư tối thiểu để được chi, do Admin đặt; 0 = không có mức tối thiểu. */
   minimumPayoutVnd: number;
+  /** Ngày trong tháng (giờ Việt Nam) chốt kỳ tháng trước và cộng thu nhập vào số dư, do Admin đặt. */
+  periodCloseDay: number;
   hasPayoutAccount: boolean;
   reminder: string | null;
   payoutAccount: CreatorPayoutAccount | null;

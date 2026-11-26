@@ -42,7 +42,7 @@ export function AdminCreatorPayouts() {
         <h3 className="grow">Danh sách chi</h3>
         {rows.length > 0 && <span className="sub">{rows.length} nhà sáng tạo · tổng {formatVnd(total)}</span>}
       </div>
-      <p className="sub">Thu nhập của tháng trước được cộng vào số dư từ ngày 8 hằng tháng. Chỉ hiện nhà sáng tạo có số dư đạt mức chi tối thiểu đặt trong Cài đặt gói (trang Gói dịch vụ); số dư thấp hơn được cộng dồn sang kỳ sau.</p>
+      <p className="sub">Thu nhập của tháng trước được cộng vào số dư từ ngày chốt kỳ đặt trong Cài đặt gói (mặc định ngày 8 hằng tháng). Chỉ hiện nhà sáng tạo có số dư đạt mức chi tối thiểu đặt trong Cài đặt gói (trang Gói dịch vụ); số dư thấp hơn được cộng dồn sang kỳ sau.</p>
 
       {paying && <Dialog title={`Đã chi cho ${paying.fullName}`} onClose={() => setPaying(null)}>
         <div className="kv">
