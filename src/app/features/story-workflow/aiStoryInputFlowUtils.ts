@@ -48,7 +48,7 @@ export const BRIEF_FIELDS: readonly BriefField[] = ['topic', 'lesson', 'genre', 
 
 /** Độ dài tối đa từng ô, khớp AIStoryCreativeInputDto ở backend. */
 export const BRIEF_LIMITS: Record<BriefField, number> = { topic: 200, lesson: 500, genre: 50, setting: 300 };
-const BRIEF_REQUIRED: Partial<Record<BriefField, string>> = { topic: 'Hãy nhập ý tưởng câu chuyện.', lesson: 'Hãy nhập bài học muốn gửi tới con.' };
+const BRIEF_REQUIRED: Partial<Record<BriefField, string>> = { topic: 'Hãy nhập ý tưởng câu chuyện.', lesson: 'Hãy nhập bài học muốn gửi tới con.', genre: 'Hãy chọn thể loại cho truyện.' };
 const BRIEF_MIN = 2;
 
 /**

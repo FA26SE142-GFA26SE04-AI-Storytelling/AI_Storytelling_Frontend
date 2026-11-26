@@ -199,7 +199,7 @@ describe('AI Story Input Phase 1 contract', () => {
 });
 
 describe('lỗi theo từng ô của form ý tưởng (khớp backend)', () => {
-  const base = { topic: 'Rùa Bông mang đèn lồng', lesson: 'Biết giúp bạn', setting: '', genre: '' };
+  const base = { topic: 'Rùa Bông mang đèn lồng', lesson: 'Biết giúp bạn', setting: '', genre: 'Phiêu lưu' };
 
   it('hợp lệ thì không có lỗi; khoảng trắng hai đầu không tính', () => {
     expect(briefFieldErrors(base, true)).toEqual({});
@@ -219,6 +219,8 @@ describe('lỗi theo từng ô của form ý tưởng (khớp backend)', () => {
     const empty = { ...base, topic: ' ', lesson: 'a' };
     expect(briefFieldErrors(empty, false)).toEqual({});
     expect(briefFieldErrors(empty, true)).toEqual({ topic: 'Hãy nhập ý tưởng câu chuyện.', lesson: 'Cần ít nhất 2 ký tự.' });
+    // Đã bỏ "Để AI chọn": thể loại bắt buộc.
+    expect(briefFieldErrors({ ...base, genre: ' ' }, true)).toEqual({ genre: 'Hãy chọn thể loại cho truyện.' });
   });
 
   it('gắn lỗi từ server vào đúng ô theo nhãn tiếng Việt hoặc tên trường', () => {

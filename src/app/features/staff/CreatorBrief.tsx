@@ -41,9 +41,9 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
   const max = context ? Math.min(context.maximumLength, 5000) : 1000;
   const presets = lengthPresets(max, context?.readingLevel ?? 2, context?.recommendedTargetLength);
   const preset = LENGTHS.find(([k]) => presets[k] === values.targetLength)?.[0] ?? null;
-  const missingText = !values.topic.trim() || !values.lesson.trim();
+  const missingText = !values.topic.trim() || !values.lesson.trim() || !values.genre.trim();
   const disabled = !loaded || busy || missingText;
-  const reason = !loaded ? "Đang tải cấu hình tạo truyện…" : missingText ? "Hãy nhập ý tưởng và bài học trước." : null;
+  const reason = !loaded ? "Đang tải cấu hình tạo truyện…" : missingText ? "Hãy nhập ý tưởng, bài học và chọn thể loại trước." : null;
   const pii = piiMessage(detectPii([values.topic, values.charactersText, values.setting, values.lesson].join("\n"), ""));
   const copyright = copyrightHits([values.topic, values.charactersText, values.setting, values.lesson].join("\n"));
   const modes = (context?.availableOutputModes ?? []).filter((m): m is keyof typeof OUTPUT_MODE => m in OUTPUT_MODE);
@@ -76,18 +76,18 @@ export default function CreatorBrief({ values, context, contextError, busy, ageB
               <input id="cbrief-lesson" autoComplete="off" className="inp" required value={values.lesson} placeholder="Ví dụ: Biết chia sẻ cùng bạn bè…" onChange={(e) => onChange({ lesson: e.target.value })} />
             </div>
           </div>
-        </fieldset>
-
-        <fieldset className="brief-group">
-          <legend className="display">Thêm chi tiết <small>không bắt buộc, để trống thì AI tự nghĩ</small></legend>
           <div className="field">
             <label className="lbl" htmlFor="cbrief-genre">Thể loại</label>
-            <select id="cbrief-genre" className="inp" value={values.genre} onChange={(e) => onChange({ genre: e.target.value })}>
-              <option value="">Để AI chọn</option>
+            <select id="cbrief-genre" className="inp" required value={values.genre} onChange={(e) => onChange({ genre: e.target.value })}>
+              <option value="" disabled>Chọn thể loại</option>
               {GENRES.map((g) => <option key={g} value={g}>{g}</option>)}
               {!!values.genre && !GENRES.includes(values.genre) && <option value={values.genre}>{values.genre}</option>}
             </select>
           </div>
+        </fieldset>
+
+        <fieldset className="brief-group">
+          <legend className="display">Thêm chi tiết <small>không bắt buộc, để trống thì AI tự nghĩ</small></legend>
           <div className="field">
             <label className="lbl" htmlFor="cbrief-characters">Nhân vật</label>
             <input id="cbrief-characters" autoComplete="off" className="inp" value={values.charactersText} placeholder="Ví dụ: Sóc Bông, Thỏ Trắng…" onChange={(e) => onChange({ charactersText: e.target.value })} />

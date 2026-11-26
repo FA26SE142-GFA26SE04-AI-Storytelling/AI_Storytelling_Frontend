@@ -105,24 +105,15 @@ function GenrePicker({
           onClick={() => setOpen((o) => !o)}
         >
           <span className={value ? "genre-val" : "genre-ph"}>
-            {value || "Để AI chọn"}
+            {value || "Chọn thể loại"}
           </span>
           <ChevronDown className="ic genre-chev" aria-hidden />
         </button>
-        {value && !disabled && (
-          <button type="button" className="btn btn-g icon-only" aria-label="Bỏ chọn thể loại" title="Để AI chọn" onClick={() => pick("")}>
-            <X className="ic" />
-          </button>
-        )}
       </div>
 
       {open && !disabled && (
         <div className="genre-pop" role="listbox" aria-label="Chọn thể loại hoặc chủ đề">
           <div className="genre-pop-top">
-            <button type="button" className={`chip${value === "" ? " on" : ""}`} onClick={() => pick("")}>
-              <Sparkles className="ic" aria-hidden />
-              Để AI chọn
-            </button>
             <div className="genre-search">
               <Search className="ic" aria-hidden />
               <input
@@ -255,7 +246,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
 
   // Bước này nút "Viết dàn ý" chỉ nằm trong form (không đăng ký lên thanh tiến trình) để không có hai nút cùng việc.
   const loaded = !!values && !!context;
-  const missingText = !values?.topic.trim() || !values?.lesson.trim();
+  const missingText = !values?.topic.trim() || !values?.lesson.trim() || !values?.genre.trim();
   const outOfQuota = !!quota && !quota.isUnlimited && (quota.remaining ?? 1) <= 0;
 
   // Lỗi hiện ngay dưới từng ô. Quá dài báo ngay (kể cả nội dung điền sẵn); ô bắt buộc trống chỉ báo sau khi bấm gửi.
@@ -281,7 +272,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   const submitReason = !loaded ? "Đang tải cấu hình của bé…"
     : outOfQuota ? "Bạn đã hết lượt tạo truyện AI."
     : invalidCount > 0 ? `Còn ${invalidCount} ô cần sửa (đánh dấu đỏ).`
-    : missingText ? "Hãy nhập ý tưởng và bài học trước." : null;
+    : missingText ? "Hãy nhập ý tưởng, bài học và chọn thể loại trước." : null;
   const onSubmit = () => {
     if (submitDisabled) return;
     const first = BRIEF_FIELDS.find((k) => blocking[k]);
@@ -355,10 +346,6 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
             {text("lesson", "Bài học muốn gửi tới con", "Ví dụ: Biết chia sẻ cùng bạn bè…", {
               required: true,
             })}
-          </fieldset>
-
-          <fieldset className="brief-group">
-            <legend className="display">Thêm chi tiết <span className="pill draft">Không bắt buộc</span> <InfoTip text="Để trống thì AI tự nghĩ." /></legend>
             <div className="field">
               <label className="lbl" htmlFor="brief-genre">Thể loại hoặc chủ đề {genreGroups.length > 0 && <InfoTip text={`Chỉ gồm ${genreNames.length} chủ đề ${context?.childNickname ?? "bé"} được phép trong Cài đặt an toàn, chia theo nhóm.`} />}</label>
               <GenrePicker
@@ -371,6 +358,10 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
               />
               <FieldError field="genre" message={fieldErrors.genre} />
             </div>
+          </fieldset>
+
+          <fieldset className="brief-group">
+            <legend className="display">Thêm chi tiết <span className="pill draft">Không bắt buộc</span> <InfoTip text="Để trống thì AI tự nghĩ." /></legend>
             {text("charactersText", "Nhân vật", "Ví dụ: Sóc Bông, Thỏ Trắng (cách nhau bằng dấu phẩy)")}
             {text("setting", "Bối cảnh", "Ví dụ: Khu rừng tre ven hồ sen…")}
           </fieldset>

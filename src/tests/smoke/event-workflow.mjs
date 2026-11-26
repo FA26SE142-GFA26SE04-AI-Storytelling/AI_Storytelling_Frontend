@@ -58,6 +58,7 @@ try {
       await page.locator('a[href="/staff/create-ai?eventId=7"]').click();
       await page.locator('#cbrief-topic').fill('A frog shares an umbrella with friends');
       await page.locator('#cbrief-lesson').fill('Sharing with friends');
+      await page.locator('#cbrief-genre').selectOption({ index: 1 });
       await Promise.all([page.waitForResponse((r) => r.url().includes('/creator/ai-story-input/requests')),
         page.locator('form.brief button[type="submit"]').click()]);
       assert.equal(posted.find((p) => p.path.endsWith('/creator/ai-story-input/requests'))?.body.eventId, 7);
