@@ -20,6 +20,7 @@ export interface PlanSettingsDialogProps {
 export interface DraftState {
   readingFundPercent: number | string;
   creativeFundPercent: number | string;
+  minimumPayoutVnd: number | string;
   creatorMonthlyAiCredits: number | string;
   creatorMonthlySubmitCredits: number | string;
   creatorWritingAssistPerDay: number | string;
@@ -42,6 +43,7 @@ export interface DraftState {
 const SETTINGS_KEYS: (keyof UpdatePlanSettingsRequest)[] = [
   "readingFundPercent",
   "creativeFundPercent",
+  "minimumPayoutVnd",
   "creatorMonthlyAiCredits",
   "creatorMonthlySubmitCredits",
   "creatorWritingAssistPerDay",
@@ -65,6 +67,7 @@ function toDraft(settings: PlanSettings): DraftState {
   return {
     readingFundPercent: settings.readingFundPercent,
     creativeFundPercent: settings.creativeFundPercent,
+    minimumPayoutVnd: settings.minimumPayoutVnd,
     creatorMonthlyAiCredits: settings.creatorMonthlyAiCredits,
     creatorMonthlySubmitCredits: settings.creatorMonthlySubmitCredits,
     creatorWritingAssistPerDay: settings.creatorWritingAssistPerDay,
@@ -84,6 +87,9 @@ function toDraft(settings: PlanSettings): DraftState {
     audioRegenerationLimit: settings.audioRegenerationLimit,
   };
 }
+
+/** Trần của mức chi tối thiểu cho Creator, khớp với API. */
+export const MAX_MINIMUM_PAYOUT_VND = 1_000_000_000;
 
 function isValidInteger(val: unknown, min: number, max = Infinity): boolean {
   if (typeof val === "number") {
@@ -162,6 +168,7 @@ export default function PlanSettingsDialog({ open, onClose }: PlanSettingsDialog
   if (draft) {
     const isReadingFundValid = isValidInteger(draft.readingFundPercent, 0, 100);
     const isCreativeFundValid = isValidInteger(draft.creativeFundPercent, 0, 100);
+    const isMinimumPayoutValid = isValidInteger(draft.minimumPayoutVnd, 0, MAX_MINIMUM_PAYOUT_VND);
     const isCreatorAiValid = isValidInteger(draft.creatorMonthlyAiCredits, 0);
     const isCreatorSubmitValid = isValidInteger(draft.creatorMonthlySubmitCredits, 0);
     const isCreatorWritingValid = isValidInteger(draft.creatorWritingAssistPerDay, 0);
@@ -185,6 +192,7 @@ export default function PlanSettingsDialog({ open, onClose }: PlanSettingsDialog
     isValid =
       isReadingFundValid &&
       isCreativeFundValid &&
+      isMinimumPayoutValid &&
       isCreatorAiValid &&
       isCreatorSubmitValid &&
       isCreatorWritingValid &&
@@ -237,6 +245,7 @@ export default function PlanSettingsDialog({ open, onClose }: PlanSettingsDialog
       const body: UpdatePlanSettingsRequest = {
         readingFundPercent: Math.floor(Number(draft.readingFundPercent)),
         creativeFundPercent: Math.floor(Number(draft.creativeFundPercent)),
+        minimumPayoutVnd: Math.floor(Number(draft.minimumPayoutVnd)),
         creatorMonthlyAiCredits: Math.floor(Number(draft.creatorMonthlyAiCredits)),
         creatorMonthlySubmitCredits: Math.floor(Number(draft.creatorMonthlySubmitCredits)),
         creatorWritingAssistPerDay: Math.floor(Number(draft.creatorWritingAssistPerDay)),
