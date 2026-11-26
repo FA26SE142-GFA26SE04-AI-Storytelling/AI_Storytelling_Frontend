@@ -7,10 +7,12 @@ vi.mock("@/app/context/AuthContext", () => ({
   useAuth: () => ({ user: { id: 1, role: "User" } }),
 }));
 
-import CreateEventModal from "@/app/features/events/CreateEventModal";
-import EventActivityParticipantView from "@/app/features/events/EventActivityParticipantView";
+import CreateEventModal, { eventCategoryOptions } from "@/app/features/events/CreateEventModal";
+import type { ContentCategory } from "@/app/types/childProfile";
+import EventActivityParticipantView, { submittableStories } from "@/app/features/events/EventActivityParticipantView";
 import EventActivityWizard, { normalizeAwardSources } from "@/app/features/events/EventActivityWizard";
 import EventAwardsTable, { RevokeAwardDialog } from "@/app/features/events/EventAwardsTable";
+import { awardValueText } from "@/app/features/events/EventDetailInfoCard";
 import EventRewardPlanField from "@/app/features/events/EventRewardPlanField";
 import EventConfigurationSummary from "@/app/features/events/EventConfigurationSummary";
 import EventTaskFilterEditor from "@/app/features/events/EventTaskFilterEditor";
@@ -235,6 +237,36 @@ describe("Events UI components", () => {
     expect(html).toContain("Nhận thưởng");
     expect(html).not.toContain("Giải sự kiện khác");
     expect(html).toContain("Đọc truyện");
+  });
+
+  it("offers only active categories outside the safety warning group as event topics", () => {
+    const category = (id: number, group: ContentCategory["group"], isActive = true) =>
+      ({ id, group, isActive, code: `C${id}`, displayName: `C${id}` }) as ContentCategory;
+    const options = eventCategoryOptions([
+      category(1, "Genre"), category(2, "Genre", false), category(7, "SafetyWarning"), category(9, "LifeValue"),
+    ]);
+    expect(options.map((c) => c.id)).toEqual([1, 9]);
+  });
+
+  it("hides the value of awards without money or credits", () => {
+    expect(awardValueText({ unitValueVnd: 0, creditGrantAmount: 0 })).toBe("");
+    expect(awardValueText({ unitValueVnd: 0, creditGrantAmount: 3 })).toBe("3 lượt AI / suất");
+    expect(awardValueText({ unitValueVnd: 500000, creditGrantAmount: 0 })).toBe("500.000 đ / suất");
+  });
+
+  it("offers only stories that can still be submitted", () => {
+    const submission = (storyId: number, status: string, lockedStoryVersionId: number | null = null) =>
+      ({ id: storyId, eventId: 1, storyId, currentStoryVersionId: 1, status, lockedStoryVersionId });
+    const stories = [1, 2, 3, 4, 5].map((id) => ({ id }));
+    expect(submittableStories(stories, [
+      submission(1, "PendingReview"), submission(2, "Approved"), submission(3, "ChangesRequested"), submission(4, "Rejected", 9),
+    ])).toEqual([{ id: 3 }, { id: 5 }]);
+  });
+
+  it("shows the empty message without the wide table", () => {
+    const html = renderToStaticMarkup(<EventListView events={[]} loading={false} onSelect={() => {}} />);
+    expect(html).toContain("Chưa có sự kiện nào được công bố.");
+    expect(html).not.toContain("<table");
   });
 
   it("EventModeratorPanel, EventCreatorView, CreateEventModal (Create & Edit) and events.css are complete", () => {

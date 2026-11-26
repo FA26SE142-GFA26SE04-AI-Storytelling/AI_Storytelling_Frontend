@@ -52,6 +52,8 @@ describe('adminPaymentService — hợp đồng API cài đặt và tạo gói',
     const body: UpdatePlanSettingsRequest = {
       readingFundPercent: 40,
       creativeFundPercent: 10,
+      minimumPayoutVnd: 0,
+      creatorPeriodCloseDay: 1,
       creatorMonthlyAiCredits: 50,
       creatorMonthlySubmitCredits: 10,
       partnerMonthlyAiCredits: 0,

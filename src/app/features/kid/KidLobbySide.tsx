@@ -8,6 +8,7 @@ import { coverFor } from "@/app/lib/storyView";
 import { showToast } from "@/app/lib/toast";
 import { childAccessService } from "@/app/services/childAccessService";
 import { childNotebookService } from "@/app/services/childReadingService";
+import { FEATURE_OFF_MESSAGE, isFeatureDisabledError, KID_FEATURE, useKidFeature, useKidFeaturesReady } from "./kidFeatures";
 
 /** Số từ hiện trong khung, còn lại xem trong Sổ tay. */
 const WORDS_SHOWN = 6;
@@ -29,18 +30,21 @@ export default function KidLobbySide({
   const [active, setActive] = useState(0);
   const [words, setWords] = useState<NotebookEntry[] | null>(null);
   const count = familyStories.length;
+  const notebookOn = useKidFeature(KID_FEATURE.notebook);
+  const ready = useKidFeaturesReady();
 
+  // Chỉ tải sổ tay khi đã biết bố mẹ bật Sổ từ vựng: tắt thì backend trả 403, trước đây hiện toast lỗi ngay khi bé vào sảnh.
   useEffect(() => {
     const session = childAccessService.readSession();
-    if (session?.childProfileId !== childId) return;
+    if (session?.childProfileId !== childId || !ready || !notebookOn) return;
     const controller = new AbortController();
     void childNotebookService.list(session.accessToken, controller.signal).then((r) => {
       if (controller.signal.aborted) return;
       if (r.success) setWords([...(r.data ?? [])].sort((a, b) => b.collectedAt.localeCompare(a.collectedAt)));
-      else { setWords([]); showToast(r.message, "err"); }
+      else { setWords([]); if (!isFeatureDisabledError(r)) showToast(r.message, "err"); }
     });
     return () => controller.abort();
-  }, [childId]);
+  }, [childId, ready, notebookOn]);
 
   return (
     <>
@@ -77,10 +81,11 @@ export default function KidLobbySide({
         </section>
       )}
 
-      <section className="kl-panel kl-words" aria-labelledby="kl-words-h" aria-busy={words === null}>
+      <section className={`kl-panel kl-words${ready && !notebookOn ? " is-off" : ""}`} aria-labelledby="kl-words-h" aria-busy={notebookOn && words === null}>
         <h2 id="kl-words-h" className="kl-head kl-words-head display"><BookA aria-hidden="true" />Từ vựng của em</h2>
-        {words && words.length === 0 && <p className="kl-words-empty">Em chưa lưu từ nào. Gặp từ mới trong truyện thì bấm lưu nhé!</p>}
-        {words && words.length > 0 && (
+        {ready && !notebookOn && <p className="kl-words-empty">{FEATURE_OFF_MESSAGE} Em hỏi bố mẹ nhé.</p>}
+        {notebookOn && words && words.length === 0 && <p className="kl-words-empty">Em chưa lưu từ nào. Gặp từ mới trong truyện thì bấm lưu nhé!</p>}
+        {notebookOn && words && words.length > 0 && (
           <>
             <ul className="kl-words-list">
               {words.slice(0, WORDS_SHOWN).map((w, i) => (

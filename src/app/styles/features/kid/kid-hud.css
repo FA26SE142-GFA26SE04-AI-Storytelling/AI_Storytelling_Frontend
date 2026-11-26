@@ -70,6 +70,29 @@
   background: color-mix(in srgb, var(--gold-deep) 70%, transparent);
 }
 
+/* Chip đồng hồ: chỉ để xem (không bấm), viền vàng; còn ≤ 5 phút thì nền vàng đậm và nhấp nháy nhẹ. */
+.kid-hud-time {
+  cursor: default;
+  border-color: var(--gold);
+}
+
+.kid-hud-chip-clock {
+  background: color-mix(in srgb, var(--gold) 70%, transparent);
+}
+
+.kid-hud-time.is-warn {
+  background: color-mix(in srgb, var(--gold-deep) 85%, transparent);
+  animation: kid-hud-time-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes kid-hud-time-pulse {
+  50% { transform: scale(1.05); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kid-hud-time.is-warn { animation: none; }
+}
+
 .kid-hud-lock {
   width: 56px;
   height: 56px;

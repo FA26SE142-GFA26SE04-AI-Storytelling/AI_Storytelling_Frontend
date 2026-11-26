@@ -1,7 +1,7 @@
 "use client";
 
 import { Coins, Handshake, Sparkles } from "lucide-react";
-import type { DraftState } from "@/app/features/staff/PlanSettingsDialog";
+import { MAX_CREATOR_PERIOD_CLOSE_DAY, MAX_MINIMUM_PAYOUT_VND, type DraftState } from "@/app/features/staff/PlanSettingsDialog";
 import PlanNumberField from "./PlanNumberField";
 
 export interface PlanQuotaSectionsProps {
@@ -44,6 +44,34 @@ export default function PlanQuotaSections({ draft, onChange }: PlanQuotaSections
             onChange={(raw) =>
               onChange(
                 "creativeFundPercent",
+                raw === "" ? "" : Math.floor(Number(raw))
+              )
+            }
+            required
+          />
+          <PlanNumberField
+            label="Mức chi tối thiểu cho nhà sáng tạo (đ) * (0 = không giới hạn)"
+            min={0}
+            max={MAX_MINIMUM_PAYOUT_VND}
+            step={1000}
+            suffix="đ"
+            value={draft.minimumPayoutVnd}
+            onChange={(raw) =>
+              onChange(
+                "minimumPayoutVnd",
+                raw === "" ? "" : Math.floor(Number(raw))
+              )
+            }
+            required
+          />
+          <PlanNumberField
+            label="Ngày chốt kỳ thu nhập hằng tháng * (1–28)"
+            min={1}
+            max={MAX_CREATOR_PERIOD_CLOSE_DAY}
+            value={draft.creatorPeriodCloseDay}
+            onChange={(raw) =>
+              onChange(
+                "creatorPeriodCloseDay",
                 raw === "" ? "" : Math.floor(Number(raw))
               )
             }

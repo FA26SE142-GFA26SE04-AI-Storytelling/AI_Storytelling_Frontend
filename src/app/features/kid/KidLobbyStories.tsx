@@ -7,7 +7,7 @@ import { coverFor } from "@/app/lib/storyView";
 import { showToast } from "@/app/lib/toast";
 import { childAccessService } from "@/app/services/childAccessService";
 import { childReadingService } from "@/app/services/childReadingService";
-import { isFeatureDisabledError, KID_FEATURE, lobbyStorySources, useKidDisabledFeatures, useKidFeaturesReady } from './kidFeatures';
+import { isFeatureDisabledError, KID_FEATURE, lobbyStorySources, notifyFeatureOff, useKidDisabledFeatures, useKidFeaturesReady } from './kidFeatures';
 
 /** Số truyện hiện trong khung, còn lại xem ở Kho truyện. */
 const SHOWN = 4;
@@ -62,8 +62,13 @@ export default function KidLobbyStories({ childId, busy, onRead, onOpenLibrary }
           ))}
         </div>
       )}
-      {libraryOn && stories && stories.length > 0 && (
-        <button type="button" className="kid-btn3d is-gold kl-words-go" onClick={onOpenLibrary}>
+      {stories && stories.length > 0 && (
+        <button
+          type="button"
+          className={`kid-btn3d is-gold kl-words-go${libraryOn ? "" : " is-disabled"}`}
+          aria-disabled={!libraryOn || undefined}
+          onClick={libraryOn ? onOpenLibrary : notifyFeatureOff}
+        >
           <Library aria-hidden="true" />{stories.length > SHOWN ? "Xem thêm truyện" : "Kho truyện"}
         </button>
       )}

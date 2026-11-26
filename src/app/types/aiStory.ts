@@ -20,8 +20,6 @@ export interface AIStoryInputContextDto {
   safetyScoreThreshold: number | null;
   readabilityScoreThreshold: number | null;
   comprehensionGoal: string | null;
-  comprehensionThresholdPercent: number | null;
-  comprehensionWindowSize: number;
   interests: string[];
   allowedCategoryCodes: string[];
   restrictedCategoryCodes: string[];
@@ -103,6 +101,8 @@ export interface OutlineVersionDto {
 }
 export interface OutlineProgressDto {
   storyId: number;
+  /** Bé của truyện; null với truyện của Creator. Backend cũ chưa trả trường này. */
+  childProfileId?: number | null;
   storyStatus: string;
   currentVersion: OutlineVersionDto | null;
   activeOperation: string | null;

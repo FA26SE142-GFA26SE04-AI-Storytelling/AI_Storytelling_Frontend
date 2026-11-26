@@ -41,7 +41,7 @@ export interface UpdateChildProfileRequest {
   age?: number | null;
 }
 
-export type TopicRelation = 'FavoriteTopic' | 'PriorityFocusArea';
+export type TopicRelation = 'FavoriteTopic';
 
 export interface SetLearningProfileRequest {
   readingLevel: number; // 1 to 5
@@ -67,8 +67,6 @@ export interface SetSafetyPolicyRequest {
   consentRecorded: boolean;
   safetyScoreThreshold?: number | null;
   readabilityScoreThreshold?: number | null;
-  comprehensionThresholdPercent?: number;
-  comprehensionWindowSize?: number;
   storyWishesEnabled?: boolean;
   allowInteractiveStories?: boolean;
   childCreationEnabled?: boolean;
@@ -136,8 +134,6 @@ export interface SafetyPolicy {
   consentOutdated?: boolean;
   safetyScoreThreshold?: number | null;
   readabilityScoreThreshold?: number | null;
-  comprehensionThresholdPercent?: number;
-  comprehensionWindowSize?: number;
   storyWishesEnabled?: boolean;
   allowInteractiveStories?: boolean;
   childCreationEnabled?: boolean;

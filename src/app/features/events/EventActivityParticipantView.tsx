@@ -54,6 +54,11 @@ export type EventActivityParticipantViewProps = {
 };
 
 /** Giao diện tham gia sự kiện theo hoạt động (V2) cho Parent và Creator. */
+/** Truyện còn nộp được: bỏ truyện có bài đang chờ duyệt, đã duyệt hoặc đã chốt bản (API từ chối nộp lại). */
+export const submittableStories = <T extends { id: number }>(stories: T[], submissions: EventSubmissionDto[]) =>
+  stories.filter((story) => !submissions.some((s) => s.storyId === story.id &&
+    (s.status === "PendingReview" || s.status === "Approved" || s.lockedStoryVersionId != null)));
+
 export default function EventActivityParticipantView({
   detail,
   dashboard,
@@ -93,6 +98,9 @@ export default function EventActivityParticipantView({
   const voteState = states.find((s) => s.activityType === "Voting");
   const subActivity = subState ? activityById.get(subState.activityId) : undefined;
   const voteActivity = voteState ? activityById.get(voteState.activityId) : undefined;
+
+  const storyChoices = submittableStories(readyStories, mySubmissions);
+  const chosenStoryId = storyChoices.some((s) => s.id === selectedStoryId) ? selectedStoryId : 0;
 
   useEffect(() => {
     let active = true;
@@ -137,9 +145,9 @@ export default function EventActivityParticipantView({
   };
 
   const submitStory = async () => {
-    if (!selectedStoryId) return;
+    if (!chosenStoryId) return;
     setBusy(true);
-    const res = await eventService.submitActivityStory(detail.id, selectedStoryId, isCreator ? true : consentSharing);
+    const res = await eventService.submitActivityStory(detail.id, chosenStoryId, isCreator ? true : consentSharing);
     setBusy(false);
     if (!res.success || !res.data) {
       showToast(res.message || "Không nộp được bài dự thi.", "err");
@@ -288,14 +296,15 @@ export default function EventActivityParticipantView({
                     Tạo truyện AI cho sự kiện
                   </a>
                 )}
-                <select className="inp" style={{ flex: 1, minWidth: 220 }} value={selectedStoryId}
+                <select className="inp" style={{ flex: 1, minWidth: 220 }} value={chosenStoryId}
                   onChange={(e) => setSelectedStoryId(Number(e.target.value))}>
                   <option value={0}>
-                    {readyStories.length === 0 ? "-- Chưa có truyện sẵn sàng --" : "-- Chọn truyện để nộp --"}
+                    {readyStories.length === 0 ? "-- Chưa có truyện sẵn sàng --"
+                      : storyChoices.length === 0 ? "-- Các truyện sẵn sàng đều đã nộp --" : "-- Chọn truyện để nộp --"}
                   </option>
-                  {readyStories.map((st) => <option key={st.id} value={st.id}>#{st.id} · {st.title}</option>)}
+                  {storyChoices.map((st) => <option key={st.id} value={st.id}>#{st.id} · {st.title}</option>)}
                 </select>
-                <button type="button" className="btn btn-p" disabled={busy || !selectedStoryId || (!isCreator && !consentSharing)}
+                <button type="button" className="btn btn-p" disabled={busy || !chosenStoryId || (!isCreator && !consentSharing)}
                   onClick={() => void submitStory()}>
                   <BookOpenCheck className="ic" aria-hidden="true" />
                   Nộp truyện dự thi
@@ -317,7 +326,7 @@ export default function EventActivityParticipantView({
               mySubmissions.map((s) => (
                 <div key={s.id} className="ev-task-row">
                   <div className="row" style={{ justifyContent: "space-between", gap: 8 }}>
-                    <b>Bài #{s.id} · {s.submittedTitle || `Truyện #${s.storyId}`}</b>
+                    <b>Bài #{s.id} · {s.submittedTitle || readyStories.find((st) => st.id === s.storyId)?.title || `Truyện #${s.storyId}`}</b>
                     <span className="pill">{SUBMISSION_STATUS_LABEL[s.status] ?? s.status}</span>
                   </div>
                   <span className="sub">

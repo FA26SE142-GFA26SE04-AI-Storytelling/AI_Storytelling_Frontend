@@ -1,10 +1,11 @@
 'use client';
 import {useEffect,useRef,useState} from 'react';
-import {ArrowLeft,ChevronLeft,ChevronRight,Heart,Check,Headphones,Mic,RotateCcw} from 'lucide-react';
+import {ArrowLeft,ChevronLeft,ChevronRight,Heart,Check,Headphones,Mic,RotateCcw,Captions,BookOpen} from 'lucide-react';
 import Frog from '@/app/components/brand/Frog';
 import {AuthedImage} from '@/app/components/AuthedMedia';
 import type {useChildReader} from './useChildReader';
 import KidNarrator from './KidNarrator';
+import KidCaptionStage from './KidCaptionStage';
 import KidAfterReading from './KidAfterReading';
 import {useDialog} from './useDialog';
 import KidInteraction from './KidInteraction';
@@ -86,6 +87,12 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
   // Mỗi phiên đọc chỉ báo một lần là truyện không có tô sáng chữ.
   const noHighlightTold=useRef<number|null>(null);
   const pendingSend=useRef(false);
+  const [captionOn,setCaptionOn]=useState(false);
+  const [canCaption,setCanCaption]=useState(false);
+  const [chromeIdle,setChromeIdle]=useState(false);
+  const [narrPlaying,setNarrPlaying]=useState(false);
+  const [narrRatio,setNarrRatio]=useState<number|null>(null);
+  const [wakeAt,setWakeAt]=useState(0);
   const c=r.content;
   const scenes=c?c.scenes.slice().sort((a,b)=>a.sceneIndex-b.sceneIndex):[];
   const found=scenes.findIndex(s=>s.sceneIndex+1===r.page);
@@ -102,7 +109,7 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
   const active=scene&&pic.scene===scene.sceneIndex?Math.min(pic.i,pictures.length-1):0;
   /** Trang luyện đọc to sau cảnh cuối: không phải cảnh nên không lưu làm vị trí đọc; nhớ theo phiên để mở truyện khác thì về trang truyện. */
   // Bố mẹ tắt giọng nói thì không có trang luyện đọc: trang cuối của truyện hiện luôn nút "Em đã đọc xong".
-  const practice=voiceOn?c?.readAloudPractice??null:null;
+  const practice=voiceOn?(c?.readAloudPractice??null):null;
   const [practiceSession,setPracticeSession]=useState<number|null>(null);
   const onPractice=!!practice&&practiceSession===c?.sessionId;
   const atEnd=!!scene&&index===scenes.length-1&&active>=pictures.length-1;
@@ -115,6 +122,73 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
   const currentSegment=scene?segmentForPart(scene,pictures.length>1?part:null,narratorPart):null;
   // segmentStarts trả theo thứ tự segmentOrder, nên tìm vị trí trong danh sách đã sắp xếp.
   const currentSegmentIndex=scene&&currentSegment?(scene.segments??[]).slice().sort((a,b)=>a.segmentOrder-b.segmentOrder).findIndex(s=>s.segmentId===currentSegment.segmentId):0;
+
+  // Phụ đề chỉ dùng được khi truyện có mốc thời gian từng chữ; không có thì nút mờ và không tự bật.
+  const storyTimed=scenes.some(s=>s.segments?.some(seg=>!!seg.wordTimingsJson?.trim()));
+  // Derived: effective caption mode
+  const captionMode=storyTimed&&captionOn&&canCaption&&!!scene&&!onPractice&&aloudState==='idle'&&!aloudResult&&!r.done;
+
+  // Viewport detection + localStorage preference
+  useEffect(()=>{
+    const check=()=>{
+      setCanCaption(window.innerWidth>window.innerHeight&&window.innerWidth>=720);
+    };
+    check();
+    window.addEventListener('resize',check);
+    // Load saved preference
+    try{
+      const saved=localStorage.getItem('kid-caption-mode');
+      if(saved==='on')setCaptionOn(true);
+      else if(saved==='off')setCaptionOn(false);
+      else{
+        const auto=window.matchMedia('(pointer: coarse) and (orientation: landscape)').matches&&window.innerWidth>=720;
+        setCaptionOn(auto);
+      }
+    }catch{/*ignore*/}
+    return ()=>window.removeEventListener('resize',check);
+  },[]);
+
+  const setCaption=(v:boolean)=>{
+    setCaptionOn(v);
+    try{localStorage.setItem('kid-caption-mode',v?'on':'off');}catch{/*ignore*/}
+  };
+
+  // Esc to exit caption mode
+  useEffect(()=>{
+    if(!captionMode)return;
+    const onKey=(e:KeyboardEvent)=>{if(e.key==='Escape')setCaption(false);};
+    window.addEventListener('keydown',onKey);
+    return ()=>window.removeEventListener('keydown',onKey);
+  },[captionMode]);
+
+  // Auto-hide chrome when playing in caption mode
+  const wake=()=>{setChromeIdle(false);setWakeAt(Date.now());};
+  useEffect(()=>{
+    if(captionMode&&narrPlaying){
+      const t=setTimeout(()=>setChromeIdle(true),3000);
+      return ()=>clearTimeout(t);
+    }else{
+      setChromeIdle(false);
+    }
+  },[captionMode,narrPlaying,wakeAt]);
+
+  useEffect(()=>{
+    if(!captionMode)return;
+    window.addEventListener('keydown',wake);
+    window.addEventListener('pointermove',wake);
+    window.addEventListener('pointerdown',wake);
+    return ()=>{
+      window.removeEventListener('keydown',wake);
+      window.removeEventListener('pointermove',wake);
+      window.removeEventListener('pointerdown',wake);
+    };
+  },[captionMode]);
+
+  // Reset narr state on scene change
+  useEffect(()=>{
+    setNarrPlaying(false);
+    setNarrRatio(null);
+  },[scene?.sceneIndex]);
 
   useEffect(()=>{
     if(rec.state==='denied'){
@@ -277,24 +351,28 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
   };
 
   if(!c)return null;
-  return <article className="kid-theater" aria-label="Sân khấu kể chuyện">
+  return <article className={`kid-theater${captionMode?' is-caption':''}${captionMode&&chromeIdle?' kid-caption-idle':''}`} aria-label="Sân khấu kể chuyện">
     <KidTimeBanner status={r.timeStatus}/>
     {onBreak&&r.timeStatus&&<KidRestOverlay status={r.timeStatus} onDone={r.recheckTime}/>}
     {/* Không còn công tắc Tự đọc / Nghe đọc: cách đọc tự ghi theo việc bé bấm loa (onListen của KidNarrator). */}
-    <header className="kid-theater-top"><button className="kid-btn3d is-sky" disabled={r.busy} onClick={()=>void r.leave()}><ArrowLeft aria-hidden="true"/>Về danh sách đọc</button><button type="button" className="kid-btn3d is-sky" aria-pressed={r.listenOnly} title="Chỉ nghe truyện, không dừng lại để chơi" disabled={disabled} onClick={()=>void r.flag('listenOnly')}><Headphones aria-hidden="true"/>Chỉ nghe</button></header>
+    <header className="kid-theater-top"><button className="kid-btn3d is-sky" disabled={r.busy} onClick={()=>void r.leave()}><ArrowLeft aria-hidden="true"/>Về danh sách đọc</button>{canCaption&&!r.done&&(storyTimed
+            ?<button type="button" className="kid-btn3d is-sky" aria-pressed={captionMode} title={captionOn?'Xem cả trang tranh':'Chỉ hiện chữ phụ đề ở đáy'} onClick={()=>setCaption(!captionOn)}>{captionOn?<BookOpen aria-hidden="true"/>:<Captions aria-hidden="true"/>}{captionOn?'Cả trang':'Phụ đề'}</button>
+            :<button type="button" className="kid-btn3d is-sky is-disabled" aria-disabled="true" title="Truyện này chưa có chữ chạy theo giọng đọc" onClick={()=>showToast('Truyện này chưa có chữ chạy theo giọng đọc nên chưa xem phụ đề được.','info')}><Captions aria-hidden="true"/>Phụ đề</button>)}<button type="button" className="kid-btn3d is-sky" aria-pressed={r.listenOnly} title="Chỉ nghe truyện, không dừng lại để chơi" disabled={disabled} onClick={()=>void r.flag('listenOnly')}><Headphones aria-hidden="true"/>Chỉ nghe</button></header>
     {!scene&&<section className="kid-reader-empty" role="status"><Frog mood="think" size={96}/><h2 className="display">Truyện này chưa có nội dung để đọc</h2><p>Em chọn truyện khác nhé!</p></section>}
-    {scene&&onPractice&&practice&&voiceOn&&<KidReadAloudPractice key={c.sessionId} practice={practice} disabled={disabled} onRecord={r.readAloudPractice}>
+    {scene&&onPractice&&practice&&<KidReadAloudPractice key={c.sessionId} practice={practice} disabled={disabled} onRecord={r.readAloudPractice}>
       <nav className="kid-story-navigation" aria-label="Tiến độ truyện"><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang trước" title="Trang trước" disabled={disabled} onClick={()=>setPracticeSession(null)}><ChevronLeft aria-hidden="true"/></button><span className="kid-scene-count">Trang {currentPage}/{pageCount}</span><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang sau" title="Trang sau" disabled><ChevronRight aria-hidden="true"/></button>{!r.done&&<button className="kid-btn3d is-gold" disabled={disabled} onClick={()=>void r.complete()}><Check aria-hidden="true"/>Em đã đọc xong</button>}</nav>
     </KidReadAloudPractice>}
     {scene&&!onPractice&&<div className="kid-reader" key={scene.sceneIndex}>
       <div className="kid-reader-visual">
           <ScenePictures pictures={pictures} active={active} alt={`Tranh cảnh ${index+1}`}>
-          {!r.done&&<KidNarrator key={`${c.sessionId}:${scene.sceneIndex}`} scene={scene} disabled={disabled} paused={!!ask||aloudState==='recording'||aloudState==='busy'} onListen={()=>r.mode==='ListenFirst'?Promise.resolve(true):r.save(r.page,'ListenFirst')} onEvent={r.event} range={part?{start:part.start,end:part.end}:{start:0,end:scene.text.length}} onSceneEnd={sceneEnded} onSegmentChange={setNarratorPart} autoStart={autoScene===scene.sceneIndex} onPartEnd={partEnded} onPlayingChange={p=>{narrating.current=p;if(p)setAutoScene(null);}} onWord={setReadingWord} onNoHighlight={()=>{if(noHighlightTold.current===c.sessionId)return;noHighlightTold.current=c.sessionId;showToast('Truyện này chưa có tô sáng chữ khi nghe đọc.','info');}}/>}
+          {!r.done&&<KidNarrator key={`${c.sessionId}:${scene.sceneIndex}`} scene={scene} disabled={disabled} paused={!!ask||aloudState==='recording'||aloudState==='busy'} onListen={()=>r.mode==='ListenFirst'?Promise.resolve(true):r.save(r.page,'ListenFirst')} onEvent={r.event} range={part?{start:part.start,end:part.end}:{start:0,end:scene.text.length}} onSceneEnd={sceneEnded} onSegmentChange={setNarratorPart} autoStart={autoScene===scene.sceneIndex} onPartEnd={partEnded} onPlayingChange={p=>{narrating.current=p;setNarrPlaying(p);if(p)setAutoScene(null);}} onProgress={p=>setNarrRatio(Math.round(p*50)/50)} onWord={setReadingWord} onNoHighlight={()=>{if(noHighlightTold.current===c.sessionId)return;noHighlightTold.current=c.sessionId;showToast('Truyện này chưa có tô sáng chữ khi nghe đọc.','info');}}/>}
         </ScenePictures>
       </div>
       <div className="kid-reader-side">
         <div className="kid-story-caption" ref={captionRef}>
-          <Caption text={scene.text} part={part} result={aloudResult} segment={currentSegment} segmentStart={starts[currentSegmentIndex>=0?currentSegmentIndex:0]??0} reading={readingWord} vocab={vocab} renderVocab={(id,text,key)=><KidVocabWord key={`v${key}`} id={id} definition={r.definition} busy={r.busy} disabled={r.blocked} onLookup={(v)=>void r.lookup(v)} onSave={()=>void r.collect()}>{text}</KidVocabWord>}/>
+          {captionMode
+            ?<KidCaptionStage key={part?.start??0} text={scene.text} part={part??{start:0,end:scene.text.length}} reading={readingWord} progress={narrPlaying?narrRatio:null} playing={narrPlaying} hasTimings={!!currentSegment?.wordTimingsJson} vocab={vocab} renderVocab={(id,text,key)=><KidVocabWord key={`v${key}`} id={id} definition={r.definition} busy={r.busy} disabled={r.blocked} onLookup={(v)=>void r.lookup(v)} onSave={()=>void r.collect()}>{text}</KidVocabWord>} onNextPage={nextPage}/>
+            :<Caption text={scene.text} part={part} result={aloudResult} segment={currentSegment} segmentStart={starts[currentSegmentIndex>=0?currentSegmentIndex:0]??0} reading={readingWord} vocab={vocab} renderVocab={(id,text,key)=><KidVocabWord key={`v${key}`} id={id} definition={r.definition} busy={r.busy} disabled={r.blocked} onLookup={(v)=>void r.lookup(v)} onSave={()=>void r.collect()}>{text}</KidVocabWord>}/>}
         </div>
         <nav className="kid-story-navigation" aria-label="Tiến độ truyện"><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang trước" title="Trang trước" disabled={disabled||(index<=0&&active<=0)} onClick={prevPage}><ChevronLeft aria-hidden="true"/></button><span className="kid-scene-count">Trang {currentPage}/{pageCount}</span><button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Trang sau" title="Trang sau" disabled={disabled||(atEnd&&!practice)} onClick={nextPage}><ChevronRight aria-hidden="true"/></button><span className="kid-bar-actions"><button className="kid-btn3d is-sky" disabled={disabled} aria-pressed={!!r.session?.isFavorited} onClick={()=>void r.flag('favorite')}><Heart aria-hidden="true"/>Yêu thích</button></span><button type="button" className={`kid-btn3d is-sky kid-read-aloud-btn${aloudState==='recording'?' kid-read-aloud-btn--recording':aloudState==='busy'?' kid-read-aloud-btn--busy':''}`} disabled={!currentSegment||currentSegment.segmentId==null||aloudState==='busy'||disabled} onClick={handleMic} aria-label={aloudState==='recording'?'Dừng đọc':aloudState==='busy'?'Đang chấm điểm':'Đọc to'} title={!currentSegment||currentSegment.segmentId==null?'Chưa luyện đọc được đoạn này':aloudState==='recording'?'Dừng đọc':aloudState==='busy'?'Đang chấm điểm':'Đọc to'}><Mic aria-hidden="true"/>{aloudState==='recording'?'Dừng':aloudState==='busy'?'Đang chấm':'Đọc to'}</button>{aloudResult&&<button type="button" className="kid-btn3d is-sky kid-btn-icon kid-read-aloud-retry" aria-label="Đọc lại" title="Đọc lại" disabled={aloudState==='busy'||disabled} onClick={handleRetry}><RotateCcw aria-hidden="true"/></button>}{atEnd&&!r.done&&totalPages>1&&<button type="button" className="kid-btn3d is-sky" disabled={disabled} onClick={restart} title="Đọc lại từ trang đầu"><RotateCcw aria-hidden="true"/>Đọc lại từ đầu</button>}{atEnd&&!practice&&!r.done&&<button className="kid-btn3d is-gold" disabled={disabled} onClick={()=>guarded(()=>void r.complete())}><Check aria-hidden="true"/>Em đã đọc xong</button>}</nav>
       </div>

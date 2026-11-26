@@ -6,7 +6,8 @@ import { AsideContext } from "@/app/components/shell/AsidePane";
 import { ApproveSlot, type ApproveAction } from "@/app/features/story-workflow/approveSlot";
 import { TabActions } from "@/app/features/story-workflow/tabActions";
 import { useAuth } from "@/app/context/AuthContext";
-import { removeStorySession } from "@/app/features/story-workflow/storyStudioSession";
+import { readStorySession, removeStorySession, studioTarget, type StoryOwner } from "@/app/features/story-workflow/storyStudioSession";
+import { aiStoryCreationService } from "@/app/services/aiStoryCreationService";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import type { WorkspaceId, WorkspaceProps } from "@/app/components/shell/nav";
 import { workspaceLocation } from '@/app/lib/workspaceLocation';
@@ -153,9 +154,35 @@ export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspacePro
   const toggleAside = useCallback(() => setAsideCollapsed((v) => !v), []);
   const openStory = useCallback((id: number) => { setResumeTarget(id); setRun((n) => n + 1); }, []);
 
+  // Truyện mở lại (?storyId=) hoặc phiên tạm của bé đang chọn: hỏi backend bé thật của truyện trước khi mở,
+  // để truyện của bé này không bị gắn vào phiên của bé khác. Phiên tạm đọc một lần cho mỗi lần dựng Pipeline (run).
+  const cachedStoryId = useMemo(
+    () => (user && child && !resumeTarget ? readStorySession(user.id, child.id)?.storyId ?? null : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [user?.id, child?.id, resumeTarget, run],
+  );
+  const checkId = resumeTarget ?? cachedStoryId;
+  const [owner, setOwner] = useState<StoryOwner | null>(null);
+  useEffect(() => {
+    if (checkId === null || owner?.storyId === checkId) return;
+    let alive = true;
+    void aiStoryCreationService.getOutline(checkId).then((r) => {
+      if (alive) setOwner({ storyId: checkId, childId: r.success ? r.data?.childProfileId ?? null : null });
+    });
+    return () => { alive = false; };
+  }, [checkId, owner?.storyId]);
+  const target = studioTarget({ resumeStoryId: resumeTarget, chosenChildId: child?.id ?? null, cachedStoryId, owner });
+  const dropStale = target.kind === "fresh" && target.dropStale;
+  useEffect(() => {
+    if (!dropStale || !user || !child) return;
+    removeStorySession(user.id, child.id);
+    setRun((n) => n + 1);
+  }, [dropStale, user, child]);
+
   const pickKid = async () => {
     const kid = await chooseChild({ title: "Tạo truyện cho bé nào?", filter: (k) => k.status === "Active" });
-    if (kid) { setKidId(kid.id); setRun((n) => n + 1); }
+    // Đổi bé thì bỏ truyện đang mở: bé mới bắt đầu từ phiên của chính bé.
+    if (kid) { setKidId(kid.id); setResumeTarget(null); setRun((n) => n + 1); }
   };
   // Vào trang mà chưa biết tạo cho bé nào thì mở hộp chọn bé ngay, chỉ một lần.
   const asked = useRef(false);
@@ -164,8 +191,11 @@ export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspacePro
     asked.current = true;
     void pickKid();
   });
-  // Đang mở lại một truyện dở thì không cần chọn bé; bé chỉ dùng làm khoá lưu phiên tạm.
-  const sessionKid = child ?? kids[0] ?? null;
+  const opening = <section className="ws dock" style={{ gridTemplateColumns: "1fr" }}><div className="pane"><div className="empty"><span>Đang mở truyện…</span></div></div></section>;
+  // Đang mở lại một truyện dở thì không cần chọn bé: dùng bé thật của truyện (backend) làm khoá lưu phiên tạm.
+  if (user && resumeTarget && target.kind === "loading") return opening;
+  const resumeKid = target.kind === "resume" ? kids.find((k) => k.id === target.childId) ?? null : null;
+  const sessionKid = resumeKid ?? child ?? kids[0] ?? null;
   if (user && resumeTarget && sessionKid) {
     const back = () => { removeStorySession(user.id, sessionKid.id); setResumeTarget(null); window.history.replaceState(null,'',workspaceLocation(window.location.href,'studio')); setRun((n) => n + 1); };
     return <Pipeline resumeStoryId={resumeTarget} key={`${sessionKid.id}:${run}:${resumeTarget}`} userId={user.id} childId={sessionKid.id} prefill={null} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={(next = null) => { setPrefill(next); back(); }} onChangeKid={() => void pickKid()} go={go} onOpenStory={openStory} />;
@@ -206,6 +236,8 @@ export default function StudioWorkspace({ go, resumeStoryId }: Pick<WorkspacePro
       </div>
     </section>
   );
+  // Phiên tạm của bé đang được kiểm tra (hoặc vừa bị bỏ vì là truyện của bé khác): chờ rồi mới dựng Pipeline.
+  if (target.kind === "loading" || dropStale) return opening;
   const reset = (next: Prefill = null) => { removeStorySession(user.id, child.id); setResumeTarget(null); window.history.replaceState(null,'',workspaceLocation(window.location.href,'studio')); setPrefill(next); setRun((n) => n + 1); };
   return <Pipeline resumeStoryId={resumeTarget} key={`${child.id}:${run}:${resumeTarget ?? 'new'}`} userId={user.id} childId={child.id} prefill={prefill} asideCollapsed={asideCollapsed} onToggleAside={toggleAside} onNew={reset} onChangeKid={() => void pickKid()} go={go} onOpenStory={openStory} />;
 }

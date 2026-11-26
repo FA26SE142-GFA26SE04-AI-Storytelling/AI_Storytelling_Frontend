@@ -43,8 +43,6 @@ export interface AIStoryInputContextDto {
   'safetyScoreThreshold': number | null;
   'readabilityScoreThreshold': number | null;
   'comprehensionGoal': string | null;
-  'comprehensionThresholdPercent': number | null;
-  'comprehensionWindowSize': number;
   'interests': (string)[];
   'allowedCategoryCodes': (string)[];
   'restrictedCategoryCodes': (string)[];
@@ -1811,8 +1809,6 @@ export interface SafetyPolicyDto {
   'consentedByUserId': number | null;
   'safetyScoreThreshold': number | null;
   'readabilityScoreThreshold': number | null;
-  'comprehensionThresholdPercent': number;
-  'comprehensionWindowSize': number;
   'storyWishesEnabled': boolean;
   'allowInteractiveStories': boolean;
   'childCreationEnabled': boolean;
@@ -1898,8 +1894,6 @@ export interface SetSafetyPolicyRequestDto {
   'consentRecorded': boolean;
   'safetyScoreThreshold': number | null;
   'readabilityScoreThreshold': number | null;
-  'comprehensionThresholdPercent': number;
-  'comprehensionWindowSize': number;
   'storyWishesEnabled': boolean;
   'allowInteractiveStories': boolean;
   'childCreationEnabled': boolean;
@@ -2206,7 +2200,7 @@ export interface TokenQuotaStatusDto {
 }
 
 export type TopicRelation = 1 | 2;
-export type TopicRelationName = 'FavoriteTopic' | 'PriorityFocusArea';
+export type TopicRelationName = 'FavoriteTopic';
 export interface TransferOwnershipRequestDto {
   'targetSupervisorUserId': number;
 }

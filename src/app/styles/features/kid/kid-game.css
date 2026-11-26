@@ -40,6 +40,12 @@
   cursor: not-allowed;
 }
 
+/* Khung của chức năng bố mẹ tắt (vd. "Từ vựng của em"): vẫn hiện nhưng mờ, như nút. */
+.kl-panel.is-off {
+  opacity: 0.6;
+  filter: grayscale(0.5);
+}
+
 /* Các biến thể màu */
 .kid-btn3d.is-green {
   --btn-main: var(--primary);

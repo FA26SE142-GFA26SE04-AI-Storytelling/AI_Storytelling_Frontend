@@ -1,12 +1,16 @@
 "use client";
 
 import { ArrowRight, BookOpen, CheckCircle2, Gift, Leaf, Pencil, ScrollText, Star, Trophy, Users } from "lucide-react";
-import { COMPLETION_MODE_LABEL, EVENT_AUDIENCE_LABEL, REWARD_TYPE_LABEL, type EventDetailDto } from "@/app/types/event";
+import { COMPLETION_MODE_LABEL, EVENT_AUDIENCE_LABEL, REWARD_TYPE_LABEL, type EventAwardSlotDto, type EventDetailDto } from "@/app/types/event";
 import { formatVnDate } from "./eventTime";
 
 const dateLabel = (value: string) => Number.isFinite(Date.parse(value)) ? formatVnDate(value) : "Chưa có lịch";
 
 /** Tổng quan dành cho người tham gia, lấy lịch trình và thể lệ từ sự kiện đang xem. */
+/** Giá trị mỗi suất; rỗng khi giải không có tiền lẫn lượt AI (ví dụ quà hiện vật). */
+export const awardValueText = ({ unitValueVnd, creditGrantAmount }: Pick<EventAwardSlotDto, "unitValueVnd" | "creditGrantAmount">) =>
+  unitValueVnd > 0 ? `${unitValueVnd.toLocaleString("vi-VN")} đ / suất` : creditGrantAmount > 0 ? `${creditGrantAmount} lượt AI / suất` : "";
+
 export default function EventDetailInfoCard({ detail }: { detail: EventDetailDto }) {
   const activities = detail.activities ?? [];
   const isActivityBased = detail.configVersion === "ActivityBased" || (detail.tracks.length === 0 && activities.length > 0);
@@ -173,11 +177,7 @@ export default function EventDetailInfoCard({ detail }: { detail: EventDetailDto
                 </div>
                 <p className="ev-award-name">{award.rewardName}</p>
                 <div className="ev-award-value-row">
-                  <strong className="ev-award-value">
-                    {award.unitValueVnd > 0
-                      ? `${award.unitValueVnd.toLocaleString("vi-VN")} đ / suất`
-                      : `${award.creditGrantAmount} lượt AI / suất`}
-                  </strong>
+                  {awardValueText(award) && <strong className="ev-award-value">{awardValueText(award)}</strong>}
                   <span className="ev-award-type">{REWARD_TYPE_LABEL[award.rewardType]}</span>
                 </div>
               </li>

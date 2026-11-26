@@ -215,10 +215,10 @@ export default function EventActivityWizard({
     allowedAudiencesForSource(source, subAudience);
 
   useEffect(() => {
-    if (!isEditing && categories.length > 0 && !categories.some((c) => String(c.id) === categoryId)) {
+    if (categories.length > 0 && !categories.some((c) => String(c.id) === categoryId)) {
       setCategoryId(String(categories[0].id));
     }
-  }, [isEditing, categories, categoryId]);
+  }, [categories, categoryId]);
 
   useEffect(() => {
     const sources = allowedSourcesFor(subEnabled, voteEnabled, readEnabled);
@@ -433,12 +433,12 @@ export default function EventActivityWizard({
         <div className="sec" style={{ gap: 12 }}>
           <div className="ev-field">
             <label htmlFor="ev-act-title" className="ev-field-label">Tên sự kiện</label>
-            <input id="ev-act-title" className="inp" value={title} onChange={(e) => setTitle(e.target.value)}
+            <input id="ev-act-title" className="inp" maxLength={200} value={title} onChange={(e) => setTitle(e.target.value)}
               placeholder="VD: Ngày hội Sáng tác & Bình chọn Mùa Thu" />
           </div>
           <div className="ev-field">
             <label htmlFor="ev-act-desc" className="ev-field-label">Mô tả mục tiêu &amp; thể lệ tóm tắt</label>
-            <textarea id="ev-act-desc" className="inp" rows={2} value={description}
+            <textarea id="ev-act-desc" className="inp" rows={2} maxLength={4000} value={description}
               onChange={(e) => setDescription(e.target.value)} placeholder="Mô tả sự kiện..." />
           </div>
           <div className="ev-grid-2">

@@ -23,6 +23,30 @@ export function removeStorySession(userId: number, childId: number) {
   try { sessionStorage.removeItem(storySessionKey(userId, childId)); } catch { /* Optional browser storage. */ }
 }
 
+/** Bé thật của một truyện theo backend; childId null khi không xác định được (không có quyền, lỗi mạng). */
+export interface StoryOwner { storyId: number; childId: number | null }
+export type StudioTarget =
+  | { kind: 'loading' }
+  | { kind: 'resume'; childId: number | null }
+  | { kind: 'fresh'; dropStale: boolean };
+
+/**
+ * Studio mở lại truyện (`resumeStoryId`, từ URL ?storyId=) hoặc phiên tạm của bé đang chọn (`cachedStoryId`) chỉ khi đã biết
+ * bé thật của truyện, để không bao giờ gắn truyện của bé này vào phiên của bé khác. Phiên của bé chứa truyện của bé khác thì bỏ.
+ */
+export function studioTarget(input: {
+  resumeStoryId: number | null;
+  chosenChildId: number | null;
+  cachedStoryId: number | null;
+  owner: StoryOwner | null;
+}): StudioTarget {
+  const { resumeStoryId, chosenChildId, cachedStoryId, owner } = input;
+  const checkId = resumeStoryId ?? cachedStoryId;
+  if (checkId !== null && owner?.storyId !== checkId) return { kind: 'loading' };
+  if (resumeStoryId !== null) return { kind: 'resume', childId: owner?.childId ?? chosenChildId };
+  return { kind: 'fresh', dropStale: cachedStoryId !== null && owner?.childId !== chosenChildId };
+}
+
 /** Khu nhân viên: trang đang mở (và truyện đang xem) để tải lại trang hay quay lại từ tab khác không bị đưa về trang đầu. */
 export interface StaffWorkspaceSnapshot { pageId: string; target: number | null }
 const staffKey = (userId: number) => `${STORY_SESSION_PREFIX}staff:${userId}`;

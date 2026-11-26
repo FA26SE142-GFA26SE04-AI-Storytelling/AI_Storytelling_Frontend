@@ -31,7 +31,7 @@ export const childProfileService = {
   createChildProfile(data: CreateChildProfileRequest): Promise<ApiResponse<ChildProfile>> {
     return apiRequest('/ChildProfile', 'Không tạo được hồ sơ bé.', {
       method: 'POST',
-      body: { nickname: data.nickname.trim(), ageBand: data.ageBand, language: data.language?.trim() || 'vi' },
+      body: { nickname: data.nickname.trim(), ageBand: data.ageBand, age: data.age ?? null, language: data.language?.trim() || 'vi', avatarId: data.avatarId },
     });
   },
 
@@ -39,7 +39,7 @@ export const childProfileService = {
   updateChildProfile(id: number, data: UpdateChildProfileRequest): Promise<ApiResponse<ChildProfile>> {
     return apiRequest(`/ChildProfile/${id}`, 'Không lưu được hồ sơ bé.', {
       method: 'PUT',
-      body: { nickname: data.nickname.trim(), ageBand: data.ageBand, language: data.language?.trim() || 'vi', avatarId: data.avatarId },
+      body: { nickname: data.nickname.trim(), ageBand: data.ageBand, age: data.age ?? null, language: data.language?.trim() || 'vi', avatarId: data.avatarId },
     });
   },
 

@@ -4,10 +4,10 @@ import { confirmDialog } from "@/app/lib/confirm";
 import { useEffect, useState } from "react";
 import { useFlash } from "@/app/lib/useFlash";
 import ActivitySection from '@/app/features/account/ActivitySection';
-import { Archive, Check, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck } from "lucide-react";
+import { Archive, Check, CirclePause, CirclePlay, CircleAlert, Save, ShieldCheck, User } from "lucide-react";
 import { childProfileService } from "@/app/services/childProfileService";
 import type { ChildProfile } from "@/app/types/childProfile";
-import { AGE_BANDS, AVATARS, CHILD_AGES, ageBandOfAge, avatarOf } from "@/app/lib/guardian";
+import { AGE_BANDS, AVATARS, CHILD_AGES, ageBandOfAge, avatarOf, childStatus } from "@/app/lib/guardian";
 
 type Checks = { learning: boolean; policy: boolean; consent: boolean; outdated: boolean };
 type Note = { ok: boolean; text: string } | null;
@@ -95,61 +95,117 @@ export default function ProfileTab({ child, isOwner, onChanged, onArchived, onTa
     { ok: checks.policy, label: "Cài đặt an toàn", hint: "Chủ đề được phép và bị chặn", fix: () => onTab("safety") },
     { ok: checks.consent, label: checks.outdated ? "Đồng ý lại điều khoản" : "Đồng ý của phụ huynh", hint: checks.outdated ? "Điều khoản đã đổi — cần đồng ý lại" : "Đọc và đồng ý điều khoản dữ liệu", fix: () => onTab("safety") },
   ] : [];
+  const st = childStatus(child.status);
+  const bandLabel = AGE_BANDS.find((a) => a.id === ageBand)?.label ?? ageBand;
+  const liveAvatar = avatarOf(avatar);
 
   return (
-    <div className="sec" style={{ gap: 24 }}>
-      <section className="sec" style={{ gap: 12, position: "relative" }}>
-        <label className="field"><span className="lbl">Biệt danh</span>
-          <input className="inp" maxLength={150} disabled={!isOwner} value={nickname} onChange={(e) => setNickname(e.target.value)} /></label>
-        <div className="field"><span className="lbl">Tuổi</span>
-          <div className="seg" role="radiogroup" aria-label="Tuổi của bé" style={{ maxWidth: 420 }}>
-            {CHILD_AGES.map((n) => <button key={n} type="button" role="radio" aria-checked={age === n} disabled={!isOwner} className={age === n ? "on" : ""} onClick={() => setAge(n)}>{n} tuổi</button>)}
+    <div className="prof-tab">
+      <div className="prof-hero">
+        <span className="prof-hero-av" aria-hidden>{liveAvatar.emoji}</span>
+        <div className="prof-hero-meta">
+          <div className="prof-hero-title">
+            <b className="display">{nickname.trim() || child.nickname}</b>
+            <span className={`pill ${st.tone}`}>{st.label}</span>
           </div>
           <small className="sub">
-            {age === null
-              ? `Đang theo nhóm ${AGE_BANDS.find((a) => a.id === child.ageBand)?.label ?? child.ageBand}. Chọn tuổi cụ thể để cập nhật.`
-              : `Nhóm ${AGE_BANDS.find((a) => a.id === ageBand)?.label ?? ageBand}.`}
+            {age !== null ? `${age} tuổi · ` : ""}Nhóm {bandLabel}
           </small>
         </div>
-        <div className="field"><span className="lbl">Ảnh đại diện</span>
-          <div className="avatars" role="radiogroup" aria-label="Avatar của bé">
-            {AVATARS.map((a) => (
-              <button key={a.id} type="button" role="radio" disabled={!isOwner} aria-checked={avatar === a.id} aria-label={a.label} className={`avatar${avatar === a.id ? " on" : ""}`} onClick={() => setAvatar(a.id)}>{a.emoji}</button>
-            ))}
+        <div className="prof-hero-actions">
+          {isOwner && (dirty || savedInfo) && (
+            <button
+              className={`btn btn-p${savedInfo ? " saved" : ""}`}
+              disabled={!dirty || busy || !nickname.trim()}
+              onClick={() => void save()}
+            >
+              {savedInfo ? <Check className="ic" /> : <Save className="ic" />}
+              {savedInfo ? "Đã lưu" : "Lưu thay đổi"}
+            </button>
+          )}
+          {isOwner && (child.status === "Active" || child.status === "Suspended") && (
+            <>
+              {child.status === "Active"
+                ? <button className="btn btn-s" disabled={busy} onClick={() => void suspend()}><CirclePause className="ic" />Tạm dừng hồ sơ</button>
+                : <button className="btn btn-p" disabled={busy} onClick={() => void resume()}><CirclePlay className="ic" />Tiếp tục hồ sơ</button>}
+              <button className="btn btn-no" disabled={busy} onClick={() => void archive()}><Archive className="ic" />Lưu trữ hồ sơ</button>
+            </>
+          )}
+        </div>
+      </div>
+
+      <div className="prof-grid">
+        <div className="prof-col">
+          <section className="prof-card prof-card-grow">
+            <div className="prof-card-head">
+              <span className="prof-card-ic" aria-hidden><User className="ic" /></span>
+              <div>
+                <h3 className="display">Thông tin cơ bản</h3>
+                <p className="sub">Tên gọi, độ tuổi và nhân vật đại diện của bé.</p>
+              </div>
+            </div>
+
+            <div className="prof-card-body">
+              <label className="field">
+                <span className="lbl">Biệt danh</span>
+                <input className="inp prof-name-inp" maxLength={150} disabled={!isOwner} value={nickname} onChange={(e) => setNickname(e.target.value)} />
+              </label>
+
+              <div className="field">
+                <span className="lbl">Tuổi</span>
+                <div className="seg prof-age-seg" role="radiogroup" aria-label="Tuổi của bé">
+                  {CHILD_AGES.map((n) => <button key={n} type="button" role="radio" aria-checked={age === n} disabled={!isOwner} className={age === n ? "on" : ""} onClick={() => setAge(n)}>{n} tuổi</button>)}
+                </div>
+                <small className="sub">
+                  {age === null
+                    ? `Đang theo nhóm ${AGE_BANDS.find((a) => a.id === child.ageBand)?.label ?? child.ageBand}. Chọn tuổi cụ thể để cập nhật.`
+                    : `Thuộc nhóm ${bandLabel}.`}
+                </small>
+              </div>
+
+              <div className="field">
+                <span className="lbl">Ảnh đại diện</span>
+                <div className="avatars prof-avatars" role="radiogroup" aria-label="Avatar của bé">
+                  {AVATARS.map((a) => (
+                    <button key={a.id} type="button" role="radio" disabled={!isOwner} aria-checked={avatar === a.id} aria-label={a.label} title={a.label} className={`avatar${avatar === a.id ? " on" : ""}`} onClick={() => setAvatar(a.id)}>{a.emoji}</button>
+                  ))}
+                </div>
+              </div>
+
+              {hint && <div className="notice ok" role="status">{hint}</div>}
+            </div>
+          </section>
+        </div>
+
+        <div className="prof-col">
+          {child.status === "Draft" && (
+            <section className="prof-card">
+              <div className="prof-card-head">
+                <span className="prof-card-ic warn" aria-hidden><ShieldCheck className="ic" /></span>
+                <div>
+                  <h3 className="display">Kích hoạt hồ sơ</h3>
+                  <p className="sub">Hoàn tất các bước bên dưới để bé bắt đầu sử dụng.</p>
+                </div>
+              </div>
+              <div className="prof-card-body">
+                {!checks && <p className="sub">Đang kiểm tra…</p>}
+                {rows.map((r) => (
+                  <div key={r.label} className="ck">
+                    <span className={`st ${r.ok ? "ok" : "warn"}`}>{r.ok ? <Check /> : <CircleAlert />}</span>
+                    <span className="grow" title={r.hint}>{r.label}</span>
+                    {!r.ok && r.fix && <button className="btn btn-s" onClick={r.fix}>Hoàn tất</button>}
+                  </div>
+                ))}
+                <button className="btn btn-p" style={{ width: "fit-content" }} disabled={!ready || busy || !isOwner} onClick={() => void activate()}><ShieldCheck className="ic" />Kích hoạt hồ sơ</button>
+              </div>
+            </section>
+          )}
+
+          <div className="prof-card prof-card-grow prof-activity">
+            <ActivitySection key={`audit:${child.id}`} childId={child.id} />
           </div>
         </div>
-        {isOwner && (dirty || savedInfo) && <button className={`btn btn-s${savedInfo ? " saved" : ""}`} style={{ width: "fit-content" }} disabled={!dirty || busy || !nickname.trim()} onClick={() => void save()}>{savedInfo ? <Check className="ic" /> : <Save className="ic" />}{savedInfo ? "Đã lưu" : "Lưu thông tin"}</button>}
-        {hint && <div className="notice ok" role="status">{hint}</div>}
-      </section>
-
-      {child.status === "Draft" && (
-        <section className="sec" style={{ gap: 10 }}>
-          <h3 className="display" style={{ margin: 0 }}>Kích hoạt hồ sơ</h3>
-          {!checks && <p className="sub">Đang kiểm tra…</p>}
-          {rows.map((r) => (
-            <div key={r.label} className="ck">
-              <span className={`st ${r.ok ? "ok" : "warn"}`}>{r.ok ? <Check /> : <CircleAlert />}</span>
-              <span className="grow" title={r.hint}>{r.label}</span>
-              {!r.ok && r.fix && <button className="btn btn-s" onClick={r.fix}>Hoàn tất</button>}
-            </div>
-          ))}
-          <button className="btn btn-p" style={{ width: "fit-content" }} disabled={!ready || busy || !isOwner} onClick={() => void activate()}><ShieldCheck className="ic" />Kích hoạt hồ sơ</button>
-        </section>
-      )}
-
-      {isOwner && (child.status === "Active" || child.status === "Suspended") && (
-        <section className="sec" style={{ gap: 8 }}>
-          <h3 className="display" style={{ margin: 0 }}>Trạng thái hồ sơ</h3>
-          <div className="row">
-            {child.status === "Active"
-              ? <button className="btn btn-s" disabled={busy} onClick={() => void suspend()}><CirclePause className="ic" />Tạm dừng hồ sơ</button>
-              : <button className="btn btn-p" disabled={busy} onClick={() => void resume()}><CirclePlay className="ic" />Tiếp tục hồ sơ</button>}
-            <button className="btn btn-no" disabled={busy} onClick={() => void archive()}><Archive className="ic" />Lưu trữ hồ sơ</button>
-          </div>
-        </section>
-      )}
-
-      <ActivitySection key={`audit:${child.id}`} childId={child.id} />
+      </div>
 
       {note && <div className={`notice ${note.ok ? "ok" : "err"}`} role="status">{note.text}</div>}
     </div>

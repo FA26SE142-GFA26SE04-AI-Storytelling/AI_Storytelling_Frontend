@@ -20,6 +20,8 @@ export interface PlanSettingsDialogProps {
 export interface DraftState {
   readingFundPercent: number | string;
   creativeFundPercent: number | string;
+  minimumPayoutVnd: number | string;
+  creatorPeriodCloseDay: number | string;
   creatorMonthlyAiCredits: number | string;
   creatorMonthlySubmitCredits: number | string;
   creatorWritingAssistPerDay: number | string;
@@ -42,6 +44,8 @@ export interface DraftState {
 const SETTINGS_KEYS: (keyof UpdatePlanSettingsRequest)[] = [
   "readingFundPercent",
   "creativeFundPercent",
+  "minimumPayoutVnd",
+  "creatorPeriodCloseDay",
   "creatorMonthlyAiCredits",
   "creatorMonthlySubmitCredits",
   "creatorWritingAssistPerDay",
@@ -65,6 +69,8 @@ function toDraft(settings: PlanSettings): DraftState {
   return {
     readingFundPercent: settings.readingFundPercent,
     creativeFundPercent: settings.creativeFundPercent,
+    minimumPayoutVnd: settings.minimumPayoutVnd,
+    creatorPeriodCloseDay: settings.creatorPeriodCloseDay,
     creatorMonthlyAiCredits: settings.creatorMonthlyAiCredits,
     creatorMonthlySubmitCredits: settings.creatorMonthlySubmitCredits,
     creatorWritingAssistPerDay: settings.creatorWritingAssistPerDay,
@@ -84,6 +90,11 @@ function toDraft(settings: PlanSettings): DraftState {
     audioRegenerationLimit: settings.audioRegenerationLimit,
   };
 }
+
+/** Trần của mức chi tối thiểu cho Creator, khớp với API. */
+export const MAX_MINIMUM_PAYOUT_VND = 1_000_000_000;
+/** Ngày chốt kỳ muộn nhất: tháng nào cũng có ngày 28. */
+export const MAX_CREATOR_PERIOD_CLOSE_DAY = 28;
 
 function isValidInteger(val: unknown, min: number, max = Infinity): boolean {
   if (typeof val === "number") {
@@ -162,6 +173,8 @@ export default function PlanSettingsDialog({ open, onClose }: PlanSettingsDialog
   if (draft) {
     const isReadingFundValid = isValidInteger(draft.readingFundPercent, 0, 100);
     const isCreativeFundValid = isValidInteger(draft.creativeFundPercent, 0, 100);
+    const isMinimumPayoutValid = isValidInteger(draft.minimumPayoutVnd, 0, MAX_MINIMUM_PAYOUT_VND);
+    const isPeriodCloseDayValid = isValidInteger(draft.creatorPeriodCloseDay, 1, MAX_CREATOR_PERIOD_CLOSE_DAY);
     const isCreatorAiValid = isValidInteger(draft.creatorMonthlyAiCredits, 0);
     const isCreatorSubmitValid = isValidInteger(draft.creatorMonthlySubmitCredits, 0);
     const isCreatorWritingValid = isValidInteger(draft.creatorWritingAssistPerDay, 0);
@@ -185,6 +198,8 @@ export default function PlanSettingsDialog({ open, onClose }: PlanSettingsDialog
     isValid =
       isReadingFundValid &&
       isCreativeFundValid &&
+      isMinimumPayoutValid &&
+      isPeriodCloseDayValid &&
       isCreatorAiValid &&
       isCreatorSubmitValid &&
       isCreatorWritingValid &&
@@ -237,6 +252,8 @@ export default function PlanSettingsDialog({ open, onClose }: PlanSettingsDialog
       const body: UpdatePlanSettingsRequest = {
         readingFundPercent: Math.floor(Number(draft.readingFundPercent)),
         creativeFundPercent: Math.floor(Number(draft.creativeFundPercent)),
+        minimumPayoutVnd: Math.floor(Number(draft.minimumPayoutVnd)),
+        creatorPeriodCloseDay: Math.floor(Number(draft.creatorPeriodCloseDay)),
         creatorMonthlyAiCredits: Math.floor(Number(draft.creatorMonthlyAiCredits)),
         creatorMonthlySubmitCredits: Math.floor(Number(draft.creatorMonthlySubmitCredits)),
         creatorWritingAssistPerDay: Math.floor(Number(draft.creatorWritingAssistPerDay)),

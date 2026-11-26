@@ -7,7 +7,7 @@ import type { ChildHabit } from "@/app/types/readingSchedule";
 
 /**
  * Thẻ thói quen đọc của bé: chuỗi ngày đọc, tiến độ tuần so với mục tiêu, và lời nhắc đến giờ đọc (nếu đang có).
- * Chỉ hiện khi bố mẹ bật thói quen đọc.
+ * Chỉ hiện khi bố mẹ bật thói quen đọc. Thời gian còn lại nằm ở chip đồng hồ trên thanh trên (KidHud).
  */
 export default function KidHabitStrip({ habit, reminder, onDismissReminder }: { habit: ChildHabit | null; reminder: string | null; onDismissReminder: () => void }) {
   if (!habit?.enabled) return null;
