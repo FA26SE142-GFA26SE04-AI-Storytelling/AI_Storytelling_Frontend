@@ -772,4 +772,55 @@ describe("Library UI components", () => {
     expect(iSpot).toBeLessThan(iRecent);
     expect(zeroStatsViewHtml).not.toContain("lib-rank-pill");
   });
+
+  it("renders event stories shelf on home page with event tags attached to each story card", () => {
+    const storyA = makeStory({ id: 501, title: "Cuộc Phiêu Lưu Nhỏ" });
+    const storyB = makeStory({ id: 502, title: "Đêm Trăng Đầm Sen" });
+    const html = renderToStaticMarkup(
+      <LibraryStoriesView
+        authors={{ authors: [], author: "all", onAuthor: () => {} }}
+        stories={[storyA, storyB]}
+        sorted={[storyA, storyB]}
+        results={[storyA, storyB]}
+        storiesLoading={false}
+        error={null}
+        focused={false}
+        sort="recent"
+        genreF="all"
+        topicEntries={[["Phiêu lưu", 2]]}
+        activeChips={[]}
+        favoritedCards={[]}
+        activeSpotlight="favorites"
+        spotlightCards={[storyA]}
+        recommended={[]}
+        showRecommended={false}
+        pickKidName={null}
+        matchingRoadmapsCount={0}
+        eventStories={[
+          { story: storyA, eventTags: [{ id: 1, title: "Lễ hội Mùa Thu" }] },
+          {
+            story: storyB,
+            eventTags: [
+              { id: 1, title: "Lễ hội Mùa Thu" },
+              { id: 2, title: "Đọc Truyện Cuối Tuần" },
+            ],
+          },
+        ]}
+        onOpenEvents={() => {}}
+        go={() => {}}
+        onGenreChange={() => {}}
+        onSortChange={() => {}}
+        onClearFilters={() => {}}
+        onRetry={() => {}}
+        onPickStory={() => {}}
+        onJumpToRoadmaps={() => {}}
+      />,
+    );
+    expect(html).toContain("Truyện tham gia sự kiện");
+    expect(html).toContain("Xem sự kiện");
+    expect(html).toContain("lib-event-tag");
+    expect(html).toContain("Lễ hội Mùa Thu");
+    expect(html).toContain("Đọc Truyện Cuối Tuần");
+    expect(html.indexOf("lib-event-stories-heading")).toBeLessThan(html.indexOf("lib-spotlight-heading"));
+  });
 });

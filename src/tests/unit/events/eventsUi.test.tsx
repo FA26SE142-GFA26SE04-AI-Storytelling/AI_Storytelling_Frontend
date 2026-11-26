@@ -10,7 +10,7 @@ vi.mock("@/app/context/AuthContext", () => ({
 import CreateEventModal from "@/app/features/events/CreateEventModal";
 import EventActivityParticipantView from "@/app/features/events/EventActivityParticipantView";
 import EventActivityWizard, { normalizeAwardSources } from "@/app/features/events/EventActivityWizard";
-import EventAwardsTable from "@/app/features/events/EventAwardsTable";
+import EventAwardsTable, { RevokeAwardDialog } from "@/app/features/events/EventAwardsTable";
 import EventRewardPlanField from "@/app/features/events/EventRewardPlanField";
 import EventConfigurationSummary from "@/app/features/events/EventConfigurationSummary";
 import EventTaskFilterEditor from "@/app/features/events/EventTaskFilterEditor";
@@ -22,10 +22,11 @@ import EventTaskBuilder from "@/app/features/events/EventTaskBuilder";
 import EventMissionView from "@/app/features/events/EventMissionView";
 import EventDetailHero from "@/app/features/events/EventDetailHero";
 import EventModeratorPanel from "@/app/features/events/EventModeratorPanel";
+import EventResultsView from "@/app/features/events/EventResultsView";
 import EventsWorkspace from "@/app/features/events/EventsWorkspace";
 import { notificationText } from "@/app/lib/notifications";
 import { toVnEndIso, toVnStartIso } from "@/app/features/events/eventTime";
-import { isNewEvent, SUBMISSION_STATUS_LABEL, type EventDetailDto, type EventMissionDashboardDto } from "@/app/types/event";
+import { AWARD_STATUS_LABEL, isNewEvent, SUBMISSION_STATUS_LABEL, type EventDetailDto, type EventMissionDashboardDto } from "@/app/types/event";
 
 const SAMPLE_DETAIL: EventDetailDto = {
   id: 1,
@@ -41,7 +42,35 @@ const SAMPLE_DETAIL: EventDetailDto = {
   eventStoriesCount: 4,
 };
 
+const activeBannerSchedule = () => ({
+  opensAt: new Date(Date.now() - 86_400_000).toISOString(),
+  closesAt: new Date(Date.now() + 86_400_000).toISOString(),
+});
+
 describe("Events UI components", () => {
+  it("labels registrations, submissions and both return counts separately in staff reports", () => {
+    const html = renderToStaticMarkup(
+      <EventModeratorPanel
+        detail={SAMPLE_DETAIL}
+        isAdmin={false}
+        appeals={[]}
+        summary={{
+          eventId: SAMPLE_DETAIL.id, status: "Published",
+          creatorRegistrations: 5, creatorSubmissions: 8, publishedEventStories: 6,
+          parentRegistrations: 11, parentVerifiedCount: 4,
+          awardsProposedOrApproved: 3, awardsFulfilled: 1, approvedBudgetVnd: 0, fulfilledValueVnd: 0,
+          retention7DayActiveUsers: 2, retention30DayActiveUsers: 9,
+        }}
+        onRefresh={() => {}}
+      />,
+    );
+
+    expect(html).toContain("<dt>Lượt đăng ký sáng tác</dt><dd><strong>5</strong></dd>");
+    expect(html).toContain("<dt>Bài dự thi của nhà sáng tạo</dt><dd><strong>8</strong></dd>");
+    expect(html).toContain("<dt>Tài khoản quay lại trong 7 ngày đầu</dt><dd><strong>2</strong></dd>");
+    expect(html).toContain("<dt>Tài khoản quay lại trong 30 ngày đầu</dt><dd><strong>9</strong></dd>");
+  });
+
   it("only enables legacy family registration inside the registration window", () => {
     const start = toVnStartIso("2026-11-25");
     const end = toVnEndIso("2026-11-26");
@@ -303,13 +332,13 @@ describe("Events UI components", () => {
     expect(creatorHtml).not.toContain("GiảiCreatorSựKiệnKhác");
 
     const parentBanner = renderToStaticMarkup(
-      <EventHighlightBanner role="Parent" initialEvents={[SAMPLE_DETAIL]} onOpenEvents={() => {}} />,
+      <EventHighlightBanner role="Parent" initialEvents={[{ ...SAMPLE_DETAIL, ...activeBannerSchedule() }]} onOpenEvents={() => {}} />,
     );
     expect(parentBanner).toContain("Tham gia cùng bé");
     expect(parentBanner).toContain("Lễ hội Truyện kể Mùa Thu");
 
     const creatorBanner = renderToStaticMarkup(
-      <EventHighlightBanner role="ContentCreator" initialEvents={[SAMPLE_DETAIL]} onOpenEvents={() => {}} />,
+      <EventHighlightBanner role="ContentCreator" initialEvents={[{ ...SAMPLE_DETAIL, ...activeBannerSchedule() }]} onOpenEvents={() => {}} />,
     );
     expect(creatorBanner).toContain("Gửi truyện dự thi");
 
@@ -378,12 +407,36 @@ describe("Events UI components", () => {
     expect((listHtml.match(/ev-new-badge">Mới</g) ?? []).length).toBe(1);
 
     const bannerHtml = renderToStaticMarkup(
-      <EventHighlightBanner role="Parent" initialEvents={[recentEvent]} onOpenEvents={() => {}} />,
+      <EventHighlightBanner role="Parent" initialEvents={[{ ...recentEvent, ...activeBannerSchedule() }]} onOpenEvents={() => {}} />,
     );
     expect(bannerHtml).toContain('ev-new-badge">Mới<');
 
     const heroHtml = renderToStaticMarkup(<EventDetailHero detail={recentEvent} />);
     expect(heroHtml).toContain('ev-new-badge">Mới<');
+  });
+
+  it("highlights the most recently published active event and hides the banner when none are active", () => {
+    const schedule = activeBannerSchedule();
+    const older = { ...SAMPLE_DETAIL, ...schedule, publishedAt: schedule.opensAt };
+    const recent = {
+      ...older, id: 2, title: "Sự kiện nổi bật", publishedAt: new Date().toISOString(),
+      bannerUrl: "/event-cover.png",
+    };
+    const inactive: EventDetailDto[] = [
+      { ...recent, id: 3, title: "Chưa bắt đầu", opensAt: schedule.closesAt },
+      { ...recent, id: 4, title: "Đã quá hạn", closesAt: schedule.opensAt },
+      { ...recent, id: 5, title: "Đã đóng", status: "Closed" },
+      { ...recent, id: 6, title: "Chưa phát hành", status: "Draft" },
+    ];
+    const html = renderToStaticMarkup(
+      <EventHighlightBanner role="Parent" initialEvents={[older, ...inactive, recent]} onOpenEvents={() => {}} />,
+    );
+    expect(html).toContain(recent.title);
+    expect(html).toContain(recent.bannerUrl);
+    expect(html).toContain("+1 sự kiện khác");
+    expect(renderToStaticMarkup(
+      <EventHighlightBanner role="Parent" initialEvents={inactive} onOpenEvents={() => {}} />,
+    )).toBe("");
   });
 
   it("shows the catalog package and its non-editable benefits", () => {
@@ -532,16 +585,23 @@ describe("Events UI components", () => {
       })),
     };
     const votingHtml = renderToStaticMarkup(<EventActivityParticipantView detail={readingAndVoting} myRewards={[]} onRefresh={() => {}}
+      onOpenStory={() => {}}
       dashboard={{
         participation: { id: 13, eventId: 99, eventActivityId: 2, activityType: "ReadingMissions", trackType: "Parent",
           userId: 1, acceptedRuleVersionId: 1, status: "Registered" },
         completionMode: "AllMandatory", completedTasksCount: 0, earnedPoints: 0, allRequirementsMet: false,
-        tasks: [], stories: [readingStory], votingStories: [votingStory],
+        tasks: [], stories: [readingStory], votingStories: [
+          votingStory,
+          { ...readingStory, source: "CreatorSubmission", hasFamilyRead: false },
+        ],
       }} />);
     expect(votingHtml).toContain("Kho truyện đọc");
     expect(votingHtml).toContain("Truyện dự thi để bình chọn");
     expect(votingHtml).toContain("Truyện có sẵn");
     expect(votingHtml).toContain("Bài Creator đã duyệt");
+    expect(votingHtml).toContain("Mở đọc");
+    expect(votingHtml).toContain("Chưa có lượt đọc hợp lệ");
+    expect(votingHtml).toContain("đúng phiên bản bài dự thi trong thời gian bình chọn");
     expect(votingHtml.match(/Gửi bình chọn/g)).toHaveLength(1);
 
     const failedDetail = {
@@ -553,7 +613,8 @@ describe("Events UI components", () => {
     const renderParticipant = (detail: EventDetailDto) => renderToStaticMarkup(
       <EventActivityParticipantView detail={detail} dashboard={null} myRewards={[]} onRefresh={() => {}} />,
     );
-    expect(renderParticipant(failedDetail)).toContain("Khiếu nại kết quả");
+    // Khiếu nại sự kiện theo hoạt động chỉ gửi ở trang kết quả sau khi công bố, không còn nút trong danh sách hoạt động.
+    expect(renderParticipant(failedDetail)).not.toContain("Khiếu nại kết quả");
     const withDeadline = (appealDeadlineAt: string) => ({
       ...failedDetail,
       myActivityStates: failedDetail.myActivityStates?.map((state) => ({ ...state, appealDeadlineAt })),
@@ -720,5 +781,320 @@ describe("Events UI components", () => {
 
     const heroHtml = renderToStaticMarkup(<EventDetailHero detail={withCategory} />);
     expect(heroHtml).toContain("Chủ đề Phiêu lưu");
+
+    const bannerHtml = renderToStaticMarkup(
+      <EventHighlightBanner
+        role="Parent"
+        initialEvents={[{ ...withCategory, ...activeBannerSchedule() }]}
+        onOpenEvents={() => {}}
+      />,
+    );
+    expect(bannerHtml).toContain("ev-home-date-card");
+    expect(bannerHtml).toContain("Phiêu lưu");
+    expect(bannerHtml).toContain("Nhóm tuổi 6-8,9-10");
+    expect(bannerHtml).toContain("Tham gia cùng bé");
+    expect(bannerHtml).toContain("Tìm hiểu thêm");
+    expect(bannerHtml).toContain("ev-home-popover");
+  });
+
+  it("hiển thị tối đa 3 sự kiện trên một hàng, chia lưới 3 + 1.5 + 1.5 ô khi có sự kiện mới và có popover xem nhanh", () => {
+    const schedule = activeBannerSchedule();
+    const recentIso = new Date().toISOString();
+    const stale1 = new Date(Date.now() - 10 * 86_400_000).toISOString();
+    const stale2 = new Date(Date.now() - 15 * 86_400_000).toISOString();
+    const stale3 = new Date(Date.now() - 20 * 86_400_000).toISOString();
+    const events: EventDetailDto[] = [
+      { ...SAMPLE_DETAIL, ...schedule, id: 101, title: "Sự kiện Mới Nhất", mainCategoryName: "Phiêu lưu", publishedAt: recentIso, createdAt: recentIso, budgetVnd: 500_000 },
+      { ...SAMPLE_DETAIL, ...schedule, id: 102, title: "Sự kiện Thứ Hai", mainCategoryName: "Cổ tích", publishedAt: stale1, createdAt: stale1, budgetVnd: 0 },
+      { ...SAMPLE_DETAIL, ...schedule, id: 103, title: "Sự kiện Thứ Ba", mainCategoryName: "Khoa học", publishedAt: stale2, createdAt: stale2, budgetVnd: 200_000 },
+      { ...SAMPLE_DETAIL, ...schedule, id: 104, title: "Sự kiện Thứ Tư Bị Ẩn", mainCategoryName: "Thiên nhiên", publishedAt: stale3, createdAt: stale3 },
+    ];
+
+    const withNewHtml = renderToStaticMarkup(
+      <EventHighlightBanner role="Parent" initialEvents={events} onOpenEvents={() => {}} />,
+    );
+    expect(withNewHtml).toContain("Sự kiện Mới Nhất");
+    expect(withNewHtml).toContain("Sự kiện Thứ Hai");
+    expect(withNewHtml).toContain("Sự kiện Thứ Ba");
+    expect(withNewHtml).not.toContain("Sự kiện Thứ Tư Bị Ẩn");
+    expect(withNewHtml).toContain("+3 sự kiện khác");
+    expect((withNewHtml.match(/ev-home-card--featured/g) ?? []).length).toBe(1);
+    expect((withNewHtml.match(/ev-home-card--compact/g) ?? []).length).toBe(2);
+    expect((withNewHtml.match(/ev-home-popover /g) ?? []).length).toBe(3);
+    expect(withNewHtml).toContain("Ngân sách 500.000 đ");
+    expect(withNewHtml).toContain("Thưởng quà &amp; Lượt AI");
+
+    const withoutNewHtml = renderToStaticMarkup(
+      <EventHighlightBanner role="Parent" initialEvents={events.slice(1)} onOpenEvents={() => {}} />,
+    );
+    expect((withoutNewHtml.match(/ev-home-card--equal/g) ?? []).length).toBe(3);
+  });
+
+  it("hiển thị danh sách tạm, cột Người nhận, chỉnh tay, nút Tính lại / Xác nhận và khoá Duyệt trao giải trước khi chốt", () => {
+    const endedActivityEvent: EventDetailDto = {
+      ...SAMPLE_DETAIL,
+      id: 200,
+      status: "Published",
+      configVersion: "ActivityBased",
+      canManageEvent: true,
+      canOperateEvent: true,
+      closesAt: "2026-11-01T16:59:59Z",
+      appealWindowEndsAt: "2026-11-03T16:59:59Z",
+      activities: [
+        {
+          id: 10,
+          activityType: "Submission",
+          allowedAudience: "Creator",
+          registrationStartAt: "2026-10-01T00:00:00Z",
+          registrationEndAt: "2026-10-15T16:59:59Z",
+          startAt: "2026-10-01T00:00:00Z",
+          endAt: "2026-11-01T16:59:59Z",
+          reviewCutoffAt: "2026-11-01T16:59:59Z",
+          grantAiCredits: 0,
+          waiveWeeklyLibraryLimit: false,
+          storySource: "Both",
+          minVotesPerSubmission: 1,
+          claimWindowHours: 72,
+          maxReallocationRounds: 1,
+          awardAllMissionCompleters: false,
+        },
+      ],
+      awards: [
+        {
+          id: 301,
+          eventActivityId: 10,
+          resultSource: "SubmissionScore",
+          targetAudience: "Creator",
+          rankOrTier: "Giải Nhất",
+          slotIndex: 1,
+          rewardType: "PhysicalGift",
+          rewardName: "Bộ sách đặc biệt",
+          unitValueVnd: 500_000,
+          creditGrantAmount: 0,
+          participationId: 501,
+          winnerName: "Nguyễn Minh Anh",
+          winnerStoryTitle: "Hành trình nắng mai",
+          isManualAssignment: true,
+          manualAssignmentNote: "Điều chỉnh theo biên bản hội đồng.",
+          status: "AwardProposed",
+        },
+      ],
+    };
+
+    const modProvisional = renderToStaticMarkup(
+      <EventModeratorPanel detail={endedActivityEvent} isAdmin={false} appeals={[]} summary={null} onRefresh={() => {}} />,
+    );
+    expect(modProvisional).toContain("Tính lại danh sách");
+    expect(modProvisional).toContain("Xác nhận danh sách");
+    expect(modProvisional).toContain("Danh sách tạm · hạn khiếu nại đến");
+    expect(modProvisional).toContain("Người nhận");
+    expect(modProvisional).toContain("Nguyễn Minh Anh");
+    expect(modProvisional).toContain("Hành trình nắng mai");
+    expect(modProvisional).toContain("Chỉnh tay");
+    expect(modProvisional).toContain("Điều chỉnh theo biên bản hội đồng.");
+    expect(modProvisional).toContain(">Sửa</button>");
+
+    const adminBeforeConfirm = renderToStaticMarkup(
+      <EventModeratorPanel detail={endedActivityEvent} isAdmin appeals={[]} summary={null} onRefresh={() => {}} />,
+    );
+    expect(adminBeforeConfirm).toMatch(/<button[^>]+disabled=""[^>]*>(?:(?!<\/button>)[\s\S])*Duyệt trao giải/);
+    expect(adminBeforeConfirm).toContain("Chờ Moderator phụ trách xác nhận danh sách nhận giải.");
+    expect(adminBeforeConfirm).not.toContain(">Sửa</button>");
+
+    const confirmedEvent: EventDetailDto = {
+      ...endedActivityEvent,
+      resultsFinalizedAt: "2026-11-04T00:00:00Z",
+      appealWindowEndsAt: null,
+    };
+    const modConfirmed = renderToStaticMarkup(
+      <EventModeratorPanel detail={confirmedEvent} isAdmin={false} appeals={[]} summary={null} onRefresh={() => {}} />,
+    );
+    expect(modConfirmed).toContain("Đã xác nhận, chờ Admin duyệt");
+    expect(modConfirmed).not.toContain("Xác nhận danh sách");
+    expect(modConfirmed).not.toContain(">Sửa</button>");
+    expect(modConfirmed).toMatch(/<button[^>]+disabled=""[^>]*>(?:(?!<\/button>)[\s\S])*Tính lại danh sách/);
+
+    const adminConfirmed = renderToStaticMarkup(
+      <EventModeratorPanel detail={confirmedEvent} isAdmin appeals={[]} summary={null} onRefresh={() => {}} />,
+    );
+    expect(adminConfirmed).not.toMatch(/<button[^>]+disabled=""[^>]*>(?:(?!<\/button>)[\s\S])*Duyệt trao giải/);
+
+    const approvedEvent: EventDetailDto = {
+      ...confirmedEvent,
+      awards: [{ ...endedActivityEvent.awards[0], status: "AwaitingClaim" }],
+    };
+    const approvedHtml = renderToStaticMarkup(
+      <EventModeratorPanel detail={approvedEvent} isAdmin appeals={[]} summary={null} onRefresh={() => {}} />,
+    );
+    expect(approvedHtml).toContain("Đã duyệt trao giải");
+
+    // Suất bỏ trống vẫn ở AwardProposed sau khi Admin duyệt: không được hiện lại "chờ Admin duyệt".
+    const approvedWithEmptySlot: EventDetailDto = {
+      ...confirmedEvent,
+      awards: [
+        { ...endedActivityEvent.awards[0], status: "AwaitingClaim" },
+        { ...endedActivityEvent.awards[0], id: endedActivityEvent.awards[0].id + 1000, slotIndex: 2, participationId: null, status: "AwardProposed" },
+      ],
+    };
+    const approvedEmptyHtml = renderToStaticMarkup(
+      <EventModeratorPanel detail={approvedWithEmptySlot} isAdmin appeals={[]} summary={null} onRefresh={() => {}} />,
+    );
+    expect(approvedEmptyHtml).toContain("Đã duyệt trao giải");
+    expect(approvedEmptyHtml).not.toContain("Đã xác nhận, chờ Admin duyệt");
+  });
+
+  it("hỗ trợ nhãn thông báo mới, trang kết quả sự kiện và màn Moderator giữ giải / thu hồi / loại khiếu nại", () => {
+    // Task 6: labels & notificationText
+    expect(AWARD_STATUS_LABEL.AppealHold).toBe("Chờ hết hạn khiếu nại");
+    expect(AWARD_STATUS_LABEL.Revoked).toBe("Đã thu hồi");
+    const revokedText = notificationText({
+      id: 1, type: "EventAwardRevoked", status: "Unread", readAt: null, createdAt: "2026-11-26T00:00:00Z",
+      payload: JSON.stringify({ eventTitle: "Test 2", reason: "Sai điểm" }),
+    });
+    expect(revokedText).toContain("Test 2");
+    expect(revokedText).toContain("Sai điểm");
+    expect(notificationText({
+      id: 2, type: "EventEnded", status: "Unread", readAt: null, createdAt: "2026-11-26T00:00:00Z",
+      payload: JSON.stringify({ eventTitle: "Lễ hội Thu" }),
+    })).toContain("Lễ hội Thu");
+
+    // Task 8: EventResultsView — before publication, AppealHold winner, non-winner with canAppeal, public results
+    const pendingHtml = renderToStaticMarkup(
+      <EventResultsView
+        detail={{ ...SAMPLE_DETAIL, configVersion: "ActivityBased", resultsPublishedAt: null }}
+        myResult={{
+          eventId: 1, eventTitle: "Lễ hội", canAppeal: false,
+          recap: { storiesRead: 3, submissions: 0, votes: 1, tasksCompleted: 2, tasksTotal: 2 },
+          activities: [], awards: [],
+        }}
+        publicResults={null}
+        onRefresh={() => {}}
+      />,
+    );
+    expect(pendingHtml).toContain("Ban tổ chức đang xét kết quả");
+    expect(pendingHtml).toContain("<strong>3</strong>");
+
+    const winnerHoldHtml = renderToStaticMarkup(
+      <EventResultsView
+        detail={{ ...SAMPLE_DETAIL, configVersion: "ActivityBased", resultsPublishedAt: "2026-11-25T00:00:00Z" }}
+        myResult={{
+          eventId: 1, eventTitle: "Lễ hội", resultsPublishedAt: "2026-11-25T00:00:00Z",
+          appealDeadlineAt: "2026-11-27T00:00:00Z", canAppeal: false,
+          recap: { storiesRead: 1, submissions: 1, votes: 0, tasksCompleted: 0, tasksTotal: 0 },
+          activities: [],
+          awards: [{
+            awardId: 10, rankOrTier: "Giải Nhất", slotIndex: 1, rewardName: "Cúp", rewardType: "PhysicalGift",
+            creditGrantAmount: 0, submitCreditGrantAmount: 0, unitValueVnd: 0, status: "AppealHold",
+            claimOpensAt: "2026-11-27T00:00:00Z", asksChildNameConsent: false,
+          }],
+        }}
+        publicResults={{
+          eventId: 1, eventTitle: "Lễ hội", resultsPublishedAt: "2026-11-25T00:00:00Z",
+          participantCount: 10, storyCount: 4,
+          awards: [
+            { rankOrTier: "Giải Nhất", slotIndex: 1, rewardName: "Cúp", resultSource: "SubmissionScore", storyTitle: "Hành trình gió", winnerName: "Tác giả Hoa", childNicknames: [], childCount: 0 },
+            { rankOrTier: "Hoàn thành", slotIndex: 1, rewardName: "Lượt AI", resultSource: "MissionCompletion", winnerName: "Mẹ Lan", childNicknames: [], childCount: 2 },
+          ],
+        }}
+        onRefresh={() => {}}
+      />,
+    );
+    expect(winnerHoldHtml).toContain("Chờ hết hạn khiếu nại");
+    expect(winnerHoldHtml).not.toContain(">Nhận thưởng</button>");
+    expect(winnerHoldHtml).not.toContain(">Khiếu nại</button>");
+    expect(winnerHoldHtml).toContain("Hành trình gió");
+    expect(winnerHoldHtml).toContain("Tác giả Hoa");
+    expect(winnerHoldHtml).toContain("cùng 2 bé");
+
+    const nonWinnerHtml = renderToStaticMarkup(
+      <EventResultsView
+        detail={{ ...SAMPLE_DETAIL, configVersion: "ActivityBased", resultsPublishedAt: "2026-11-25T00:00:00Z" }}
+        myResult={{
+          eventId: 1, eventTitle: "Lễ hội", resultsPublishedAt: "2026-11-25T00:00:00Z",
+          appealDeadlineAt: "2026-11-27T00:00:00Z", canAppeal: true,
+          recap: { storiesRead: 0, submissions: 0, votes: 0, tasksCompleted: 0, tasksTotal: 0 },
+          activities: [{ activityType: "ReadingMissions", status: "VerificationFailed", reason: "Chưa xong nhiệm vụ: T02" }],
+          awards: [],
+        }}
+        publicResults={null}
+        onRefresh={() => {}}
+      />,
+    );
+    expect(nonWinnerHtml).toContain("Khiếu nại");
+    expect(nonWinnerHtml).toContain("Chưa xong nhiệm vụ: T02");
+
+    // Task 9: Moderator panel — AppealHold with Thu hồi, Revoked with reason, Ranking appeal kind & label, Đã công bố status bar
+    const publishedDetail: EventDetailDto = {
+      ...SAMPLE_DETAIL,
+      id: 300,
+      status: "Published",
+      configVersion: "ActivityBased",
+      canManageEvent: true,
+      canOperateEvent: true,
+      closesAt: "2026-11-20T16:59:59Z",
+      resultsFinalizedAt: "2026-11-21T00:00:00Z",
+      resultsPublishedAt: "2026-11-26T00:00:00Z",
+      appealWindowEndsAt: new Date(Date.now() + 24 * 3_600_000).toISOString(),
+      activities: [{
+        id: 10, activityType: "Submission", allowedAudience: "Creator",
+        registrationStartAt: "2026-11-01T00:00:00Z", registrationEndAt: "2026-11-10T00:00:00Z",
+        startAt: "2026-11-01T00:00:00Z", endAt: "2026-11-20T00:00:00Z", reviewCutoffAt: "2026-11-20T00:00:00Z",
+        grantAiCredits: 0, waiveWeeklyLibraryLimit: false, storySource: "Both", minVotesPerSubmission: 1,
+        claimWindowHours: 72, maxReallocationRounds: 1, awardAllMissionCompleters: false,
+      }],
+      awards: [
+        {
+          id: 401, eventActivityId: 10, resultSource: "SubmissionScore", targetAudience: "Creator",
+          rankOrTier: "Giải Nhất", slotIndex: 1, rewardType: "PhysicalGift", rewardName: "Cúp",
+          unitValueVnd: 0, creditGrantAmount: 0, participationId: 1, winnerName: "Tác giả A",
+          status: "AppealHold",
+        },
+        {
+          id: 402, eventActivityId: 10, resultSource: "SubmissionScore", targetAudience: "Creator",
+          rankOrTier: "Giải Nhì", slotIndex: 1, rewardType: "PhysicalGift", rewardName: "Sách",
+          unitValueVnd: 0, creditGrantAmount: 0, participationId: 2, winnerName: "Tác giả B",
+          status: "Revoked", revokedReason: "Vi phạm quy chế",
+        },
+      ],
+    };
+    const modPublished = renderToStaticMarkup(
+      <EventModeratorPanel
+        detail={publishedDetail}
+        isAdmin={false}
+        appeals={[{
+          id: 1, eventId: 300, participationId: 9, appellantUserId: 99,
+          reasonText: "Đề nghị chấm lại", kind: "Ranking", targetAwardId: 401, targetAwardLabel: "Giải Nhất · Suất #1",
+          status: "Open", createdAt: "2026-11-26T01:00:00Z",
+        }]}
+        summary={null}
+        onRefresh={() => {}}
+      />,
+    );
+    expect(modPublished).toContain("Đã công bố · hạn khiếu nại đến");
+    expect(modPublished).toContain(">Thu hồi</button>");
+    expect(modPublished).toContain("Đã thu hồi");
+    expect(modPublished).toContain("Vi phạm quy chế");
+    expect(modPublished).toContain("Thứ hạng / người nhận giải");
+    expect(modPublished).toContain("Giải Nhất · Suất #1");
+
+    // Thu hồi kèm đơn khiếu nại: đơn nhắm đúng suất được chọn sẵn để chấp nhận cùng lúc (dùng được cả sau hạn).
+    const revokeHtml = renderToStaticMarkup(
+      <RevokeAwardDialog
+        award={publishedDetail.awards![0]}
+        openAppeals={[{
+          id: 7, eventId: 300, participationId: 9, appellantUserId: 99,
+          reasonText: "Đề nghị chấm lại", kind: "Ranking", targetAwardId: 401, targetAwardLabel: "Giải Nhất · Suất #1",
+          status: "Open", createdAt: "2026-11-26T01:00:00Z",
+        }]}
+        onClose={() => {}}
+        onSaved={() => {}}
+      />,
+    );
+    expect(revokeHtml).toContain("Chấp nhận đơn khiếu nại cùng lúc");
+    expect(revokeHtml).toMatch(/<option value="7" selected="">Đơn #7 · Giải Nhất · Suất #1<\/option>/);
+
+    const popupCss = readFileSync(path.resolve(process.cwd(), "app/styles/features/events/event-popup.css"), "utf8");
+    expect(popupCss).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
+    expect(popupCss).not.toMatch(/rgba?\(/);
   });
 });

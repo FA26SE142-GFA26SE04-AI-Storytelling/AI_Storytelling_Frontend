@@ -17,6 +17,8 @@ import ChildrenWorkspace from "@/app/features/children/ChildrenWorkspace";
 import AccountWorkspace from "@/app/features/account/AccountWorkspace";
 import LearningWorkspace from "@/app/features/learning/LearningWorkspace";
 import EventsWorkspace from "@/app/features/events/EventsWorkspace";
+import EventResultPopupHost from "@/app/features/events/EventResultPopup";
+import { eventResultHref } from "@/app/features/events/eventNavigation";
 import { transitionWorkspace } from "@/app/lib/motion";
 import { useAccessLookup, useAccessReady } from "@/app/features/staff/staffAccess";
 import "@/app/styles/mobile.css";
@@ -28,7 +30,7 @@ const VIEWS: Record<WorkspaceId, ComponentType<WorkspaceProps>> = {
   library: LibraryWorkspace,
   created: CreatedStories,
   roadmap: LearningWorkspace,
-  events: (props) => <EventsWorkspace onOpenStory={(sid) => props.go("library", { storyId: sid })} />,
+  events: (props) => <EventsWorkspace onKid={props.onKid} />,
   report: ReportWorkspace,
   account: () => <AccountWorkspace page="profile" />,
   "account-payment": () => <AccountWorkspace page="payment" />,
@@ -48,15 +50,19 @@ export default function ParentShell({
 }) {
   const router = useRouter();
   const { children: kids, childrenLoading } = useWorkspaceData();
-  const [kid, setKid] = useState<{ id: number; storyId: number | null; resume?: boolean } | null>(null);
-  const openKid = useCallback((id: number, targetStoryId: number | null = null) => setKid({ id, storyId: targetStoryId }), []);
+  const [kid, setKid] = useState<{ id: number; storyId: number | null; resume?: boolean; onReturn?: () => void } | null>(null);
+  const openKid = useCallback((id: number, targetStoryId: number | null = null, onReturn?: () => void) =>
+    setKid({ id, storyId: targetStoryId, onReturn }), []);
 
   useLayoutEffect(() => {
     const s = childAccessService.readSession();
     if (s?.via === "profile_switcher") setKid({ id: s.childProfileId, storyId: null, resume: true });
   }, []);
 
-  const closeKid = useCallback(() => setKid(null), []);
+  const closeKid = () => {
+    setKid(null);
+    kid?.onReturn?.();
+  };
   const View = VIEWS[workspace];
   const access = useAccessLookup();
   const accessReady = useAccessReady();
@@ -95,6 +101,13 @@ export default function ParentShell({
       </div>
       {kidPending && <div className="kid" role="dialog" aria-modal="true" aria-label="Chế độ của bé"><div className="splash">Đang mở…</div></div>}
       {kidChild && <KidMode child={kidChild} storyId={kid?.storyId} resume={kid?.resume} onExit={closeKid} />}
+      {!kidOpen && (
+        <EventResultPopupHost
+          onNavigateToEvent={(eventId, claimAwardId) => {
+            router.push(eventResultHref("/app/events", { eventId, claimAwardId }), { scroll: false });
+          }}
+        />
+      )}
     </>
   );
 }

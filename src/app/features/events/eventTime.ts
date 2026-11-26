@@ -31,6 +31,24 @@ export const formatVnDate = (value: string | number) => {
   return Number.isFinite(date.getTime()) ? vnDateFormat.format(date) : "—";
 };
 
+export function formatVnDateRangeBadge(start: number, end: number): { days: string; monthYear: string } {
+  const startParts = vnDateFormat.format(new Date(start)).split("/");
+  const endParts = vnDateFormat.format(new Date(end)).split("/");
+  if (startParts.length !== 3 || endParts.length !== 3) {
+    return { days: "—", monthYear: "" };
+  }
+  const [sDay, sMonth, sYear] = startParts;
+  const [eDay, eMonth, eYear] = endParts;
+  const days = sDay === eDay && sMonth === eMonth && sYear === eYear ? sDay : `${sDay}–${eDay}`;
+  if (sYear === eYear && sMonth === eMonth) {
+    return { days, monthYear: `Tháng ${Number(sMonth)}, ${sYear}` };
+  }
+  if (sYear === eYear) {
+    return { days, monthYear: `Th${Number(sMonth)} – Th${Number(eMonth)}, ${sYear}` };
+  }
+  return { days, monthYear: `${sMonth}/${sYear} – ${eMonth}/${eYear}` };
+}
+
 /** Chuyển ngày YYYY-MM-DD (giờ Việt Nam) sang UTC ISO đầu ngày (00:00:00+07:00). */
 export const toVnStartIso = (dateStr: string): string =>
   new Date(`${dateStr}T00:00:00${VN_OFFSET}`).toISOString();

@@ -25,9 +25,13 @@ import {
   type EventLeaderboardDto,
   type EventMissionDashboardDto,
   type EventSubmissionDto,
+  type MyEventResultDto,
+  type PublicEventResultsDto,
 } from "@/app/types/event";
 import EventDetailInfoCard from "./EventDetailInfoCard";
 import EventClaimFields from "./EventClaimFields";
+import EventResultsView from "./EventResultsView";
+import type { EventResultTarget } from "./eventNavigation";
 import { buildClaimRequest, claimFieldsFor, rewardsForEvent, type ClaimRewardPayload } from "./eventRewards";
 import { formatVnDateTime } from "./eventTime";
 
@@ -41,8 +45,12 @@ export type EventActivityParticipantViewProps = {
   detail: EventDetailDto;
   dashboard: EventMissionDashboardDto | null;
   myRewards: EventAwardSlotDto[];
+  myResult?: MyEventResultDto | null;
+  publicResults?: PublicEventResultsDto | null;
+  resultTarget?: EventResultTarget | null;
+  onResultTargetHandled?: (target: EventResultTarget) => void;
   onRefresh: () => void;
-  onOpenStory?: (storyId: number) => void;
+  onOpenStory?: (storyId: number, title: string) => void;
 };
 
 /** Giao diện tham gia sự kiện theo hoạt động (V2) cho Parent và Creator. */
@@ -50,6 +58,10 @@ export default function EventActivityParticipantView({
   detail,
   dashboard,
   myRewards,
+  myResult = null,
+  publicResults = null,
+  resultTarget,
+  onResultTargetHandled,
   onRefresh,
   onOpenStory,
 }: EventActivityParticipantViewProps) {
@@ -69,8 +81,6 @@ export default function EventActivityParticipantView({
   const [leaderboard, setLeaderboard] = useState<EventLeaderboardDto | null>(null);
   const [claimingAward, setClaimingAward] = useState<EventAwardSlotDto | null>(null);
   const [claimFields, setClaimFields] = useState<ClaimRewardPayload>({});
-  const [appealing, setAppealing] = useState<EventActivityUserStateDto | null>(null);
-  const [appealReason, setAppealReason] = useState("");
 
   const activities = detail.activities ?? [];
   const states = (detail.myActivityStates ?? []).filter((s) => s.isEligible);
@@ -83,20 +93,6 @@ export default function EventActivityParticipantView({
   const voteState = states.find((s) => s.activityType === "Voting");
   const subActivity = subState ? activityById.get(subState.activityId) : undefined;
   const voteActivity = voteState ? activityById.get(voteState.activityId) : undefined;
-
-  const submitAppeal = async () => {
-    if (!appealing?.participationId || !appealReason.trim()) return;
-    setBusy(true);
-    const result = await eventService.createAppeal(detail.id, appealing.participationId, appealReason.trim());
-    setBusy(false);
-    if (!result.success) {
-      showToast(result.message || "Không gửi được đơn khiếu nại.", "err");
-      return;
-    }
-    showToast("Đã gửi đơn khiếu nại.", "ok");
-    setAppealing(null);
-    onRefresh();
-  };
 
   useEffect(() => {
     let active = true;
@@ -216,8 +212,16 @@ export default function EventActivityParticipantView({
     }
   };
 
-  return (
-    <div className="sec ev-participant-flow">
+  const isEventEnded =
+    detail.status === "Closed" ||
+    Boolean(detail.resultsPublishedAt) ||
+    Boolean(myResult) ||
+    (activities.length > 0 &&
+      activities.every((a) => Date.parse(a.endAt) < Date.now()) &&
+      (!detail.closesAt || Date.parse(detail.closesAt) < Date.now()));
+
+  const activityContent = (
+    <>
       <div className="ev-card">
         <div className="ev-card-head">
           <h3 className="display">Hoạt động bạn đủ điều kiện tham gia ({states.length})</h3>
@@ -252,16 +256,6 @@ export default function EventActivityParticipantView({
                       Chấp nhận thể lệ &amp; Đăng ký
                     </button>
                   )}
-                  {detail.status === "Published" && !detail.resultsFinalizedAt && st.participationId &&
-                    st.participationStatus === "VerificationFailed" &&
-                    (!st.appealDeadlineAt || Date.parse(st.appealDeadlineAt) > Date.now()) && (
-                      <button type="button" className="btn btn-s" disabled={busy} onClick={() => {
-                        setAppealReason("");
-                        setAppealing(st);
-                      }}>
-                        Khiếu nại kết quả
-                      </button>
-                    )}
                   {st.appealDeadlineAt && <span className="sub">Hạn khiếu nại {formatVnDateTime(st.appealDeadlineAt)}</span>}
                 </div>
               );
@@ -422,12 +416,15 @@ export default function EventActivityParticipantView({
                 <div className="row" style={{ justifyContent: "space-between", gap: 8, flexWrap: "wrap" }}>
                   <b>{st.title} ({st.ageBand})</b>
                   <div className="row" style={{ gap: 6 }}>
-                    <span className="pill">{st.hasFamilyRead ? "Bé đã đọc xong" : "Chưa đọc"}</span>
+                    <span className="pill">{st.hasFamilyRead ? "Bé đã đọc xong" : voting ? "Chưa có lượt đọc hợp lệ" : "Chưa đọc"}</span>
                     {onOpenStory && (
-                      <button type="button" className="btn btn-s" onClick={() => onOpenStory(st.storyId)}>Mở đọc</button>
+                      <button type="button" className="btn btn-s" onClick={() => onOpenStory(st.storyId, st.title)}>Mở đọc</button>
                     )}
                   </div>
                 </div>
+                {voting && !st.hasFamilyRead && (
+                  <small className="sub">Bé cần đọc xong đúng phiên bản bài dự thi trong thời gian bình chọn để mở nút gửi phiếu.</small>
+                )}
                 {voting && voteState?.canVote && st.hasFamilyRead && st.source === "CreatorSubmission" && (
                   <div className="row" style={{ gap: 8, flexWrap: "wrap", alignItems: "center" }}>
                     <select className="inp" style={{ width: 110 }} value={voteStars[st.storyId] ?? st.myVoteStars ?? 5}
@@ -470,20 +467,32 @@ export default function EventActivityParticipantView({
       )}
 
       <EventDetailInfoCard detail={detail} />
+    </>
+  );
 
-      {appealing && (
-        <Dialog title={`Khiếu nại · ${EVENT_ACTIVITY_LABEL[appealing.activityType]}`} onClose={() => setAppealing(null)}>
-          <label className="ev-field">
-            <span>Lý do khiếu nại</span>
-            <textarea className="inp" rows={4} value={appealReason} onChange={(e) => setAppealReason(e.target.value)} />
-          </label>
-          <div className="row" style={{ justifyContent: "flex-end", gap: 8 }}>
-            <button type="button" className="btn btn-g" onClick={() => setAppealing(null)}>Hủy</button>
-            <button type="button" className="btn btn-p" disabled={busy || !appealReason.trim()} onClick={() => void submitAppeal()}>
-              Gửi khiếu nại
-            </button>
-          </div>
-        </Dialog>
+  return (
+    <div className="sec ev-participant-flow">
+      {isEventEnded ? (
+        <>
+          <EventResultsView
+            detail={detail}
+            myResult={myResult}
+            publicResults={publicResults}
+            resultTarget={resultTarget}
+            onResultTargetHandled={onResultTargetHandled}
+            onRefresh={onRefresh}
+          />
+          <details className="ev-card ev-results-history">
+            <summary className="display" style={{ cursor: "pointer" }}>
+              Chi tiết hoạt động &amp; thể lệ sự kiện
+            </summary>
+            <div className="sec" style={{ marginTop: 12 }}>
+              {activityContent}
+            </div>
+          </details>
+        </>
+      ) : (
+        activityContent
       )}
 
       {claimingAward && (

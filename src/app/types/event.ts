@@ -53,6 +53,7 @@ export type EventParticipationStatus =
   | "Disqualified";
 
 export type EventAppealStatus = "Open" | "UnderReview" | "Accepted" | "Rejected" | "Escalated";
+export type EventAppealKind = "Verification" | "Ranking";
 export type EventRewardType = "PhysicalGift" | "PlatformCredits" | "CashTransfer" | "CreatorPackage";
 export type EventAwardStatus =
   | "AwardProposed"
@@ -63,7 +64,9 @@ export type EventAwardStatus =
   | "Fulfilled"
   | "Expired"
   | "UnclaimedBudgetReturned"
-  | "Failed";
+  | "Failed"
+  | "AppealHold"
+  | "Revoked";
 
 export interface EventSummaryDto {
   opensAt?: string | null;
@@ -75,6 +78,7 @@ export interface EventSummaryDto {
   bannerUrl?: string | null;
   mainCategoryId: number;
   mainCategoryName?: string | null;
+  eventStoryIds?: number[];
   targetAgeBands: string;
   status: EventStatus;
   configVersion?: EventConfigVersion;
@@ -88,6 +92,7 @@ export interface EventSummaryDto {
   votingEndAt?: string | null;
   creatorVotingSchedule?: EventVotingSchedule | null;
   resultsFinalizedAt?: string | null;
+  resultsPublishedAt?: string | null;
   budgetVnd: number;
   createdAt?: string;
   publishedAt?: string | null;
@@ -220,9 +225,95 @@ export interface EventAwardSlotDto {
   creditGrantAmount: number;
   submitCreditGrantAmount?: number;
   participationId?: number | null;
+  winnerName?: string | null;
+  winnerStoryTitle?: string | null;
+  manualAssignmentNote?: string | null;
+  isManualAssignment?: boolean;
+  revokedReason?: string | null;
+  revokedAt?: string | null;
   status: EventAwardStatus;
   claimDeadlineAt?: string | null;
   notificationFailed?: boolean;
+}
+
+export interface EventRecapDto {
+  storiesRead: number;
+  submissions: number;
+  votes: number;
+  tasksCompleted: number;
+  tasksTotal: number;
+}
+
+export interface MyActivityResultDto {
+  participationId: number;
+  /** Hồ sơ này gửi được khiếu nại ngay lúc này. */
+  canAppeal: boolean;
+  activityType: EventActivityType;
+  status: EventParticipationStatus;
+  reason?: string | null;
+}
+
+export interface MyAwardDto {
+  awardId: number;
+  rankOrTier: string;
+  slotIndex: number;
+  rewardName: string;
+  rewardType: EventRewardType;
+  creditGrantAmount: number;
+  submitCreditGrantAmount: number;
+  unitValueVnd: number;
+  status: EventAwardStatus;
+  claimOpensAt?: string | null;
+  claimDeadlineAt?: string | null;
+  revokedReason?: string | null;
+  asksChildNameConsent: boolean;
+}
+
+export interface MyEventResultDto {
+  eventId: number;
+  eventTitle: string;
+  endedAt?: string | null;
+  resultsPublishedAt?: string | null;
+  appealDeadlineAt?: string | null;
+  canAppeal: boolean;
+  recap: EventRecapDto;
+  activities: MyActivityResultDto[];
+  awards: MyAwardDto[];
+}
+
+export interface PublicAwardDto {
+  rankOrTier: string;
+  slotIndex: number;
+  rewardName: string;
+  resultSource?: EventAwardResultSource | null;
+  storyTitle?: string | null;
+  winnerName?: string | null;
+  childNicknames: string[];
+  childCount: number;
+}
+
+export interface PublicEventResultsDto {
+  eventId: number;
+  eventTitle: string;
+  resultsPublishedAt: string;
+  participantCount: number;
+  storyCount: number;
+  awards: PublicAwardDto[];
+}
+
+export interface EventAwardCandidateDto {
+  participationId: number;
+  userId: number;
+  displayName: string;
+  storyTitle?: string | null;
+  rank: number;
+  rubricScore?: number | null;
+  averageStars?: number | null;
+  validVoteCount?: number | null;
+  /** Khớp `CompletedAt` của backend: thời điểm hoàn thành nhiệm vụ (giải theo hoàn thành nhiệm vụ). */
+  completedAt?: string | null;
+  currentAwardId?: number | null;
+  currentAwardRankOrTier?: string | null;
 }
 
 export interface EventRewardRecipientDto {
@@ -248,6 +339,7 @@ export interface EventDetailDto extends EventSummaryDto {
   leadModeratorId?: number | null;
   assistantModeratorIds?: number[] | null;
   canOperateEvent?: boolean | null;
+  appealWindowEndsAt?: string | null;
   tracks: EventTrackDto[];
   activities?: EventActivityDto[];
   myActivityStates?: EventActivityUserStateDto[];
@@ -339,6 +431,9 @@ export interface EventAppealDto {
   participationId: number;
   appellantUserId: number;
   reasonText: string;
+  kind?: EventAppealKind;
+  targetAwardId?: number | null;
+  targetAwardLabel?: string | null;
   status: EventAppealStatus;
   resolutionNote?: string | null;
   createdAt: string;
@@ -459,6 +554,9 @@ export interface EventVoteDto {
   disqualifiedReason?: string | null;
   createdAt: string;
   updatedAt?: string | null;
+  storyTitle?: string | null;
+  voterName?: string | null;
+  readingCompletedAt?: string | null;
 }
 
 export interface EventLeaderboardEntryDto {
@@ -495,6 +593,13 @@ export const AWARD_STATUS_LABEL: Record<EventAwardStatus, string> = {
   Expired: "Quá hạn nhận",
   UnclaimedBudgetReturned: "Đã hoàn ngân sách",
   Failed: "Trao thưởng thất bại",
+  AppealHold: "Chờ hết hạn khiếu nại",
+  Revoked: "Đã thu hồi",
+};
+
+export const APPEAL_KIND_LABEL: Record<EventAppealKind, string> = {
+  Verification: "Kết quả xác minh",
+  Ranking: "Thứ hạng / người nhận giải",
 };
 
 export const PARTICIPATION_STATUS_LABEL: Record<EventParticipationStatus, string> = {

@@ -26,7 +26,7 @@ export default function StoryHandoverButton({ storyId, title, onKid }: { storyId
   );
 }
 
-function HandoverDialog({ storyId, title, onClose, onPick }: { storyId: number; title: string; onClose: () => void; onPick: (childId: number) => void }) {
+export function HandoverDialog({ storyId, title, onClose, onPick }: { storyId: number; title: string; onClose: () => void; onPick: (childId: number) => void }) {
   const { children: kids } = useWorkspaceData();
   const [options, setOptions] = useState<StoryHandoverOptions | null>(null);
   // Giữ hàm đóng mới nhất mà không tải lại danh sách mỗi lần trang cha vẽ lại.

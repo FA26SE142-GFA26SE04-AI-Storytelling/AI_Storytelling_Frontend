@@ -1,7 +1,7 @@
 /* Landing only: Guardian palette, open layout, no decorative button/card borders. */
 .ld { position: relative; height: 100%; overflow-y: auto; overflow-x: clip; scroll-behavior: smooth; background: var(--water); color: var(--text); font-size: var(--fs-md); isolation: isolate; }
 .ld > :not(.pond) { position: relative; z-index: 1; }
-.ld main, .ld-top, .ld-foot { width: min(1200px, calc(100% - 64px)); margin-inline: auto; }
+.ld main, .ld-top { width: min(1200px, calc(100% - 64px)); margin-inline: auto; }
 .ld-top { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding-block: 26px; }
 .ld-brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); flex-shrink: 0; }
 .ld-brand b { font-size: var(--fs-2xl); }
@@ -27,21 +27,25 @@
 .ld-art-caption { position: absolute; bottom: 12%; font-size: var(--fs-sm); letter-spacing: .04em; color: var(--muted); }
 .ld-scroll { position: absolute; bottom: 28px; left: 0; display: inline-flex; align-items: center; gap: 18px; min-height: 44px; color: var(--muted); text-decoration: none; font-size: var(--fs-sm); }
 .ld-scroll:hover { color: var(--link); }
-.ld-editorial { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; padding-block: 64px; scroll-margin-top: 24px; }
+.ld-editorial { display: grid; width: 100%; box-sizing: border-box; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(24px, 4vw, 80px); align-items: center; padding: 64px clamp(20px, 4vw, 80px); scroll-margin-top: 24px; }
 .ld-editorial-text h2 { margin: 18px 0; color: var(--ink-warm); font-size: clamp(var(--fs-2xl), 3vw, calc(var(--fs-2xl) * 1.6)); line-height: 1.2; letter-spacing: -.025em; text-wrap: balance; }
 .ld-editorial-text p { max-width: 32em; color: var(--muted); font-size: var(--fs-lg); line-height: 1.85; margin: 0; }
 .ld-flower-art { position: relative; display: flex; justify-content: center; align-items: center; min-height: 290px; gap: 16px; background: radial-gradient(ellipse, color-mix(in srgb, var(--lotus) 16%, transparent), transparent 67%); }
 .ld-flower-art > svg { position: relative; z-index: 1; }
 .ld-flower-art > svg:last-child { align-self: flex-end; margin-bottom: 58px; }
+.ld-flower-art > svg:nth-child(2) { width: clamp(140px, 15vw, 260px); height: auto; }
 .ld-water-ring { position: absolute; width: 75%; height: 30%; bottom: 40px; border-radius: 50%; background: radial-gradient(ellipse, transparent 54%, color-mix(in srgb, var(--primary) 12%, transparent) 56%, transparent 59%); }
 .ld-editorial-reverse .ld-editorial-text { grid-column: 1; grid-row: 1; }
 .ld-editorial-reverse .ld-together-art { grid-column: 2; grid-row: 1; }
 .ld-together-art { position: relative; min-height: 300px; display: flex; align-items: center; justify-content: center; gap: 12px; background: radial-gradient(ellipse, color-mix(in srgb, var(--gold) 13%, transparent), transparent 65%); }
 .ld-together-art > svg { position: relative; z-index: 1; }
 .ld-together-pad { position: absolute; width: 260px; height: 70px; bottom: 54px; border-radius: 50%; background: color-mix(in srgb, var(--primary) 22%, transparent); transform: rotate(-8deg); }
-.ld-foot { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px; padding-block: 64px 36px; }
-.ld-foot p, .ld-foot small { margin: 0; color: var(--muted); font-size: var(--fs-sm); }
+.ld-foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: clamp(24px, 5vw, 72px); padding: 42px clamp(20px, 4vw, 80px) 36px; border-top: 1px solid var(--line); }
+.ld-foot p { margin: 0; color: var(--muted); font-size: var(--fs-sm); }
 .ld-foot .ld-brand b { font-size: var(--fs-xl); }
+.ld-foot-brand, .ld-foot-links { display: grid; justify-items: start; gap: 8px; min-width: 0; }
+.ld-foot h2 { margin: 0; font-size: var(--fs-lg); }
+.ld-policy-link { color: var(--link); font-size: var(--fs-sm); font-weight: 700; text-decoration: underline; text-underline-offset: 0.2em; }
 @media (max-width: 900px) {
   .ld-top { gap: 16px; }
   .ld-actions { gap: 16px; }
@@ -50,7 +54,7 @@
   .ld-editorial { gap: 32px; }
 }
 @media (max-width: 650px) {
-  .ld main, .ld-top, .ld-foot { width: calc(100% - 40px); }
+  .ld main, .ld-top { width: calc(100% - 40px); }
   .ld-top { align-items: flex-start; flex-direction: column; padding-block: 18px; gap: 8px; }
   .ld-actions { width: 100%; justify-content: space-between; gap: 8px; }
   .ld-actions .ld-text-action { font-size: var(--fs-sm); }
@@ -65,25 +69,23 @@
   .ld-editorial-reverse .ld-editorial-text, .ld-editorial-reverse .ld-together-art { grid-column: auto; grid-row: auto; }
   .ld-flower-art, .ld-together-art { min-height: 250px; }
   .ld-editorial-text h2 { font-size: calc(var(--fs-2xl) * 1.2); }
-  .ld-foot { flex-direction: column; align-items: flex-start; padding-top: 48px; }
+  .ld-foot { grid-template-columns: 1fr; padding-top: 30px; }
 }
 @media (prefers-reduced-motion: reduce) { .ld { scroll-behavior: auto; } }
 /* Keep the brand illustration visible on landing even when the shared shell hides it. */
 .ld .ld-hero-art .hero-pond { display: block; }
-/* Hero spans the viewport while the editorial sections keep a comfortable reading width. */
+/* Main content spans the viewport. */
 .ld main { width: 100%; }
 .ld-hero { width: 100%; box-sizing: border-box; padding-inline: clamp(24px, 5vw, 100px); grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); min-height: calc(100svh - 96px); }
 .ld-hero h1 { max-width: 13em; }
 .ld-hero .ld-lead { max-width: 36em; }
 .ld-hero .ld-scroll { left: clamp(24px, 5vw, 100px); }
-.ld-editorial { width: min(1200px, calc(100% - 64px)); margin-inline: auto; }
 .ld-editorial-text .ld-life-note { margin-top: 20px; font-size: var(--fs-md); }
 @media (min-width: 1100px) { .ld-hero-art .hero-pond { transform: scale(1.9); } }
 @media (max-width: 650px) {
   .ld main { width: 100%; }
   .ld-hero { grid-template-columns: 1fr; padding-inline: 20px; min-height: auto; }
   .ld-hero .ld-scroll { left: 20px; }
-  .ld-editorial { width: calc(100% - 40px); }
 }
 /* Explicitly illustrative landing shelf, independent of library/API data. */
 .ld-story-shelf { width: min(1320px, calc(100% - 64px)); margin: 0 auto; padding-block: 64px; }

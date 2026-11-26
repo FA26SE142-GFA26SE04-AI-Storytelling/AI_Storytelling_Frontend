@@ -5,6 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import CreatorApplicantScreen from "@/app/components/shell/CreatorApplicantScreen";
 import StaffApp from "@/app/features/staff/StaffApp";
+import { eventResultHref, type EventResultDestination } from "@/app/features/events/eventNavigation";
 import { positiveStoryId } from "@/app/lib/workspaceLocation";
 import { isStaffRole, type StaffRole } from "@/app/types/auth";
 import { useClickRipple } from "@/app/lib/motion";
@@ -31,7 +32,11 @@ function StaffSectionInner() {
     }
   }, [isLoading, user, router]);
 
-  const onNavigate = useCallback((nextSection: string, storyId: number | null) => {
+  const onNavigate = useCallback((nextSection: string, storyId: number | null, eventTarget?: EventResultDestination) => {
+    if (nextSection === "events" && eventTarget) {
+      router.push(eventResultHref("/staff/events", eventTarget), { scroll: false });
+      return;
+    }
     const q = storyId ? `?storyId=${storyId}` : "";
     router.push(`/staff/${nextSection}${q}`);
   }, [router]);

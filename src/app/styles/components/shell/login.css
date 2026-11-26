@@ -10,6 +10,7 @@
 .login-forgot { align-self: flex-end; margin-top: -6px; font-size: var(--fs-sm); }
 /* "Chưa có tài khoản? Tạo tài khoản" — lối chính thứ hai sau nút đăng nhập. */
 .login-alt { margin: 0; text-align: center; font-size: var(--fs-sm); color: var(--muted); }
+.login-alt a { color: var(--link); font-weight: 700; text-decoration: underline; text-underline-offset: 0.2em; }
 .login-alt.small { font-size: var(--fs-sm); margin-top: -6px; }
 /* Lối vào của đội ngũ nội dung: nhóm riêng, nhỏ và nhạt hơn. */
 .login-staff { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 12px; margin-top: 2px; border-top: 1px solid var(--line); }

@@ -6,6 +6,7 @@ import { eventService } from "@/app/services/eventService";
 import { confirmDialog } from "@/app/lib/confirm";
 import { showToast } from "@/app/lib/toast";
 import {
+  APPEAL_KIND_LABEL,
   APPEAL_STATUS_LABEL,
   EVENT_STATUS_LABEL,
   SUBMISSION_STATUS_LABEL,
@@ -26,9 +27,19 @@ import EventCuratedStoryPicker from "./EventCuratedStoryPicker";
 import EventAwardsTable from "./EventAwardsTable";
 import EventConfigurationSummary from "./EventConfigurationSummary";
 import EventRewardPlanField, { findEventRewardPlan, useEventRewardPlans } from "./EventRewardPlanField";
-import { formatVnDate } from "./eventTime";
+import { formatVnDate, formatVnDateTime } from "./eventTime";
 
 const LIFECYCLE_STEPS: EventStatus[] = ["Draft", "PendingApproval", "Approved", "Published", "Closed"];
+
+function EventMetric({ label, value }: { label: string; value: number | string }) {
+  return (
+    <div className="ev-kpi">
+      <dt>{label}</dt>
+      <dd><strong>{value}</strong></dd>
+    </div>
+  );
+}
+
 type RubricCriterion = { key: string; label: string; weight: number };
 const DEFAULT_CRITERIA: RubricCriterion[] = [
   { key: "creativity", label: "Sáng tạo và độc đáo", weight: 30 },
@@ -91,7 +102,15 @@ export default function EventModeratorPanel({
   const [appealNotes, setAppealNotes] = useState<Record<number, string>>({});
   const [votes, setVotes] = useState<EventVoteDto[]>([]);
   const [voteReasons, setVoteReasons] = useState<Record<number, string>>({});
-  const [awardsExpanded, setAwardsExpanded] = useState(false);
+  const isFinalized = Boolean(detail.resultsFinalizedAt);
+  const closeBlockedReason = isActivityBased && detail.awards.length > 0
+    ? !detail.resultsPublishedAt
+      ? "Chờ Admin công bố kết quả."
+      : detail.appealWindowEndsAt && Date.parse(detail.appealWindowEndsAt) > Date.now()
+        ? `Chờ hết hạn khiếu nại lúc ${formatVnDateTime(detail.appealWindowEndsAt)}.`
+        : undefined
+    : undefined;
+  const [awardsExpanded, setAwardsExpanded] = useState(isActivityBased && executionEnded);
   const [minVotesPerSubmission, setMinVotesPerSubmission] = useState(detail.minVotesPerSubmission ?? 5);
   const [rewardEligibilityText, setRewardEligibilityText] = useState(detail.activeRule?.rewardEligibilityText ?? "Hoàn thành nhiệm vụ để xét thưởng.");
   const [tieBreakerPolicyText, setTieBreakerPolicyText] = useState(detail.activeRule?.tieBreakerPolicyText ?? "Ưu tiên nhiều phiếu hợp lệ hơn, rồi nộp sớm hơn.");
@@ -340,34 +359,61 @@ export default function EventModeratorPanel({
                   <button
                     type="button"
                     className="btn btn-s"
-                    disabled={busy || !executionEnded}
+                    disabled={busy || !executionEnded || (isActivityBased && isFinalized)}
                     onClick={() =>
-                      void runAction(() => eventService.proposeAwards(detail.id), "Đã đề xuất danh sách trao giải.")
+                      void runAction(
+                        () => eventService.proposeAwards(detail.id),
+                        isActivityBased ? "Đã tính lại danh sách nhận giải tạm." : "Đã đề xuất danh sách trao giải.",
+                      )
                     }
                   >
                     <Award className="ic" aria-hidden="true" />
-                    Đề xuất giải
+                    {isActivityBased ? "Tính lại danh sách" : "Đề xuất giải"}
                   </button>
                 )}
-                {isAdmin && (
+                {canManageEvent && isActivityBased && !isFinalized && (
                   <button
                     type="button"
-                    className="btn btn-ok"
+                    className="btn btn-p"
                     disabled={busy || !executionEnded}
-                    onClick={() =>
-                      void runAction(async () => {
-                        const result = await eventService.approveAwards(detail.id);
-                        const failures = result.data?.filter((award) => award.notificationFailed).map((award) => award.id) ?? [];
-                        if (result.success && failures.length > 0) {
-                          showToast("Chưa gửi được thông báo cho suất #" + failures.join(", #") + ".", "warn");
-                        }
-                        return result;
-                      }, "Đã phê duyệt danh sách nhận giải.")
-                    }
+                    onClick={async () => {
+                      if (!await confirmDialog("Xác nhận và khóa danh sách người nhận giải? Sau khi xác nhận sẽ không thể chỉnh tay hoặc tính lại.")) return;
+                      await runAction(() => eventService.confirmAwards(detail.id), "Đã xác nhận và khóa danh sách người nhận giải.");
+                    }}
                   >
                     <CheckCircle2 className="ic" aria-hidden="true" />
-                    Duyệt trao giải
+                    Xác nhận danh sách
                   </button>
+                )}
+              </>
+            )}
+            {(detail.status === "Published" || (detail.status === "Paused" && isActivityBased && detail.resultsPublishedAt)) && (
+              <>
+                {isAdmin && (
+                  <>
+                    <button
+                      type="button"
+                      className="btn btn-ok"
+                      disabled={busy || !executionEnded || (isActivityBased && !isFinalized)}
+                      title={isActivityBased && !isFinalized ? "Chờ Moderator phụ trách xác nhận danh sách nhận giải." : undefined}
+                      onClick={() =>
+                        void runAction(async () => {
+                          const result = await eventService.approveAwards(detail.id);
+                          const failures = result.data?.filter((award) => award.notificationFailed).map((award) => award.id) ?? [];
+                          if (result.success && failures.length > 0) {
+                            showToast("Chưa gửi được thông báo cho suất #" + failures.join(", #") + ".", "warn");
+                          }
+                          return result;
+                        }, "Đã phê duyệt danh sách nhận giải.")
+                      }
+                    >
+                      <CheckCircle2 className="ic" aria-hidden="true" />
+                      Duyệt trao giải
+                    </button>
+                    {isActivityBased && executionEnded && !isFinalized && (
+                      <span className="sub">Chờ Moderator phụ trách xác nhận danh sách nhận giải.</span>
+                    )}
+                  </>
                 )}
                 <button
                   type="button"
@@ -379,18 +425,19 @@ export default function EventModeratorPanel({
                 >
                   Đôn suất quá hạn
                 </button>
-                {canManageEvent && (
-                  <button
-                    type="button"
-                    className="btn btn-no"
-                    disabled={busy || !executionEnded}
-                    onClick={() => void runAction(() => eventService.close(detail.id), "Đã đóng sự kiện.")}
-                  >
-                    <Lock className="ic" aria-hidden="true" />
-                    Đóng sự kiện
-                  </button>
-                )}
               </>
+            )}
+            {canManageEvent && (detail.status === "Published" || detail.status === "Paused") && (
+              <button
+                type="button"
+                className="btn btn-no"
+                disabled={busy || !executionEnded || Boolean(closeBlockedReason)}
+                title={closeBlockedReason}
+                onClick={() => void runAction(() => eventService.close(detail.id), "Đã đóng sự kiện.")}
+              >
+                <Lock className="ic" aria-hidden="true" />
+                Đóng sự kiện
+              </button>
             )}
           </div>
         </div>
@@ -833,59 +880,34 @@ export default function EventModeratorPanel({
       {summary && (
         <div className="ev-card">
           <div className="ev-card-head">
-            <h3 className="display">Chỉ số hiệu quả &amp; Giữ chân</h3>
+            <h3 className="display">Tổng quan sự kiện</h3>
           </div>
-          <div className="ev-kpi-grid">
-            <div className="ev-kpi">
-              <span>Creator nộp bài</span>
-              <strong>
-                {summary.creatorSubmissions} / {summary.creatorRegistrations}
-              </strong>
-            </div>
+          <dl className="ev-kpi-grid ev-summary-metrics">
+            <EventMetric label="Lượt đăng ký sáng tác" value={summary.creatorRegistrations} />
+            <EventMetric label="Bài dự thi của nhà sáng tạo" value={summary.creatorSubmissions} />
             {creatorCanVote(detail.scoringMode) && (
-              <div className="ev-kpi">
-                <span>Parent nộp bài</span>
-                <strong>{summary.parentSubmissions ?? 0} / {summary.parentRegistrations}</strong>
-              </div>
+              <EventMetric label="Bài dự thi của phụ huynh" value={summary.parentSubmissions ?? 0} />
             )}
-            <div className="ev-kpi">
-              <span>Truyện trong Event</span>
-              <strong>{summary.publishedEventStories}</strong>
-            </div>
-            <div className="ev-kpi">
-              <span>Gia đình đạt điều kiện</span>
-              <strong>
-                {summary.parentVerifiedCount} / {summary.parentRegistrations}
-              </strong>
-            </div>
-            <div className="ev-kpi">
-              <span>Giải đã trao</span>
-              <strong>
-                {summary.awardsFulfilled} / {summary.awardsProposedOrApproved}
-              </strong>
-            </div>
-            <div className="ev-kpi">
-              <span>Giữ chân D+7 / D+30</span>
-              <strong>
-                {summary.retention7DayActiveUsers} / {summary.retention30DayActiveUsers}
-              </strong>
-            </div>
+            <EventMetric label="Truyện trong sự kiện" value={summary.publishedEventStories} />
+            <EventMetric label="Lượt đăng ký của phụ huynh" value={summary.parentRegistrations} />
+            <EventMetric label="Gia đình đã xác minh đạt nhiệm vụ" value={summary.parentVerifiedCount} />
+            <EventMetric label="Suất giải đã phân bổ" value={summary.awardsProposedOrApproved} />
+            <EventMetric label="Suất giải đã trao" value={summary.awardsFulfilled} />
             {detail.format === "SharedCreatorParent" && (
               <>
-                <div className="ev-kpi">
-                  <span>Gia đình đọc ≥1 truyện</span>
-                  <strong>{summary.familiesCompletedFirstRead ?? 0}</strong>
-                </div>
-                <div className="ev-kpi">
-                  <span>Tỷ lệ đọc truyện thứ 2</span>
-                  <strong>{Math.round((summary.secondStoryReturnRate ?? 0) * 100)}%</strong>
-                </div>
-                <div className="ev-kpi">
-                  <span>Bài đạt ngưỡng phiếu</span>
-                  <strong>{Math.round((summary.submissionsMeetingVoteThresholdRate ?? 0) * 100)}%</strong>
-                </div>
+                <EventMetric label="Gia đình đọc xong ít nhất 1 truyện" value={summary.familiesCompletedFirstRead ?? 0} />
+                <EventMetric label="Tỷ lệ gia đình đọc xong từ 2 truyện trong số đã đọc" value={`${Math.round((summary.secondStoryReturnRate ?? 0) * 100)}%`} />
+                <EventMetric label="Tỷ lệ bài dự thi đạt số phiếu tối thiểu" value={`${Math.round((summary.submissionsMeetingVoteThresholdRate ?? 0) * 100)}%`} />
               </>
             )}
+          </dl>
+          <div className="ev-summary-retention">
+            <h4 className="display">Tài khoản quay lại sau sự kiện</h4>
+            <p className="sub">Tính từ khi sự kiện kết thúc. Mỗi tài khoản đã tham gia được tính một lần trong mỗi khoảng nếu tạo truyện mới hoặc có bé bắt đầu đọc.</p>
+            <dl className="ev-kpi-grid ev-summary-metrics">
+              <EventMetric label="Tài khoản quay lại trong 7 ngày đầu" value={summary.retention7DayActiveUsers} />
+              <EventMetric label="Tài khoản quay lại trong 30 ngày đầu" value={summary.retention30DayActiveUsers} />
+            </dl>
           </div>
         </div>
       )}
@@ -908,10 +930,28 @@ export default function EventModeratorPanel({
               {votes.map((v) => (
                 <div key={v.id} className="ev-task-row">
                   <div className="row" style={{ justifyContent: "space-between", gap: 8 }}>
-                    <b>Phiếu #{v.id} · Truyện #{v.storyId} · {v.voterTrackType ?? "Parent"} #{v.parentUserId}</b>
+                    <b>{v.storyTitle || "Truyện dự thi"}</b>
                     <span className="pill">{v.isDisqualified ? "Đã loại" : `${v.stars} ★`}</span>
                   </div>
-                  {v.comment && <p className="sub" style={{ margin: 0 }}>{v.comment}</p>}
+                  <span className="sub">
+                    {v.voterTrackType === "Creator" ? "Nhà sáng tạo" : "Phụ huynh"} {v.voterName || "chưa có tên"} · Bình chọn lúc {formatVnDateTime(v.createdAt)}
+                  </span>
+                  {v.comment && <p style={{ margin: 0 }}>“{v.comment}”</p>}
+                  <details>
+                    <summary className="sub" style={{ cursor: "pointer" }}>Xem chi tiết</summary>
+                    <div className="sub" style={{ display: "grid", gap: 4, marginTop: 6 }}>
+                      <span>Số sao: {v.stars}/5</span>
+                      <span>Nhận xét: {v.comment || "Không có nhận xét"}</span>
+                      <span>
+                        Bằng chứng đọc: {v.readingCompletedAt
+                          ? `bé đọc xong lúc ${formatVnDateTime(v.readingCompletedAt)}`
+                          : v.voterTrackType === "Creator" ? "không yêu cầu với nhà sáng tạo" : "chưa có"}
+                      </span>
+                      <span>Gửi lúc: {formatVnDateTime(v.createdAt)}</span>
+                      {v.updatedAt && <span>Sửa lần cuối: {formatVnDateTime(v.updatedAt)}</span>}
+                      <span>Trạng thái: {v.isDisqualified ? "Đã loại" : "Hợp lệ"}</span>
+                    </div>
+                  </details>
                   {v.isDisqualified ? (
                     <span className="sub">Lý do loại: {v.disqualifiedReason}</span>
                   ) : (
@@ -973,8 +1013,69 @@ export default function EventModeratorPanel({
               {awardsExpanded ? "Thu gọn" : `Xem chi tiết (${detail.awards.length} suất)`}
             </button>
           </div>
+          {isActivityBased && (detail.status === "Published" || detail.status === "Closed") && (() => {
+            const hasProposed = detail.awards.some((a) => a.status === "AwardProposed");
+            const hasHeld = detail.awards.some((a) => a.status === "AppealHold");
+            const hasPostApproval = detail.awards.some((a) => a.status !== "AwardProposed");
+            if (detail.resultsPublishedAt && hasHeld) {
+              const appealText = detail.appealWindowEndsAt
+                ? ` · hạn khiếu nại đến ${formatVnDateTime(detail.appealWindowEndsAt)}`
+                : "";
+              return (
+                <p className="ev-award-status-bar is-provisional" role="status">
+                  Đã công bố{appealText}
+                </p>
+              );
+            }
+            if (!isFinalized && hasProposed && executionEnded) {
+              const appealText = detail.appealWindowEndsAt
+                ? ` · hạn khiếu nại đến ${formatVnDateTime(detail.appealWindowEndsAt)}`
+                : "";
+              return (
+                <p className="ev-award-status-bar is-provisional" role="status">
+                  Danh sách tạm{appealText}
+                </p>
+              );
+            }
+            // Đã duyệt thì kiểm trước: suất bỏ trống vẫn ở AwardProposed sau khi Admin duyệt.
+            if (hasPostApproval) {
+              const fulfilled = detail.awards.filter((a) => a.status === "Fulfilled").length;
+              const awaiting = detail.awards.filter((a) => a.status === "AwaitingClaim").length;
+              const processing = detail.awards.filter((a) => a.status === "Claimed" || a.status === "FulfillmentProcessing").length;
+              const parts = [`Đã trao ${fulfilled}/${detail.awards.length} suất`];
+              if (awaiting > 0) parts.push(`${awaiting} suất chờ người thắng nhận`);
+              if (processing > 0) parts.push(`${processing} suất đang trao thưởng`);
+              return (
+                <p className="ev-award-status-bar is-approved" role="status">
+                  Đã duyệt trao giải · {parts.join(" · ")}
+                </p>
+              );
+            }
+            if (detail.resultsPublishedAt && hasProposed) {
+              return <p className="ev-award-status-bar is-approved" role="status">Đã công bố · Chưa có suất được duyệt cho người nhận.</p>;
+            }
+            if (isFinalized && hasProposed) {
+              return (
+                <p className="ev-award-status-bar is-confirmed" role="status">
+                  Đã xác nhận, chờ Admin duyệt
+                </p>
+              );
+            }
+            return null;
+          })()}
           <EventAwardsTable awards={detail.awards} expanded={awardsExpanded} busy={busy} txCodes={txCodes}
             canViewRecipient={isAdmin || detail.canOperateEvent === true}
+            canEditAssignment={Boolean(canManageEvent && isActivityBased && executionEnded && !isFinalized && detail.status === "Published")}
+            canRevoke={Boolean(
+              canManageEvent &&
+              isActivityBased &&
+              (detail.status === "Published" || detail.status === "Paused") &&
+              detail.resultsPublishedAt &&
+              ((detail.appealWindowEndsAt && Date.parse(detail.appealWindowEndsAt) > Date.now()) ||
+                appeals.some((a) => a.status === "Open" || a.status === "UnderReview" || a.status === "Escalated")),
+            )}
+            openAppeals={appeals.filter((a) => a.status === "Open" || a.status === "UnderReview" || a.status === "Escalated")}
+            onAssignmentSaved={onRefresh}
             onCodeChange={(id, value) => setTxCodes((prev) => ({ ...prev, [id]: value }))}
             onFulfill={(id) => void runAction(
               () => eventService.fulfillReward(id, { delivered: true, trackingOrBankTxCode: txCodes[id]?.trim() || "MANUAL-OK" }),
@@ -991,10 +1092,16 @@ export default function EventModeratorPanel({
           <div className="ev-task-list">
             {appeals.map((ap) => (
               <div key={ap.id} className="ev-task-row">
-                <div className="row" style={{ justifyContent: "space-between" }}>
+                <div className="row" style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
                   <b>Hồ sơ #{ap.participationId}</b>
-                  <span className="pill">{APPEAL_STATUS_LABEL[ap.status]}</span>
+                  <div className="row" style={{ gap: 6, flexWrap: "wrap" }}>
+                    <span className="pill">{APPEAL_KIND_LABEL[ap.kind ?? "Verification"]}</span>
+                    <span className="pill">{APPEAL_STATUS_LABEL[ap.status]}</span>
+                  </div>
                 </div>
+                {ap.targetAwardLabel && (
+                  <span className="sub">Suất bị khiếu nại: {ap.targetAwardLabel}</span>
+                )}
                 <p className="sub" style={{ margin: 0 }}>
                   {ap.reasonText}
                 </p>
@@ -1007,11 +1114,19 @@ export default function EventModeratorPanel({
                       value={appealNotes[ap.id] ?? ""}
                       onChange={(e) => setAppealNotes((prev) => ({ ...prev, [ap.id]: e.target.value }))}
                     />
-                    <button
+                    {ap.kind === "Ranking" ? (
+                      <span className="sub">Để chấp nhận đơn xếp hạng, chọn Thu hồi tại suất giải và gắn đơn này.</span>
+                    ) : <button
                       type="button"
                       className="btn btn-ok"
                       disabled={busy}
-                      onClick={() =>
+                      onClick={async () => {
+                        const pastWindow = Boolean(
+                          isActivityBased && detail.appealWindowEndsAt && Date.parse(detail.appealWindowEndsAt) <= Date.now(),
+                        );
+                        if (pastWindow && !await confirmDialog(
+                          "Đã hết hạn khiếu nại. Sau khi chấp nhận đơn này sẽ không thể thu hồi giải nữa. Nếu cần đổi người nhận, hãy bấm \"Thu hồi\" ở suất giải và chọn đơn này để chấp nhận cùng lúc. Vẫn chỉ chấp nhận đơn?",
+                        )) return;
                         void runAction(
                           () =>
                             eventService.decideAppeal(
@@ -1020,11 +1135,11 @@ export default function EventModeratorPanel({
                               appealNotes[ap.id]?.trim() || "Đã đối chiếu dữ liệu hợp lệ.",
                             ),
                           "Đã chấp nhận khiếu nại.",
-                        )
-                      }
+                        );
+                      }}
                     >
                       Chấp nhận
-                    </button>
+                    </button>}
                     <button
                       type="button"
                       className="btn btn-no"
