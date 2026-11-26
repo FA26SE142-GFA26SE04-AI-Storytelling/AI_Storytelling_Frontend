@@ -69,7 +69,7 @@ function validLearning(v: unknown): v is LearningValue {
   if (!v || typeof v !== "object") return false;
   const l = v as Record<string, unknown>;
   return typeof l.readingLevel === "number" && typeof l.readingMode === "string" && typeof l.comprehensionGoal === "string"
-    && isStrings(l.favorites) && isStrings(l.focus);
+    && isStrings(l.favorites);
 }
 
 function validRules(v: unknown): Record<number, PolicyRule | undefined> | null {

@@ -23,16 +23,62 @@
 /* Bước ít ô (Xác nhận): giữ cột hẹp ở giữa cho dễ đọc. */
 .wiz-narrow { max-width: 640px; margin-inline: auto; width: 100%; }
 /* Bước Thông tin bé: trái biệt danh / tuổi / lớp, phải ảnh đại diện + thẻ xem trước. */
-.wiz-info { display: grid; gap: 18px 36px; max-width: 1040px; margin-inline: auto; width: 100%; }
-@media (min-width: 900px) { .wiz-info { grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: start; } }
+.wiz-info { display: grid; gap: 18px; max-width: 1080px; margin-inline: auto; width: 100%; }
+@media (min-width: 900px) { .wiz-info { grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr); align-items: stretch; } }
+.wiz-card {
+  padding: 20px 22px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 4px 16px -14px color-mix(in srgb, var(--shadow) 35%, transparent);
+}
 .wiz-info .field > .sub { font-size: var(--fs-xs); }
-.wiz-seg { max-width: 460px; }
-.wiz-seg button { padding: 8px 6px; font-size: var(--fs-sm); }
-.wiz-seg button.on { background: color-mix(in srgb, var(--primary) 16%, var(--paper)); color: var(--primary-strong); font-weight: 800; }
-.wiz-kid-card { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 20px; border: 1px dashed var(--line-2); background: var(--surface); }
-.wiz-kid-card b { display: block; font-size: var(--fs-md); }
-.wiz-kid-card small { color: var(--muted); font-size: var(--fs-xs); }
-.wiz-kid-avatar { width: 52px; height: 52px; border-radius: 16px; display: grid; place-items: center; font-size: 30px; background: color-mix(in srgb, var(--primary) 10%, var(--paper)); flex: none; }
+.wizard .lbl { font-size: var(--fs-md); font-weight: 800; color: var(--text); }
+.wizard .inp, .wizard .seg, .wizard .level, .wizard .opt, .wizard .chip {
+  background-color: var(--surface-2);
+  border-color: color-mix(in srgb, var(--faint) 48%, var(--line));
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--shadow) 12%, transparent), inset 0 1px 0 color-mix(in srgb, #fff 35%, transparent);
+}
+.wizard .inp { padding: 9px 12px; }
+.wizard .inp:focus { border-color: var(--primary); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); }
+.wizard .level.on {
+  background: var(--primary-strong);
+  border-color: var(--primary-strong);
+  color: #fff;
+  box-shadow: 0 4px 12px -4px color-mix(in srgb, var(--primary-strong) 70%, transparent);
+}
+.wizard .level.on small { color: color-mix(in srgb, #fff 88%, transparent); }
+.wizard .opt.on, .wizard .perm.on {
+  background: color-mix(in srgb, var(--primary) 18%, var(--paper));
+  border-color: var(--primary-strong);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 18%, transparent);
+}
+.wizard .opt.on b { color: var(--primary-strong); }
+.wizard .chip.on { background: var(--primary-strong); border-color: var(--primary-strong); color: #fff; }
+.wiz-seg { width: 100%; max-width: none; padding: 4px; gap: 4px; }
+.wiz-seg button { padding: 8px 6px; font-size: var(--fs-sm); font-weight: 700; color: var(--text); border-radius: 10px; transition: background-color .15s, color .15s, box-shadow .15s; }
+.wiz-seg button:hover:not(.on) { background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.wiz-seg button.on { background: var(--primary-strong); color: #fff; font-weight: 800; box-shadow: 0 3px 10px -4px color-mix(in srgb, var(--primary-strong) 70%, transparent); }
+.wiz-info .avatars { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 10px; }
+@media (min-width: 900px) { .wiz-info .avatars { grid-template-columns: repeat(7, minmax(0, 1fr)); } }
+.wiz-info .avatar { width: 100%; height: 50px; border-radius: 16px; border: 1.5px solid color-mix(in srgb, var(--faint) 48%, var(--line)); background: var(--surface-2); cursor: pointer; }
+.wiz-info .avatar:hover { transform: translateY(-2px); border-color: var(--line-2); }
+.wiz-info .avatar.on { border-color: var(--primary-strong); background: color-mix(in srgb, var(--primary) 18%, var(--paper)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent); transform: scale(1.05); }
+.wiz-kid-card {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1.5px solid color-mix(in srgb, var(--primary) 38%, var(--line));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 11%, var(--surface-2)), var(--surface-2));
+}
+.wiz-kid-card b { display: block; font-size: var(--fs-md); font-weight: 800; }
+.wiz-kid-card small { color: var(--muted); font-size: var(--fs-xs); font-weight: 600; }
+.wiz-kid-avatar { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; font-size: 30px; background: var(--surface); border: 1.5px solid color-mix(in srgb, var(--primary) 40%, var(--line)); flex: none; }
+.wiz-note { margin: 0; border-radius: 14px; border: 1px solid color-mix(in srgb, var(--mint) 35%, var(--line)); background: color-mix(in srgb, var(--mint) 12%, var(--surface-2)); padding: 10px 12px; }
+.wizard-foot .btn-g { border: 1px solid var(--line-2); background: var(--surface); }
 /* Bước dài chia cột: An toàn 2 cột (chủ đề tự cuộn trong cột của nó), Thời gian 2 cột + Thói quen toàn hàng. */
 .wiz-pane { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .th-col { display: contents; }
@@ -488,15 +534,19 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
   background: var(--paper);
 }
 /* Lời nhắc màn nghỉ: mục tắt viền nét đứt, chữ nhạt; mục bật có dấu tích để không nhầm với mục tắt. */
-.tab-pane .th-remind .chip:not(.on) {
+.tab-pane .th-remind .chip:not(.on),
+.wizard .th-remind .chip:not(.on) {
   background-color: transparent;
   border-style: dashed;
   color: var(--faint);
   box-shadow: none;
 }
-.tab-pane .th-remind .chip:not(.on) .ic { opacity: .55; }
+.tab-pane .th-remind .chip:not(.on) .ic,
+.wizard .th-remind .chip:not(.on) .ic { opacity: .55; }
 .th-remind .chip.on { color: var(--text); }
 .th-remind-check { color: var(--gold-deep); }
+.wizard .th-remind .chip.on,
+.wizard .th-remind .chip.on .th-remind-check { color: #fff; }
 .th-subpanel-head {
   display: flex;
   align-items: center;
@@ -731,20 +781,53 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
 :root[data-theme="dark"] .cat-ic[data-group="Learning"] { color: var(--sky); }
 
 /* Chủ đề bé yêu thích: vùng đã chọn rõ ràng + bộ chọn gợi ý theo tab nhóm gọn gàng. */
+.topic-section { gap: 10px; }
 .topic-head-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.topic-selected-box { padding: 10px 12px; border-radius: 16px; border: 1px dashed var(--line-2); background: color-mix(in srgb, var(--paper) 75%, transparent); }
-.topic-picker { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); overflow: hidden; }
-.topic-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 12px; background: var(--surface); border-bottom: 1px solid var(--line); }
-.topic-tab { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px 4px 5px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); color: var(--muted); font-size: var(--fs-xs); font-weight: 700; transition: all .15s; }
+.topic-selected-box {
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--line));
+  background: color-mix(in srgb, var(--primary) 5%, var(--surface));
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+}
+.topic-selected-box .sub { margin: 0; font-size: var(--fs-sm); }
+.topic-selected-box .chips { gap: 8px; }
+.topic-add-row { gap: 8px; }
+.topic-picker {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  overflow: hidden;
+  box-shadow: 0 4px 16px -14px color-mix(in srgb, var(--shadow) 35%, transparent);
+}
+.topic-tabs { display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 14px; background: color-mix(in srgb, var(--surface-2) 55%, var(--surface)); border-bottom: 1px solid var(--line); }
+.topic-tab { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px 5px 6px; border-radius: 999px; border: 1px solid var(--line); background: var(--paper); color: var(--muted); font-size: var(--fs-xs); font-weight: 700; transition: all .15s; cursor: pointer; }
 .topic-tab .cat-ic { width: 22px; height: 22px; border-radius: 999px; }
 .topic-tab .cat-ic .ic { width: 12px; height: 12px; }
-.topic-tab small { padding: 1px 6px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: 11px; }
+.topic-tab small { padding: 1px 7px; border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: 11px; }
 .topic-tab:hover { border-color: var(--primary); color: var(--text); }
-.topic-tab.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 12%, var(--paper)); color: var(--primary-strong); }
+.topic-tab.on { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 13%, var(--paper)); color: var(--primary-strong); }
 .topic-tab.on small { background: var(--primary-strong); color: #fff; }
-.topic-picker-body { padding: 12px; }
-.topic-suggest-chip { gap: 4px; }
-.topic-suggest-chip:hover { border-color: var(--primary); color: var(--primary-strong); background: color-mix(in srgb, var(--primary) 8%, var(--paper)); }
+.topic-picker-body { padding: 14px; }
+.topic-picker-body .chips { gap: 8px; }
+.topic-suggest-chip {
+  padding: 6px 13px;
+  border-radius: 999px;
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform .14s, border-color .15s, background-color .15s, color .15s;
+}
+.topic-suggest-chip:hover {
+  transform: translateY(-1px);
+  border-color: var(--primary);
+  color: var(--primary-strong);
+  background: color-mix(in srgb, var(--primary) 10%, var(--paper));
+}
 
 /* Chủ đề an toàn: mỗi nhóm là một thẻ gập/mở, danh sách bên trong dạng lưới thẻ bo tròn thoáng. */
 .cat-rules { container-type: inline-size; display: flex; flex-direction: column; gap: 12px; }
@@ -802,3 +885,89 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
   .cat-chevron, .cat-row, .cat-bulk-btn, .topic-tab { transition: none; }
 }
 .topic-group-note { margin: 10px 0 0; color: var(--muted); font-size: var(--fs-xs); line-height: 1.4; }
+
+/* Tab Hồ sơ bé: thẻ tóm tắt đầu trang + bố cục 2 cột thẻ bo tròn đồng bộ với An toàn / Thời gian. */
+.prof-tab { container-type: inline-size; display: flex; flex-direction: column; gap: 18px; }
+.prof-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 16px 20px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--primary) 38%, var(--line));
+  background: linear-gradient(135deg, color-mix(in srgb, var(--primary) 11%, var(--surface)), var(--surface));
+  box-shadow: 0 8px 24px -18px color-mix(in srgb, var(--primary) 45%, transparent);
+}
+.prof-hero-av {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+  flex: none;
+  background: var(--surface-2);
+  border: 1.5px solid color-mix(in srgb, var(--primary) 45%, var(--line));
+  box-shadow: 0 4px 12px -6px color-mix(in srgb, var(--shadow) 35%, transparent);
+}
+.prof-hero-meta { display: flex; flex-direction: column; gap: 3px; min-width: 0; flex: 1; }
+.prof-hero-title { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.prof-hero-title b { font-size: var(--fs-xl); line-height: 1.2; }
+.prof-hero-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+
+.prof-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; align-items: stretch; }
+@container (min-width: 860px) {
+  .prof-grid { grid-template-columns: minmax(0, 1.12fr) minmax(0, 0.88fr); }
+}
+.prof-col { display: flex; flex-direction: column; gap: 18px; min-width: 0; height: 100%; }
+.prof-card-grow { flex: 1; }
+
+.prof-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px 22px 20px;
+  border-radius: 22px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: 0 4px 16px -14px color-mix(in srgb, var(--shadow) 35%, transparent);
+}
+.prof-card-head { display: flex; align-items: flex-start; gap: 12px; }
+.prof-card-head h3 { margin: 0; font-size: var(--fs-lg); line-height: 1.25; }
+.prof-card-head .sub { margin: 2px 0 0; }
+.prof-card-ic {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  flex: none;
+  background: color-mix(in srgb, var(--primary) 13%, var(--paper));
+  color: var(--primary-strong);
+}
+.prof-card-ic.warn { background: color-mix(in srgb, var(--gold) 22%, var(--paper)); color: var(--gold-deep); }
+.prof-card-ic .ic { width: 18px; height: 18px; }
+.prof-card-body { display: flex; flex-direction: column; gap: 16px; }
+
+.prof-name-inp { width: 100%; }
+.prof-age-seg { width: 100%; }
+.prof-avatars { display: grid; grid-template-columns: repeat(auto-fill, minmax(46px, 1fr)); gap: 10px; }
+@container (min-width: 520px) {
+  .prof-avatars { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+}
+.prof-avatars .avatar { width: 100%; height: 50px; border-radius: 16px; cursor: pointer; }
+.prof-avatars .avatar:not(:disabled):hover { transform: translateY(-2px); border-color: var(--line-2); }
+.prof-avatars .avatar.on { transform: scale(1.06); box-shadow: 0 6px 16px -10px color-mix(in srgb, var(--primary) 65%, transparent); }
+.prof-status-actions { flex-wrap: wrap; gap: 10px; }
+.prof-status-actions .btn { flex: 1 1 160px; justify-content: center; }
+
+.prof-activity .sec { flex: 1; height: 100%; }
+.prof-activity .act-head { padding-bottom: 12px; margin-bottom: 2px; border-bottom: 1px solid var(--line); }
+.prof-activity .act-head h3 { font-size: var(--fs-lg); }
+.prof-activity .act-row { padding: 10px 6px; border-radius: 10px; transition: background-color .15s; }
+.prof-activity .act-row:hover { background: color-mix(in srgb, var(--surface-2) 65%, transparent); }
+.prof-activity .act-pager { margin-top: auto; }
+@media (prefers-reduced-motion: reduce) {
+  .prof-avatars .avatar, .prof-activity .act-row { transition: none; }
+}

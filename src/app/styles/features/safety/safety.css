@@ -20,7 +20,7 @@
 .safety-jump { display: flex; flex-wrap: wrap; gap: 6px; }
 .safety-jump button { display: inline-flex; align-items: center; gap: 6px; padding: 5px 11px; border-radius: 999px; border: 1px solid var(--line-2); background: var(--surface); color: var(--muted); font-size: var(--fs-sm); font-weight: 600; transition: color .15s, border-color .15s; }
 .safety-jump button:hover { color: var(--text); border-color: var(--primary); }
-.safety-tab .setbody { background: transparent; padding: 0; overflow: visible; gap: 28px; }
+.safety-tab .setbody { background: transparent; padding: 0; border: 0; border-radius: 0; box-shadow: none; overflow: visible; gap: 28px; }
 .safety-tab .setbody section { max-width: none; scroll-margin-top: 12px; }
 .safety-tab .setbody h2 { font-size: var(--fs-lg); }
 .safety-savebar { display: flex; align-items: center; gap: 12px; padding: 4px 0 8px; }

@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { Plus, TriangleAlert, X } from "lucide-react";
+import { TriangleAlert, X } from "lucide-react";
 import type { ContentCategory, LearningProfile, ReadingMode, SetLearningProfileRequest } from "@/app/types/childProfile";
 import { childProfileService } from "@/app/services/childProfileService";
 import { AGE_BANDS, READING_LEVELS, READING_MODES, countWords, defaultReadingLevel, defaultReadingMode, groupCategories, levelAboveAge, storyLengthFor, type CategoryGroupId } from "@/app/lib/guardian";
 import { GroupIcon } from "./SafetyBlocks";
 
-export type LearningValue = { readingLevel: number; readingMode: ReadingMode; comprehensionGoal: string; favorites: string[]; focus: string[] };
+export type LearningValue = { readingLevel: number; readingMode: ReadingMode; comprehensionGoal: string; favorites: string[] };
 
 const isMode = (m?: string | null): m is ReadingMode => READING_MODES.some((x) => x.id === m);
 
@@ -35,17 +35,13 @@ export const learningFrom = (lp: LearningProfile | null, ageBand: string): Learn
   readingMode: isMode(lp?.readingMode) ? (lp?.readingMode as ReadingMode) : defaultReadingMode(ageBand),
   comprehensionGoal: lp?.comprehensionGoal ?? "",
   favorites: lp?.topics.filter((t) => t.relation === "FavoriteTopic").map((t) => t.topic) ?? [],
-  focus: lp?.topics.filter((t) => t.relation === "PriorityFocusArea").map((t) => t.topic) ?? [],
 });
 
 export const learningRequest = (v: LearningValue): SetLearningProfileRequest => ({
   readingLevel: v.readingLevel,
   readingMode: v.readingMode,
   comprehensionGoal: v.comprehensionGoal.trim(),
-  topics: [
-    ...v.favorites.map((topic) => ({ topic, relation: "FavoriteTopic" as const })),
-    ...v.focus.map((topic) => ({ topic, relation: "PriorityFocusArea" as const })),
-  ],
+  topics: v.favorites.map((topic) => ({ topic, relation: "FavoriteTopic" as const })),
 });
 
 /** Mô tả mức đọc đang chọn: độ dài câu, câu ví dụ và độ dài cả truyện theo nhóm tuổi. */
@@ -77,12 +73,10 @@ function LevelInfo({ level, ageBand }: { level: number; ageBand?: string }) {
   );
 }
 
-/** Bước 1.3 — mức đọc, chế độ đọc, mục tiêu đọc hiểu, chủ đề yêu thích, lĩnh vực ưu tiên. */
+/** Bước 1.3 — mức đọc, chế độ đọc, mục tiêu đọc hiểu, chủ đề yêu thích. */
 export default function LearningForm({ value, onChange, disabled, ageBand }: { value: LearningValue; onChange: (v: LearningValue) => void; disabled?: boolean; ageBand?: string }) {
   const suggestions = useTopicSuggestions(ageBand);
   const uid = useId();
-  const [topic, setTopic] = useState("");
-  const [skill, setSkill] = useState("");
   const [activeGroup, setActiveGroup] = useState<CategoryGroupId | null>(null);
   const set = (patch: Partial<LearningValue>) => onChange({ ...value, ...patch });
   // Chip bị xoá thu nhỏ trước (160ms) rồi mới bỏ khỏi danh sách.
@@ -92,7 +86,7 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
   useEffect(() => {
     latest.current = value;
   });
-  const removeChip = (kind: "favorites" | "focus", text: string) => {
+  const removeChip = (kind: "favorites", text: string) => {
     const key = `${kind}:${text}`;
     setLeaving((l) => [...l, key]);
     window.setTimeout(() => {
@@ -100,16 +94,10 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
       setLeaving((l) => l.filter((k) => k !== key));
     }, 160);
   };
-  const chipClass = (kind: "favorites" | "focus", text: string) => `chip on${leaving.includes(`${kind}:${text}`) ? " leaving" : ""}`;
+  const chipClass = (kind: "favorites", text: string) => `chip on${leaving.includes(`${kind}:${text}`) ? " leaving" : ""}`;
   const addTopic = (t: string) => {
     const clean = t.trim().slice(0, 150);
     if (clean && !value.favorites.includes(clean)) set({ favorites: [...value.favorites, clean] });
-    setTopic("");
-  };
-  const addSkill = (s: string) => {
-    const clean = s.trim().slice(0, 150);
-    if (clean && !value.focus.includes(clean)) set({ focus: [...value.focus, clean] });
-    setSkill("");
   };
 
   return (
@@ -149,14 +137,14 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
 
       <div className="learn-col">
 
-      <div className="field">
+      <div className="field topic-section">
         <div className="topic-head-row">
           <span className="lbl">Chủ đề bé yêu thích</span>
           {value.favorites.length > 0 && <span className="pill ok">Đã chọn {value.favorites.length}</span>}
         </div>
         <div className="topic-selected-box">
           {value.favorites.length === 0 ? (
-            <p className="sub">Chưa chọn chủ đề nào — nhập bên dưới hoặc bấm chọn nhanh từ gợi ý.</p>
+            <p className="sub">Chưa chọn chủ đề nào — bấm chọn nhanh từ gợi ý bên dưới.</p>
           ) : (
             <div className="chips">
               {value.favorites.map((t) => (
@@ -167,11 +155,6 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
         </div>
         {!disabled && (
           <>
-            <div className="row">
-              <input className="inp" value={topic} maxLength={150} onChange={(e) => setTopic(e.target.value)} placeholder="Thêm chủ đề tuỳ chỉnh…"
-                onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addTopic(topic); } }} />
-              <button type="button" className="btn btn-s" disabled={!topic.trim()} onClick={() => addTopic(topic)}><Plus className="ic" />Thêm</button>
-            </div>
             {suggestions.length > 0 && (() => {
               const visibleGroups = suggestions.filter((g) => g.topics.some((t) => !value.favorites.includes(t)));
               if (visibleGroups.length === 0) return null;
@@ -204,7 +187,7 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
                     <div className="chips">
                       {left.map((t) => (
                         <button type="button" key={t} className="chip topic-suggest-chip" aria-label={`Thêm chủ đề ${t}`} onClick={() => addTopic(t)}>
-                          <Plus size={12} aria-hidden />{t}
+                          {t}
                         </button>
                       ))}
                     </div>
@@ -218,22 +201,6 @@ export default function LearningForm({ value, onChange, disabled, ageBand }: { v
               );
             })()}
           </>
-        )}
-      </div>
-
-      <div className="field">
-        <span className="lbl">Kỹ năng muốn ưu tiên</span>
-        <div className="chips">
-          {value.focus.map((s) => (
-            <span key={s} className={chipClass("focus", s)}>{s}{!disabled && <button type="button" aria-label={`Bỏ ${s}`} onClick={() => removeChip("focus", s)}><X size={12} /></button>}</span>
-          ))}
-        </div>
-        {!disabled && (
-          <div className="row">
-            <input className="inp" value={skill} maxLength={150} onChange={(e) => setSkill(e.target.value)} placeholder="Thêm kỹ năng, ví dụ: đọc hiểu, phát âm"
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(skill); } }} />
-            <button type="button" className="btn btn-s" disabled={!skill.trim()} onClick={() => addSkill(skill)}><Plus className="ic" />Thêm</button>
-          </div>
         )}
       </div>
     </div>
