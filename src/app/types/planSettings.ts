@@ -44,6 +44,8 @@ export interface PlanSettings {
   readingFundPercent: number;
   /** Tỷ lệ phần trăm phân bổ cho quỹ sáng tạo */
   creativeFundPercent: number;
+  /** Số dư tối thiểu để Creator được chi (VND); 0 = không có mức tối thiểu */
+  minimumPayoutVnd: number;
   /** Số lượt AI hàng tháng của Creator */
   creatorMonthlyAiCredits: number;
   /** Số lượt gửi duyệt hàng tháng của Creator */

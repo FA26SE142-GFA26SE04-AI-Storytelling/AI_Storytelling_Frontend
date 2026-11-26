@@ -74,6 +74,8 @@ export interface CreatorPayoutOverview {
   username: string;
   fullName: string;
   balanceVnd: number;
+  /** Số dư tối thiểu để được chi, do Admin đặt; 0 = không có mức tối thiểu. */
+  minimumPayoutVnd: number;
   hasPayoutAccount: boolean;
   reminder: string | null;
   payoutAccount: CreatorPayoutAccount | null;

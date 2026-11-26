@@ -7,6 +7,10 @@ import { fmt, fmtDay } from "./ui";
 
 const month = (iso: string) => new Date(iso).toLocaleDateString("vi-VN", { month: "2-digit", year: "numeric" });
 
+/** Mức chi tối thiểu Admin đặt; 0 (hoặc API cũ không trả) nghĩa là không có mức tối thiểu. */
+export const minimumPayoutText = (minimum: number | null | undefined) =>
+  minimum && minimum > 0 ? formatVnd(minimum) : "Không có";
+
 /** Số dư, lịch sử nhận tiền và thu nhập các kỳ đã chốt (5h); dùng chung cho Admin và cho Creator xem của chính mình. */
 export function CreatorPayoutTables({ data, renderPayoutAction }: {
   data: CreatorPayoutOverview;
@@ -16,6 +20,7 @@ export function CreatorPayoutTables({ data, renderPayoutAction }: {
     <>
       <div className="kv">
         <div><small>Số dư hiện tại (trước thuế)</small><b>{formatVnd(data.balanceVnd)}</b></div>
+        <div><small>Mức chi tối thiểu</small><b>{minimumPayoutText(data.minimumPayoutVnd)}</b></div>
       </div>
 
       <h4 className="sec-h">Lịch sử nhận tiền</h4>
