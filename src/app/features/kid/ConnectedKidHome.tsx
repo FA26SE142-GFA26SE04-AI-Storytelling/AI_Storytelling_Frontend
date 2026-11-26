@@ -118,7 +118,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
           ) : (
             <>
               {!reading && <KidTimeBanner status={readingTime} />}
-              {!reading && <KidHabitStrip habit={habit} reminder={reminder.message} onDismissReminder={reminder.dismiss} />}
+              {!reading && <KidHabitStrip habit={habit} readingTime={readingTime} reminder={reminder.message} onDismissReminder={reminder.dismiss} />}
               {resting && isBlocking(readingTime) && <KidRestOverlay status={readingTime} onDone={refreshStatus} onExit={onExit} />}
               <ChildReadingLibrary
                 key={childId}
