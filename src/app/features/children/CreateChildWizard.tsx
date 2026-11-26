@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Lightbulb, RotateCcw, ShieldCheck, SkipForward, X } from "lucide-react";
 import { confirmDialog } from "@/app/lib/confirm";
 import InfoTip from "@/app/components/InfoTip";
+import Dialog from "@/app/components/Dialog";
 import { useAuth } from "@/app/context/AuthContext";
 import { childProfileService } from "@/app/services/childProfileService";
 import { readingScheduleService } from "@/app/services/readingScheduleService";
@@ -15,7 +16,7 @@ import { readChildDraft, removeChildDraft, writeChildDraft, type TimeDraft } fro
 import { scheduleFrom, scheduleRequest, sectionOfError } from "./readingScheduleForm";
 import TimeHabitsSections, { type SectionError } from "./TimeHabitsSections";
 
-const STEPS = ["Thông tin bé", "Hồ sơ học tập", "An toàn và đồng ý", "Thời gian & thói quen", "Xác nhận"];
+const STEPS = ["Thông tin bé", "Hồ sơ học tập", "An toàn", "Thời gian & thói quen", "Xác nhận"];
 const TIME_STEP = 3;
 
 /** Bước 1.2 → 1.2b → 1.3 → Thời gian & thói quen (bỏ qua được) → 1.4 → 1.8: tạo hồ sơ bé và kích hoạt. */
@@ -42,6 +43,8 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
   const lenRange = storyLengthRange(ageBand, learning.readingLevel);
   const maxLen = customLen === undefined ? suggestedLen : Math.min(Math.max(customLen, lenRange.min), lenRange.max);
   const fmt = (n: number) => n.toLocaleString("vi-VN");
+  // Đồng ý của phụ huynh hỏi trong popup khi bấm Tạo ở bước cuối, không nằm trên form.
+  const [consentOpen, setConsentOpen] = useState(false);
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -137,7 +140,8 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
     setStep(TIME_STEP + 1);
   };
 
-  const finish = async () => {
+  const finish = async (agreed: boolean) => {
+    setConsentOpen(false);
     setBusy(true);
     setErr(null);
     setLimitMsg(null);
@@ -164,7 +168,7 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
         }
       }
       // Backend chỉ nhận cài đặt an toàn đầu tiên khi đã có đồng ý; chưa đồng ý thì giữ hồ sơ ở trạng thái Nháp.
-      if (consent) {
+      if (agreed) {
         const sp = await childProfileService.setSafetyPolicy(id, {
           ...keptPolicyFields(null),
           // Trần tự suy ra: theo mức đọc (chưa tự chỉnh) thì phủ độ dài mặc định lớn nhất, tự chỉnh thì 110% số đã chọn.
@@ -273,7 +277,6 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
             <div className="trow"><span>Cổng xác nhận người lớn<small>Hỏi mật khẩu của bạn trước khi rời chế độ của bé</small></span>
               <button type="button" className={`tog${gate ? " on" : ""}`} role="switch" aria-checked={gate} aria-label="Cổng xác nhận người lớn" onClick={() => setGate(!gate)} /></div>
             <p className="notice wiz-note"><Check className="ic" aria-hidden />Truyện AI tạo cho bé sẽ chờ bạn duyệt (đổi được trong Cài đặt an toàn).</p>
-            <ConsentBlock checked={consent} onChange={setConsent} />
             </div>
           </div>
         )}
@@ -321,9 +324,6 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
               <div><small>Thời gian &amp; thói quen</small><b>{skipTime || !time ? "Cài sau" : "Đã thiết lập"}</b></div>
             </div>
             {(skipTime || !time) && <p className="notice wiz-note"><Lightbulb className="ic" aria-hidden />Bạn đã bỏ qua Thời gian &amp; thói quen. Có thể cài sau trong tab Thời gian &amp; thói quen của bé.</p>}
-            {consent
-              ? <div className="notice ok">Hồ sơ sẽ được kích hoạt ngay để bé bắt đầu đọc.</div>
-              : <div className="notice err">Bạn chưa đồng ý ở bước trước. Hồ sơ sẽ được lưu ở trạng thái Nháp, chưa có cài đặt an toàn; hãy đồng ý trong Cài đặt an toàn để bé bắt đầu dùng.</div>}
           </div>
         )}
 
@@ -346,8 +346,18 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
         {step === TIME_STEP && <button type="button" className="btn btn-g" onClick={skipTimeStep} disabled={busy}><SkipForward className="ic" />Bỏ qua, cài sau</button>}
         {step < STEPS.length - 1
           ? <button type="button" className="btn btn-p" onClick={goNext}>{step === TIME_STEP ? "Dùng cấu hình này" : "Tiếp tục"}<ArrowRight className="ic" /></button>
-          : <button type="button" className="btn btn-p" disabled={busy} onClick={() => void finish()}><Check className="ic" />{busy ? "Đang lưu…" : consent ? "Tạo và kích hoạt" : "Lưu bản nháp"}</button>}
+          : <button type="button" className="btn btn-p" disabled={busy} onClick={() => setConsentOpen(true)}><Check className="ic" />{busy ? "Đang lưu…" : "Tạo hồ sơ"}</button>}
       </div>
+
+      {consentOpen && (
+        <Dialog title="Đồng ý của phụ huynh" onClose={() => setConsentOpen(false)}>
+          <ConsentBlock checked={consent} onChange={setConsent} />
+          <div className="row" style={{ justifyContent: "flex-end", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+            <button type="button" className="btn btn-g" title="Lưu ở trạng thái Nháp, đồng ý sau trong Cài đặt an toàn" onClick={() => void finish(false)}>Lưu bản nháp</button>
+            <button type="button" className="btn btn-p" disabled={!consent} onClick={() => void finish(true)}><Check className="ic" />Tạo và kích hoạt</button>
+          </div>
+        </Dialog>
+      )}
     </div>
   );
 }
