@@ -72,15 +72,50 @@ function Card({
   );
 }
 
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0"));
+
+/**
+ * Ô chọn giờ 24 giờ, chữ tiếng Việt: hai ô chọn Giờ / Phút thay `<input type="time">`
+ * (ô của trình duyệt hiện theo ngôn ngữ trình duyệt, máy tiếng Anh ra "--:-- --" AM/PM).
+ * Phút theo bước 5; giờ đã lưu lẻ phút (vd. 18:07) vẫn hiện đúng. "" = chưa đặt.
+ * `min`/`max` (HH:mm) chỉ cho chọn giờ trong khoảng.
+ */
+function TimeSelect({ value, onChange, disabled, min, max, label }: { value: string; onChange: (v: string) => void; disabled: boolean; min?: string; max?: string; label: string }) {
+  const [h, m] = value ? value.split(":") : ["", ""];
+  const minH = min ? +min.slice(0, 2) : 0;
+  const maxH = max ? +max.slice(0, 2) : 23;
+  const minutes = m && !MINUTES.includes(m) ? [...MINUTES, m].sort() : MINUTES;
+  const pick = (hour: string, minute: string) => {
+    if (!hour) { onChange(""); return; }
+    const next = `${hour}:${minute || "00"}`;
+    // Giữ trong khoảng min/max (vd. giờ đi ngủ 18:00–23:30): chọn giờ biên thì kẹp phút lại.
+    onChange(min && next < min ? min : max && next > max ? max : next);
+  };
+  return (
+    <span className="th-time-sel">
+      <select className="inp" aria-label={`${label}: giờ`} value={h} disabled={disabled} onChange={(e) => pick(e.target.value, m)}>
+        <option value="">--</option>
+        {HOURS.filter((x) => +x >= minH && +x <= maxH).map((x) => <option key={x} value={x}>{x} giờ</option>)}
+      </select>
+      <span aria-hidden>:</span>
+      <select className="inp" aria-label={`${label}: phút`} value={m} disabled={disabled || !h} onChange={(e) => pick(h, e.target.value)}>
+        {!h && <option value="">--</option>}
+        {minutes.map((x) => <option key={x} value={x}>{x} phút</option>)}
+      </select>
+    </span>
+  );
+}
+
 function TimeField({ label, value, onChange, disabled, min, max }: { label: string; value: string; onChange: (v: string) => void; disabled: boolean; min?: string; max?: string }) {
   return (
-    <label className="field th-time">
+    <div className="field th-time">
       <span className="lbl">{label}</span>
       <span className="th-time-ctrl">
-        <input className="inp" type="time" value={value} min={min} max={max} disabled={disabled} onChange={(e) => onChange(e.target.value)} />
+        <TimeSelect label={label} value={value} min={min} max={max} disabled={disabled} onChange={onChange} />
         {value !== "" && !disabled && <IconButton icon={X} className="btn btn-g" label={`Bỏ ${label.toLowerCase()}`} onClick={() => onChange("")} />}
       </span>
-    </label>
+    </div>
   );
 }
 
@@ -128,9 +163,9 @@ function WindowEditor({ title, badge, ranges, disabled, onChange }: { title: str
       <div className="th-win-list">
         {ranges.map((r, i) => (
           <div key={i} className="th-win-row">
-            <input className="inp" type="time" aria-label={`${title}, khung ${i + 1}: từ`} value={r.start} disabled={disabled} onChange={(e) => set(i, { start: e.target.value })} />
+            <TimeSelect label={`${title}, khung ${i + 1}: từ`} value={r.start} disabled={disabled} onChange={(start) => set(i, { start })} />
             <span className="th-dash" aria-hidden>→</span>
-            <input className="inp" type="time" aria-label={`${title}, khung ${i + 1}: đến`} value={r.end} disabled={disabled} onChange={(e) => set(i, { end: e.target.value })} />
+            <TimeSelect label={`${title}, khung ${i + 1}: đến`} value={r.end} disabled={disabled} onChange={(end) => set(i, { end })} />
             {!disabled && <IconButton icon={X} className="btn btn-g" label={`Xoá khung ${i + 1} (${title})`} onClick={() => onChange(ranges.filter((_, j) => j !== i))} />}
           </div>
         ))}

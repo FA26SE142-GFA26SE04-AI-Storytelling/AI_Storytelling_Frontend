@@ -580,6 +580,11 @@ table.inv code { font-weight: 800; letter-spacing: 1px; }
 .th-time { gap: 5px; }
 .th-time-ctrl { display: flex; align-items: center; gap: 6px; }
 .th-time .inp { width: auto; min-width: 118px; flex: 1; }
+/* Ô chọn giờ tiếng Việt (Giờ : Phút), thay ô time của trình duyệt. */
+.th-time-sel { display: flex; align-items: center; gap: 4px; flex: 1 1 190px; min-width: 0; }
+.th-time-sel > span { color: var(--muted); font-weight: 700; }
+.th-win-row .th-time-sel .inp,
+.th-time .th-time-sel .inp { min-width: 0; width: auto; flex: 1 1 86px; }
 
 /* Thanh trượt */
 .th-slider-field { gap: 8px; }
