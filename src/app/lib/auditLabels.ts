@@ -31,6 +31,7 @@ const ACTION: Record<string, string> = {
   DELETE_SAFETY_POLICY: 'Xoá cài đặt an toàn',
   RECORD_SAFETY_CONSENT: 'Đồng ý điều khoản an toàn',
   RECONSENT_SAFETY_POLICY: 'Đồng ý lại điều khoản an toàn',
+  SET_READING_SCHEDULE: 'Đổi thời gian & thói quen đọc',
   // Lộ trình của bé
   ChildRoadmapStoryAdded: 'Thêm truyện vào lộ trình',
   ChildRoadmapWishStoryAdded: 'Thêm truyện từ điều ước vào lộ trình',
@@ -155,6 +156,7 @@ const ENTITY: Record<string, string> = {
   ChildProfile: 'Hồ sơ bé',
   ChildAccessCredential: 'Mã đăng nhập của bé',
   SafetyPolicy: 'Cài đặt an toàn',
+  ReadingSchedule: 'Thời gian & thói quen',
   Story: 'Truyện',
   StoryVersion: 'Phiên bản truyện',
   StoryWish: 'Điều ước',
