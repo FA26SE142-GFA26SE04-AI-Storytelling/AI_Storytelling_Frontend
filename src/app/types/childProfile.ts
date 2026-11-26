@@ -67,8 +67,6 @@ export interface SetSafetyPolicyRequest {
   consentRecorded: boolean;
   safetyScoreThreshold?: number | null;
   readabilityScoreThreshold?: number | null;
-  comprehensionThresholdPercent?: number;
-  comprehensionWindowSize?: number;
   storyWishesEnabled?: boolean;
   allowInteractiveStories?: boolean;
   childCreationEnabled?: boolean;
@@ -136,8 +134,6 @@ export interface SafetyPolicy {
   consentOutdated?: boolean;
   safetyScoreThreshold?: number | null;
   readabilityScoreThreshold?: number | null;
-  comprehensionThresholdPercent?: number;
-  comprehensionWindowSize?: number;
   storyWishesEnabled?: boolean;
   allowInteractiveStories?: boolean;
   childCreationEnabled?: boolean;

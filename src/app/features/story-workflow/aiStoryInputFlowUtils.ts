@@ -103,7 +103,8 @@ export function lengthPresets(maximumLength: number, readingLevel: number, recom
     return {
       short: clampTargetLength(Math.max(MIN_TARGET_LENGTH, Math.round(medium * 0.8 / 10) * 10), maximumLength),
       medium,
-      long: clampTargetLength(Math.round(medium * 1.2 / 10) * 10, maximumLength),
+      // "Dài" = mức của bé + 10%, đúng trần backend StoryLengthRules.UpperBound (làm tròn lên bằng số nguyên).
+      long: clampTargetLength(Math.ceil((medium * 11) / 10), maximumLength),
     };
   }
   const at = (choice: LengthPreset) => clampTargetLength(lengthTarget(choice, readingLevel || 2, maximumLength), maximumLength);
