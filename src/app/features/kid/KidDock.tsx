@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Home, Library, Map, NotebookPen, Sparkles, type LucideIcon } from 'lucide-react';
 import { bounce, prefersReducedMotion } from '@/app/lib/motion';
 import '@/app/styles/features/kid/kid-dock.css';
-import { tabEnabled, useKidDisabledFeatures } from './kidFeatures';
+import { notifyFeatureOff, tabEnabled, useKidDisabledFeatures } from './kidFeatures';
 
 export type DockTab = 'lobby' | 'library' | 'journey' | 'notebook' | 'wishes' | 'rewards';
 
@@ -46,18 +46,22 @@ export default function KidDock({ value, onChange }: { value: DockTab; onChange:
   return (
     <nav className="kid-dock" aria-label="Các khu của em">
       <div className="kid-dock-row">
-        {ITEMS.filter((item) => tabEnabled(item.id, disabled)).map((item) => {
+        {ITEMS.map((item) => {
           const active = value === item.id;
           const Icon = item.icon;
           const showSprout = !reduced && lastPicked?.id === item.id;
+          // Khu bố mẹ tắt: vẫn hiện nhưng mờ, bấm thì báo (như mobile).
+          const off = !tabEnabled(item.id, disabled);
 
           return (
             <button
               key={item.id}
               type="button"
-              className={`kid-btn3d kid-dock-item ${item.variant}${active ? ' is-active' : ''}`}
+              className={`kid-btn3d kid-dock-item ${item.variant}${active ? ' is-active' : ''}${off ? ' is-disabled' : ''}`}
               aria-pressed={active}
+              aria-disabled={off || undefined}
               onClick={() => {
+                if (off) { notifyFeatureOff(); return; }
                 onChange(item.id);
                 setLastPicked((prev) => ({ id: item.id, n: (prev?.n ?? 0) + 1 }));
                 bounce(iconRefs.current[item.id] ?? null);

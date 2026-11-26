@@ -47,7 +47,7 @@ export default function KidLobby(props: KidLobbyProps) {
         {/* Cột nút sát mép trái màn hình */}
         <nav className="kl-rail kl-rail-l" aria-label="Lối tắt bên trái">
           <StageButton icon={MapIcon} label="Hành trình" variant="is-sky" frog="wave" onClick={props.onJourney} />
-          {notebookOn && <StageButton icon={NotebookPen} label="Sổ tay" variant="is-mint" frog="wink" onClick={props.onNotebook} />}
+          <StageButton icon={NotebookPen} label="Sổ tay" variant="is-mint" frog="wink" off={!notebookOn} onClick={props.onNotebook} />
         </nav>
       </div>
       <div className="kl-col kl-center">
@@ -72,8 +72,8 @@ export default function KidLobby(props: KidLobbyProps) {
         <div className="kl-edge-card"><StageCards side="r" roadmap={props.roadmap} rewards={rewards} busy={busy} onRead={props.onRead} onRewards={props.onRewards} /></div>
         {/* Cột nút sát mép phải màn hình */}
         <nav className="kl-rail kl-rail-r" aria-label="Lối tắt bên phải">
-          {wishesOn && <StageButton icon={Sparkles} label="Điều ước" variant="is-pink" frog="wave" onClick={props.onWishes} />}
-          {rewardsOn && <StageButton icon={Award} label="Huy hiệu" variant="is-gold" frog="tongue" badge={earned} badgeLabel={`em có ${earned} huy hiệu`} onClick={props.onRewards} />}
+          <StageButton icon={Sparkles} label="Điều ước" variant="is-pink" frog="wave" off={!wishesOn} onClick={props.onWishes} />
+          <StageButton icon={Award} label="Huy hiệu" variant="is-gold" frog="tongue" off={!rewardsOn} badge={earned} badgeLabel={`em có ${earned} huy hiệu`} onClick={props.onRewards} />
         </nav>
       </div>
     </div>

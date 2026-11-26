@@ -9,7 +9,7 @@ import KnowledgeTreeArt from "@/app/components/brand/KnowledgeTreeArt";
 import Lotus from "@/app/components/brand/Lotus";
 import { croak } from "@/app/lib/croak";
 import { coverFor } from "@/app/lib/storyView";
-import { KID_FEATURE, useKidFeature } from './kidFeatures';
+import { FEATURE_OFF_MESSAGE, KID_FEATURE, notifyFeatureOff, useKidFeature } from './kidFeatures';
 
 /** Mỗi lần bé bấm ếch làm một động tác khác, lặp vòng: chuyển động cả thân (CSS) + cử động của ếch (Frog). */
 const POKE_ACTIONS: { motion: "hop" | "spin" | "squash" | "dance"; frog: FrogPokeAction }[] = [
@@ -26,21 +26,33 @@ const REST_MS = 8000;
 /** Phóng to tối đa khi màn rất rộng, để ếch và nút không bị vỡ nét. */
 const MAX_FIT = 1.5;
 
-/** Nút vuông 3D trên sân khấu: icon trên, nhãn ngắn dưới, badge số ở góc (nếu > 0). `frog`: động tác của ếch khi rê chuột lên nút. */
-export function StageButton({ icon: Icon, label, variant, badge = 0, badgeLabel, frog, onClick }: {
+/**
+ * Nút vuông 3D trên sân khấu: icon trên, nhãn ngắn dưới, badge số ở góc (nếu > 0). `frog`: động tác của ếch khi rê chuột lên nút.
+ * `off`: chức năng bố mẹ đang tắt — nút vẫn hiện nhưng mờ, bấm thì báo thay vì mở.
+ */
+export function StageButton({ icon: Icon, label, variant, badge = 0, badgeLabel, frog, off = false, onClick }: {
   icon: LucideIcon;
   label: string;
   variant: string;
   badge?: number;
   badgeLabel?: string;
   frog?: FrogPokeAction;
+  off?: boolean;
   onClick: () => void;
 }) {
+  const showBadge = !off && badge > 0;
   return (
-    <button type="button" className={`kid-btn3d ${variant} kls-btn`} data-frog={frog} onClick={onClick} aria-label={badge > 0 && badgeLabel ? `${label}: ${badgeLabel}` : label}>
+    <button
+      type="button"
+      className={`kid-btn3d ${variant} kls-btn${off ? " is-disabled" : ""}`}
+      data-frog={frog}
+      aria-disabled={off || undefined}
+      onClick={off ? notifyFeatureOff : onClick}
+      aria-label={off ? `${label}: ${FEATURE_OFF_MESSAGE}` : showBadge && badgeLabel ? `${label}: ${badgeLabel}` : label}
+    >
       <span className="kid-btn3d-icon"><Icon aria-hidden="true" /></span>
       <span className="kid-btn3d-label">{label}</span>
-      {badge > 0 && <span className="kls-badge display" aria-hidden="true">{badge}</span>}
+      {showBadge && <span className="kls-badge display" aria-hidden="true">{badge}</span>}
     </button>
   );
 }
@@ -207,7 +219,7 @@ export default function KidLobbyStage({
         </div>
 
         <div className="kls-bottom">
-          {libraryOn && <StageButton icon={Library} label="Kho truyện" variant="is-sky" frog="wink" onClick={onOpenLibrary} />}
+          <StageButton icon={Library} label="Kho truyện" variant="is-sky" frog="wink" off={!libraryOn} onClick={onOpenLibrary} />
           <button
             type="button"
             className="kid-btn3d is-gold is-big kls-go"
@@ -217,7 +229,7 @@ export default function KidLobbyStage({
           >
             {open ? <><Play aria-hidden="true" />Đọc ngay</> : "Chọn truyện"}
           </button>
-          {rewardsOn && <StageButton icon={Sprout} label="Cây" variant="is-green" frog="tongue" badge={water} badgeLabel={`${water} giọt nước chờ tưới`} onClick={onRewards} />}
+          <StageButton icon={Sprout} label="Cây" variant="is-green" frog="tongue" off={!rewardsOn} badge={water} badgeLabel={`${water} giọt nước chờ tưới`} onClick={onRewards} />
         </div>
       </div>
     </section>

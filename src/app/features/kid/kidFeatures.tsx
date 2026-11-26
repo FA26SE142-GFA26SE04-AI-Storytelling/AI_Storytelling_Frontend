@@ -2,6 +2,7 @@
 
 import { createContext, useContext, type ReactNode } from "react";
 import Frog from "@/app/components/brand/Frog";
+import { showToast } from "@/app/lib/toast";
 
 /** Quyền của bé: mã chức năng bố mẹ bật/tắt (backend `ChildFeatures`). */
 export const KID_FEATURE = {
@@ -15,6 +16,11 @@ export const KID_FEATURE = {
 } as const;
 
 export const FEATURE_OFF_MESSAGE = "Bố mẹ chưa bật chức năng này.";
+
+/** Bé bấm nút của chức năng bố mẹ đang tắt: nút vẫn hiện nhưng mờ (như mobile), bấm thì báo nhẹ nhàng. */
+export function notifyFeatureOff() {
+  showToast(`${FEATURE_OFF_MESSAGE} Em hỏi bố mẹ nhé.`, "info");
+}
 
 /** Ô trên dock / khu của bé ứng với chức năng nào; khu không có trong bảng là cốt lõi, luôn hiện. */
 const TAB_FEATURE: Record<string, string> = {
