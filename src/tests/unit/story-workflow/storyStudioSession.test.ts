@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { clearStorySessions, readStorySession, removeStorySession, storySessionKey, writeStorySession } from '@/app/features/story-workflow/storyStudioSession';
+import { clearStorySessions, readStorySession, removeStorySession, storySessionKey, studioTarget, writeStorySession } from '@/app/features/story-workflow/storyStudioSession';
 
 beforeEach(() => {
   const values = new Map<string, string>();
@@ -34,6 +34,27 @@ describe('story studio session isolation', () => {
     expect(readStorySession(1, 7)).toBeNull();
     expect(readStorySession(2, 7)).toBeNull();
     expect(sessionStorage.getItem('other-preference')).toBe('keep');
+  });
+  it('chờ biết bé của truyện trước khi mở lại, không đoán bé đầu danh sách', () => {
+    expect(studioTarget({ resumeStoryId: 902, chosenChildId: null, cachedStoryId: null, owner: null })).toEqual({ kind: 'loading' });
+    expect(studioTarget({ resumeStoryId: 902, chosenChildId: null, cachedStoryId: null, owner: { storyId: 5, childId: 4 } })).toEqual({ kind: 'loading' });
+  });
+  it('mở lại truyện bằng bé thật của truyện, kể cả khi đang chọn bé khác', () => {
+    expect(studioTarget({ resumeStoryId: 902, chosenChildId: null, cachedStoryId: null, owner: { storyId: 902, childId: 13 } }))
+      .toEqual({ kind: 'resume', childId: 13 });
+    expect(studioTarget({ resumeStoryId: 902, chosenChildId: 1, cachedStoryId: null, owner: { storyId: 902, childId: 13 } }))
+      .toEqual({ kind: 'resume', childId: 13 });
+    // Không xác định được bé (không có quyền / lỗi mạng): dùng bé đang chọn nếu có.
+    expect(studioTarget({ resumeStoryId: 902, chosenChildId: 1, cachedStoryId: null, owner: { storyId: 902, childId: null } }))
+      .toEqual({ kind: 'resume', childId: 1 });
+  });
+  it('phiên tạm của bé chứa truyện của bé khác thì bỏ và mở form mới', () => {
+    expect(studioTarget({ resumeStoryId: null, chosenChildId: 1, cachedStoryId: 902, owner: null })).toEqual({ kind: 'loading' });
+    expect(studioTarget({ resumeStoryId: null, chosenChildId: 1, cachedStoryId: 902, owner: { storyId: 902, childId: 13 } }))
+      .toEqual({ kind: 'fresh', dropStale: true });
+    expect(studioTarget({ resumeStoryId: null, chosenChildId: 13, cachedStoryId: 902, owner: { storyId: 902, childId: 13 } }))
+      .toEqual({ kind: 'fresh', dropStale: false });
+    expect(studioTarget({ resumeStoryId: null, chosenChildId: 1, cachedStoryId: null, owner: null })).toEqual({ kind: 'fresh', dropStale: false });
   });
   it('removes only the explicitly selected workflow', () => {
     writeStorySession(1, 7, { storyId: 10, requestId: 20 });

@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import BookCover from '@/app/features/library/BookCover';
 import { EMPTY_FILTER, isFiltering } from '@/app/features/library/LegacyLibraryFilters';
-import { ageLabel } from '@/app/lib/storyView';
+import { ageLabel, childAgeLabel } from '@/app/lib/storyView';
 
 describe('BookCover', () => {
   it('truyện chưa có bìa: dùng ảnh mẫu và in tên truyện lên bìa', () => {
@@ -33,5 +33,11 @@ describe('bộ lọc thư viện', () => {
   it('nhãn tuổi dùng gạch nối dài cho cả dạng "6-8"', () => {
     expect(ageLabel('6-8')).toBe('6–8 tuổi');
     expect(ageLabel('Age_9_10')).toBe('9–10 tuổi');
+  });
+
+  it('nhãn tuổi của bé: tuổi cụ thể kèm nhóm tuổi, chưa chọn tuổi thì chỉ ghi nhóm', () => {
+    expect(childAgeLabel({ age: 7, ageBand: 'Age_6_8' })).toBe('7 tuổi · Nhóm 6–8 tuổi');
+    expect(childAgeLabel({ age: null, ageBand: 'Age_9_10' })).toBe('Nhóm 9–10 tuổi');
+    expect(childAgeLabel({ ageBand: 'Age_6_8' })).toBe('Nhóm 6–8 tuổi');
   });
 });

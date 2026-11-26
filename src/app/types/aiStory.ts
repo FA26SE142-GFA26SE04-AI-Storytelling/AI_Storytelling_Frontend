@@ -103,6 +103,8 @@ export interface OutlineVersionDto {
 }
 export interface OutlineProgressDto {
   storyId: number;
+  /** Bé của truyện; null với truyện của Creator. Backend cũ chưa trả trường này. */
+  childProfileId?: number | null;
   storyStatus: string;
   currentVersion: OutlineVersionDto | null;
   activeOperation: string | null;

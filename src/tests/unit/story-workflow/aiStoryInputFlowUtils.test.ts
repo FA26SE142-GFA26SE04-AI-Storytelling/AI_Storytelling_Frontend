@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { AIStoryInputContextDto, AIStoryInputProgressDto } from '@/app/types/aiStory';
 import {
+  briefFieldErrors,
+  briefFieldOfMessage,
   buildSubmitRequest,
   createDefaultFormValues,
   lengthPresets,
@@ -192,5 +194,39 @@ describe('AI Story Input Phase 1 contract', () => {
     expect(phaseFromProgress(progress('input_accepted'))).toBe('input_accepted');
     expect(phaseFromProgress(progress('input_blocked'))).toBe('input_blocked');
     expect(phaseFromProgress(progress('input_check_failed'))).toBe('input_check_failed');
+  });
+});
+
+describe('lỗi theo từng ô của form ý tưởng (khớp backend)', () => {
+  const base = { topic: 'Rùa Bông mang đèn lồng', lesson: 'Biết giúp bạn', setting: '', genre: '' };
+
+  it('hợp lệ thì không có lỗi; khoảng trắng hai đầu không tính', () => {
+    expect(briefFieldErrors(base, true)).toEqual({});
+    expect(briefFieldErrors({ ...base, topic: `  ${'a'.repeat(200)}  ` }, true)).toEqual({});
+  });
+
+  it('quá dài: báo ngay ở đúng ô kèm số ký tự đang có', () => {
+    expect(briefFieldErrors({ ...base, topic: 'a'.repeat(261) }, false)).toEqual({ topic: 'Tối đa 200 ký tự (đang có 261).' });
+    expect(briefFieldErrors({ ...base, lesson: 'a'.repeat(501), setting: 'a'.repeat(301), genre: 'a'.repeat(51) }, false)).toEqual({
+      lesson: 'Tối đa 500 ký tự (đang có 501).',
+      setting: 'Tối đa 300 ký tự (đang có 301).',
+      genre: 'Tối đa 50 ký tự (đang có 51).',
+    });
+  });
+
+  it('ô bắt buộc trống hoặc quá ngắn chỉ báo sau khi bấm gửi', () => {
+    const empty = { ...base, topic: ' ', lesson: 'a' };
+    expect(briefFieldErrors(empty, false)).toEqual({});
+    expect(briefFieldErrors(empty, true)).toEqual({ topic: 'Hãy nhập ý tưởng câu chuyện.', lesson: 'Cần ít nhất 2 ký tự.' });
+  });
+
+  it('gắn lỗi từ server vào đúng ô theo nhãn tiếng Việt hoặc tên trường', () => {
+    expect(briefFieldOfMessage('Ý tưởng câu chuyện từ 2 đến 200 ký tự.')).toBe('topic');
+    expect(briefFieldOfMessage('Topic: tối đa 200 ký tự.')).toBe('topic');
+    expect(briefFieldOfMessage('Bài học từ 2 đến 500 ký tự.')).toBe('lesson');
+    expect(briefFieldOfMessage('Setting: tối đa 300 ký tự.')).toBe('setting');
+    expect(briefFieldOfMessage('Thể loại tối đa 50 ký tự.')).toBe('genre');
+    expect(briefFieldOfMessage('Bạn đã hết lượt tạo truyện AI.')).toBeNull();
+    expect(briefFieldOfMessage(null)).toBeNull();
   });
 });

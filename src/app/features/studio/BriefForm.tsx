@@ -14,7 +14,7 @@ import { STUDIO_PREFILL_KEY } from "@/app/features/learning/WishItem";
 import { parentWishService } from "@/app/services/storyWishService";
 import { takeLandingIdea } from "@/app/features/landing/landingIdea";
 import {
-  clampTargetLength, lengthPresets, MIN_TARGET_LENGTH, outputModesOf, restoreFormValues, vocabularyTone,
+  BRIEF_FIELDS, BRIEF_LIMITS, briefFieldErrors, briefFieldOfMessage, type BriefField, clampTargetLength, lengthPresets, MIN_TARGET_LENGTH, outputModesOf, restoreFormValues, vocabularyTone,
   type AIStoryInputFormValues, type LengthPreset,
 } from "@/app/features/story-workflow/aiStoryInputFlowUtils";
 import { OUTPUT_MODE } from "@/app/lib/storyRules";
@@ -30,6 +30,19 @@ const TONE_HINT = {
 } as const;
 
 type TextKey = "charactersText" | "setting" | "lesson";
+
+/** Cuộn tới ô cần sửa và đặt con trỏ vào đó. */
+function focusField(field: BriefField) {
+  const el = document.getElementById(`brief-${field}`);
+  el?.scrollIntoView({ block: "center", behavior: "smooth" });
+  el?.focus({ preventScroll: true });
+}
+
+/** Dòng lỗi ngay dưới ô; id dùng cho aria-describedby của ô. */
+const FieldError = ({ field, message }: { field: BriefField; message?: string }) =>
+  message ? <small id={`brief-${field}-err`} className="field-err" role="alert"><CircleAlert aria-hidden />{message}</small> : null;
+const invalidProps = (field: BriefField, message?: string) =>
+  message ? { "aria-invalid": true as const, "aria-describedby": `brief-${field}-err` } : {};
 type GenreGroupItem = { id: string; label: string; names: string[] };
 
 /** Bộ chọn thể loại/chủ đề gọn nhẹ thay thế dropdown native dài: hỗ trợ lọc theo nhóm và tìm nhanh. */
@@ -244,10 +257,37 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   const loaded = !!values && !!context;
   const missingText = !values?.topic.trim() || !values?.lesson.trim();
   const outOfQuota = !!quota && !quota.isUnlimited && (quota.remaining ?? 1) <= 0;
-  const submitDisabled = !loaded || isBusy || missingText || outOfQuota;
+
+  // Lỗi hiện ngay dưới từng ô. Quá dài báo ngay (kể cả nội dung điền sẵn); ô bắt buộc trống chỉ báo sau khi bấm gửi.
+  const [submitted, setSubmitted] = useState(false);
+  // Lỗi server gắn được vào một ô: chỉ hiện ở ô đó cho tới khi phụ huynh sửa giá trị đã gửi.
+  const [serverErr, setServerErr] = useState<{ field: BriefField; message: string; value: string } | null>(null);
+  useEffect(() => {
+    const field = briefFieldOfMessage(errorMessage);
+    if (!field || !errorMessage || !values) { setServerErr(null); return; }
+    setServerErr({ field, message: errorMessage, value: values[field] });
+    focusField(field);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errorMessage]);
+  const blocking = values ? briefFieldErrors(values, true) : {};
+  const serverField = serverErr && values && values[serverErr.field] === serverErr.value ? serverErr : null;
+  const fieldErrors: Partial<Record<BriefField, string>> = {
+    ...(serverField ? { [serverField.field]: serverField.message } : {}),
+    ...(values ? briefFieldErrors(values, submitted) : {}),
+  };
+  const invalidCount = Object.keys(fieldErrors).length;
+
+  const submitDisabled = !loaded || isBusy || outOfQuota;
   const submitReason = !loaded ? "Đang tải cấu hình của bé…"
     : outOfQuota ? "Bạn đã hết lượt tạo truyện AI."
+    : invalidCount > 0 ? `Còn ${invalidCount} ô cần sửa (đánh dấu đỏ).`
     : missingText ? "Hãy nhập ý tưởng và bài học trước." : null;
+  const onSubmit = () => {
+    if (submitDisabled) return;
+    const first = BRIEF_FIELDS.find((k) => blocking[k]);
+    if (first) { setSubmitted(true); focusField(first); return; }
+    void submit();
+  };
   const formRef = useRiseIn<HTMLFormElement>(".kv, .field, button[type=submit], .btn-p", [!!values && !!context], { delay: 50 });
 
   if (!values || !context) {
@@ -263,11 +303,15 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
   const levelMeta = readingLevelInfo(context.readingLevel);
 
   // Ô nhập tự do + ô "Gợi ý" xổ xuống bên cạnh để chọn nhanh (chọn xong ô gợi ý tự trở về trống).
-  const text = (k: TextKey, label: string, placeholder: string, opts: { required?: boolean; hint?: string; suggestions?: string[]; onPick?: (v: string) => void } = {}) => (
+  const text = (k: TextKey, label: string, placeholder: string, opts: { required?: boolean; hint?: string; suggestions?: string[]; onPick?: (v: string) => void } = {}) => {
+    const field = k === "charactersText" ? null : k;
+    const error = field ? fieldErrors[field] : undefined;
+    return (
     <div className="field">
       <label className="lbl" htmlFor={`brief-${k}`}>{label}</label>
       <div className="brief-combo">
         <input id={`brief-${k}`} name={k} autoComplete="off" className="inp" disabled={locked} required={opts.required} value={values[k]} placeholder={placeholder}
+          maxLength={field ? BRIEF_LIMITS[field] : undefined} {...(field ? invalidProps(field, error) : {})}
           onChange={(e) => updateValues({ [k]: e.target.value } as Partial<AIStoryInputFormValues>)} />
         {!locked && !!opts.suggestions?.length && (
           <select className="inp brief-suggest" aria-label={`Gợi ý ${label.toLowerCase()}`} value="" onChange={(e) => e.target.value && opts.onPick?.(e.target.value)}>
@@ -276,12 +320,14 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
           </select>
         )}
       </div>
+      {field && <FieldError field={field} message={error} />}
       {opts.hint && <small className="hint">{opts.hint}</small>}
     </div>
-  );
+    );
+  };
 
   return (
-    <form ref={formRef} className="pb brief" onSubmit={(e) => { e.preventDefault(); if (!submitDisabled) void submit(); }}>
+    <form ref={formRef} className="pb brief" noValidate onSubmit={(e) => { e.preventDefault(); onSubmit(); }}>
       <div className="brief-head">
         <h3 className="display">{locked ? "Yêu cầu đã gửi" : `Truyện mới cho ${context.childNickname}`}</h3>
         <span className="brief-tag" title="Lấy từ hồ sơ của bé, đổi trong Cài đặt an toàn"><Lock aria-hidden />{context.ageBand.replace("Age_", "").replace("_", "–")} tuổi</span>
@@ -298,8 +344,13 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
           <fieldset className="brief-group">
             <legend className="display">Câu chuyện về điều gì?</legend>
             <div className="field">
-              <label className="lbl" htmlFor="brief-topic">Ý tưởng câu chuyện</label>
-              <textarea id="brief-topic" name="topic" className="inp brief-topic" rows={4} disabled={locked} required value={values.topic} onChange={(e) => updateValues({ topic: e.target.value })} placeholder="Ví dụ: Rùa Bông mang đèn lồng đến hội Trung thu…" />
+              <label className="lbl row" htmlFor="brief-topic" style={{ justifyContent: "space-between" }}>
+                <span>Ý tưởng câu chuyện</span>
+                <small className={values.topic.trim().length > BRIEF_LIMITS.topic ? "brief-count over" : "brief-count"} aria-live="polite">{values.topic.trim().length}/{BRIEF_LIMITS.topic}</small>
+              </label>
+              <textarea id="brief-topic" name="topic" className="inp brief-topic" rows={4} disabled={locked} required maxLength={BRIEF_LIMITS.topic} value={values.topic} onChange={(e) => updateValues({ topic: e.target.value })} placeholder="Ví dụ: Rùa Bông mang đèn lồng đến hội Trung thu…"
+                {...invalidProps("topic", fieldErrors.topic)} />
+              <FieldError field="topic" message={fieldErrors.topic} />
             </div>
             {text("lesson", "Bài học muốn gửi tới con", "Ví dụ: Biết chia sẻ cùng bạn bè…", {
               required: true,
@@ -318,6 +369,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
                 disabled={locked}
                 onChange={(genre) => updateValues({ genre })}
               />
+              <FieldError field="genre" message={fieldErrors.genre} />
             </div>
             {text("charactersText", "Nhân vật", "Ví dụ: Sóc Bông, Thỏ Trắng (cách nhau bằng dấu phẩy)")}
             {text("setting", "Bối cảnh", "Ví dụ: Khu rừng tre ven hồ sen…")}
@@ -365,7 +417,7 @@ export default function BriefForm({ flow, locked }: { flow: UseAIStoryInputFlowR
 
           {!locked && (
             <div className="brief-submit">
-              {errorMessage && <div className="notice err" role="alert">{errorMessage}</div>}
+              {errorMessage && !serverField && <div className="notice err" role="alert">{errorMessage}</div>}
               {outOfQuota && <div className="notice err row" role="alert" data-inline-notice style={{ justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}><span>Bạn đã hết lượt tạo truyện AI. Nâng lên Gói Sáng tạo hoặc mua Add-on để tạo thêm.</span><Link className="btn btn-s" href="/app/account-payment">Nâng cấp gói</Link></div>}
               <button type="submit" className="btn btn-p brief-go" disabled={submitDisabled} aria-describedby={submitReason ? "brief-go-why" : undefined}>
                 <Sparkles className="ic" aria-hidden />{isBusy ? "Đang gửi ý tưởng…" : "Viết dàn ý"}
