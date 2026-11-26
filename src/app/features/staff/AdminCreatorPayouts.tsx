@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Banknote, History } from "lucide-react";
+import { Banknote, CalendarCheck, History } from "lucide-react";
 import Dialog from "@/app/components/Dialog";
+import { confirmDialog } from "@/app/lib/confirm";
 import { creatorAdminService, formatVnd } from "@/app/services/creatorAdminService";
 import type { CreatorPayoutDue } from "@/app/types/creatorAdmin";
 import { CreatorPayoutHistoryDialog } from "./CreatorPayoutHistoryDialog";
-import { Notice, useAction } from "./ui";
+import { fmtDay, Notice, useAction } from "./ui";
 
 /** Ngày hôm nay theo giờ Việt Nam, dạng yyyy-MM-dd (backend không cho ngày chuyển sau hôm nay). */
 const todayVn = () => new Date(Date.now() + 7 * 3600_000).toISOString().slice(0, 10);
@@ -30,7 +31,7 @@ export function AdminCreatorPayouts() {
     setRows(r.data ?? []);
   }, []);
   useEffect(() => { void load(); }, [load]);
-  const { note, busy, run } = useAction(load);
+  const { note, setNote, busy, run } = useAction(load);
 
   const total = rows.reduce((sum, r) => sum + r.balanceVnd, 0);
 
@@ -41,8 +42,19 @@ export function AdminCreatorPayouts() {
       <div className="row">
         <h3 className="grow">Danh sách chi</h3>
         {rows.length > 0 && <span className="sub">{rows.length} nhà sáng tạo · tổng {formatVnd(total)}</span>}
+        <button className="btn btn-g" disabled={busy} onClick={async () => {
+          if (!(await confirmDialog("Chốt thu nhập của nhà sáng tạo đến hết hôm nay và cộng vào số dư ngay, không chờ ngày chốt hằng tháng? Lượt đọc còn lại của hôm nay sẽ không được tính; lần chốt sau bắt đầu từ ngày mai."))) return;
+          let text = "";
+          void run(async () => {
+            const r = await creatorAdminService.closePeriodNow();
+            if (r.success && r.data) {
+              text = `Đã chốt kỳ ${fmtDay(r.data.periodStart)} – ${fmtDay(r.data.periodEnd)}: cộng ${formatVnd(r.data.distributedVnd)} cho ${r.data.creditedCreators} nhà sáng tạo (${r.data.totalValidReads.toLocaleString("vi-VN")} lượt đọc hợp lệ).`;
+            }
+            return r;
+          }).then((ok) => { if (ok && text) setNote({ ok: true, text }); });
+        }}><CalendarCheck className="ic" />Chốt kỳ ngay</button>
       </div>
-      <p className="sub">Thu nhập của tháng trước được cộng vào số dư từ ngày chốt kỳ đặt trong Cài đặt gói (mặc định ngày 8 hằng tháng). Chỉ hiện nhà sáng tạo có số dư đạt mức chi tối thiểu đặt trong Cài đặt gói (trang Gói dịch vụ); số dư thấp hơn được cộng dồn sang kỳ sau.</p>
+      <p className="sub">Thu nhập của tháng trước được cộng vào số dư từ ngày chốt kỳ đặt trong Cài đặt gói (mặc định ngày 8 hằng tháng). Chỉ hiện nhà sáng tạo có số dư đạt mức chi tối thiểu đặt trong Cài đặt gói (trang Gói dịch vụ); số dư thấp hơn được cộng dồn sang kỳ sau. Bấm Chốt kỳ ngay để chốt thu nhập đến hết hôm nay mà không chờ ngày chốt (dùng khi demo).</p>
 
       {paying && <Dialog title={`Đã chi cho ${paying.fullName}`} onClose={() => setPaying(null)}>
         <div className="kv">
