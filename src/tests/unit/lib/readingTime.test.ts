@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { blockedStateOf, formatCountdown, isBlocking, minutesOf, restCopy, secondsUntil, warnLine } from '@/app/lib/readingTime';
+import { blockedStateOf, formatCountdown, isBlocking, minutesOf, restCopy, secondsUntil, timeChip, warnLine } from '@/app/lib/readingTime';
 import type { ReadingTimeState, ReadingTimeStatus } from '@/app/types/readingSchedule';
 
 const status = (state: ReadingTimeState, patch: Partial<ReadingTimeStatus> = {}): ReadingTimeStatus => ({
@@ -14,6 +14,27 @@ describe('isBlocking', () => {
   it('treats a missing status (old backend, no schedule) as not blocking', () => {
     expect(isBlocking(null)).toBe(false);
     expect(isBlocking(undefined)).toBe(false);
+  });
+});
+
+describe('timeChip', () => {
+  const inMin = (m: number) => new Date(NOW + m * 60_000).toISOString();
+  it('screen limit → minutes left', () => {
+    expect(timeChip(status('Allowed', { endReason: 'ScreenLimit', endsAt: inMin(25) }), NOW)).toEqual({ text: 'Còn 25 phút', warn: false });
+  });
+  it('window / bedtime → local end time', () => {
+    const at = new Date(NOW + 90 * 60_000);
+    const hhmm = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+    expect(timeChip(status('Allowed', { endReason: 'Window', endsAt: at.toISOString() }), NOW)).toEqual({ text: `Đọc đến ${hhmm}`, warn: false });
+    expect(timeChip(status('EndingSoon', { endReason: 'Bedtime', endsAt: inMin(4) }), NOW)?.warn).toBe(true);
+  });
+  it('grace → countdown, warn', () => {
+    expect(timeChip(status('Grace', { graceEndsAt: inMin(2) }), NOW)).toEqual({ text: 'Đọc nốt 2:00', warn: true });
+  });
+  it('no limit, blocked, or no status → null', () => {
+    expect(timeChip(status('Allowed'), NOW)).toBeNull();
+    expect(timeChip(status('Bedtime', { endsAt: inMin(5) }), NOW)).toBeNull();
+    expect(timeChip(null, NOW)).toBeNull();
   });
 });
 

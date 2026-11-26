@@ -104,6 +104,7 @@ export default function ConnectedKidHome({ childId, onExit, openStoryId }: { chi
           showDock={!ended && pane !== 'lobby'}
           onExit={onExit}
           onRewards={() => setPane('rewards')}
+          readingTime={readingTime}
         />
       )}
       <div className="kscroll">
