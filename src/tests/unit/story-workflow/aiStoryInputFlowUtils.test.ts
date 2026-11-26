@@ -27,8 +27,6 @@ const context: AIStoryInputContextDto = {
   safetyScoreThreshold: 0.8,
   readabilityScoreThreshold: 0.7,
   comprehensionGoal: null,
-  comprehensionThresholdPercent: null,
-  comprehensionWindowSize: 3,
   interests: ['vũ trụ'],
   allowedCategoryCodes: ['EDU'],
   restrictedCategoryCodes: [],
@@ -62,7 +60,10 @@ describe('AI Story Input Phase 1 contract', () => {
     const values = createDefaultFormValues(current);
     expect(values.targetLength).toBe(900);
     expect(buildSubmitRequest(7, values, current, 'recommended-length').targetLength).toBe(900);
-    expect(lengthPresets(1500, 2, 900)).toEqual({ short: 720, medium: 900, long: 1080 });
+    // Nút "Dài" = mức của bé + 10% (khớp trần backend UpperBound), không vượt trần.
+    expect(lengthPresets(1500, 2, 900)).toEqual({ short: 720, medium: 900, long: 990 });
+    expect(lengthPresets(990, 2, 900).long).toBe(990);
+    expect(lengthPresets(1650, 4, 1500).long).toBe(1650);
   });
 
   it('honors server recommendations for older children and clamps them to safety limits', () => {

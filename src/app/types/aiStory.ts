@@ -20,8 +20,6 @@ export interface AIStoryInputContextDto {
   safetyScoreThreshold: number | null;
   readabilityScoreThreshold: number | null;
   comprehensionGoal: string | null;
-  comprehensionThresholdPercent: number | null;
-  comprehensionWindowSize: number;
   interests: string[];
   allowedCategoryCodes: string[];
   restrictedCategoryCodes: string[];

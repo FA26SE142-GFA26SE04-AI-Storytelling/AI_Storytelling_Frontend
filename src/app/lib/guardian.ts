@@ -81,10 +81,20 @@ export const storyLengthUpperBound = (target: number) => Math.ceil((target * 11)
  * nên trần vẫn phủ được khi mức đọc hoặc nhóm tuổi tăng lên sau này và không bị coi là giới hạn cũ do phụ huynh đặt.
  */
 export const LEVEL_MODE_STORY_CAP = storyLengthUpperBound(1500);
+/** Độ dài nhỏ nhất phụ huynh được đặt (backend StoryLengthRules.MinimumTarget). */
+export const STORY_LENGTH_MIN = 300;
+
+/**
+ * Thanh kéo "Độ dài truyện": phụ huynh chỉ được hạ, từ 300 đến mặc định theo tuổi và mức đọc (backend từ chối số lớn hơn).
+ * Bước 1 để kéo tới đúng số muốn, kể cả số lẻ.
+ */
+export const storyLengthRange = (ageBand: string | undefined, level: number) =>
+  ({ min: STORY_LENGTH_MIN, max: storyLengthFor(ageBand, level).target, step: 1 }) as const;
+
 /**
  * Độ dài truyện hiển thị ở tab An toàn. Phản chiếu StoryLengthRules.ForGeneration ở backend:
- * số phụ huynh tự chỉnh nếu có; chưa có thì theo mức đọc, trừ khi giới hạn cũ thấp hơn mặc định (phụ huynh đã đặt từ trước)
- * thì coi giới hạn đó là số tự chỉnh.
+ * số phụ huynh tự chỉnh nếu có (kẹp về mặc định vì chỉ được hạ; số cũ cao hơn không còn tác dụng khi tạo truyện);
+ * chưa có thì theo mức đọc, trừ khi giới hạn cũ thấp hơn mặc định (phụ huynh đã đặt từ trước) thì coi giới hạn đó là số tự chỉnh.
  */
 export const effectiveStoryLength = (
   ageBand: string | undefined,
@@ -92,42 +102,10 @@ export const effectiveStoryLength = (
   storyLengthTarget: number | null | undefined,
   maxStoryLength: number,
 ): { value: number; custom: boolean } => {
-  if (typeof storyLengthTarget === "number" && storyLengthTarget > 0) return { value: storyLengthTarget, custom: true };
   const byLevel = storyLengthFor(ageBand, level).target;
+  if (typeof storyLengthTarget === "number" && storyLengthTarget > 0) return { value: Math.min(storyLengthTarget, byLevel), custom: true };
   if (maxStoryLength > 0 && maxStoryLength < byLevel) return { value: maxStoryLength, custom: true };
   return { value: byLevel, custom: false };
-};
-
-/** Ngưỡng cảnh báo so với độ dài mặc định theo mức đọc: trên 110% là "dài", trên 150% là "rất dài". */
-export const STORY_LENGTH_LONG_RATIO = 1.1;
-export const STORY_LENGTH_VERY_LONG_RATIO = 1.5;
-
-/**
- * Cảnh báo khi phụ huynh tự chỉnh dài hơn mức phù hợp với tuổi và mức đọc của bé. Không chặn lưu; null = không cần cảnh báo.
- * Truyện dài hơn thì bé khó tập trung, AI mất nhiều thời gian hơn để tạo và phụ huynh mất nhiều thời gian hơn để duyệt.
- */
-export const storyLengthAdvice = (
-  ageBand: string | undefined,
-  level: number,
-  value: number,
-): { severity: "long" | "very-long"; text: string } | null => {
-  const recommended = storyLengthFor(ageBand, level).target;
-  const who = AGE_BANDS.find((a) => a.id === ageBand)?.label;
-  const forWho = who ? `bé ${who}` : "bé";
-  const about = recommended.toLocaleString("vi-VN");
-  if (value > recommended * STORY_LENGTH_VERY_LONG_RATIO) {
-    return {
-      severity: "very-long",
-      text: `Rất dài so với mức phù hợp với ${forWho} (khoảng ${about} từ). Bé dễ mất tập trung, AI sẽ mất lâu hơn đáng kể để tạo truyện và bạn cũng cần nhiều thời gian hơn để duyệt.`,
-    };
-  }
-  if (value > recommended * STORY_LENGTH_LONG_RATIO) {
-    return {
-      severity: "long",
-      text: `Dài hơn mức phù hợp với ${forWho} (khoảng ${about} từ). Bé có thể khó tập trung đọc hết, và AI cần nhiều thời gian hơn để tạo truyện.`,
-    };
-  }
-  return null;
 };
 
 /** Thanh kéo "Độ dài tối đa của truyện" (cài đặt an toàn MaxStoryLength), dùng chung cho form tạo bé và trang An toàn. */
