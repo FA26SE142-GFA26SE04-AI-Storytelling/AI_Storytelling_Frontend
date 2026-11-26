@@ -191,7 +191,7 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
       <div className="wizard-body">
         {step === 0 && (
           <div className="wiz-info">
-            <div className="wiz-pane">
+            <div className="wiz-pane wiz-card">
               <label className="field"><span className="lbl">Biệt danh của bé</span>
                 <input className="inp" autoFocus maxLength={150} value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Ví dụ: Bé Na" />
                 <small className="sub">Tên gọi ở nhà. Tránh dùng họ tên đầy đủ của bé.</small></label>
@@ -222,12 +222,12 @@ export default function CreateChildWizard({ onDone, onCancel }: { onDone: (child
               </div>
               <p className="notice wiz-note"><ShieldCheck className="ic" aria-hidden />Taletale không hỏi họ tên, ngày sinh, trường học hay địa chỉ của bé.</p>
             </div>
-            <div className="wiz-pane">
+            <div className="wiz-pane wiz-card">
               <div className="field">
                 <span className="lbl">Ảnh đại diện</span>
                 <div className="avatars" role="radiogroup" aria-label="Ảnh đại diện của bé">
                   {AVATARS.map((a) => (
-                    <button key={a.id} type="button" role="radio" aria-checked={avatarId === a.id} aria-label={a.label} className={`avatar${avatarId === a.id ? " on" : ""}`} onClick={() => setAvatarId(a.id)}>{a.emoji}</button>
+                    <button key={a.id} type="button" role="radio" aria-checked={avatarId === a.id} aria-label={a.label} title={a.label} className={`avatar${avatarId === a.id ? " on" : ""}`} onClick={() => setAvatarId(a.id)}>{a.emoji}</button>
                   ))}
                 </div>
                 <small className="sub">Bé nhận ra hồ sơ của mình qua ảnh này khi đăng nhập.</small>

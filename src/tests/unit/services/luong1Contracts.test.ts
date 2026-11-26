@@ -28,8 +28,16 @@ describe('Luồng 1 — hợp đồng API đã đăng nhập', () => {
     await childProfileService.updateChildProfile(3, { nickname: ' Na ', ageBand: 'Age_9_10', avatarId: 'cat' });
     expect(String(spy.mock.calls[0][0])).toContain('/ChildProfile/3');
     expect(spy.mock.calls[0][1]?.method).toBe('PUT');
-    expect(bodyOf(spy.mock.calls[0][1])).toEqual({ nickname: 'Na', ageBand: 'Age_9_10', language: 'vi', avatarId: 'cat' });
+    expect(bodyOf(spy.mock.calls[0][1])).toEqual({ nickname: 'Na', ageBand: 'Age_9_10', age: null, language: 'vi', avatarId: 'cat' });
     expect('setCredential' in childAccessService).toBe(false);
+  });
+
+  it('gửi tuổi cụ thể và ảnh đại diện khi tạo, tuổi khi sửa hồ sơ bé', async () => {
+    const spy = vi.spyOn(authService, 'authenticatedFetch').mockResolvedValue(okBody());
+    await childProfileService.createChildProfile({ nickname: 'An', ageBand: 'Age_6_8', age: 6, avatarId: 'rabbit' });
+    await childProfileService.updateChildProfile(1, { nickname: 'An', ageBand: 'Age_6_8', age: 7 });
+    expect(bodyOf(spy.mock.calls[0][1])).toMatchObject({ ageBand: 'Age_6_8', age: 6, avatarId: 'rabbit' });
+    expect(bodyOf(spy.mock.calls[1][1])).toMatchObject({ ageBand: 'Age_6_8', age: 7 });
   });
 
   it('gửi chế độ đọc trong hồ sơ học tập', async () => {

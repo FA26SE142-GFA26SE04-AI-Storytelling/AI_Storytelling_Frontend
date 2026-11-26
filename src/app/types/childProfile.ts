@@ -41,7 +41,7 @@ export interface UpdateChildProfileRequest {
   age?: number | null;
 }
 
-export type TopicRelation = 'FavoriteTopic' | 'PriorityFocusArea';
+export type TopicRelation = 'FavoriteTopic';
 
 export interface SetLearningProfileRequest {
   readingLevel: number; // 1 to 5

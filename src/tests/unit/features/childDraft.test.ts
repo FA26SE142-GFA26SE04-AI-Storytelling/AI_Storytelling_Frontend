@@ -20,7 +20,7 @@ const draft: ChildDraft = {
   step: 2,
   nickname: 'Bé Na',
   ageBand: 'Age_9_10',
-  learning: { readingLevel: 3, readingMode: 'Independent', comprehensionGoal: 'Hiểu ý chính', favorites: ['Khủng long'], focus: [] },
+  learning: { readingLevel: 3, readingMode: 'Independent', comprehensionGoal: 'Hiểu ý chính', favorites: ['Khủng long'] },
   rules: { 4: 'Blocked', 7: 'Allowed' },
   gate: false,
   createdId: null,

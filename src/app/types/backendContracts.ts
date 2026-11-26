@@ -2206,7 +2206,7 @@ export interface TokenQuotaStatusDto {
 }
 
 export type TopicRelation = 1 | 2;
-export type TopicRelationName = 'FavoriteTopic' | 'PriorityFocusArea';
+export type TopicRelationName = 'FavoriteTopic';
 export interface TransferOwnershipRequestDto {
   'targetSupervisorUserId': number;
 }
