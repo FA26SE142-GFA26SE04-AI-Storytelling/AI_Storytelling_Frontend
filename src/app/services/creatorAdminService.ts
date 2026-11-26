@@ -1,7 +1,7 @@
 import type { PagedResult } from '@/app/types/backendContracts';
 import type {
-  AdminAuditLog, AdminAuditLogQuery, AdminCreatorStatistics, AuditLogFilters, CreatorPayout, CreatorPayoutAccount, CreatorPayoutDue,
-  CreatorPayoutOverview, CreatorTierOverview, MarkPaidInput, PayoutAccountInput,
+  AdminAuditLog, AdminAuditLogQuery, AdminCreatorStatistics, AuditLogFilters, CreatorEarningPeriodClosed, CreatorPayout,
+  CreatorPayoutAccount, CreatorPayoutDue, CreatorPayoutOverview, CreatorTierOverview, MarkPaidInput, PayoutAccountInput,
 } from '@/app/types/creatorAdmin';
 import { apiQuery, apiRequest } from './apiClient';
 
@@ -24,6 +24,9 @@ export const creatorAdminService = {
     apiRequest<CreatorPayout>(`/admin/creator-payouts/creators/${creatorUserId}/mark-paid`, 'Không ghi nhận được lần chi.', { method: 'POST', body: input }),
   cancelPayout: (payoutId: number, reason: string) =>
     apiRequest<CreatorPayout>(`/admin/creator-payouts/${payoutId}/cancel`, 'Không huỷ được lần chi.', { method: 'POST', body: { reason } }),
+  /** Chốt thu nhập đến hết hôm nay và cộng vào số dư ngay, không chờ ngày chốt hằng tháng (dùng khi demo). */
+  closePeriodNow: () =>
+    apiRequest<CreatorEarningPeriodClosed>('/admin/creator-payouts/periods/close-now', 'Không chốt được kỳ thu nhập.', { method: 'POST' }),
 
   // ---------- Thống kê Creator ----------
   creatorStats: (periodStart: string, periodEnd: string, signal?: AbortSignal) =>
