@@ -45,7 +45,7 @@ type PipelineProps = {
   /** Chọn lại bé khi chưa gửi ý tưởng (truyện chưa được tạo). */
   onChangeKid: () => void;
   go: (id: WorkspaceId) => void;
-  /** Mở một truyện có sẵn (vừa nhập) trong Studio. */
+  /** Mở một truyện đang tạo trong Studio. */
   onOpenStory: (storyId: number) => void;
 };
 
@@ -126,7 +126,6 @@ function Pipeline({ userId, childId, prefill, asideCollapsed, onToggleAside, onN
           onOutlineApproved={() => { setApproved(true); p.refresh(); }}
           kidName={child?.nickname ?? "Bé"}
           onChangeKid={p.storyId === null && kids.length > 1 ? onChangeKid : undefined}
-          childId={childId}
           onOpenStory={onOpenStory}
           capacity={capacityState}
         />

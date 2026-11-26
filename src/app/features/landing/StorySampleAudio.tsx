@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from "react";
 import { Play, Square, Volume2 } from "lucide-react";
 
 /** Preview narration for mock stories only; does not represent generated backend audio. */
-export default function StorySampleAudio({ title, text, active }: { title: string; text: string; active: boolean }) {
+export default function StorySampleAudio({ title, text, active, onPlaybackChange }: {
+  title: string; text: string; active: boolean; onPlaybackChange?: (playing: boolean) => void;
+}) {
   const [playing, setPlaying] = useState(false);
   const [message, setMessage] = useState("");
   const utterance = useRef<SpeechSynthesisUtterance | null>(null);
@@ -26,6 +28,7 @@ export default function StorySampleAudio({ title, text, active }: { title: strin
       window.speechSynthesis.cancel();
       utterance.current = null;
       setPlaying(false);
+      onPlaybackChange?.(false);
       return;
     }
     const voice = window.speechSynthesis.getVoices().find((item) => item.lang.toLowerCase().startsWith("vi"));
@@ -35,10 +38,12 @@ export default function StorySampleAudio({ title, text, active }: { title: strin
     speech.lang = "vi-VN";
     speech.voice = voice;
     speech.rate = 0.9;
-    speech.onend = () => { setPlaying(false); utterance.current = null; };
-    speech.onerror = () => { setPlaying(false); utterance.current = null; setMessage("Chưa phát được giọng đọc. Bạn có thể thử lại."); };
+    const finish = () => { setPlaying(false); utterance.current = null; onPlaybackChange?.(false); };
+    speech.onend = finish;
+    speech.onerror = () => { finish(); setMessage("Chưa phát được giọng đọc. Bạn có thể thử lại."); };
     utterance.current = speech;
     setPlaying(true);
+    onPlaybackChange?.(true);
     window.speechSynthesis.speak(speech);
   };
 

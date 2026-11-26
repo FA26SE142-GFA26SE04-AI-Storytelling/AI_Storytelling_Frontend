@@ -44,6 +44,8 @@ import WishCardManagement from "./WishCardManagement";
 import { AdminPayments, AdminPlans, AdminQuota } from "./AdminSystem";
 import { AdminBusinessReport } from "./AdminBusinessReport";
 import EventsWorkspace from "@/app/features/events/EventsWorkspace";
+import EventResultPopupHost from "@/app/features/events/EventResultPopup";
+import type { EventResultDestination } from "@/app/features/events/eventNavigation";
 import AdminOverview from "./AdminOverview";
 import AdminSidebar, { type SideGroup } from "./AdminSidebar";
 import { adminNavBadges, useAdminTodo } from "./adminTodo";
@@ -196,7 +198,7 @@ export default function StaffApp({
   role: StaffRole;
   initialSection?: string;
   initialTarget?: number | null;
-  onNavigate?: (section: string, storyId: number | null) => void;
+  onNavigate?: (section: string, storyId: number | null, eventTarget?: EventResultDestination) => void;
 }) {
   const { user } = useAuth();
   return (
@@ -222,7 +224,7 @@ function StaffAppInner({
   userId: number | null;
   initialSection?: string;
   initialTarget?: number | null;
-  onNavigate?: (section: string, storyId: number | null) => void;
+  onNavigate?: (section: string, storyId: number | null, eventTarget?: EventResultDestination) => void;
 }) {
   const { theme, toggleTheme } = useTheme();
   const navRef = useRiseIn<HTMLElement>("button", [], { delay: 40, distance: 10 });
@@ -258,12 +260,13 @@ function StaffAppInner({
   const { map: granted, ready: accessReady } = useMyAccess(userId, pageId);
   const leaveGuard = useRef<LeaveGuard | null>(null);
   const registerGuard = useCallback((guard: LeaveGuard | null) => { leaveGuard.current = guard; }, []);
-  const go = async (id: string, storyId: number | null = null) => {
-    if (id !== pageId && leaveGuard.current && !(await leaveGuard.current())) return;
+  const go = async (id: string, storyId: number | null = null, eventTarget?: EventResultDestination) => {
+    if (id !== pageId && leaveGuard.current && !(await leaveGuard.current())) return false;
     setPageId(id);
     setTarget(storyId);
     setResumeId(null);
-    onNavigate?.(id, storyId);
+    onNavigate?.(id, storyId, eventTarget);
+    return true;
   };
   useEffect(() => { if (userId !== null) writeStaffWorkspace(userId, { pageId, target }); }, [userId, pageId, target]);
 
@@ -389,6 +392,11 @@ function StaffAppInner({
           </Page>
         )}
       </main>
+      {role === "ContentCreator" && (
+        <EventResultPopupHost
+          onNavigateToEvent={(eventId, claimAwardId) => go("events", null, { eventId, claimAwardId })}
+        />
+      )}
     </div>
   );
 }

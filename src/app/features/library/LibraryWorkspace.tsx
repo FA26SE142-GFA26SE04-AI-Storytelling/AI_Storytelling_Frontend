@@ -1,22 +1,28 @@
 "use client";
 
 import "@/app/styles/features/library/library.css";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { WorkspaceProps } from "@/app/components/shell/nav";
 import { useAuth } from "@/app/context/AuthContext";
 import { useWorkspaceData } from "@/app/context/WorkspaceDataContext";
 import { backToLearning, takeLibraryPick, type LibraryPick } from "@/app/features/learning/learningIntent";
 import { useRoadmapTemplates } from "@/app/features/roadmap/roadmapData";
 import { useAccessLookup } from "@/app/features/staff/staffAccess";
+import { eventService } from "@/app/services/eventService";
 import type * as B from "@/app/types/backendContracts";
+import type { EventSummaryDto } from "@/app/types/event";
 import type { RoadmapTemplate } from "@/app/types/progress";
 import { Shelf, ShelfRow } from "./LibraryCards";
 import LibraryDialogs, { type LibraryDialogKind } from "./LibraryDialogs";
+import type { EventStoryShelfItem } from "./LibraryEventStoriesSection";
 import LibraryFilterSidebar from "./LibraryFilterSidebar";
 import LibraryHeader from "./LibraryHeader";
 import LibraryRoadmapsView from "./LibraryRoadmapsView";
 import LibraryStoriesView from "./LibraryStoriesView";
 import EventHighlightBanner from "@/app/features/events/EventHighlightBanner";
+import { eventScheduleWindow } from "@/app/features/events/eventTime";
+import { useEventListDetails } from "@/app/features/events/useEventListDetails";
+import { statusOf } from "./libraryFilters";
 import { Preview, type PreviewStory } from "./StoryPreviewDialog";
 import { useLibraryCatalog } from "./useLibraryCatalog";
 import { useLibraryDiscovery } from "./useLibraryDiscovery";
@@ -76,6 +82,51 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
   }, []);
 
   const discovery = useLibraryDiscovery({ stories, templates, kids, pickKid, tab, community: canCommunity });
+
+  const [publishedEvents, setPublishedEvents] = useState<EventSummaryDto[]>([]);
+  useEffect(() => {
+    let active = true;
+    void eventService.list(false).then((res) => {
+      if (!active || !res.success || !res.data) return;
+      setPublishedEvents(res.data.filter((ev) => ev.status === "Published"));
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const eventsNeedingDetails = useMemo(
+    () =>
+      publishedEvents.filter((ev) => {
+        const { start, end } = eventScheduleWindow(ev);
+        return start === null || end === null;
+      }),
+    [publishedEvents],
+  );
+  const { details: eventDetails } = useEventListDetails(eventsNeedingDetails);
+
+  const eventStories = useMemo<EventStoryShelfItem[]>(() => {
+    if (publishedEvents.length === 0 || stories.length === 0) return [];
+    const now = Date.now();
+    const tagsByStoryId = new Map<number, { id: number; title: string }[]>();
+    for (const ev of publishedEvents) {
+      const detail = eventDetails.get(ev.id);
+      const { start, end } = eventScheduleWindow(ev, detail);
+      if (start === null || end === null || now < start || now > end) continue;
+      const storyIds = detail?.eventStoryIds ?? ev.eventStoryIds ?? [];
+      for (const storyId of storyIds) {
+        const list = tagsByStoryId.get(storyId) ?? [];
+        if (!list.some((tag) => tag.id === ev.id)) {
+          list.push({ id: ev.id, title: ev.title });
+          tagsByStoryId.set(storyId, list);
+        }
+      }
+    }
+    if (tagsByStoryId.size === 0) return [];
+    return stories
+      .filter((story) => statusOf(story) === "ready" && tagsByStoryId.has(story.id))
+      .map((story) => ({ story, eventTags: tagsByStoryId.get(story.id)! }));
+  }, [publishedEvents, eventDetails, stories]);
 
   const sel =
     stories.find((s) => s.id === selected) ??
@@ -142,9 +193,10 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
               />
 
               {tab === "stories" ? (
-                <>
-                  <EventHighlightBanner role="Parent" onOpenEvents={() => go("events")} />
-                  <LibraryStoriesView
+                <LibraryStoriesView
+                  eventBanner={<EventHighlightBanner role="Parent" initialEvents={publishedEvents} onOpenEvents={() => go("events")} />}
+                  eventStories={eventStories}
+                  onOpenEvents={() => go("events")}
                   stories={stories}
                   sorted={discovery.sorted}
                   results={discovery.results}
@@ -180,7 +232,6 @@ export default function LibraryWorkspace({ go, onKid }: Pick<WorkspaceProps, "go
                     setFilterOpen(false);
                   }}
                 />
-                </>
               ) : (
                 <LibraryRoadmapsView
                   templates={templates}

@@ -172,11 +172,13 @@
 .plan-scroll > .pb { overflow: visible; flex: none; max-width: 900px; margin: 0 auto; padding: 18px 22px; gap: 12px; background: color-mix(in srgb, var(--paper) 92%, transparent); border: 1px solid var(--line-2); border-radius: 26px 26px 26px 10px; box-shadow: 0 24px 50px -28px color-mix(in srgb, var(--shadow) 40%, transparent); }
 /* Form ý tưởng: mở rộng 2 cột trên màn hình lớn để hạn chế scroll dọc */
 .plan-scroll > .pb.brief { max-width: 1120px; }
-/* Chọn cách tạo truyện (Viết từ ý tưởng / Nhập truyện có sẵn), nằm trên khung yêu cầu. */
-.plan-entry { max-width: 1120px; margin: 0 auto 12px; }
-.plan-entry .ic, .import-panel .seg .ic { width: 16px; height: 16px; flex: none; }
-.plan-entry button, .import-panel .seg button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+/* Banner trạng thái giới hạn tạo truyện AI nằm gọn phía trên khung yêu cầu. */
+.plan-scroll > .notice { max-width: 1120px; margin: 0 auto 12px; }
+.plan-scroll > .notice:not(.err):not(.ok):not(.warn) { background: color-mix(in srgb, var(--paper) 92%, transparent); border: 1px solid var(--line-2); }
+.plan-scroll > .notice.err { background: color-mix(in srgb, var(--danger) 12%, var(--paper)); border: 1px solid color-mix(in srgb, var(--danger) 28%, var(--line-2)); }
 /* Nhập truyện có sẵn (Luồng 3b). */
+.import-panel .seg .ic { width: 16px; height: 16px; flex: none; }
+.import-panel .seg button { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
 .import-panel { gap: 16px; animation: block-in .3s cubic-bezier(.2, .8, .3, 1) both; }
 .import-file { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
 .import-panel textarea.inp { margin-top: 8px; resize: vertical; }

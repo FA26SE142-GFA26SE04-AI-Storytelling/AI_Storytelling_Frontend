@@ -9,8 +9,7 @@ vi.mock('@/app/lib/motion', () => ({ useRiseIn: () => null, useSwap: () => null 
 vi.mock('@/app/components/brand/Frog', () => ({ default: () => null }));
 vi.mock('@/app/components/brand/PondBackdrop', () => ({ default: () => null }));
 vi.mock('@/app/components/shell/AsidePane', () => ({ default: ({ children }: { children: ReactNode }) => <aside>{children}</aside> }));
-vi.mock('@/app/features/studio/BriefForm', () => ({ default: () => null }));
-vi.mock('@/app/features/studio/ImportStoryPanel', () => ({ default: () => null }));
+vi.mock('@/app/features/studio/BriefForm', () => ({ default: () => <div data-testid="brief-form" /> }));
 vi.mock('@/app/features/studio/OutlinePanel', () => ({ default: () => null }));
 import StageProgress from '@/app/features/studio/StageProgress';
 import StudioPlan from '@/app/features/studio/StudioPlan';
@@ -55,7 +54,7 @@ describe('provider access failure UI', () => {
       flow={{ context, values: null, errorMessage: null } as unknown as UseAIStoryInputFlowResult}
       stage="brief" storyId={null} snapshot={null} errorCode={null}
       timedOut={false} statusError={null} refresh={() => {}} onOutlineApproved={() => {}}
-      kidName="Bé An" childId={1} onOpenStory={() => {}} />);
+      kidName="Bé An" onOpenStory={() => {}} />);
     // Chưa tải danh mục (SSR không chạy effect): dùng tên dự phòng, không hiện mã in hoa.
     expect(html).not.toContain('WAR_CONFLICT');
     expect(html).toContain('Bullying');
@@ -65,12 +64,37 @@ describe('provider access failure UI', () => {
     expect(html).not.toContain('Chỉ viết trong các chủ đề');
   });
 
+  it('does not render the import existing story tab in AI story creation', () => {
+    const context = {
+      maximumLength: 1430, defaultVocabularyLevel: 'level_2', requiredApprovalMode: 'AlwaysManual',
+      interests: [], allowedCategoryCodes: [], blockedCategoryCodes: [],
+    };
+    const html = renderToStaticMarkup(<StudioPlan
+      flow={{ context, values: null, errorMessage: null, concurrencyLimitReached: false, isBusy: false, submit: vi.fn() } as unknown as UseAIStoryInputFlowResult}
+      stage="brief" storyId={null} snapshot={null} errorCode={null}
+      timedOut={false} statusError={null} refresh={() => {}} onOutlineApproved={() => {}}
+      kidName="Bé An" onOpenStory={() => {}}
+      capacity={{
+        capacity: { activeCount: 1, limit: 2, canStartNewStory: true, activeStories: [{ storyId: 91, title: 'Chú ếch qua cầu' }] },
+        loading: false,
+        error: null,
+        refresh: vi.fn(),
+      }} />);
+    expect(html).toContain('data-testid="brief-form"');
+    expect(html).toContain('Đang thực hiện 1/2 truyện AI.');
+    expect(html).toContain('Chú ếch qua cầu');
+    expect(html).not.toContain('Nhập truyện có sẵn');
+    expect(html).not.toContain('Viết từ ý tưởng');
+    expect(html).not.toContain('plan-entry');
+    expect(html).not.toContain('Cách tạo truyện');
+  });
+
   it('shows a terminal sidebar state instead of endless resume text', () => {
     const html = renderToStaticMarkup(<StudioPlan
       flow={{ context: null, values: null, errorMessage: null } as UseAIStoryInputFlowResult}
       stage="outline_wait" storyId={55} snapshot={null} errorCode="AI_PROVIDER_ACCESS_DENIED"
       timedOut={false} statusError={null} refresh={() => {}} onOutlineApproved={() => {}}
-      kidName="Bé" childId={1} onOpenStory={() => {}} />);
+      kidName="Bé" onOpenStory={() => {}} />);
     expect(html).toContain('Đã dừng do lỗi');
     expect(html).toContain('Truyện #55');
     expect(html).not.toContain('Đang mở lại truyện đã lưu');

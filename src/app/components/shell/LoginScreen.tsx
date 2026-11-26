@@ -4,6 +4,7 @@ import { authScreenHref, readAuthScreenMode, type AuthScreenMode } from "@/app/l
 import PasswordInput from "@/app/components/PasswordInput";
 import "@/app/styles/components/shell/login.css";
 import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
 import Frog from "@/app/components/brand/Frog";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import { useAuth } from "@/app/context/AuthContext";
@@ -188,6 +189,9 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         {backendOnline === false && <div className="notice err" role="status">{backendStatusMessage}</div>}
 
         <button className="btn btn-p btn-c" style={{ padding: 10 }} disabled={busy}>{busy ? "Đang xử lý…" : SUBMIT_LABELS[mode]}</button>
+        {(mode === "register" || mode === "creator") && (
+          <p className="login-alt"><Link href="/chinh-sach" target="_blank" rel="noopener">Chính sách và bản quyền (mở tab mới)</Link></p>
+        )}
 
         {mode === "login" ? (
           <>
