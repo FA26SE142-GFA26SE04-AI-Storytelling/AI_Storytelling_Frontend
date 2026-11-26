@@ -105,6 +105,8 @@ function api({ path, method, body, url, state }) {
     case path === '/Notification/unread-count': return 0;
     case path === '/Notification': return [];
     case path === '/ChildProfile/mine': return state.kids ?? [sen, lan];
+    case path === '/ChildProfile' && method === 'POST': state.createdKid = body; return { ...sen, id: 12, nickname: body.nickname, status: 'Draft' };
+    case path === '/ChildProfile/12/activate': state.activated = true; return { ...sen, id: 12, status: 'Active' };
     case path === '/ReadingSchedule/10' && method === 'GET': return state.readingSchedule ?? suggestedSchedule;
     case path === '/ReadingSchedule/10' && method === 'PUT': {
       const slots = { Weekday: 0, Weekend: 0 };
@@ -112,8 +114,14 @@ function api({ path, method, body, url, state }) {
         windows: body.windows.map((w) => ({ ...w, slot: ++slots[w.dayType] })) };
       return state.readingSchedule;
     }
+    case path.startsWith('/SafetyPolicy/') && method === 'PUT': state.safetyPut = body; return { childProfileId: 12, ...body };
     case path.startsWith('/SafetyPolicy/'): return { childProfileId: 10, maxStoryLength: 2000, parentalGateEnabled: false, categories: [] };
     case path.startsWith('/LearningProfile/'): return { childProfileId: 10, readingLevel: 2, readingMode: 'ReadFirst', topics: state.libraryDiscovery && path === '/LearningProfile/10' ? [{ topic: 'Kham pha', relation: 'FavoriteTopic' }] : [] };
+    case path === '/ai-story-input/children/10/context': return { childProfileId: 10, childNickname: 'Bé Sen', ageBand: 'Age_6_8', readingLevel: 2, defaultVocabularyLevel: 'level_2',
+      availableVocabularyLevels: ['level_1', 'level_2', 'level_3'], defaultLanguage: 'vi', availableLanguages: ['vi'], availableOutputModes: ['learning', 'reading_media_only'], maximumLength: 1200,
+      recommendedTargetLength: 600, requiredApprovalMode: 'AlwaysManual', parentalGateEnabled: true, safetyScoreThreshold: null, readabilityScoreThreshold: null, comprehensionGoal: null,
+      comprehensionThresholdPercent: null, comprehensionWindowSize: 5, interests: [], allowedCategoryCodes: [], restrictedCategoryCodes: [], blockedCategoryCodes: [],
+      characterModes: ['specified', 'ai_suggested'], settingModes: ['specified', 'ai_suggested'] };
     case path === '/ContentCategory': return [{ id: 1, code: 'nature', displayName: 'Thiên nhiên', isActive: true }];
     case path === '/Story': return paged([story, waiting]);
     // Truyện cộng đồng (của Creator) mã 9: GET /Story/9 không tìm thấy, ảnh bìa chỉ có ở danh sách cộng đồng.
@@ -171,7 +179,13 @@ function api({ path, method, body, url, state }) {
     case path === '/ChildAccessCredential/me': return { childProfileId: 10, nickname: 'Bé Sen', ageBand: 'Age_6_8', avatarId: 'frog', language: 'vi', readingTime: state.readingTime ?? null, habit: state.habit ?? null };
     case path === '/MyRoadmap': return { openStories: [{ stage: 2, storyId: 7, title: 'Ếch con hôm nay', coverImageUrl: null, note: 'Mẹ chọn cho con', expectedBy: null, isLocked: false }], upcoming: [{ order: 2, storyId: 9, title: 'Truyện tiếp theo', coverImageUrl: null, isLocked: true }], done: [{ stage: 1, storyId: 6, title: 'Truyện đã đọc', coverImageUrl: null, completedAt: now }], completedCount: 1, totalCount: 3, isFinished: false };
     case path === '/child/manual-stories': return [];
-    case path === '/child/reading/stories': return { isLocked: false, unlockStoryId: null, message: null, items: [{ storyId: 7, title: story.title, coverImageUrl: null, description: null, source: 'roadmap' }], totalCount: 1, pageIndex: 1, pageSize: 20 };
+    case path === '/child/reading/stories': {
+      // manyShelf: kệ dài hơn màn hình để thử kéo ngang bằng chuột.
+      const items = state.manyShelf
+        ? Array.from({ length: 14 }, (_, i) => ({ storyId: 100 + i, title: `Truyện kệ ${i + 1}`, coverImageUrl: null, description: null, source: 'library' }))
+        : [{ storyId: 7, title: story.title, coverImageUrl: null, description: null, source: 'roadmap' }];
+      return { isLocked: false, unlockStoryId: null, message: null, items, totalCount: items.length, pageIndex: 1, pageSize: 20 };
+    }
     case path === '/child/notebook': return [];
     case path === '/child/reading/sessions' && method === 'POST': state.reading = body; return { sessionId: 31, storyId: body.storyId, resumed: false, lastPage: 1, lastReadingMode: 'ListenFirst', isBookmarked: false, isFavorited: false };
     // Cảnh đầu có 3 tranh (mỗi tranh một đoạn chữ); ảnh là SVG nhúng để không cần tải từ ngoài.
@@ -669,6 +683,85 @@ try {
     await pop.waitFor({ state: 'detached' });
   }, { vocab: [{ id: 5, term: 'vườn' }] });
 
+  await smoke('KidVocabKeepsNarrating', 'Parent', async ({ page }) => {
+    // Rê chuột vào từ mới (gọi API tra nghĩa) không được làm giọng kể dừng.
+    await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
+    const word = page.locator('.kid-story-caption .kid-vocab', { hasText: 'vườn' });
+    await word.waitFor();
+    await page.getByRole('button', { name: 'Nghe truyện', exact: true }).click();
+    await page.getByRole('button', { name: 'Tạm dừng', exact: true }).waitFor();
+    await word.hover();
+    await page.getByRole('tooltip').getByText('Khoảng đất trồng rau, hoa hoặc cây quanh nhà.').waitFor();
+    await page.waitForTimeout(300);
+    assert.equal(await page.locator('.kid-narrator-corner audio').evaluate((a) => a.paused), false, 'Giọng kể vẫn phát khi tra nghĩa từ');
+    await page.getByRole('button', { name: 'Đọc cả đoạn', exact: true }).waitFor();
+  }, { vocab: [{ id: 5, term: 'vườn' }] });
+
+  await smoke('KidShelfDrag', 'Parent', async ({ page }) => {
+    // Kệ truyện ẩn thanh cuộn: chuột kéo ngang được, thả chuột sau khi kéo không mở nhầm truyện.
+    await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Kho truyện', exact: true }).click();
+    const row = page.locator('.kid-shelf-row').first();
+    await row.getByText('Truyện kệ 1', { exact: true }).first().waitFor();
+    const box = await row.boundingBox();
+    const y = box.y + box.height / 2;
+    await page.mouse.move(box.x + box.width - 60, y);
+    await page.mouse.down();
+    await page.mouse.move(box.x + box.width - 260, y, { steps: 8 });
+    await page.mouse.up();
+    await page.waitForTimeout(400);
+    assert(await row.evaluate((el) => el.scrollLeft) > 100, 'Kéo chuột phải cuộn được kệ truyện');
+    assert.equal(await page.locator('.kid-theater').count(), 0, 'Thả chuột sau khi kéo không mở truyện');
+    await shots(page, 'KidShelfDrag', '.kid-shelf');
+  }, { manyShelf: true });
+
+  await smoke('StudioGenreRequired', 'Parent', async ({ page }) => {
+    // Đã bỏ "Để AI chọn": thể loại bắt buộc, nằm trong nhóm câu hỏi chính.
+    await page.goto(parent('#studio'), { waitUntil: 'domcontentloaded' });
+    await page.getByRole('dialog', { name: 'Tạo truyện cho bé nào?' }).getByRole('button', { name: /Bé Sen/ }).click();
+    const trigger = page.locator('#brief-genre');
+    await trigger.waitFor();
+    assert.equal(await page.getByText('Để AI chọn', { exact: true }).count(), 0, 'Không còn "Để AI chọn" trên form');
+    await trigger.click();
+    await page.getByRole('listbox', { name: 'Chọn thể loại hoặc chủ đề' }).waitFor();
+    assert.equal(await page.getByText('Để AI chọn', { exact: true }).count(), 0, 'Không còn "Để AI chọn" trong ô chọn');
+    await shots(page, 'StudioGenreRequired', '.genre-picker');
+    await page.keyboard.press('Escape');
+    await page.locator('#brief-topic').fill('Ếch con đi hội Trung thu');
+    assert(await page.locator('button.brief-go').isEnabled(), 'Có sẵn thể loại mặc định thì gửi được');
+  });
+
+  await smoke('CreateChildConsentPopup', 'Parent', async ({ page, state }) => {
+    // Đồng ý của phụ huynh hỏi bằng popup khi bấm "Tạo hồ sơ" ở bước cuối, không còn nằm trên form bước An toàn.
+    await page.goto(parent('#children'), { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Thêm bé', exact: true }).click();
+    await page.getByPlaceholder('Ví dụ: Bé Na').fill('Bé Thử');
+    await page.getByRole('radio', { name: '7 tuổi', exact: true }).click();
+    await page.getByRole('button', { name: 'Tiếp tục', exact: true }).click();
+    await page.getByRole('button', { name: 'Tiếp tục', exact: true }).click();
+    await page.getByRole('heading', { name: /Chủ đề/ }).waitFor();
+    assert.equal(await page.getByText('Tôi đã đọc và đồng ý', { exact: false }).count(), 0, 'Bước An toàn không còn ô đồng ý');
+    await page.getByRole('button', { name: 'Tiếp tục', exact: true }).click();
+    await page.getByRole('button', { name: 'Bỏ qua, cài sau', exact: true }).click();
+    await page.getByRole('button', { name: 'Tạo hồ sơ', exact: true }).click();
+    const dlg = page.getByRole('dialog', { name: 'Đồng ý của phụ huynh' });
+    await dlg.waitFor();
+    const activate = dlg.getByRole('button', { name: 'Tạo và kích hoạt', exact: true });
+    assert(await activate.isDisabled(), 'Chưa tick đồng ý thì chưa kích hoạt được');
+    await shots(page, 'CreateChildConsentPopup', '.dlg');
+    await dlg.getByRole('button', { name: 'Đóng', exact: true }).click();
+    await dlg.waitFor({ state: 'detached' });
+    assert.equal(state.createdKid, undefined, 'Đóng popup thì chưa tạo hồ sơ');
+    await page.getByRole('button', { name: 'Tạo hồ sơ', exact: true }).click();
+    await dlg.getByRole('checkbox').check();
+    await activate.click();
+    await page.waitForTimeout(800);
+    assert.equal(state.createdKid?.nickname, 'Bé Thử');
+    assert.equal(state.safetyPut?.consentRecorded, true, 'Đồng ý thì lưu cài đặt an toàn kèm đồng ý');
+    assert.equal(state.activated, true, 'Đồng ý thì kích hoạt hồ sơ');
+  });
+
   await smoke('KidPicturesFollowNarration', 'Parent', async ({ page }) => {
     await page.goto(`${base}/?kid=fixture`, { waitUntil: 'domcontentloaded' });
     await page.getByRole('button', { name: 'Đọc ngay', exact: true }).click();
@@ -944,6 +1037,9 @@ try {
     const dialog = page.getByRole('alertdialog', { name: 'Nghỉ một chút nhé' });
     await dialog.waitFor();
     await dialog.getByText('Em uống một ngụm nước nhé!', { exact: true }).waitFor();
+    // Đang nghỉ trong truyện vẫn có lối về với bố mẹ.
+    await dialog.getByRole('button', { name: 'Về với bố mẹ', exact: true }).waitFor();
+    await shots(page, 'KidBreakInReader', '.kid-rest');
     state.signalTime = timeStatus('Allowed');
     await dialog.waitFor({ state: 'detached', timeout: 20000 });
   });
