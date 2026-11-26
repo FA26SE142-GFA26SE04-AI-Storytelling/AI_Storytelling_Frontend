@@ -49,7 +49,7 @@ function renderWords(words: ReadAloudWord[]) {
  * Chữ của tranh đang hiện; khi có kết quả luyện đọc thì thay vùng segment tương ứng.
  * reading: chữ giọng kể đang đọc (vị trí trong chữ của cảnh), được tô sáng theo lời kể.
  */
-export function Caption({text,part,result,segment,segmentStart,reading,vocab=[],renderVocab}:{text:string;part:{start:number;end:number}|null;result:ReadAloudResult|null;segment:ReadingSegment|null;segmentStart:number;reading?:{start:number;end:number}|null;
+export function Caption({text,part,result,segment,segmentStart,reading,dimUnread,vocab=[],renderVocab}:{text:string;part:{start:number;end:number}|null;result:ReadAloudResult|null;segment:ReadingSegment|null;segmentStart:number;reading?:{start:number;end:number}|null;dimUnread?:boolean;
   /** Từ mới cần đánh dấu và cách vẽ từng từ (ô giải thích khi rê chuột / chạm). */
   vocab?:VocabRange[];renderVocab?:(id:number,children:ReactNode,key:number)=>ReactNode}) {
   const mark=useRef<HTMLElement>(null);
@@ -72,6 +72,12 @@ export function Caption({text,part,result,segment,segmentStart,reading,vocab=[],
   }
   // Tô sáng chữ giọng kể đang đọc trong khoảng [a,b).
   const lit=(a:number,b:number)=>{
+    if(dimUnread&&reading){
+      const afterStart=Math.max(a,reading.end);
+      const renderTail=(s:number,e:number)=>s<e?<span className="kid-caption-todo">{text.slice(s,e)}</span>:null;
+      const from=Math.max(reading.start,a), to=Math.min(reading.end,b);
+      return to>from?<>{text.slice(a,from)}<span className="kid-reading-word">{text.slice(from,to)}</span>{renderTail(afterStart,b)}</>:afterStart<=a?renderTail(a,b):text.slice(a,b);
+    }
     const from=reading?Math.max(reading.start,a):b, to=reading?Math.min(reading.end,b):b;
     return to>from?<>{text.slice(a,from)}<span className="kid-reading-word">{text.slice(from,to)}</span>{text.slice(to,b)}</>:text.slice(a,b);
   };

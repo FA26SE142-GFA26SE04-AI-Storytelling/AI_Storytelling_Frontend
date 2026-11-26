@@ -12,8 +12,9 @@ import {useAuthedMediaUrl} from '@/app/lib/useAuthedMediaUrl';
  * onPlayingChange: báo giọng kể đang phát hay đã dừng, để màn đọc biết có cần đọc tiếp sau tương tác không.
  * onWord: chữ đang được kể [start, end) trong chữ của cảnh, để tô sáng; null khi không phát hoặc đoạn không có mốc thời gian từng chữ.
  * onNoHighlight: đoạn vừa phát không có mốc thời gian từng chữ trong DB nên không tô sáng.
+ * onProgress: tỉ lệ thời gian đã phát của đoạn hiện tại (currentTime/duration), báo khi đang phát để chế độ phụ đề chọn khúc.
  */
-export default function KidNarrator({scene,disabled,onListen,onEvent,onSceneEnd,paused,onSegmentChange,range,autoStart,onPartEnd,onPlayingChange,onWord,onNoHighlight}:{scene:ReadingScene;disabled:boolean;onListen:()=>Promise<boolean>;onEvent:(type:ReadingEvent,payload?:string)=>Promise<void>;onSceneEnd?:()=>void;paused:boolean;onSegmentChange?:(part:number)=>void;range:{start:number;end:number};autoStart?:boolean;onPartEnd?:()=>void;onPlayingChange?:(playing:boolean)=>void;onWord?:(word:{start:number;end:number}|null)=>void;onNoHighlight?:()=>void}) {
+export default function KidNarrator({scene,disabled,onListen,onEvent,onSceneEnd,paused,onSegmentChange,range,autoStart,onPartEnd,onPlayingChange,onWord,onNoHighlight,onProgress}:{scene:ReadingScene;disabled:boolean;onListen:()=>Promise<boolean>;onEvent:(type:ReadingEvent,payload?:string)=>Promise<void>;onSceneEnd?:()=>void;paused:boolean;onSegmentChange?:(part:number)=>void;range:{start:number;end:number};autoStart?:boolean;onPartEnd?:()=>void;onPlayingChange?:(playing:boolean)=>void;onWord?:(word:{start:number;end:number}|null)=>void;onNoHighlight?:()=>void;onProgress?:(ratio:number)=>void}) {
   const segments=scene.segments.slice().sort((a,b)=>a.segmentOrder-b.segmentOrder);
   const [part,setPart]=useState(0),[playing,setPlaying]=useState(false),[busy,setBusy]=useState(false);
   const [failed,setFailed]=useState(false);
@@ -43,8 +44,8 @@ export default function KidNarrator({scene,disabled,onListen,onEvent,onSceneEnd,
   };
   // Tô sáng chữ đang kể: lúc phát thì đọc vị trí theo từng khung hình (mượt hơn timeupdate ~4 lần/giây),
   // chỉ báo lên khi sang chữ khác để màn đọc không vẽ lại liên tục.
-  const live=useRef({current,timings,part,starts,text:scene.text,onWord});
-  useEffect(()=>{live.current={current,timings,part,starts,text:scene.text,onWord};});
+  const live=useRef({current,timings,part,starts,text:scene.text,onWord,onProgress});
+  useEffect(()=>{live.current={current,timings,part,starts,text:scene.text,onWord,onProgress};});
   const lastWord=useRef<number|null>(null);
   const emitWord=(w:{start:number;end:number}|null)=>{
     const key=w?w.start:null;
@@ -59,6 +60,7 @@ export default function KidNarrator({scene,disabled,onListen,onEvent,onSceneEnd,
       const a=audio.current,l=live.current;
       // Chỉ tô sáng theo mốc thời gian thật trong DB; không có thì không ước lượng.
       if(a&&l.current)emitWord(!l.timings.length?null:wordAt(l.text,(l.starts[l.part]??0)+charInSegment(l.current.text,l.timings,a.currentTime,a.duration)));
+      if(a&&a.duration>0)l.onProgress?.(a.currentTime/a.duration);
       id=requestAnimationFrame(loop);
     };
     id=requestAnimationFrame(loop);

@@ -23,16 +23,24 @@ describe('kid lobby', () => {
     expect(stories).toMatch(/lobbyStorySources\(disabled, ready\)/);
   });
 
-  // Lỗi tìm thấy khi test prod 23/11/2026: sảnh vẫn hiện nút của chức năng bố mẹ đã tắt.
+  // Lỗi tìm thấy khi test prod 23/11/2026: sảnh vẫn mở được chức năng bố mẹ đã tắt.
+  // 26/11: theo yêu cầu, nút vẫn hiện nhưng mờ (`off`), bấm thì báo thay vì mở (như mobile).
   it('gates every lobby shortcut of a switchable feature', () => {
     const read = (f: string) => readFileSync(path.resolve(process.cwd(), `app/features/kid/${f}`), 'utf8');
     const lobby = read('KidLobby.tsx');
     const stage = read('KidLobbyStage.tsx');
-    expect(lobby).toMatch(/notebookOn && <StageButton icon=\{NotebookPen\}/);
-    expect(lobby).toMatch(/wishesOn && <StageButton icon=\{Sparkles\}/);
-    expect(lobby).toMatch(/rewardsOn && <StageButton icon=\{Award\}/);
-    expect(stage).toMatch(/libraryOn && <StageButton icon=\{Library\}/);
-    expect(stage).toMatch(/rewardsOn && <StageButton icon=\{Sprout\}/);
+    expect(lobby).toMatch(/<StageButton icon=\{NotebookPen\}[^>]*off=\{!notebookOn\}/);
+    expect(lobby).toMatch(/<StageButton icon=\{Sparkles\}[^>]*off=\{!wishesOn\}/);
+    expect(lobby).toMatch(/<StageButton icon=\{Award\}[^>]*off=\{!rewardsOn\}/);
+    expect(stage).toMatch(/<StageButton icon=\{Library\}[^>]*off=\{!libraryOn\}/);
+    expect(stage).toMatch(/<StageButton icon=\{Sprout\}[^>]*off=\{!rewardsOn\}/);
+    expect(stage).toMatch(/onClick=\{off \? notifyFeatureOff : onClick\}/);
+  });
+
+  // Lỗi 26/11: sổ từ bị tắt mà khung "Từ vựng của em" vẫn gọi API, toast lỗi ngay khi bé vào sảnh.
+  it('does not load the notebook panel when the notebook is off', () => {
+    const side = readFileSync(path.resolve(process.cwd(), 'app/features/kid/KidLobbySide.tsx'), 'utf8');
+    expect(side).toMatch(/!ready \|\| !notebookOn\) return;/);
   });
 });
 
