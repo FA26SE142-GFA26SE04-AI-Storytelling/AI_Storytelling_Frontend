@@ -8,7 +8,7 @@ import KidQuiz from './KidQuiz';
 import KidReflection from './KidReflection';
 import KidSummary from './KidSummary';
 import { useDialog } from './useDialog';
-import { FEATURE_OFF_MESSAGE, KID_FEATURE, useKidFeature } from './kidFeatures';
+import { KID_FEATURE, useKidFeature } from './kidFeatures';
 
 /** Câu đố hiện trong cửa sổ nổi giữa màn hình: đóng bằng nút X, Esc hoặc bấm ra ngoài. */
 function QuizPopup({ onClose, children }: { onClose: () => void; children: React.ReactNode }) {
@@ -21,8 +21,7 @@ function QuizPopup({ onClose, children }: { onClose: () => void; children: React
   </div>;
 }
 
-/** 7 trang trong popup sau khi đọc: cảm nhận 4 trang, ghi âm, thắc mắc, câu đố. */
-const PAGES = 7;
+/** Tối đa 7 trang trong popup sau khi đọc: cảm nhận 4 trang, ghi âm, thắc mắc, câu đố (trang của chức năng bị tắt thì ẩn). */
 const TITLES = [
   'Em thấy truyện này thế nào?',
   'Truyện làm em cảm thấy gì?',
@@ -43,8 +42,15 @@ export default function KidAfterReading({ token, completed, scenes = [], onLibra
   const reflectionOn = useKidFeature(KID_FEATURE.reflection);
   const voiceOn = useKidFeature(KID_FEATURE.voice);
   const [quiz, setQuiz] = useState(false);
-  const [page, setPage] = useState(0);
+  const [rawPage, setPage] = useState(0);
   const [dir, setDir] = useState(1);
+  // Truyện không có câu đố (API trả danh sách câu rỗng) thì bỏ trang câu đố ở cuối.
+  const [hasQuiz, setHasQuiz] = useState(true);
+  // Chỉ giữ trang của chức năng bố mẹ đang bật; `page` là vị trí trong danh sách này, `cur` là trang gốc (0–6).
+  const visible = [...(reflectionOn ? [0, 1, 2, 3] : []), ...(voiceOn ? [4] : []), 5, ...(quizOn && hasQuiz ? [6] : [])];
+  const pages = visible.length;
+  const page = Math.min(rawPage, pages - 1);
+  const cur = visible[page];
   const touched = useRef(false);
   const swap = useSwap<HTMLDivElement>(page, dir);
   const go = (p: number) => { setDir(p > page ? 1 : -1); setPage(p); };
@@ -66,18 +72,15 @@ export default function KidAfterReading({ token, completed, scenes = [], onLibra
 
   const newBadges = badgeCodes.map(code => badges.find(b => b.code === code)?.name ?? code);
 
-  // Truyện không có câu đố (API trả danh sách câu rỗng) thì bỏ trang câu đố ở cuối.
-  const [hasQuiz, setHasQuiz] = useState(true);
   useEffect(() => {
     if (!quizOn) return;
     const controller = new AbortController();
     void childQuizService.get(token, completed.sessionId, controller.signal).then(r => {
       if (controller.signal.aborted || !r.success || !r.data || r.data.questions.length) return;
-      setHasQuiz(false); setPage(p => Math.min(p, PAGES - 2));
+      setHasQuiz(false);
     });
     return () => controller.abort();
   }, [quizOn, token, completed.sessionId]);
-  const pages = hasQuiz ? PAGES : PAGES - 1;
 
   return <div className="kid-finish-card kid-after-card">
     {(exp > 0 || newBadges.length > 0 || completed.roadmapStepCompleted) && <div className="kid-after-intro">
@@ -88,36 +91,37 @@ export default function KidAfterReading({ token, completed, scenes = [], onLibra
       {completed.roadmapStepCompleted && <p>Em đã đi thêm một bước trong hành trình đọc!</p>}
     </div>}
     <div className="kid-after-page" ref={swap}>
-      <div hidden={page > 3}>
-        <h3 className="display">{TITLES[Math.min(page, 3)]}</h3>
-        {reflectionOn ? <KidReflection
+      {/* Trang cảm nhận đứng đầu danh sách nên vị trí 0–3 (và 4 = trang kế tiếp khi resume) trùng bước của KidReflection. */}
+      {reflectionOn && <div hidden={cur > 3}>
+        <h3 className="display">{TITLES[Math.min(cur, 3)]}</h3>
+        <KidReflection
           token={token}
           sessionId={completed.sessionId}
           scenes={scenes}
-          step={Math.min(page, 3) as 0 | 1 | 2 | 3}
+          step={Math.min(cur, 3) as 0 | 1 | 2 | 3}
           onNext={onNext}
           onGoto={onGoto}
           onResume={onResume}
-        /> : <p className="kid-after-off">{FEATURE_OFF_MESSAGE}</p>}
-      </div>
-      <div hidden={page !== 4}>
+        />
+      </div>}
+      {voiceOn && <div hidden={cur !== 4}>
         <h3 className="display">{TITLES[4]}</h3>
-        {voiceOn ? <KidSummary part="voice" token={token} sessionId={completed.sessionId} scenes={scenes} /> : <p className="kid-after-off">{FEATURE_OFF_MESSAGE}</p>}
-      </div>
-      <div hidden={page !== 5}>
+        <KidSummary part="voice" token={token} sessionId={completed.sessionId} scenes={scenes} />
+      </div>}
+      <div hidden={cur !== 5}>
         <KidSummary part="questions" token={token} sessionId={completed.sessionId} scenes={scenes} />
       </div>
-      {hasQuiz && <div hidden={page !== 6}>
+      {quizOn && hasQuiz && <div hidden={cur !== 6}>
         <h3 className="display">{TITLES[6]}</h3>
-        {quizOn ? <button type="button" className="kid-btn3d is-gold kid-quiz-open" onClick={() => setQuiz(true)}><Puzzle aria-hidden="true" />Làm câu đố về truyện</button> : <p className="kid-after-off">{FEATURE_OFF_MESSAGE}</p>}
+        <button type="button" className="kid-btn3d is-gold kid-quiz-open" onClick={() => setQuiz(true)}><Puzzle aria-hidden="true" />Làm câu đố về truyện</button>
       </div>}
     </div>
     <nav className="kid-story-navigation kid-after-nav" aria-label="Trang sau khi đọc">
       <button type="button" className="kid-side-nav kid-btn3d is-sky" aria-label="Phần trước" title="Phần trước" disabled={page === 0} onClick={() => userGo(page - 1)}><ChevronLeft aria-hidden="true" /></button>
       <ol className="kid-reflection-dots" aria-label={`Bước ${page + 1} trên ${pages}`}>
-        {Array.from({ length: pages }, (_, i) => (
-          <li key={i} className={i === page ? 'on' : i < page ? 'past' : ''} aria-current={i === page ? 'step' : undefined}>
-            <span className="sr-only">{TITLES[i]}</span>
+        {visible.map((p, i) => (
+          <li key={p} className={i === page ? 'on' : i < page ? 'past' : ''} aria-current={i === page ? 'step' : undefined}>
+            <span className="sr-only">{TITLES[p]}</span>
           </li>
         ))}
       </ol>

@@ -209,8 +209,6 @@
 .kid-after-intro p { margin: 0; }
 .kid-after-page { flex: 1 1 auto; min-height: 0; width: 100%; overflow-y: auto; padding: 4px; }
 .kid-after-page > div { display: flex; flex-direction: column; align-items: center; gap: 12px; }
-/* Quyền của bé: phần bố mẹ đã tắt. */
-.kid-after-off { margin: 24px 0; text-align: center; color: var(--muted); font-size: var(--fs-md); }
 .kid-after-page > [hidden] { display: none; }
 .kid-after-card h3 { margin: 0; font-size: var(--fs-lg); }
 .kid-finish-card .kid-after-nav { flex: none; width: 100%; margin: 0; padding: 10px 0 0; border-top: 1px solid var(--line); flex-wrap: nowrap; }
