@@ -30,10 +30,16 @@ export type CreatorAccount = {
   fullName: string;
   email: string;
   status: string;
+  /** Đơn đăng ký mới nhất: Pending | Approved | Rejected; null khi tài khoản không có đơn (seed, Admin cấp). */
+  latestApplicationStatus?: string | null;
   publishedStoryCount: number;
   createdAt: string;
   lastLoginAt: string | null;
 };
+
+/** Trạng thái hiển thị của tài khoản: đơn bị từ chối vẫn giữ AwaitingApproval, tách riêng để Admin không nhầm là đang chờ duyệt. */
+export const creatorAccountDisplayStatus = (c: Pick<CreatorAccount, "status" | "latestApplicationStatus">) =>
+  c.status === "AwaitingApproval" && c.latestApplicationStatus === "Rejected" ? "AwaitingResubmit" : c.status;
 
 export type DeactivateCreatorResult = { creator: CreatorAccount; withdrawnSubmissions: number; closedSubmissions: number };
 

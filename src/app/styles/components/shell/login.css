@@ -10,6 +10,7 @@
 .login-forgot { align-self: flex-end; margin-top: -6px; font-size: var(--fs-sm); }
 /* "Chưa có tài khoản? Tạo tài khoản" — lối chính thứ hai sau nút đăng nhập. */
 .login-alt { margin: 0; text-align: center; font-size: var(--fs-sm); color: var(--muted); }
+.login-alt a { color: var(--link); font-weight: 700; text-decoration: underline; text-underline-offset: 0.2em; }
 .login-alt.small { font-size: var(--fs-sm); margin-top: -6px; }
 /* Lối vào của đội ngũ nội dung: nhóm riêng, nhỏ và nhạt hơn. */
 .login-staff { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 12px; margin-top: 2px; border-top: 1px solid var(--line); }
@@ -19,3 +20,37 @@
 .login-staff button:hover { color: var(--link); }
 /* Về trang giới thiệu: góc trên trái, không chiếm chỗ trong thẻ. */
 .login-home { position: absolute !important; top: 16px; left: 16px; z-index: 2 !important; }
+
+.login-wrap--register { padding: clamp(12px, 3vh, 24px) 16px; }
+.login-wrap--register:has(.login-home) { padding-top: 60px; }
+.login-card--register {
+  width: min(720px, 100%);
+  margin-top: 0;
+  padding: clamp(16px, 3vw, 28px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 9px 16px;
+}
+.login-card--register > * { grid-column: 1 / -1; min-width: 0; }
+.login-card--register .login-frog { position: absolute; top: 14px; right: 20px; margin: 0; pointer-events: none; }
+.login-card--register h1,
+.login-card--register .login-description { margin: 0; padding-inline-end: 76px; }
+.login-card--register .login-description { margin-bottom: 4px; }
+.login-card--register .field { gap: 4px; }
+.login-card--register textarea.inp { resize: none; }
+.login-card--register .login-links button,
+.login-card--register .login-alt button { white-space: normal; }
+
+@media (min-width: 620px) {
+  .login-card--register { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .login-card--register > .field:not(.login-field-wide) { grid-column: auto; }
+}
+
+@media (max-width: 619px) {
+  .login-card--register { gap: 7px; border-radius: 20px; }
+  .login-card--register h1 { font-size: var(--fs-xl); }
+  .login-card--register .login-frog { top: 12px; right: 14px; }
+  .login-card--register .login-frog svg { width: 46px; height: auto; }
+  .login-card--register h1,
+  .login-card--register .login-description { padding-inline-end: 52px; }
+}

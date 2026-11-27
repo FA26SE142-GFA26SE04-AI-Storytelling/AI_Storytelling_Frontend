@@ -47,7 +47,7 @@ export const STAFF_STATUS: Record<string, [string, string]> = {
   pending_approval: ["wait", "Chờ duyệt"], rejected: ["flag", "Bị từ chối"], pending: ["wait", "Chờ duyệt"], approved: ["ok", "Đã duyệt"],
   locked: ["wait", "Khoá đăng nhập"], suspended: ["flag", "Tạm khoá"], unverified: ["draft", "Chưa xác thực"],
   // AccountStatus và CreatorApplicationStatus của backend (tài khoản và đơn đăng ký Content Creator).
-  Registered: ["draft", "Chưa xác thực email"], AwaitingApproval: ["wait", "Chờ duyệt"], Active: ["ok", "Đang hoạt động"], Suspended: ["flag", "Đã vô hiệu hoá"],
+  Registered: ["draft", "Chưa xác thực email"], AwaitingApproval: ["wait", "Chờ duyệt"], AwaitingResubmit: ["flag", "Bị từ chối – chờ nộp lại"], Active: ["ok", "Đang hoạt động"], Suspended: ["flag", "Đã vô hiệu hoá"],
   Pending: ["wait", "Chờ duyệt"], Approved: ["ok", "Đã duyệt"], Rejected: ["flag", "Bị từ chối"],
 };
 export function Pill({ status }: { status: string }) {

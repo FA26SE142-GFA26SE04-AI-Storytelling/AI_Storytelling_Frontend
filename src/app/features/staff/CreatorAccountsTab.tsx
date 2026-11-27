@@ -9,7 +9,7 @@ import { confirmDialog } from "@/app/lib/confirm";
 import { useRiseIn } from "@/app/lib/motion";
 import { showToast } from "@/app/lib/toast";
 import { CreatorPartnerTierDialog } from "./CreatorPartnerTierDialog";
-import { adminCreatorService as svc, type CreatorAccount, type CreatorAccountStatus } from "@/app/services/adminCreatorService";
+import { adminCreatorService as svc, creatorAccountDisplayStatus, type CreatorAccount, type CreatorAccountStatus } from "@/app/services/adminCreatorService";
 import type { PagedResult } from "@/app/types/story";
 import { Pill, ReasonField, fmt } from "./ui";
 
@@ -79,7 +79,7 @@ export function CreatorAccountsTab() {
               <td data-label="Họ tên">{c.fullName}</td>
               <td data-label="Tên đăng nhập" className="st-col-wide">{c.username}</td>
               <td data-label="Email">{c.email}</td>
-              <td data-label="Trạng thái"><Pill status={c.status} /></td>
+              <td data-label="Trạng thái"><Pill status={creatorAccountDisplayStatus(c)} /></td>
               <td data-label="Đã xuất bản">{c.publishedStoryCount}</td>
               <td data-label="Đăng nhập gần nhất">{fmt(c.lastLoginAt)}</td>
               <td data-label="" style={{ whiteSpace: "nowrap" }}>

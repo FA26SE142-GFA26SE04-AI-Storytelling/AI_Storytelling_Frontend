@@ -11,6 +11,8 @@ export interface InteractionOption { id:number; text:string; imageUrl:string|nul
 /** Không kèm đáp án: backend chỉ chấm khi bé gửi câu trả lời. */
 export interface ReadingInteraction {
   id:number; type:InteractionType|string; kind:string|null; prompt:string|null;
+  /** Câu hướng dẫn cố định của RolePlay, FillBlank, EventOrdering (loại không có prompt); audio ở audioUrls.instruction. */
+  instruction?:string|null;
   characterName:string|null; modelSentence:string|null; modelAudioUrl:string|null;
   maskedSentence:string|null; hint:string|null; waitFeedback:string|null; revealSceneIndex:number|null;
   audioUrls:Record<string,string>; options:InteractionOption[];

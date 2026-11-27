@@ -2,13 +2,14 @@
 
 import "@/app/styles/features/landing/landing.css";
 import { useState } from "react";
+import Link from "next/link";
 import { ArrowUpRight, Moon, ScanQrCode, Sun } from "lucide-react";
 import Frog from "@/app/components/brand/Frog";
 import Lotus from "@/app/components/brand/Lotus";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
 import SafeImage from "@/app/components/SafeImage";
 import { useTheme } from "@/app/context/ThemeContext";
-import { circleReveal, useRiseIn } from "@/app/lib/motion";
+import { circleReveal, useFloat, useRiseIn } from "@/app/lib/motion";
 import LandingStoryShelf from "./LandingStoryShelf";
 import KidQrScanner from "@/app/features/kid/KidQrScanner";
 
@@ -19,6 +20,7 @@ export default function Landing({ onStart, onKidCode }: {
   const { theme, toggleTheme } = useTheme();
   const [scan, setScan] = useState(false);
   const heroRef = useRiseIn<HTMLElement>(".ld-rise", [], { delay: 70, distance: 12 });
+  const heroArtRef = useFloat<HTMLDivElement>(".ld-hero-books");
   const flipTheme = (e: React.MouseEvent<HTMLButtonElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     circleReveal(r.left + r.width / 2, r.top + r.height / 2, toggleTheme);
@@ -55,7 +57,7 @@ export default function Landing({ onStart, onKidCode }: {
               Khám phá Taletale <ArrowUpRight size={22} aria-hidden />
             </button>
           </div>
-          <div className="ld-hero-art ld-rise" aria-hidden="true">
+          <div ref={heroArtRef} className="ld-hero-art ld-rise" aria-hidden="true">
             <span className="ld-pond-glow" />
 
             <SafeImage className="ld-hero-books" src="/landing-storybooks.png" alt="" width={1536} height={1024} loading="eager" />
@@ -88,9 +90,14 @@ export default function Landing({ onStart, onKidCode }: {
         </section>
       </main>
       <footer className="ld-foot">
-        <a className="ld-brand" href="#top"><Frog size={30} variant="face" animated={false} /><b className="display">Taletale</b></a>
-        <p>Những câu chuyện nhỏ, nuôi dưỡng yêu thương.</p>
-        <small>taletale.site</small>
+        <div className="ld-foot-brand">
+          <a className="ld-brand" href="#top"><Frog size={30} variant="face" animated={false} /><b className="display">Taletale</b></a>
+          <p>Những câu chuyện nhỏ, nuôi dưỡng yêu thương.</p>
+        </div>
+        <nav className="ld-foot-links" aria-label="Thông tin nền tảng">
+          <h2 className="display">Thông tin nền tảng</h2>
+          <Link className="ld-policy-link" href="/chinh-sach">Chính sách và bản quyền</Link>
+        </nav>
       </footer>
     </div>
   );

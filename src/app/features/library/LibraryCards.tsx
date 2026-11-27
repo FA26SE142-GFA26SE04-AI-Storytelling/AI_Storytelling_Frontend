@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Highlighter, ListChecks } from "lucide-react";
+import { ChevronLeft, ChevronRight, Highlighter, ListChecks, Trophy } from "lucide-react";
 import { StoryStatsBadge } from "@/app/components/StoryStatsBadge";
 import { useRiseIn } from "@/app/lib/motion";
 import type { StoryCard } from "@/app/lib/storyView";
@@ -100,17 +100,24 @@ export function ShelfRow({ children }: { children: React.ReactNode }) {
   );
 }
 
+export type StoryEventTag = {
+  id: number;
+  title: string;
+};
+
 /** Thẻ truyện bìa đứng 3:4 của Thư viện phụ huynh: giữ nguyên vùng cắt bìa (#crop), ưu tiên ảnh minh hoạ sạch và thông tin dễ quét. */
 export function LibraryBookCard({
   story,
   rank,
   onPick,
   compact = false,
+  eventTags,
 }: {
   story: StoryCard;
   rank?: number;
   onPick: (button: HTMLButtonElement) => void;
   compact?: boolean;
+  eventTags?: StoryEventTag[];
 }) {
   const ready = statusOf(story) === "ready";
   const showNew = ready && rank === undefined && isNewStory(story);
@@ -143,6 +150,19 @@ export function LibraryBookCard({
       </span>
       <span className="lib-card-body">
         <strong className="display lib-card-title">{story.title}</strong>
+        {eventTags && eventTags.length > 0 && (
+          <span className="lib-card-event-tags">
+            {eventTags.slice(0, 2).map((ev) => (
+              <span key={ev.id} className="lib-event-tag" title={`Sự kiện: ${ev.title}`}>
+                <Trophy className="ic" aria-hidden="true" />
+                <span className="lib-event-tag-label">{ev.title}</span>
+              </span>
+            ))}
+            {eventTags.length > 2 && (
+              <span className="lib-event-tag lib-event-tag-more">+{eventTags.length - 2}</span>
+            )}
+          </span>
+        )}
         <span className="lib-card-meta">
           <span className="lib-card-topic" title={topicOf(story)}>
             {topicOf(story)}

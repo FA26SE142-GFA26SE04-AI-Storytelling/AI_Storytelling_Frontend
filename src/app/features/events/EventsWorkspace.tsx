@@ -2,10 +2,13 @@
 
 import "@/app/styles/features/events/events.css";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Plus, Trophy } from "lucide-react";
 import Frog from "@/app/components/brand/Frog";
 import Select from "@/app/components/Select";
 import { useAuth } from "@/app/context/AuthContext";
+import type { WorkspaceProps } from "@/app/components/shell/nav";
+import { HandoverDialog } from "@/app/features/kid/StoryHandoverButton";
 import { eventService } from "@/app/services/eventService";
 import {
   EVENT_STATUS_LABEL,
@@ -16,8 +19,11 @@ import {
   type EventMissionDashboardDto,
   type EventParticipationDto,
   type EventReportSummaryDto,
+  type EventStoryLibraryItemDto,
   type EventSubmissionDto,
   type EventSummaryDto,
+  type MyEventResultDto,
+  type PublicEventResultsDto,
 } from "@/app/types/event";
 import CreateEventModal from "./CreateEventModal";
 import EventActivityParticipantView from "./EventActivityParticipantView";
@@ -26,10 +32,12 @@ import EventMissionView from "./EventMissionView";
 import EventModeratorPanel from "./EventModeratorPanel";
 import EventDetailHero from "./EventDetailHero";
 import EventListView from "./EventListView";
+import { eventSelectionHref, readEventResultNavigation, type EventResultTarget } from "./eventNavigation";
 
 /** Không gian Sự kiện & Chiến dịch Thưởng dùng chung theo vai trò (Parent / Creator / Moderator / Admin). */
-export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyId: number) => void } = {}) {
+export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid"> = {}) {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
   const role = user?.role ?? "User";
   const isStaff = role === "Moderator" || role === "Administrator";
   const isModerator = role === "Moderator";
@@ -38,11 +46,18 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<EventDetailDto | null>(null);
   const [dashboard, setDashboard] = useState<EventMissionDashboardDto | null>(null);
+  const [votingStories, setVotingStories] = useState<EventStoryLibraryItemDto[] | null>(null);
   const [appeals, setAppeals] = useState<EventAppealDto[]>([]);
   const [submissions, setSubmissions] = useState<EventSubmissionDto[]>([]);
   const [summary, setSummary] = useState<EventReportSummaryDto | null>(null);
   const [myRewards, setMyRewards] = useState<EventAwardSlotDto[]>([]);
   const [myParticipations, setMyParticipations] = useState<EventParticipationDto[]>([]);
+  const [myResults, setMyResults] = useState<MyEventResultDto[]>([]);
+  const [publicResults, setPublicResults] = useState<PublicEventResultsDto | null>(null);
+  const [resultTarget, setResultTarget] = useState<EventResultTarget | null>(null);
+  const finishResultNavigation = useCallback((target: EventResultTarget) => {
+    setResultTarget((current) => current === target ? null : current);
+  }, []);
   const hasParentParticipation = role === "User" && myParticipations.some(
     (part) => part.eventId === selectedId && part.trackType === "Parent",
   );
@@ -51,19 +66,34 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
   const [editingDetail, setEditingDetail] = useState<EventDetailDto | null>(null);
   const [justCreatedIds, setJustCreatedIds] = useState<number[]>([]);
   const selectionRequest = useRef(0);
+  const urlEventId = useRef<number | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
+  const [readingStory, setReadingStory] = useState<{ id: number; title: string } | null>(null);
+  const onOpenStory = onKid ? (id: number, title: string) => setReadingStory({ id, title }) : undefined;
   const showNewBadge = (ev: EventSummaryDto) =>
     justCreatedIds.includes(ev.id) || isNewEvent(ev);
 
-  const selectEvent = (id: number | null) => {
+  const selectEvent = useCallback((id: number | null, target: EventResultTarget | null = null) => {
+    setResultTarget(target);
+    if (id === selectedId) return;
     selectionRequest.current++;
     setDetail(null);
     setDashboard(null);
+    setVotingStories(null);
     setAppeals([]);
     setSubmissions([]);
     setSummary(null);
+    setPublicResults(null);
     setDetailError(null);
     setSelectedId(id);
+  }, [selectedId]);
+
+  const openEvent = (id: number | null) => {
+    const { href, pathname, search, hash } = window.location;
+    const slug = events.find((event) => event.id === id)?.slug;
+    const next = eventSelectionHref(href, id, slug);
+    if (next !== pathname + search + hash) window.history.pushState(null, "", next);
+    selectEvent(id);
   };
 
   const loadList = useCallback(async () => {
@@ -83,12 +113,17 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
       } catch {
         /* ignore storage errors */
       }
-      setSelectedId((cur) => requestedId ?? (cur && list.some((e) => e.id === cur) ? cur : isStaff ? list[0]?.id ?? null : null));
+      setSelectedId((cur) => cur ?? requestedId ?? (isStaff ? list[0]?.id ?? null : null));
     }
     if (!isStaff) {
-      const [rw, parts] = await Promise.all([eventService.myRewards(), eventService.myParticipations()]);
+      const [rw, parts, mRes] = await Promise.all([
+        eventService.myRewards(),
+        eventService.myParticipations(),
+        eventService.myResults(),
+      ]);
       if (rw.success) setMyRewards(rw.data ?? []);
       if (parts.success) setMyParticipations(parts.data ?? []);
+      if (mRes.success) setMyResults(mRes.data ?? []);
     }
     setLoading(false);
   }, [isStaff]);
@@ -103,6 +138,16 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
     if (request !== selectionRequest.current) return;
     setDetailError(det.success ? null : det.message || "Không tải được chi tiết sự kiện.");
     setDetail(det.success ? det.data ?? null : null);
+    if (det.success && det.data) {
+      const { href, pathname, search, hash } = window.location;
+      const navigation = readEventResultNavigation(href);
+      const target = navigation?.target;
+      if ((pathname === "/app/events" || pathname === "/staff/events") &&
+          (!target || (target.eventId === selectedId && !target.claimAwardId && !target.focusResult))) {
+        const next = eventSelectionHref(href, selectedId, det.data.slug);
+        if (next !== pathname + search + hash) window.history.replaceState(null, "", next);
+      }
+    }
 
     if (isStaff) {
       const [apRes, sumRes, subRes] = await Promise.all([
@@ -114,18 +159,57 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
       setAppeals(apRes.success ? apRes.data ?? [] : []);
       setSummary(sumRes.success ? sumRes.data ?? null : null);
       setSubmissions(subRes.success ? subRes.data ?? [] : []);
-    } else if (det.success && hasParentParticipation) {
-      const dashRes = await eventService.missionDashboard(selectedId);
+    } else if (det.success && det.data) {
+      const pubPromise = det.data.configVersion === "ActivityBased" && det.data.resultsPublishedAt
+        ? eventService.publicResults(selectedId)
+        : Promise.resolve(null);
+      const dashPromise = hasParentParticipation
+        ? eventService.missionDashboard(selectedId)
+        : Promise.resolve(null);
+      const hasVoting = det.data.configVersion === "ActivityBased" &&
+        (det.data.activities ?? []).some((a) => a.activityType === "Voting");
+      const voteStoriesPromise = role === "User" && hasVoting
+        ? eventService.votingStories(selectedId)
+        : Promise.resolve(null);
+      const [pubRes, dashRes, voteStoriesRes] = await Promise.all([pubPromise, dashPromise, voteStoriesPromise]);
       if (request !== selectionRequest.current) return;
-      setDashboard(dashRes.success ? dashRes.data ?? null : null);
+      setPublicResults(pubRes && pubRes.success ? pubRes.data ?? null : null);
+      setDashboard(dashRes && dashRes.success ? dashRes.data ?? null : null);
+      setVotingStories(voteStoriesRes && voteStoriesRes.success ? voteStoriesRes.data ?? [] : null);
     } else {
+      setPublicResults(null);
       setDashboard(null);
+      setVotingStories(null);
     }
-  }, [selectedId, isStaff, hasParentParticipation]);
+  }, [selectedId, isStaff, hasParentParticipation, role]);
 
   useEffect(() => {
     void loadList();
   }, [loadList]);
+
+  useEffect(() => {
+    const { href, pathname, search, hash } = window.location;
+    if (pathname !== "/app/events" && pathname !== "/staff/events") return;
+    const navigation = readEventResultNavigation(href);
+    const target = navigation?.target;
+    const previousId = urlEventId.current;
+    urlEventId.current = target?.eventId ?? null;
+    if (target) {
+      const hasResultAction = target.claimAwardId !== undefined || target.focusResult;
+      if (target.eventId !== selectedId || hasResultAction) {
+        selectEvent(target.eventId, hasResultAction ? target : null);
+      }
+    } else if (previousId !== null) {
+      selectEvent(null);
+    }
+    if (navigation) {
+      const slug = target && (detail?.id === target.eventId
+        ? detail.slug
+        : events.find((event) => event.id === target.eventId)?.slug);
+      const next = target && slug ? eventSelectionHref(href, target.eventId, slug) : navigation.cleanHref;
+      if (next !== pathname + search + hash) window.history.replaceState(null, "", next);
+    }
+  }, [searchParams, selectEvent, selectedId, detail, events]);
 
   useEffect(() => {
     void loadSelected();
@@ -159,7 +243,7 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
                   key={ev.id}
                   type="button"
                   className={`ev-item${ev.id === selectedId ? " on" : ""}`}
-                  onClick={() => selectEvent(ev.id)}
+                  onClick={() => openEvent(ev.id)}
                 >
                   <div className="ev-item-head">
                     <span className="ev-item-title">{ev.title}</span>
@@ -181,7 +265,7 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
         <div className="pb">
           {!isStaff && selectedId !== null && (
             <div className="ev-detail-switch ev-detail-navigation">
-              <button type="button" className="btn btn-g" onClick={() => selectEvent(null)}>
+              <button type="button" className="btn btn-g" onClick={() => openEvent(null)}>
                 <ArrowLeft className="ic" aria-hidden="true" />Danh sách sự kiện
               </button>
               {events.length > 1 && (
@@ -190,12 +274,12 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
                   value: String(event.id),
                   label: showNewBadge(event) ? `${event.title} · Mới` : event.title,
                 }))}
-                onChange={(value) => selectEvent(Number(value))} portal />
+                onChange={(value) => openEvent(Number(value))} portal />
               )}
             </div>
           )}
           {!isStaff && selectedId === null ? (
-            <EventListView events={events} loading={loading} participations={myParticipations} onSelect={selectEvent} />
+            <EventListView events={events} loading={loading} participations={myParticipations} onSelect={openEvent} />
           ) : !detail ? (
             <div className="sec" style={{ alignItems: "center", padding: 32 }}>
               <Frog size={80} mood="think" />
@@ -240,7 +324,7 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
                   onDraftDeleted={(id) => {
                     setEvents((items) => items.filter((item) => item.id !== id));
                     setDetail((current) => current?.id === id ? null : current);
-                    setSelectedId((current) => current === id ? null : current);
+                    if (selectedId === id) openEvent(null);
                     void loadList();
                   }}
                 />
@@ -248,7 +332,12 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
                 <EventActivityParticipantView
                   detail={detail}
                   dashboard={dashboard}
+                  votingStories={votingStories}
                   myRewards={myRewards}
+                  myResult={myResults.find((r) => r.eventId === detail.id) ?? null}
+                  publicResults={publicResults}
+                  resultTarget={resultTarget?.eventId === detail.id ? resultTarget : null}
+                  onResultTargetHandled={finishResultNavigation}
                   onOpenStory={onOpenStory}
                   onRefresh={() => {
                     void loadList();
@@ -281,6 +370,15 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
         </div>
       </main>
 
+      {readingStory && onKid && <HandoverDialog
+        storyId={readingStory.id}
+        title={readingStory.title}
+        onClose={() => setReadingStory(null)}
+        onPick={(childId) => {
+          setReadingStory(null);
+          onKid(childId, readingStory.id, () => void loadSelected());
+        }}
+      />}
       {createOpen && <CreateEventModal
         key={editingDetail?.id ?? "new"}
         open={createOpen}
@@ -292,9 +390,9 @@ export default function EventsWorkspace({ onOpenStory }: { onOpenStory?: (storyI
         onCreated={(id) => {
           setEditingDetail(null);
           setJustCreatedIds((prev) => (prev.includes(id) ? prev : [id, ...prev]));
-          setSelectedId(id);
+          openEvent(id);
           void loadList();
-          void loadSelected();
+          if (id === selectedId) void loadSelected();
         }}
       />}
     </section>

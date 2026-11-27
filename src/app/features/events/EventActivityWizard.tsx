@@ -102,14 +102,37 @@ export function normalizeAwardSources<
   return changed ? next : awards;
 }
 
+export function buildVotingActivityPayload(voteStart: string, voteEnd: string, minVotes: string): UpsertEventActivityDto {
+  return {
+    activityType: "Voting",
+    allowedAudience: "Parent",
+    registrationStartAt: toVnStartIso(voteStart),
+    registrationEndAt: toVnEndIso(voteEnd),
+    startAt: toVnStartIso(voteStart),
+    endAt: toVnEndIso(voteEnd),
+    reviewCutoffAt: null,
+    grantAiCredits: 0,
+    maxSubmissionsPerUser: null,
+    maxRegistrations: null,
+    waiveWeeklyLibraryLimit: true,
+    storySource: "ApprovedSubmissionsOnly",
+    minVotesPerSubmission: Math.max(1, Number(minVotes) || 1),
+    claimWindowHours: 72,
+    maxReallocationRounds: 1,
+    awardAllMissionCompleters: false,
+  };
+}
+
 export default function EventActivityWizard({
   initialDetail,
   categories,
+  initialStep = 0,
   onClose,
   onSaved,
 }: {
   initialDetail?: EventDetailDto | null;
   categories: ContentCategory[];
+  initialStep?: number;
   onClose: () => void;
   onSaved: (eventId: number) => void;
 }) {
@@ -118,7 +141,7 @@ export default function EventActivityWizard({
   const existingRead = initialDetail?.activities?.find((a) => a.activityType === "ReadingMissions");
   const existingVote = initialDetail?.activities?.find((a) => a.activityType === "Voting");
 
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(initialStep);
   const [busy, setBusy] = useState(false);
 
   // Step 1: General info
@@ -165,8 +188,6 @@ export default function EventActivityWizard({
   const [readAwardAll, setReadAwardAll] = useState(existingRead?.awardAllMissionCompleters ?? false);
 
   const [voteEnabled, setVoteEnabled] = useState(initialDetail ? Boolean(existingVote) : true);
-  const [voteRegStart, setVoteRegStart] = useState(() => existingVote ? toVnDateInput(existingVote.registrationStartAt) : vnTodayOffsetDate(0));
-  const [voteRegEnd, setVoteRegEnd] = useState(() => existingVote ? toVnDateInput(existingVote.registrationEndAt) : vnTodayOffsetDate(14));
   const [voteStart, setVoteStart] = useState(() => existingVote ? toVnDateInput(existingVote.startAt) : vnTodayOffsetDate(9));
   const [voteEnd, setVoteEnd] = useState(() => existingVote ? toVnDateInput(existingVote.endAt) : vnTodayOffsetDate(14));
   const [minVotes, setMinVotes] = useState(String(existingVote?.minVotesPerSubmission ?? 5));
@@ -267,7 +288,6 @@ export default function EventActivityWizard({
   const readingSourceError = onlySubmittedStories && (!subEnabled || subAudience === "Parent")
     ? "Hãy bật sáng tác cho Creator hoặc chọn nguồn truyện có sẵn." : "";
   const votingDates = validateActivitySchedule({
-    ...registrationDates(voteRegStart, voteRegEnd),
     start: { label: "Mở bình chọn", value: voteStart },
     end: { label: "Đóng bình chọn", value: voteEnd },
   }, eventWindow);
@@ -344,24 +364,7 @@ export default function EventActivityWizard({
       });
     }
     if (voteEnabled) {
-      activities.push({
-        activityType: "Voting",
-        allowedAudience: "Parent",
-        registrationStartAt: toVnStartIso(voteRegStart),
-        registrationEndAt: toVnEndIso(voteRegEnd),
-        startAt: toVnStartIso(voteStart),
-        endAt: toVnEndIso(voteEnd),
-        reviewCutoffAt: null,
-        grantAiCredits: 0,
-        maxSubmissionsPerUser: null,
-        maxRegistrations: null,
-        waiveWeeklyLibraryLimit: true,
-        storySource: "ApprovedSubmissionsOnly",
-        minVotesPerSubmission: Math.max(1, Number(minVotes) || 1),
-        claimWindowHours: 72,
-        maxReallocationRounds: 1,
-        awardAllMissionCompleters: false,
-      });
+      activities.push(buildVotingActivityPayload(voteStart, voteEnd, minVotes));
     }
 
     const actTypeOf = (src: EventAwardResultSource): EventActivityType =>
@@ -603,13 +606,8 @@ export default function EventActivityWizard({
               <div className="sec" style={{ gap: 8, marginTop: 8 }}>
                 {votingSourceError && <small className="ev-warn-text">{votingSourceError}</small>}
                 <div className="ev-grid-2">
-                  <ScheduleDateField window={eventWindow} label="Mở đăng ký (VN)" value={voteRegStart} onChange={setVoteRegStart} error={votingDates.regStart} />
-                  <ScheduleDateField label="Đóng đăng ký (VN)" value={voteRegEnd} onChange={setVoteRegEnd}
-                    window={eventWindow} min={voteRegStart} max={voteEnd} error={votingDates.regEnd} />
-                </div>
-                <div className="ev-grid-2">
                   <ScheduleDateField label="Mở bình chọn (sau hạn duyệt bài)" value={voteStart} onChange={setVoteStart}
-                    window={eventWindow} min={voteRegStart} error={votingDates.start} />
+                    window={eventWindow} error={votingDates.start} />
                   <ScheduleDateField window={eventWindow} label="Đóng bình chọn (VN)" value={voteEnd} onChange={setVoteEnd} min={voteStart} error={votingDates.end} />
                 </div>
                 <div className="ev-grid-2">

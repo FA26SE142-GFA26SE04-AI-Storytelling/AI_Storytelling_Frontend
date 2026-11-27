@@ -39,6 +39,36 @@ export function useRiseIn<T extends HTMLElement = HTMLElement>(selector: string,
   return ref;
 }
 
+/** Nhấc hình lên chậm rồi hạ về vị trí ban đầu mà không dịch bố cục. */
+export function useFloat<T extends HTMLElement>(selector: string): RefObject<T | null> {
+  const ref = useRef<T | null>(null);
+  useEffect(() => {
+    const target = ref.current?.querySelector<HTMLElement>(selector);
+    if (!target) return;
+
+    const motionPreference = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let animation: ReturnType<typeof animate> | undefined;
+    const update = () => {
+      animation?.revert();
+      animation = motionPreference.matches ? undefined : animate(target, {
+        translateY: [0, -20],
+        duration: 3200,
+        ease: "inOutSine",
+        alternate: true,
+        loop: true,
+      });
+    };
+
+    update();
+    motionPreference.addEventListener("change", update);
+    return () => {
+      motionPreference.removeEventListener("change", update);
+      animation?.revert();
+    };
+  }, [selector]);
+  return ref;
+}
+
 /** Các cột biểu đồ mọc lên từ 0 đến chiều cao ghi trong data-h (tránh đọc style đã bị animation ghi đè). */
 export function useGrowBars<T extends HTMLElement = HTMLElement>(selector: string, deps: DependencyList): RefObject<T | null> {
   const ref = useRef<T | null>(null);

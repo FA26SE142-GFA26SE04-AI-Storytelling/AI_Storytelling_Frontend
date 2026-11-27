@@ -64,6 +64,9 @@ export interface CreatorPayout {
 
 export interface CreatorPeriodEarningEntry {
   periodMonth: string;
+  /** Ngày đầu / ngày cuối kỳ (tính cả ngày cuối); API cũ không trả thì coi là trọn tháng periodMonth. */
+  periodStart?: string;
+  periodEnd?: string;
   validReads: number;
   amountVnd: number;
   creditedAt: string;
@@ -83,6 +86,18 @@ export interface CreatorPayoutOverview {
   payoutAccount: CreatorPayoutAccount | null;
   payouts: CreatorPayout[];
   earnings: CreatorPeriodEarningEntry[];
+}
+
+/** Kết quả Admin bấm Chốt kỳ ngay. */
+export interface CreatorEarningPeriodClosed {
+  id: number;
+  periodStart: string;
+  periodEnd: string;
+  creatorFundVnd: number;
+  totalValidReads: number;
+  distributedVnd: number;
+  creditedCreators: number;
+  closedAt: string;
 }
 
 export interface CreatorPayoutDue {
