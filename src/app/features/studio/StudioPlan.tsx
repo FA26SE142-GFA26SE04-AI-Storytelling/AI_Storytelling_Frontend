@@ -2,7 +2,7 @@
 import { useTabActions } from "@/app/features/story-workflow/tabActions";
 
 import { useEffect, useState } from "react";
-import { Ban, BookUp, Check, ChevronDown, Heart, Lightbulb, ShieldBan, ShieldCheck, UserRoundPen, type LucideIcon } from "lucide-react";
+import { Ban, Check, ChevronDown, Heart, ShieldBan, ShieldCheck, UserRoundPen, type LucideIcon } from "lucide-react";
 import AsidePane from "@/app/components/shell/AsidePane";
 import { childProfileService } from "@/app/services/childProfileService";
 import { groupCategories } from "@/app/lib/guardian";
@@ -11,7 +11,6 @@ import type { UseAIStoryInputFlowResult } from "@/app/features/story-workflow/us
 import type { UseAiGenerationCapacityResult } from "@/app/features/story-workflow/useAiGenerationCapacity";
 import AiCapacityBanner from "./AiCapacityBanner";
 import BriefForm from "./BriefForm";
-import ImportStoryPanel from "./ImportStoryPanel";
 import OutlinePanel from "./OutlinePanel";
 import StageProgress from "./StageProgress";
 import PondBackdrop from "@/app/components/brand/PondBackdrop";
@@ -35,9 +34,7 @@ type Props = {
   kidName: string;
   /** Có thì hiện nút đổi bé ở đầu cột phải (chỉ khi chưa gửi ý tưởng và có nhiều bé). */
   onChangeKid?: () => void;
-  /** Bé đang tạo truyện; dùng khi nhập truyện có sẵn. */
-  childId: number;
-  /** Mở truyện vừa nhập trong Studio (tiếp tục từ bước tạo học liệu). */
+  /** Mở một truyện đang tạo trong Studio. */
   onOpenStory: (storyId: number) => void;
   capacity?: UseAiGenerationCapacityResult;
 };
@@ -129,10 +126,7 @@ function autoView(stage: Stage): View {
   return "status";
 }
 
-export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, retryFailed, refresh, onOutlineApproved, kidName, onChangeKid, childId, onOpenStory, capacity }: Props) {
-  // Chưa có truyện: chọn viết từ ý tưởng hay nhập truyện có sẵn (Luồng 3b).
-  const [entry, setEntry] = useState<"idea" | "import">("idea");
-  const canImport = stage === "brief" && storyId === null;
+export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, timedOut, statusError, retryFailed, refresh, onOutlineApproved, kidName, onChangeKid, onOpenStory, capacity }: Props) {
   // Lựa chọn tab chỉ có hiệu lực trong bước đã chọn; sang bước mới thì quay về view mặc định.
   const [choice, setChoice] = useState<{ stage: Stage; view: View } | null>(null);
   const hasOutline = !!snapshot?.outline?.currentVersion && storyId !== null;
@@ -163,24 +157,18 @@ export default function StudioPlan({ flow, stage, storyId, snapshot, errorCode, 
           <PondBackdrop />
           <div ref={viewRef} className="plan-view">
             {view === "brief" && <div className="plan-scroll">
-              {canImport && <div className="seg plan-entry" role="radiogroup" aria-label="Cách tạo truyện">
-                <button type="button" role="radio" aria-checked={entry === "idea"} className={entry === "idea" ? "on" : ""} onClick={() => setEntry("idea")}><Lightbulb className="ic" />Viết từ ý tưởng</button>
-                <button type="button" role="radio" aria-checked={entry === "import"} className={entry === "import" ? "on" : ""} onClick={() => setEntry("import")}><BookUp className="ic" />Nhập truyện có sẵn</button>
-              </div>}
-              {canImport && entry === "import" ? <ImportStoryPanel childId={childId} kidName={kidName} onOpen={onOpenStory} /> : <>
-                {stage === "brief" && capacity && (
-                  <AiCapacityBanner
-                    capacity={capacity.capacity}
-                    loading={capacity.loading}
-                    limitRejected={flow.concurrencyLimitReached}
-                    onRefresh={() => void capacity.refresh()}
-                    onRetrySubmit={flow.concurrencyLimitReached ? () => void flow.submit() : undefined}
-                    onOpenStory={onOpenStory}
-                    busy={flow.isBusy}
-                  />
-                )}
-                <BriefForm flow={flow} locked={stage !== "brief"} />
-              </>}
+              {stage === "brief" && capacity && (
+                <AiCapacityBanner
+                  capacity={capacity.capacity}
+                  loading={capacity.loading}
+                  limitRejected={flow.concurrencyLimitReached}
+                  onRefresh={() => void capacity.refresh()}
+                  onRetrySubmit={flow.concurrencyLimitReached ? () => void flow.submit() : undefined}
+                  onOpenStory={onOpenStory}
+                  busy={flow.isBusy}
+                />
+              )}
+              <BriefForm flow={flow} locked={stage !== "brief"} />
             </div>}
             {/* Luôn dựng khi đã có dàn ý (ẩn khi xem tab khác) để nút duyệt trên thanh tiến trình còn đó. */}
             {hasOutline && storyId !== null && (

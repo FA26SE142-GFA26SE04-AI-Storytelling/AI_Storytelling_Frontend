@@ -3,6 +3,12 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { UserProfile, LoginRequest, RegisterRequest, ChangePasswordRequest, ForgotPasswordRequest, ResetPasswordRequest, AuthResponseData, ApiResponse } from '@/app/types/auth';
 import { authService } from '@/app/services/authService';
+import { EVENT_POPUP_SESSION_KEY } from '@/app/features/events/eventPopups';
+
+// Pop-up giải chưa nhận hiện lại ở mỗi lần đăng nhập, kể cả khi phiên cũ hết hạn mà không bấm Đăng xuất.
+const clearEventPopupSession = () => {
+  try { sessionStorage.removeItem(EVENT_POPUP_SESSION_KEY); } catch { /* ignore */ }
+};
 
 interface AuthContextType {
   user: UserProfile | null;
@@ -42,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Đăng ký listener và khởi tạo trạng thái phiên đăng nhập khi tải trang
   useEffect(() => {
     const unsubscribe = authService.onAuthStateChange((newUser, newToken) => {
+      if (!newUser) clearEventPopupSession();
       setUser(newUser);
       setAccessToken(newToken);
     });
@@ -109,6 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setIsLoading(false);
 
     if (result.success && result.data) {
+      clearEventPopupSession();
       setAccessToken(result.data.accessToken);
       setUser(result.data.user);
       setBackendOnline(true);
@@ -162,6 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async (): Promise<void> => {
     setIsLoading(true);
+    clearEventPopupSession();
     // authService.logout xoá token, toàn bộ sessionStorage của tab và vị trí trang trên URL.
     await authService.logout();
     setAccessToken(null);

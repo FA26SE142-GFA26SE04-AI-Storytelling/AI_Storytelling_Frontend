@@ -9,6 +9,7 @@ import type { StoryCard } from "@/app/lib/storyView";
 import { LibraryBookCard, LibrarySkeletonGrid, ShelfRow } from "./LibraryCards";
 import { heroStories, jumpToSection, LibraryGenreTiles, LibraryHero } from "./LibraryDiscoveryHighlights";
 import { LibraryTopAuthors, type LibraryExtraFilterProps } from "./LibraryExtraFilters";
+import LibraryEventStoriesSection, { type EventStoryShelfItem } from "./LibraryEventStoriesSection";
 import LibrarySpotlightSection from "./LibrarySpotlightSection";
 import LibraryStoriesFilterBar, { type ActiveFilterChip } from "./LibraryStoriesFilterBar";
 import { rankForStory, statusOf, type AgeFilterOption, type LibrarySort } from "./libraryFilters";
@@ -42,6 +43,9 @@ export type LibraryStoriesViewProps = {
   go?: WorkspaceProps["go"];
   /** Trạng thái thư viện trống riêng (Thư viện Creator); không truyền thì dùng lời mời tạo truyện của phụ huynh. */
   emptyState?: ReactNode;
+  eventBanner?: ReactNode;
+  eventStories?: EventStoryShelfItem[];
+  onOpenEvents?: () => void;
   onGenreChange: (genre: string) => void;
   onAgeChange?: (age: string) => void;
   onSortChange: (sort: LibrarySort) => void;
@@ -76,6 +80,9 @@ export default function LibraryStoriesView({
   matchingRoadmapsCount,
   go,
   emptyState,
+  eventBanner,
+  eventStories = [],
+  onOpenEvents,
   onGenreChange,
   onAgeChange,
   onSortChange,
@@ -131,6 +138,7 @@ export default function LibraryStoriesView({
       )}
 
       {!focused && hero.length > 0 && <LibraryHero stories={hero} onPickStory={onPickStory} />}
+      {!focused && eventBanner}
       {!focused && authors.authors.length > 0 && <LibraryTopAuthors {...authors} row />}
 
       {storiesLoading && stories.length === 0 ? (
@@ -206,6 +214,12 @@ export default function LibraryStoriesView({
         )
       ) : (
         <>
+          <LibraryEventStoriesSection
+            items={eventStories}
+            onPickStory={onPickStory}
+            onOpenEvents={onOpenEvents}
+          />
+
           <LibrarySpotlightSection
             activeSpotlight={effectiveSpotlightTab}
             spotlightCards={effectiveSpotlightCards}

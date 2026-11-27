@@ -3,8 +3,10 @@ import type {
   CloneLegacyDraftResultDto,
   EventActivityType,
   EventAppealDto,
+  EventAppealKind,
   EventAppealStatus,
   EventAudience,
+  EventAwardCandidateDto,
   EventAwardResultSource,
   EventAwardSlotDto,
   EventAwardNotificationResultDto,
@@ -24,6 +26,8 @@ import type {
   EventTrackType,
   EventVoteDto,
   EventVotingSchedule,
+  MyEventResultDto,
+  PublicEventResultsDto,
   TrackCompletionMode,
   UpsertEventActivityDto,
   UpsertEventTaskDto,
@@ -362,10 +366,20 @@ export const eventService = {
     return apiRequest(`/events/${eventId}/verify`, "Không chạy xác minh được.", { method: "POST" });
   },
 
-  createAppeal(eventId: number, participationId: number, reasonText: string): Promise<ApiResponse<EventAppealDto>> {
+  createAppeal(
+    eventId: number,
+    participationId: number,
+    reasonText: string,
+    opts?: { kind?: EventAppealKind; targetAwardId?: number | null },
+  ): Promise<ApiResponse<EventAppealDto>> {
     return apiRequest(`/events/${eventId}/appeals`, "Không gửi được đơn khiếu nại.", {
       method: "POST",
-      body: { participationId, reasonText },
+      body: {
+        participationId,
+        reasonText,
+        ...(opts?.kind ? { kind: opts.kind } : {}),
+        ...(opts?.targetAwardId != null ? { targetAwardId: opts.targetAwardId } : {}),
+      },
     });
   },
 
@@ -391,11 +405,52 @@ export const eventService = {
   },
 
   proposeAwards(eventId: number): Promise<ApiResponse<EventAwardSlotDto[]>> {
-    return apiRequest(`/events/${eventId}/awards/propose`, "Không đề xuất được danh sách giải.", { method: "POST" });
+    return apiRequest(`/events/${eventId}/awards/propose`, "Không tính lại được danh sách giải.", { method: "POST" });
+  },
+
+  awardCandidates(awardId: number, signal?: AbortSignal): Promise<ApiResponse<EventAwardCandidateDto[]>> {
+    return apiRequest(`/events/awards/${awardId}/candidates`, "Không tải được danh sách ứng viên nhận giải.", {
+      signal,
+      cache: "no-store",
+    });
+  },
+
+  manualAssignAward(
+    awardId: number,
+    payload: { participationId: number | null; reason: string },
+  ): Promise<ApiResponse<EventAwardSlotDto>> {
+    return apiRequest(`/events/awards/${awardId}/assignment`, "Không cập nhật được người nhận giải.", {
+      method: "PUT",
+      body: payload,
+    });
+  },
+
+  confirmAwards(eventId: number): Promise<ApiResponse<EventAwardSlotDto[]>> {
+    return apiRequest(`/events/${eventId}/awards/confirm`, "Không xác nhận được danh sách nhận giải.", {
+      method: "POST",
+    });
   },
 
   approveAwards(eventId: number): Promise<ApiResponse<EventAwardSlotDto[]>> {
     return apiRequest(`/events/${eventId}/awards/approve`, "Không phê duyệt được giải.", { method: "POST" });
+  },
+
+  revokeAward(
+    awardId: number,
+    payload: { reason: string; replacementParticipationId?: number | null; appealId?: number | null },
+  ): Promise<ApiResponse<EventAwardSlotDto>> {
+    return apiRequest(`/events/awards/${awardId}/revoke`, "Không thu hồi được suất giải.", {
+      method: "POST",
+      body: payload,
+    });
+  },
+
+  myResults(signal?: AbortSignal): Promise<ApiResponse<MyEventResultDto[]>> {
+    return apiRequest("/events/my-results", "Không tải được kết quả sự kiện của bạn.", { signal, cache: "no-store" });
+  },
+
+  publicResults(eventId: number, signal?: AbortSignal): Promise<ApiResponse<PublicEventResultsDto>> {
+    return apiRequest(`/events/${eventId}/results`, "Không tải được danh sách kết quả sự kiện.", { signal, cache: "no-store" });
   },
 
   myRewards(): Promise<ApiResponse<EventAwardSlotDto[]>> {
@@ -407,6 +462,7 @@ export const eventService = {
     payload: {
       recipientName?: string; phoneNumber?: string; shippingAddress?: string;
       bankName?: string; bankAccountNumber?: string; bankAccountHolder?: string;
+      showChildNames?: boolean;
     },
   ): Promise<ApiResponse<EventAwardSlotDto>> {
     return apiRequest(`/events/awards/${awardId}/claim`, "Không xác nhận nhận thưởng được.", {

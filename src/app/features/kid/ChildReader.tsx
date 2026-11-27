@@ -108,7 +108,7 @@ export default function ChildReader({reader:r}:{reader:ReturnType<typeof useChil
   const pictures=scene?(scenePicsList[index]??scenePictures(scene)):[];
   const active=scene&&pic.scene===scene.sceneIndex?Math.min(pic.i,pictures.length-1):0;
   /** Trang luyện đọc to sau cảnh cuối: không phải cảnh nên không lưu làm vị trí đọc; nhớ theo phiên để mở truyện khác thì về trang truyện. */
-  // Bố mẹ tắt giọng nói thì coi như không có trang luyện đọc, để không lật sang trang trống.
+  // Bố mẹ tắt giọng nói thì không có trang luyện đọc: trang cuối của truyện hiện luôn nút "Em đã đọc xong".
   const practice=voiceOn?(c?.readAloudPractice??null):null;
   const [practiceSession,setPracticeSession]=useState<number|null>(null);
   const onPractice=!!practice&&practiceSession===c?.sessionId;

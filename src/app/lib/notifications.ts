@@ -37,6 +37,10 @@ const TEXT: Record<string, string> = {
   moderation_sla_warning: "Có mục kiểm duyệt sắp quá hạn xử lý",
   payment_confirmed: "Thanh toán thành công, gói đã được áp",
   event_award_approved: "Bạn đã trúng giải sự kiện",
+  event_ended: "Sự kiện bạn tham gia đã khép lại",
+  event_result_published: "Kết quả sự kiện đã được công bố",
+  event_award_revoked: "Một suất giải thưởng của bạn đã bị thu hồi",
+  event_appeal_accepted: "Đơn khiếu nại sự kiện của bạn đã được chấp nhận",
   subscription_expiring: "Gói của bạn sắp hết hạn, hãy gia hạn để không gián đoạn",
   creator_application_approved: "Đơn nhà sáng tạo đã được duyệt",
   creator_application_rejected: "Đơn nhà sáng tạo bị từ chối",
@@ -70,6 +74,14 @@ function detailedText(key: string, p: Record<string, unknown>): string | null {
     case "story_rating_moderated":
       if (p.decision === "Hidden") return `Đánh giá của bạn đã bị ẩn${typeof p.reason === "string" && p.reason.trim() ? `. Lý do: ${p.reason.trim()}` : ""}`;
       return p.decision === "Approved" ? "Đánh giá của bạn đã được duyệt và đang hiển thị" : null;
+    case "event_ended":
+      return `Sự kiện${quoted(p.eventTitle)} đã khép lại! Kết quả sẽ sớm được công bố`;
+    case "event_result_published":
+      return `Kết quả sự kiện${quoted(p.eventTitle)} đã được công bố`;
+    case "event_award_revoked":
+      return `Suất giải thưởng của sự kiện${quoted(p.eventTitle)} đã bị thu hồi${typeof p.reason === "string" && p.reason.trim() ? `. Lý do: ${p.reason.trim()}` : ""}`;
+    case "event_appeal_accepted":
+      return `Khiếu nại của bạn tại sự kiện${quoted(p.eventTitle)} đã được chấp nhận${typeof p.resolutionNote === "string" && p.resolutionNote.trim() ? `: ${p.resolutionNote.trim()}` : ""}`;
     default:
       return null;
   }
@@ -105,6 +117,7 @@ export const isUnread = (n: AppNotification) => !n.readAt && n.status.toLowerCas
 /** Màn mở khi bấm vào thông báo (khu phụ huynh). Nhóm theo `NotificationGroups` và loại thông báo của backend. */
 export function notificationTarget(n: AppNotification): WorkspaceId | null {
   const key = notificationKey(n.type);
+  if (key.startsWith("event_")) return "events";
   if (key.startsWith("roadmap_") || key === "story_summary_sent") return "roadmap";
   if (key.startsWith("story_wish_")) return "library";
   if (key === "payment_confirmed" || key === "subscription_expiring" || key === "story_credit_released") return "account-payment";

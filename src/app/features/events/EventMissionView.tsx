@@ -28,7 +28,7 @@ export type EventMissionViewProps = {
   dashboard: EventMissionDashboardDto | null;
   myRewards: EventAwardSlotDto[];
   onRefresh: () => void;
-  onOpenStory?: (storyId: number) => void;
+  onOpenStory?: (storyId: number, title: string) => void;
 };
 
 /** Không gian tham gia & bảng nhiệm vụ động (1..N nhiệm vụ) cho Phụ huynh, kèm khiếu nại và nhận thưởng. */
@@ -322,7 +322,7 @@ export default function EventMissionView({
                     <div className="row" style={{ justifyContent: "space-between", gap: 8 }}>
                       <b>{st.title}</b>
                       {onOpenStory && (
-                        <button type="button" className="btn btn-p" onClick={() => onOpenStory(st.storyId)}>
+                        <button type="button" className="btn btn-p" onClick={() => onOpenStory(st.storyId, st.title)}>
                           Đọc truyện
                         </button>
                       )}

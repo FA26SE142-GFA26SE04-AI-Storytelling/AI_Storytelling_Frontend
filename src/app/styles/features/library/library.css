@@ -1104,3 +1104,42 @@
 .lib-top-authors-row h4 { margin: 0; }
 .lib-top-authors-row ul { display: flex; flex-wrap: wrap; gap: 8px; }
 .lib-top-authors-row li button { width: auto; padding-right: 12px; }
+
+/* Kệ "Truyện tham gia sự kiện" và tag sự kiện trên thẻ truyện */
+.lib-event-icon { color: var(--gold-deep); }
+.lib-card-event-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+.lib-event-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: var(--fs-xs);
+  font-weight: 800;
+  line-height: 1.3;
+  color: var(--warn-ink);
+  background: color-mix(in srgb, var(--gold) 24%, var(--panel));
+  border: 1px solid color-mix(in srgb, var(--gold-deep) 40%, var(--line));
+}
+.lib-event-tag .ic {
+  width: 11px;
+  height: 11px;
+  flex: none;
+  color: var(--gold-deep);
+}
+.lib-event-tag-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lib-event-tag-more {
+  flex: none;
+}

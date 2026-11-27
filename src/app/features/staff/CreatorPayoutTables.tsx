@@ -2,10 +2,25 @@
 
 import type { ReactNode } from "react";
 import { formatVnd } from "@/app/services/creatorAdminService";
-import type { CreatorPayout, CreatorPayoutOverview } from "@/app/types/creatorAdmin";
+import type { CreatorPayout, CreatorPayoutOverview, CreatorPeriodEarningEntry } from "@/app/types/creatorAdmin";
 import { fmt, fmtDay } from "./ui";
 
-const month = (iso: string) => new Date(iso).toLocaleDateString("vi-VN", { month: "2-digit", year: "numeric" });
+/** "mm/yyyy" theo ngày UTC của kỳ (toLocaleDateString vi-VN cho "tháng 09, 2026" nên ghép thành "Tháng tháng ..."). */
+const month = (iso: string) => {
+  const d = new Date(iso);
+  return `${String(d.getUTCMonth() + 1).padStart(2, "0")}/${d.getUTCFullYear()}`;
+};
+
+/** Kỳ trọn tháng ghi "Tháng mm/yyyy"; kỳ chốt sớm (Chốt kỳ ngay) ghi khoảng ngày. Ngày kỳ là 00:00 UTC. */
+export const periodLabel = (e: Pick<CreatorPeriodEarningEntry, "periodMonth" | "periodStart" | "periodEnd">) => {
+  if (!e.periodStart || !e.periodEnd) return `Tháng ${month(e.periodMonth)}`;
+  const start = new Date(e.periodStart);
+  const end = new Date(e.periodEnd);
+  const lastDayOfMonth = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0)).getUTCDate();
+  const fullMonth = start.getUTCDate() === 1 && end.getUTCFullYear() === start.getUTCFullYear()
+    && end.getUTCMonth() === start.getUTCMonth() && end.getUTCDate() === lastDayOfMonth;
+  return fullMonth ? `Tháng ${month(e.periodStart)}` : `${fmtDay(e.periodStart)} – ${fmtDay(e.periodEnd)}`;
+};
 
 /** Mức chi tối thiểu Admin đặt; 0 (hoặc API cũ không trả) nghĩa là không có mức tối thiểu. */
 export const minimumPayoutText = (minimum: number | null | undefined) =>
@@ -21,6 +36,7 @@ export function CreatorPayoutTables({ data, renderPayoutAction }: {
       <div className="kv">
         <div><small>Số dư hiện tại (trước thuế)</small><b>{formatVnd(data.balanceVnd)}</b></div>
         <div><small>Mức chi tối thiểu</small><b>{minimumPayoutText(data.minimumPayoutVnd)}</b></div>
+        {data.periodCloseDay > 0 && <div><small>Ngày chốt kỳ</small><b>Ngày {data.periodCloseDay} hằng tháng</b></div>}
       </div>
 
       <h4 className="sec-h">Lịch sử nhận tiền</h4>
@@ -51,8 +67,8 @@ export function CreatorPayoutTables({ data, renderPayoutAction }: {
           <thead><tr><th>Kỳ</th><th>Lượt đọc hợp lệ</th><th>Thu nhập</th><th>Cộng vào số dư</th></tr></thead>
           <tbody>
             {data.earnings.map((e) => (
-              <tr key={e.periodMonth}>
-                <td data-label="Kỳ">Tháng {month(e.periodMonth)}</td>
+              <tr key={e.periodStart ?? e.periodMonth}>
+                <td data-label="Kỳ">{periodLabel(e)}</td>
                 <td data-label="Lượt đọc hợp lệ">{e.validReads.toLocaleString("vi-VN")}</td>
                 <td data-label="Thu nhập">{formatVnd(e.amountVnd)}</td>
                 <td data-label="Cộng vào số dư">{fmtDay(e.creditedAt)}</td>
