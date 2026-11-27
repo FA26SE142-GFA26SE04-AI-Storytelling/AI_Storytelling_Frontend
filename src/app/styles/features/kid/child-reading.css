@@ -459,6 +459,17 @@
 .kid-answer-mark.on, .kid-answer[aria-pressed="true"] .kid-answer-mark { background: var(--primary-strong); border-color: var(--primary-strong); color: var(--on-primary); }
 .kid-answer-text { min-width: 0; font-size: var(--fs-lg); font-weight: 700; line-height: 1.35; overflow-wrap: anywhere; }
 .kid-answer.pic img { width: 100%; aspect-ratio: 4 / 3; border-radius: 14px; object-fit: cover; }
+/* Mỗi thẻ có nút loa riêng ở góc phải để bé chưa biết chữ nghe lại đáp án mà không chọn nó */
+.kid-answer-cell { position: relative; display: flex; min-width: 0; }
+.kid-answer-cell > .kid-answer { flex: 1; min-width: 0; padding-right: 60px; }
+.kid-answer-listen { position: absolute; top: 50%; right: 12px; transform: translateY(-50%); display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--line); background: var(--surface); color: var(--primary-strong); cursor: pointer; transition: transform .12s, background .15s; }
+.kid-answer-cell > .kid-answer.pic + .kid-answer-listen { top: 12px; transform: none; }
+.kid-answer-listen:hover { background: color-mix(in srgb, var(--primary) 14%, var(--surface)); }
+.kid-answer-listen:active { transform: translateY(-50%) scale(.94); }
+.kid-answer-cell > .kid-answer.pic + .kid-answer-listen:active { transform: scale(.94); }
+.kid-answer-listen svg { width: 22px; height: 22px; }
+/* Thẻ giọng đọc đang đọc: viền vàng để bé nhìn theo */
+.kid-answer[data-reading="true"] { border-color: var(--gold-deep); background: color-mix(in srgb, var(--gold) 22%, var(--surface)); }
 .kid-roleplay, .kid-fill { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
 .kid-roleplay-line { margin: 0; font-family: var(--font-story); font-size: var(--fs-xl); line-height: 1.4; }
 .kid-hint { margin: 0; color: var(--muted); font-size: var(--fs-md); }
