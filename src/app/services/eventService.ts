@@ -21,6 +21,7 @@ import type {
   EventRewardType,
   EventRuleVersionDto,
   EventScoringMode,
+  EventStoryLibraryItemDto,
   EventSubmissionDto,
   EventSummaryDto,
   EventTrackType,
@@ -324,6 +325,10 @@ export const eventService = {
 
   missionDashboard(eventId: number): Promise<ApiResponse<EventMissionDashboardDto>> {
     return apiRequest(`/events/${eventId}/mission-dashboard`, "Không tải được bảng nhiệm vụ.");
+  },
+
+  votingStories(eventId: number): Promise<ApiResponse<EventStoryLibraryItemDto[]>> {
+    return apiRequest(`/events/${eventId}/voting-stories`, "Không tải được danh sách truyện bình chọn.");
   },
 
   castVote(

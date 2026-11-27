@@ -54,8 +54,12 @@ export default function EventConfigurationSummary({ detail }: { detail: EventDet
               <dl>
                 <dt>Đối tượng</dt>
                 <dd>{EVENT_AUDIENCE_LABEL[activity.allowedAudience]}</dd>
-                <dt>Thời gian ghi danh</dt>
-                <dd>{displayRange(activity.registrationStartAt, activity.registrationEndAt)}</dd>
+                {activity.activityType !== "Voting" && (
+                  <>
+                    <dt>Thời gian ghi danh</dt>
+                    <dd>{displayRange(activity.registrationStartAt, activity.registrationEndAt)}</dd>
+                  </>
+                )}
                 <dt>{executionLabels[activity.activityType]}</dt>
                 <dd>{displayRange(activity.startAt, activity.endAt)}</dd>
                 {activity.activityType === "Submission" && (
@@ -77,6 +81,8 @@ export default function EventConfigurationSummary({ detail }: { detail: EventDet
                 )}
                 {activity.activityType === "Voting" && (
                   <>
+                    <dt>Đăng ký</dt>
+                    <dd>Không cần đăng ký trước</dd>
                     <dt>Điều kiện xếp hạng</dt>
                     <dd>Ít nhất {activity.minVotesPerSubmission} phiếu hợp lệ mỗi bài</dd>
                   </>

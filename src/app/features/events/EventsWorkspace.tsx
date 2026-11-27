@@ -19,6 +19,7 @@ import {
   type EventMissionDashboardDto,
   type EventParticipationDto,
   type EventReportSummaryDto,
+  type EventStoryLibraryItemDto,
   type EventSubmissionDto,
   type EventSummaryDto,
   type MyEventResultDto,
@@ -31,7 +32,7 @@ import EventMissionView from "./EventMissionView";
 import EventModeratorPanel from "./EventModeratorPanel";
 import EventDetailHero from "./EventDetailHero";
 import EventListView from "./EventListView";
-import { readEventResultNavigation, type EventResultTarget } from "./eventNavigation";
+import { eventSelectionHref, readEventResultNavigation, type EventResultTarget } from "./eventNavigation";
 
 /** Không gian Sự kiện & Chiến dịch Thưởng dùng chung theo vai trò (Parent / Creator / Moderator / Admin). */
 export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid"> = {}) {
@@ -45,6 +46,7 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [detail, setDetail] = useState<EventDetailDto | null>(null);
   const [dashboard, setDashboard] = useState<EventMissionDashboardDto | null>(null);
+  const [votingStories, setVotingStories] = useState<EventStoryLibraryItemDto[] | null>(null);
   const [appeals, setAppeals] = useState<EventAppealDto[]>([]);
   const [submissions, setSubmissions] = useState<EventSubmissionDto[]>([]);
   const [summary, setSummary] = useState<EventReportSummaryDto | null>(null);
@@ -64,6 +66,7 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
   const [editingDetail, setEditingDetail] = useState<EventDetailDto | null>(null);
   const [justCreatedIds, setJustCreatedIds] = useState<number[]>([]);
   const selectionRequest = useRef(0);
+  const urlEventId = useRef<number | null>(null);
   const [detailError, setDetailError] = useState<string | null>(null);
   const [readingStory, setReadingStory] = useState<{ id: number; title: string } | null>(null);
   const onOpenStory = onKid ? (id: number, title: string) => setReadingStory({ id, title }) : undefined;
@@ -76,6 +79,7 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
     selectionRequest.current++;
     setDetail(null);
     setDashboard(null);
+    setVotingStories(null);
     setAppeals([]);
     setSubmissions([]);
     setSummary(null);
@@ -83,6 +87,14 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
     setDetailError(null);
     setSelectedId(id);
   }, [selectedId]);
+
+  const openEvent = (id: number | null) => {
+    const { href, pathname, search, hash } = window.location;
+    const slug = events.find((event) => event.id === id)?.slug;
+    const next = eventSelectionHref(href, id, slug);
+    if (next !== pathname + search + hash) window.history.pushState(null, "", next);
+    selectEvent(id);
+  };
 
   const loadList = useCallback(async () => {
     setLoading(true);
@@ -126,6 +138,16 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
     if (request !== selectionRequest.current) return;
     setDetailError(det.success ? null : det.message || "Không tải được chi tiết sự kiện.");
     setDetail(det.success ? det.data ?? null : null);
+    if (det.success && det.data) {
+      const { href, pathname, search, hash } = window.location;
+      const navigation = readEventResultNavigation(href);
+      const target = navigation?.target;
+      if ((pathname === "/app/events" || pathname === "/staff/events") &&
+          (!target || (target.eventId === selectedId && !target.claimAwardId && !target.focusResult))) {
+        const next = eventSelectionHref(href, selectedId, det.data.slug);
+        if (next !== pathname + search + hash) window.history.replaceState(null, "", next);
+      }
+    }
 
     if (isStaff) {
       const [apRes, sumRes, subRes] = await Promise.all([
@@ -144,27 +166,50 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
       const dashPromise = hasParentParticipation
         ? eventService.missionDashboard(selectedId)
         : Promise.resolve(null);
-      const [pubRes, dashRes] = await Promise.all([pubPromise, dashPromise]);
+      const hasVoting = det.data.configVersion === "ActivityBased" &&
+        (det.data.activities ?? []).some((a) => a.activityType === "Voting");
+      const voteStoriesPromise = role === "User" && hasVoting
+        ? eventService.votingStories(selectedId)
+        : Promise.resolve(null);
+      const [pubRes, dashRes, voteStoriesRes] = await Promise.all([pubPromise, dashPromise, voteStoriesPromise]);
       if (request !== selectionRequest.current) return;
       setPublicResults(pubRes && pubRes.success ? pubRes.data ?? null : null);
       setDashboard(dashRes && dashRes.success ? dashRes.data ?? null : null);
+      setVotingStories(voteStoriesRes && voteStoriesRes.success ? voteStoriesRes.data ?? [] : null);
     } else {
       setPublicResults(null);
       setDashboard(null);
+      setVotingStories(null);
     }
-  }, [selectedId, isStaff, hasParentParticipation]);
+  }, [selectedId, isStaff, hasParentParticipation, role]);
 
   useEffect(() => {
     void loadList();
   }, [loadList]);
 
   useEffect(() => {
-    if (!searchParams?.has("eventId") && !searchParams?.has("claim")) return;
-    const navigation = readEventResultNavigation(window.location.href);
-    if (!navigation) return;
-    if (navigation.target) selectEvent(navigation.target.eventId, navigation.target);
-    window.history.replaceState(null, "", navigation.cleanHref);
-  }, [searchParams, selectEvent]);
+    const { href, pathname, search, hash } = window.location;
+    if (pathname !== "/app/events" && pathname !== "/staff/events") return;
+    const navigation = readEventResultNavigation(href);
+    const target = navigation?.target;
+    const previousId = urlEventId.current;
+    urlEventId.current = target?.eventId ?? null;
+    if (target) {
+      const hasResultAction = target.claimAwardId !== undefined || target.focusResult;
+      if (target.eventId !== selectedId || hasResultAction) {
+        selectEvent(target.eventId, hasResultAction ? target : null);
+      }
+    } else if (previousId !== null) {
+      selectEvent(null);
+    }
+    if (navigation) {
+      const slug = target && (detail?.id === target.eventId
+        ? detail.slug
+        : events.find((event) => event.id === target.eventId)?.slug);
+      const next = target && slug ? eventSelectionHref(href, target.eventId, slug) : navigation.cleanHref;
+      if (next !== pathname + search + hash) window.history.replaceState(null, "", next);
+    }
+  }, [searchParams, selectEvent, selectedId, detail, events]);
 
   useEffect(() => {
     void loadSelected();
@@ -198,7 +243,7 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
                   key={ev.id}
                   type="button"
                   className={`ev-item${ev.id === selectedId ? " on" : ""}`}
-                  onClick={() => selectEvent(ev.id)}
+                  onClick={() => openEvent(ev.id)}
                 >
                   <div className="ev-item-head">
                     <span className="ev-item-title">{ev.title}</span>
@@ -220,7 +265,7 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
         <div className="pb">
           {!isStaff && selectedId !== null && (
             <div className="ev-detail-switch ev-detail-navigation">
-              <button type="button" className="btn btn-g" onClick={() => selectEvent(null)}>
+              <button type="button" className="btn btn-g" onClick={() => openEvent(null)}>
                 <ArrowLeft className="ic" aria-hidden="true" />Danh sách sự kiện
               </button>
               {events.length > 1 && (
@@ -229,12 +274,12 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
                   value: String(event.id),
                   label: showNewBadge(event) ? `${event.title} · Mới` : event.title,
                 }))}
-                onChange={(value) => selectEvent(Number(value))} portal />
+                onChange={(value) => openEvent(Number(value))} portal />
               )}
             </div>
           )}
           {!isStaff && selectedId === null ? (
-            <EventListView events={events} loading={loading} participations={myParticipations} onSelect={selectEvent} />
+            <EventListView events={events} loading={loading} participations={myParticipations} onSelect={openEvent} />
           ) : !detail ? (
             <div className="sec" style={{ alignItems: "center", padding: 32 }}>
               <Frog size={80} mood="think" />
@@ -279,7 +324,7 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
                   onDraftDeleted={(id) => {
                     setEvents((items) => items.filter((item) => item.id !== id));
                     setDetail((current) => current?.id === id ? null : current);
-                    setSelectedId((current) => current === id ? null : current);
+                    if (selectedId === id) openEvent(null);
                     void loadList();
                   }}
                 />
@@ -287,6 +332,7 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
                 <EventActivityParticipantView
                   detail={detail}
                   dashboard={dashboard}
+                  votingStories={votingStories}
                   myRewards={myRewards}
                   myResult={myResults.find((r) => r.eventId === detail.id) ?? null}
                   publicResults={publicResults}
@@ -344,9 +390,9 @@ export default function EventsWorkspace({ onKid }: Pick<WorkspaceProps, "onKid">
         onCreated={(id) => {
           setEditingDetail(null);
           setJustCreatedIds((prev) => (prev.includes(id) ? prev : [id, ...prev]));
-          setSelectedId(id);
+          openEvent(id);
           void loadList();
-          void loadSelected();
+          if (id === selectedId) void loadSelected();
         }}
       />}
     </section>

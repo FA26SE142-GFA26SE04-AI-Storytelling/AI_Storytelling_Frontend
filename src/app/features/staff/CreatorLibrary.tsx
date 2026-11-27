@@ -99,9 +99,9 @@ export function CreatorLibrary({ go }: CreatorPageProps) {
                 onSourceChange={d.setSrcF}
                 onClearPopover={d.clearPopoverFilters}
               />
-              <EventHighlightBanner role="ContentCreator" onOpenEvents={() => go("events")} />
               <LibraryStoriesView
                 audience="creator"
+                eventBanner={<EventHighlightBanner role="ContentCreator" onOpenEvents={() => go("events")} />}
                 authors={d.extraFilters}
                 stories={stories}
                 sorted={d.sorted}

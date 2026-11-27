@@ -1,5 +1,5 @@
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
-import {adminCreatorService as svc} from '@/app/services/adminCreatorService';
+import {adminCreatorService as svc,creatorAccountDisplayStatus} from '@/app/services/adminCreatorService';
 import {authService} from '@/app/services/authService';
 let fetcher:ReturnType<typeof vi.fn>;
 beforeEach(()=>{fetcher=vi.fn().mockResolvedValue(new Response(JSON.stringify({success:true,message:'OK',data:null})));vi.stubGlobal('fetch',fetcher);vi.spyOn(authService,'getStoredAccessToken').mockReturnValue('adult');});
@@ -20,4 +20,14 @@ it.each([
  await call();
  const [url,options]=fetcher.mock.calls[0];expect(url.endsWith(path)).toBe(true);expect(options.method).toBe(method);
  expect(options.body?JSON.parse(options.body):undefined).toEqual(body);
+});
+
+it.each([
+ ['AwaitingApproval','Rejected','AwaitingResubmit'],
+ ['AwaitingApproval','Pending','AwaitingApproval'],
+ ['Active','Approved','Active'],
+ ['Active',null,'Active'],
+ ['Registered','Pending','Registered'],
+] as const)('tài khoản %s với đơn %s hiển thị %s',(status,latestApplicationStatus,expected)=>{
+ expect(creatorAccountDisplayStatus({status,latestApplicationStatus})).toBe(expected);
 });

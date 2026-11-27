@@ -97,7 +97,7 @@
         "service": "creatorAdminService",
         "operation": "auditLogs",
         "file": "app/services/creatorAdminService.ts",
-        "line": 35,
+        "line": 38,
         "callers": [
           "app/features/staff/AdminAuditLog.tsx",
           "app/features/staff/PermissionHistory.tsx"
@@ -119,7 +119,7 @@
         "service": "creatorAdminService",
         "operation": "auditFilters",
         "file": "app/services/creatorAdminService.ts",
-        "line": 37,
+        "line": 40,
         "callers": [
           "app/features/staff/AdminAuditLog.tsx"
         ]
@@ -140,7 +140,7 @@
         "service": "creatorAdminService",
         "operation": "auditLog",
         "file": "app/services/creatorAdminService.ts",
-        "line": 36,
+        "line": 39,
         "callers": []
       }
     ],
@@ -1092,7 +1092,7 @@
         "service": "creatorAdminService",
         "operation": "creatorStats",
         "file": "app/services/creatorAdminService.ts",
-        "line": 30,
+        "line": 33,
         "callers": [
           "app/features/staff/AdminCreatorsStatsTab.tsx",
           "app/features/staff/AdminOverview.tsx"
@@ -3598,7 +3598,7 @@
         "service": "creatorSelfService",
         "operation": "payouts",
         "file": "app/services/creatorAdminService.ts",
-        "line": 42,
+        "line": 45,
         "callers": [
           "app/features/staff/CreatorPayoutsTab.tsx"
         ]
@@ -3619,7 +3619,7 @@
         "service": "creatorSelfService",
         "operation": "updatePayoutAccount",
         "file": "app/services/creatorAdminService.ts",
-        "line": 44,
+        "line": 47,
         "callers": [
           "app/features/staff/CreatorPayoutsTab.tsx"
         ]
@@ -3917,7 +3917,7 @@
         "service": "eventService",
         "operation": "list",
         "file": "app/services/eventService.ts",
-        "line": 112,
+        "line": 113,
         "callers": [
           "app/features/events/EventHighlightBanner.tsx",
           "app/features/events/EventsWorkspace.tsx",
@@ -3940,7 +3940,7 @@
         "service": "eventService",
         "operation": "rewardPlans",
         "file": "app/services/eventService.ts",
-        "line": 108,
+        "line": 109,
         "callers": [
           "app/features/events/EventRewardPlanField.tsx"
         ]
@@ -3961,7 +3961,7 @@
         "service": "eventService",
         "operation": "detail",
         "file": "app/services/eventService.ts",
-        "line": 116,
+        "line": 117,
         "callers": [
           "app/features/events/EventsWorkspace.tsx",
           "app/features/events/useEventListDetails.ts"
@@ -3983,7 +3983,7 @@
         "service": "eventService",
         "operation": "updateLeadModerator",
         "file": "app/services/eventService.ts",
-        "line": 120,
+        "line": 121,
         "callers": [
           "app/features/events/EventModeratorAssignment.tsx"
         ]
@@ -4004,7 +4004,7 @@
         "service": "eventService",
         "operation": "cloneToActivityDraft",
         "file": "app/services/eventService.ts",
-        "line": 144,
+        "line": 145,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4025,7 +4025,7 @@
         "service": "eventService",
         "operation": "create",
         "file": "app/services/eventService.ts",
-        "line": 126,
+        "line": 127,
         "callers": [
           "app/features/events/CreateEventModal.tsx",
           "app/features/events/EventActivityWizard.tsx"
@@ -4047,7 +4047,7 @@
         "service": "eventService",
         "operation": "update",
         "file": "app/services/eventService.ts",
-        "line": 133,
+        "line": 134,
         "callers": [
           "app/features/events/CreateEventModal.tsx",
           "app/features/events/EventActivityWizard.tsx"
@@ -4069,7 +4069,7 @@
         "service": "eventService",
         "operation": "deleteDraft",
         "file": "app/services/eventService.ts",
-        "line": 140,
+        "line": 141,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4090,7 +4090,7 @@
         "service": "eventService",
         "operation": "updateRulesSection",
         "file": "app/services/eventService.ts",
-        "line": 161,
+        "line": 162,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4111,7 +4111,7 @@
         "service": "eventService",
         "operation": "updateScheduleSection",
         "file": "app/services/eventService.ts",
-        "line": 180,
+        "line": 181,
         "callers": []
       }
     ],
@@ -4130,7 +4130,7 @@
         "service": "eventService",
         "operation": "updateTasksSection",
         "file": "app/services/eventService.ts",
-        "line": 195,
+        "line": 196,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4151,7 +4151,7 @@
         "service": "eventService",
         "operation": "updateAwardsSection",
         "file": "app/services/eventService.ts",
-        "line": 209,
+        "line": 210,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4172,7 +4172,7 @@
         "service": "eventService",
         "operation": "upsertRules",
         "file": "app/services/eventService.ts",
-        "line": 226,
+        "line": 227,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4193,7 +4193,7 @@
         "service": "eventService",
         "operation": "submitApproval",
         "file": "app/services/eventService.ts",
-        "line": 233,
+        "line": 234,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4214,7 +4214,7 @@
         "service": "eventService",
         "operation": "approve",
         "file": "app/services/eventService.ts",
-        "line": 237,
+        "line": 238,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4235,7 +4235,7 @@
         "service": "eventService",
         "operation": "publish",
         "file": "app/services/eventService.ts",
-        "line": 244,
+        "line": 245,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4256,7 +4256,7 @@
         "service": "eventService",
         "operation": "taskFilterStories",
         "file": "app/services/eventService.ts",
-        "line": 104,
+        "line": 105,
         "callers": [
           "app/features/events/EventTaskFilterEditor.tsx"
         ]
@@ -4277,7 +4277,7 @@
         "service": "eventService",
         "operation": "seedStories",
         "file": "app/services/eventService.ts",
-        "line": 248,
+        "line": 249,
         "callers": [
           "app/features/events/EventCuratedStoryPicker.tsx"
         ]
@@ -4298,7 +4298,7 @@
         "service": "eventService",
         "operation": "summary",
         "file": "app/services/eventService.ts",
-        "line": 255,
+        "line": 256,
         "callers": [
           "app/features/events/EventsWorkspace.tsx"
         ]
@@ -4319,7 +4319,7 @@
         "service": "eventService",
         "operation": "close",
         "file": "app/services/eventService.ts",
-        "line": 259,
+        "line": 260,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4340,7 +4340,7 @@
         "service": "eventService",
         "operation": "register",
         "file": "app/services/eventService.ts",
-        "line": 269,
+        "line": 270,
         "callers": [
           "app/features/events/EventActivityParticipantView.tsx",
           "app/features/events/EventCreatorView.tsx",
@@ -4363,7 +4363,7 @@
         "service": "eventService",
         "operation": "creatorSubmit",
         "file": "app/services/eventService.ts",
-        "line": 303,
+        "line": 304,
         "callers": [
           "app/features/events/EventCreatorView.tsx"
         ]
@@ -4384,7 +4384,7 @@
         "service": "eventService",
         "operation": "parentSubmit",
         "file": "app/services/eventService.ts",
-        "line": 291,
+        "line": 292,
         "callers": [
           "app/features/events/ParentEventSubmission.tsx"
         ]
@@ -4405,7 +4405,7 @@
         "service": "eventService",
         "operation": "submitActivityStory",
         "file": "app/services/eventService.ts",
-        "line": 280,
+        "line": 281,
         "callers": [
           "app/features/events/EventActivityParticipantView.tsx"
         ]
@@ -4426,7 +4426,7 @@
         "service": "eventService",
         "operation": "mySubmissions",
         "file": "app/services/eventService.ts",
-        "line": 287,
+        "line": 288,
         "callers": [
           "app/features/events/EventActivityParticipantView.tsx"
         ]
@@ -4447,7 +4447,7 @@
         "service": "eventService",
         "operation": "reviewParentSubmission",
         "file": "app/services/eventService.ts",
-        "line": 297,
+        "line": 298,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4468,7 +4468,7 @@
         "service": "eventService",
         "operation": "listSubmissions",
         "file": "app/services/eventService.ts",
-        "line": 310,
+        "line": 311,
         "callers": [
           "app/features/events/EventsWorkspace.tsx"
         ]
@@ -4489,7 +4489,7 @@
         "service": "eventService",
         "operation": "mySubmission",
         "file": "app/services/eventService.ts",
-        "line": 314,
+        "line": 315,
         "callers": [
           "app/features/events/EventCreatorView.tsx",
           "app/features/events/ParentEventSubmission.tsx"
@@ -4511,7 +4511,7 @@
         "service": "eventService",
         "operation": "myParticipation",
         "file": "app/services/eventService.ts",
-        "line": 318,
+        "line": 319,
         "callers": [
           "app/features/events/EventCreatorView.tsx"
         ]
@@ -4532,7 +4532,7 @@
         "service": "eventService",
         "operation": "myParticipations",
         "file": "app/services/eventService.ts",
-        "line": 322,
+        "line": 323,
         "callers": [
           "app/features/events/EventsWorkspace.tsx"
         ]
@@ -4553,9 +4553,30 @@
         "service": "eventService",
         "operation": "missionDashboard",
         "file": "app/services/eventService.ts",
-        "line": 326,
+        "line": 327,
         "callers": [
           "app/features/events/CreatorEventBallot.tsx",
+          "app/features/events/EventsWorkspace.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "GET",
+    "route": "/api/v1/events/{eventId}/voting-stories",
+    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "controller": "EventsController.cs",
+    "action": "VotingStories",
+    "controllerLine": 213,
+    "evidence": [
+      {
+        "key": "GET /api/v1/events/{}/voting-stories",
+        "service": "eventService",
+        "operation": "votingStories",
+        "file": "app/services/eventService.ts",
+        "line": 331,
+        "callers": [
           "app/features/events/EventsWorkspace.tsx"
         ]
       }
@@ -4568,14 +4589,14 @@
     "authorization": "Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "CastVote",
-    "controllerLine": 213,
+    "controllerLine": 218,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/votes",
         "service": "eventService",
         "operation": "castVote",
         "file": "app/services/eventService.ts",
-        "line": 333,
+        "line": 338,
         "callers": [
           "app/features/events/CreatorEventBallot.tsx",
           "app/features/events/EventActivityParticipantView.tsx",
@@ -4591,14 +4612,14 @@
     "authorization": "Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "ListVotes",
-    "controllerLine": 218,
+    "controllerLine": 223,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/votes",
         "service": "eventService",
         "operation": "listVotes",
         "file": "app/services/eventService.ts",
-        "line": 340,
+        "line": 345,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4612,14 +4633,14 @@
     "authorization": "Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "DisqualifyVote",
-    "controllerLine": 226,
+    "controllerLine": 231,
     "evidence": [
       {
         "key": "POST /api/v1/events/votes/{}/disqualify",
         "service": "eventService",
         "operation": "disqualifyVote",
         "file": "app/services/eventService.ts",
-        "line": 344,
+        "line": 349,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4633,14 +4654,14 @@
     "authorization": "Authenticated",
     "controller": "EventsController.cs",
     "action": "Leaderboard",
-    "controllerLine": 231,
+    "controllerLine": 236,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/leaderboard",
         "service": "eventService",
         "operation": "leaderboard",
         "file": "app/services/eventService.ts",
-        "line": 351,
+        "line": 356,
         "callers": [
           "app/features/events/CreatorEventBallot.tsx",
           "app/features/events/EventActivityParticipantView.tsx",
@@ -4657,14 +4678,14 @@
     "authorization": "Permission = Permissions.Parent.EventParticipate",
     "controller": "EventsController.cs",
     "action": "CompleteTask",
-    "controllerLine": 241,
+    "controllerLine": 246,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/tasks/{}/complete",
         "service": "eventService",
         "operation": "completeTask",
         "file": "app/services/eventService.ts",
-        "line": 359,
+        "line": 364,
         "callers": [
           "app/features/events/EventActivityParticipantView.tsx",
           "app/features/events/EventMissionView.tsx"
@@ -4679,14 +4700,14 @@
     "authorization": "Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "Verify",
-    "controllerLine": 246,
+    "controllerLine": 251,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/verify",
         "service": "eventService",
         "operation": "verify",
         "file": "app/services/eventService.ts",
-        "line": 366,
+        "line": 371,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4700,16 +4721,15 @@
     "authorization": "Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "CreateAppeal",
-    "controllerLine": 251,
+    "controllerLine": 256,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/appeals",
         "service": "eventService",
         "operation": "createAppeal",
         "file": "app/services/eventService.ts",
-        "line": 375,
+        "line": 380,
         "callers": [
-          "app/features/events/EventActivityParticipantView.tsx",
           "app/features/events/EventCreatorView.tsx",
           "app/features/events/EventMissionView.tsx",
           "app/features/events/EventResultsView.tsx"
@@ -4724,14 +4744,14 @@
     "authorization": "Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "ListAppeals",
-    "controllerLine": 256,
+    "controllerLine": 261,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/appeals",
         "service": "eventService",
         "operation": "listAppeals",
         "file": "app/services/eventService.ts",
-        "line": 387,
+        "line": 392,
         "callers": [
           "app/features/events/EventsWorkspace.tsx"
         ]
@@ -4745,14 +4765,14 @@
     "authorization": "Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "DecideAppeal",
-    "controllerLine": 264,
+    "controllerLine": 269,
     "evidence": [
       {
         "key": "POST /api/v1/events/appeals/{}/decide",
         "service": "eventService",
         "operation": "decideAppeal",
         "file": "app/services/eventService.ts",
-        "line": 391,
+        "line": 396,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4766,14 +4786,14 @@
     "authorization": "Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "EvaluateSubmission",
-    "controllerLine": 269,
+    "controllerLine": 274,
     "evidence": [
       {
         "key": "POST /api/v1/events/submissions/{}/evaluate",
         "service": "eventService",
         "operation": "evaluateSubmission",
         "file": "app/services/eventService.ts",
-        "line": 401,
+        "line": 406,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4787,14 +4807,14 @@
     "authorization": "Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "ProposeAwards",
-    "controllerLine": 277,
+    "controllerLine": 282,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/awards/propose",
         "service": "eventService",
         "operation": "proposeAwards",
         "file": "app/services/eventService.ts",
-        "line": 408,
+        "line": 413,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4808,14 +4828,14 @@
     "authorization": "Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "AwardCandidates",
-    "controllerLine": 282,
+    "controllerLine": 287,
     "evidence": [
       {
         "key": "GET /api/v1/events/awards/{}/candidates",
         "service": "eventService",
         "operation": "awardCandidates",
         "file": "app/services/eventService.ts",
-        "line": 412,
+        "line": 417,
         "callers": [
           "app/features/events/EventAwardsTable.tsx"
         ]
@@ -4829,14 +4849,14 @@
     "authorization": "Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "ManualAssignAward",
-    "controllerLine": 287,
+    "controllerLine": 292,
     "evidence": [
       {
         "key": "PUT /api/v1/events/awards/{}/assignment",
         "service": "eventService",
         "operation": "manualAssignAward",
         "file": "app/services/eventService.ts",
-        "line": 422,
+        "line": 427,
         "callers": [
           "app/features/events/EventAwardsTable.tsx"
         ]
@@ -4850,14 +4870,14 @@
     "authorization": "Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "ConfirmAwards",
-    "controllerLine": 293,
+    "controllerLine": 298,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/awards/confirm",
         "service": "eventService",
         "operation": "confirmAwards",
         "file": "app/services/eventService.ts",
-        "line": 429,
+        "line": 434,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4871,14 +4891,14 @@
     "authorization": "Permission = Permissions.Admin.EventApprove",
     "controller": "EventsController.cs",
     "action": "ApproveAwards",
-    "controllerLine": 298,
+    "controllerLine": 303,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/awards/approve",
         "service": "eventService",
         "operation": "approveAwards",
         "file": "app/services/eventService.ts",
-        "line": 435,
+        "line": 440,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -4892,14 +4912,14 @@
     "authorization": "Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "RevokeAward",
-    "controllerLine": 303,
+    "controllerLine": 308,
     "evidence": [
       {
         "key": "POST /api/v1/events/awards/{}/revoke",
         "service": "eventService",
         "operation": "revokeAward",
         "file": "app/services/eventService.ts",
-        "line": 442,
+        "line": 447,
         "callers": [
           "app/features/events/EventAwardsTable.tsx"
         ]
@@ -4913,14 +4933,14 @@
     "authorization": "Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "MyResults",
-    "controllerLine": 309,
+    "controllerLine": 314,
     "evidence": [
       {
         "key": "GET /api/v1/events/my-results",
         "service": "eventService",
         "operation": "myResults",
         "file": "app/services/eventService.ts",
-        "line": 449,
+        "line": 454,
         "callers": [
           "app/features/events/EventsWorkspace.tsx",
           "app/features/events/useEventResultPopups.ts"
@@ -4935,14 +4955,14 @@
     "authorization": "Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "PublicResults",
-    "controllerLine": 314,
+    "controllerLine": 319,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/results",
         "service": "eventService",
         "operation": "publicResults",
         "file": "app/services/eventService.ts",
-        "line": 453,
+        "line": 458,
         "callers": [
           "app/features/events/EventsWorkspace.tsx"
         ]
@@ -4956,14 +4976,14 @@
     "authorization": "Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "MyRewards",
-    "controllerLine": 319,
+    "controllerLine": 324,
     "evidence": [
       {
         "key": "GET /api/v1/events/my-rewards",
         "service": "eventService",
         "operation": "myRewards",
         "file": "app/services/eventService.ts",
-        "line": 457,
+        "line": 462,
         "callers": [
           "app/features/events/EventsWorkspace.tsx"
         ]
@@ -4977,14 +4997,14 @@
     "authorization": "Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "ClaimReward",
-    "controllerLine": 324,
+    "controllerLine": 329,
     "evidence": [
       {
         "key": "POST /api/v1/events/awards/{}/claim",
         "service": "eventService",
         "operation": "claimReward",
         "file": "app/services/eventService.ts",
-        "line": 468,
+        "line": 473,
         "callers": [
           "app/features/events/EventActivityParticipantView.tsx",
           "app/features/events/EventCreatorView.tsx",
@@ -5001,14 +5021,14 @@
     "authorization": "Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "ProcessExpired",
-    "controllerLine": 329,
+    "controllerLine": 334,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/awards/process-expired",
         "service": "eventService",
         "operation": "processExpired",
         "file": "app/services/eventService.ts",
-        "line": 475,
+        "line": 480,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -5022,14 +5042,14 @@
     "authorization": "Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "RewardRecipient",
-    "controllerLine": 334,
+    "controllerLine": 339,
     "evidence": [
       {
         "key": "GET /api/v1/events/awards/{}/recipient",
         "service": "eventService",
         "operation": "rewardRecipient",
         "file": "app/services/eventService.ts",
-        "line": 479,
+        "line": 484,
         "callers": [
           "app/features/events/EventAwardsTable.tsx"
         ]
@@ -5043,14 +5063,14 @@
     "authorization": "Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "NotifyAwardWinners",
-    "controllerLine": 340,
+    "controllerLine": 345,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/awards/notify",
         "service": "eventService",
         "operation": "resendAwardNotifications",
         "file": "app/services/eventService.ts",
-        "line": 483,
+        "line": 488,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -5064,14 +5084,14 @@
     "authorization": "Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "Fulfill",
-    "controllerLine": 345,
+    "controllerLine": 350,
     "evidence": [
       {
         "key": "POST /api/v1/events/awards/{}/fulfill",
         "service": "eventService",
         "operation": "fulfillReward",
         "file": "app/services/eventService.ts",
-        "line": 490,
+        "line": 495,
         "callers": [
           "app/features/events/EventModeratorPanel.tsx"
         ]
@@ -6023,7 +6043,8 @@
         "file": "app/services/aiStoryCreationService.ts",
         "line": 134,
         "callers": [
-          "app/features/story-workflow/generationSnapshot.ts"
+          "app/features/story-workflow/generationSnapshot.ts",
+          "app/features/studio/StudioWorkspace.tsx"
         ]
       }
     ],
