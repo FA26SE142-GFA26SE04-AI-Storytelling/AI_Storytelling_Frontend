@@ -104,7 +104,7 @@ export default function EventDetailInfoCard({ detail }: { detail: EventDetailDto
                 <div className="ev-story-phase ev-family-phase">
                   <Star className="ic" aria-hidden="true" />
                   <div><h4>Bình chọn truyện</h4><p>Đọc và bình chọn sao cho các bài dự thi đã qua kiểm duyệt.</p>
-                    <small>Đăng ký {range(voteAct.registrationStartAt, voteAct.registrationEndAt)} · Bình chọn {range(voteAct.startAt, voteAct.endAt)}</small>
+                    <small>Không cần đăng ký · Bình chọn {range(voteAct.startAt, voteAct.endAt)}</small>
                     <small>Ngưỡng tối thiểu {voteAct.minVotesPerSubmission} phiếu/bài · Hạn nhận giải {voteAct.claimWindowHours}h</small>
                   </div>
                 </div>

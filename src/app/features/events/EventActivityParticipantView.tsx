@@ -24,6 +24,7 @@ import {
   type EventDetailDto,
   type EventLeaderboardDto,
   type EventMissionDashboardDto,
+  type EventStoryLibraryItemDto,
   type EventSubmissionDto,
   type MyEventResultDto,
   type PublicEventResultsDto,
@@ -44,6 +45,7 @@ const LIFECYCLE_LABEL: Record<"NotOpen" | "Open" | "Ended", string> = {
 export type EventActivityParticipantViewProps = {
   detail: EventDetailDto;
   dashboard: EventMissionDashboardDto | null;
+  votingStories?: EventStoryLibraryItemDto[] | null;
   myRewards: EventAwardSlotDto[];
   myResult?: MyEventResultDto | null;
   publicResults?: PublicEventResultsDto | null;
@@ -62,6 +64,7 @@ export const submittableStories = <T extends { id: number }>(stories: T[], submi
 export default function EventActivityParticipantView({
   detail,
   dashboard,
+  votingStories = null,
   myRewards,
   myResult = null,
   publicResults = null,
@@ -253,16 +256,28 @@ export default function EventActivityParticipantView({
                   </div>
                   {act && (
                     <span className="sub">
-                      Đăng ký: {formatVnDateTime(act.registrationStartAt)} → {formatVnDateTime(act.registrationEndAt)} · Thực hiện:{" "}
-                      {formatVnDateTime(act.startAt)} → {formatVnDateTime(act.endAt)}
-                      {act.activityType === "Submission" && act.grantAiCredits > 0 ? ` · Tặng +${act.grantAiCredits} AI Credits` : ""}
+                      {act.activityType === "Voting" ? (
+                        <>Bình chọn: {formatVnDateTime(act.startAt)} → {formatVnDateTime(act.endAt)}</>
+                      ) : (
+                        <>
+                          Đăng ký: {formatVnDateTime(act.registrationStartAt)} → {formatVnDateTime(act.registrationEndAt)} · Thực hiện:{" "}
+                          {formatVnDateTime(act.startAt)} → {formatVnDateTime(act.endAt)}
+                          {act.activityType === "Submission" && act.grantAiCredits > 0 ? ` · Tặng +${act.grantAiCredits} AI Credits` : ""}
+                        </>
+                      )}
                     </span>
                   )}
-                  {!st.isRegistered && st.canRegister && (
-                    <button type="button" className="btn btn-gold" disabled={busy} onClick={() => void registerActivity(st)}>
-                      <Sparkles className="ic" aria-hidden="true" />
-                      Chấp nhận thể lệ &amp; Đăng ký
-                    </button>
+                  {st.activityType === "Voting" ? (
+                    !st.isRegistered && (
+                      <span className="sub">Không cần đăng ký · Mở khi đến giờ bình chọn</span>
+                    )
+                  ) : (
+                    !st.isRegistered && st.canRegister && (
+                      <button type="button" className="btn btn-gold" disabled={busy} onClick={() => void registerActivity(st)}>
+                        <Sparkles className="ic" aria-hidden="true" />
+                        Chấp nhận thể lệ &amp; Đăng ký
+                      </button>
+                    )
                   )}
                   {st.appealDeadlineAt && <span className="sub">Hạn khiếu nại {formatVnDateTime(st.appealDeadlineAt)}</span>}
                 </div>
@@ -374,7 +389,16 @@ export default function EventActivityParticipantView({
         </div>
       )}
 
-      {(readState?.isRegistered || voteState?.isRegistered) && dashboard && (
+      {(() => {
+        const showReadingStories = Boolean(readState?.isRegistered && dashboard);
+        const resolvedVotingStories =
+          votingStories ??
+          dashboard?.votingStories ??
+          (voteState?.isRegistered && !readState?.isRegistered ? dashboard?.stories : null) ??
+          null;
+        const showVotingStories = Boolean(voteState?.isEligible && resolvedVotingStories !== null);
+        if (!showReadingStories && !showVotingStories) return null;
+        return (
         <div className="ev-card">
           <div className="ev-card-head">
             <h3 className="display">Truyện trong sự kiện</h3>
@@ -410,10 +434,10 @@ export default function EventActivityParticipantView({
             )
           )}
           {[
-            ...(readState?.isRegistered ? [{ title: "Kho truyện đọc", stories: dashboard.stories, voting: false }] : []),
-            ...(voteState?.isRegistered ? [{
+            ...(showReadingStories && dashboard ? [{ title: "Kho truyện đọc", stories: dashboard.stories, voting: false }] : []),
+            ...(showVotingStories ? [{
               title: "Truyện dự thi để bình chọn",
-              stories: dashboard.votingStories ?? (readState?.isRegistered ? [] : dashboard.stories),
+              stories: resolvedVotingStories ?? [],
               voting: true,
             }] : []),
           ].map(({ title, stories, voting }) => (
@@ -442,7 +466,8 @@ export default function EventActivityParticipantView({
                     </select>
                     <input className="inp grow" placeholder="Nhận xét về truyện..." value={voteComments[st.storyId] ?? st.myVoteComment ?? ""}
                       onChange={(e) => setVoteComments((p) => ({ ...p, [st.storyId]: e.target.value }))} />
-                    <button type="button" className="btn btn-p" disabled={busy} onClick={() => void castVote(st.storyId, st.myVoteStars)}>
+                    <button type="button" className="btn btn-p" disabled={busy}
+                      onClick={() => void castVote(st.storyId, st.myVoteStars)}>
                       {st.myVoteStars ? "Cập nhật phiếu" : "Gửi bình chọn"}
                     </button>
                   </div>
@@ -452,7 +477,8 @@ export default function EventActivityParticipantView({
           </div>
           ))}
         </div>
-      )}
+        );
+      })()}
 
       {eventRewards.length > 0 && (
         <div className="ev-card">

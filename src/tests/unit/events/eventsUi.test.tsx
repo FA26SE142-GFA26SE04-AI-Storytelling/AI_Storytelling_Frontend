@@ -10,9 +10,9 @@ vi.mock("@/app/context/AuthContext", () => ({
 import CreateEventModal, { eventCategoryOptions } from "@/app/features/events/CreateEventModal";
 import type { ContentCategory } from "@/app/types/childProfile";
 import EventActivityParticipantView, { submittableStories } from "@/app/features/events/EventActivityParticipantView";
-import EventActivityWizard, { normalizeAwardSources } from "@/app/features/events/EventActivityWizard";
+import EventActivityWizard, { buildVotingActivityPayload, normalizeAwardSources } from "@/app/features/events/EventActivityWizard";
 import EventAwardsTable, { RevokeAwardDialog } from "@/app/features/events/EventAwardsTable";
-import { awardValueText } from "@/app/features/events/EventDetailInfoCard";
+import EventDetailInfoCard, { awardValueText } from "@/app/features/events/EventDetailInfoCard";
 import EventRewardPlanField from "@/app/features/events/EventRewardPlanField";
 import EventConfigurationSummary from "@/app/features/events/EventConfigurationSummary";
 import EventTaskFilterEditor from "@/app/features/events/EventTaskFilterEditor";
@@ -1128,5 +1128,171 @@ describe("Events UI components", () => {
     const popupCss = readFileSync(path.resolve(process.cwd(), "app/styles/features/events/event-popup.css"), "utf8");
     expect(popupCss).not.toMatch(/#[0-9a-fA-F]{3,8}\b/);
     expect(popupCss).not.toMatch(/rgba?\(/);
+  });
+
+  it("bình chọn không cần đăng ký: ẩn nút đăng ký, hiện truyện bình chọn, khoá nút tới khi đồng ý thể lệ và ẩn lịch đăng ký Voting", () => {
+    const votingOnlyDetail: EventDetailDto = {
+      ...SAMPLE_DETAIL,
+      id: 201,
+      configVersion: "ActivityBased",
+      activities: [
+        {
+          id: 30,
+          activityType: "Voting",
+          allowedAudience: "Parent",
+          registrationStartAt: "2026-11-20T00:00:00Z",
+          registrationEndAt: "2026-11-30T16:59:59Z",
+          startAt: "2026-11-20T00:00:00Z",
+          endAt: "2026-11-30T16:59:59Z",
+          grantAiCredits: 0,
+          waiveWeeklyLibraryLimit: true,
+          minVotesPerSubmission: 3,
+          claimWindowHours: 72,
+          maxReallocationRounds: 1,
+          awardAllMissionCompleters: false,
+        },
+      ],
+      myActivityStates: [
+        {
+          activityId: 30,
+          activityType: "Voting",
+          allowedAudience: "Parent",
+          lifecycleStatus: "Open",
+          isEligible: true,
+          isRegistered: false,
+          canRegister: false,
+          canSubmit: false,
+          canVote: true,
+          submissionsCount: 0,
+        },
+      ],
+    };
+
+    const story = {
+      storyId: 501,
+      title: "Truyện Dự Thi Hay Nhất",
+      description: "",
+      genre: "Cổ tích",
+      ageBand: "6-8",
+      source: "CreatorSubmission",
+      hasFamilyRead: true,
+    };
+
+    // 1. Chưa tham gia + canVote = true + dashboard = null: hiện truyện, không cần đồng ý thể lệ, nút gửi bấm được ngay.
+    const unregisteredHtml = renderToStaticMarkup(
+      <EventActivityParticipantView
+        detail={votingOnlyDetail}
+        dashboard={null}
+        votingStories={[story]}
+        myRewards={[]}
+        onRefresh={() => {}}
+      />,
+    );
+    expect(unregisteredHtml).not.toContain("Chấp nhận thể lệ &amp; Đăng ký");
+    expect(unregisteredHtml).toContain("Không cần đăng ký · Mở khi đến giờ bình chọn");
+    expect(unregisteredHtml).not.toContain("Đăng ký:");
+    expect(unregisteredHtml).toContain("Truyện dự thi để bình chọn");
+    expect(unregisteredHtml).toContain("Truyện Dự Thi Hay Nhất");
+    expect(unregisteredHtml).not.toContain("Tôi đã đọc và đồng ý thể lệ sự kiện");
+    expect(unregisteredHtml).not.toMatch(/<button[^>]*disabled=""[^>]*>Gửi bình chọn<\/button>/);
+    expect(unregisteredHtml).toContain(">Gửi bình chọn</button>");
+
+    // 2. Guard dashboard === null ngay cả khi readState.isRegistered = true (không throw TypeError đọc dashboard.stories).
+    const readRegisteredNoDashDetail: EventDetailDto = {
+      ...votingOnlyDetail,
+      myActivityStates: [
+        {
+          activityId: 29,
+          activityType: "ReadingMissions",
+          allowedAudience: "Parent",
+          lifecycleStatus: "Open",
+          isEligible: true,
+          isRegistered: true,
+          canRegister: false,
+          canSubmit: false,
+          canVote: false,
+          submissionsCount: 0,
+        },
+        ...votingOnlyDetail.myActivityStates!,
+      ],
+    };
+    const safeHtml = renderToStaticMarkup(
+      <EventActivityParticipantView
+        detail={readRegisteredNoDashDetail}
+        dashboard={null}
+        votingStories={[story]}
+        myRewards={[]}
+        onRefresh={() => {}}
+      />,
+    );
+    expect(safeHtml).not.toContain("Kho truyện đọc");
+    expect(safeHtml).toContain("Truyện dự thi để bình chọn");
+
+    // 3. Đã tham gia (isRegistered: true): nút gửi không bị disabled.
+    const registeredDetail: EventDetailDto = {
+      ...votingOnlyDetail,
+      myActivityStates: votingOnlyDetail.myActivityStates!.map((s) => ({ ...s, isRegistered: true })),
+    };
+    const registeredHtml = renderToStaticMarkup(
+      <EventActivityParticipantView
+        detail={registeredDetail}
+        dashboard={null}
+        votingStories={[story]}
+        myRewards={[]}
+        onRefresh={() => {}}
+      />,
+    );
+    expect(registeredHtml).not.toContain("Tôi đã đọc và đồng ý thể lệ sự kiện");
+    expect(registeredHtml).not.toMatch(/<button[^>]*disabled=""[^>]*>Gửi bình chọn<\/button>/);
+    expect(registeredHtml).toContain(">Gửi bình chọn</button>");
+
+    // 4. Không thể bình chọn (canVote: false): ẩn nút bình chọn, vẫn hiện danh sách truyện.
+    const closedVoteDetail: EventDetailDto = {
+      ...votingOnlyDetail,
+      myActivityStates: votingOnlyDetail.myActivityStates!.map((s) => ({ ...s, canVote: false, lifecycleStatus: "Ended" as const })),
+    };
+    const closedHtml = renderToStaticMarkup(
+      <EventActivityParticipantView
+        detail={closedVoteDetail}
+        dashboard={null}
+        votingStories={[story]}
+        myRewards={[]}
+        onRefresh={() => {}}
+      />,
+    );
+    expect(closedHtml).not.toContain("Tôi đã đọc và đồng ý thể lệ sự kiện");
+    expect(closedHtml).not.toContain("Gửi bình chọn");
+    expect(closedHtml).toContain("Truyện Dự Thi Hay Nhất");
+
+    // 5. Ẩn lịch đăng ký / ghi danh của Voting ở EventDetailInfoCard và EventConfigurationSummary.
+    const infoHtml = renderToStaticMarkup(<EventDetailInfoCard detail={votingOnlyDetail} />);
+    expect(infoHtml).toContain("Không cần đăng ký · Bình chọn");
+    expect(infoHtml).not.toContain("Đăng ký 20/11/2026");
+
+    const summaryHtml = renderToStaticMarkup(<EventConfigurationSummary detail={votingOnlyDetail} />);
+    expect(summaryHtml).not.toContain("Thời gian ghi danh");
+    expect(summaryHtml).toContain("Không cần đăng ký trước");
+  });
+
+  it("wizard bình chọn không có ô đăng ký và gửi lịch đăng ký bằng khung bình chọn", () => {
+    const step2Html = renderToStaticMarkup(
+      <EventActivityWizard
+        categories={[{ id: 1, code: "story", displayName: "Cổ tích", isActive: true }]}
+        initialStep={1}
+        onClose={() => {}}
+        onSaved={() => {}}
+      />,
+    );
+    const votingSection = step2Html.slice(step2Html.indexOf("3. Bình chọn"));
+    expect(votingSection).not.toContain("Mở đăng ký (VN)");
+    expect(votingSection).not.toContain("Đóng đăng ký (VN)");
+    expect(votingSection).toContain("Mở bình chọn (sau hạn duyệt bài)");
+    expect(votingSection).toContain("Đóng bình chọn (VN)");
+
+    const votingPayload = buildVotingActivityPayload("2026-12-01", "2026-12-05", "3");
+    expect(votingPayload.registrationStartAt).toBe(votingPayload.startAt);
+    expect(votingPayload.registrationEndAt).toBe(votingPayload.endAt);
+    expect(votingPayload.maxRegistrations).toBeNull();
+    expect(votingPayload.minVotesPerSubmission).toBe(3);
   });
 });

@@ -8,7 +8,7 @@ import {
   rememberDismissedNotification,
   rememberShownAward,
 } from "@/app/features/events/eventPopups";
-import { eventResultHref, readEventResultNavigation } from "@/app/features/events/eventNavigation";
+import { eventResultHref, eventSelectionHref, readEventResultNavigation } from "@/app/features/events/eventNavigation";
 import { EventResultPopupCard } from "@/app/features/events/EventResultPopup";
 import type { MyEventResultDto } from "@/app/types/event";
 import type { AppNotification } from "@/app/types/progress";
@@ -139,11 +139,19 @@ describe("pickEventPopups & EventResultPopupCard", () => {
     expect(href).toBe(`${route}?eventId=10&claim=5#my-result`);
     const nav = readEventResultNavigation(origin + href)!;
     expect(nav.target).toEqual({ eventId: 10, claimAwardId: 5, focusResult: true });
-    expect(nav.cleanHref).toBe(route);
-    expect(readEventResultNavigation(origin + nav.cleanHref)).toBeNull();
+    expect(nav.cleanHref).toBe(`${route}?eventId=10`);
+    expect(readEventResultNavigation(origin + nav.cleanHref)?.target)
+      .toEqual({ eventId: 10, focusResult: false });
     expect(readEventResultNavigation(`${origin}${route}?eventId=10&view=all#overview`)?.cleanHref)
-      .toBe(`${route}?view=all#overview`);
+      .toBe(`${route}?eventId=10&view=all#overview`);
     expect(readEventResultNavigation(`${origin}/staff/create-ai?eventId=10`)).toBeNull();
+    const selected = eventSelectionHref(origin + nav.cleanHref, 10, "test-2");
+    expect(selected).toBe(`${route}?eventId=10&event=test-2`);
+    expect(readEventResultNavigation(origin + selected)?.cleanHref).toBe(selected);
+    const changed = eventSelectionHref(origin + selected, 11, "ngay-hoi-doc-sach");
+    expect(changed).toBe(`${route}?eventId=11&event=ngay-hoi-doc-sach`);
+    expect(readEventResultNavigation(origin + changed)?.target?.eventId).toBe(11);
+    expect(eventSelectionHref(origin + changed, null)).toBe(route);
   });
 
   it("render đầy đủ khối Lưu ý cho AppealHold và AwaitingClaim kèm nút Nhận thưởng", () => {

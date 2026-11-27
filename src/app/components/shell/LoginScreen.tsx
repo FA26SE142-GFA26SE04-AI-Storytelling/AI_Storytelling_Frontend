@@ -17,6 +17,12 @@ import KidQrScanner from "@/app/features/kid/KidQrScanner";
 
 type Mode = AuthScreenMode;
 
+/**
+ * Chỉ trùng email mới nghĩa là người nộp đã có tài khoản ("Email '…' đã được sử dụng trong hệ thống.").
+ * Trùng tên đăng nhập ("Tên đăng nhập '…' đã tồn tại.") có thể là của người khác: để họ đổi tên, không gợi ý đăng nhập.
+ */
+export const isDuplicateAccount = (text?: string | null) => !!text && /đã được sử dụng trong hệ thống/i.test(text);
+
 const TITLES: Record<Mode, string> = {
   login: "Chào mừng trở lại",
   register: "Tạo tài khoản Taletale",
@@ -48,6 +54,8 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
   const [mode, setMode] = useState<Mode>(initialMode);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  // Đơn Creator bị từ chối vẫn giữ tài khoản: đăng ký lại báo trùng, cần đăng nhập để nộp lại đơn.
+  const [creatorExists, setCreatorExists] = useState(false);
   const [f, setF] = useState({ identifier: "", password: "", username: "", email: "", fullName: "", confirm: "", token: "" });
   const set = (k: keyof typeof f) => (e: React.ChangeEvent<HTMLInputElement>) => setF({ ...f, [k]: e.target.value });
 
@@ -66,6 +74,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
   const go = (next: Mode) => {
     setMode(next);
     setMsg(null);
+    setCreatorExists(false);
     const href = authScreenHref(next, window.location.href);
     if (href !== window.location.pathname + window.location.search + window.location.hash) {
       window.history.pushState(null, "", href);
@@ -77,6 +86,7 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
     if (busy) return;
     setBusy(true);
     setMsg(null);
+    setCreatorExists(false);
     try {
       if (mode === "login") {
         const r = await login({ identifier: f.identifier.trim(), password: f.password });
@@ -86,7 +96,11 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         if (problem) { setMsg({ ok: false, text: problem }); return; }
         const r = await authService.registerCreator({ username: f.username.trim(), email: f.email.trim(), fullName: f.fullName.trim(), password: f.password, confirmPassword: f.confirm, introduction: cr.intro.trim(), portfolioUrl: cr.portfolio.trim() || null });
         if (r.success) { go("verify"); setMsg({ ok: true, text: `Đã nộp đơn. Nhập mã xác thực đã gửi tới ${f.email.trim()}, sau đó quản trị viên sẽ xét duyệt đơn của bạn.` }); }
-        else setMsg({ ok: false, text: r.errors?.[0] ?? r.message });
+        else {
+          const text = r.errors?.[0] ?? r.message;
+          setMsg({ ok: false, text });
+          setCreatorExists(isDuplicateAccount(text));
+        }
       } else if (mode === "register") {
         const problem = passwordProblem(f.password) ?? (f.password !== f.confirm ? "Mật khẩu nhập lại chưa khớp." : null);
         if (problem) { setMsg({ ok: false, text: problem }); return; }
@@ -129,15 +143,16 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
 
   const needsPassword = mode !== "forgot" && mode !== "verify";
   const needsConfirm = mode === "register" || mode === "reset" || mode === "creator" || mode === "activate";
+  const isRegistration = mode === "register" || mode === "creator";
 
   return (
-    <div className="login-wrap">
+    <div className={isRegistration ? "login-wrap login-wrap--register" : "login-wrap"}>
       <PondBackdrop />
       {onHome && <button type="button" className="btn btn-g login-home" onClick={onHome}>← Trang giới thiệu</button>}
-      <form ref={cardRef} className="login-card" onSubmit={submit}>
-        <span className="login-frog"><Frog size={110} mood="happy" /></span>
+      <form ref={cardRef} className={isRegistration ? "login-card login-card--register" : "login-card"} onSubmit={submit}>
+        <span className="login-frog"><Frog size={isRegistration ? 64 : 110} mood="happy" /></span>
         <h1 className="display">{TITLES[mode]}</h1>
-        <p className="sub">Nền tảng kể chuyện AI an toàn cho trẻ em, có phụ huynh đồng hành.</p>
+        <p className="sub login-description">Nền tảng kể chuyện AI an toàn cho trẻ em, có phụ huynh đồng hành.</p>
 
         {(mode === "register" || mode === "creator") && (
           <label className="field"><span className="lbl">Họ và tên</span><input className="inp" required value={f.fullName} onChange={set("fullName")} autoComplete="name" /></label>
@@ -147,11 +162,11 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
         )}
         {mode === "login"
           ? <label className="field"><span className="lbl">Email hoặc tên đăng nhập</span><input className="inp" required value={f.identifier} onChange={set("identifier")} autoComplete="username" /></label>
-          : <label className="field"><span className="lbl">Email</span><input className="inp" type="email" required value={f.email} onChange={set("email")} autoComplete="email" /></label>}
+          : <label className={mode === "register" ? "field login-field-wide" : "field"}><span className="lbl">Email</span><input className="inp" type="email" required value={f.email} onChange={set("email")} autoComplete="email" /></label>}
         {mode === "creator" && (
           <>
-            <label className="field"><span className="lbl">Giới thiệu bản thân ({cr.intro.length}/1000)</span><textarea className="inp" rows={4} minLength={20} maxLength={1000} required value={cr.intro} onChange={(e) => setCr({ ...cr, intro: e.target.value })} placeholder="Kinh nghiệm viết, biên tập hoặc dạy học cho trẻ em (ít nhất 20 ký tự)" /></label>
             <label className="field"><span className="lbl">Link hồ sơ năng lực (không bắt buộc)</span><input className="inp" type="url" maxLength={500} value={cr.portfolio} onChange={(e) => setCr({ ...cr, portfolio: e.target.value })} placeholder="https://" /></label>
+            <label className="field login-field-wide"><span className="lbl">Giới thiệu bản thân ({cr.intro.length}/1000)</span><textarea className="inp" rows={3} minLength={20} maxLength={1000} required value={cr.intro} onChange={(e) => setCr({ ...cr, intro: e.target.value })} placeholder="Kinh nghiệm viết, biên tập hoặc dạy học cho trẻ em (ít nhất 20 ký tự)" /></label>
           </>
         )}
         {needsPassword && (
@@ -186,6 +201,11 @@ export default function LoginScreen({ initialMode = "login", onHome, onKidCode }
           </label>
         )}
         {msg && <div className={`notice ${msg.ok ? "ok" : "err"}`} role="alert">{msg.text}</div>}
+        {mode === "creator" && creatorExists && (
+          <p className="login-alt">Đã từng nộp đơn bằng thông tin này? Tài khoản vẫn được giữ, kể cả khi đơn chưa được duyệt.{" "}
+            <button type="button" onClick={() => { go("login"); setF((cur) => ({ ...cur, identifier: cur.email.trim(), password: "", confirm: "" })); }}>Đăng nhập để xem kết quả và nộp lại đơn</button>
+          </p>
+        )}
         {backendOnline === false && <div className="notice err" role="status">{backendStatusMessage}</div>}
 
         <button className="btn btn-p btn-c" style={{ padding: 10 }} disabled={busy}>{busy ? "Đang xử lý…" : SUBMIT_LABELS[mode]}</button>

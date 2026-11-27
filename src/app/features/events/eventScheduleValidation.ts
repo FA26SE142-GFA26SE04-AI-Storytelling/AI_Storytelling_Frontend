@@ -1,7 +1,12 @@
 import { formatEventDateInput } from "./eventTime";
 
 type DateField = { label: string; value: string };
-type ActivitySchedule = Record<"regStart" | "regEnd" | "start" | "end", DateField>;
+type ActivitySchedule = {
+  regStart?: DateField;
+  regEnd?: DateField;
+  start: DateField;
+  end: DateField;
+};
 type EventWindow = { opens: string; closes: string };
 
 export function eventWindowDateError(label: string, date: string, window: EventWindow) {
@@ -18,12 +23,14 @@ export function validateActivitySchedule({ regStart, regEnd, start, end }: Activ
   const limit = ({ label, value }: DateField) => `${label} (${formatEventDateInput(value)})`;
 
   return {
-    regStart: required(regStart),
-    regEnd: required(regEnd) ||
-      (earlier(regEnd, regStart) ? `Đóng đăng ký không được trước ngày ${limit(regStart)}.` :
-        earlier(end, regEnd) ? `Đóng đăng ký không được sau ${limit(end)}.` : ""),
+    regStart: regStart ? required(regStart) : "",
+    regEnd: regEnd
+      ? required(regEnd) ||
+        (regStart && earlier(regEnd, regStart) ? `Đóng đăng ký không được trước ngày ${limit(regStart)}.` :
+          earlier(end, regEnd) ? `Đóng đăng ký không được sau ${limit(end)}.` : "")
+      : "",
     start: required(start) ||
-      (earlier(start, regStart) ? `${start.label} không được trước ngày ${limit(regStart)}.` : ""),
+      (regStart && earlier(start, regStart) ? `${start.label} không được trước ngày ${limit(regStart)}.` : ""),
     end: required(end) ||
       (earlier(end, start) ? `${end.label} không được trước ngày ${limit(start)}.` : ""),
   };
