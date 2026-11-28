@@ -3,7 +3,7 @@ import { useEffect, useEffectEvent, useRef, useState } from 'react';
 import { Check, RotateCcw, SkipForward, Volume2 } from 'lucide-react';
 import Frog from '@/app/components/brand/Frog';
 import SafeImage from '@/app/components/SafeImage';
-import type { ListeningAttemptRequest, ListeningAttemptResult, ReadingInteraction } from '@/app/types/childReading';
+import type { ListeningAttemptRequest, ListeningAttemptResult, ListeningStepsRequest, ReadingInteraction } from '@/app/types/childReading';
 import { shuffle } from '@/app/lib/shuffle';
 import { useDialog } from './useDialog';
 
@@ -15,13 +15,15 @@ type Props = {
   busy: boolean;
   /** Gửi câu trả lời; trả về kết quả của backend, hoặc null khi gửi không được. */
   onSubmit: (body: ListeningAttemptRequest) => Promise<ListeningAttemptResult | null>;
+  /** CharacterLetter: ghi hai bước đọc âm và vẽ chữ (hiện chỉ "bỏ qua" vì chưa làm phần ghi âm và vẽ). */
+  onSteps?: (body: ListeningStepsRequest) => Promise<void>;
   /** Bé đã xong (hoặc bỏ qua): đóng cửa sổ và đi tiếp. resume = true khi bé bấm "Đọc tiếp" hoặc "Để sau": giọng kể phát tiếp; đóng hộp (Esc) thì false. */
   onContinue: (resume: boolean) => void;
   /** Bé muốn nghe lại một cảnh (số thứ tự cảnh, bắt đầu từ 0). */
   onReplay: (sceneIndex: number) => void;
 };
 
-export default function KidInteraction({ interaction: q, busy, onSubmit, onContinue, onReplay }: Props) {
+export default function KidInteraction({ interaction: q, busy, onSubmit, onSteps, onContinue, onReplay }: Props) {
   const player = useRef<HTMLAudioElement | null>(null);
   /** Cửa sổ đã đóng: không phát thêm tiếng nào, kể cả phản hồi backend trả về sau khi bé bỏ qua. */
   const closed = useRef(false);
@@ -89,7 +91,11 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
   const pickFeedback = chosen != null ? options.find(o => o.id === chosen)?.feedback : null;
   // Đã trả lời xong thì chỉ còn nút đi tiếp; EventOrdering chưa khớp thì cho xếp lại hoặc nghe lại.
   const canRetry = result?.type === 'EventOrdering' && result.matched === false && !result.revealed;
-  const finished = !!result && !canRetry;
+  // CharacterLetter: chọn sai thì được chọn lại (backend cho 2 lần), hết lượt thì backend báo đã lộ đáp án.
+  const retryLetter = q.type === 'CharacterLetter' && result?.matched === false && !result.revealed;
+  const finished = !!result && !canRetry && !retryLetter;
+  /** Đi tiếp từ CharacterLetter: ghi hai bước còn lại là "bỏ qua" (chưa có phần đọc âm và vẽ chữ) rồi đóng. */
+  const finishLetter = () => { void onSteps?.({ sound: 'skipped', trace: 'skipped' }); leave(() => onContinue(true)); };
 
   const body = () => {
     switch (q.type) {
@@ -105,6 +111,30 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
             {listen(o, `đáp án ${String.fromCharCode(65 + i)}`)}
           </div>)}
         </div>;
+      case 'CharacterLetter': {
+        const letters = q.letterOptions ?? [];
+        const picked = letters.find(l => l.id === chosen)?.text ?? null;
+        // Chữ khuyết được điền khi bé chọn đúng; chọn sai thì vẫn để trống để bé chọn lại.
+        const filled = result?.matched === true ? picked : null;
+        return <div className="kid-letter">
+          {q.characterImageUrl && <SafeImage src={q.characterImageUrl} alt="Bạn trong truyện" />}
+          <div className="kid-letter-name" aria-label={q.maskedName ?? undefined}>
+            {(q.nameUnits ?? []).map((unit, i) => unit !== null
+              ? <span key={i} className="kid-letter-unit">{unit}</span>
+              : <span key={i} className={`kid-letter-unit blank${filled ? ' filled' : ''}`}>{filled ?? '?'}</span>)}
+          </div>
+          <div className="kid-answer-grid">
+            {letters.map(l => <div key={l.id} className="kid-answer-cell">
+              <button type="button" className="kid-answer" aria-pressed={chosen === l.id} disabled={busy || finished}
+                onClick={() => { setResult(null); setChosen(l.id); void send({ optionId: l.id }); }}>
+                <span className="kid-answer-body"><span className="kid-answer-text">{l.text}</span></span>
+              </button>
+              {l.soundAudioUrl && <button type="button" className="kid-answer-listen" aria-label={`Nghe âm ${l.text}`} title={`Nghe âm ${l.text}`}
+                onClick={() => play(l.soundAudioUrl)}><Volume2 aria-hidden="true" /></button>}
+            </div>)}
+          </div>
+        </div>;
+      }
       case 'RolePlay':
         return <div className="kid-roleplay">
           <b>{q.characterName}</b>
@@ -168,7 +198,7 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
         </div>}
       </div>}
       <div className="kid-actions">
-        {finished && <button type="button" className="kid-btn3d is-gold" onClick={() => leave(() => onContinue(true))}><Check aria-hidden="true" />Đọc tiếp</button>}
+        {finished && <button type="button" className="kid-btn3d is-gold" onClick={() => q.type === 'CharacterLetter' ? finishLetter() : leave(() => onContinue(true))}><Check aria-hidden="true" />Đọc tiếp</button>}
         {!finished && <button type="button" className="kid-btn3d is-sky" disabled={busy} onClick={() => leave(() => onContinue(true))}><SkipForward aria-hidden="true" />Để sau</button>}
       </div>
     </div>

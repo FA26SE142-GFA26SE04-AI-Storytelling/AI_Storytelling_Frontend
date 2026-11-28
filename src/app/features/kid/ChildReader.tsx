@@ -381,6 +381,7 @@ export default function ChildReader({reader:r,onExit}:{reader:ReturnType<typeof 
     </div>}
     {ask&&!r.done&&<KidInteraction key={ask.scene.interaction!.id} interaction={ask.scene.interaction!} busy={r.busy}
       onSubmit={body=>r.attempt(ask.scene.interaction!.id,body)}
+      onSteps={body=>r.steps(ask.scene.interaction!.id,body)}
       onReplay={i=>{setAsk(null);void r.save(i+1);}}
       onContinue={resume=>{const next=ask.then;setAsk(null);next(resume);}}/>}
     {r.done&&<FinishPopup reader={r}/>}

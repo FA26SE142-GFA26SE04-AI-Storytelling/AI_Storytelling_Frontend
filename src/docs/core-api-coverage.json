@@ -1378,7 +1378,7 @@
         "service": "childNotebookService",
         "operation": "collect",
         "file": "app/services/childReadingService.ts",
-        "line": 66,
+        "line": 68,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -1399,7 +1399,7 @@
         "service": "childNotebookService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 65,
+        "line": 67,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx",
           "app/features/kid/KidLobbySide.tsx"
@@ -1421,7 +1421,7 @@
         "service": "childNotebookService",
         "operation": "remove",
         "file": "app/services/childReadingService.ts",
-        "line": 67,
+        "line": 69,
         "callers": [
           "app/features/kid/ChildReadingLibrary.tsx"
         ]
@@ -1719,7 +1719,7 @@
         "service": "childQuizService",
         "operation": "get",
         "file": "app/services/childReadingService.ts",
-        "line": 42,
+        "line": 44,
         "callers": [
           "app/features/kid/KidAfterReading.tsx",
           "app/features/kid/KidQuiz.tsx"
@@ -1741,7 +1741,7 @@
         "service": "childQuizService",
         "operation": "answer",
         "file": "app/services/childReadingService.ts",
-        "line": 43,
+        "line": 45,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1762,7 +1762,7 @@
         "service": "childQuizService",
         "operation": "result",
         "file": "app/services/childReadingService.ts",
-        "line": 44,
+        "line": 46,
         "callers": [
           "app/features/kid/KidQuiz.tsx"
         ]
@@ -1967,8 +1967,19 @@
     "controller": "ChildReadingController.cs",
     "action": "SaveListeningSteps",
     "controllerLine": 142,
-    "evidence": [],
-    "disposition": "MISSING"
+    "evidence": [
+      {
+        "key": "PATCH /api/v1/child/reading/sessions/{}/listening/{}/steps",
+        "service": "childReadingService",
+        "operation": "steps",
+        "file": "app/services/childReadingService.ts",
+        "line": 22,
+        "callers": [
+          "app/features/kid/useChildReader.ts"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
   },
   {
     "method": "PUT",
@@ -1983,7 +1994,7 @@
         "service": "childReadingService",
         "operation": "feeling",
         "file": "app/services/childReadingService.ts",
-        "line": 28,
+        "line": 30,
         "callers": [
           "app/features/kid/KidReflection.tsx"
         ]
@@ -2067,7 +2078,7 @@
         "service": "childReadingService",
         "operation": "readAloud",
         "file": "app/services/childReadingService.ts",
-        "line": 24,
+        "line": 26,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -2088,7 +2099,7 @@
         "service": "childReadingService",
         "operation": "readAloudPractice",
         "file": "app/services/childReadingService.ts",
-        "line": 30,
+        "line": 32,
         "callers": [
           "app/features/kid/useChildReader.ts"
         ]
@@ -2119,7 +2130,7 @@
         "service": "childRewardsService",
         "operation": "get",
         "file": "app/services/childReadingService.ts",
-        "line": 47,
+        "line": 49,
         "callers": [
           "app/features/kid/KidAfterReading.tsx",
           "app/features/kid/KidHud.tsx",
@@ -2142,7 +2153,7 @@
         "service": "childRewardsService",
         "operation": "water",
         "file": "app/services/childReadingService.ts",
-        "line": 49,
+        "line": 51,
         "callers": [
           "app/features/kid/KidRewards.tsx"
         ]
@@ -2275,7 +2286,7 @@
         "service": "childReflectionService",
         "operation": "get",
         "file": "app/services/childReadingService.ts",
-        "line": 34,
+        "line": 36,
         "callers": [
           "app/features/kid/KidReflection.tsx"
         ]
@@ -2296,7 +2307,7 @@
         "service": "childReflectionService",
         "operation": "emotions",
         "file": "app/services/childReadingService.ts",
-        "line": 35,
+        "line": 37,
         "callers": [
           "app/features/kid/KidReflection.tsx"
         ]
@@ -2317,7 +2328,7 @@
         "service": "childReflectionService",
         "operation": "favoriteScene",
         "file": "app/services/childReadingService.ts",
-        "line": 36,
+        "line": 38,
         "callers": [
           "app/features/kid/KidReflection.tsx"
         ]
@@ -2338,7 +2349,7 @@
         "service": "childReflectionService",
         "operation": "note",
         "file": "app/services/childReadingService.ts",
-        "line": 38,
+        "line": 40,
         "callers": [
           "app/features/kid/KidReflection.tsx"
         ]
@@ -2359,7 +2370,7 @@
         "service": "childReadingService",
         "operation": "summaryRecording",
         "file": "app/services/childReadingService.ts",
-        "line": 22,
+        "line": 24,
         "callers": [
           "app/features/kid/KidSummary.tsx"
         ]
@@ -2380,7 +2391,7 @@
         "service": "childReadingService",
         "operation": "summaryQuestion",
         "file": "app/services/childReadingService.ts",
-        "line": 26,
+        "line": 28,
         "callers": [
           "app/features/kid/KidSummary.tsx"
         ]
@@ -6885,7 +6896,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 53,
+        "line": 55,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -6906,7 +6917,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "quiz",
         "file": "app/services/childReadingService.ts",
-        "line": 54,
+        "line": 56,
         "callers": [
           "app/features/learning/QuizDetailDialog.tsx"
         ]
@@ -6927,7 +6938,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "overview",
         "file": "app/services/childReadingService.ts",
-        "line": 55,
+        "line": 57,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -6937,7 +6948,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "overview",
         "file": "app/services/childReadingService.ts",
-        "line": 55,
+        "line": 57,
         "callers": [
           "app/features/learning/learningData.ts"
         ]
@@ -6958,7 +6969,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "readAloud",
         "file": "app/services/childReadingService.ts",
-        "line": 57,
+        "line": 59,
         "callers": [
           "app/features/learning/ReadAloudDialog.tsx"
         ]
@@ -6979,7 +6990,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "removeReadAloud",
         "file": "app/services/childReadingService.ts",
-        "line": 58,
+        "line": 60,
         "callers": [
           "app/features/learning/ReadAloudDialog.tsx"
         ]
@@ -7000,7 +7011,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "reflection",
         "file": "app/services/childReadingService.ts",
-        "line": 60,
+        "line": 62,
         "callers": [
           "app/features/learning/ReflectionDialog.tsx"
         ]
@@ -7021,7 +7032,7 @@
         "service": "parentReadingFeedbackService",
         "operation": "removeReflectionNote",
         "file": "app/services/childReadingService.ts",
-        "line": 62,
+        "line": 64,
         "callers": [
           "app/features/learning/ReflectionDialog.tsx"
         ]
@@ -7277,7 +7288,7 @@
         "service": "parentStorySummaryService",
         "operation": "list",
         "file": "app/services/childReadingService.ts",
-        "line": 72,
+        "line": 74,
         "callers": [
           "app/features/learning/learningData.ts",
           "app/features/learning/SummaryPart.tsx"
@@ -7299,7 +7310,7 @@
         "service": "parentStorySummaryService",
         "operation": "remove",
         "file": "app/services/childReadingService.ts",
-        "line": 75,
+        "line": 77,
         "callers": [
           "app/features/learning/SessionRetell.tsx"
         ]
@@ -7320,7 +7331,7 @@
         "service": "parentStorySummaryService",
         "operation": "answered",
         "file": "app/services/childReadingService.ts",
-        "line": 74,
+        "line": 76,
         "callers": [
           "app/features/learning/SummaryPart.tsx"
         ]
