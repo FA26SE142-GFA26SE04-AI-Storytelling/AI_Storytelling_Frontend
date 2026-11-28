@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Pager from "@/app/components/Pager";
 import Frog from "@/app/components/brand/Frog";
 import { showToast } from "@/app/lib/toast";
@@ -11,6 +11,7 @@ import { useReadingFeedback } from "./learningData";
 import ReadingFilters from "./ReadingFilters";
 import ReadingOverview from "./ReadingOverview";
 import StoryTile from "./StoryTile";
+import SessionDetail from "./SessionDetail";
 
 const PAGE = 24;
 
@@ -50,12 +51,33 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
       : "Không có truyện nào đang đọc dở") +
     (filter.range !== "all" ? " trong khoảng này" : "");
 
+  // Lần đọc đang xem: thay cả tab bằng trang chi tiết; quay lại thì về đúng chỗ cuộn của danh sách.
+  const [session, setSession] = useState<ParentReadingFeedbackItem | null>(null);
+  const boxRef = useRef<HTMLElement>(null);
+  const savedScroll = useRef<number | null>(null);
+  const openSession = (item: ParentReadingFeedbackItem) => {
+    savedScroll.current = boxRef.current?.closest(".pb")?.scrollTop ?? 0;
+    setSession(item);
+  };
+  useLayoutEffect(() => {
+    const pb = boxRef.current?.closest(".pb");
+    if (pb && savedScroll.current != null) pb.scrollTop = session ? 0 : savedScroll.current;
+  }, [session]);
+
+  if (session) {
+    return (
+      <div ref={boxRef as React.RefObject<HTMLDivElement>}>
+        <SessionDetail item={session} childId={child.id} nickname={child.nickname} onBack={() => setSession(null)} />
+      </div>
+    );
+  }
+
   return (
     <>
       <ReadingFilters value={filter} onChange={changeFilter} />
       <ReadingOverview childId={child.id} range={filter.range} />
 
-      <section className="lr-card">
+      <section ref={boxRef} className="lr-card">
         <div className="lr-card-h">
           <h3 className="display">
             {filter.status === "Completed" ? "Truyện đã đọc xong" : "Truyện chưa đọc xong"}
@@ -76,11 +98,10 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
                 <StoryTile
                   key={g[0].storyId}
                   items={g}
-                  childId={child.id}
-                  nickname={child.nickname}
                   cover={cover(g[0].storyId)}
                   open={openStory === g[0].storyId}
                   onToggle={() => setOpenStory((v) => (v === g[0].storyId ? null : g[0].storyId))}
+                  onSelect={openSession}
                 />
               ))}
             </div>

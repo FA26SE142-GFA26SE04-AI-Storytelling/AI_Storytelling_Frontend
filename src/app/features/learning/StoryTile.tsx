@@ -1,26 +1,24 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { bounce, jelly } from "@/app/lib/motion";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import type { ParentReadingFeedbackItem } from "@/app/types/childReading";
 import { shortDate } from "./learningData";
 import { feelingPill, quizPill } from "./resultPills";
-import SessionDialog from "./SessionDialog";
 
 export interface StoryTileProps {
   items: ParentReadingFeedbackItem[];
-  childId: number;
-  nickname: string;
   /** Giá trị CSS background của bìa (useStoryCovers), bìa mẫu khi chưa có. */
   cover: string;
   /** Ô này đang mở cột lần đọc (cả lưới chỉ mở một ô, ResultsTab giữ). */
   open: boolean;
   onToggle: () => void;
+  /** Bấm một lần đọc: mở trang chi tiết lần đọc đó. */
+  onSelect: (item: ParentReadingFeedbackItem) => void;
 }
 
-export default function StoryTile({ items, childId, nickname, cover, open, onToggle }: StoryTileProps) {
-  const [selected, setSelected] = useState<ParentReadingFeedbackItem | null>(null);
+export default function StoryTile({ items, cover, open, onToggle, onSelect }: StoryTileProps) {
   const coverRef = useRef<HTMLDivElement>(null);
   /** Bấm mở / đóng cột lần đọc: nút rung kiểu thạch, bìa truyện nảy nhẹ. */
   const toggle = (btn: HTMLButtonElement) => {
@@ -68,7 +66,7 @@ export default function StoryTile({ items, childId, nickname, cover, open, onTog
                 <button
                   type="button"
                   className="lr-run"
-                  onClick={() => setSelected(i)}
+                  onClick={() => onSelect(i)}
                 >
                   <span>
                     Lần {ordinal} · {shortDate(i.completedAt ?? i.startedAt)}
@@ -88,15 +86,6 @@ export default function StoryTile({ items, childId, nickname, cover, open, onTog
         </div>
       )}
 
-      {selected && (
-        <SessionDialog
-          item={selected}
-          childId={childId}
-          title={title}
-          nickname={nickname}
-          onClose={() => setSelected(null)}
-        />
-      )}
     </div>
   );
 }

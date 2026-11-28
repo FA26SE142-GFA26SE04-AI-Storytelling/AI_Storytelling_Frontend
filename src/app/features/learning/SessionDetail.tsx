@@ -2,6 +2,7 @@
 
 import { useCallback, useState } from "react";
 import {
+  ArrowLeft,
   BookOpen,
   CircleHelp,
   Clock,
@@ -12,7 +13,7 @@ import {
   Repeat,
   Sparkles,
 } from "lucide-react";
-import Dialog from "@/app/components/Dialog";
+import { useRiseIn } from "@/app/lib/motion";
 import type { ParentReadingFeedbackItem } from "@/app/types/childReading";
 import { FEELING_FACE, shortDate } from "./learningData";
 import { quizPill } from "./resultPills";
@@ -22,21 +23,22 @@ import QuizDetailDialog from "./QuizDetailDialog";
 import SessionRetell from "./SessionRetell";
 import { SessionWords } from "./SessionWords";
 
-export interface SessionDialogProps {
+export interface SessionDetailProps {
   item: ParentReadingFeedbackItem;
   childId: number;
-  title: string;
   nickname: string;
-  onClose: () => void;
+  onBack: () => void;
 }
 
-export default function SessionDialog({
+/** Trang chi tiết một lần đọc (thay cho danh sách ở tab Kết quả đọc). */
+export default function SessionDetail({
   item,
   childId,
-  title,
   nickname,
-  onClose,
-}: SessionDialogProps) {
+  onBack,
+}: SessionDetailProps) {
+  const title = item.title;
+  const ref = useRiseIn<HTMLElement>(".lr-sum-part", [item.sessionId], { delay: 50, distance: 10 });
   const [quizOpen, setQuizOpen] = useState(false);
   const closeQuiz = useCallback(() => setQuizOpen(false), []);
   const noop = useCallback(() => {}, []);
@@ -68,10 +70,17 @@ export default function SessionDialog({
   const percent = totalPages > 0 ? Math.min(100, Math.max(0, (pagesCompleted / totalPages) * 100)) : 0;
   const hasFeeling = reflection != null || (item.emotions?.length ?? 0) > 0 || !!item.feeling;
   const recCount = item.readAloudRecordingCount ?? 0;
-  const dialogTitle = readOrdinal != null ? `${title} · Lần ${readOrdinal}` : title;
+  const pageTitle = readOrdinal != null ? `${title} · Lần ${readOrdinal}` : title;
 
   return (
-    <Dialog title={dialogTitle} wide onClose={onClose}>
+    <section ref={ref} className="lr-card">
+      <div className="lr-card-h">
+        <button type="button" className="btn btn-g" onClick={onBack}>
+          <ArrowLeft className="ic" aria-hidden />
+          Kết quả đọc
+        </button>
+        <h3 className="display">{pageTitle}</h3>
+      </div>
       <div className="lr-sum-part">
         <b className="lr-sum-h">
           <BookOpen className="ic" aria-hidden />
@@ -235,6 +244,6 @@ export default function SessionDialog({
       <SessionWords item={item} />
 
       <SessionRetell childId={childId} item={item} nickname={nickname} />
-    </Dialog>
+    </section>
   );
 }
