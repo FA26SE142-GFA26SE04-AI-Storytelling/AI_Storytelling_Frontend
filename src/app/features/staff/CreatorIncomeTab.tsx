@@ -63,7 +63,7 @@ export function CreatorIncomeTab({
       : ''
   }`;
 
-  const earningsInfo = `Chỉ lượt đọc xong ít nhất ${data.minimumReadSeconds} giây được tính. Quỹ nhà sáng tạo chia theo tỉ lệ: Đọc ${pct(data.readingFundRate)}, Sáng tạo ${pct(data.creativeFundRate)}.`;
+  const earningsInfo = `Chỉ lượt đọc xong ít nhất ${data.minimumReadSeconds} giây được tính. Mỗi trẻ tối đa 1 lượt mỗi truyện mỗi ngày, mỗi gia đình tối đa 60 lượt mỗi tháng. Quỹ nhà sáng tạo chia theo tỉ lệ: Đọc ${pct(data.readingFundRate)}, Sáng tạo ${pct(data.creativeFundRate)}.`;
 
   const sortedStories = [...(data.stories ?? [])].sort(
     (a, b) => b.estimatedEarningsVnd - a.estimatedEarningsVnd,
