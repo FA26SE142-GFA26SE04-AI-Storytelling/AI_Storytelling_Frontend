@@ -1961,6 +1961,16 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
+    "method": "PATCH",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/listening/{interactionId}/steps",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "SaveListeningSteps",
+    "controllerLine": 139,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
     "method": "PUT",
     "route": "/api/v1/child/reading/sessions/{sessionId}/feeling",
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
@@ -3684,6 +3694,27 @@
         "operation": "markPaid",
         "file": "app/services/creatorAdminService.ts",
         "line": 24,
+        "callers": [
+          "app/features/staff/AdminCreatorPayouts.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/admin/creator-payouts/periods/close-now",
+    "authorization": "Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage",
+    "controller": "CreatorPayoutController.cs",
+    "action": "CloseNow",
+    "controllerLine": 77,
+    "evidence": [
+      {
+        "key": "POST /api/v1/admin/creator-payouts/periods/close-now",
+        "service": "creatorAdminService",
+        "operation": "closePeriodNow",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 29,
         "callers": [
           "app/features/staff/AdminCreatorPayouts.tsx"
         ]
