@@ -298,7 +298,7 @@ export interface ListeningOptionDto {
   correctOrder: number | null; blockId: string | null; sourceQuote: string | null; imageDescription: string | null;
 }
 export interface ListeningInteractionDto {
-  id: number; type: ListeningType | string; anchorBlockId: string; anchorOffset: number; kind: string | null;
+  id: number; targetAge?: number | null; type: ListeningType | string; anchorBlockId: string; anchorOffset: number; kind: string | null;
   prompt: string | null; sourceQuote: string | null; characterName: string | null; hiddenWord: string | null; hint: string | null;
   revealBlockId: string | null; explanation: string | null; matchFeedback: string | null; noMatchFeedback: string | null;
   waitFeedback: string | null; isStale: boolean; options: ListeningOptionDto[];
@@ -306,8 +306,12 @@ export interface ListeningInteractionDto {
 export interface ListeningIssueDto { code: string; type: string | null; itemIndex: number | null; field: string | null }
 export interface ListeningReviewDto {
   storyId: number; versionId: number; required: boolean; reviewed: boolean;
-  plan: { type: ListeningType | string; count: number; zones: string[][] }[];
+  plan: { targetAge?: number | null; type: ListeningType | string; count: number; zones: string[][] }[];
   items: ListeningInteractionDto[];
+  /** Cùng nội dung với `items` nhưng đã nhóm theo tuổi đích. */
+  ageSets?: { targetAge: number; items: ListeningInteractionDto[] }[];
+  /** Lý do bộ tương tác ít hơn 5 (truyện ngắn, thiếu thoại hoặc nhân vật); null khi đủ. */
+  shortfallReason?: string | null;
   issues: ListeningIssueDto[];
 }
 export interface UpdateListeningInteractionRequestDto {

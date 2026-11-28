@@ -14,6 +14,15 @@ export function countWords(text: string): number {
   return text.split(/\s+/).filter((t) => /[\p{L}\p{N}]/u.test(t)).length;
 }
 
+/** Khung cuộn gần nhất chứa phần tử (có thể cuộn thật); null nếu không có. */
+function scrollParent(el: HTMLElement): HTMLElement | null {
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const overflow = getComputedStyle(p).overflowY;
+    if ((overflow === 'auto' || overflow === 'scroll') && p.scrollHeight > p.clientHeight) return p;
+  }
+  return null;
+}
+
 export type VocabRange = {start:number; end:number; id:number};
 const isLetter = (ch:string|undefined) => !!ch && /[\p{L}\p{N}]/u.test(ch);
 
@@ -53,7 +62,17 @@ export function Caption({text,part,result,segment,segmentStart,reading,dimUnread
   /** Từ mới cần đánh dấu và cách vẽ từng từ (ô giải thích khi rê chuột / chạm). */
   vocab?:VocabRange[];renderVocab?:(id:number,children:ReactNode,key:number)=>ReactNode}) {
   const mark=useRef<HTMLElement>(null);
+  const word=useRef<HTMLSpanElement>(null);
   useEffect(()=>{mark.current?.scrollIntoView({block:'nearest',behavior:'smooth'});},[part?.start]);
+  // Giọng kể đọc tới đâu thì khung chữ tự cuộn theo tới đó: từ đang đọc sắp chạm mép dưới (hoặc đã trôi lên trên) thì kéo về khoảng 1/3 khung.
+  useEffect(()=>{
+    const el=word.current, box=el?scrollParent(el):null;
+    if(!el||!box)return;
+    const e=el.getBoundingClientRect(), b=box.getBoundingClientRect();
+    if(e.bottom<=b.bottom-b.height*0.25&&e.top>=b.top+b.height*0.05)return;
+    const calm=typeof window.matchMedia==='function'&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    box.scrollTo({top:box.scrollTop+(e.top-b.top)-b.height/3,behavior:calm?'auto':'smooth'});
+  },[reading?.start]);
   const ps=part?part.start:0, pe=part?part.end:text.length;
   if(result){
     // Kết quả chấm là chữ của cả đoạn đã đọc (segment): hiện phần trước và sau vùng đó trong trang, không lặp chữ.
@@ -76,10 +95,10 @@ export function Caption({text,part,result,segment,segmentStart,reading,dimUnread
       const afterStart=Math.max(a,reading.end);
       const renderTail=(s:number,e:number)=>s<e?<span className="kid-caption-todo">{text.slice(s,e)}</span>:null;
       const from=Math.max(reading.start,a), to=Math.min(reading.end,b);
-      return to>from?<>{text.slice(a,from)}<span className="kid-reading-word">{text.slice(from,to)}</span>{renderTail(afterStart,b)}</>:afterStart<=a?renderTail(a,b):text.slice(a,b);
+      return to>from?<>{text.slice(a,from)}<span ref={word} className="kid-reading-word">{text.slice(from,to)}</span>{renderTail(afterStart,b)}</>:afterStart<=a?renderTail(a,b):text.slice(a,b);
     }
     const from=reading?Math.max(reading.start,a):b, to=reading?Math.min(reading.end,b):b;
-    return to>from?<>{text.slice(a,from)}<span className="kid-reading-word">{text.slice(from,to)}</span>{text.slice(to,b)}</>:text.slice(a,b);
+    return to>from?<>{text.slice(a,from)}<span ref={word} className="kid-reading-word">{text.slice(from,to)}</span>{text.slice(to,b)}</>:text.slice(a,b);
   };
   const nodes:ReactNode[]=[]; let at=ps;
   for(const v of renderVocab?vocab:[]){

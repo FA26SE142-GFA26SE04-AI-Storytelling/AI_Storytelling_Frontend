@@ -98,7 +98,7 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
         return <div className={`kid-answer-grid${q.type === 'PicturePrediction' ? ' pics' : ''}`}>
           {options.map((o, i) => <div key={o.id} className="kid-answer-cell">
             <button type="button" className={`kid-answer${q.type === 'PicturePrediction' ? ' pic' : ''}`} aria-pressed={chosen === o.id} data-reading={reading === o.id || undefined} disabled={busy || !!result}
-              onClick={() => { setChosen(o.id); play(o.audioUrl); void send({ optionId: o.id }); }}>
+              onClick={() => { setChosen(o.id); void send({ optionId: o.id }); }}>
               {q.type === 'PicturePrediction' && <SafeImage src={o.imageUrl} alt="" />}
               <span className="kid-answer-body"><span className="kid-answer-mark" aria-hidden="true">{String.fromCharCode(65 + i)}</span><span className="kid-answer-text">{o.text}</span></span>
             </button>
@@ -133,7 +133,7 @@ export default function KidInteraction({ interaction: q, busy, onSubmit, onConti
               const at = order.indexOf(o.id);
               return <div key={o.id} className="kid-answer-cell">
                 <button type="button" className={`kid-answer${pics ? ' pic' : ''}`} aria-pressed={at >= 0} data-reading={reading === o.id || undefined} disabled={busy || finished}
-                  onClick={() => { setResult(null); if (at < 0) play(o.audioUrl); setOrder(v => at >= 0 ? v.filter(x => x !== o.id) : [...v, o.id]); }}>
+                  onClick={() => { setResult(null); setOrder(v => at >= 0 ? v.filter(x => x !== o.id) : [...v, o.id]); }}>
                   {pics && <SafeImage src={o.imageUrl} alt="" />}
                   <span className="kid-answer-body"><span className={`kid-answer-mark${at >= 0 ? ' on' : ''}`} aria-hidden="true">{at >= 0 ? at + 1 : ''}</span><span className="kid-answer-text">{o.text}</span></span>
                 </button>
