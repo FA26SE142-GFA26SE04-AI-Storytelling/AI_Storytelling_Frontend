@@ -472,6 +472,13 @@
 .kid-answer[data-reading="true"] { border-color: var(--gold-deep); background: color-mix(in srgb, var(--gold) 22%, var(--surface)); }
 .kid-roleplay, .kid-fill { display: flex; flex-direction: column; align-items: center; gap: 10px; width: 100%; }
 .kid-roleplay-line { margin: 0; font-family: var(--font-story); font-size: var(--fs-xl); line-height: 1.4; }
+/* Chọn chữ còn thiếu trong tên nhân vật: tranh, tên có ô trống, rồi các chữ để chọn */
+.kid-letter { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%; }
+.kid-letter img { max-height: 160px; width: auto; border-radius: 16px; }
+.kid-letter-name { display: flex; gap: 6px; font-family: var(--font-story); font-size: 44px; line-height: 1; }
+.kid-letter-unit { display: grid; place-items: center; min-width: 52px; padding: 6px 10px; border-radius: 12px; background: var(--surface); border: 2px solid var(--line); }
+.kid-letter-unit.blank { border-style: dashed; border-color: var(--gold-deep); color: var(--muted); }
+.kid-letter-unit.blank.filled { border-style: solid; color: var(--primary-strong); background: color-mix(in srgb, var(--mint) 22%, var(--surface)); }
 .kid-hint { margin: 0; color: var(--muted); font-size: var(--fs-md); }
 .kid-feedback { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 16px; border-radius: 16px; background: color-mix(in srgb, var(--mint) 14%, transparent); font-size: var(--fs-md); animation: block-in .3s ease both; }
 .kid-feedback p { margin: 0; }

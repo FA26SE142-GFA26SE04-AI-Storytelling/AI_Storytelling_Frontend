@@ -16,7 +16,13 @@ export interface ReadingInteraction {
   characterName:string|null; modelSentence:string|null; modelAudioUrl:string|null;
   maskedSentence:string|null; hint:string|null; waitFeedback:string|null; revealSceneIndex:number|null;
   audioUrls:Record<string,string>; options:InteractionOption[];
+  /** CharacterLetter: backend không gửi tên đầy đủ (chứa đáp án). nameUnits có null ở chữ khuyết, maskedName là tên đã che ("_ỏ"). */
+  characterImageUrl?:string|null; nameUnits?:(string|null)[]|null; maskedName?:string|null;
+  letterOptions?:{ id:number; text:string; soundAudioUrl:string|null }[]|null;
+  maxChoices?:number; graded?:boolean; maxVoiceRetries?:number|null;
 }
+/** CharacterLetter: kết quả hai bước sau khi chọn chữ (đọc âm, vẽ chữ); backend chỉ ghi "tried" hoặc "skipped". */
+export interface ListeningStepsRequest { sound:'tried'|'skipped'; trace:'tried'|'skipped' }
 /** Chỉ gửi trường của đúng loại: Checkpoint/PicturePrediction gửi optionId, FillBlank gửi answer, EventOrdering gửi orderedOptionIds. */
 export interface ListeningAttemptRequest { optionId?:number; answer?:string; orderedOptionIds?:number[] }
 export interface ListeningAttemptResult {

@@ -18,6 +18,8 @@ export const childReadingService = {
   listenOnly: (token:string, id:number, value:boolean) => apiRequest<D.ReadingFlags>(`/child/reading/sessions/${id}/listen-only`,message,{method:'PUT',body:{value},token,session:'child'}),
   /** Gửi câu trả lời cho một tương tác khi nghe. Backend không báo "sai", không cộng EXP. */
   attempt: (token:string, id:number, interactionId:number, body:D.ListeningAttemptRequest) => apiRequest<D.ListeningAttemptResult>(`/child/reading/sessions/${id}/interactions/${interactionId}/attempts`,'Chưa gửi được câu trả lời của em.',{method:'POST',body,token,session:'child'}),
+  /** CharacterLetter: ghi bé đã thử hoặc bỏ qua bước đọc âm và vẽ chữ (chỉ sau khi đã chọn chữ). */
+  steps: (token:string, id:number, interactionId:number, body:D.ListeningStepsRequest) => apiRequest<null>(`/child/reading/sessions/${id}/listening/${interactionId}/steps`,'Chưa ghi được bước của em.',{method:'PATCH',body,token,session:'child'}),
   /** Ghi âm tóm tắt gửi bố mẹ (tối đa 3 MB, mỗi phiên một bản). */
   summaryRecording: (token:string, id:number, audio:Blob) => { const form=new FormData(); form.append('audio',audio,audio.type==='audio/wav'?'summary.wav':'summary'); return apiRequest<D.StorySummarySent>(`/child/reading/sessions/${id}/summary/recording`,'Chưa gửi được bản ghi âm.',{method:'POST',form,token,session:'child'}); },
   /** Bé đọc to một đoạn truyện để nhận dạng và chấm điểm từng chữ (F-13). */

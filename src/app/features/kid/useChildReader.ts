@@ -159,6 +159,11 @@ export function useChildReader(token:string, onLibrary:()=>void, onTimeBlocked?:
     await execute(()=>api.attempt(token,session.sessionId,interactionId,body),r=>{ box.value=r; setAttempted(v=>v.includes(interactionId)?v:[...v,interactionId]); });
     return box.value;
   };
+  /** CharacterLetter: ghi hai bước sau khi chọn chữ. Không chặn bé đi tiếp nếu ghi không được. */
+  const steps = async (interactionId:number, body:D.ListeningStepsRequest) => {
+    if (!session) return;
+    try { await api.steps(token,session.sessionId,interactionId,body); } catch { /* chỉ để phụ huynh xem; bé vẫn đi tiếp */ }
+  };
   const lookup = async (id:number) => { if(session) {setDefinition(null); await execute(()=>api.definition(token,session.sessionId,id),setDefinition);} };
   const collect = async () => { if(session&&definition) await execute(()=>notebook.collect(token,session.sessionId,definition.vocabularyId),()=>setDefinition(d=>d?{...d,isCollected:true}:d)); };
   const event = async (type:D.ReadingEvent, payload?:string) => {
@@ -175,5 +180,5 @@ export function useChildReader(token:string, onLibrary:()=>void, onTimeBlocked?:
     return api.readAloudPractice(token, session.sessionId, interactionId, audio);
   };
   const recheckTime = () => setNudge(n=>n+1);
-  return {token,session,content,page,mode,timeStatus:session?timeStatus:null,recheckTime,definition,busy,blocked,done,completed,note,listenOnly,open,close,leave,save,complete,flag,pending,attempt,lookup,collect,event,readAloud,readAloudPractice};
+  return {token,session,content,page,mode,timeStatus:session?timeStatus:null,recheckTime,definition,busy,blocked,done,completed,note,listenOnly,open,close,leave,save,complete,flag,pending,attempt,steps,lookup,collect,event,readAloud,readAloudPractice};
 }
