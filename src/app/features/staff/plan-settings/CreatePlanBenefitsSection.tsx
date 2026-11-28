@@ -61,10 +61,10 @@ export default function CreatePlanBenefitsSection({
         }
       />
 
-      {/* Truyện mới mỗi tuần */}
+      {/* Hạn mức truyện thư viện theo chu kỳ */}
       <div className="cp-field">
         <div className="row" style={{ justifyContent: "space-between", alignItems: "center" }}>
-          <span className="lbl">Truyện mới mỗi tuần</span>
+          <span className="lbl">Truyện thư viện mới mỗi chu kỳ</span>
           <label className="cp-check-row" style={{ fontSize: "var(--fs-xs)" }}>
             <input
               type="checkbox"
@@ -90,6 +90,7 @@ export default function CreatePlanBenefitsSection({
             required
           />
         )}
+        <small>Áp dụng cho giao dịch tạo sau khi lưu</small>
       </div>
 
       {/* Cho sao chép lộ trình mẫu */}

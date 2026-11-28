@@ -8,6 +8,7 @@ import IconButton from '@/app/components/IconButton';
 import Pager from '@/app/components/Pager';
 import SafeImage from '@/app/components/SafeImage';
 import { showToast } from '@/app/lib/toast';
+import { formatVnDate } from '@/app/features/events/eventTime';
 import { useAccessLookup } from '@/app/features/staff/staffAccess';
 import { paymentService } from '@/app/services/paymentService';
 import type { CreatorQuotaDto, MyQuotaDto, PagedResult, PaymentStatus, PaymentTransactionDto, PlanType, SubscriptionPlanDto } from '@/app/types/backendContracts';
@@ -154,6 +155,13 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
 
   const featured = audience === 'creator' ? 'CreatorPack' : 'Creative';
   const pack = plans?.find((p) => p.planType === 'CreatorPack');
+  const benefits = quota?.benefits;
+  const libraryUsed = quota?.newLibraryStoriesUsed;
+  const libraryLimit = benefits?.weeklyNewLibraryStories;
+  const libraryExhausted = typeof libraryUsed === 'number'
+    && typeof libraryLimit === 'number' && libraryUsed >= libraryLimit;
+  const canUpgrade = quota?.plan?.planType === 'Reading'
+    && plans?.some((plan) => plan.planType === 'Creative' && plan.isPurchasable);
   const headStyle = audience === 'creator'
     ? { margin: 0, textAlign: 'left' as const, fontSize: 'var(--fs-2xl)' }
     : { margin: 0, textAlign: 'center' as const };
@@ -168,6 +176,19 @@ export default function PaymentSection({ audience = 'parent' }: { audience?: 'pa
           <b className="display">{quota === null ? '…' : quota.plan?.planName ?? 'Miễn phí'}</b>
           {quota?.plan && <span className="pill ok">Đến {day(quota.plan.endAt)}</span>}
           {quota?.nextPlan && <span className="pill wait">Tiếp theo: {quota.nextPlan.planName} từ {day(quota.nextPlan.startAt)}</span>}
+          {benefits && typeof libraryUsed === 'number' && libraryLimit !== undefined && (
+            <p className="sub">
+              Truyện thư viện mới: {libraryLimit === null
+                ? 'không giới hạn'
+                : `${libraryUsed}/${libraryLimit} ${benefits.newLibraryStoriesPeriod === 'Cycle' ? 'trong chu kỳ' : 'trong tuần'} · làm mới ngày ${formatVnDate(benefits.newLibraryStoriesResetsAt)}`}
+            </p>
+          )}
+          {libraryExhausted && (
+            <p className="sub">
+              Đã hết lượt mở truyện mới. Bạn vẫn đọc lại được truyện đã mở.
+              {canUpgrade && ' Bạn có thể chọn Nâng cấp ở Gói Sáng tạo bên dưới.'}
+            </p>
+          )}
         </div>
         <div className="pay-credits">
           <b>{quota?.totalRemaining ?? '…'}</b>

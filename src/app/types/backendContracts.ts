@@ -1,5 +1,6 @@
 /** DTO snapshot, updated against Core controllers and media models on 2026-10-22. */
 import type { MediaPackageState } from '@/app/types/aiStory';
+import type { PlanBenefitsInput } from '@/app/types/planSettings';
 export interface AIProposalDto {
   'proposalId': string;
   'requestedByUserId': number;
@@ -2096,6 +2097,7 @@ export interface AdminSubscriptionPlanDto {
   'priceVnd': number;
   'aiCredits': number;
   'isActive': boolean;
+  'benefits'?: PlanBenefitsInput | null;
 }
 
 export interface UpdateSubscriptionPlanRequestDto {
@@ -2103,6 +2105,7 @@ export interface UpdateSubscriptionPlanRequestDto {
   'priceVnd': number;
   'aiCredits': number;
   'isActive': boolean;
+  'benefits'?: PlanBenefitsInput;
 }
 
 export interface QuotaPlanDto {
@@ -2123,6 +2126,13 @@ export interface MyQuotaDto {
   /** Lượt không hết hạn: còn dư từ gói Personal cũ hoặc Admin cấp. */
   'otherCredits': number;
   'totalRemaining': number;
+  'benefits'?: {
+    'weeklyNewLibraryStories': number | null;
+    'newLibraryStoriesPeriod': 'Week' | 'Cycle';
+    'newLibraryStoriesPeriodStart': string;
+    'newLibraryStoriesResetsAt': string;
+  };
+  'newLibraryStoriesUsed'?: number;
 }
 
 export interface AdjustCreditsRequestDto {

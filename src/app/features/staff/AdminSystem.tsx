@@ -8,7 +8,7 @@ import IconButton from "@/app/components/IconButton";
 import Pager from "@/app/components/Pager";
 import Select from "@/app/components/Select";
 import { adminPaymentService as pay } from "@/app/services/paymentService";
-import type { AdminPaymentTransactionDto, AdminSubscriptionPlanDto, CreditAdjustmentDto, MyQuotaDto, PagedResult, PaymentStatus, PlanType, ReconciliationExceptionDto } from "@/app/types/backendContracts";
+import type { AdminPaymentTransactionDto, AdminSubscriptionPlanDto, CreditAdjustmentDto, MyQuotaDto, PagedResult, PaymentStatus, PlanType, ReconciliationExceptionDto, UpdateSubscriptionPlanRequestDto } from "@/app/types/backendContracts";
 import { Notice, Page, fmt, fmtDay, useAction } from "./ui";
 import CreatePlanDialog from "./CreatePlanDialog";
 import PlanSettingsDialog from "./PlanSettingsDialog";
@@ -215,7 +215,10 @@ export function AdminPayments() {
   );
 }
 
-type PlanForm = { name: string; priceVnd: number; aiCredits: number; isActive: boolean };
+type PlanForm = Omit<UpdateSubscriptionPlanRequestDto, "benefits"> & {
+  libraryLimitText: string;
+  libraryUnlimited: boolean;
+};
 
 /** Luồng 5 mục 5a: sửa tên, giá, lượt AI và bật / tắt bán gói. Đổi giá chỉ áp cho giao dịch tạo sau đó. */
 export function AdminPlans() {
@@ -223,13 +226,34 @@ export function AdminPlans() {
   const [edit, setEdit] = useState<AdminSubscriptionPlanDto | null>(null);
   const [creating, setCreating] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [form, setForm] = useState<PlanForm>({ name: "", priceVnd: 0, aiCredits: 0, isActive: true });
+  const [form, setForm] = useState<PlanForm>({ name: "", priceVnd: 0, aiCredits: 0, isActive: true, libraryLimitText: "", libraryUnlimited: false });
   const load = useCallback(async () => { const r = await pay.plans(); setPlans(r.data ?? []); return r.success ? null : r.message; }, []);
   const { note, setNote, busy, run } = useAction(load);
   useEffect(() => { void load().then((err) => { if (err) setNote({ ok: false, text: err }); }); }, [load, setNote]);
-  const open = (p: AdminSubscriptionPlanDto) => { setEdit(p); setForm({ name: p.name, priceVnd: p.priceVnd, aiCredits: p.aiCredits, isActive: p.isActive }); };
-  const changed = !!edit && (form.name !== edit.name || form.priceVnd !== edit.priceVnd || form.aiCredits !== edit.aiCredits || form.isActive !== edit.isActive);
-  const valid = form.name.trim().length > 0 && form.name.length <= 150 && form.priceVnd > 0 && form.aiCredits >= 0;
+  const open = (p: AdminSubscriptionPlanDto) => {
+    const limit = p.benefits?.weeklyNewLibraryStories;
+    setEdit(p);
+    setForm({
+      name: p.name, priceVnd: p.priceVnd, aiCredits: p.aiCredits, isActive: p.isActive,
+      libraryLimitText: limit == null ? "" : String(limit),
+      libraryUnlimited: limit === null,
+    });
+  };
+  const benefits = edit?.planType === "Reading" || edit?.planType === "Creative" ? edit.benefits : undefined;
+  const { libraryLimitText, libraryUnlimited, ...details } = form;
+  const libraryLimit = libraryUnlimited ? null : Number(libraryLimitText);
+  const libraryValid = !benefits || libraryLimit === null
+    || (libraryLimitText.trim() !== "" && Number.isSafeInteger(libraryLimit) && libraryLimit >= 0);
+  const libraryChanged = !!benefits && (!libraryValid || libraryLimit !== benefits.weeklyNewLibraryStories);
+  const changed = !!edit && (form.name !== edit.name || form.priceVnd !== edit.priceVnd || form.aiCredits !== edit.aiCredits || form.isActive !== edit.isActive || libraryChanged);
+  const valid = form.name.trim().length > 0 && form.name.length <= 150 && form.priceVnd > 0 && form.aiCredits >= 0 && libraryValid;
+  const save = async () => {
+    if (!edit || busy || !valid || !changed) return;
+    const request: UpdateSubscriptionPlanRequestDto = { ...details, name: details.name.trim() };
+    if (benefits && libraryChanged) request.benefits = { ...benefits, weeklyNewLibraryStories: libraryLimit };
+    const ok = await run(() => pay.updatePlan(edit.id, request), `Đã lưu ${request.name}.`);
+    if (ok) setEdit(null);
+  };
   return (
     <Page
       title="Gói dịch vụ"
@@ -259,14 +283,30 @@ export function AdminPlans() {
           <label className="field"><span className="lbl">Tên gói</span><input className="inp" maxLength={150} value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
           <label className="field"><span className="lbl">Giá (đồng)</span><input className="inp" type="number" min={1} step={1000} value={form.priceVnd} onChange={(e) => setForm({ ...form, priceVnd: Math.floor(+e.target.value || 0) })} /></label>
           <label className="field"><span className="lbl">{edit.planType === "Creative" ? "Lượt AI mỗi chu kỳ" : "Lượt AI"}</span><input className="inp" type="number" min={0} value={form.aiCredits} onChange={(e) => setForm({ ...form, aiCredits: Math.max(0, Math.floor(+e.target.value || 0)) })} /></label>
+          {benefits && <div className="field">
+            <label className="field">
+              <span className="lbl">Truyện thư viện mới mỗi chu kỳ</span>
+              <input
+                className="inp"
+                type="number"
+                min={0}
+                step={1}
+                required={!libraryUnlimited}
+                disabled={libraryUnlimited}
+                value={libraryUnlimited ? "" : libraryLimitText}
+                onChange={(e) => setForm({ ...form, libraryLimitText: e.target.value })}
+              />
+            </label>
+            <label className="row" style={{ gap: 8 }}>
+              <input type="checkbox" checked={libraryUnlimited} onChange={(e) => setForm({ ...form, libraryUnlimited: e.target.checked })} />
+              Không giới hạn
+            </label>
+          </div>}
           <label className="row" style={{ gap: 8 }}><input type="checkbox" checked={form.isActive} disabled={edit.planType === "Legacy"} onChange={(e) => setForm({ ...form, isActive: e.target.checked })} style={{ accentColor: "var(--primary)" }} />Đang bán</label>
           {edit.planType === "Legacy" && <p className="notice warn">Gói cũ chỉ còn trong lịch sử giao dịch, không bật bán lại được.</p>}
           <p className="notice">Thay đổi chỉ áp cho giao dịch tạo sau khi lưu; giao dịch đang chờ giữ giá cũ.</p>
           <div className="row"><button className="btn btn-g" onClick={() => setEdit(null)}>Huỷ</button><span className="grow" />
-            {changed && <button className="btn btn-p" disabled={busy || !valid} onClick={async () => {
-              const ok = await run(() => pay.updatePlan(edit.id, { ...form, name: form.name.trim() }), `Đã lưu ${form.name.trim()}.`);
-              if (ok) setEdit(null);
-            }}>Lưu</button>}</div>
+            {changed && <button className="btn btn-p" disabled={busy || !valid} onClick={save}>Lưu</button>}</div>
         </div>
       </Dialog>}
     </Page>
