@@ -98,6 +98,8 @@ export default function ResultsTab({ child }: { child: ChildProfile }) {
                 <StoryTile
                   key={g[0].storyId}
                   items={g}
+                  childId={child.id}
+                  filter={filter}
                   cover={cover(g[0].storyId)}
                   open={openStory === g[0].storyId}
                   onToggle={() => setOpenStory((v) => (v === g[0].storyId ? null : g[0].storyId))}

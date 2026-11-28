@@ -3,12 +3,15 @@
 import { useRef } from "react";
 import { bounce, jelly } from "@/app/lib/motion";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import type { ParentReadingFeedbackItem } from "@/app/types/childReading";
-import { shortDate } from "./learningData";
+import type { ParentReadingFeedbackItem, ReadingFeedbackFilter } from "@/app/types/childReading";
+import { shortDate, useReadingFeedback } from "./learningData";
 import { feelingPill, quizPill } from "./resultPills";
 
 export interface StoryTileProps {
+  /** Các lần đọc của truyện nằm trong trang danh sách đang xem (có thể thiếu lần cũ ở trang sau). */
   items: ParentReadingFeedbackItem[];
+  childId: number;
+  filter: ReadingFeedbackFilter;
   /** Giá trị CSS background của bìa (useStoryCovers), bìa mẫu khi chưa có. */
   cover: string;
   /** Ô này đang mở cột lần đọc (cả lưới chỉ mở một ô, ResultsTab giữ). */
@@ -18,8 +21,17 @@ export interface StoryTileProps {
   onSelect: (item: ParentReadingFeedbackItem) => void;
 }
 
-export default function StoryTile({ items, cover, open, onToggle, onSelect }: StoryTileProps) {
+export default function StoryTile({ items: pageItems, childId, filter, cover, open, onToggle, onSelect }: StoryTileProps) {
   const coverRef = useRef<HTMLDivElement>(null);
+  // Mở ô thì tải đủ các lần đọc của riêng truyện này (lọc storyId), không chỉ những lần nằm trong trang đang xem.
+  // shortcut: chỉ lấy 50 lần mới nhất (pageSize tối đa của API), khi có bé đọc một truyện hơn 50 lần thì thêm phân trang trong cột.
+  const storyRuns = useReadingFeedback(childId, 1, 50, filter, open, pageItems[0]?.storyId ?? null);
+  // Chỉ dùng kết quả đã tải xong của lần mở này (đổi bộ lọc thì dữ liệu cũ không còn đúng).
+  const fetched = open && !storyRuns.loading && storyRuns.data?.items.length ? storyRuns.data : null;
+  const items = fetched?.items ?? pageItems;
+  // Chưa tải: lọc "Đã đọc xong" + "Tất cả" thì readCount từ API là tổng chính xác; còn lại đếm theo trang đang xem.
+  const total = fetched?.totalCount
+    ?? (filter.status === "Completed" && filter.range === "all" ? Math.max(pageItems[0]?.readCount ?? 0, pageItems.length) : pageItems.length);
   /** Bấm mở / đóng cột lần đọc: nút rung kiểu thạch, bìa truyện nảy nhẹ. */
   const toggle = (btn: HTMLButtonElement) => {
     jelly(btn);
@@ -51,7 +63,7 @@ export default function StoryTile({ items, cover, open, onToggle, onSelect }: St
           aria-expanded={open}
           onClick={(e) => toggle(e.currentTarget)}
         >
-          <span>{items.length} lần đọc</span>
+          <span>{total} lần đọc</span>
           <ChevronDown className="ic lr-story-chev" aria-hidden />
         </button>
       </div>

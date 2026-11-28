@@ -25,6 +25,12 @@ it('lists a child reading feedback page with the adult session',async()=>{
  expect(url.endsWith('/ParentReadingFeedback/3?pageIndex=2&pageSize=10')).toBe(true);expect(options.method).toBe('GET');
 });
 
+it('parent reading feedback list can keep only one story',async()=>{
+ vi.spyOn(authService,'getStoredAccessToken').mockReturnValue('adult');
+ await feedback.list(3,1,50,{status:'Completed',storyId:7});
+ expect(fetcher.mock.calls[0][0].endsWith('/ParentReadingFeedback/3?pageIndex=1&pageSize=50&status=Completed&storyId=7')).toBe(true);
+});
+
 it.each([
  ['GET','/ParentReadingFeedback/3/sessions/12/read-aloud',()=>feedback.readAloud(3,12)],
  ['DELETE','/ParentReadingFeedback/3/sessions/12/read-aloud/5',()=>feedback.removeReadAloud(3,12,5)],

@@ -79,6 +79,7 @@ export function useReadingFeedback(
   pageSize: number,
   filter: ReadingFeedbackFilter = { status: "Completed", range: "all" },
   enabled = true,
+  storyId: number | null = null,
 ): Paged<PagedReadingFeedback> & { loading: boolean } {
   const [data, setData] = useState<PagedReadingFeedback | null>(null);
   const [loading, setLoading] = useState(false);
@@ -89,14 +90,14 @@ export function useReadingFeedback(
     const controller = new AbortController();
     setLoading(true);
     const { from, to } = rangeToUtc(filter.range);
-    void parentReadingFeedbackService.list(childId, page, pageSize, { status: filter.status, from, to }, controller.signal).then((r) => {
+    void parentReadingFeedbackService.list(childId, page, pageSize, { status: filter.status, from, to, storyId }, controller.signal).then((r) => {
       if (controller.signal.aborted) return;
       setLoading(false);
       setData(r.success ? r.data : null);
       setError(r.success ? "" : r.message);
     });
     return () => controller.abort();
-  }, [childId, page, pageSize, filter.status, filter.range, enabled, tick]);
+  }, [childId, page, pageSize, filter.status, filter.range, enabled, storyId, tick]);
   return { data, error, loading, reload: useCallback(() => setTick((t) => t + 1), []) };
 }
 
