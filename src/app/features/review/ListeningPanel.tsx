@@ -9,6 +9,23 @@ const TYPE_LABEL: Record<string, string> = {
   FillBlank: "Điền từ còn thiếu",
   EventOrdering: "Sắp xếp sự kiện",
   PicturePrediction: "Đoán tranh",
+  ReadAloud: "Luyện đọc to",
+  CharacterLetter: "Chữ cái trong tên nhân vật",
+  WhoSaidIt: "Ai đã nói câu này",
+  PictureSearch: "Tìm vật trong tranh",
+  TrueFalse: "Đúng hay sai",
+  FollowAction: "Làm theo lời kể",
+  SentenceBuilder: "Ghép câu",
+  AlternateReading: "Đọc luân phiên",
+  InferenceQuestion: "Câu hỏi suy luận",
+  CauseEffect: "Nguyên nhân và kết quả",
+  SceneTitle: "Đặt tên cho đoạn truyện",
+  ThoughtBubble: "Bong bóng suy nghĩ",
+  CharacterTrial: "Phiên tòa nhân vật",
+  FindWrongDetail: "Tìm chi tiết sai",
+  RelationshipMap: "Sơ đồ quan hệ nhân vật",
+  StoryEditor: "Biên tập truyện",
+  WhatIf: "Nếu như…",
 };
 
 function Interaction({ item }: { item: ListeningInteractionDto }) {
@@ -44,6 +61,9 @@ export default function ListeningPanel({ listening, busy, canConfirm, onConfirm,
 }) {
   // Loại có vấn đề (lỗi thời, thiếu, sai luật): backend chỉ cho xác nhận sau khi sinh lại từng loại này.
   const badTypes = [...new Set(listening.issues.map((x) => x.type).filter((t): t is string => !!t))];
+  // Mỗi tuổi là một bộ độc lập: nhóm theo tuổi để người duyệt không thấy các bộ lẫn vào nhau.
+  const groups: { targetAge: number | null; items: ListeningInteractionDto[] }[] = listening.ageSets?.length
+    ? listening.ageSets : [{ targetAge: null, items: listening.items }];
   return (
     <article className="sheet">
       <div className="row">
@@ -66,9 +86,19 @@ export default function ListeningPanel({ listening, busy, canConfirm, onConfirm,
           </div>
         </div>
       )}
+      {listening.shortfallReason && (
+        <div className="notice" role="status">
+          <CircleAlert className="ic" /> Bộ tương tác chưa đủ 5. {listening.shortfallReason}
+        </div>
+      )}
       {listening.items.length === 0
         ? <p className="sub">Chưa có tương tác nào.</p>
-        : <ol className="art-list quiz-list">{listening.items.map((it) => <Interaction key={it.id} item={it} />)}</ol>}
+        : groups.map((g) => (
+          <section key={g.targetAge ?? "all"}>
+            {g.targetAge != null && <h4 className="display" style={{ margin: "12px 0 6px" }}>Tuổi {g.targetAge} · {g.items.length} tương tác</h4>}
+            <ol className="art-list quiz-list">{g.items.map((it) => <Interaction key={it.id} item={it} />)}</ol>
+          </section>
+        ))}
     </article>
   );
 }

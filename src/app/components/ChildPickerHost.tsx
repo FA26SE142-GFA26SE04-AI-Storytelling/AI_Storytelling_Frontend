@@ -44,7 +44,10 @@ export default function ChildPickerHost() {
             {options.map((k) => (
               <button key={k.id} type="button" className="cpick" onClick={() => close(k)}>
                 <span className="av" aria-hidden>{avatarOf(k.avatarId).emoji}</span>
-                <span className="grow"><b>{k.nickname}</b><small>{childAgeLabel(k)}</small></span>
+                <span className="grow">
+                  <b>{k.nickname}</b><small>{childAgeLabel(k)}</small>
+                  {(k.age ?? null) === null && <small className="cpick-warn">Chưa chọn tuổi cụ thể: không tạo được truyện tương tác cho bé này. Vào Hồ sơ bé để chọn tuổi.</small>}
+                </span>
               </button>
             ))}
           </div>

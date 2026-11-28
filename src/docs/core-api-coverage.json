@@ -1776,7 +1776,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SearchStories",
-    "controllerLine": 65,
+    "controllerLine": 68,
     "evidence": [
       {
         "key": "GET /api/v1/child/reading/stories",
@@ -1798,7 +1798,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "Start",
-    "controllerLine": 73,
+    "controllerLine": 76,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions",
@@ -1819,7 +1819,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "GetContent",
-    "controllerLine": 81,
+    "controllerLine": 84,
     "evidence": [
       {
         "key": "GET /api/v1/child/reading/sessions/{}/content",
@@ -1840,7 +1840,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SaveProgress",
-    "controllerLine": 88,
+    "controllerLine": 91,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/progress",
@@ -1861,7 +1861,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "Complete",
-    "controllerLine": 96,
+    "controllerLine": 99,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/complete",
@@ -1882,7 +1882,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SetBookmark",
-    "controllerLine": 103,
+    "controllerLine": 106,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/bookmark",
@@ -1903,7 +1903,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SetFavorite",
-    "controllerLine": 111,
+    "controllerLine": 114,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/favorite",
@@ -1924,7 +1924,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SetListenOnly",
-    "controllerLine": 121,
+    "controllerLine": 124,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/listen-only",
@@ -1945,7 +1945,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SubmitListeningAttempt",
-    "controllerLine": 130,
+    "controllerLine": 133,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/interactions/{}/attempts",
@@ -1961,12 +1961,22 @@
     "disposition": "CONNECTED_SOURCE"
   },
   {
+    "method": "PATCH",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/listening/{interactionId}/steps",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "SaveListeningSteps",
+    "controllerLine": 142,
+    "evidence": [],
+    "disposition": "MISSING"
+  },
+  {
     "method": "PUT",
     "route": "/api/v1/child/reading/sessions/{sessionId}/feeling",
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "SetFeeling",
-    "controllerLine": 139,
+    "controllerLine": 151,
     "evidence": [
       {
         "key": "PUT /api/v1/child/reading/sessions/{}/feeling",
@@ -1987,7 +1997,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "GetSignal",
-    "controllerLine": 148,
+    "controllerLine": 160,
     "evidence": [
       {
         "key": "GET /api/v1/child/reading/sessions/{}/signal",
@@ -2008,7 +2018,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "LogEvent",
-    "controllerLine": 154,
+    "controllerLine": 166,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/events",
@@ -2029,7 +2039,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "GetDefinition",
-    "controllerLine": 162,
+    "controllerLine": 174,
     "evidence": [
       {
         "key": "GET /api/v1/child/reading/sessions/{}/vocabulary/{}",
@@ -2050,7 +2060,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "ReadAloud",
-    "controllerLine": 172,
+    "controllerLine": 184,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/segments/{}/read-aloud",
@@ -2071,7 +2081,7 @@
     "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
     "controller": "ChildReadingController.cs",
     "action": "ReadAloudPractice",
-    "controllerLine": 186,
+    "controllerLine": 198,
     "evidence": [
       {
         "key": "POST /api/v1/child/reading/sessions/{}/read-aloud-practice/{}",
@@ -2085,6 +2095,16 @@
       }
     ],
     "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/child/reading/sessions/{sessionId}/free-answer/{interactionId}",
+    "authorization": "Policy = ServiceExtensions.ChildSessionPolicy",
+    "controller": "ChildReadingController.cs",
+    "action": "SaveFreeAnswer",
+    "controllerLine": 210,
+    "evidence": [],
+    "disposition": "MISSING"
   },
   {
     "method": "GET",
@@ -2834,7 +2854,7 @@
         "service": "adminCreatorService",
         "operation": "creators",
         "file": "app/services/adminCreatorService.ts",
-        "line": 52,
+        "line": 58,
         "callers": [
           "app/features/staff/CreatorAccountsTab.tsx"
         ]
@@ -2855,7 +2875,7 @@
         "service": "adminCreatorService",
         "operation": "creator",
         "file": "app/services/adminCreatorService.ts",
-        "line": 53,
+        "line": 59,
         "callers": []
       }
     ],
@@ -2874,7 +2894,7 @@
         "service": "adminCreatorService",
         "operation": "deactivate",
         "file": "app/services/adminCreatorService.ts",
-        "line": 55,
+        "line": 61,
         "callers": [
           "app/features/staff/CreatorAccountsTab.tsx"
         ]
@@ -2895,7 +2915,7 @@
         "service": "adminCreatorService",
         "operation": "reactivate",
         "file": "app/services/adminCreatorService.ts",
-        "line": 56,
+        "line": 62,
         "callers": [
           "app/features/staff/CreatorAccountsTab.tsx"
         ]
@@ -2958,7 +2978,7 @@
         "service": "adminCreatorService",
         "operation": "applications",
         "file": "app/services/adminCreatorService.ts",
-        "line": 45,
+        "line": 51,
         "callers": [
           "app/features/staff/AdminCreators.tsx",
           "app/features/staff/adminTodo.ts",
@@ -2981,7 +3001,7 @@
         "service": "adminCreatorService",
         "operation": "application",
         "file": "app/services/adminCreatorService.ts",
-        "line": 46,
+        "line": 52,
         "callers": []
       }
     ],
@@ -3000,7 +3020,7 @@
         "service": "adminCreatorService",
         "operation": "approve",
         "file": "app/services/adminCreatorService.ts",
-        "line": 47,
+        "line": 53,
         "callers": [
           "app/features/staff/CreatorApplicationDialog.tsx"
         ]
@@ -3021,7 +3041,7 @@
         "service": "adminCreatorService",
         "operation": "reject",
         "file": "app/services/adminCreatorService.ts",
-        "line": 49,
+        "line": 55,
         "callers": [
           "app/features/staff/CreatorApplicationDialog.tsx"
         ]
@@ -3693,11 +3713,32 @@
   },
   {
     "method": "POST",
-    "route": "/api/v1/admin/creator-payouts/{payoutId}/cancel",
+    "route": "/api/v1/admin/creator-payouts/periods/close-now",
     "authorization": "Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage",
     "controller": "CreatorPayoutController.cs",
+    "action": "CloseNow",
+    "controllerLine": 77,
+    "evidence": [
+      {
+        "key": "POST /api/v1/admin/creator-payouts/periods/close-now",
+        "service": "creatorAdminService",
+        "operation": "closePeriodNow",
+        "file": "app/services/creatorAdminService.ts",
+        "line": 29,
+        "callers": [
+          "app/features/staff/AdminCreatorPayouts.tsx"
+        ]
+      }
+    ],
+    "disposition": "CONNECTED_SOURCE"
+  },
+  {
+    "method": "POST",
+    "route": "/api/v1/admin/creator-payouts/{payoutId}/cancel",
+    "authorization": "Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Creator.PayoutViewOwn; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage; Permission = Permissions.Admin.CreatorPayoutManage",
+    "controller": "CreatorPayoutController.cs",
     "action": "Cancel",
-    "controllerLine": 74,
+    "controllerLine": 86,
     "evidence": [
       {
         "key": "POST /api/v1/admin/creator-payouts/{}/cancel",
@@ -3910,7 +3951,7 @@
     "authorization": "Authenticated",
     "controller": "EventsController.cs",
     "action": "List",
-    "controllerLine": 33,
+    "controllerLine": 32,
     "evidence": [
       {
         "key": "GET /api/v1/events",
@@ -3930,10 +3971,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/reward-plans",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "ListRewardPlans",
-    "controllerLine": 42,
+    "controllerLine": 41,
     "evidence": [
       {
         "key": "GET /api/v1/events/reward-plans",
@@ -3951,10 +3992,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated",
     "controller": "EventsController.cs",
     "action": "Detail",
-    "controllerLine": 47,
+    "controllerLine": 46,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}",
@@ -3973,10 +4014,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/events/{eventId}/lead-moderator",
-    "authorization": "Permission = Permissions.Admin.EventApprove",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove",
     "controller": "EventsController.cs",
     "action": "UpdateLeadModerator",
-    "controllerLine": 59,
+    "controllerLine": 58,
     "evidence": [
       {
         "key": "PUT /api/v1/events/{}/lead-moderator",
@@ -3994,10 +4035,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/clone-to-activity-draft",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "CloneToActivityDraft",
-    "controllerLine": 66,
+    "controllerLine": 65,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/clone-to-activity-draft",
@@ -4015,10 +4056,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "Create",
-    "controllerLine": 72,
+    "controllerLine": 71,
     "evidence": [
       {
         "key": "POST /api/v1/events",
@@ -4037,10 +4078,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/events/{eventId}",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "Update",
-    "controllerLine": 77,
+    "controllerLine": 76,
     "evidence": [
       {
         "key": "PUT /api/v1/events/{}",
@@ -4059,10 +4100,10 @@
   {
     "method": "DELETE",
     "route": "/api/v1/events/{eventId}",
-    "authorization": "Permission = Permissions.Admin.EventApprove",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove",
     "controller": "EventsController.cs",
     "action": "DeleteDraft",
-    "controllerLine": 82,
+    "controllerLine": 81,
     "evidence": [
       {
         "key": "DELETE /api/v1/events/{}",
@@ -4080,10 +4121,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/events/{eventId}/rules-section",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "UpdateRulesSection",
-    "controllerLine": 87,
+    "controllerLine": 86,
     "evidence": [
       {
         "key": "PUT /api/v1/events/{}/rules-section",
@@ -4101,10 +4142,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/events/{eventId}/schedule-section",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "UpdateScheduleSection",
-    "controllerLine": 92,
+    "controllerLine": 91,
     "evidence": [
       {
         "key": "PUT /api/v1/events/{}/schedule-section",
@@ -4120,10 +4161,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/events/{eventId}/tasks-section",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "UpdateTasksSection",
-    "controllerLine": 97,
+    "controllerLine": 96,
     "evidence": [
       {
         "key": "PUT /api/v1/events/{}/tasks-section",
@@ -4141,10 +4182,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/events/{eventId}/awards-section",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "UpdateAwardsSection",
-    "controllerLine": 102,
+    "controllerLine": 101,
     "evidence": [
       {
         "key": "PUT /api/v1/events/{}/awards-section",
@@ -4162,10 +4203,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/rules",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "UpsertRules",
-    "controllerLine": 107,
+    "controllerLine": 106,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/rules",
@@ -4183,10 +4224,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/submit-approval",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "SubmitApproval",
-    "controllerLine": 112,
+    "controllerLine": 111,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/submit-approval",
@@ -4204,10 +4245,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/approve",
-    "authorization": "Permission = Permissions.Admin.EventApprove",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove",
     "controller": "EventsController.cs",
     "action": "Approve",
-    "controllerLine": 117,
+    "controllerLine": 116,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/approve",
@@ -4225,10 +4266,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/publish",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "Publish",
-    "controllerLine": 122,
+    "controllerLine": 121,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/publish",
@@ -4246,10 +4287,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/task-filter-stories",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "ListTaskFilterStories",
-    "controllerLine": 127,
+    "controllerLine": 126,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/task-filter-stories",
@@ -4267,10 +4308,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/seed-stories",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "SeedStories",
-    "controllerLine": 136,
+    "controllerLine": 135,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/seed-stories",
@@ -4288,10 +4329,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/summary",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "Summary",
-    "controllerLine": 141,
+    "controllerLine": 140,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/summary",
@@ -4309,10 +4350,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/close",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "Close",
-    "controllerLine": 149,
+    "controllerLine": 148,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/close",
@@ -4330,10 +4371,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/register",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "Register",
-    "controllerLine": 154,
+    "controllerLine": 153,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/register",
@@ -4353,10 +4394,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/creator-submit",
-    "authorization": "Permission = Permissions.Creator.Studio",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio",
     "controller": "EventsController.cs",
     "action": "CreatorSubmit",
-    "controllerLine": 159,
+    "controllerLine": 158,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/creator-submit",
@@ -4374,10 +4415,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/parent-submit",
-    "authorization": "Permission = Permissions.Parent.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate",
     "controller": "EventsController.cs",
     "action": "ParentSubmit",
-    "controllerLine": 164,
+    "controllerLine": 163,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/parent-submit",
@@ -4395,10 +4436,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/activities/submission/submit",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "SubmitActivityStory",
-    "controllerLine": 169,
+    "controllerLine": 168,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/activities/submission/submit",
@@ -4416,10 +4457,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/my-submissions",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "MySubmissions",
-    "controllerLine": 174,
+    "controllerLine": 173,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/my-submissions",
@@ -4437,10 +4478,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/submissions/{submissionId}/review-parent",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "ReviewParent",
-    "controllerLine": 179,
+    "controllerLine": 178,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/submissions/{}/review-parent",
@@ -4458,10 +4499,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/submissions",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "ListSubmissions",
-    "controllerLine": 184,
+    "controllerLine": 183,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/submissions",
@@ -4479,10 +4520,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/my-submission",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "MySubmission",
-    "controllerLine": 192,
+    "controllerLine": 191,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/my-submission",
@@ -4501,10 +4542,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/my-participation",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "MyParticipation",
-    "controllerLine": 197,
+    "controllerLine": 196,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/my-participation",
@@ -4522,10 +4563,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/my-participations",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "MyParticipations",
-    "controllerLine": 203,
+    "controllerLine": 202,
     "evidence": [
       {
         "key": "GET /api/v1/events/my-participations",
@@ -4543,10 +4584,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/mission-dashboard",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "MissionDashboard",
-    "controllerLine": 208,
+    "controllerLine": 207,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/mission-dashboard",
@@ -4565,10 +4606,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/voting-stories",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "VotingStories",
-    "controllerLine": 213,
+    "controllerLine": 212,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/voting-stories",
@@ -4586,10 +4627,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/votes",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "CastVote",
-    "controllerLine": 218,
+    "controllerLine": 217,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/votes",
@@ -4609,10 +4650,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/votes",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "ListVotes",
-    "controllerLine": 223,
+    "controllerLine": 222,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/votes",
@@ -4630,10 +4671,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/votes/{voteId}/disqualify",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "DisqualifyVote",
-    "controllerLine": 231,
+    "controllerLine": 230,
     "evidence": [
       {
         "key": "POST /api/v1/events/votes/{}/disqualify",
@@ -4651,10 +4692,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/leaderboard",
-    "authorization": "Authenticated",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated",
     "controller": "EventsController.cs",
     "action": "Leaderboard",
-    "controllerLine": 236,
+    "controllerLine": 235,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/leaderboard",
@@ -4675,10 +4716,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/tasks/{taskDefinitionId}/complete",
-    "authorization": "Permission = Permissions.Parent.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate",
     "controller": "EventsController.cs",
     "action": "CompleteTask",
-    "controllerLine": 246,
+    "controllerLine": 245,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/tasks/{}/complete",
@@ -4697,10 +4738,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/verify",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "Verify",
-    "controllerLine": 251,
+    "controllerLine": 250,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/verify",
@@ -4718,10 +4759,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/appeals",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "CreateAppeal",
-    "controllerLine": 256,
+    "controllerLine": 255,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/appeals",
@@ -4741,10 +4782,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/appeals",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "ListAppeals",
-    "controllerLine": 261,
+    "controllerLine": 260,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/appeals",
@@ -4762,10 +4803,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/appeals/{appealId}/decide",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "DecideAppeal",
-    "controllerLine": 269,
+    "controllerLine": 268,
     "evidence": [
       {
         "key": "POST /api/v1/events/appeals/{}/decide",
@@ -4783,10 +4824,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/submissions/{submissionId}/evaluate",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "EvaluateSubmission",
-    "controllerLine": 274,
+    "controllerLine": 273,
     "evidence": [
       {
         "key": "POST /api/v1/events/submissions/{}/evaluate",
@@ -4804,10 +4845,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/awards/propose",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "ProposeAwards",
-    "controllerLine": 282,
+    "controllerLine": 281,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/awards/propose",
@@ -4825,10 +4866,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/awards/{awardId}/candidates",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "AwardCandidates",
-    "controllerLine": 287,
+    "controllerLine": 286,
     "evidence": [
       {
         "key": "GET /api/v1/events/awards/{}/candidates",
@@ -4846,10 +4887,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/events/awards/{awardId}/assignment",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "ManualAssignAward",
-    "controllerLine": 292,
+    "controllerLine": 291,
     "evidence": [
       {
         "key": "PUT /api/v1/events/awards/{}/assignment",
@@ -4867,10 +4908,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/awards/confirm",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "ConfirmAwards",
-    "controllerLine": 298,
+    "controllerLine": 297,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/awards/confirm",
@@ -4888,10 +4929,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/awards/approve",
-    "authorization": "Permission = Permissions.Admin.EventApprove",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove",
     "controller": "EventsController.cs",
     "action": "ApproveAwards",
-    "controllerLine": 303,
+    "controllerLine": 302,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/awards/approve",
@@ -4909,10 +4950,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/awards/{awardId}/revoke",
-    "authorization": "Permission = Permissions.Moderation.EventManage",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage",
     "controller": "EventsController.cs",
     "action": "RevokeAward",
-    "controllerLine": 308,
+    "controllerLine": 307,
     "evidence": [
       {
         "key": "POST /api/v1/events/awards/{}/revoke",
@@ -4930,10 +4971,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/my-results",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "MyResults",
-    "controllerLine": 314,
+    "controllerLine": 313,
     "evidence": [
       {
         "key": "GET /api/v1/events/my-results",
@@ -4952,10 +4993,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/{eventId}/results",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "PublicResults",
-    "controllerLine": 319,
+    "controllerLine": 318,
     "evidence": [
       {
         "key": "GET /api/v1/events/{}/results",
@@ -4973,10 +5014,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/my-rewards",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "MyRewards",
-    "controllerLine": 324,
+    "controllerLine": 323,
     "evidence": [
       {
         "key": "GET /api/v1/events/my-rewards",
@@ -4994,10 +5035,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/awards/{awardId}/claim",
-    "authorization": "Permission = Permissions.Shared.EventParticipate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate",
     "controller": "EventsController.cs",
     "action": "ClaimReward",
-    "controllerLine": 329,
+    "controllerLine": 328,
     "evidence": [
       {
         "key": "POST /api/v1/events/awards/{}/claim",
@@ -5018,10 +5059,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/awards/process-expired",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "ProcessExpired",
-    "controllerLine": 334,
+    "controllerLine": 333,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/awards/process-expired",
@@ -5039,10 +5080,10 @@
   {
     "method": "GET",
     "route": "/api/v1/events/awards/{awardId}/recipient",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "RewardRecipient",
-    "controllerLine": 339,
+    "controllerLine": 338,
     "evidence": [
       {
         "key": "GET /api/v1/events/awards/{}/recipient",
@@ -5060,10 +5101,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/{eventId}/awards/notify",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "NotifyAwardWinners",
-    "controllerLine": 345,
+    "controllerLine": 344,
     "evidence": [
       {
         "key": "POST /api/v1/events/{}/awards/notify",
@@ -5081,10 +5122,10 @@
   {
     "method": "POST",
     "route": "/api/v1/events/awards/{awardId}/fulfill",
-    "authorization": "Permission = Permissions.Moderation.EventOperate",
+    "authorization": "Authenticated; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Creator.Studio; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Authenticated; Permission = Permissions.Parent.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Admin.EventApprove; Permission = Permissions.Moderation.EventManage; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Shared.EventParticipate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate; Permission = Permissions.Moderation.EventOperate",
     "controller": "EventsController.cs",
     "action": "Fulfill",
-    "controllerLine": 350,
+    "controllerLine": 349,
     "evidence": [
       {
         "key": "POST /api/v1/events/awards/{}/fulfill",
@@ -5906,7 +5947,7 @@
     "authorization": "Policy = \"ChildSession\"",
     "controller": "MyRoadmapController.cs",
     "action": "Get",
-    "controllerLine": 20,
+    "controllerLine": 21,
     "evidence": [
       {
         "key": "GET /api/v1/MyRoadmap",
@@ -8056,7 +8097,7 @@
     "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ReadingScheduleController.cs",
     "action": "GetReadingSchedule",
-    "controllerLine": 24,
+    "controllerLine": 25,
     "evidence": [
       {
         "key": "GET /api/v1/ReadingSchedule/{}",
@@ -8074,10 +8115,10 @@
   {
     "method": "GET",
     "route": "/api/v1/ReadingSchedule/suggestion",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ReadingScheduleController.cs",
     "action": "GetSuggestion",
-    "controllerLine": 34,
+    "controllerLine": 35,
     "evidence": [
       {
         "key": "GET /api/v1/ReadingSchedule/suggestion",
@@ -8095,10 +8136,10 @@
   {
     "method": "PUT",
     "route": "/api/v1/ReadingSchedule/{childProfileId}",
-    "authorization": "Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage; Permission = Permissions.Parent.ChildProfileManage",
+    "authorization": "Permission = Permissions.Parent.ChildProfileManage",
     "controller": "ReadingScheduleController.cs",
     "action": "SetReadingSchedule",
-    "controllerLine": 43,
+    "controllerLine": 44,
     "evidence": [
       {
         "key": "PUT /api/v1/ReadingSchedule/{}",
