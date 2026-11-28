@@ -356,6 +356,8 @@ describe('Creator Statistics Tabs', () => {
       expect(text).toContain('250.000 đ');
       expect(text).toContain('25');
       expect(text).toContain('Quỹ nhà sáng tạo');
+      const [tooltip] = nodes(tree, (node) => node.type === 'span' && node.props.className === 'info-tip');
+      expect(tooltip?.props.title).toContain('mỗi gia đình tối đa 60 lượt mỗi tháng');
     });
 
     it('calls showToast and hides "250.000 đ" when revenue service returns success: false', async () => {
